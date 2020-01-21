@@ -5,16 +5,26 @@ using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal sealed class SymbolChanges
+    internal abstract class SymbolChanges
     {
+        /// <summary>
+        /// Maps definitions being emitted to the corresponding definitions defined in the previous generation (metadata or source).
+        /// </summary>
         private readonly DefinitionMap _definitionMap;
+
+        /// <summary>
+        /// Contains all symbols explicitly updated/added to the source and 
+        /// their containing types and namespaces. 
+        /// </summary>
         private readonly IReadOnlyDictionary<ISymbol, SymbolChange> _changes;
+
         private readonly Func<ISymbol, bool> _isAddedSymbol;
 
-        public SymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
+        protected SymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
         {
             Debug.Assert(definitionMap != null);
             Debug.Assert(edits != null);
@@ -50,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 Debug.Assert(synthesizedDef.Method != null);
 
                 var generator = synthesizedDef.Method;
-                var synthesizedSymbol = (ISymbol)synthesizedDef;
+                ISymbolInternal synthesizedSymbol = synthesizedDef;
 
                 var change = GetChange((IDefinition)generator);
                 switch (change)
@@ -128,10 +138,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
-            var symbol = def as ISymbol;
-            if (symbol != null)
+            if (def is ISymbolInternal symbol)
             {
-                return GetChange(symbol);
+                return GetChange(symbol.GetISymbol());
             }
 
             // If the def existed in the previous generation, the def is unchanged
@@ -146,8 +155,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private SymbolChange GetChange(ISymbol symbol)
         {
-            SymbolChange change;
-            if (_changes.TryGetValue(symbol, out change))
+            if (_changes.TryGetValue(symbol, out var change))
             {
                 return change;
             }
@@ -159,43 +167,48 @@ namespace Microsoft.CodeAnalysis.Emit
                 return SymbolChange.None;
             }
 
-            change = this.GetChange(container);
-            switch (change)
+            var containerChange = GetChange(container);
+            switch (containerChange)
             {
                 case SymbolChange.Added:
+                    // If container is added then all its members have been added.
                     return SymbolChange.Added;
 
                 case SymbolChange.None:
+                    // If container has no changes then none of its members have any changes.
                     return SymbolChange.None;
 
                 case SymbolChange.Updated:
                 case SymbolChange.ContainsChanges:
-                    var definition = symbol as IDefinition;
+                    ISymbolInternal symbolInternal = GetISymbolInternalOrNull(symbol);
 
-                    if (definition != null && !_definitionMap.DefinitionExists(definition))
+                    if (symbolInternal is IDefinition definition)
                     {
                         // If the definition did not exist in the previous generation, it was added.
-                        return SymbolChange.Added;
+                        return _definitionMap.DefinitionExists(definition) ? SymbolChange.None : SymbolChange.Added;
+                    }
+
+                    if (symbolInternal is INamespace @namespace)
+                    {
+                        // If the namespace did not exist in the previous generation, it was added.
+                        // Otherwise the namespace may contain changes.
+                        return _definitionMap.NamespaceExists(@namespace) ? SymbolChange.ContainsChanges : SymbolChange.Added;
                     }
 
                     return SymbolChange.None;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(change);
+                    throw ExceptionUtilities.UnexpectedValue(containerChange);
             }
         }
 
-        public IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
-        {
-            var module = (CommonPEModuleBuilder)context.Module;
-            foreach (var type in module.GetAnonymousTypes(context))
-            {
-                yield return type;
-            }
+        protected abstract ISymbolInternal GetISymbolInternalOrNull(ISymbol symbol);
 
+        public IEnumerable<INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
+        {
             foreach (var symbol in _changes.Keys)
             {
-                var namespaceTypeDef = (symbol as ITypeDefinition)?.AsNamespaceTypeDefinition(context);
+                var namespaceTypeDef = (GetISymbolInternalOrNull(symbol) as ITypeDefinition)?.AsNamespaceTypeDefinition(context);
                 if (namespaceTypeDef != null)
                 {
                     yield return namespaceTypeDef;
@@ -255,14 +268,14 @@ namespace Microsoft.CodeAnalysis.Emit
                     }
                 }
 
-                AddContainingTypes(changes, member);
+                AddContainingTypesAndNamespaces(changes, member);
                 changes.Add(member, change);
             }
 
             return changes;
         }
 
-        private static void AddContainingTypes(Dictionary<ISymbol, SymbolChange> changes, ISymbol symbol)
+        private static void AddContainingTypesAndNamespaces(Dictionary<ISymbol, SymbolChange> changes, ISymbol symbol)
         {
             while (true)
             {
@@ -314,6 +327,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         }
                     }
                     break;
+
                 case SymbolKind.Method:
                     {
                         var associated = ((IMethodSymbol)symbol).AssociatedSymbol;

@@ -10,14 +10,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         public static Shell_InProc Create() => new Shell_InProc();
 
-        public string GetActiveWindowCaption()
-            => InvokeOnUIThread(() => GetDTE().ActiveWindow.Caption);
+        public string GetVersion()
+        {
+            return InvokeOnUIThread(cancellationToken =>
+            {
+                var shell = GetGlobalService<SVsShell, IVsShell>();
+                ErrorHandler.ThrowOnFailure(shell.GetProperty((int)__VSSPROPID5.VSSPROPID_ReleaseVersion, out var version));
+                return (string)version;
+            });
+        }
 
-        public int GetHWnd()
-            => GetDTE().MainWindow.HWnd;
+        public string GetActiveWindowCaption()
+            => InvokeOnUIThread(cancellationToken => GetDTE().ActiveWindow.Caption);
+
+        public IntPtr GetHWnd()
+            => (IntPtr)GetDTE().MainWindow.HWnd;
 
         public bool IsActiveTabProvisional()
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var shellMonitorSelection = GetGlobalService<SVsShellMonitorSelection, IVsMonitorSelection>();
                 if (!ErrorHandler.Succeeded(shellMonitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var windowFrameObject)))
@@ -33,5 +43,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 return (bool)isProvisionalObject;
             });
+
+        public bool IsUIContextActive(Guid context)
+        {
+            return UIContext.FromUIContextGuid(context).IsActive;
+        }
     }
 }

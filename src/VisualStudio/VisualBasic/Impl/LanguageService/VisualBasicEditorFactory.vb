@@ -3,6 +3,7 @@
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
@@ -10,8 +11,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     Friend Class VisualBasicEditorFactory
         Inherits AbstractEditorFactory
 
-        Public Sub New(package As VisualBasicPackage)
-            MyBase.New(package)
+        Public Sub New(componentModel As IComponentModel)
+            MyBase.New(componentModel)
         End Sub
 
         Protected Overrides ReadOnly Property ContentTypeName As String

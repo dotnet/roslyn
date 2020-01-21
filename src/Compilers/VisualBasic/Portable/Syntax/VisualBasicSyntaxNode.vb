@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom)
             End If
 
-            Using reader = ObjectReader.TryGetReader(stream, cancellationToken:=cancellationToken)
+            Using reader = ObjectReader.TryGetReader(stream, leaveOpen:=True, cancellationToken:=cancellationToken)
                 If reader Is Nothing Then
                     Throw New ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, NameOf(stream))
                 End If
@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If node.ContainsDiagnostics Then
                         Dim errors = DirectCast(node, Syntax.InternalSyntax.VisualBasicSyntaxNode).GetDiagnostics
                         If errors IsNot Nothing Then
-                            For i = 0 To errors.Count - 1
+                            For i = 0 To errors.Length - 1
                                 Dim greenError = errors(i)
                                 Debug.Assert(greenError IsNot Nothing)
                                 errorList.Add(CreateSyntaxError(tree, nodeOrToken, greenError))

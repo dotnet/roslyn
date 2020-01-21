@@ -43,6 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _lazyImplementedEvents As ImmutableArray(Of EventSymbol)
         Private _lazyDelegateParameters As ImmutableArray(Of ParameterSymbol)
         Private _lazyDocComment As String
+        Private _lazyExpandedDocComment As String
 
         ' Attributes on event. Set once after construction. IsNull means not set. 
         Private _lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
@@ -690,13 +691,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing,
                                                              Optional expandIncludes As Boolean = False,
                                                              Optional cancellationToken As CancellationToken = Nothing) As String
-            If _lazyDocComment Is Nothing Then
-                ' NOTE: replace Nothing with empty comment
-                Interlocked.CompareExchange(
-                    _lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
+            If expandIncludes Then
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyExpandedDocComment, cancellationToken)
+            Else
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyDocComment, cancellationToken)
             End If
-
-            Return _lazyDocComment
         End Function
 
         Friend Shared Function DecodeModifiers(modifiers As SyntaxTokenList,

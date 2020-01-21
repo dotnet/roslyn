@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
             var doc = this.CurrentSolution.GetDocument(documentId);
             if (doc != null)
             {
-                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                var text = doc.GetTextSynchronously(CancellationToken.None);
                 this.OnDocumentOpened(documentId, text.Container, activate);
             }
         }
@@ -167,8 +167,8 @@ namespace Microsoft.CodeAnalysis
             var doc = this.CurrentSolution.GetDocument(documentId);
             if (doc != null)
             {
-                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                var version = doc.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                var text = doc.GetTextSynchronously(CancellationToken.None);
+                var version = doc.GetTextVersionSynchronously(CancellationToken.None);
                 var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
                 this.OnDocumentClosed(documentId, loader);
             }
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis
             var doc = this.CurrentSolution.GetAdditionalDocument(documentId);
             if (doc != null)
             {
-                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                var text = doc.GetTextSynchronously(CancellationToken.None);
                 this.OnAdditionalDocumentOpened(documentId, text.Container, activate);
             }
         }
@@ -195,10 +195,38 @@ namespace Microsoft.CodeAnalysis
             var doc = this.CurrentSolution.GetAdditionalDocument(documentId);
             if (doc != null)
             {
-                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                var version = doc.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                var text = doc.GetTextSynchronously(CancellationToken.None);
+                var version = doc.GetTextVersionSynchronously(CancellationToken.None);
                 var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
                 this.OnAdditionalDocumentClosed(documentId, loader);
+            }
+        }
+
+        /// <summary>
+        /// Puts the specified analyzer config document into the open state.
+        /// </summary>
+        public override void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
+        {
+            var doc = this.CurrentSolution.GetAnalyzerConfigDocument(documentId);
+            if (doc != null)
+            {
+                var text = doc.GetTextSynchronously(CancellationToken.None);
+                this.OnAnalyzerConfigDocumentOpened(documentId, text.Container, activate);
+            }
+        }
+
+        /// <summary>
+        /// Puts the specified analyzer config document into the closed state
+        /// </summary>
+        public override void CloseAnalyzerConfigDocument(DocumentId documentId)
+        {
+            var doc = this.CurrentSolution.GetAnalyzerConfigDocument(documentId);
+            if (doc != null)
+            {
+                var text = doc.GetTextSynchronously(CancellationToken.None);
+                var version = doc.GetTextVersionSynchronously(CancellationToken.None);
+                var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
+                this.OnAnalyzerConfigDocumentClosed(documentId, loader);
             }
         }
     }

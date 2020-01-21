@@ -7,26 +7,15 @@ Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
-    Friend Class LineAdjustmentFormattingRule
-        Implements IFormattingRule
+    Friend NotInheritable Class LineAdjustmentFormattingRule
+        Inherits CompatAbstractFormattingRule
 
-        Public Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, lastToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextAction(Of SuppressOperation)) Implements IFormattingRule.AddSuppressOperations
-            nextOperation.Invoke(list)
+        Public Shared ReadOnly Instance As New LineAdjustmentFormattingRule()
+
+        Private Sub New()
         End Sub
 
-        Public Sub AddAnchorIndentationOperations(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of AnchorIndentationOperation)) Implements IFormattingRule.AddAnchorIndentationOperations
-            nextOperation.Invoke(list)
-        End Sub
-
-        Public Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of IndentBlockOperation)) Implements IFormattingRule.AddIndentBlockOperations
-            nextOperation.Invoke(list)
-        End Sub
-
-        Public Sub AddAlignTokensOperations(list As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of AlignTokensOperation)) Implements IFormattingRule.AddAlignTokensOperations
-            nextOperation.Invoke(list)
-        End Sub
-
-        Public Function GetAdjustNewLinesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation Implements IFormattingRule.GetAdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
                 Return nextOperation.Invoke()
             End If
@@ -53,10 +42,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
                 Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)
             End If
 
-            Return nextOperation.Invoke()
-        End Function
-
-        Public Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation Implements IFormattingRule.GetAdjustSpacesOperation
             Return nextOperation.Invoke()
         End Function
     End Class

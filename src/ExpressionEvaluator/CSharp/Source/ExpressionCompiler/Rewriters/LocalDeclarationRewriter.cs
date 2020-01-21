@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
 
                     builder.Add(node);
-                    break; 
+                    break;
             }
 
             return BoundBlock.SynthesizedNoLocals(node.Syntax, builder.ToImmutableAndFree());
@@ -71,12 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                 // Generate assignment to local. The assignment will
                 // be rewritten in PlaceholderLocalRewriter.
+                var type = local.Type;
                 var assignment = new BoundAssignmentOperator(
                     syntax,
-                    new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type),
+                    new BoundLocal(syntax, local, constantValueOpt: null, type: type),
                     initializer,
                     false,
-                    local.Type);
+                    type);
                 statements.Add(new BoundExpressionStatement(syntax, assignment));
             }
         }
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (!hasCustomTypeInfoPayload)
             {
-                return new BoundDefaultExpression(syntax, guidConstructor.ContainingType);
+                return new BoundDefaultExpression(syntax, targetType: null, constantValueOpt: null, guidConstructor.ContainingType);
             }
 
             var value = ConstantValue.Create(CustomTypeInfo.PayloadTypeId.ToString());
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var byteArrayType = ArrayTypeSymbol.CreateSZArray(
                 compilation.Assembly,
-                compilation.GetSpecialType(SpecialType.System_Byte));
+                TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte)));
 
             var bytes = compilation.GetCustomTypeInfoPayload(local.Type, customModifiersCount: 0, refKind: RefKind.None);
             hasCustomTypeInfoPayload = bytes != null;

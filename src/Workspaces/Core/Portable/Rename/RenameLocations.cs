@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.Rename
         private readonly IEnumerable<RenameLocation> _commentsResult;
 
         internal RenameLocations(
-            ISet<RenameLocation> locations, 
-            SymbolAndProjectId symbolAndProjectId, 
-            Solution solution, 
-            IEnumerable<SymbolAndProjectId> referencedSymbols, 
-            IEnumerable<ReferenceLocation> implicitLocations, 
+            ISet<RenameLocation> locations,
+            SymbolAndProjectId symbolAndProjectId,
+            Solution solution,
+            IEnumerable<SymbolAndProjectId> referencedSymbols,
+            IEnumerable<ReferenceLocation> implicitLocations,
             OptionSet options)
         {
             _symbolAndProjectId = symbolAndProjectId;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 mergedLocations.AddRange(commentsResult);
             }
 
-            var renameMethodGroupReferences = 
+            var renameMethodGroupReferences =
                 options.GetOption(RenameOptions.RenameOverloads) || !GetOverloadedSymbols(symbolAndProjectId).Any();
             var overloadsToMerge = (options.GetOption(RenameOptions.RenameOverloads) ? overloadsResult : null) ?? SpecializedCollections.EmptyEnumerable<SearchResult>();
             foreach (var result in overloadsToMerge.Concat(originalSymbolResult))

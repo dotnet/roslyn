@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsGlobalStatementContext ||
                 context.IsTypeDeclarationContext(
                     validModifiers: s_validModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken) ||
-                syntaxTree.IsTypeParameterConstraintStartContext(position, context.LeftToken, cancellationToken);
+                syntaxTree.IsTypeParameterConstraintStartContext(position, context.LeftToken);
         }
     }
 }

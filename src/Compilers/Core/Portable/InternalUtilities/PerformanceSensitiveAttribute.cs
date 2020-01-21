@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -40,7 +42,7 @@ namespace Roslyn.Utilities
         /// constraint. This property supports documenting constraints which cannot be described in terms of other
         /// constraint properties.</para>
         /// </remarks>
-        public string Constraint
+        public string? Constraint
         {
             get;
             set;
@@ -50,6 +52,15 @@ namespace Roslyn.Utilities
         /// Gets or sets a value indicating whether captures are allowed.
         /// </summary>
         public bool AllowCaptures
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether implicit boxing of value types is allowed.
+        /// </summary>
+        public bool AllowImplicitBoxing
         {
             get;
             set;
@@ -79,7 +90,7 @@ namespace Roslyn.Utilities
         /// <remarks>
         /// <para>When <see langword="true"/>, validation of this performance constraint typically involves analyzing
         /// the method to ensure synchronous completion of the state machine does not require the allocation of a
-        /// <see cref="Task"/>, either through caching the result or by using ValueTask.</para>
+        /// <see cref="Task"/>, either through caching the result or by using <see cref="ValueTask{TResult}"/>.</para>
         /// </remarks>
         public bool OftenCompletesSynchronously
         {
@@ -93,7 +104,7 @@ namespace Roslyn.Utilities
         /// <remarks>
         /// <para>Parallelization APIs and algorithms, e.g. <c>Parallel.ForEach</c>, may be efficient for parallel entry
         /// points (few direct calls but large amounts of iterative work), but are problematic when called inside the
-        /// iterations themselves. Performance-sensitive code should avoid the use of heavy parallization APIs except
+        /// iterations themselves. Performance-sensitive code should avoid the use of heavy parallelization APIs except
         /// for known entry points to the parallel portion of code.</para>
         /// </remarks>
         public bool IsParallelEntry

@@ -11,10 +11,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// 
     /// This works on data that belong to logically same source of items such as one particular analyzer or todo list analyzer.
     /// </summary>
-    internal abstract class AbstractTableEntriesSource<TData>
+    internal abstract class AbstractTableEntriesSource<TItem> where TItem : TableItem
     {
         public abstract object Key { get; }
-        public abstract ImmutableArray<TableItem<TData>> GetItems();
-        public abstract ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<TData>> items);
+        public abstract ImmutableArray<TItem> GetItems();
+        public abstract ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TItem> items);
     }
 }

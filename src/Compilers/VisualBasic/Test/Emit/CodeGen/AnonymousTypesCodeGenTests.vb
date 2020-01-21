@@ -157,7 +157,7 @@ End Module
                          </compilation>
 
             For i = 0 To 100
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+                Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
 
                 Dim tasks(10) As Task
                 For jj = 0 To tasks.Length - 1
@@ -807,7 +807,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopOnly))>
         Public Sub TestAnonymousTypeWithOptionInferOn()
             CompileAndVerify(
 <compilation>

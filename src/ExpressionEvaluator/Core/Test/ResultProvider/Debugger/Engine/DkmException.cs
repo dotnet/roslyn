@@ -14,6 +14,7 @@ namespace Microsoft.VisualStudio.Debugger
     // Summary:
     //     Base exception class for all exceptions within this API.
     [DebuggerDisplay("\\{DkmException Code={Code,h}\\}")]
+    [Serializable]
     public class DkmException : ApplicationException
     {
         private readonly DkmExceptionCode _code;

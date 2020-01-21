@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     Friend Class RemoveUnnecessaryLineContinuationCodeCleanupProvider
         Implements ICodeCleanupProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public ReadOnly Property Name As String Implements ICodeCleanupProvider.Name
             Get
                 Return PredefinedCodeCleanupProviderNames.RemoveUnnecessaryLineContinuation

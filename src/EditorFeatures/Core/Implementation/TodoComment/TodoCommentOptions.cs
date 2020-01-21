@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
     [ExportOptionProvider, Shared]
     internal class TodoCommentOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public TodoCommentOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             TodoCommentOptions.TokenList);
     }

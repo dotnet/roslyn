@@ -14,22 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
             return items.OfType<ProjectItem>().FirstOrDefault(p => comparer.Compare(p.Name, itemName) == 0);
         }
 
-        public static ProjectItem FindItemByPath(this ProjectItems items, string itemFilePath, StringComparer comparer)
-        {
-            foreach (var item in items)
-            {
-                if (item is ProjectItem projectItem)
-                {
-                    if (projectItem.TryGetFullPath(out var filePath) && comparer.Compare(filePath, itemFilePath) == 0)
-                    {
-                        return projectItem;
-                    }
-                }
-            }
-
-            return null;
-        }
-
         public static ProjectItem FindFolder(this ProjectItems items, string folderName)
         {
             var item = items.FindItem(folderName, StringComparer.OrdinalIgnoreCase);

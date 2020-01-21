@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+// This file references the DesktopAnalyzerAssemblyLoader, which is only present in desktop
+#if NET472
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -198,7 +201,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/mono/mono/issues/10960")]
         public void TestAnalyzerLoading_Error()
         {
             var analyzerSource = @"
@@ -220,17 +223,19 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
             dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
             dir.CopyFile(typeof(AppDomainUtils).Assembly.Location);
+            dir.CopyFile(typeof(Memory<>).Assembly.Location);
+            dir.CopyFile(typeof(System.Runtime.CompilerServices.Unsafe).Assembly.Location);
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
             var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
-            dir.CopyFile(Path.Combine(Path.GetDirectoryName(typeof(CSharp.CSharpCompilation).Assembly.Location), "System.IO.FileSystem.dll"));
 
             var analyzerCompilation = CSharp.CSharpCompilation.Create(
                 "MyAnalyzer",
                 new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerSource) },
                 new MetadataReference[]
                 {
-                    TestReferences.NetStandard13.SystemRuntime,
+                    TestReferences.NetStandard20.NetStandard,
+                    TestReferences.NetStandard20.SystemRuntimeRef,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },
@@ -392,3 +397,5 @@ public class TestAnalyzer : DiagnosticAnalyzer
         public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
     }
 }
+
+#endif

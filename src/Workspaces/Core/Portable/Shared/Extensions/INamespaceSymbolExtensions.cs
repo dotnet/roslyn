@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,14 +21,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static readonly Comparison<INamespaceSymbol> CompareNamespaces = CompareTo;
         public static readonly IEqualityComparer<INamespaceSymbol> EqualityComparer = new Comparer();
 
-        private static List<string> GetNameParts(INamespaceSymbol namespaceSymbol)
+        private static List<string> GetNameParts(INamespaceSymbol? namespaceSymbol)
         {
             var result = new List<string>();
             GetNameParts(namespaceSymbol, result);
             return result;
         }
 
-        private static void GetNameParts(INamespaceSymbol namespaceSymbol, List<string> result)
+        private static void GetNameParts(INamespaceSymbol? namespaceSymbol, List<string> result)
         {
             if (namespaceSymbol == null || namespaceSymbol.IsGlobalNamespace)
             {
@@ -54,30 +56,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return names1.Count - names2.Count;
         }
 
-        public static IEnumerable<INamedTypeSymbol> GetAllTypes(
-            this INamespaceSymbol namespaceSymbol,
-            CancellationToken cancellationToken)
-        {
-            var stack = new Stack<INamespaceOrTypeSymbol>();
-            stack.Push(namespaceSymbol);
-
-            while (stack.Count > 0)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var current = stack.Pop();
-                if (current is INamespaceSymbol currentNs)
-                {
-                    stack.Push(currentNs.GetMembers());
-                }
-                else
-                {
-                    var namedType = (INamedTypeSymbol)current;
-                    stack.Push(namedType.GetTypeMembers());
-                    yield return namedType;
-                }
-            }
-        }
-
         public static IEnumerable<INamespaceOrTypeSymbol> GetAllNamespacesAndTypes(
             this INamespaceSymbol namespaceSymbol,
             CancellationToken cancellationToken)
@@ -103,11 +81,30 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static IEnumerable<INamespaceSymbol> GetAllNamespaces(
+            this INamespaceSymbol namespaceSymbol,
+            CancellationToken cancellationToken)
+        {
+            var stack = new Stack<INamespaceSymbol>();
+            stack.Push(namespaceSymbol);
+
+            while (stack.Count > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var current = stack.Pop();
+                if (current is INamespaceSymbol childNamespace)
+                {
+                    stack.Push(childNamespace.GetNamespaceMembers());
+                    yield return childNamespace;
+                }
+            }
+        }
+
         public static IEnumerable<INamedTypeSymbol> GetAllTypes(
             this IEnumerable<INamespaceSymbol> namespaceSymbols,
             CancellationToken cancellationToken)
         {
-            return namespaceSymbols.SelectMany(n => GetAllTypes(n, cancellationToken));
+            return namespaceSymbols.SelectMany(n => n.GetAllTypes(cancellationToken));
         }
 
         /// <summary>
@@ -142,17 +139,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this INamespaceSymbol namespaceSymbol,
             IAssemblySymbol assembly)
         {
-            using (var namespaceQueue = SharedPools.Default<Queue<INamespaceOrTypeSymbol>>().GetPooledObject())
-            {
-                return ContainsAccessibleTypesOrNamespacesWorker(namespaceSymbol, assembly, namespaceQueue.Object);
-            }
+            using var namespaceQueue = SharedPools.Default<Queue<INamespaceOrTypeSymbol>>().GetPooledObject();
+            return ContainsAccessibleTypesOrNamespacesWorker(namespaceSymbol, assembly, namespaceQueue.Object);
         }
 
-        public static INamespaceSymbol GetQualifiedNamespace(
+        public static INamespaceSymbol? GetQualifiedNamespace(
             this INamespaceSymbol globalNamespace,
             string namespaceName)
         {
-            var namespaceSymbol = globalNamespace;
+            INamespaceSymbol? namespaceSymbol = globalNamespace;
             foreach (var name in namespaceName.Split('.'))
             {
                 var members = namespaceSymbol.GetMembers(name);
@@ -160,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         ? members.First() as INamespaceSymbol
                         : null;
 
-                if ((object)namespaceSymbol == null)
+                if (namespaceSymbol is null)
                 {
                     break;
                 }
@@ -182,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // Assume that any namespace in our own assembly is accessible to us.  This saves a
                 // lot of cpu time checking namespaces.
-                if (constituent.ContainingAssembly == assembly)
+                if (Equals(constituent.ContainingAssembly, assembly))
                 {
                     return true;
                 }
@@ -195,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var ns = namespaceQueue.Dequeue();
 
                 // Upcast so we call the 'GetMembers' method that returns an ImmutableArray.
-                ImmutableArray<ISymbol> members = ns.GetMembers();
+                var members = ns.GetMembers();
 
                 foreach (var namespaceOrType in members)
                 {

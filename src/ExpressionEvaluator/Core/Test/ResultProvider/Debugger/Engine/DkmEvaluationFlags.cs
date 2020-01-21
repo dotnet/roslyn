@@ -12,6 +12,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
     public enum DkmEvaluationFlags
     {
         None,
+        NoSideEffects = 4,
         ShowValueRaw = 128,
         HideNonPublicMembers = 512,
         NoToString = 1024,
@@ -21,5 +22,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         DynamicView = 16384,
         ResultsOnly = 32768,
         NoExpansion = 65536,
+        FilterToFavorites = 0x40000,
+        UseSimpleDisplayString = 0x80000,
     }
 }

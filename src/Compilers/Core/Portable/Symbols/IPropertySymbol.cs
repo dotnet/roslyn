@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
@@ -55,6 +57,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol Type { get; }
 
+        NullableAnnotation NullableAnnotation { get; }
+
         /// <summary>
         /// The parameters of this property. If this property has no parameters, returns
         /// an empty list. Parameters are only present on indexers, or on some properties
@@ -65,12 +69,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The 'get' accessor of the property, or null if the property is write-only.
         /// </summary>
-        IMethodSymbol GetMethod { get; }
+        IMethodSymbol? GetMethod { get; }
 
         /// <summary>
         /// The 'set' accessor of the property, or null if the property is read-only.
         /// </summary>
-        IMethodSymbol SetMethod { get; }
+        IMethodSymbol? SetMethod { get; }
 
         /// <summary>
         /// The original definition of the property. If the property is constructed from another
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns the overridden property, or null.
         /// </summary>
-        IPropertySymbol OverriddenProperty { get; }
+        IPropertySymbol? OverriddenProperty { get; }
 
         /// <summary>
         /// Returns interface properties explicitly implemented by this property.

@@ -15,12 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public NameSyntaxIterator(NameSyntax name)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            _name = name;
+            _name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
         public IEnumerator<NameSyntax> GetEnumerator()

@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return
                 this.Kind == other.Kind &&
-                this.LeftType == other.LeftType &&
-                this.RightType == other.RightType &&
-                this.ReturnType == other.ReturnType &&
+                TypeSymbol.Equals(this.LeftType, other.LeftType, TypeCompareKind.ConsiderEverything2) &&
+                TypeSymbol.Equals(this.RightType, other.RightType, TypeCompareKind.ConsiderEverything2) &&
+                TypeSymbol.Equals(this.ReturnType, other.ReturnType, TypeCompareKind.ConsiderEverything2) &&
                 this.Method == other.Method;
         }
 

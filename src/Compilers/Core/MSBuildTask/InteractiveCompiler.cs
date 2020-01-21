@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 foreach (var scriptArgument in ScriptArguments)
                 {
-                    commandLine.AppendTextUnquoted(scriptArgument);
+                    commandLine.AppendArgumentIfNotNull(scriptArgument);
                 }
             }
 

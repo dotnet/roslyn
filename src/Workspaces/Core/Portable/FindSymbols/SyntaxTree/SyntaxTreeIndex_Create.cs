@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +19,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal interface IDeclaredSymbolInfoFactoryService : ILanguageService
     {
-        bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
+        // `rootNamespace` is required for VB projects that has non-global namespace as root namespace,
+        // otherwise we would not be able to get correct data from syntax.
+        bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo);
+
+        // Get the name of the target type of specified extension method declaration node.
+        // The returned value would be null for complex type.
+        string GetTargetTypeName(SyntaxNode node);
+
+        bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
+
+        string GetRootNamespace(CompilationOptions compilationOptions);
     }
 
     internal sealed partial class SyntaxTreeIndex
@@ -25,11 +37,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // The probability of getting a false positive when calling ContainsIdentifier.
         private const double FalsePositiveProbability = 0.0001;
 
-        public static readonly ObjectPool<HashSet<string>> StringLiteralHashSetPool =
-            new ObjectPool<HashSet<string>>(() => new HashSet<string>(), 20);
-
-        public static readonly ObjectPool<HashSet<long>> LongLiteralHashSetPool =
-            new ObjectPool<HashSet<long>>(() => new HashSet<long>(), 20);
+        public static readonly ObjectPool<HashSet<string>> StringLiteralHashSetPool = SharedPools.Default<HashSet<string>>();
+        public static readonly ObjectPool<HashSet<long>> LongLiteralHashSetPool = SharedPools.Default<HashSet<long>>();
 
         /// <summary>
         /// String interning table so that we can share many more strings in our DeclaredSymbolInfo
@@ -59,6 +68,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var stringLiterals = StringLiteralHashSetPool.Allocate();
             var longLiterals = LongLiteralHashSetPool.Allocate();
 
+            var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
+            var complexExtensionMethodInfoBuilder = ArrayBuilder<int>.GetInstance();
+            var simpleExtensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
+            var usingAliases = PooledDictionary<string, string>.GetInstance();
+
             try
             {
                 var containsForEachStatement = false;
@@ -70,15 +84,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsElementAccess = false;
                 var containsIndexerMemberCref = false;
                 var containsDeconstruction = false;
+                var containsAwait = false;
+                var containsTupleExpressionOrTupleType = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
 
-                var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
-
                 if (syntaxFacts != null)
                 {
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var rootNamespace = infoFactory.GetRootNamespace(project.CompilationOptions);
 
                     foreach (var current in root.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true))
                     {
@@ -96,6 +111,37 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsDeconstruction = containsDeconstruction || syntaxFacts.IsDeconstructionAssignment(node)
                                 || syntaxFacts.IsDeconstructionForEachStatement(node);
 
+                            containsAwait = containsAwait || syntaxFacts.IsAwaitExpression(node);
+                            containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
+                                syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
+
+                            if (syntaxFacts.IsUsingAliasDirective(node) && infoFactory.TryGetAliasesFromUsingDirective(node, out var aliases))
+                            {
+                                foreach (var (aliasName, name) in aliases)
+                                {
+                                    // In C#, it's valid to declare two alias with identical name,
+                                    // as long as they are in different containers.
+                                    //
+                                    // e.g.
+                                    //      using X = System.String;
+                                    //      namespace N
+                                    //      {
+                                    //          using X = System.Int32;
+                                    //      }
+                                    //
+                                    // If we detect this, we will simply treat extension methods whose
+                                    // target type is this alias as complex method.
+                                    if (usingAliases.ContainsKey(aliasName))
+                                    {
+                                        usingAliases[aliasName] = null;
+                                    }
+                                    else
+                                    {
+                                        usingAliases[aliasName] = name;
+                                    }
+                                }
+                            }
+
                             // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
                             // crash because the document's syntax root doesn't contain the span of the node returned
                             // by TryGetDeclaredSymbolInfo().  There are two possibilities for this crash:
@@ -106,11 +152,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             // the future then we know the problem lies in (2).  If, however, the problem is really in
                             // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
                             // and will prevent the crash from occurring.
-                            if (infoFactory.TryGetDeclaredSymbolInfo(stringTable, node, out var declaredSymbolInfo))
+                            if (infoFactory.TryGetDeclaredSymbolInfo(stringTable, node, rootNamespace, out var declaredSymbolInfo))
                             {
                                 if (root.FullSpan.Contains(declaredSymbolInfo.Span))
                                 {
+                                    var declaredSymbolInfoIndex = declaredSymbolInfos.Count;
                                     declaredSymbolInfos.Add(declaredSymbolInfo);
+
+                                    AddExtensionMethodInfo(
+                                        infoFactory,
+                                        node,
+                                        usingAliases,
+                                        declaredSymbolInfoIndex,
+                                        declaredSymbolInfo,
+                                        simpleExtensionMethodInfoBuilder,
+                                        complexExtensionMethodInfoBuilder);
                                 }
                                 else
                                 {
@@ -203,19 +259,85 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsBaseConstructorInitializer,
                             containsElementAccess,
                             containsIndexerMemberCref,
-                            containsDeconstruction),
+                            containsDeconstruction,
+                            containsAwait,
+                            containsTupleExpressionOrTupleType),
                     new DeclarationInfo(
-                            declaredSymbolInfos.ToImmutableAndFree()));
+                            declaredSymbolInfos.ToImmutable()),
+                    new ExtensionMethodInfo(
+                        simpleExtensionMethodInfoBuilder.ToImmutableDictionary(s_getKey, s_getValuesAsImmutableArray),
+                        complexExtensionMethodInfoBuilder.ToImmutable()));
             }
             finally
             {
                 Free(ignoreCase, identifiers, escapedIdentifiers);
                 StringLiteralHashSetPool.ClearAndFree(stringLiterals);
                 LongLiteralHashSetPool.ClearAndFree(longLiterals);
+
+                foreach (var (_, builder) in simpleExtensionMethodInfoBuilder)
+                {
+                    builder.Free();
+                }
+
+                simpleExtensionMethodInfoBuilder.Free();
+                complexExtensionMethodInfoBuilder.Free();
+                usingAliases.Free();
+                declaredSymbolInfos.Free();
             }
         }
 
-        private static StringTable GetStringTable(Project project) 
+        private static readonly Func<KeyValuePair<string, ArrayBuilder<int>>, string> s_getKey = kvp => kvp.Key;
+        private static readonly Func<KeyValuePair<string, ArrayBuilder<int>>, ImmutableArray<int>> s_getValuesAsImmutableArray = kvp => kvp.Value.ToImmutable();
+
+        private static void AddExtensionMethodInfo(
+            IDeclaredSymbolInfoFactoryService infoFactory,
+            SyntaxNode node,
+            PooledDictionary<string, string> aliases,
+            int declaredSymbolInfoIndex,
+            DeclaredSymbolInfo declaredSymbolInfo,
+            PooledDictionary<string, ArrayBuilder<int>> simpleInfoBuilder,
+            ArrayBuilder<int> complexInfoBuilder)
+        {
+            if (declaredSymbolInfo.Kind != DeclaredSymbolInfoKind.ExtensionMethod)
+            {
+                return;
+            }
+
+            var targetTypeName = infoFactory.GetTargetTypeName(node);
+
+            // complex method
+            if (targetTypeName == null)
+            {
+                complexInfoBuilder.Add(declaredSymbolInfoIndex);
+                return;
+            }
+
+            // Target type is an alias
+            if (aliases.TryGetValue(targetTypeName, out var originalName))
+            {
+                // it is an alias of multiple with identical name,
+                // simply treat it as a complex method.
+                if (originalName == null)
+                {
+                    complexInfoBuilder.Add(declaredSymbolInfoIndex);
+                    return;
+                }
+
+                // replace the alias with its original name.
+                targetTypeName = originalName;
+            }
+
+            // So we've got a simple method.
+            if (!simpleInfoBuilder.TryGetValue(targetTypeName, out var arrayBuilder))
+            {
+                arrayBuilder = ArrayBuilder<int>.GetInstance();
+                simpleInfoBuilder[targetTypeName] = arrayBuilder;
+            }
+
+            arrayBuilder.Add(declaredSymbolInfoIndex);
+        }
+
+        private static StringTable GetStringTable(Project project)
             => s_projectStringTable.GetValue(project, _ => StringTable.GetInstance());
 
         private static void GetIdentifierSet(bool ignoreCase, out HashSet<string> identifiers, out HashSet<string> escapedIdentifiers)
@@ -225,32 +347,32 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 identifiers = SharedPools.StringIgnoreCaseHashSet.AllocateAndClear();
                 escapedIdentifiers = SharedPools.StringIgnoreCaseHashSet.AllocateAndClear();
 
-                Contract.Requires(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
-                Contract.Requires(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
                 return;
             }
 
             identifiers = SharedPools.StringHashSet.AllocateAndClear();
             escapedIdentifiers = SharedPools.StringHashSet.AllocateAndClear();
 
-            Contract.Requires(identifiers.Comparer == StringComparer.Ordinal);
-            Contract.Requires(escapedIdentifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(identifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(escapedIdentifiers.Comparer == StringComparer.Ordinal);
         }
 
         private static void Free(bool ignoreCase, HashSet<string> identifiers, HashSet<string> escapedIdentifiers)
         {
             if (ignoreCase)
             {
-                Contract.Requires(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
-                Contract.Requires(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
 
                 SharedPools.StringIgnoreCaseHashSet.ClearAndFree(identifiers);
                 SharedPools.StringIgnoreCaseHashSet.ClearAndFree(escapedIdentifiers);
                 return;
             }
 
-            Contract.Requires(identifiers.Comparer == StringComparer.Ordinal);
-            Contract.Requires(escapedIdentifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(identifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(escapedIdentifiers.Comparer == StringComparer.Ordinal);
 
             SharedPools.StringHashSet.ClearAndFree(identifiers);
             SharedPools.StringHashSet.ClearAndFree(escapedIdentifiers);

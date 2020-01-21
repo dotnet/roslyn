@@ -122,13 +122,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.EventFieldDeclaration:
                     case SyntaxKind.FieldDeclaration:
                         var modifiers = ((BaseFieldDeclarationSyntax)declarationSyntax.Parent).Modifiers;
-                        GetFirstLocalOrFieldBreakpointSpan(modifiers, declaratorSyntax, out node, out part);
+                        GetFirstLocalOrFieldBreakpointSpan(modifiers.Any() ? modifiers[0] : (SyntaxToken?)null, declaratorSyntax, out node, out part);
                         break;
 
                     case SyntaxKind.LocalDeclarationStatement:
                         // only const locals have modifiers and those don't have a sequence point:
-                        Debug.Assert(!((LocalDeclarationStatementSyntax)declarationSyntax.Parent).Modifiers.Any());
-                        GetFirstLocalOrFieldBreakpointSpan(default(SyntaxTokenList), declaratorSyntax, out node, out part);
+                        var parent = (LocalDeclarationStatementSyntax)declarationSyntax.Parent;
+                        Debug.Assert(!parent.Modifiers.Any());
+                        var firstToken =
+                            parent.UsingKeyword == default ? (SyntaxToken?)null :
+                            parent.AwaitKeyword == default ? parent.UsingKeyword :
+                            parent.AwaitKeyword;
+                        GetFirstLocalOrFieldBreakpointSpan(firstToken, declaratorSyntax, out node, out part);
                         break;
 
                     case SyntaxKind.UsingStatement:
@@ -154,11 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void GetFirstLocalOrFieldBreakpointSpan(SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, out SyntaxNode node, out TextSpan? part)
+        internal static void GetFirstLocalOrFieldBreakpointSpan(SyntaxToken? firstToken, VariableDeclaratorSyntax declaratorSyntax, out SyntaxNode node, out TextSpan? part)
         {
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
 
-            int start = modifiers.Any() ? modifiers[0].SpanStart : declarationSyntax.SpanStart;
+            // The first token may be a modifier (like public) or using or await
+            int start = firstToken?.SpanStart ?? declarationSyntax.SpanStart;
 
             int end;
             if (declarationSyntax.Variables.Count == 1)

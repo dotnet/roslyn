@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IParameterSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // TODO(cyrusn): We can be smarter with parameters.  They will either be found
@@ -34,16 +35,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
         }
 
-        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IParameterSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetParameterSymbolsMatchFunction(
                 symbol, document.Project.Solution, cancellationToken);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol.Name, document, symbolsMatch, cancellationToken);
+                symbol.Name, document, semanticModel, symbolsMatch, cancellationToken);
         }
 
         private Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> GetParameterSymbolsMatchFunction(
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             var invokeMethod = containingMethod.AssociatedAnonymousDelegate.DelegateInvokeMethod;
-            int ordinal = parameter.Ordinal;
+            var ordinal = parameter.Ordinal;
             if (invokeMethod == null || ordinal >= invokeMethod.Parameters.Length)
             {
                 return standardFunction;
@@ -97,6 +100,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var parameter = parameterAndProjectId.Symbol;
@@ -108,8 +112,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
             await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameterAndProjectId, result, cancellationToken).ConfigureAwait(false);
-            CascadeBetweenPropertyAndAccessorParameters(solution, parameterAndProjectId, result);
-            CascadeBetweenDelegateMethodParameters(solution, parameterAndProjectId, result);
+            CascadeBetweenPropertyAndAccessorParameters(parameterAndProjectId, result);
+            CascadeBetweenDelegateMethodParameters(parameterAndProjectId, result);
             CascadeBetweenPartialMethodParameters(parameterAndProjectId, result);
 
             return result.ToImmutableAndFree();
@@ -145,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                                 if (container != null)
                                 {
                                     CascadeBetweenAnonymousFunctionParameters(
-                                        document, semanticModel, container, parameterAndProjectId, 
+                                        document, semanticModel, container, parameterAndProjectId,
                                         convertedType, results, cancellationToken);
                                 }
                             }
@@ -190,7 +194,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private bool ParameterNamesMatch(ISyntaxFactsService syntaxFacts, IMethodSymbol methodSymbol1, IMethodSymbol methodSymbol2)
         {
-            for (int i = 0; i < methodSymbol1.Parameters.Length; i++)
+            for (var i = 0; i < methodSymbol1.Parameters.Length; i++)
             {
                 if (!syntaxFacts.TextMatch(methodSymbol1.Parameters[i].Name, methodSymbol2.Parameters[i].Name))
                 {
@@ -207,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var declaredSymbol = semanticModel.GetDeclaredSymbol(current);
 
-                if (declaredSymbol is IMethodSymbol && ((IMethodSymbol)declaredSymbol).MethodKind != MethodKind.AnonymousFunction)
+                if (declaredSymbol is IMethodSymbol method && method.MethodKind != MethodKind.AnonymousFunction)
                 {
                     return current;
                 }
@@ -217,7 +221,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private void CascadeBetweenPropertyAndAccessorParameters(
-            Solution solution,
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             ArrayBuilder<SymbolAndProjectId> results)
         {
@@ -248,7 +251,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private void CascadeBetweenDelegateMethodParameters(
-            Solution solution,
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             ArrayBuilder<SymbolAndProjectId> results)
         {
@@ -283,8 +285,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private static void AddParameterAtIndex(
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
-            ArrayBuilder<SymbolAndProjectId> results, 
-            int ordinal, 
+            ArrayBuilder<SymbolAndProjectId> results,
+            int ordinal,
             ImmutableArray<IParameterSymbol>? parameters)
         {
             if (parameters != null && ordinal < parameters.Value.Length)

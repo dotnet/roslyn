@@ -3,10 +3,12 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Roslyn.Test.Utilities
 
 Namespace Tests
+    <[UseExportProvider]>
     Public Class LanguageBlockTests
         <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_NotInImports_VB()
@@ -241,7 +243,7 @@ System.Console$$.WriteLine(message)
                 Dim hostDocument = workspace.Documents.Single()
 
                 Assert.Null(VsLanguageBlock.GetCurrentBlock(
-                    hostDocument.TextBuffer.CurrentSnapshot,
+                    hostDocument.GetTextBuffer().CurrentSnapshot,
                     hostDocument.CursorPosition.Value,
                     CancellationToken.None))
             End Using
@@ -259,7 +261,7 @@ System.Console$$.WriteLine(message)
                 Dim hostDocument = workspace.Documents.Single()
 
                 Dim tuple = VsLanguageBlock.GetCurrentBlock(
-                    hostDocument.TextBuffer.CurrentSnapshot,
+                    hostDocument.GetTextBuffer().CurrentSnapshot,
                     hostDocument.CursorPosition.Value,
                     CancellationToken.None)
 

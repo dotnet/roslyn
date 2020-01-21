@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if NET461 || NET46
+#if NET472
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis;
-using static Roslyn.Test.Utilities.ExceptionHelper; 
+using static Roslyn.Test.Utilities.ExceptionHelper;
 
 namespace Roslyn.Test.Utilities.Desktop
 {
@@ -15,14 +15,14 @@ namespace Roslyn.Test.Utilities.Desktop
         public string Output { get; }
         public string ExePath { get; }
 
-        protected RuntimePeVerifyException(SerializationInfo info, StreamingContext context) 
+        protected RuntimePeVerifyException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
             Output = info.GetString(nameof(Output));
             ExePath = info.GetString(nameof(ExePath));
         }
 
-        public RuntimePeVerifyException(string output, string exePath) 
+        public RuntimePeVerifyException(string output, string exePath)
             : base(GetMessageFromResult(output, exePath))
         {
             Output = output;

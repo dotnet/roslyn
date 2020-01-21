@@ -13,6 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
     [ExportWorkspaceService(typeof(IErrorLoggerService), ServiceLayer.Host), Export(typeof(IErrorLoggerService)), Shared]
     internal class VisualStudioErrorLogger : IErrorLoggerService
     {
+        [ImportingConstructor]
+        public VisualStudioErrorLogger()
+        {
+        }
+
         public void LogException(object source, Exception exception)
         {
             var name = source.GetType().Name;

@@ -61,13 +61,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         Nothing,
                         GetRewrittenMeParameter(syntax, New BoundMeReference(syntax, _targetMethodMeParameter.Type)))
                     Dim result = staticLocal.ToBoundExpression(receiver, syntax, node.IsLValue)
-                    Debug.Assert(node.Type = result.Type)
+                    Debug.Assert(TypeSymbol.Equals(node.Type, result.Type, TypeCompareKind.ConsiderEverything))
                     Return result
                 End If
                 Dim variable = GetVariable(local.Name)
                 If variable IsNot Nothing Then
                     Dim result = variable.ToBoundExpression(syntax, node.IsLValue, node.SuppressVirtualCalls)
-                    Debug.Assert(node.Type = result.Type)
+                    Debug.Assert(TypeSymbol.Equals(node.Type, result.Type, TypeCompareKind.ConsiderEverything))
                     Return result
                 End If
             End If
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 constantValueOpt:=Nothing,
                 relaxationLambdaOpt:=Nothing,
                 type:=baseType)
-            Debug.Assert(result.Type = node.Type)
+            Debug.Assert(TypeSymbol.Equals(result.Type, node.Type, TypeCompareKind.ConsiderEverything))
             Return result
         End Function
 
@@ -147,7 +147,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
 
             Dim result = variable.ToBoundExpression(syntax, node.IsLValue, node.SuppressVirtualCalls)
-            Debug.Assert(result.Type = node.Type OrElse result.Type.BaseTypeNoUseSiteDiagnostics = node.Type)
+            Debug.Assert(TypeSymbol.Equals(result.Type, node.Type, TypeCompareKind.ConsiderEverything) OrElse
+                         TypeSymbol.Equals(result.Type.BaseTypeNoUseSiteDiagnostics, node.Type, TypeCompareKind.ConsiderEverything))
             Return result
         End Function
 

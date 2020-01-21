@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
                 else
                 {
-                    return default(ImageMoniker);
+                    return default;
                 }
             }
         }

@@ -45,12 +45,12 @@ namespace Roslyn.Test.Utilities
         {
             if (!CheckEqual(expectedRoot, actualRoot, ShallowElementComparer.Instance, out var firstMismatch))
             {
-                Assert.True(false, message + 
+                Assert.True(false, message +
                     GetAssertText(
-                        GetXmlString(expectedRoot, expectedIsXmlLiteral), 
-                        GetXmlString(actualRoot, expectedIsXmlLiteral), 
+                        GetXmlString(expectedRoot, expectedIsXmlLiteral),
+                        GetXmlString(actualRoot, expectedIsXmlLiteral),
                         expectedRoot,
-                        firstMismatch, 
+                        firstMismatch,
                         expectedValueSourcePath,
                         expectedValueSourceLine,
                         expectedIsXmlLiteral));

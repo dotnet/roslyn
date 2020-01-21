@@ -15,6 +15,7 @@
       <Implements>
         <InterfaceGroup Priority="Normal">
           <Filter>
+            <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.TimeTravelTraceInterop"/>
             <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.InProcessManagedNativeInterop"/>
             <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.ClrVirtualMachine"/>
           </Filter>

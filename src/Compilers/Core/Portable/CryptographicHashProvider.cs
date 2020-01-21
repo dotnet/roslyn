@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<byte> GetHash(AssemblyHashAlgorithm algorithmId)
         {
-            using (HashAlgorithm algorithm = TryGetAlgorithm(algorithmId))
+            using (HashAlgorithm? algorithm = TryGetAlgorithm(algorithmId))
             {
                 // ERR_CryptoHashFailed has already been reported:
                 if (algorithm == null)
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static HashAlgorithm TryGetAlgorithm(SourceHashAlgorithm algorithmId)
+        internal static HashAlgorithm? TryGetAlgorithm(SourceHashAlgorithm algorithmId)
         {
             switch (algorithmId)
             {
@@ -87,7 +89,22 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static HashAlgorithm TryGetAlgorithm(AssemblyHashAlgorithm algorithmId)
+        internal static HashAlgorithmName GetAlgorithmName(SourceHashAlgorithm algorithmId)
+        {
+            switch (algorithmId)
+            {
+                case SourceHashAlgorithm.Sha1:
+                    return HashAlgorithmName.SHA1;
+
+                case SourceHashAlgorithm.Sha256:
+                    return HashAlgorithmName.SHA256;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(algorithmId);
+            }
+        }
+
+        internal static HashAlgorithm? TryGetAlgorithm(AssemblyHashAlgorithm algorithmId)
         {
             switch (algorithmId)
             {
@@ -168,22 +185,37 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static ImmutableArray<byte> ComputeSha1(IEnumerable<Blob> bytes)
+        internal static ImmutableArray<byte> ComputeHash(HashAlgorithmName algorithmName, IEnumerable<Blob> bytes)
         {
-            using (var incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+            using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
             {
                 incrementalHash.AppendData(bytes);
                 return ImmutableArray.Create(incrementalHash.GetHashAndReset());
             }
         }
 
-        internal static ImmutableArray<byte> ComputeSha1(IEnumerable<ArraySegment<byte>> bytes)
+        internal static ImmutableArray<byte> ComputeHash(HashAlgorithmName algorithmName, IEnumerable<ArraySegment<byte>> bytes)
         {
-            using (var incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+            using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
             {
                 incrementalHash.AppendData(bytes);
                 return ImmutableArray.Create(incrementalHash.GetHashAndReset());
             }
+        }
+
+        internal static ImmutableArray<byte> ComputeSourceHash(ImmutableArray<byte> bytes, SourceHashAlgorithm hashAlgorithm = SourceHashAlgorithmUtils.DefaultContentHashAlgorithm)
+        {
+            var algorithmName = GetAlgorithmName(hashAlgorithm);
+            using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
+            {
+                incrementalHash.AppendData(bytes.ToArray());
+                return ImmutableArray.Create(incrementalHash.GetHashAndReset());
+            }
+        }
+
+        internal static ImmutableArray<byte> ComputeSourceHash(IEnumerable<Blob> bytes, SourceHashAlgorithm hashAlgorithm = SourceHashAlgorithmUtils.DefaultContentHashAlgorithm)
+        {
+            return ComputeHash(GetAlgorithmName(hashAlgorithm), bytes);
         }
     }
 }

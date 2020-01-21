@@ -4,15 +4,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PickMembers;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 {
@@ -80,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Move_0_above_1, MemberContainers[SelectedIndex.Value].MemberAutomationText, MemberContainers[SelectedIndex.Value - 1].MemberAutomationText);
+                return string.Format(ServicesVSResources.Move_0_above_1, MemberContainers[SelectedIndex.Value].SymbolAutomationText, MemberContainers[SelectedIndex.Value - 1].SymbolAutomationText);
             }
         }
 
@@ -93,11 +88,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Move_0_below_1, MemberContainers[SelectedIndex.Value].MemberAutomationText, MemberContainers[SelectedIndex.Value + 1].MemberAutomationText);
+                return string.Format(ServicesVSResources.Move_0_below_1, MemberContainers[SelectedIndex.Value].SymbolAutomationText, MemberContainers[SelectedIndex.Value + 1].SymbolAutomationText);
             }
         }
-
-
 
         public bool CanMoveUp
         {
@@ -107,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                 {
                     return false;
                 }
-                
+
                 var index = SelectedIndex.Value;
                 return index > 0;
             }
@@ -121,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                 {
                     return false;
                 }
-                
+
                 var index = SelectedIndex.Value;
                 return index < MemberContainers.Count - 1;
             }
@@ -152,37 +145,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             SelectedIndex += delta;
         }
 
-        internal class MemberSymbolViewModel : AbstractNotifyPropertyChanged
+        internal class MemberSymbolViewModel : SymbolViewModel<ISymbol>
         {
-            private readonly IGlyphService _glyphService;
-
-            public ISymbol MemberSymbol { get; }
-
-            private static SymbolDisplayFormat s_memberDisplayFormat = new SymbolDisplayFormat(
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
-                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeOptionalBrackets,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-            public MemberSymbolViewModel(ISymbol symbol, IGlyphService glyphService)
+            public MemberSymbolViewModel(ISymbol symbol, IGlyphService glyphService) : base(symbol, glyphService)
             {
-                MemberSymbol = symbol;
-                _glyphService = glyphService;
-                _isChecked = true;
             }
-
-            private bool _isChecked;
-            public bool IsChecked
-            {
-                get { return _isChecked; }
-                set { SetProperty(ref _isChecked, value); }
-            }
-
-            public string MemberName => MemberSymbol.ToDisplayString(s_memberDisplayFormat);
-
-            public ImageSource Glyph => MemberSymbol.GetGlyph().GetImageSource(_glyphService);
-
-            public string MemberAutomationText => MemberSymbol.Kind + " " + MemberName;
         }
 
         internal class OptionViewModel : AbstractNotifyPropertyChanged

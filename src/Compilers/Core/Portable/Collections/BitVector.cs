@@ -1,24 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Roslyn.Utilities;
-using Word = System.UInt32;
+using Word = System.UInt64;
 
 namespace Microsoft.CodeAnalysis
 {
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal struct BitVector : IEquatable<BitVector>
     {
         private const Word ZeroWord = 0;
-        private const int Log2BitsPerWord = 5;
+        private const int Log2BitsPerWord = 6;
 
         public const int BitsPerWord = 1 << Log2BitsPerWord;
 
         // Cannot expose the following two field publicly because this structure is mutable
         // and might become not null/empty, unless we restrict access to it.
         private static readonly Word[] s_emptyArray = Array.Empty<Word>();
-        private static readonly BitVector s_nullValue = new BitVector(0, null, 0);
+        private static readonly BitVector s_nullValue = default;
         private static readonly BitVector s_emptyValue = new BitVector(0, s_emptyArray, 0);
 
         private Word _bits0;
@@ -37,15 +40,26 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(BitVector other)
         {
-            // Bit arrays only equal if their underlying sets are of the same size.
+            // Bit arrays only equal if their underlying sets are of the same size
             return _capacity == other._capacity
+                // and have the same set of bits set
                 && _bits0 == other._bits0
-                && _bits.ValueEquals(other._bits);
+                && _bits.AsSpan().SequenceEqual(other._bits.AsSpan());
         }
 
         public override bool Equals(object obj)
         {
-            return obj is BitVector && Equals((BitVector)obj);
+            return obj is BitVector other && Equals(other);
+        }
+
+        public static bool operator ==(BitVector left, BitVector right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(BitVector left, BitVector right)
+        {
+            return !left.Equals(right);
         }
 
         public override int GetHashCode()
@@ -97,9 +111,9 @@ namespace Microsoft.CodeAnalysis
                 yield return _bits0;
             }
 
-            for (int i = 0; i < _bits?.Length; i++)
+            for (int i = 0, n = _bits?.Length ?? 0; i < n; i++)
             {
-                yield return _bits[i];
+                yield return _bits![i];
             }
         }
 
@@ -193,7 +207,17 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public BitVector Clone()
         {
-            return new BitVector(_bits0, (_bits == null) ? null : (_bits.Length == 0) ? s_emptyArray : (Word[])_bits.Clone(), _capacity);
+            Word[] newBits;
+            if (_bits is null || _bits.Length == 0)
+            {
+                newBits = s_emptyArray;
+            }
+            else
+            {
+                newBits = (Word[])_bits.Clone();
+            }
+
+            return new BitVector(_bits0, newBits, _capacity);
         }
 
         /// <summary>
@@ -348,6 +372,16 @@ namespace Microsoft.CodeAnalysis
         {
             if (capacity <= 0) return 0;
             return WordsForCapacity(capacity) + 1;
+        }
+
+        internal string GetDebuggerDisplay()
+        {
+            var value = new char[_capacity];
+            for (int i = 0; i < _capacity; i++)
+            {
+                value[_capacity - i - 1] = this[i] ? '1' : '0';
+            }
+            return new string(value);
         }
     }
 }

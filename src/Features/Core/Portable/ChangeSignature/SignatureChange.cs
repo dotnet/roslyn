@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public SignatureChange(ParameterConfiguration originalConfiguration, ParameterConfiguration updatedConfiguration)
         {
-            this.OriginalConfiguration = originalConfiguration;
-            this.UpdatedConfiguration = updatedConfiguration;
+            OriginalConfiguration = originalConfiguration;
+            UpdatedConfiguration = updatedConfiguration;
 
             // TODO: Could be better than O(n^2)
             var originalParameterList = originalConfiguration.ToListOfParameters();
             var updatedParameterList = updatedConfiguration.ToListOfParameters();
 
-            for (int i = 0; i < originalParameterList.Count; i++)
+            for (var i = 0; i < originalParameterList.Count; i++)
             {
                 var parameter = originalParameterList[i];
                 var updatedIndex = updatedParameterList.IndexOf(parameter);

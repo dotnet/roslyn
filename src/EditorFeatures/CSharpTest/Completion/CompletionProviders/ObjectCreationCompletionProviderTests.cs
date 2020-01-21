@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -452,8 +453,8 @@ class C
 }
 ";
             await VerifyItemExistsAsync(markup, "Program");
-		}
-		
+        }
+
         [WorkItem(14084, "https://github.com/dotnet/roslyn/issues/14084")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InMethodCallBeforeAssignment1()
@@ -614,6 +615,69 @@ class C
 }
 ";
             await VerifyItemExistsAsync(markup, "A");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableTypeCreation()
+        {
+            var markup =
+@"#nullable enable
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        void M()
+        {
+            object? o;
+            o = new $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "object");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableTypeCreation_AssignedNull()
+        {
+            var markup =
+@"#nullable enable
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        void M()
+        {
+            object? o = null;
+            o = new $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "object");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableTypeCreation_NestedNull()
+        {
+            var markup =
+@"#nullable enable
+
+using System.Collections.Generic;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        void M()
+        {
+            List<object?> l;
+            l = new $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "List<object?>");
         }
     }
 }

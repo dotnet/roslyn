@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Correcting_word_casing">
         <source>Correcting word casing...</source>
-        <target state="translated">Correzione dell'uso delle maiuscole/minuscole per le parole in corso...</target>
+        <target state="translated">Correzione dell'uso delle maiuscole/minuscole per le parole...</target>
         <note />
       </trans-unit>
       <trans-unit id="New_">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
-        <target state="translated">Formattazione del documento in corso...</target>
+        <target state="translated">Formattazione del documento...</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_new_line">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Formatting_pasted_text">
         <source>Formatting pasted text...</source>
-        <target state="translated">Formattazione del testo incollato in corso...</target>
+        <target state="translated">Formattazione del testo incollato...</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste">
@@ -87,11 +87,6 @@
         <target state="translated">Elenco Visual Basic</target>
         <note />
       </trans-unit>
-      <trans-unit id="Multiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="translated">&lt;Più tipi&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="not_supported">
         <source>not supported</source>
         <target state="translated">non supportato</target>
@@ -105,6 +100,11 @@
       <trans-unit id="Line_commit">
         <source>Line commit</source>
         <target state="translated">Commit riga</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Abstract_Class_Or_Interface">
+        <source>Implement Abstract Class Or Interface</source>
+        <target state="translated">Implementa interfaccia o classe astratta</target>
         <note />
       </trans-unit>
     </body>

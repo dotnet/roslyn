@@ -96,6 +96,14 @@ End Class
             ' The result provider should never see a value like this in the "real-world"
             root = FormatResult("''a' Comment", value)
             Assert.Equal(".F", GetChildren(root).Single().FullName)
+
+            ' See https://dev.azure.com/devdiv/DevDiv/_workitems/edit/847849
+            root = FormatResult("""a'b"" ' c", value)
+            Assert.Equal("(""a'b"").F", GetChildren(root).Single().FullName)
+
+            ' incorrect - see https://github.com/dotnet/roslyn/issues/37536 
+            root = FormatResult("""a"" '""b", value)
+            Assert.Equal("(""a"" '""b).F", GetChildren(root).Single().FullName)
         End Sub
 
         <Fact>
@@ -264,7 +272,7 @@ End Class
             Dim root = FormatResult("o", value)
             Verify(GetChildren(root),
                 EvalResult("x (<>Mangled)", "0", "Integer", Nothing),
-                EvalResult("x", "0", "Integer", "o.x"))
+                EvalResult("x", "0", "Integer", "o.x", DkmEvaluationResultFlags.CanFavorite))
         End Sub
 
         <Fact>
@@ -379,7 +387,7 @@ End Class
             Dim root = FormatResult("instance", value)
             Verify(GetChildren(root),
                 EvalResult("I<>Mangled.P", "1", "Integer", Nothing, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
-                EvalResult("P", "1", "Integer", "instance.P", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private))
+                EvalResult("P", "1", "Integer", "instance.P", DkmEvaluationResultFlags.ReadOnly Or DkmEvaluationResultFlags.CanFavorite, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private))
         End Sub
 
         <Fact>
@@ -425,7 +433,7 @@ End Class
             Dim root = FormatResult("o", value)
             Dim children = GetChildren(root)
             Verify(children,
-                EvalResult("array", "{Length=1}", "System.Collections.Generic.IEnumerable(Of <>Mangled) {<>Mangled()}", "o.array", DkmEvaluationResultFlags.Expandable))
+                EvalResult("array", "{Length=1}", "System.Collections.Generic.IEnumerable(Of <>Mangled) {<>Mangled()}", "o.array", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite))
             Verify(GetChildren(children.Single()),
                 EvalResult("(0)", "Nothing", "<>Mangled", Nothing))
         End Sub

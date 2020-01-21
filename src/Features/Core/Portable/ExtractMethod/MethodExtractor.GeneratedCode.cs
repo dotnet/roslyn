@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfNull(callsiteAnnotation);
                 Contract.ThrowIfNull(methodDefinitionAnnotation);
 
-                this.Status = status;
-                this.SemanticDocument = document;
-                this.MethodNameAnnotation = methodNameAnnotation;
-                this.CallSiteAnnotation = callsiteAnnotation;
-                this.MethodDefinitionAnnotation = methodDefinitionAnnotation;
+                Status = status;
+                SemanticDocument = document;
+                MethodNameAnnotation = methodNameAnnotation;
+                CallSiteAnnotation = callsiteAnnotation;
+                MethodDefinitionAnnotation = methodDefinitionAnnotation;
             }
 
             public OperationStatus Status { get; }

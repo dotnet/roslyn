@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -12,18 +10,18 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class UseExplicitTupleNameDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class UseExplicitTupleNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string ElementName = nameof(ElementName);
 
-        public UseExplicitTupleNameDiagnosticAnalyzer() 
+        public UseExplicitTupleNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_explicitly_provided_tuple_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Prefer_explicitly_provided_tuple_element_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   CodeStyleOptions.PreferExplicitTupleNames,
+                   title: new LocalizableResourceString(nameof(FeaturesResources.Use_explicitly_provided_tuple_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Prefer_explicitly_provided_tuple_element_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
@@ -39,9 +37,15 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                 return;
             }
 
+            // We only create a diagnostic if the option's value is set to true.
             var option = optionSet.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
-            var severity = option.Notification.Value;
-            if (severity == DiagnosticSeverity.Hidden)
+            if (!option.Value)
+            {
+                return;
+            }
+
+            var severity = option.Notification.Severity;
+            if (severity == ReportDiagnostic.Suppress)
             {
                 return;
             }
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             var field = fieldReferenceOperation.Field;
             if (field.ContainingType.IsTupleType)
             {
-                if (field.CorrespondingTupleField.Equals(field))
+                if (field.CorrespondingTupleField?.Equals(field) == true)
                 {
                     var namedField = GetNamedField(field.ContainingType, field, cancellationToken);
                     if (namedField != null)
@@ -62,9 +66,11 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                         {
                             var properties = ImmutableDictionary<string, string>.Empty.Add(
                                 nameof(ElementName), namedField.Name);
-                            context.ReportDiagnostic(Diagnostic.Create(
-                                GetDescriptorWithSeverity(severity),
+                            context.ReportDiagnostic(DiagnosticHelper.Create(
+                                Descriptor,
                                 nameNode.GetLocation(),
+                                severity,
+                                additionalLocations: null,
                                 properties));
                         }
                     }

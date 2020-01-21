@@ -18,6 +18,11 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
     {
         public const string PropertyName = "Projection Tags";
 
+        [ImportingConstructor]
+        public ProjectionSpanTaggerProvider()
+        {
+        }
+
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
             return new Tagger(textView) as ITagger<T>;

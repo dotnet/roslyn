@@ -5,13 +5,17 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 Imports Microsoft.CodeAnalysis.ImplementAbstractClass
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
-    <ExportCommandHandler("ImplementAbstractClassCommandHandler", ContentTypeNames.VisualBasicContentType)>
+    <Export(GetType(ICommandHandler))>
+    <ContentType(ContentTypeNames.VisualBasicContentType)>
+    <Name("ImplementAbstractClassCommandHandler")>
     <Order(Before:=PredefinedCommandHandlerNames.EndConstruct)>
-    <Order(After:=PredefinedCommandHandlerNames.Completion)>
+    <Order(After:=PredefinedCompletionNames.CompletionCommandHandler)>
     Friend Class ImplementAbstractClassCommandHandler
         Inherits AbstractImplementAbstractClassOrInterfaceCommandHandler
 

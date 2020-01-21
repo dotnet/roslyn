@@ -9,6 +9,7 @@ using System.Windows.Media;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                return Enumerable.Empty<string>();
+                return SpecializedCollections.EmptyEnumerable<string>();
             }
         }
 
@@ -72,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public virtual ImageMoniker IconMoniker
         {
-            get { return default(ImageMoniker); }
+            get { return default; }
         }
 
         public virtual ImageSource ExpandedIcon
@@ -82,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public virtual ImageMoniker ExpandedIconMoniker
         {
-            get { return default(ImageMoniker); }
+            get { return default; }
         }
 
         public bool AllowIconTheming
@@ -107,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public virtual ImageMoniker OverlayIconMoniker
         {
-            get { return default(ImageMoniker); }
+            get { return default; }
         }
 
         public ImageSource StateIcon
@@ -117,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public virtual ImageMoniker StateIconMoniker
         {
-            get { return default(ImageMoniker); }
+            get { return default; }
         }
 
         public string StateToolTipText

@@ -9,6 +9,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking
     Friend NotInheritable Class BasicRenameTrackingLanguageHeuristicsService
         Implements IRenameTrackingLanguageHeuristicsService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function IsIdentifierValidForRenameTracking(name As String) As Boolean Implements IRenameTrackingLanguageHeuristicsService.IsIdentifierValidForRenameTracking
             Return True
         End Function

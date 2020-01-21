@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public object ReturnValue => GetReturnValue();
         internal abstract object GetReturnValue();
-        
+
         /// <summary>
         /// Returns variables defined by the scripts in the declaration order.
         /// </summary>

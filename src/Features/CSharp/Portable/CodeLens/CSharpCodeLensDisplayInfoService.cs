@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
             SymbolDisplayFormat.CSharpErrorMessageFormat.RemoveMemberOptions(
                 SymbolDisplayMemberOptions.IncludeExplicitInterface);
 
+        [ImportingConstructor]
+        public CSharpCodeLensDisplayInfoService()
+        {
+        }
+
         /// <summary>
         /// Returns the node that should be displayed
         /// </summary>
@@ -30,19 +35,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                         node = localDeclarationNode.Declaration.Variables.FirstOrDefault();
                         continue;
 
-                        // Field and event declarations do not have symbols themselves, you need a variable declarator
+                    // Field and event declarations do not have symbols themselves, you need a variable declarator
                     case SyntaxKind.FieldDeclaration:
                     case SyntaxKind.EventFieldDeclaration:
                         var fieldNode = (BaseFieldDeclarationSyntax)node;
                         node = fieldNode.Declaration.Variables.FirstOrDefault();
                         continue;
 
-                        // Variable is a field without access modifier. Parent is FieldDeclaration
+                    // Variable is a field without access modifier. Parent is FieldDeclaration
                     case SyntaxKind.VariableDeclaration:
                         node = node.Parent;
                         continue;
 
-                        // Built in types   
+                    // Built in types   
                     case SyntaxKind.PredefinedType:
                         node = node.Parent;
                         continue;
@@ -89,79 +94,79 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
             switch (node.Kind())
             {
                 case SyntaxKind.ConstructorDeclaration:
-                {
-                    // The constructor's name will be the name of the class, not ctor like we want
-                    var symbol = semanticModel.GetDeclaredSymbol(node);
-                    var displayName = symbol.ToDisplayString(Format);
-                    var openParenIndex = displayName.IndexOf('(');
-                    var lastDotBeforeOpenParenIndex = displayName.LastIndexOf('.', openParenIndex, openParenIndex);
+                    {
+                        // The constructor's name will be the name of the class, not ctor like we want
+                        var symbol = semanticModel.GetDeclaredSymbol(node);
+                        var displayName = symbol.ToDisplayString(Format);
+                        var openParenIndex = displayName.IndexOf('(');
+                        var lastDotBeforeOpenParenIndex = displayName.LastIndexOf('.', openParenIndex, openParenIndex);
 
-                    var constructorName = symbol.IsStatic ? "cctor" : "ctor";
+                        var constructorName = symbol.IsStatic ? "cctor" : "ctor";
 
-                    return displayName.Substring(0, lastDotBeforeOpenParenIndex + 1) +
-                           constructorName +
-                           displayName.Substring(openParenIndex);
-                }
+                        return displayName.Substring(0, lastDotBeforeOpenParenIndex + 1) +
+                               constructorName +
+                               displayName.Substring(openParenIndex);
+                    }
 
                 case SyntaxKind.IndexerDeclaration:
-                {
-                    // The name will be "namespace.class.this[type] - we want "namespace.class[type] Indexer"
-                    var symbol = semanticModel.GetDeclaredSymbol(node);
-                    var displayName = symbol.ToDisplayString(Format);
-                    var openBracketIndex = displayName.IndexOf('[');
-                    var lastDotBeforeOpenBracketIndex = displayName.LastIndexOf('.', openBracketIndex, openBracketIndex);
+                    {
+                        // The name will be "namespace.class.this[type] - we want "namespace.class[type] Indexer"
+                        var symbol = semanticModel.GetDeclaredSymbol(node);
+                        var displayName = symbol.ToDisplayString(Format);
+                        var openBracketIndex = displayName.IndexOf('[');
+                        var lastDotBeforeOpenBracketIndex = displayName.LastIndexOf('.', openBracketIndex, openBracketIndex);
 
-                    return displayName.Substring(0, lastDotBeforeOpenBracketIndex) +
-                           displayName.Substring(openBracketIndex) +
-                           " Indexer";
-                }
+                        return displayName.Substring(0, lastDotBeforeOpenBracketIndex) +
+                               displayName.Substring(openBracketIndex) +
+                               " Indexer";
+                    }
 
                 case SyntaxKind.OperatorDeclaration:
-                {
-                    // The name will be "namespace.class.operator +(type)" - we want namespace.class.+(type) Operator
-                    var symbol = semanticModel.GetDeclaredSymbol(node);
-                    var displayName = symbol.ToDisplayString(Format);
-                    var spaceIndex = displayName.IndexOf(' ');
-                    var lastDotBeforeSpaceIndex = displayName.LastIndexOf('.', spaceIndex, spaceIndex);
+                    {
+                        // The name will be "namespace.class.operator +(type)" - we want namespace.class.+(type) Operator
+                        var symbol = semanticModel.GetDeclaredSymbol(node);
+                        var displayName = symbol.ToDisplayString(Format);
+                        var spaceIndex = displayName.IndexOf(' ');
+                        var lastDotBeforeSpaceIndex = displayName.LastIndexOf('.', spaceIndex, spaceIndex);
 
-                    return displayName.Substring(0, lastDotBeforeSpaceIndex + 1) +
-                           displayName.Substring(spaceIndex + 1) +
-                           " Operator";
-                }
+                        return displayName.Substring(0, lastDotBeforeSpaceIndex + 1) +
+                               displayName.Substring(spaceIndex + 1) +
+                               " Operator";
+                    }
 
                 case SyntaxKind.ConversionOperatorDeclaration:
-                {
-                    // The name will be "namespace.class.operator +(type)" - we want namespace.class.+(type) Operator
-                    var symbol = semanticModel.GetDeclaredSymbol(node);
-                    var displayName = symbol.ToDisplayString(Format);
-                    var firstSpaceIndex = displayName.IndexOf(' ');
-                    var secondSpaceIndex = displayName.IndexOf(' ', firstSpaceIndex + 1);
-                    var lastDotBeforeSpaceIndex = displayName.LastIndexOf('.', firstSpaceIndex, firstSpaceIndex);
+                    {
+                        // The name will be "namespace.class.operator +(type)" - we want namespace.class.+(type) Operator
+                        var symbol = semanticModel.GetDeclaredSymbol(node);
+                        var displayName = symbol.ToDisplayString(Format);
+                        var firstSpaceIndex = displayName.IndexOf(' ');
+                        var secondSpaceIndex = displayName.IndexOf(' ', firstSpaceIndex + 1);
+                        var lastDotBeforeSpaceIndex = displayName.LastIndexOf('.', firstSpaceIndex, firstSpaceIndex);
 
-                    return displayName.Substring(0, lastDotBeforeSpaceIndex + 1) +
-                           displayName.Substring(secondSpaceIndex + 1) +
-                           " Operator";
-                }
+                        return displayName.Substring(0, lastDotBeforeSpaceIndex + 1) +
+                               displayName.Substring(secondSpaceIndex + 1) +
+                               " Operator";
+                    }
 
                 case SyntaxKind.UsingDirective:
-                {
-                    // We want to see usings formatted as simply "Using", prefaced by the namespace they are in
-                    var enclosingScopeString = GetEnclosingScopeString(node, semanticModel, Format);
-                    return string.IsNullOrEmpty(enclosingScopeString) ? "Using" : enclosingScopeString + " Using";
-                }
+                    {
+                        // We want to see usings formatted as simply "Using", prefaced by the namespace they are in
+                        var enclosingScopeString = GetEnclosingScopeString(node, semanticModel, Format);
+                        return string.IsNullOrEmpty(enclosingScopeString) ? "Using" : enclosingScopeString + " Using";
+                    }
 
                 case SyntaxKind.ExternAliasDirective:
-                {
-                    // We want to see aliases formatted as "Alias", prefaced by their enclosing scope, if any
-                    var enclosingScopeString = GetEnclosingScopeString(node, semanticModel, Format);
-                    return string.IsNullOrEmpty(enclosingScopeString) ? "Alias" : enclosingScopeString + " Alias";
-                }
+                    {
+                        // We want to see aliases formatted as "Alias", prefaced by their enclosing scope, if any
+                        var enclosingScopeString = GetEnclosingScopeString(node, semanticModel, Format);
+                        return string.IsNullOrEmpty(enclosingScopeString) ? "Alias" : enclosingScopeString + " Alias";
+                    }
 
                 default:
-                {
-                    var symbol = semanticModel.GetDeclaredSymbol(node);
-                    return symbol != null ? symbol.ToDisplayString(Format) : FeaturesResources.paren_Unknown_paren;
-                }
+                    {
+                        var symbol = semanticModel.GetDeclaredSymbol(node);
+                        return symbol != null ? symbol.ToDisplayString(Format) : FeaturesResources.paren_Unknown_paren;
+                    }
             }
         }
 

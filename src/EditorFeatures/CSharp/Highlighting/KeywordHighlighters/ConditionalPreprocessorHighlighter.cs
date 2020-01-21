@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,20 +13,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     [ExportHighlighter(LanguageNames.CSharp)]
     internal class ConditionalPreprocessorHighlighter : AbstractKeywordHighlighter<DirectiveTriviaSyntax>
     {
-        protected override IEnumerable<TextSpan> GetHighlights(
-            DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        public ConditionalPreprocessorHighlighter()
+        {
+        }
+
+        protected override void AddHighlights(
+            DirectiveTriviaSyntax directive, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
             var conditionals = directive.GetMatchingConditionalDirectives(cancellationToken);
             if (conditionals == null)
             {
-                yield break;
+                return;
             }
 
             foreach (var conditional in conditionals)
             {
-                yield return TextSpan.FromBounds(
+                highlights.Add(TextSpan.FromBounds(
                     conditional.HashToken.SpanStart,
-                    conditional.DirectiveNameToken.Span.End);
+                    conditional.DirectiveNameToken.Span.End));
             }
         }
     }

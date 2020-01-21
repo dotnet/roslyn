@@ -62,8 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var attributeArguments = GenerateAttributeArgumentList(attribute);
-            var nameSyntax = attribute.AttributeClass.GenerateTypeSyntax() as NameSyntax;
-            return nameSyntax == null ? null : SyntaxFactory.Attribute(nameSyntax, attributeArguments);
+            return !(attribute.AttributeClass.GenerateTypeSyntax() is NameSyntax nameSyntax) ? null : SyntaxFactory.Attribute(nameSyntax, attributeArguments);
         }
 
         private static AttributeArgumentListSyntax GenerateAttributeArgumentList(AttributeData attribute)

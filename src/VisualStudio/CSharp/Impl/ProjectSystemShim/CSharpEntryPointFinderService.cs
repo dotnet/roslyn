@@ -11,6 +11,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     [ExportLanguageService(typeof(IEntryPointFinderService), LanguageNames.CSharp), Shared]
     internal class CSharpEntryPointFinderService : IEntryPointFinderService
     {
+        [ImportingConstructor]
+        public CSharpEntryPointFinderService()
+        {
+        }
+
         public IEnumerable<INamedTypeSymbol> FindEntryPoints(INamespaceSymbol symbol, bool findFormsOnly)
         {
             return EntryPointFinder.FindEntryPoints(symbol);

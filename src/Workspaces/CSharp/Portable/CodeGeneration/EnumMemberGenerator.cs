@@ -127,9 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                 }
                             }
                         }
-                        else if (lastExpression.Kind() == SyntaxKind.NumericLiteralExpression)
+                        else if (lastExpression.IsKind(SyntaxKind.NumericLiteralExpression, out LiteralExpressionSyntax numericLiteral))
                         {
-                            var numericLiteral = (LiteralExpressionSyntax)lastExpression;
                             var numericToken = numericLiteral.Token;
                             var numericText = numericToken.ToString();
 
@@ -150,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var namedType = enumMember.Type as INamedTypeSymbol;
-            var underlyingType = namedType != null ? namedType.EnumUnderlyingType : null;
+            var underlyingType = namedType?.EnumUnderlyingType;
 
             return ExpressionGenerator.GenerateNonEnumValueExpression(
                 underlyingType,

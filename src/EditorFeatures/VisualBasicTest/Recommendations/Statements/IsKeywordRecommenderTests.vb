@@ -88,5 +88,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
     End Select
 </MethodBody>, "Is")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>
+    Select Case 5
+        Case _ ' Test
+|
+    End Select
+</MethodBody>, "Is")
+        End Function
     End Class
 End Namespace

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
     internal partial class CSharpIntroduceVariableService
     {
-        protected override Task<Tuple<Document, SyntaxNode, int>> IntroduceFieldAsync(
+        protected override Task<Document> IntroduceFieldAsync(
             SemanticDocument document,
             ExpressionSyntax expression,
             bool allOccurrences,
@@ -51,15 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 var newTypeDeclaration = Rewrite(
                     document, expression, newQualifiedName, document, oldTypeDeclaration, allOccurrences, cancellationToken);
 
-                var insertionIndex = isConstant ?
-                    DetermineConstantInsertPosition(oldTypeDeclaration.Members, newTypeDeclaration.Members) :
-                    DetermineFieldInsertPosition(oldTypeDeclaration.Members, newTypeDeclaration.Members);
-
+                var insertionIndex = GetFieldInsertionIndex(isConstant, oldTypeDeclaration, newTypeDeclaration, cancellationToken);
                 var finalTypeDeclaration = InsertMember(newTypeDeclaration, newFieldDeclaration, insertionIndex);
 
-                SyntaxNode destination = oldTypeDeclaration;
                 var newRoot = document.Root.ReplaceNode(oldTypeDeclaration, finalTypeDeclaration);
-                return Task.FromResult(Tuple.Create(document.Document.WithSyntaxRoot(newRoot), destination, insertionIndex));
+                return Task.FromResult(document.Document.WithSyntaxRoot(newRoot));
             }
             else
             {
@@ -71,11 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     DetermineConstantInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members) :
                     DetermineFieldInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members);
 
-                SyntaxNode destination = oldCompilationUnit;
                 var newRoot = newCompilationUnit.WithMembers(newCompilationUnit.Members.Insert(insertionIndex, newFieldDeclaration));
-                return Task.FromResult(Tuple.Create(document.Document.WithSyntaxRoot(newRoot), destination, insertionIndex));
+                return Task.FromResult(document.Document.WithSyntaxRoot(newRoot));
             }
         }
+
+        protected override int DetermineConstantInsertPosition(TypeDeclarationSyntax oldType, TypeDeclarationSyntax newType)
+            => DetermineConstantInsertPosition(oldType.Members, newType.Members);
 
         protected static int DetermineConstantInsertPosition(
             SyntaxList<MemberDeclarationSyntax> oldMembers,
@@ -113,6 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             return index;
         }
+
+        protected override int DetermineFieldInsertPosition(TypeDeclarationSyntax oldType, TypeDeclarationSyntax newType)
+            => DetermineFieldInsertPosition(oldType.Members, newType.Members);
 
         protected static int DetermineFieldInsertPosition(
             SyntaxList<MemberDeclarationSyntax> oldMembers,
@@ -152,13 +153,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         private static bool IsConstantField(MemberDeclarationSyntax member)
         {
-            var field = member as FieldDeclarationSyntax;
-            return field != null && field.Modifiers.Any(SyntaxKind.ConstKeyword);
+            return member is FieldDeclarationSyntax field && field.Modifiers.Any(SyntaxKind.ConstKeyword);
         }
 
         protected static int DetermineFirstChange(SyntaxList<MemberDeclarationSyntax> oldMembers, SyntaxList<MemberDeclarationSyntax> newMembers)
         {
-            for (int i = 0; i < oldMembers.Count; i++)
+            for (var i = 0; i < oldMembers.Count; i++)
             {
                 if (!SyntaxFactory.AreEquivalent(oldMembers[i], newMembers[i], topLevel: false))
                 {

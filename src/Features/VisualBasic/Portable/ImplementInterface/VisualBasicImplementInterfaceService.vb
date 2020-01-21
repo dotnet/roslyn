@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
     Partial Friend Class VisualBasicImplementInterfaceService
         Inherits AbstractImplementInterfaceService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides ReadOnly Property CanImplementImplicitly As Boolean
             Get
                 Return False
@@ -154,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
             decls(decls.Length - 1) = decls(decls.Length - 1).WithAppendedTrailingTrivia(
                 SyntaxFactory.TriviaList(
                     SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia()),
-                    SyntaxFactory.CarriageReturnLineFeed))
+                    SyntaxFactory.ElasticCarriageReturnLineFeed))
 
             ' Ensure that open and close brace tokens are generated in case they are missing.
             Dim newNode = classBlock.AddMembers(decls).FixTerminators()

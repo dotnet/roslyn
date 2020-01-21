@@ -15,13 +15,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
     internal static class IVsEditorAdaptersFactoryServiceExtensions
     {
         public static IOleUndoManager TryGetUndoManager(
-            this IVsEditorAdaptersFactoryService editorAdaptersFactoryService, 
+            this IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             Microsoft.CodeAnalysis.Workspace workspace,
-            DocumentId contextDocumentId, 
+            DocumentId contextDocumentId,
             CancellationToken cancellationToken)
         {
             // https://github.com/dotnet/roslyn/issues/17898
-            // We have a report of a null ref occuring in this method. The only place we believe 
+            // We have a report of a null ref occurring in this method. The only place we believe 
             // this could be would be if 'document' was null. Try to catch a reasonable 
             // non -fatal-watson dump to help track down what the root cause of this might be.
             var document = workspace.CurrentSolution.GetDocument(contextDocumentId);
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
                 return null;
             }
 
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var text = document.GetTextSynchronously(cancellationToken);
             var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
             var textBuffer = textSnapshot?.TextBuffer;
             return editorAdaptersFactoryService.TryGetUndoManager(textBuffer);

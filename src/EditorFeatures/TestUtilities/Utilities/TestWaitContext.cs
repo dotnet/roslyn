@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             _cancellationTokenSource = new CancellationTokenSource();
             _maxUpdates = maxUpdates;
-            _progressTracker = new ProgressTracker((_1, _2) => UpdateProgress());
+            _progressTracker = new ProgressTracker((_1, _2, _3) => UpdateProgress());
         }
 
         IProgressTracker IWaitContext.ProgressTracker => _progressTracker;

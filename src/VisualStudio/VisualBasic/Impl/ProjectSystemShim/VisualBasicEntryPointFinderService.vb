@@ -10,6 +10,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Friend Class VisualBasicEntryPointFinderService
         Implements IEntryPointFinderService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function FindEntryPoints(symbol As INamespaceSymbol, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol) Implements IEntryPointFinderService.FindEntryPoints
             Return EntryPointFinder.FindEntryPoints(symbol, findFormsOnly)
         End Function

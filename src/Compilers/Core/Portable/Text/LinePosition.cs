@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using Roslyn.Utilities;
 
@@ -8,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Immutable representation of a line number and position within a SourceText instance.
     /// </summary>
-    public struct LinePosition : IEquatable<LinePosition>, IComparable<LinePosition>
+    public readonly struct LinePosition : IEquatable<LinePosition>, IComparable<LinePosition>
     {
         /// <summary>
         /// A <see cref="LinePosition"/> that represents position 0 at line 0.
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Determines whether two <see cref="LinePosition"/> are the same.
         /// </summary>
         /// <param name="obj">The object to compare.</param>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is LinePosition && Equals((LinePosition)obj);
         }

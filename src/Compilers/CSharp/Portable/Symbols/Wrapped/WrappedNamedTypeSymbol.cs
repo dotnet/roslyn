@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected readonly NamedTypeSymbol _underlyingType;
 
-        public WrappedNamedTypeSymbol(NamedTypeSymbol underlyingType)
+        public WrappedNamedTypeSymbol(NamedTypeSymbol underlyingType, TupleExtraData tupleData)
+            : base(tupleData)
         {
             Debug.Assert((object)underlyingType != null);
             _underlyingType = underlyingType;
@@ -123,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (IsTupleType)
+                {
+                    return TupleData.Locations;
+                }
+
                 return _underlyingType.Locations;
             }
         }
@@ -131,6 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (IsTupleType)
+                {
+                    return GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(TupleData.Locations);
+                }
+
                 return _underlyingType.DeclaringSyntaxReferences;
             }
         }
@@ -174,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingType.IsMetadataSealed;
             }
         }
-        
+
         internal override bool HasCodeAnalysisEmbeddedAttribute => _underlyingType.HasCodeAnalysisEmbeddedAttribute;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
@@ -202,17 +213,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingType.MarshallingCharSet; }
         }
 
-        internal override bool IsSerializable
+        public override bool IsSerializable
         {
             get { return _underlyingType.IsSerializable; }
         }
 
-        internal override bool IsByRefLikeType
+        public override bool IsRefLikeType
         {
-            get { return _underlyingType.IsByRefLikeType; }
+            get { return _underlyingType.IsRefLikeType; }
         }
 
-        internal override bool IsReadOnly
+        public override bool IsReadOnly
         {
             get { return _underlyingType.IsReadOnly; }
         }

@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             using (_gate.DisposableWait())
             {
-                GraphNode node = await GetOrCreateNodeAsync(_graph, symbol, _solution, _cancellationToken).ConfigureAwait(false);
+                var node = await GetOrCreateNodeAsync(_graph, symbol, _solution, _cancellationToken).ConfigureAwait(false);
 
                 node[RoslynGraphProperties.SymbolId] = (SymbolKey?)symbol.GetSymbolKey();
                 node[RoslynGraphProperties.ContextProjectId] = GetContextProjectId(contextProject, symbol);
@@ -689,18 +689,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             using (_gate.DisposableWait())
             {
-                using (var graphTransaction = new GraphTransactionScope())
+                using var graphTransaction = new GraphTransactionScope();
+                graph.Merge(this.Graph);
+
+                foreach (var deferredProperty in _deferredPropertySets)
                 {
-                    graph.Merge(this.Graph);
-
-                    foreach (var deferredProperty in _deferredPropertySets)
-                    {
-                        var nodeToSet = graph.Nodes.Get(deferredProperty.Item1.Id);
-                        nodeToSet.SetValue(deferredProperty.Item2, deferredProperty.Item3);
-                    }
-
-                    graphTransaction.Complete();
+                    var nodeToSet = graph.Nodes.Get(deferredProperty.Item1.Id);
+                    nodeToSet.SetValue(deferredProperty.Item2, deferredProperty.Item3);
                 }
+
+                graphTransaction.Complete();
             }
         }
 

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -145,10 +146,10 @@ namespace Microsoft.Cci
             }
         }
 
-        private static LocalVariableHandle NextHandle(LocalVariableHandle handle) => 
+        private static LocalVariableHandle NextHandle(LocalVariableHandle handle) =>
             MetadataTokens.LocalVariableHandle(MetadataTokens.GetRowNumber(handle) + 1);
 
-        private static LocalConstantHandle NextHandle(LocalConstantHandle handle) => 
+        private static LocalConstantHandle NextHandle(LocalConstantHandle handle) =>
             MetadataTokens.LocalConstantHandle(MetadataTokens.GetRowNumber(handle) + 1);
 
         private BlobHandle SerializeLocalConstantSignature(ILocalDefinition localConstant)
@@ -726,44 +727,52 @@ namespace Microsoft.Cci
 
         private DocumentHandle GetOrAddDocument(DebugSourceDocument document, Dictionary<DebugSourceDocument, DocumentHandle> index)
         {
-            DocumentHandle documentHandle;
-            if (!index.TryGetValue(document, out documentHandle))
+            if (index.TryGetValue(document, out var documentHandle))
             {
-                DebugSourceInfo info = document.GetSourceInfo();
+                return documentHandle;
+            }
 
-                documentHandle = _debugMetadataOpt.AddDocument(
-                    name: _debugMetadataOpt.GetOrAddDocumentName(document.Location),
-                    hashAlgorithm: info.Checksum.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(info.ChecksumAlgorithmId),
-                    hash: info.Checksum.IsDefault ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(info.Checksum),
-                    language: _debugMetadataOpt.GetOrAddGuid(document.Language));
+            return AddDocument(document, index);
+        }
 
-                index.Add(document, documentHandle);
+        private DocumentHandle AddDocument(DebugSourceDocument document, Dictionary<DebugSourceDocument, DocumentHandle> index)
+        {
+            DocumentHandle documentHandle;
+            DebugSourceInfo info = document.GetSourceInfo();
 
-                if (info.EmbeddedTextBlob != null)
-                {
-                    _debugMetadataOpt.AddCustomDebugInformation(
-                        parent: documentHandle,
-                        kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EmbeddedSource),
-                        value: _debugMetadataOpt.GetOrAddBlob(info.EmbeddedTextBlob));
-                }
+            documentHandle = _debugMetadataOpt.AddDocument(
+                name: _debugMetadataOpt.GetOrAddDocumentName(document.Location),
+                hashAlgorithm: info.Checksum.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(info.ChecksumAlgorithmId),
+                hash: info.Checksum.IsDefault ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(info.Checksum),
+                language: _debugMetadataOpt.GetOrAddGuid(document.Language));
+
+            index.Add(document, documentHandle);
+
+            if (info.EmbeddedTextBlob != null)
+            {
+                _debugMetadataOpt.AddCustomDebugInformation(
+                    parent: documentHandle,
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EmbeddedSource),
+                    value: _debugMetadataOpt.GetOrAddBlob(info.EmbeddedTextBlob));
             }
 
             return documentHandle;
         }
 
         /// <summary>
-        /// Add document entries for any embedded text document that does not yet have an entry.
+        /// Add document entries for all debug documents that do not yet have an entry.
         /// </summary>
         /// <remarks>
         /// This is done after serializing method debug info to ensure that we embed all requested
         /// text even if there are no corresponding sequence points.
         /// </remarks>
-        public void AddRemainingEmbeddedDocuments(IEnumerable<DebugSourceDocument> documents)
+        public void AddRemainingDebugDocuments(IReadOnlyDictionary<string, DebugSourceDocument> documents)
         {
-            foreach (var document in documents)
+            foreach (var kvp in documents
+                .Where(kvp => !_documentIndex.ContainsKey(kvp.Value))
+                .OrderBy(kvp => kvp.Key))
             {
-                Debug.Assert(document.GetSourceInfo().EmbeddedTextBlob != null);
-                GetOrAddDocument(document, _documentIndex);
+                AddDocument(kvp.Value, _documentIndex);
             }
         }
 
@@ -812,7 +821,7 @@ namespace Microsoft.Cci
             }
             catch (Exception e) when (!(e is OperationCanceledException))
             {
-                throw new PdbWritingException(e);
+                throw new SymUnmanagedWriterException(e.Message, e);
             }
 
             _debugMetadataOpt.AddCustomDebugInformation(

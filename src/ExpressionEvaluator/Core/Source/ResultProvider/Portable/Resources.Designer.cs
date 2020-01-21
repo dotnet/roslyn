@@ -213,5 +213,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator {
                 return ResourceManager.GetString("TypeVariablesName", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Host Value Not Found.
+        /// </summary>
+        internal static string HostValueNotFound
+        {
+            get
+            {
+                return ResourceManager.GetString("HostValueNotFound", resourceCulture);
+            }
+        }
     }
 }

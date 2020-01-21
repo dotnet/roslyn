@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -13,34 +13,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         ICommandHandler<WordDeleteToStartCommandArgs>,
         ICommandHandler<WordDeleteToEndCommandArgs>
     {
-        public CommandState GetCommandState(WordDeleteToStartCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(WordDeleteToStartCommandArgs args)
         {
-            return GetCommandState(nextHandler);
+            return GetCommandState();
         }
 
-        public CommandState GetCommandState(WordDeleteToEndCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(WordDeleteToEndCommandArgs args)
         {
-            return GetCommandState(nextHandler);
+            return GetCommandState();
         }
 
-        public void ExecuteCommand(WordDeleteToStartCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(WordDeleteToStartCommandArgs args, CommandExecutionContext context)
         {
-            if (HandleWordDeleteCommand(args.SubjectBuffer, args.TextView, deleteToStart: true))
-            {
-                return;
-            }
-
-            nextHandler();
+            return HandleWordDeleteCommand(args.SubjectBuffer, args.TextView, deleteToStart: true);
         }
 
-        public void ExecuteCommand(WordDeleteToEndCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(WordDeleteToEndCommandArgs args, CommandExecutionContext context)
         {
-            if (HandleWordDeleteCommand(args.SubjectBuffer, args.TextView, deleteToStart: false))
-            {
-                return;
-            }
-
-            nextHandler();
+            return HandleWordDeleteCommand(args.SubjectBuffer, args.TextView, deleteToStart: false);
         }
 
         private bool HandleWordDeleteCommand(ITextBuffer subjectBuffer, ITextView view, bool deleteToStart)

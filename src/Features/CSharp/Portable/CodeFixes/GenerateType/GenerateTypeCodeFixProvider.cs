@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
         private const string CS0426 = nameof(CS0426); // error CS0426: The type name 'S' does not exist in the type 'Program'
         private const string CS0616 = nameof(CS0616); // error CS0616: 'x' is not an attribute class
 
+        [ImportingConstructor]
+        public GenerateTypeCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(CS0103, CS0117, CS0234, CS0246, CS0305, CS0308, CS0426, CS0616, IDEDiagnosticIds.UnboundIdentifierId); }

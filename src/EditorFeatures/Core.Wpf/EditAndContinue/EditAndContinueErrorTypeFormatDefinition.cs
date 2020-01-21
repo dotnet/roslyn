@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     [UserVisible(true)]
     internal sealed class EditAndContinueErrorTypeFormatDefinition : EditorFormatDefinition
     {
+        [ImportingConstructor]
         public EditAndContinueErrorTypeFormatDefinition()
         {
             this.ForegroundBrush = Brushes.Purple;

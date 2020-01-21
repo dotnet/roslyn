@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="Diagnostic rules for the CSharpCodeAnalysis (Portable and Desktop) projects" Description="Enables rules specific to these projects." ToolsVersion="14.0">
   <!-- Include default rules -->
-  <Include Path="..\..\..\build\Rulesets\Roslyn_BuildRules.ruleset" Action="Default" />
+  <Include Path="..\..\..\eng\config\rulesets\Shipping.ruleset" Action="Default" />
   <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.CSharp" RuleNamespace="Roslyn.Diagnostics.Analyzers.CSharp">
     <Rule Id="RS0013" Action="Warning" />
   </Rules>

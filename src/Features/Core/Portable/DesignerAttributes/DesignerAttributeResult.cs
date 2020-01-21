@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.DesignerAttributes
 {
-    internal struct DesignerAttributeResult
+    internal readonly struct DesignerAttributeResult
     {
         /// <summary>
         /// Designer attribute string

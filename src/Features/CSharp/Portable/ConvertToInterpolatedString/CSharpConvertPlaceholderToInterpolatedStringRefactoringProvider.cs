@@ -9,9 +9,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString), Shared]
     internal partial class CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider :
-        AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, LiteralExpressionSyntax>
+        AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, LiteralExpressionSyntax, ArgumentListSyntax>
     {
-        protected override SyntaxNode GetInterpolatedString(string text) 
+        [ImportingConstructor]
+        public CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider()
+        {
+        }
+
+        protected override SyntaxNode GetInterpolatedString(string text)
             => SyntaxFactory.ParseExpression("$" + text) as InterpolatedStringExpressionSyntax;
     }
 }

@@ -12,6 +12,11 @@
         <target state="translated">불필요한 네임스페이스 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_Namespaces">
+        <source>&amp;Sort Namespaces</source>
+        <target state="translated">네임 스페이스 정렬(&amp;S)</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

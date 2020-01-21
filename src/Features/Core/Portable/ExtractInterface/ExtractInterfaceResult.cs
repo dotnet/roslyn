@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
         public ExtractInterfaceResult(bool succeeded, Solution updatedSolution = null, DocumentId navigationDocumentId = null)
         {
-            this.Succeeded = succeeded;
-            this.UpdatedSolution = updatedSolution;
-            this.NavigationDocumentId = navigationDocumentId;
+            Succeeded = succeeded;
+            UpdatedSolution = updatedSolution;
+            NavigationDocumentId = navigationDocumentId;
         }
     }
 }

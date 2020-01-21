@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     Friend Class ReduceTokensCodeCleanupProvider
         Inherits AbstractTokensCodeCleanupProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property Name As String
             Get
                 Return PredefinedCodeCleanupProviderNames.ReduceTokens

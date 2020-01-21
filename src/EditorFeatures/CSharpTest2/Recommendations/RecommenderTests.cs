@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             int position,
             bool absent,
             string insertText,
-            CSharpParseOptions options, 
+            CSharpParseOptions options,
             int? matchPriority)
         {
             text = text.Substring(0, position) + insertText + "/**/" + text.Substring(position);
@@ -61,10 +60,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
             var semanticModel = compilation.GetSemanticModel(tree);
             var context = CSharpSyntaxContext.CreateContext_Test(semanticModel, position, CancellationToken.None);
-            return CheckResultAsync(absent, position, context, semanticModel, matchPriority);
+            return CheckResultAsync(absent, position, context, matchPriority);
         }
 
-        private async Task CheckResultAsync(bool absent, int position, CSharpSyntaxContext context, SemanticModel semanticModel, int? matchPriority)
+        private async Task CheckResultAsync(bool absent, int position, CSharpSyntaxContext context, int? matchPriority)
         {
             if (absent)
             {
@@ -82,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 }
                 else
                 {
-                    var result = (await RecommendKeywordsAsync(position, context)).Single();
+                    var result = (await RecommendKeywordsAsync(position, context)).SingleOrDefault();
                     Assert.True(result != null, "No recommended keywords");
                     Assert.Equal(keywordText, result.Keyword);
                     if (matchPriority != null)
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             return VerifyAtEndOfFileAsync(text, position, absent, keywordText.Substring(0, 1), options: options, matchPriority: matchPriority);
         }
 
-        internal async Task VerifyKeywordAsync(string text, CSharpParseOptions options = null, CSharpParseOptions scriptOptions = null, int? matchPriority = null)
+        internal async Task VerifyKeywordAsync(string text, CSharpParseOptions options = null, CSharpParseOptions scriptOptions = null)
         {
             // run the verification in both context(normal and script)
             await VerifyWorkerAsync(text, absent: false, options: options);

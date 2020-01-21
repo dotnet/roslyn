@@ -7,12 +7,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Structure;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
+    [UseExportProvider]
     public abstract class AbstractSyntaxStructureProviderTests
     {
         protected abstract string LanguageName { get; }
@@ -30,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
         {
             using (var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
             {
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(BlockStructureOptions.MaximumBannerLength, LanguageName, 120)));
                 var hostDocument = workspace.Documents.Single();
-                workspace.Options = workspace.Options.WithChangedOption(
-                    BlockStructureOptions.MaximumBannerLength, LanguageName, 120);
                 Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
                 var position = hostDocument.CursorPosition.Value;
 
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
                 Assert.True(expectedRegions.Length == actualRegions.Length, $"Expected {expectedRegions.Length} regions but there were {actualRegions.Length}");
 
-                for (int i = 0; i < expectedRegions.Length; i++)
+                for (var i = 0; i < expectedRegions.Length; i++)
                 {
                     AssertRegion(expectedRegions[i], actualRegions[i]);
                 }
@@ -92,11 +93,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var hintSpan = spans[hintSpanName][0];
 
             return new BlockSpan(isCollapsible: true,
-                textSpan: textSpan, 
+                textSpan: textSpan,
                 hintSpan: hintSpan,
                 type: BlockTypes.Nonstructural,
                 bannerText: bannerText,
-                autoCollapse: autoCollapse, 
+                autoCollapse: autoCollapse,
                 isDefaultCollapsed: isDefaultCollapsed);
         }
 

@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             public bool Update(DocumentId id, string designerAttributeArgument)
             {
-                if (_lastReported.TryGetValue(id, out string lastReported) && 
+                if (_lastReported.TryGetValue(id, out var lastReported) &&
                     lastReported == designerAttributeArgument)
                 {
                     // nothing is actually updated
@@ -51,19 +51,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
-                using (var reader = ObjectReader.TryGetReader(stream))
-                {
-                    if (reader != null)
-                    {
-                        var format = reader.ReadString();
-                        if (string.Equals(format, FormatVersion, StringComparison.InvariantCulture))
-                        {
-                            var textVersion = VersionStamp.ReadFrom(reader);
-                            var dataVersion = VersionStamp.ReadFrom(reader);
-                            var designerAttributeArgument = reader.ReadString();
+                using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
 
-                            return new Data(textVersion, dataVersion, designerAttributeArgument);
-                        }
+                if (reader != null)
+                {
+                    var format = reader.ReadString();
+                    if (string.Equals(format, FormatVersion, StringComparison.InvariantCulture))
+                    {
+                        var textVersion = VersionStamp.ReadFrom(reader);
+                        var dataVersion = VersionStamp.ReadFrom(reader);
+                        var designerAttributeArgument = reader.ReadString();
+
+                        return new Data(textVersion, dataVersion, designerAttributeArgument);
                     }
                 }
 
@@ -72,13 +71,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
             {
-                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-                {
-                    writer.WriteString(FormatVersion);
-                    data.TextVersion.WriteTo(writer);
-                    data.SemanticVersion.WriteTo(writer);
-                    writer.WriteString(data.DesignerAttributeArgument);
-                }
+                using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
+                writer.WriteString(FormatVersion);
+                data.TextVersion.WriteTo(writer);
+                data.SemanticVersion.WriteTo(writer);
+                writer.WriteString(data.DesignerAttributeArgument);
             }
 
             public override bool Remove(DocumentId id)

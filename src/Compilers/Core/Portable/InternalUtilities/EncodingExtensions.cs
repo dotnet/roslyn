@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis;
 using System;
 using System.Diagnostics;
@@ -19,8 +21,7 @@ namespace Roslyn.Utilities
             Debug.Assert(stream.CanSeek);
             long length = stream.Length;
 
-            int maxCharCount;
-            if (encoding.TryGetMaxCharCount(length, out maxCharCount))
+            if (encoding.TryGetMaxCharCount(length, out int maxCharCount))
             {
                 return maxCharCount;
             }

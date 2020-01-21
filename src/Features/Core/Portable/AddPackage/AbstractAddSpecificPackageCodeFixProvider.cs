@@ -22,6 +22,13 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
         protected override bool IncludePrerelease => true;
 
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix
+            // https://github.com/dotnet/roslyn/issues/34458
+            return null;
+        }
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;

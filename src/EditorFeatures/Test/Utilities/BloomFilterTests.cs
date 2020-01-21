@@ -113,18 +113,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var stream = new MemoryStream();
             var bloomFilter = new BloomFilter(0.001, false, new[] { "Hello, World" });
 
-            using (var writer = new ObjectWriter(stream))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
                 bloomFilter.WriteTo(writer);
             }
 
             stream.Position = 0;
 
-            using (var reader = ObjectReader.TryGetReader(stream))
-            {
-                var rehydratedFilter = BloomFilter.ReadFrom(reader);
-                Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
-            }
+            using var reader = ObjectReader.TryGetReader(stream);
+            var rehydratedFilter = BloomFilter.ReadFrom(reader);
+            Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
         }
 
         [Fact]
@@ -133,18 +131,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var stream = new MemoryStream();
             var bloomFilter = new BloomFilter(0.001, new[] { "Hello, World" }, new long[] { long.MaxValue, -1, 0, 1, long.MinValue });
 
-            using (var writer = new ObjectWriter(stream))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
                 bloomFilter.WriteTo(writer);
             }
 
             stream.Position = 0;
 
-            using (var reader = ObjectReader.TryGetReader(stream))
-            {
-                var rehydratedFilter = BloomFilter.ReadFrom(reader);
-                Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
-            }
+            using var reader = ObjectReader.TryGetReader(stream);
+            var rehydratedFilter = BloomFilter.ReadFrom(reader);
+            Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
         }
 
         [Fact]

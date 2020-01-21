@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
                     }
 
                     // Copy target locally to make sure other thread won't delete it before we use it
-                    object target = _managedObjectWeakReference.Target;
+                    var target = _managedObjectWeakReference.Target;
                     if (target == null)
                     {
                         return null;

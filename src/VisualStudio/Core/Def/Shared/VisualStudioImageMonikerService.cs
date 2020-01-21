@@ -1,19 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Tags;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tags;
+using Microsoft.CodeAnalysis.Editor.Wpf;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.CodeAnalysis.Editor.Wpf;
 
 namespace Microsoft.VisualStudio.LanguageServices.Shared
 {
@@ -41,7 +42,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
         private readonly List<CompositeImage> _compositeImages = new List<CompositeImage>();
 
         [ImportingConstructor]
-        public VisualStudioImageMonikerService(SVsServiceProvider serviceProvider)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioImageMonikerService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             _imageService = (IVsImageService2)serviceProvider.GetService(typeof(SVsImageService));
         }
@@ -56,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
 
         private ImageMoniker GetImageMoniker(ImmutableArray<string> tags)
         {
-            var glyph = tags.GetGlyph();
+            var glyph = tags.GetFirstGlyph();
             switch (glyph)
             {
                 case Glyph.AddReference:
@@ -69,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
         }
 
         private ImageCompositionLayer CreateLayer(
-            ImageMoniker imageMoniker, 
+            ImageMoniker imageMoniker,
             int virtualWidth = 16,
             int virtualYOffset = 0,
             int virtualXOffset = 0)

@@ -42,5 +42,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 <ClassDeclaration>Declare Function goo Lib "Goo" _
 |</ClassDeclaration>, "Alias")
         End Function
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AliasAfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsAreExactlyAsync(
+<ClassDeclaration>Declare Function goo Lib "Goo" _ ' Test
+|</ClassDeclaration>, "Alias")
+        End Function
     End Class
 End Namespace

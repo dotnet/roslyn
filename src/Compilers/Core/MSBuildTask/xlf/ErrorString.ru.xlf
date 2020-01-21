@@ -94,6 +94,11 @@
         <target state="translated">MSB3104: не удалось найти сборку "{0}", на которую указывает ссылка. Если эта сборка создана другим вашим проектом, убедитесь, что сборка того проекта выполнена перед сборкой этого.</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">Не удалось считать файл "{0}": {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">Сбой общей компиляции; возврат к средству {0}</target>
@@ -118,6 +123,26 @@
         <source>MSB3402: There was an error creating the pdb file "{0}". {1}</source>
         <target state="translated">MSB3402: ошибка создания PDB-файла "{0}". {1}</target>
         <note>{StrBegin="MSB3402: "}</note>
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="translated">{0} содержит повторяющиеся элементы "{1}" с конфликтующими метаданными "{2}": "{3}" и "{4}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="translated">Пути {0} должны заканчиваться прямой или обратной косой чертой: "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="translated">Элементы {0} должны включать по меньшей мере один элемент верхнего уровня (невложенный), когда {1} имеет значение "true"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="translated">Значение объекта {0} не найдено в элементах {1}, либо соответствующий элемент не является исходным корнем верхнего уровня: "{2}"</target>
+        <note />
       </trans-unit>
     </body>
   </file>

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 {
     internal interface IExtractInterfaceOptionsService : IWorkspaceService
     {
-        ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
+        Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
             ISyntaxFactsService syntaxFactsService,
             INotificationService notificationService,
             List<ISymbol> extractableMembers,

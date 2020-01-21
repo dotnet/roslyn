@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -8,17 +10,17 @@ using Microsoft.CodeAnalysis;
 namespace Roslyn.Utilities
 {
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct EnumField
+    internal readonly struct EnumField
     {
         public static readonly IComparer<EnumField> Comparer = new EnumFieldComparer();
 
         public readonly string Name;
         public readonly ulong Value;
-        public readonly object IdentityOpt;
+        public readonly object? IdentityOpt;
 
-        public EnumField(string name, ulong value, object identityOpt = null)
+        public EnumField(string name, ulong value, object? identityOpt = null)
         {
-            Debug.Assert(name != null);
+            RoslynDebug.Assert(name != null);
             this.Name = name;
             this.Value = value;
             this.IdentityOpt = identityOpt;

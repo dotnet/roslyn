@@ -28,19 +28,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this._underlyingParameter = underlyingParameter;
         }
 
-        public ParameterSymbol UnderlyingParameter
-        {
-            get
-            {
-                return _underlyingParameter;
-            }
-        }
+        public ParameterSymbol UnderlyingParameter => _underlyingParameter;
+
+        public sealed override bool IsDiscard => _underlyingParameter.IsDiscard;
 
         #region Forwarded
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _underlyingParameter.Type; }
+            get { return _underlyingParameter.TypeWithAnnotations; }
         }
 
         public sealed override RefKind RefKind
@@ -113,11 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.MetadataName; }
         }
 
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return _underlyingParameter.CustomModifiers; }
-        }
-
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return _underlyingParameter.RefCustomModifiers; }
@@ -158,7 +149,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.IsCallerMemberName; }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            // https://github.com/dotnet/roslyn/issues/30073: Consider moving to leaf types
+            get { return _underlyingParameter.FlowAnalysisAnnotations; }
+        }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get { return _underlyingParameter.NotNullIfParameterNotNull; }
+        }
+
+        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
             return _underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }

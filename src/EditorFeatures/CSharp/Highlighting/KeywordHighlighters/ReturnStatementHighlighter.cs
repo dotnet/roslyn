@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -8,15 +9,19 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
 {
     [ExportHighlighter(LanguageNames.CSharp)]
     internal class ReturnStatementHighlighter : AbstractKeywordHighlighter<ReturnStatementSyntax>
     {
-        protected override IEnumerable<TextSpan> GetHighlights(
-            ReturnStatementSyntax returnStatement, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        public ReturnStatementHighlighter()
+        {
+        }
+
+        protected override void AddHighlights(
+            ReturnStatementSyntax returnStatement, List<TextSpan> spans, CancellationToken cancellationToken)
         {
             var parent = returnStatement
                              .GetAncestorsOrThis<SyntaxNode>()
@@ -24,14 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
 
             if (parent == null)
             {
-                return SpecializedCollections.EmptyEnumerable<TextSpan>();
+                return;
             }
 
-            var spans = new List<TextSpan>();
-
             HighlightRelatedKeywords(parent, spans);
-
-            return spans;
         }
 
         /// <summary>
@@ -46,13 +47,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
                     break;
                 default:
-                    foreach (var child in node.ChildNodes())
+                    foreach (var child in node.ChildNodesAndTokens())
                     {
+                        if (child.IsToken)
+                            continue;
+
                         // Only recurse if we have anything to do
-                        if (!child.IsReturnableConstruct())
-                        {
-                            HighlightRelatedKeywords(child, spans);
-                        }
+                        if (!child.AsNode().IsReturnableConstruct())
+                            HighlightRelatedKeywords(child.AsNode(), spans);
                     }
                     break;
             }

@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             TExpressionSyntax,
             TStatementSyntax,
             TObjectCreationExpressionSyntax,
-            TVariableDeclaratorSyntax, 
+            TVariableDeclaratorSyntax,
             TExpressionStatementSyntax>
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
@@ -32,12 +30,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TVariableDeclaratorSyntax : SyntaxNode
     {
         private static readonly ObjectPool<ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>> s_pool
-            = new ObjectPool<ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>>(
-                () => new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>());
-
-        private ObjectCreationExpressionAnalyzer()
-        {
-        }
+            = SharedPools.Default<ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>>();
 
         public static ImmutableArray<TExpressionStatementSyntax>? Analyze(
             SemanticModel semanticModel,
@@ -83,8 +76,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     return;
                 }
 
-                var statement = child.AsNode() as TExpressionStatementSyntax;
-                if (statement == null)
+                if (!(child.AsNode() is TExpressionStatementSyntax statement))
                 {
                     return;
                 }
@@ -118,6 +110,23 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
                 matches.Add(statement);
             }
+        }
+
+        protected override bool ShouldAnalyze()
+        {
+            var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;
+            if (type == null)
+            {
+                return false;
+            }
+
+            var addMethods = _semanticModel.LookupSymbols(
+                _objectCreationExpression.SpanStart,
+                container: type,
+                name: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                includeReducedExtensionMethods: true);
+
+            return addMethods.Any(m => m is IMethodSymbol methodSymbol && methodSymbol.Parameters.Any());
         }
 
         private bool TryAnalyzeIndexAssignment(
@@ -160,8 +169,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             out SyntaxNode instance)
         {
             instance = null;
-            var invocationExpression = _syntaxFacts.GetExpressionOfExpressionStatement(statement) as TInvocationExpressionSyntax;
-            if (invocationExpression == null)
+            if (!(_syntaxFacts.GetExpressionOfExpressionStatement(statement) is TInvocationExpressionSyntax invocationExpression))
             {
                 return false;
             }
@@ -186,8 +194,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 }
             }
 
-            var memberAccess = _syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) as TMemberAccessExpressionSyntax;
-            if (memberAccess == null)
+            if (!(_syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) is TMemberAccessExpressionSyntax memberAccess))
             {
                 return false;
             }
@@ -200,7 +207,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
             _syntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
 
-            if (arity != 0 || !name.Equals(nameof(IList.Add)))
+            if (arity != 0 || !name.Equals(WellKnownMemberNames.CollectionInitializerAddMethodName))
             {
                 return false;
             }

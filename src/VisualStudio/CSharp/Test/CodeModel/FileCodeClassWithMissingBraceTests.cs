@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using EnvDTE;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -53,9 +50,9 @@ class Baz
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body_BeforeNamespace()
         {
-            CodeClass testObject = GetCodeClass("Goo");
+            var testObject = GetCodeClass("Goo");
 
-            TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
+            var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
             Assert.Equal(20, endPoint.Line);
             Assert.Equal(1, endPoint.LineCharOffset);
@@ -65,9 +62,9 @@ class Baz
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body_BeforeOtherClass()
         {
-            CodeClass testObject = GetCodeClass("Goo", "Bar");
+            var testObject = GetCodeClass("Goo", "Bar");
 
-            TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
+            var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
             Assert.Equal(20, endPoint.Line);
             Assert.Equal(1, endPoint.LineCharOffset);
@@ -77,9 +74,9 @@ class Baz
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body_Eof()
         {
-            CodeClass testObject = GetCodeClass("Baz");
+            var testObject = GetCodeClass("Baz");
 
-            TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
+            var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
             Assert.Equal(27, endPoint.Line);
             Assert.Equal(1, endPoint.LineCharOffset);

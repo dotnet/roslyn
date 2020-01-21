@@ -71,6 +71,14 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool IsExclusive { get; set; }
 
         /// <summary>
+        /// Set to true if the corresponding provider can provide extended items with current context,
+        /// regardless of whether those items are actually added. i.e. it might be disabled by default,
+        /// but we still want to show the expander so user can explicitly request them to be added to 
+        /// completion list if we are in the appropriate context.
+        /// </summary>
+        internal bool ExpandItemsAvailable { get; set; }
+
+        /// <summary>
         /// Creates a <see cref="CompletionContext"/> instance.
         /// </summary>
         public CompletionContext(
@@ -82,13 +90,13 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            this.Provider = provider ?? throw new ArgumentNullException(nameof(provider));
-            this.Document = document ?? throw new ArgumentNullException(nameof(document));
-            this.Position = position;
-            this.CompletionListSpan = defaultSpan;
-            this.Trigger = trigger;
-            this.Options = options ?? throw new ArgumentException(nameof(options));
-            this.CancellationToken = cancellationToken;
+            Provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            Document = document ?? throw new ArgumentNullException(nameof(document));
+            Position = position;
+            CompletionListSpan = defaultSpan;
+            Trigger = trigger;
+            Options = options ?? throw new ArgumentException(nameof(options));
+            CancellationToken = cancellationToken;
             _items = new List<CompletionItem>();
         }
 
@@ -121,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// An optional <see cref="CompletionItem"/> that appears selected in the list presented to the user during suggestion mode.
         /// 
-        /// Suggestion mode disables autoselection of items in the list, giving preference to the text typed by the user unless a specific item is selected manually.
+        /// Suggestion mode disables auto-selection of items in the list, giving preference to the text typed by the user unless a specific item is selected manually.
         /// 
         /// Specifying a <see cref="SuggestionModeItem"/> is a request that the completion host operate in suggestion mode.
         /// The item specified determines the text displayed and the description associated with it unless a different item is manually selected.
@@ -149,9 +157,9 @@ namespace Microsoft.CodeAnalysis.Completion
         private CompletionItem FixItem(CompletionItem item)
         {
             // remember provider so we can find it again later
-            item = item.AddProperty("Provider", this.Provider.Name);
+            item.ProviderName = Provider.Name;
 
-            item.Span = this.CompletionListSpan;
+            item.Span = CompletionListSpan;
 
             return item;
         }

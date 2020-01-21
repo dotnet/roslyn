@@ -1,16 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
-using System.IO;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
         internal abstract class AbstractGlobalSuppressMessageCodeAction : AbstractSuppressionCodeAction
         {
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             protected async Task<Document> GetOrCreateSuppressionsDocumentAsync(CancellationToken c)
             {
-                int index = 1;
+                var index = 1;
                 var suppressionsFileName = s_globalSuppressionsFileName + Fixer.DefaultFileExtension;
                 var suppressionsFilePath = GetSuppressionsFilePath(suppressionsFileName);
 
@@ -70,12 +71,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         var fullPath = !string.IsNullOrEmpty(filePath) ? Path.GetFullPath(filePath) : filePath;
                         if (fullPath == suppressionsFilePath)
                         {
-                            // Existing global suppressions file, see if this file only has global assembly attributes.
+                            // Existing global suppressions file. See if this file only has imports and global assembly
+                            // attributes.
                             hasDocWithSuppressionsName = true;
 
                             var t = await document.GetSyntaxTreeAsync(c).ConfigureAwait(false);
                             var r = await t.GetRootAsync(c).ConfigureAwait(false);
-                            if (r.ChildNodes().All(n => Fixer.IsAttributeListWithAssemblyAttributes(n)))
+                            var syntaxFacts = _project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+
+                            if (r.ChildNodes().All(n => syntaxFacts.IsUsingOrExternOrImport(n) || Fixer.IsAttributeListWithAssemblyAttributes(n)))
                             {
                                 suppressionsDoc = document;
                                 break;

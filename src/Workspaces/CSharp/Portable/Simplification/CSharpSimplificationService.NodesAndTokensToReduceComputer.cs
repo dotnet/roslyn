@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     }
                 }
 
-                bool savedSimplifyAllDescendants = _simplifyAllDescendants;
+                var savedSimplifyAllDescendants = _simplifyAllDescendants;
                 _simplifyAllDescendants = _simplifyAllDescendants || token.HasAnnotation(Simplifier.Annotation);
 
                 if (_simplifyAllDescendants && !_insideSpeculatedNode && !token.IsKind(SyntaxKind.None))

@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBUsingTests
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingNested()
             Dim source =
 <compilation>
@@ -38,11 +38,11 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C1.Main",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -82,7 +82,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingExpression()
             Dim source =
 <compilation>
@@ -119,7 +119,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingVariableDeclaration()
             Dim source =
 <compilation>
@@ -156,7 +156,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingMultipleVariableDeclaration()
             Dim source =
 <compilation>
@@ -197,7 +197,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingVariableAsNewDeclaration()
             Dim source =
 <compilation>
@@ -236,7 +236,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingMultipleVariableAsNewDeclaration()
             Dim source =
 <compilation>
@@ -283,7 +283,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub NoPia()
             Dim piaSource = "
 Imports System.Runtime.InteropServices
@@ -297,7 +297,7 @@ Public Interface I
     Function F() As Object
 End Interface
 "
-            Dim piaComp = CreateCompilationWithMscorlib({piaSource}, options:=TestOptions.DebugDll, assemblyName:="PIA")
+            Dim piaComp = CreateCompilationWithMscorlib40({piaSource}, options:=TestOptions.DebugDll, assemblyName:="PIA")
             AssertNoErrors(piaComp)
             Dim piaRef = piaComp.EmitToImageReference(embedInteropTypes:=True)
 
@@ -318,13 +318,13 @@ Namespace N2
 End Namespace
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, {piaRef}, TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {piaRef}, TestOptions.DebugDll)
             Dim v = CompileAndVerify(comp)
 
             v.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="N1.C" name="M">
@@ -359,7 +359,7 @@ End Namespace
             )
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UnusedImports()
             Dim source = "
 Imports X = System.Linq.Enumerable
@@ -370,7 +370,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
                 {source},
                 {SystemCoreRef, SystemDataRef},
                 options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("System.Data.DataColumn")))
@@ -397,7 +397,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UnusedImports_Nonexisting()
             Dim source = "
 Imports A.B
@@ -408,7 +408,7 @@ Class Program
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
                 {source},
                 {SystemCoreRef, SystemDataRef},
                 options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("E.F"), GlobalImport.Parse("Q = G.H")))
@@ -425,7 +425,7 @@ End Class
             CompileAndVerify(comp)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub BadGlobalImports()
             Dim source1 = "
 Namespace N
@@ -440,10 +440,10 @@ Class C
     End Sub
 End Class
 "
-            Dim comp1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.ReleaseDll)
+            Dim comp1 = CreateCompilationWithMscorlib40({source1}, options:=TestOptions.ReleaseDll)
             Dim ref1 = comp1.EmitToImageReference()
 
-            Dim comp2 = CreateCompilationWithMscorlib(
+            Dim comp2 = CreateCompilationWithMscorlib40(
                 {source2}, {ref1},
                 options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("X=N.A"), GlobalImport.Parse("System")))
 

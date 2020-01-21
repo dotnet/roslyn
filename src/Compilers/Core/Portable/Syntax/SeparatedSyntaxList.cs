@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public partial struct SeparatedSyntaxList<TNode> : IEquatable<SeparatedSyntaxList<TNode>>, IReadOnlyList<TNode> where TNode : SyntaxNode
+    public readonly partial struct SeparatedSyntaxList<TNode> : IEquatable<SeparatedSyntaxList<TNode>>, IReadOnlyList<TNode> where TNode : SyntaxNode
     {
         private readonly SyntaxNodeOrTokenList _list;
         private readonly int _count;
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis
             return new SeparatedSyntaxList<TNode>(nodesWithSeps.InsertRange(insertionIndex, nodesToInsertWithSeparators));
         }
 
-        private static bool KeepSeparatorWithPreviousNode(SyntaxToken separator)
+        private static bool KeepSeparatorWithPreviousNode(in SyntaxToken separator)
         {
             // if the trivia after the separator contains an explicit end of line or a single line comment
             // then it should stay associated with previous node

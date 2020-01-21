@@ -5,12 +5,12 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-#Disable Warning RS0010
+#Disable Warning CA1200 ' Avoid using cref tags with a prefix
     ''' <summary>
     ''' Displays a symbol in the VisualBasic style.
     ''' </summary>
-    ''' <seealso cref="T:Microsoft.CodeAnalysis.CSharp.Symbols.SymbolDisplay"/>
-#Enable Warning RS0010
+    ''' <seealso cref="T:Microsoft.CodeAnalysis.CSharp.SymbolDisplay"/>
+#Enable Warning CA1200 ' Avoid using cref tags with a prefix
     Public Module SymbolDisplay
         ''' <summary>
         ''' Displays a symbol in the Visual Basic style, based on a <see cref="SymbolDisplayFormat"/>.

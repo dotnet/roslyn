@@ -629,20 +629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function NegateIfStepNegative(value As BoundExpression, [step] As BoundExpression) As BoundExpression
             Dim int32Type = [step].Type.ContainingAssembly.GetPrimitiveType(Microsoft.Cci.PrimitiveTypeCode.Int32)
 
-            Dim bits As Integer
-            Dim typeCode As Microsoft.Cci.PrimitiveTypeCode = [step].Type.GetEnumUnderlyingTypeOrSelf.PrimitiveTypeCode
-            Select Case typeCode
-                Case Microsoft.Cci.PrimitiveTypeCode.Int8
-                    bits = 7
-                Case Microsoft.Cci.PrimitiveTypeCode.Int16
-                    bits = 15
-                Case Microsoft.Cci.PrimitiveTypeCode.Int32
-                    bits = 31
-                Case Microsoft.Cci.PrimitiveTypeCode.Int64
-                    bits = 63
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(typeCode)
-            End Select
+            Dim bits As Integer = [step].Type.GetEnumUnderlyingTypeOrSelf.SpecialType.VBForToShiftBits()
 
             Dim shiftConst = New BoundLiteral(value.Syntax, ConstantValue.Create(bits), int32Type)
             Dim shiftedStep = TransformRewrittenBinaryOperator(

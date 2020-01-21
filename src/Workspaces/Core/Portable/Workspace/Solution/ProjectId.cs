@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,14 +15,14 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public sealed class ProjectId : IEquatable<ProjectId>, IObjectWritable
     {
-        private readonly string _debugName;
+        private readonly string? _debugName;
 
         /// <summary>
         /// The system generated unique id.
         /// </summary>
         public Guid Id { get; }
 
-        private ProjectId(Guid guid, string debugName)
+        private ProjectId(Guid guid, string? debugName)
         {
             this.Id = guid;
             _debugName = debugName;
@@ -30,12 +32,12 @@ namespace Microsoft.CodeAnalysis
         /// Create a new ProjectId instance.
         /// </summary>
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
-        public static ProjectId CreateNewId(string debugName = null)
+        public static ProjectId CreateNewId(string? debugName = null)
         {
             return new ProjectId(Guid.NewGuid(), debugName);
         }
 
-        public static ProjectId CreateFromSerialized(Guid id, string debugName = null)
+        public static ProjectId CreateFromSerialized(Guid id, string? debugName = null)
         {
             if (id == Guid.Empty)
             {
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             return new ProjectId(id, debugName);
         }
 
-        internal string DebugName => _debugName;
+        internal string? DebugName => _debugName;
 
         private string GetDebuggerDisplay()
         {
@@ -57,24 +59,24 @@ namespace Microsoft.CodeAnalysis
             return GetDebuggerDisplay();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return this.Equals(obj as ProjectId);
         }
 
-        public bool Equals(ProjectId other)
+        public bool Equals(ProjectId? other)
         {
             return
                 !ReferenceEquals(other, null) &&
                 this.Id == other.Id;
         }
 
-        public static bool operator ==(ProjectId left, ProjectId right)
+        public static bool operator ==(ProjectId? left, ProjectId? right)
         {
-            return EqualityComparer<ProjectId>.Default.Equals(left, right);
+            return EqualityComparer<ProjectId?>.Default.Equals(left, right);
         }
 
-        public static bool operator !=(ProjectId left, ProjectId right)
+        public static bool operator !=(ProjectId? left, ProjectId? right)
         {
             return !(left == right);
         }
@@ -83,6 +85,8 @@ namespace Microsoft.CodeAnalysis
         {
             return this.Id.GetHashCode();
         }
+
+        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {

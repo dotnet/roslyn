@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using Roslyn.Utilities;
 
@@ -8,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Immutable span represented by a pair of line number and index within the line.
     /// </summary>
-    public struct LinePositionSpan : IEquatable<LinePositionSpan>
+    public readonly struct LinePositionSpan : IEquatable<LinePositionSpan>
     {
         private readonly LinePosition _start;
         private readonly LinePosition _end;
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Text
             get { return _end; }
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is LinePositionSpan && Equals((LinePositionSpan)obj);
         }

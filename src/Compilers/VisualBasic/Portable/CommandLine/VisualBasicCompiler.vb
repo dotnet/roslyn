@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -53,6 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ParseFile(consoleOutput As TextWriter,
                                    parseOptions As VisualBasicParseOptions,
                                    scriptParseOptions As VisualBasicParseOptions,
+                                   diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic),
                                    ByRef hadErrors As Boolean,
                                    file As CommandLineSourceFile,
                                    errorLogger As ErrorLogger) As SyntaxTree
@@ -61,13 +61,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim content = TryReadFileContent(file, fileReadDiagnostics)
 
             If content Is Nothing Then
-                ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger)
+                ReportDiagnostics(fileReadDiagnostics, consoleOutput, errorLogger)
                 fileReadDiagnostics.Clear()
                 hadErrors = True
                 Return Nothing
             End If
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(content, If(file.IsScript, scriptParseOptions, parseOptions), file.Path)
+            Dim tree = VisualBasicSyntaxTree.ParseText(
+                content,
+                If(file.IsScript, scriptParseOptions, parseOptions),
+                file.Path,
+                diagnosticOptions)
 
             ' prepopulate line tables.
             ' we will need line tables anyways and it is better to Not wait until we are in emit
@@ -78,7 +82,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return tree
         End Function
 
-        Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger) As Compilation
+        Public Overrides Function CreateCompilation(consoleOutput As TextWriter,
+                                                    touchedFilesLogger As TouchedFileLogger,
+                                                    errorLogger As ErrorLogger,
+                                                    analyzerConfigOptions As ImmutableArray(Of AnalyzerConfigOptionsResult)) As Compilation
             Dim parseOptions = Arguments.ParseOptions
 
             ' We compute script parse options once so we don't have to do it repeatedly in
@@ -94,17 +101,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Parallel.For(0, sourceFiles.Length,
                    UICultureUtilities.WithCurrentUICulture(Of Integer)(
                         Sub(i As Integer)
-                            ' NOTE: order of trees is important!!
-                            trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i), errorLogger)
+                            Try
+                                ' NOTE: order of trees is important!!
+                                trees(i) = ParseFile(
+                                consoleOutput,
+                                parseOptions,
+                                scriptParseOptions,
+                                If(analyzerConfigOptions.IsDefault,
+                                    Nothing,
+                                    analyzerConfigOptions(i).TreeOptions),
+                                hadErrors,
+                                sourceFiles(i),
+                                errorLogger)
+                            Catch ex As Exception When FatalError.Report(ex)
+                                Throw ExceptionUtilities.Unreachable
+                            End Try
                         End Sub))
             Else
                 For i = 0 To sourceFiles.Length - 1
                     ' NOTE: order of trees is important!!
-                    trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i), errorLogger)
+                    trees(i) = ParseFile(
+                        consoleOutput,
+                        parseOptions,
+                        scriptParseOptions,
+                        If(analyzerConfigOptions.IsDefault,
+                            Nothing,
+                            analyzerConfigOptions(i).TreeOptions),
+                        hadErrors,
+                        sourceFiles(i),
+                        errorLogger)
                 Next
             End If
 
-            ' If there were any errors while trying to read files, then exit.
             If hadErrors Then
                 Return Nothing
             End If
@@ -122,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim referenceDirectiveResolver As MetadataReferenceResolver = Nothing
             Dim resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, referenceDirectiveResolver)
 
-            If ReportErrors(diagnostics, consoleOutput, errorLogger) Then
+            If ReportDiagnostics(diagnostics, consoleOutput, errorLogger) Then
                 Return Nothing
             End If
 
@@ -135,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: support for #load search paths
             Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
-            Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger)
+            Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory)
 
             Return VisualBasicCompilation.Create(
                  Arguments.CompilationName,
@@ -145,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithMetadataReferenceResolver(referenceDirectiveResolver).
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithXmlReferenceResolver(xmlFileResolver).
-                     WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem, _tempDirectory)).
+                     WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
                      WithSourceReferenceResolver(sourceFileResolver))
         End Function
 
@@ -178,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="consoleOutput"></param>
         Public Overrides Sub PrintLogo(consoleOutput As TextWriter)
-            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LogoLine1, Culture), GetToolName(), GetAssemblyFileVersion())
+            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LogoLine1, Culture), GetToolName(), GetCompilerVersion())
             consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LogoLine2, Culture))
             consoleOutput.WriteLine()
         End Sub

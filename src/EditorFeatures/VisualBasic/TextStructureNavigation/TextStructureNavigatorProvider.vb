@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
         Inherits AbstractTextStructureNavigatorProvider
 
         <ImportingConstructor()>
-        Friend Sub New(
+        Public Sub New(
             selectorService As ITextStructureNavigatorSelectorService,
             contentTypeService As IContentTypeRegistryService,
             waitIndicator As IWaitIndicator)

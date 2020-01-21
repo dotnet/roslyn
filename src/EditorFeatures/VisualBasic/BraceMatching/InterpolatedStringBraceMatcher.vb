@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Text
@@ -10,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
     <ExportBraceMatcher(LanguageNames.VisualBasic)>
     Friend Class InterpolatedStringBraceMatcher
         Implements IBraceMatcher
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Async Function FindBraces(
             document As Document,

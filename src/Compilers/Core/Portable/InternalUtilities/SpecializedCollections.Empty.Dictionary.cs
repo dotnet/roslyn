@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -10,6 +13,7 @@ namespace Roslyn.Utilities
         private partial class Empty
         {
             internal class Dictionary<TKey, TValue> : Collection<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
+                where TKey : notnull
             {
                 public static readonly new Dictionary<TKey, TValue> Instance = new Dictionary<TKey, TValue>();
 
@@ -43,9 +47,9 @@ namespace Roslyn.Utilities
                     throw new NotSupportedException();
                 }
 
-                public bool TryGetValue(TKey key, out TValue value)
+                public bool TryGetValue(TKey key, [MaybeNullWhen(returnValue: false)] out TValue value)
                 {
-                    value = default;
+                    value = default!;
                     return false;
                 }
 

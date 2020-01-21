@@ -28,8 +28,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
         [ImportingConstructor]
         public BraceCompletionSessionProvider(
+            IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
             IEditorOperationsFactoryService editorOperationsFactoryService)
+            : base(threadingContext)
         {
             _undoManager = undoManager;
             _editorOperationsFactoryService = editorOperationsFactoryService;

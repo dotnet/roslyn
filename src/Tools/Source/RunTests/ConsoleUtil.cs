@@ -1,23 +1,41 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RunTests
 {
+    /// <summary>
+    /// Used to write out to the Console. In addition to writing to the console this will output the same messages
+    /// to our log file. This ensures the log file can be used as our single point of diagnostics.
+    /// </summary>
     internal static class ConsoleUtil
     {
-        internal static void Write(ConsoleColor color, string format, params object[] args)
+        internal static void Write(string message)
         {
-            WithColor(color, () => Console.Write(format, args));
+            Console.Write(message);
+            Logger.Log(message + Environment.NewLine);
         }
 
-        internal static void WriteLine(ConsoleColor color, string format, params object[] args)
+        internal static void WriteLine()
         {
-            WithColor(color, () => Console.WriteLine(format, args));
+            Console.WriteLine();
+            Logger.Log("");
+        }
+
+        internal static void WriteLine(string message)
+        {
+            Console.WriteLine(message);
+            Logger.Log(message);
+        }
+
+        internal static void Write(ConsoleColor color, string message)
+        {
+            WithColor(color, () => Write(message));
+        }
+
+        internal static void WriteLine(ConsoleColor color, string message)
+        {
+            WithColor(color, () => WriteLine(message));
         }
 
         private static void WithColor(ConsoleColor color, Action action)

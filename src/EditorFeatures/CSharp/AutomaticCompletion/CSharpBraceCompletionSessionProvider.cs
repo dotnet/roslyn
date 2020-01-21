@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,7 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         private readonly ISmartIndentationService _smartIndentationService;
 
         [ImportingConstructor]
-        public CSharpEditorBraceCompletionSessionFactory(ISmartIndentationService smartIndentationService, ITextBufferUndoManagerProvider undoManager)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpEditorBraceCompletionSessionFactory(IThreadingContext threadingContext, ISmartIndentationService smartIndentationService, ITextBufferUndoManagerProvider undoManager)
+            : base(threadingContext)
         {
             _smartIndentationService = smartIndentationService;
             _undoManager = undoManager;
@@ -64,25 +68,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         protected override IEditorBraceCompletionSession CreateEditorSession(Document document, int openingPosition, char openingBrace, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            switch (openingBrace)
+            return openingBrace switch
             {
-                case BraceCompletionSessionProvider.CurlyBrace.OpenCharacter:
-                    return InterpolationCompletionSession.IsContext(document, openingPosition, cancellationToken)
-                        ? new InterpolationCompletionSession()
-                        : (IEditorBraceCompletionSession)new CurlyBraceCompletionSession(syntaxFactsService, _smartIndentationService, _undoManager);
+                BraceCompletionSessionProvider.CurlyBrace.OpenCharacter => InterpolationCompletionSession.IsContext(document, openingPosition, cancellationToken)
+                    ? new InterpolationCompletionSession()
+                    : (IEditorBraceCompletionSession)new CurlyBraceCompletionSession(syntaxFactsService, _smartIndentationService, _undoManager),
 
-                case BraceCompletionSessionProvider.DoubleQuote.OpenCharacter:
-                    return InterpolatedStringCompletionSession.IsContext(document, openingPosition, cancellationToken)
-                        ? new InterpolatedStringCompletionSession()
-                        : (IEditorBraceCompletionSession)new StringLiteralCompletionSession(syntaxFactsService);
+                BraceCompletionSessionProvider.DoubleQuote.OpenCharacter => InterpolatedStringCompletionSession.IsContext(document, openingPosition, cancellationToken)
+                    ? new InterpolatedStringCompletionSession()
+                    : (IEditorBraceCompletionSession)new StringLiteralCompletionSession(syntaxFactsService),
 
-                case BraceCompletionSessionProvider.Bracket.OpenCharacter: return new BracketCompletionSession(syntaxFactsService);
-                case BraceCompletionSessionProvider.Parenthesis.OpenCharacter: return new ParenthesisCompletionSession(syntaxFactsService);
-                case BraceCompletionSessionProvider.SingleQuote.OpenCharacter: return new CharLiteralCompletionSession(syntaxFactsService);
-                case BraceCompletionSessionProvider.LessAndGreaterThan.OpenCharacter: return new LessAndGreaterThanCompletionSession(syntaxFactsService);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(openingBrace);
-            }
+                BraceCompletionSessionProvider.Bracket.OpenCharacter => new BracketCompletionSession(syntaxFactsService),
+                BraceCompletionSessionProvider.Parenthesis.OpenCharacter => new ParenthesisCompletionSession(syntaxFactsService),
+                BraceCompletionSessionProvider.SingleQuote.OpenCharacter => new CharLiteralCompletionSession(syntaxFactsService),
+                BraceCompletionSessionProvider.LessAndGreaterThan.OpenCharacter => new LessAndGreaterThanCompletionSession(syntaxFactsService),
+                _ => throw ExceptionUtilities.UnexpectedValue(openingBrace),
+            };
         }
     }
 }

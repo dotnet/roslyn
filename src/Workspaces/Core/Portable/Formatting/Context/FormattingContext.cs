@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly ContextIntervalTree<IndentationData> _indentationTree;
         private readonly ContextIntervalTree<SuppressWrappingData> _suppressWrappingTree;
         private readonly ContextIntervalTree<SuppressSpacingData> _suppressSpacingTree;
+        private readonly ContextIntervalTree<SuppressSpacingData> _suppressFormattingTree;
         private readonly ContextIntervalTree<AnchorData> _anchorTree;
 
         // anchor token to anchor data map.
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly HashSet<TextSpan> _indentationMap;
         private readonly HashSet<TextSpan> _suppressWrappingMap;
         private readonly HashSet<TextSpan> _suppressSpacingMap;
+        private readonly HashSet<TextSpan> _suppressFormattingMap;
         private readonly HashSet<TextSpan> _anchorMap;
 
         // used for selection based formatting case. it contains operations that will define
@@ -64,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             _indentationTree = new ContextIntervalTree<IndentationData>(this);
             _suppressWrappingTree = new ContextIntervalTree<SuppressWrappingData>(SuppressIntervalIntrospector.Instance);
             _suppressSpacingTree = new ContextIntervalTree<SuppressSpacingData>(SuppressIntervalIntrospector.Instance);
+            _suppressFormattingTree = new ContextIntervalTree<SuppressSpacingData>(SuppressIntervalIntrospector.Instance);
             _anchorTree = new ContextIntervalTree<AnchorData>(this);
 
             _anchorBaseTokenMap = new Dictionary<SyntaxToken, AnchorData>();
@@ -71,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             _indentationMap = new HashSet<TextSpan>();
             _suppressWrappingMap = new HashSet<TextSpan>();
             _suppressSpacingMap = new HashSet<TextSpan>();
+            _suppressFormattingMap = new HashSet<TextSpan>();
             _anchorMap = new HashSet<TextSpan>();
 
             _initialIndentBlockOperations = new List<IndentBlockOperation>();
@@ -93,20 +97,19 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode, endToken);
-            var results = initialContextFinder.Do(startToken, endToken);
+            var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode);
+            var (indentOperations, suppressOperations) = initialContextFinder.Do(startToken, endToken);
 
-            if (results.indentOperations != null)
+            if (indentOperations != null)
             {
-                var indentationOperations = results.indentOperations;
+                var indentationOperations = indentOperations;
 
                 var initialOperation = indentationOperations[0];
                 var baseIndentationFinder = new BottomUpBaseIndentationFinder(
                                                 formattingRules,
                                                 this.OptionSet.GetOption(FormattingOptions.TabSize, _language),
                                                 this.OptionSet.GetOption(FormattingOptions.IndentationSize, _language),
-                                                _tokenStream,
-                                                endToken);
+                                                _tokenStream);
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                     rootNode,
                     initialOperation,
@@ -120,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _initialIndentBlockOperations = indentationOperations;
             }
 
-            results.suppressOperations?.Do(o => this.AddInitialSuppressOperation(o));
+            suppressOperations?.Do(o => this.AddInitialSuppressOperation(o));
         }
 
         public void AddIndentBlockOperations(
@@ -152,12 +155,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             var mergedList = new List<IndentBlockOperation>(count);
 
             // initial operations are already sorted, just add, no need to filter
-            for (int i = 1; i < _initialIndentBlockOperations.Count; i++)
+            for (var i = 1; i < _initialIndentBlockOperations.Count; i++)
             {
                 mergedList.Add(_initialIndentBlockOperations[i]);
             }
 
-            for (int i = 0; i < operations.Count; i++)
+            for (var i = 0; i < operations.Count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -269,22 +272,24 @@ namespace Microsoft.CodeAnalysis.Formatting
             var valuePairs = new (SuppressOperation operation, bool shouldSuppress, bool onSameLine)[operations.Count];
 
             // TODO: think about a way to figure out whether it is already suppressed and skip the expensive check below.
-            _engine.TaskExecutor.For(0, operations.Count, i =>
+            for (var i = 0; i < operations.Count; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var operation = operations[i];
 
-                // if an operation contains elastic trivia itself and the operation is not marked to ignore the elastic trivia
-                // ignore the operation
-                if (operation.ContainsElasticTrivia(_tokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElastic))
+                // if an operation contains elastic trivia itself and the operation is not marked to ignore the elastic trivia 
+                // ignore the operation 
+                if (operation.ContainsElasticTrivia(_tokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
                 {
-                    // don't bother to calculate line alignment between tokens
+                    // don't bother to calculate line alignment between tokens 
                     valuePairs[i] = (operation, shouldSuppress: false, onSameLine: false);
-                    return;
+                    continue;
                 }
 
                 var onSameLine = _tokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
-                valuePairs[i] = (operation, shouldSuppress: true, onSameLine: onSameLine);
-            }, cancellationToken);
+                valuePairs[i] = (operation, shouldSuppress: true, onSameLine);
+            }
 
             valuePairs.Do(v =>
             {
@@ -300,6 +305,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void AddSuppressOperation(SuppressOperation operation, bool onSameLine)
         {
             AddSpacingSuppressOperation(operation, onSameLine);
+            AddFormattingSuppressOperation(operation);
             AddWrappingSuppressOperation(operation, onSameLine);
         }
 
@@ -325,10 +331,32 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var data = new SuppressSpacingData(operation.TextSpan, noSpacing: true);
+            var data = new SuppressSpacingData(operation.TextSpan);
 
             _suppressSpacingMap.Add(operation.TextSpan);
             _suppressSpacingTree.AddIntervalInPlace(data);
+        }
+
+        private void AddFormattingSuppressOperation(SuppressOperation operation)
+        {
+            // don't add stuff if it is empty
+            if (operation == null ||
+                operation.TextSpan.IsEmpty)
+            {
+                return;
+            }
+
+            // we might need to merge bits with enclosing suppress flag
+            var option = operation.Option;
+            if (!option.IsOn(SuppressOption.DisableFormatting) || _suppressFormattingMap.Contains(operation.TextSpan))
+            {
+                return;
+            }
+
+            var data = new SuppressSpacingData(operation.TextSpan);
+
+            _suppressFormattingMap.Add(operation.TextSpan);
+            _suppressFormattingTree.AddIntervalInPlace(data);
         }
 
         private void AddWrappingSuppressOperation(SuppressOperation operation, bool twoTokensOnSameLine)
@@ -352,7 +380,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var data = new SuppressWrappingData(operation.TextSpan, noWrapping: true);
+            var ignoreElastic = option.IsMaskOn(SuppressOption.IgnoreElasticWrapping) ||
+                                !operation.ContainsElasticTrivia(_tokenStream);
+
+            var data = new SuppressWrappingData(operation.TextSpan, ignoreElastic: ignoreElastic);
 
             _suppressWrappingMap.Add(operation.TextSpan);
             _suppressWrappingTree.AddIntervalInPlace(data);
@@ -564,8 +595,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             return lastBaseAnchorData;
         }
 
-        public bool IsWrappingSuppressed(TextSpan textSpan)
+        public bool IsWrappingSuppressed(TextSpan textSpan, bool containsElasticTrivia)
         {
+            if (IsFormattingDisabled(textSpan))
+            {
+                return true;
+            }
+
             // use edge exclusive version of GetSmallestContainingInterval
             var data = _suppressWrappingTree.GetSmallestEdgeExclusivelyContainingInterval(textSpan.Start, textSpan.Length);
             if (data == null)
@@ -573,11 +609,28 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return false;
             }
 
-            return data.NoWrapping;
+            if (containsElasticTrivia && !data.IgnoreElastic)
+            {
+                return false;
+            }
+
+            return true;
         }
 
-        public bool IsSpacingSuppressed(TextSpan textSpan)
+        public bool IsSpacingSuppressed(TextSpan textSpan, bool containsElasticTrivia)
         {
+            if (IsFormattingDisabled(textSpan))
+            {
+                return true;
+            }
+
+            // For spaces, never ignore elastic trivia because that can 
+            // generate incorrect code
+            if (containsElasticTrivia)
+            {
+                return false;
+            }
+
             // use edge exclusive version of GetSmallestContainingInterval
             var data = _suppressSpacingTree.GetSmallestEdgeExclusivelyContainingInterval(textSpan.Start, textSpan.Length);
             if (data == null)
@@ -585,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return false;
             }
 
-            return data.NoSpacing;
+            return true;
         }
 
         public bool IsSpacingSuppressed(int pairIndex)
@@ -597,7 +650,21 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // this version of SpacingSuppressed will be called after all basic space operations are done. 
             // so no more elastic trivia should have left out
-            return IsSpacingSuppressed(spanBetweenTwoTokens);
+            return IsSpacingSuppressed(spanBetweenTwoTokens, containsElasticTrivia: false);
+        }
+
+        public bool IsFormattingDisabled(TextSpan textSpan)
+        {
+            return _suppressFormattingTree.HasIntervalThatIntersectsWith(textSpan.Start, textSpan.Length);
+        }
+
+        public bool IsFormattingDisabled(int pairIndex)
+        {
+            var token1 = _tokenStream.GetToken(pairIndex);
+            var token2 = _tokenStream.GetToken(pairIndex + 1);
+
+            var spanBetweenTwoTokens = TextSpan.FromBounds(token1.SpanStart, token2.Span.End);
+            return IsFormattingDisabled(spanBetweenTwoTokens);
         }
 
         public OptionSet OptionSet => _engine.OptionSet;

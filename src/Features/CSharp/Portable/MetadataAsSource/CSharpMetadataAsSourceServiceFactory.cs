@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
     [ExportLanguageServiceFactory(typeof(IMetadataAsSourceService), LanguageNames.CSharp), Shared]
     internal class CSharpMetadataAsSourceServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpMetadataAsSourceServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
         {
             return new CSharpMetadataAsSourceService(provider);

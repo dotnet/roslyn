@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Linq;
 using Roslyn.Utilities;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 var ids = workspace.GetRelatedDocumentIds(text.Container);
                 var sol = workspace.CurrentSolution.WithDocumentText(ids, text, PreservationMode.PreserveIdentity);
-                return ids.Select(id => sol.GetDocument(id)).Where(d => d != null);
+                return ids.Select(id => sol.GetDocument(id)).WhereNotNull();
             }
 
             return SpecializedCollections.EmptyEnumerable<Document>();
@@ -29,18 +31,22 @@ namespace Microsoft.CodeAnalysis.Text
         /// Gets the document from the corresponding workspace's current solution that is associated with the source text's container 
         /// in its current project context, updated to contain the same text as the source if necessary.
         /// </summary>
-        public static Document GetOpenDocumentInCurrentContextWithChanges(this SourceText text)
+        public static Document? GetOpenDocumentInCurrentContextWithChanges(this SourceText text)
         {
             if (Workspace.TryGetWorkspace(text.Container, out var workspace))
             {
+                var solution = workspace.CurrentSolution;
                 var id = workspace.GetDocumentIdInCurrentContext(text.Container);
-                if (id == null || !workspace.CurrentSolution.ContainsDocument(id))
+                if (id == null || !solution.ContainsDocument(id))
                 {
                     return null;
                 }
 
-                var sol = workspace.CurrentSolution.WithDocumentText(id, text, PreservationMode.PreserveIdentity);
-                return sol.GetDocument(id);
+                // We update all linked files to ensure they are all in sync. Otherwise code might try to jump from
+                // one linked file to another and be surprised if the text is entirely different.
+                var allIds = solution.GetRelatedDocumentIds(id);
+                return solution.WithDocumentText(allIds, text, PreservationMode.PreserveIdentity)
+                               .GetDocument(id);
             }
 
             return null;
@@ -55,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 var sol = workspace.CurrentSolution;
                 var ids = workspace.GetRelatedDocumentIds(container);
-                return ids.Select(id => sol.GetDocument(id)).Where(d => d != null);
+                return ids.Select(id => sol.GetDocument(id)).WhereNotNull();
             }
 
             return SpecializedCollections.EmptyEnumerable<Document>();
@@ -65,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Gets the document from the corresponding workspace's current solution that is associated with the text container 
         /// in its current project context.
         /// </summary>
-        public static Document GetOpenDocumentInCurrentContext(this SourceTextContainer container)
+        public static Document? GetOpenDocumentInCurrentContext(this SourceTextContainer container)
         {
             if (Workspace.TryGetWorkspace(container, out var workspace))
             {

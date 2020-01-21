@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     InitializerCountRecursive(asArrayInit.Initializers, initCount, constInits)
                 Else
                     ' NOTE Default values Do Not need To be initialized. 
-                    '       .Net arrays are always zero-inited.
+                    '       .NET arrays are always zero-inited.
                     If Not init.IsDefaultValue() Then
                         initCount += 1
                         If init.ConstantValueOpt IsNot Nothing Then

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -53,6 +54,38 @@ class Program
     async void goo()
     {
         var z = $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestUsingStatement()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    void goo()
+    {
+        using $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestUsingDirective()
+        {
+            await VerifyAbsenceAsync("using $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForeachStatement()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    void goo()
+    {
+        foreach $$
     }
 }");
         }

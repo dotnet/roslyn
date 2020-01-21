@@ -49,6 +49,7 @@
         <KeyBinding Key="Up" Modifiers="Alt" Command="{StaticResource MoveUp}" />
         <KeyBinding Key="Down" Modifiers="Alt" Command="{StaticResource MoveDown}" />
         <KeyBinding Key="Delete" Command="{StaticResource ToggleRemovedState}" />
+        <KeyBinding Key="Return" Command="{StaticResource ClickOK}" />
     </Window.InputBindings>
     <Grid Name="ContentGrid" Margin="11,6,11,11">
         <Grid.RowDefinitions>
@@ -265,6 +266,7 @@
 
                 </vs:DialogButton>
                 <vs:DialogButton
+                        Name="RemoveButton"
                         Margin="9 29 0 0"
                         IsEnabled="{Binding CanRemove, Mode=OneWay}" 
                         AutomationProperties.Name="{Binding RemoveAutomationText}"
@@ -275,6 +277,7 @@
                 </vs:DialogButton>
 
                 <vs:DialogButton
+                        Name="RestoreButton"
                         Margin="9 9 0 0"
                         IsEnabled="{Binding CanRestore, Mode=OneWay}" 
                         Click="Restore_Click" 
@@ -298,6 +301,7 @@
                     Margin="0, 11, 0, 0"
                     Orientation="Horizontal" Width="153">
             <vs:DialogButton x:Uid="OKButton" 
+                    Name="OKButton"
                     Content="{Binding ElementName=dialog, Path=OK}" 
                     Margin="0, 0, 0, 0" 
                     Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
@@ -307,6 +311,7 @@
                     MinWidth="73"
                     MinHeight="21"/>
             <vs:DialogButton x:Uid="CancelButton" 
+                    Name="CancelButton"
                     Content="{Binding ElementName=dialog, Path=Cancel}" 
                     Margin="7, 0, 0, 0" 
                     Padding="{StaticResource ResourceKey=okCancelButtonPadding}"

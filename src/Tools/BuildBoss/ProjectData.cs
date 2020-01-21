@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using System.Xml.Linq;
 
 namespace BuildBoss
@@ -18,6 +13,10 @@ namespace BuildBoss
         internal string FileName => Path.GetFileName(FilePath);
         internal string Directory => Path.GetDirectoryName(FilePath);
         internal ProjectFileType ProjectFileType => ProjectEntryUtil.GetProjectFileType(FilePath);
+
+        internal bool IsTestProject => IsUnitTestProject || IsIntegrationTestProject;
+        internal bool IsUnitTestProject => Path.GetFileNameWithoutExtension(FilePath).EndsWith(".UnitTests");
+        internal bool IsIntegrationTestProject => Path.GetFileNameWithoutExtension(FilePath).EndsWith(".IntegrationTests");
 
         internal ProjectData(string filePath)
         {

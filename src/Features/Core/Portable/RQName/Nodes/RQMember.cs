@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 
         public RQMember(RQUnconstructedType containingType)
         {
-            this.ContainingType = containingType;
+            ContainingType = containingType;
         }
 
         public abstract string MemberName { get; }
 
         protected override void AppendChildren(List<SimpleTreeNode> childList)
         {
-            childList.Add(this.ContainingType.ToSimpleTree());
+            childList.Add(ContainingType.ToSimpleTree());
         }
     }
 }

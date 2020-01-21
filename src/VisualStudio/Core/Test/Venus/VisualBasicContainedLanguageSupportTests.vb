@@ -1,10 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Roslyn.Test.Utilities
@@ -552,7 +553,7 @@ End Class</text>.Value
                     eventHandlerName:="Button1_Click",
                     itemidInsertionPoint:=0,
                     useHandlesClause:=True,
-                    additionalFormattingRule:=New Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.LineAdjustmentFormattingRule(),
+                    additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
                     cancellationToken:=Nothing)
 
                 ' Since a valid handler exists, item2 and item3 of the tuple returned must be nothing
@@ -597,7 +598,7 @@ End Sub</text>.NormalizedValue
                     eventHandlerName:="Button1_Click",
                     itemidInsertionPoint:=0,
                     useHandlesClause:=True,
-                    additionalFormattingRule:=New Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.LineAdjustmentFormattingRule(),
+                    additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
                     cancellationToken:=Nothing)
 
                 Assert.Equal("Button1_Click(Object,System.EventArgs)", eventHandlerIdTextPosition.Item1)
@@ -641,7 +642,7 @@ End Sub"
                     eventHandlerName:="Page_Load",
                     itemidInsertionPoint:=0,
                     useHandlesClause:=True,
-                    additionalFormattingRule:=New Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.LineAdjustmentFormattingRule(),
+                    additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
                     cancellationToken:=Nothing)
 
                 Assert.Equal("Page_Load(Object,System.EventArgs)", eventHandlerIdTextPosition.Item1)

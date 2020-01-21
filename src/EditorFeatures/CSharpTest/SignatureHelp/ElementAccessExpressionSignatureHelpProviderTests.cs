@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -48,6 +49,52 @@ class D
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(24311, "https://github.com/dotnet/roslyn/issues/24311")]
+        public async Task TestInvocationWithParametersOn1_WithRefReturn()
+        {
+            var markup = @"
+class C
+{
+    public ref int this[int a]
+    {
+        get { throw null; }
+    }
+    void Goo(C c)
+    {
+        [|c[$$]|]
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("ref int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(24311, "https://github.com/dotnet/roslyn/issues/24311")]
+        public async Task TestInvocationWithParametersOn1_WithRefReadonlyReturn()
+        {
+            var markup = @"
+class C
+{
+    public ref readonly int this[int a]
+    {
+        get { throw null; }
+    }
+    void Goo(C c)
+    {
+        [|c[$$]|]
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("ref readonly int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems);
         }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
@@ -11,10 +12,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     [ExportHighlighter(LanguageNames.CSharp)]
     internal class LockStatementHighlighter : AbstractKeywordHighlighter<LockStatementSyntax>
     {
-        protected override IEnumerable<TextSpan> GetHighlights(
-            LockStatementSyntax lockStatement, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        public LockStatementHighlighter()
         {
-            yield return lockStatement.LockKeyword.Span;
         }
+
+        protected override void AddHighlights(LockStatementSyntax lockStatement, List<TextSpan> highlights, CancellationToken cancellationToken)
+            => highlights.Add(lockStatement.LockKeyword.Span);
     }
 }

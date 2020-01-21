@@ -16,10 +16,14 @@ using System.Threading;
 
 #if DETECT_LEAKS
 using System.Runtime.CompilerServices;
-
 #endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
+#if NET20
+    internal delegate TReturn Func<TArg, TReturn>(TArg arg);
+#endif
+
     /// <summary>
     /// Generic implementation of object pooling pattern with predefined pool size limit. The main
     /// purpose is that limited number of frequently used objects can be kept in the pool for
@@ -113,6 +117,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _items = new Element[size - 1];
         }
 
+        internal ObjectPool(Func<ObjectPool<T>, T> factory, int size)
+        {
+            Debug.Assert(size >= 1);
+            _factory = () => factory(this);
+            _items = new Element[size - 1];
+        }
+
         private T CreateInstance()
         {
             var inst = _factory();
@@ -133,7 +144,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             // Note that the initial read is optimistically not synchronized. That is intentional. 
             // We will interlock only when we have a candidate. in a worst case we may miss some
             // recently returned objects. Not a big deal.
-            T inst = _firstItem;
+            var inst = _firstItem;
             if (inst == null || inst != Interlocked.CompareExchange(ref _firstItem, null, inst))
             {
                 inst = AllocateSlow();
@@ -155,12 +166,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             var items = _items;
 
-            for (int i = 0; i < items.Length; i++)
+            for (var i = 0; i < items.Length; i++)
             {
                 // Note that the initial read is optimistically not synchronized. That is intentional. 
                 // We will interlock only when we have a candidate. in a worst case we may miss some
                 // recently returned objects. Not a big deal.
-                T inst = items[i].Value;
+                var inst = items[i].Value;
                 if (inst != null)
                 {
                     if (inst == Interlocked.CompareExchange(ref items[i].Value, null, inst))
@@ -202,7 +213,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private void FreeSlow(T obj)
         {
             var items = _items;
-            for (int i = 0; i < items.Length; i++)
+            for (var i = 0; i < items.Length; i++)
             {
                 if (items[i].Value == null)
                 {
@@ -264,7 +275,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             Debug.Assert(_firstItem != obj, "freeing twice?");
 
             var items = _items;
-            for (int i = 0; i < items.Length; i++)
+            for (var i = 0; i < items.Length; i++)
             {
                 var value = items[i].Value;
                 if (value == null)

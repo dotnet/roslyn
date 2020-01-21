@@ -44,7 +44,7 @@ End Class"
                         "{Length=2}",
                         "System.Collections.IEnumerable {Integer()}",
                         "o.e",
-                        DkmEvaluationResultFlags.Expandable),
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite),
                     EvalResult(
                         "Results View",
                         "Expanding the Results View will enumerate the IEnumerable",
@@ -95,7 +95,7 @@ End Class"
                         "{Length=2}",
                         "System.Collections.Generic.IEnumerable(Of Integer) {Integer()}",
                         "o.e",
-                        DkmEvaluationResultFlags.Expandable),
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite),
                     EvalResult(
                         "Results View",
                         "Expanding the Results View will enumerate the IEnumerable",
@@ -142,6 +142,43 @@ End Class"
                 children = GetChildren(children(0))
                 Verify(children,
                     EvalFailedResult("Error", "Unable to evaluate 'Items'", flags:=DkmEvaluationResultFlags.None))
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub NoSideEffects()
+            Const source =
+"Imports System.Collections
+Class C
+    Implements IEnumerable
+    Private e As IEnumerable
+    Sub New(e As IEnumerable)
+        Me.e = e
+    End Sub
+    Private Function F() As IEnumerator Implements IEnumerable.GetEnumerator
+        Return e.GetEnumerator()
+    End Function
+End Class"
+            Dim assembly = GetAssembly(source)
+            Dim assemblies = ReflectionUtilities.GetMscorlibAndSystemCore(assembly)
+            Using ReflectionUtilities.LoadAssemblies(assemblies)
+                Dim runtime = New DkmClrRuntimeInstance(assemblies)
+                Dim type = assembly.GetType("C")
+                Dim value = CreateDkmClrValue(
+                    value:=type.Instantiate(New Integer() {1, 2}),
+                    type:=runtime.GetType(CType(type, TypeImpl)))
+                Dim inspectionContext = CreateDkmInspectionContext(DkmEvaluationFlags.NoSideEffects)
+                Dim result = FormatResult("o", value, inspectionContext:=inspectionContext)
+                Verify(result,
+                       EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable))
+                Dim children = GetChildren(result, inspectionContext:=inspectionContext)
+                Verify(children,
+                    EvalResult(
+                        "e",
+                        "{Length=2}",
+                        "System.Collections.IEnumerable {Integer()}",
+                        "o.e",
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite))
             End Using
         End Sub
 

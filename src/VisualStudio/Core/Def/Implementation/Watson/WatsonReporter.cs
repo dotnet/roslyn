@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// The default callback to pass to <see cref="TelemetrySessionExtensions.PostFault(TelemetrySession, string, string, Exception, Func{IFaultUtility, int})"/>.
         /// Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
         /// </summary>
-        private static Func<IFaultUtility, int> s_defaultCallback = _ => 0;
+        private static readonly Func<IFaultUtility, int> s_defaultCallback = _ => 0;
 
         /// <summary>
         /// Report Non-Fatal Watson
@@ -33,7 +33,17 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <param name="exception">Exception that triggered this non-fatal error</param>
         public static void Report(Exception exception)
         {
-            Report("Roslyn NonFatal Watson", exception);
+            Report("Roslyn NonFatal Watson", exception, WatsonSeverity.Default);
+        }
+
+        /// <summary>
+        /// Report Non-Fatal Watson
+        /// </summary>
+        /// <param name="exception">Exception that triggered this non-fatal error</param>
+        /// <param name="severity">indicate <see cref="WatsonSeverity"/> of NFW</param>
+        public static void Report(Exception exception, WatsonSeverity severity)
+        {
+            Report("Roslyn NonFatal Watson", exception, severity);
         }
 
         /// <summary>
@@ -41,9 +51,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <param name="description">any description you want to save with this watson report</param>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
-        public static void Report(string description, Exception exception)
+        /// <param name="severity">indicate <see cref="WatsonSeverity"/> of NFW</param>
+        public static void Report(string description, Exception exception, WatsonSeverity severity = WatsonSeverity.Default)
         {
-            Report(description, exception, s_defaultCallback);
+            Report(description, exception, s_defaultCallback, severity);
         }
 
         /// <summary>
@@ -54,8 +65,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <param name="callback">Callback to include extra data with the NFW. Note that we always collect
         /// a dump of the current process, but this can be used to add further information or files to the
         /// CAB.</param>
-        public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback)
+        /// <param name="severity">indicate <see cref="WatsonSeverity"/> of NFW</param>
+        public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback, WatsonSeverity severity = WatsonSeverity.Default)
         {
+            var critical = severity == WatsonSeverity.Critical;
             var emptyCallstack = exception.SetCallstackIfEmpty();
 
             if (!WatsonDisabled.s_reportWatson ||
@@ -67,6 +80,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             var faultEvent = new FaultEvent(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
                 description: description,
+                critical ? FaultSeverity.Critical : FaultSeverity.Diagnostic,
                 exceptionObject: exception,
                 gatherEventDetails: arg =>
                 {
@@ -83,13 +97,27 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
             TelemetryService.DefaultSession.PostEvent(faultEvent);
 
-            if (exception is OutOfMemoryException)
+            if (exception is OutOfMemoryException || critical)
             {
-                // Once we've encountered one OOM we're likely to see more. There will probably be other
-                // failures as a direct result of the OOM, as well. These aren't helpful so we should just
-                // stop reporting failures.
+                // Once we've encountered one OOM or Critial NFW, 
+                // we're likely to see more. There will probably be other
+                // failures as a direct result of the OOM or critical NFW, as well. 
+                // These aren't helpful so we should just stop reporting failures.
                 WatsonDisabled.s_reportWatson = false;
             }
         }
+    }
+
+    internal enum WatsonSeverity
+    {
+        /// <summary>
+        /// Indicate that this watson is informative and not urgent
+        /// </summary>
+        Default,
+
+        /// <summary>
+        /// Indicate that this watson is critical and need to be addressed soon
+        /// </summary>
+        Critical,
     }
 }

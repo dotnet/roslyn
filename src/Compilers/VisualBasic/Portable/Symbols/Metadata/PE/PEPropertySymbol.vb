@@ -173,43 +173,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
-                Dim method = Me.GetterOrSetter
-                Return If((method IsNot Nothing), method.IsMustOverride, False)
+                Return (Me._getMethod IsNot Nothing AndAlso Me._getMethod.IsMustOverride) OrElse
+                       (Me._setMethod IsNot Nothing AndAlso Me._setMethod.IsMustOverride)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
-                Dim method = Me.GetterOrSetter
-                Return If((method IsNot Nothing), method.IsNotOverridable, False)
+                Return (Me._getMethod Is Nothing OrElse Me._getMethod.IsNotOverridable) AndAlso
+                       (Me._setMethod Is Nothing OrElse Me._setMethod.IsNotOverridable)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
-                Dim method = Me.GetterOrSetter
-                Return If((method IsNot Nothing), method.IsOverridable, False)
+                Return Not IsMustOverride AndAlso Not IsOverrides AndAlso
+                       ((Me._getMethod IsNot Nothing AndAlso Me._getMethod.IsOverridable) OrElse
+                        (Me._setMethod IsNot Nothing AndAlso Me._setMethod.IsOverridable))
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
-                Dim method = Me.GetterOrSetter
-                Return If((method IsNot Nothing), method.IsOverrides, False)
+                Return (Me._getMethod IsNot Nothing AndAlso Me._getMethod.IsOverrides) OrElse
+                       (Me._setMethod IsNot Nothing AndAlso Me._setMethod.IsOverrides)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverloads As Boolean
             Get
-                Dim method = Me.GetterOrSetter
-                Return If((method IsNot Nothing), method.IsOverloads, False)
+                Return (Me._getMethod IsNot Nothing AndAlso Me._getMethod.IsOverloads) OrElse
+                       (Me._setMethod IsNot Nothing AndAlso Me._setMethod.IsOverloads)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Dim method = Me.GetterOrSetter
-                Return If((method IsNot Nothing), method.IsShared, True)
+                Return (Me._getMethod Is Nothing OrElse Me._getMethod.IsShared) AndAlso
+                       (Me._setMethod Is Nothing OrElse Me._setMethod.IsShared)
             End Get
         End Property
 
@@ -339,24 +340,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim propertiesWithImplementedSetters = PEPropertyOrEventHelpers.GetPropertiesForExplicitlyImplementedAccessor(Me._setMethod)
                 Dim builder = ArrayBuilder(Of PropertySymbol).GetInstance()
                 For Each prop In propertiesWithImplementedGetters
-                    If prop.SetMethod Is Nothing OrElse propertiesWithImplementedSetters.Contains(prop) Then
+                    Dim setMethod As MethodSymbol = prop.SetMethod
+
+                    If setMethod Is Nothing OrElse Not setMethod.RequiresImplementation() OrElse propertiesWithImplementedSetters.Contains(prop) Then
                         builder.Add(prop)
                     End If
                 Next
 
                 For Each prop In propertiesWithImplementedSetters
-                    If prop.GetMethod Is Nothing Then
+                    Dim getMethod As MethodSymbol = prop.GetMethod
+
+                    If getMethod Is Nothing OrElse Not getMethod.RequiresImplementation() Then
                         builder.Add(prop)
                     End If
                 Next
 
                 Return builder.ToImmutableAndFree()
-            End Get
-        End Property
-
-        Private ReadOnly Property GetterOrSetter As MethodSymbol
-            Get
-                Return If(Me._getMethod, Me._setMethod)
             End Get
         End Property
 

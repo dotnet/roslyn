@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim convertedTestExpression As BoundExpression = node.ConvertedTestExpression
             If convertedTestExpression Is Nothing Then
                 Debug.Assert(node.TestExpressionPlaceholder Is Nothing)
-                Return TransformRewrittenBinaryConditionalExpression(MyBase.VisitBinaryConditionalExpression(node))
+                Return TransformReferenceOrUnconstrainedRewrittenBinaryConditionalExpression(MyBase.VisitBinaryConditionalExpression(node))
             End If
 
             If convertedTestExpression.Kind = BoundKind.Conversion Then
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(boundConversion.Operand Is If(node.TestExpressionPlaceholder, node.TestExpression))
 
                     ' We can ignore conversion in this case
-                    Return TransformRewrittenBinaryConditionalExpression(
+                    Return TransformReferenceOrUnconstrainedRewrittenBinaryConditionalExpression(
                                 node.Update(VisitExpressionNode(node.TestExpression),
                                             Nothing,
                                             Nothing,
@@ -129,24 +129,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim testExpression As BoundExpression = node.TestExpression
             Dim testExpressionType As TypeSymbol = testExpression.Type
             Dim rewrittenTestExpression As BoundExpression = VisitExpression(testExpression)
-            Debug.Assert(testExpressionType = rewrittenTestExpression.Type)
+            Debug.Assert(TypeSymbol.Equals(testExpressionType, rewrittenTestExpression.Type, TypeCompareKind.ConsiderEverything))
 
             Dim rewrittenWhenTrue As BoundExpression = Nothing
 
             Dim convertedTestExpression As BoundExpression = node.ConvertedTestExpression
             If convertedTestExpression Is Nothing Then
-                If Not testExpressionType.IsNullableOfBoolean Then
-                    rewrittenWhenTrue = If(testExpressionType.IsNullableType,
-                                           New BoundConversion(rewrittenTestExpression.Syntax,
-                                                               rewrittenTestExpression,
-                                                               ConversionKind.WideningNullable,
-                                                               False,
-                                                               False,
-                                                               testExpressionType.GetNullableUnderlyingTypeOrSelf),
-                                           rewrittenTestExpression)
+                If Not testExpressionType.IsNullableOfBoolean AndAlso testExpressionType.IsNullableType Then
+                    rewrittenWhenTrue = New BoundConversion(rewrittenTestExpression.Syntax,
+                                                            rewrittenTestExpression,
+                                                            ConversionKind.WideningNullable,
+                                                            False,
+                                                            False,
+                                                            testExpressionType.GetNullableUnderlyingTypeOrSelf)
                 End If
             Else
-                Debug.Assert(node.TestExpressionPlaceholder Is Nothing OrElse node.TestExpressionPlaceholder.Type = testExpressionType.GetNullableUnderlyingTypeOrSelf)
+                Debug.Assert(node.TestExpressionPlaceholder Is Nothing OrElse TypeSymbol.Equals(node.TestExpressionPlaceholder.Type, testExpressionType.GetNullableUnderlyingTypeOrSelf, TypeCompareKind.ConsiderEverything))
                 rewrittenWhenTrue = VisitExpressionNode(convertedTestExpression,
                                                         node.TestExpressionPlaceholder,
                                                         If(testExpressionType.IsNullableType,
@@ -163,12 +161,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Update(rewrittenTestExpression, rewrittenWhenTrue, Nothing, rewrittenWhenFalse, node.ConstantValueOpt, node.Type)
         End Function
 
-        Private Shared Function TransformRewrittenBinaryConditionalExpression(node As BoundNode) As BoundNode
+        Private Shared Function TransformReferenceOrUnconstrainedRewrittenBinaryConditionalExpression(node As BoundNode) As BoundNode
             Return If(node.Kind <> BoundKind.BinaryConditionalExpression, node,
-                      TransformRewrittenBinaryConditionalExpression(DirectCast(node, BoundBinaryConditionalExpression)))
+                      TransformReferenceOrUnconstrainedRewrittenBinaryConditionalExpression(DirectCast(node, BoundBinaryConditionalExpression)))
         End Function
 
-        Private Shared Function TransformRewrittenBinaryConditionalExpression(node As BoundBinaryConditionalExpression) As BoundExpression
+        Private Shared Function TransformReferenceOrUnconstrainedRewrittenBinaryConditionalExpression(node As BoundBinaryConditionalExpression) As BoundExpression
             Debug.Assert(node.ConvertedTestExpression Is Nothing)   ' Those should be rewritten by now
             Debug.Assert(node.TestExpressionPlaceholder Is Nothing)
 
@@ -183,12 +181,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim testExpr = node.TestExpression
             Dim elseExpr = node.ElseExpression
 
-            ' Test expression may only be of a reference or nullable type
-            Debug.Assert(testExpr.IsNothingLiteral OrElse testExpr.Type.IsReferenceType OrElse testExpr.Type.IsNullableType)
+            ' Nullable value types should have been handled earlier in lowering, so we can only have reference types and
+            ' unconstrained type parameters at this point
+            Debug.Assert(testExpr.IsNothingLiteral OrElse Not testExpr.Type.IsValueType)
 
             ' TODO: Checking type equality of test and else is not strictly needed.
             '       Consider removing this requirement.
-            If testExpr.IsConstant AndAlso (testExpr.Type = elseExpr.Type) Then
+            If testExpr.IsConstant AndAlso (TypeSymbol.Equals(testExpr.Type, elseExpr.Type, TypeCompareKind.ConsiderEverything)) Then
                 '  the only valid IF(...) with the first constant are: IF("abc", <expr>) or IF(Nothing, <expr>)
                 If testExpr.ConstantValueOpt.IsNothing Then
                     ' CASE: IF(Nothing, <expr>) 
@@ -202,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             End If
 
-            Debug.Assert(testExpr.Type.IsReferenceType)
+            Debug.Assert(Not testExpr.Type.IsValueType)
             Return node
         End Function
 
@@ -233,6 +232,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' CONSIDER: We could do inlining when rewrittenRight.IsConstant
                     End If
                 End If
+            End If
+
+            ' Optimize If(left, right) to left.GetValueOrDefault() when left is T? and right is the default value of T
+            If rewrittenLeft.Type.IsNullableType() AndAlso
+               rewrittenRight.IsDefaultValue() AndAlso
+               rewrittenRight.Type.IsSameTypeIgnoringAll(rewrittenLeft.Type.GetNullableUnderlyingType()) _
+            Then
+                Return NullableValueOrDefault(rewrittenLeft)
             End If
 
             '=== Rewrite binary conditional expression using ternary conditional expression

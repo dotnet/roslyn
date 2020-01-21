@@ -14,12 +14,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    [Export(typeof(IWpfTextViewConnectionListener))]
+    [Export(typeof(ITextViewConnectionListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     [Export(typeof(ITextBufferAssociatedViewService))]
-    internal class TextBufferAssociatedViewService : IWpfTextViewConnectionListener, ITextBufferAssociatedViewService
+    internal class TextBufferAssociatedViewService : ITextViewConnectionListener, ITextBufferAssociatedViewService
     {
 #if DEBUG
         private static readonly HashSet<ITextView> s_registeredViews = new HashSet<ITextView>();
@@ -29,9 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor
         private static readonly ConditionalWeakTable<ITextBuffer, HashSet<ITextView>> s_map =
             new ConditionalWeakTable<ITextBuffer, HashSet<ITextView>>();
 
+        [ImportingConstructor]
+        public TextBufferAssociatedViewService()
+        {
+        }
+
         public event EventHandler<SubjectBuffersConnectedEventArgs> SubjectBuffersConnected;
 
-        void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
+        void ITextViewConnectionListener.SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
             lock (s_gate)
             {
@@ -51,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor
             this.SubjectBuffersConnected?.Invoke(this, new SubjectBuffersConnectedEventArgs(textView, subjectBuffers.ToReadOnlyCollection()));
         }
 
-        void IWpfTextViewConnectionListener.SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
+        void ITextViewConnectionListener.SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
             lock (s_gate)
             {

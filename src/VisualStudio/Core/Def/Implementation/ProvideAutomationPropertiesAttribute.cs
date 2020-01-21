@@ -35,21 +35,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public override void Register(RegistrationContext context)
         {
-            using (var key = context.CreateKey("AutomationProperties\\" + Category + "\\" + Page))
+            using var key = context.CreateKey("AutomationProperties\\" + Category + "\\" + Page);
+            key.SetValue(null, "#" + ProfileNodeLabelId.ToString());
+            key.SetValue("Description", "#" + ProfileNodeDescriptionId.ToString());
+            key.SetValue("Name", Page);
+            key.SetValue("Package", PackageGuid.ToString("B"));
+
+            if (ResourcePackageGuid.HasValue)
             {
-                key.SetValue(null, "#" + ProfileNodeLabelId.ToString());
-                key.SetValue("Description", "#" + ProfileNodeDescriptionId.ToString());
-                key.SetValue("Name", Page);
-                key.SetValue("Package", PackageGuid.ToString("B"));
-
-                if (ResourcePackageGuid.HasValue)
-                {
-                    key.SetValue("ResourcePackage", ResourcePackageGuid.Value.ToString("B"));
-                }
-
-                key.SetValue("ProfileSave", 1);
-                key.SetValue("VSSettingsMigration", (int)ProfileMigrationType.PassThrough);
+                key.SetValue("ResourcePackage", ResourcePackageGuid.Value.ToString("B"));
             }
+
+            key.SetValue("ProfileSave", 1);
+            key.SetValue("VSSettingsMigration", (int)ProfileMigrationType.PassThrough);
         }
 
         public override void Unregister(RegistrationContext context)

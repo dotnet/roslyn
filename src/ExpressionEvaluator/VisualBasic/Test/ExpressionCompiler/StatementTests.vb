@@ -822,7 +822,7 @@ End Class
                 compilationFlags = DkmEvaluationFlags.TreatAsExpression
                 expr = expr.Substring(1)
             End If
-            Dim compilation0 = CreateCompilationWithReferences(
+            Dim compilation0 = CreateEmptyCompilationWithReferences(
                 {Parse(source)},
                 {MscorlibRef_v4_0_30316_17626, SystemRef, MsvbRef},
                 options:=TestOptions.DebugDll)

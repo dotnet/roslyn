@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
+    <[UseExportProvider]>
     Public Class RenameNonRenameableSymbols
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -213,7 +214,7 @@ class Program
                         </Project>
                     </Workspace>)
 
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Using readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit()
                     readOnlyEdit.CreateReadOnlyRegion(New Span(0, textBuffer.CurrentSnapshot.Length))

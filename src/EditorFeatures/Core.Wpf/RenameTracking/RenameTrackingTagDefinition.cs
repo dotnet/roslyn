@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     [ExcludeFromCodeCoverage]
     internal class RenameTrackingTagDefinition : MarkerFormatDefinition
     {
+        [ImportingConstructor]
         public RenameTrackingTagDefinition()
         {
             this.Border = new Pen(Brushes.Black, thickness: 1.0) { DashStyle = new DashStyle(new[] { 0.5, 4.0 }, 1) };

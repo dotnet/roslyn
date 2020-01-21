@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Check if we need to add 'unsafe' to the signature we're generating.
-                var syntaxFacts = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
                 var addUnsafe = member.IsUnsafe() && !syntaxFacts.IsUnsafeContext(_state.Location);
 
                 return GenerateMember(member, addUnsafe, propertyGenerationBehavior, cancellationToken);
@@ -89,31 +89,25 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 var modifiers = new DeclarationModifiers(isOverride: true, isUnsafe: addUnsafe);
                 var accessibility = member.ComputeResultantAccessibility(_state.ClassType);
 
-                switch (member)
+                return member switch
                 {
-                    case IMethodSymbol method:
-                        return GenerateMethod(method, modifiers, accessibility, cancellationToken);
-
-                    case IPropertySymbol property:
-                        return GenerateProperty(property, modifiers, accessibility, propertyGenerationBehavior, cancellationToken);
-
-                    case IEventSymbol @event:
-                        return CodeGenerationSymbolFactory.CreateEventSymbol(
-                            @event, accessibility: accessibility, modifiers: modifiers);
-                }
-
-                return null;
+                    IMethodSymbol method => GenerateMethod(method, modifiers, accessibility, cancellationToken),
+                    IPropertySymbol property => GenerateProperty(property, modifiers, accessibility, propertyGenerationBehavior),
+                    IEventSymbol @event => CodeGenerationSymbolFactory.CreateEventSymbol(
+                        @event, accessibility: accessibility, modifiers: modifiers),
+                    _ => null,
+                };
             }
 
             private ISymbol GenerateMethod(
                 IMethodSymbol method, DeclarationModifiers modifiers, Accessibility accessibility, CancellationToken cancellationToken)
             {
-                var syntaxFacts = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                var syntaxFactory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
+                var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
                 var throwingBody = syntaxFactory.CreateThrowNotImplementedStatementBlock(
                     _model.Compilation);
 
-                method = method.EnsureNonConflictingNames(_state.ClassType, syntaxFacts, cancellationToken);
+                method = method.EnsureNonConflictingNames(_state.ClassType, syntaxFacts);
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     method,
@@ -126,8 +120,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 IPropertySymbol property,
                 DeclarationModifiers modifiers,
                 Accessibility accessibility,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 if (property.GetMethod == null)
                 {
@@ -135,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     propertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties;
                 }
 
-                var syntaxFactory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
+                var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
 
                 var accessorBody = propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
                     ? default

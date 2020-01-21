@@ -14,9 +14,8 @@ namespace CSharpSyntaxGenerator
         public string Errors;
 
         [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
-        public List<Kind> Kinds;
+        public List<Kind> Kinds = new List<Kind>();
 
-        [XmlElement(ElementName = "Field", Type = typeof(Field))]
-        public List<Field> Fields;
+        public readonly List<Field> Fields = new List<Field>();
     }
 }

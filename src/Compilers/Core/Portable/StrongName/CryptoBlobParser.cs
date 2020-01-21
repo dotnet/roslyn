@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            BinaryReader blobReader = new BinaryReader(new MemoryStream(blob.DangerousGetUnderlyingArray()));
+            var blobReader = new LittleEndianReader(blob.AsSpan());
 
             // Signature algorithm ID
             var sigAlgId = blobReader.ReadUInt32();
@@ -147,13 +147,13 @@ namespace Microsoft.CodeAnalysis
         private const int s_offsetToKeyData = BlobHeaderSize + RsaPubKeySize;
 
         private static ImmutableArray<byte> CreateSnPublicKeyBlob(
-            byte type, 
-            byte version, 
-            uint algId, 
-            uint magic, 
-            uint bitLen, 
-            uint pubExp, 
-            byte[] pubKeyData)
+            byte type,
+            byte version,
+            uint algId,
+            uint magic,
+            uint bitLen,
+            uint pubExp,
+            ReadOnlySpan<byte> pubKeyData)
         {
             var w = new BlobWriter(3 * sizeof(uint) + s_offsetToKeyData + pubKeyData.Length);
             w.WriteUInt32(AlgorithmId.RsaSign);
@@ -171,7 +171,13 @@ namespace Microsoft.CodeAnalysis
             // re-add padding for exponent
             w.WriteUInt32(pubExp);
 
-            w.WriteBytes(pubKeyData);
+            unsafe
+            {
+                fixed (byte* bytes = pubKeyData)
+                {
+                    w.WriteBytes(bytes, pubKeyData.Length);
+                }
+            }
 
             return w.ToImmutableArray();
         }
@@ -187,8 +193,6 @@ namespace Microsoft.CodeAnalysis
             privateKey = null;
             snKey = default(ImmutableArray<byte>);
 
-            var asArray = blob.DangerousGetUnderlyingArray();
-
             if (IsValidPublicKey(blob))
             {
                 snKey = blob;
@@ -202,41 +206,39 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                using (MemoryStream memStream = new MemoryStream(asArray))
-                using (BinaryReader br = new BinaryReader(new MemoryStream(asArray)))
+                var br = new LittleEndianReader(blob.AsSpan());
+
+                byte bType = br.ReadByte();    // BLOBHEADER.bType: Expected to be 0x6 (PUBLICKEYBLOB) or 0x7 (PRIVATEKEYBLOB), though there's no check for backward compat reasons. 
+                byte bVersion = br.ReadByte(); // BLOBHEADER.bVersion: Expected to be 0x2, though there's no check for backward compat reasons.
+                br.ReadUInt16();               // BLOBHEADER.wReserved
+                uint algId = br.ReadUInt32();  // BLOBHEADER.aiKeyAlg
+                uint magic = br.ReadUInt32();  // RSAPubKey.magic: Expected to be 0x31415352 ('RSA1') or 0x32415352 ('RSA2') 
+                var bitLen = br.ReadUInt32();  // Bit Length for Modulus
+                var pubExp = br.ReadUInt32();  // Exponent 
+                var modulusLength = (int)(bitLen / 8);
+
+                if (blob.Length - s_offsetToKeyData < modulusLength)
                 {
-                    byte bType = br.ReadByte();    // BLOBHEADER.bType: Expected to be 0x6 (PUBLICKEYBLOB) or 0x7 (PRIVATEKEYBLOB), though there's no check for backward compat reasons. 
-                    byte bVersion = br.ReadByte(); // BLOBHEADER.bVersion: Expected to be 0x2, though there's no check for backward compat reasons.
-                    br.ReadUInt16();               // BLOBHEADER.wReserved
-                    uint algId = br.ReadUInt32();  // BLOBHEADER.aiKeyAlg
-                    uint magic = br.ReadUInt32();  // RSAPubKey.magic: Expected to be 0x31415352 ('RSA1') or 0x32415352 ('RSA2') 
-                    var bitLen = br.ReadUInt32();  // Bit Length for Modulus
-                    var pubExp = br.ReadUInt32();  // Exponent 
-                    var modulusLength = (int)(bitLen / 8);
-
-                    if (blob.Length - s_offsetToKeyData < modulusLength)
-                    {
-                        return false;
-                    }
-
-                    var modulus = br.ReadBytes(modulusLength);
-
-                    if (!(bType == PrivateKeyBlobId && magic == RSA2) && !(bType == PublicKeyBlobId && magic == RSA1))
-                    {
-                        return false;
-                    }
-
-                    if (bType == PrivateKeyBlobId)
-                    {
-                        privateKey = ToRSAParameters(asArray, true);
-                        // For snKey, rewrite some of the the parameters
-                        algId = AlgorithmId.RsaSign;
-                        magic = RSA1;
-                    }
-
-                    snKey = CreateSnPublicKeyBlob(PublicKeyBlobId, bVersion, algId, RSA1, bitLen, pubExp, modulus);
-                    return true;
+                    return false;
                 }
+
+                var modulus = br.ReadBytes(modulusLength);
+
+                if (!(bType == PrivateKeyBlobId && magic == RSA2) && !(bType == PublicKeyBlobId && magic == RSA1))
+                {
+                    return false;
+                }
+
+                if (bType == PrivateKeyBlobId)
+                {
+                    privateKey = ToRSAParameters(blob.AsSpan(), true);
+                    // For snKey, rewrite some of the the parameters
+                    algId = AlgorithmId.RsaSign;
+                    magic = RSA1;
+                }
+
+                snKey = CreateSnPublicKeyBlob(PublicKeyBlobId, bVersion, algId, RSA1, bitLen, pubExp, modulus);
+                return true;
             }
             catch (Exception)
             {
@@ -248,9 +250,9 @@ namespace Microsoft.CodeAnalysis
         /// Helper for RsaCryptoServiceProvider.ExportParameters()
         /// Copied from https://github.com/dotnet/corefx/blob/5fe5f9aae7b2987adc7082f90712b265bee5eefc/src/System.Security.Cryptography.Csp/src/System/Security/Cryptography/CapiHelper.Shared.cs
         /// </summary>
-        internal static RSAParameters ToRSAParameters(this byte[] cspBlob, bool includePrivateParameters)
+        internal static RSAParameters ToRSAParameters(this ReadOnlySpan<byte> cspBlob, bool includePrivateParameters)
         {
-            BinaryReader br = new BinaryReader(new MemoryStream(cspBlob));
+            var br = new LittleEndianReader(cspBlob);
 
             byte bType = br.ReadByte();    // BLOBHEADER.bType: Expected to be 0x6 (PUBLICKEYBLOB) or 0x7 (PRIVATEKEYBLOB), though there's no check for backward compat reasons. 
             byte bVersion = br.ReadByte(); // BLOBHEADER.bVersion: Expected to be 0x2, though there's no check for backward compat reasons.
@@ -324,7 +326,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)(exponent)
                 };
             }
-}
+        }
 
 
         /// <summary>
@@ -336,6 +338,6 @@ namespace Microsoft.CodeAnalysis
             byte[] data = br.ReadBytes(count);
             Array.Reverse(data);
             return data;
-}
+        }
     }
 }

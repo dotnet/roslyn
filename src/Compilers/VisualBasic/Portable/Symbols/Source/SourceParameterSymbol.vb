@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If Me.ContainingSymbol.IsImplicitlyDeclared Then
 
-                    If TryCast(Me.ContainingSymbol, MethodSymbol)?.MethodKind = MethodKind.DelegateInvoke AndAlso
+                    If (TryCast(Me.ContainingSymbol, MethodSymbol)?.MethodKind = MethodKind.DelegateInvoke).GetValueOrDefault() AndAlso
                        Not Me.ContainingType.AssociatedSymbol?.IsImplicitlyDeclared Then
                         Return False
                     End If
@@ -373,13 +373,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim arg = attribute.CommonConstructorArguments(0)
 
             Dim specialType = If(arg.Kind = TypedConstantKind.Enum,
-                                 DirectCast(arg.Type, INamedTypeSymbol).EnumUnderlyingType.SpecialType,
-                                 arg.Type.SpecialType)
+                                 DirectCast(arg.TypeInternal, NamedTypeSymbol).EnumUnderlyingType.SpecialType,
+                                 arg.TypeInternal.SpecialType)
             Dim constantValueDiscriminator = ConstantValue.GetDiscriminator(specialType)
 
             If constantValueDiscriminator = ConstantValueTypeDiscriminator.Bad Then
                 If arg.Kind <> TypedConstantKind.Array AndAlso
-                    arg.Value Is Nothing AndAlso
+                    arg.ValueInternal Is Nothing AndAlso
                     Type.IsReferenceType Then
                     Return ConstantValue.Null
                 End If
@@ -387,7 +387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return ConstantValue.Bad
             End If
 
-            Return ConstantValue.Create(arg.Value, constantValueDiscriminator)
+            Return ConstantValue.Create(arg.ValueInternal, constantValueDiscriminator)
         End Function
 
         Friend NotOverridable Overrides ReadOnly Property MarshallingInformation As MarshalPseudoCustomAttributeData

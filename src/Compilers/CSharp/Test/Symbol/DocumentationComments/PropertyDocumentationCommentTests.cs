@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public PropertyDocumentationCommentTests()
         {
-            _compilation = CreateStandardCompilation(@"namespace Acme
+            _compilation = CreateCompilation(@"namespace Acme
 {
     class Widget: IProcess
     {

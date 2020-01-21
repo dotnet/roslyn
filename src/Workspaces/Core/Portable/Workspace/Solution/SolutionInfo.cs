@@ -1,7 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -28,14 +33,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The path to the solution file, or null if there is no solution file.
         /// </summary>
-        public string FilePath => Attributes.FilePath;
+        public string? FilePath => Attributes.FilePath;
 
         /// <summary>
         /// A list of projects initially associated with the solution.
         /// </summary>
         public IReadOnlyList<ProjectInfo> Projects { get; }
 
-        private SolutionInfo(SolutionAttributes attributes, IEnumerable<ProjectInfo> projects)
+        private SolutionInfo(SolutionAttributes attributes, IEnumerable<ProjectInfo>? projects)
         {
             Attributes = attributes;
             Projects = projects.ToImmutableReadOnlyListOrEmpty();
@@ -47,15 +52,15 @@ namespace Microsoft.CodeAnalysis
         public static SolutionInfo Create(
             SolutionId id,
             VersionStamp version,
-            string filePath = null,
-            IEnumerable<ProjectInfo> projects = null)
+            string? filePath = null,
+            IEnumerable<ProjectInfo>? projects = null)
         {
             return new SolutionInfo(new SolutionAttributes(id, version, filePath), projects);
         }
 
         private SolutionInfo With(
-            SolutionAttributes attributes = null,
-            IEnumerable<ProjectInfo> projects = null)
+            SolutionAttributes? attributes = null,
+            IEnumerable<ProjectInfo>? projects = null)
         {
             var newAttributes = attributes ?? Attributes;
             var newProjects = projects ?? Projects;
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis
             return With(attributes: new SolutionAttributes(Attributes.Id, version, Attributes.FilePath));
         }
 
-        internal SolutionInfo WithFilePath(string filePath)
+        internal SolutionInfo WithFilePath(string? filePath)
         {
             return With(attributes: new SolutionAttributes(Attributes.Id, Attributes.Version, filePath));
         }
@@ -83,6 +88,9 @@ namespace Microsoft.CodeAnalysis
         {
             return With(projects: projects);
         }
+
+        internal ImmutableHashSet<string> GetProjectLanguages()
+            => Projects.Select(p => p.Language).ToImmutableHashSet();
 
         /// <summary>
         /// type that contains information regarding this solution itself but
@@ -103,14 +111,21 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// The path to the solution file, or null if there is no solution file.
             /// </summary>
-            public string FilePath { get; }
+            public string? FilePath { get; }
 
-            public SolutionAttributes(SolutionId id, VersionStamp version, string filePath)
+            public SolutionAttributes(SolutionId id, VersionStamp version, string? filePath)
             {
                 Id = id ?? throw new ArgumentNullException(nameof(id));
                 Version = version;
                 FilePath = filePath;
             }
+
+            public SolutionAttributes WithVersion(VersionStamp versionStamp)
+            {
+                return new SolutionAttributes(Id, versionStamp, FilePath);
+            }
+
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             public void WriteTo(ObjectWriter writer)
             {
@@ -132,7 +147,7 @@ namespace Microsoft.CodeAnalysis
                 return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath);
             }
 
-            private Checksum _lazyChecksum;
+            private Checksum? _lazyChecksum;
             Checksum IChecksummedObject.Checksum
             {
                 get

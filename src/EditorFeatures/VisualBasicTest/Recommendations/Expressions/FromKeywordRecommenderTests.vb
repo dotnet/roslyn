@@ -215,6 +215,22 @@ Class C
 End Class</File>, "From")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<File>Imports System.Collections.Generic
+                                             
+Class C
+    Implements IEnumerable(Of Integer)
+
+    Public Sub Add(i As Integer)
+    End Sub
+
+    Dim b = New C _ ' Test
+|
+End Class</File>, "From")
+        End Function
+
         <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FromForTypeInheritingCollectionInitializerPatternTest() As Task

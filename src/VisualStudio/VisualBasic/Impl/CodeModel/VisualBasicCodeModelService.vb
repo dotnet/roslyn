@@ -36,8 +36,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 provider,
                 editorOptionsFactoryService,
                 refactorNotifyServices,
-                New LineAdjustmentFormattingRule(),
-                New EndRegionFormattingRule())
+                LineAdjustmentFormattingRule.Instance,
+                EndRegionFormattingRule.Instance)
 
             Me._commitBufferManagerFactory = commitBufferManagerFactory
         End Sub
@@ -384,6 +384,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return GetAttributeNodes(DirectCast(node, FieldDeclarationSyntax).AttributeLists)
             ElseIf TypeOf node Is ParameterSyntax Then
                 Return GetAttributeNodes(DirectCast(node, ParameterSyntax).AttributeLists)
+            ElseIf TypeOf node Is EnumMemberDeclarationSyntax Then
+                Return GetAttributeNodes(DirectCast(node, EnumMemberDeclarationSyntax).AttributeLists)
             ElseIf TypeOf node Is ModifiedIdentifierSyntax OrElse
                    TypeOf node Is VariableDeclaratorSyntax Then
                 Return GetAttributeNodes(node.Parent)

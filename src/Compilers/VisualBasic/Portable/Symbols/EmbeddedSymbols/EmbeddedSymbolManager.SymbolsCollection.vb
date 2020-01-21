@@ -132,16 +132,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub MarkSymbolAsReferenced(symbol As Symbol, allSymbols As ConcurrentSet(Of Symbol))
 #If Not Debug Then
             ' In RELEASE don't add anything if the collection is sealed
-            If _sealed = 0 Then
+            If _sealed <> 0 Then
+                Return
+            End If
 #End If
 
             Debug.Assert(symbol.IsDefinition)
             Debug.Assert(symbol.IsEmbedded)
             AddReferencedSymbolWithDependents(symbol, allSymbols)
-
-#If Not Debug Then
-            End If
-#End If
         End Sub
 
         Public Sub MarkSymbolAsReferenced(symbol As Symbol)

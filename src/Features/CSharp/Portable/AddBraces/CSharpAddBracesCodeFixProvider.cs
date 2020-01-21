@@ -19,8 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddAwait)]
     internal sealed class CSharpAddBracesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds 
+        [ImportingConstructor]
+        public CSharpAddBracesCodeFixProvider()
+        {
+        }
+
+        public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -28,11 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
@@ -51,13 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 });
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Add_braces, createChangedDocument, FeaturesResources.Add_braces)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Add_braces, createChangedDocument, FeaturesResources.Add_braces)
             {
             }
         }

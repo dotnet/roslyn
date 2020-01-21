@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Friend Class NameOfExpressionSignatureHelpProvider
         Inherits AbstractIntrinsicOperatorSignatureHelpProvider(Of NameOfExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Function IsRetriggerCharacter(ch As Char) As Boolean
             Return ch = ")"c
         End Function
@@ -19,8 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return ch = "("c
         End Function
 
-        Protected Overrides Function GetIntrinsicOperatorDocumentation(node As NameOfExpressionSyntax, document As Document, cancellationToken As CancellationToken) As IEnumerable(Of AbstractIntrinsicOperatorDocumentation)
-            Return {New NameOfExpressionDocumentation()}
+        Protected Overrides Function GetIntrinsicOperatorDocumentationAsync(node As NameOfExpressionSyntax, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
+            Return New ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New NameOfExpressionDocumentation()})
         End Function
 
         Protected Overrides Function IsArgumentListToken(node As NameOfExpressionSyntax, token As SyntaxToken) As Boolean

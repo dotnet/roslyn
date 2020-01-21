@@ -96,7 +96,7 @@ namespace Roslyn.Test.Utilities
         }
 
         /// <summary>
-        /// Provides the underlying strong refernce to the given action. This method is marked not be inlined, to ensure that no temporaries are left
+        /// Provides the underlying strong reference to the given action. This method is marked not be inlined, to ensure that no temporaries are left
         /// on the stack that might still root the strong reference. The caller must not "leak" the object out of the given action for any lifetime
         /// assertions to be safe.
         /// </summary>
@@ -107,7 +107,7 @@ namespace Roslyn.Test.Utilities
         }
 
         /// <summary>
-        /// Provides the underlying strong refernce to the given function. This method is marked not be inlined, to ensure that no temporaries are left
+        /// Provides the underlying strong reference to the given function. This method is marked not be inlined, to ensure that no temporaries are left
         /// on the stack that might still root the strong reference. The caller must not "leak" the object out of the given action for any lifetime
         /// assertions to be safe.
         /// </summary>

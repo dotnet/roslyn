@@ -228,6 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText:=displayString,
+                displayTextSuffix:="",
                 insertionText:=Nothing,
                 symbols:=ImmutableArray.Create(symbol),
                 contextPosition:=position,
@@ -236,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Function CreateOfCompletionItem() As CompletionItem
             Return CommonCompletionItem.Create(
-                "Of", CompletionItemRules.Default, Glyph.Keyword,
+                "Of", displayTextSuffix:="", CompletionItemRules.Default, Glyph.Keyword,
                 description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
         End Function
 

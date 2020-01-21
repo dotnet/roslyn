@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis
     internal class DiagnosticBag
     {
         // The lazyBag field is populated lazily -- the first time an error is added.
-        private ConcurrentQueue<Diagnostic> _lazyBag;
+        private ConcurrentQueue<Diagnostic>? _lazyBag;
 
         /// <summary>
         /// Return true if the bag is completely empty - not even containing void diagnostics.
@@ -45,13 +47,14 @@ namespace Microsoft.CodeAnalysis
                 // then a report phase, and we shouldn't be called during the "report" phase. We
                 // also never remove diagnostics, so the worst that happens is that we don't return
                 // an element that is added a split second after this is called.
-                ConcurrentQueue<Diagnostic> bag = _lazyBag;
+                ConcurrentQueue<Diagnostic>? bag = _lazyBag;
                 return bag == null || bag.IsEmpty;
             }
         }
 
         /// <summary>
-        /// Returns true if the bag has any diagnostics with Severity=Error. Does not consider warnings or informationals.
+        /// Returns true if the bag has any diagnostics with DefaultSeverity=Error. Does not consider warnings or informationals
+        /// or warnings promoted to error via /warnaserror.
         /// </summary>
         /// <remarks>
         /// Resolves any lazy diagnostics in the bag.
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (Diagnostic diagnostic in Bag)
             {
-                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                if (diagnostic.DefaultSeverity == DiagnosticSeverity.Error)
                 {
                     return true;
                 }
@@ -78,7 +81,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns true if the bag has any non-lazy diagnostics with Severity=Error.
+        /// Returns true if the bag has any non-lazy diagnostics with DefaultSeverity=Error. Does not consider warnings or informationals
+        /// or warnings promoted to error via /warnaserror.
         /// </summary>
         /// <remarks>
         /// Does not resolve any lazy diagnostics in the bag.
@@ -95,7 +99,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (Diagnostic diagnostic in Bag)
             {
-                if ((diagnostic as DiagnosticWithInfo)?.HasLazyInfo != true && diagnostic.Severity == DiagnosticSeverity.Error)
+                if ((diagnostic as DiagnosticWithInfo)?.HasLazyInfo != true && diagnostic.DefaultSeverity == DiagnosticSeverity.Error)
                 {
                     return true;
                 }
@@ -165,7 +169,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<TDiagnostic> ToReadOnlyAndFree<TDiagnostic>() where TDiagnostic : Diagnostic
         {
-            ConcurrentQueue<Diagnostic> oldBag = _lazyBag;
+            ConcurrentQueue<Diagnostic>? oldBag = _lazyBag;
             Free();
 
             return ToReadOnlyCore<TDiagnostic>(oldBag);
@@ -178,7 +182,7 @@ namespace Microsoft.CodeAnalysis
 
         public ImmutableArray<TDiagnostic> ToReadOnly<TDiagnostic>() where TDiagnostic : Diagnostic
         {
-            ConcurrentQueue<Diagnostic> oldBag = _lazyBag;
+            ConcurrentQueue<Diagnostic>? oldBag = _lazyBag;
             return ToReadOnlyCore<TDiagnostic>(oldBag);
         }
 
@@ -187,7 +191,7 @@ namespace Microsoft.CodeAnalysis
             return ToReadOnly<Diagnostic>();
         }
 
-        private static ImmutableArray<TDiagnostic> ToReadOnlyCore<TDiagnostic>(ConcurrentQueue<Diagnostic> oldBag) where TDiagnostic : Diagnostic
+        private static ImmutableArray<TDiagnostic> ToReadOnlyCore<TDiagnostic>(ConcurrentQueue<Diagnostic>? oldBag) where TDiagnostic : Diagnostic
         {
             if (oldBag == null)
             {
@@ -283,7 +287,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                ConcurrentQueue<Diagnostic> bag = _lazyBag;
+                ConcurrentQueue<Diagnostic>? bag = _lazyBag;
                 if (bag != null)
                 {
                     return bag;
@@ -300,7 +304,7 @@ namespace Microsoft.CodeAnalysis
         ///       broken and we cannot do anything about it here.
         internal void Clear()
         {
-            ConcurrentQueue<Diagnostic> bag = _lazyBag;
+            ConcurrentQueue<Diagnostic>? bag = _lazyBag;
             if (bag != null)
             {
                 _lazyBag = null;
@@ -345,7 +349,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    ConcurrentQueue<Diagnostic> lazyBag = _bag._lazyBag;
+                    ConcurrentQueue<Diagnostic>? lazyBag = _bag._lazyBag;
                     if (lazyBag != null)
                     {
                         return lazyBag.ToArray();

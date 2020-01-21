@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+  <!--
+    Non-default certificates.
+  -->
+  <ItemGroup>
+    <!-- Expression Compiler dependencies that run in remote debugger must be signed with Microsoft101240624 certificate in order to work on Windows 10S -->
+
+    <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll" CertificateName="Microsoft101240624"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll" CertificateName="Microsoft101240624"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.dll" CertificateName="Microsoft101240624"/>
+
+    <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETStandard,Version=v1.3" CertificateName="Microsoft101240624"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETStandard,Version=v1.3" CertificateName="Microsoft101240624"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETStandard,Version=v1.3" CertificateName="Microsoft101240624"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETStandard,Version=v1.3" CertificateName="Microsoft101240624"/>
+
+    <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETFramework,Version=v2.0" CertificateName="MicrosoftWin8WinBlue"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETFramework,Version=v2.0" CertificateName="MicrosoftWin8WinBlue"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETFramework,Version=v2.0" CertificateName="MicrosoftWin8WinBlue"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETFramework,Version=v4.5" CertificateName="MicrosoftWin8WinBlue"/>
+
+    <FileSignInfo Include="System.Collections.Immutable.dll" CertificateName="Microsoft101240624"/>
+    <FileSignInfo Include="System.Reflection.Metadata.dll" CertificateName="Microsoft101240624"/>
+
+    <!-- Sign 3rd party dlls with 3rd party cert -->
+    <FileSignInfo Include="ICSharpCode.Decompiler.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="e_sqlite3.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="SQLitePCLRaw.core.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="SQLitePCLRaw.batteries_v2.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="SQLitePCLRaw.batteries_green.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="SQLitePCLRaw.provider.e_sqlite3.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="Nerdbank.FullDuplexStream.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="Validation.dll" CertificateName="3PartySHA2" />
+  </ItemGroup>
+</Project>

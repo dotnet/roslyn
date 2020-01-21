@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddPackage
     {
         private const string CS8179 = nameof(CS8179); // Predefined type 'System.ValueTuple`2' is not defined or imported
 
+        [ImportingConstructor]
+        public CSharpAddSpecificPackageCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS8179);
 

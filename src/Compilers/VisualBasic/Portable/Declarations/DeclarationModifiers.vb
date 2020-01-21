@@ -1,15 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Collections.ObjectModel
-Imports System.Linq
 Imports System.Runtime.CompilerServices
-Imports System.Text
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -62,21 +53,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         InvalidInModule = [Protected] Or [Shared] Or [Default] Or [MustOverride] Or [Overridable] Or [Shadows] Or [Overrides]
         InvalidInInterface = AllAccessibilityModifiers Or [Shared]
     End Enum
-
-    Friend Module DeclarationModifiersExtensions
-        <Extension()>
-        Friend Function ToAccessibility(modifiers As DeclarationModifiers) As Accessibility
-            Select Case modifiers And DeclarationModifiers.AllAccessibilityModifiers
-                Case DeclarationModifiers.Private : Return Accessibility.Private
-                Case DeclarationModifiers.Public : Return Accessibility.Public
-                Case DeclarationModifiers.Protected : Return Accessibility.Protected
-                Case DeclarationModifiers.Friend : Return Accessibility.Friend
-                Case DeclarationModifiers.Friend Or DeclarationModifiers.Protected : Return Accessibility.ProtectedOrFriend
-                Case DeclarationModifiers.Private Or DeclarationModifiers.Protected : Return Accessibility.ProtectedAndFriend
-                Case Else
-                    ' this method shouldn't be used if modifiers contain conflicting accessibility flags
-                    Throw ExceptionUtilities.UnexpectedValue(modifiers)
-            End Select
-        End Function
-    End Module
 End Namespace

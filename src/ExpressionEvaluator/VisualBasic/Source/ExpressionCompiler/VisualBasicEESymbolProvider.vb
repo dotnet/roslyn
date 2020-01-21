@@ -6,6 +6,7 @@ Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
@@ -63,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         ''' <exception cref="BadImageFormatException"></exception>
-        Public Overrides Function GetReferencedAssembly(handle As AssemblyReferenceHandle) As IAssemblySymbol
+        Public Overrides Function GetReferencedAssembly(handle As AssemblyReferenceHandle) As IAssemblySymbolInternal
             Dim index As Integer = _metadataDecoder.Module.GetAssemblyReferenceIndexOrThrow(handle)
             Dim assembly = _metadataDecoder.ModuleSymbol.GetReferencedAssemblySymbol(index)
             ' GetReferencedAssemblySymbol should not return Nothing since this method is

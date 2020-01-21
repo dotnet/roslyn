@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -15,21 +16,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting
     [ExportHighlighter(LanguageNames.CSharp)]
     internal class IfStatementHighlighter : AbstractKeywordHighlighter<IfStatementSyntax>
     {
-        protected override IEnumerable<TextSpan> GetHighlights(
-            IfStatementSyntax ifStatement, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        public IfStatementHighlighter()
+        {
+        }
+
+        protected override void AddHighlights(
+            IfStatementSyntax ifStatement, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
             if (ifStatement.Parent.Kind() != SyntaxKind.ElseClause)
             {
-                return ComputeSpans(ifStatement);
+                ComputeSpans(ifStatement, highlights);
             }
-
-            return Enumerable.Empty<TextSpan>();
         }
 
-        private IEnumerable<TextSpan> ComputeSpans(
-            IfStatementSyntax ifStatement)
+        private void ComputeSpans(
+            IfStatementSyntax ifStatement, List<TextSpan> highlights)
         {
-            yield return ifStatement.IfKeyword.Span;
+            highlights.Add(ifStatement.IfKeyword.Span);
 
             // Loop to get all the else if parts
             while (ifStatement != null && ifStatement.Else != null)
@@ -42,15 +46,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting
                     if (OnlySpacesBetween(elseKeyword, elseIfStatement.IfKeyword))
                     {
                         // Highlight both else and if tokens if they are on the same line
-                        yield return TextSpan.FromBounds(
+                        highlights.Add(TextSpan.FromBounds(
                             elseKeyword.SpanStart,
-                            elseIfStatement.IfKeyword.Span.End);
+                            elseIfStatement.IfKeyword.Span.End));
                     }
                     else
                     {
                         // Highlight the else and if tokens separately
-                        yield return elseKeyword.Span;
-                        yield return elseIfStatement.IfKeyword.Span;
+                        highlights.Add(elseKeyword.Span);
+                        highlights.Add(elseIfStatement.IfKeyword.Span);
                     }
 
                     // Continue the enumeration looking for more else blocks
@@ -59,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting
                 else
                 {
                     // Highlight just the else and we're done
-                    yield return elseKeyword.Span;
+                    highlights.Add(elseKeyword.Span);
                     break;
                 }
             }

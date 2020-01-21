@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     [ExportOptionProvider, Shared]
     internal class ExtractMethodOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public ExtractMethodOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             ExtractMethodOptions.AllowBestEffort,
             ExtractMethodOptions.DontPutOutOrRefOnStruct,

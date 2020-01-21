@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
             {
                 var mapped = VisitType(symbol);
-                if (mapped != symbol)
+                if (!Equals(mapped, symbol))
                 {
                     return mapped;
                 }
@@ -75,24 +75,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     : symbol.ContainingType.Accept(this);
 
                 // If our containing type changed, then find us again in the new containing type.
-                if (updatedContainingType != symbol.ContainingType)
+                if (!Equals(updatedContainingType, symbol.ContainingType))
                 {
                     symbol = updatedContainingType.GetTypeMembers(symbol.Name, symbol.Arity).First(m => m.TypeKind == symbol.TypeKind);
                 }
 
-                var substitutedArguments = symbol.TypeArguments.Select(t => t.Accept(this)).ToArray();
+                var substitutedArguments = symbol.TypeArguments.Select(t => t.Accept(this));
                 if (symbol.TypeArguments.SequenceEqual(substitutedArguments))
                 {
                     return symbol;
                 }
 
-                return _typeGenerator.Construct(symbol.OriginalDefinition, substitutedArguments);
+                return _typeGenerator.Construct(symbol.OriginalDefinition, substitutedArguments.ToArray()).WithNullableAnnotation(symbol.NullableAnnotation);
             }
 
             public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)
             {
                 var mapped = VisitType(symbol);
-                if (mapped != symbol)
+                if (!Equals(mapped, symbol))
                 {
                     return mapped;
                 }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             public override ITypeSymbol VisitPointerType(IPointerTypeSymbol symbol)
             {
                 var mapped = VisitType(symbol);
-                if (mapped != symbol)
+                if (!Equals(mapped, symbol))
                 {
                     return mapped;
                 }

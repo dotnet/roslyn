@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 EmitExpressionCore(expression, used)
                 Debug.Assert(_recursionDepth = 1)
 
-            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+            Catch ex As InsufficientExecutionStackException
                 _diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression,
                                  BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(expression))
                 Throw New EmitCancelledException()
@@ -994,7 +994,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         '       otherwise we should not use direct 'call' and must use constrained call;
 
                         ' calling a method defined in a value type considered a "write" to the target unless the target is "Me"
-                        Debug.Assert(receiverType = method.ContainingType)
+                        Debug.Assert(TypeSymbol.Equals(receiverType, method.ContainingType, TypeCompareKind.ConsiderEverything))
                         tempOpt = EmitReceiverRef(
                             receiver,
                             isAccessConstrained:=False, addressKind:=If(IsMeReceiver(receiver),
@@ -1281,7 +1281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     EmitStaticCast(expr.Type, expr.Syntax)
                     mergeTypeOfConsequence = expr.Type
 
-                ElseIf (expr.Type.IsInterfaceType() AndAlso expr.Type <> mergeTypeOfAlternative AndAlso expr.Type <> mergeTypeOfConsequence) Then
+                ElseIf (expr.Type.IsInterfaceType() AndAlso Not TypeSymbol.Equals(expr.Type, mergeTypeOfAlternative, TypeCompareKind.ConsiderEverything) AndAlso Not TypeSymbol.Equals(expr.Type, mergeTypeOfConsequence, TypeCompareKind.ConsiderEverything)) Then
                     EmitStaticCast(expr.Type, expr.Syntax)
                 End If
             End If
@@ -1297,14 +1297,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         '''   push x
         '''   dup x
         '''   if pop isnot null goto LEFT_NOT_NULL
-        '''     pop 
+        '''     pop
         '''     push y
         '''   LEFT_NOT_NULL:
         ''' </remarks>
         Private Sub EmitBinaryConditionalExpression(expr As BoundBinaryConditionalExpression, used As Boolean)
             Debug.Assert(expr.ConvertedTestExpression Is Nothing, "coalesce with nontrivial test conversions are lowered into ternary.")
-            Debug.Assert(expr.Type = expr.ElseExpression.Type)
-            Debug.Assert(expr.Type.IsReferenceType)
+            Debug.Assert(TypeSymbol.Equals(expr.Type, expr.ElseExpression.Type, TypeCompareKind.ConsiderEverything))
+            Debug.Assert(Not expr.Type.IsValueType)
 
             EmitExpression(expr.TestExpression, used:=True)
 
@@ -1336,7 +1336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 If (IsVarianceCast(expr.Type, mergeTypeOfRightValue)) Then
                     EmitStaticCast(expr.Type, expr.Syntax)
                     mergeTypeOfRightValue = expr.Type
-                ElseIf (expr.Type.IsInterfaceType() AndAlso expr.Type <> mergeTypeOfLeftValue AndAlso expr.Type <> mergeTypeOfRightValue) Then
+                ElseIf (expr.Type.IsInterfaceType() AndAlso Not TypeSymbol.Equals(expr.Type, mergeTypeOfLeftValue, TypeCompareKind.ConsiderEverything) AndAlso Not TypeSymbol.Equals(expr.Type, mergeTypeOfRightValue, TypeCompareKind.ConsiderEverything)) Then
                     EmitStaticCast(expr.Type, expr.Syntax)
                 End If
             End If
@@ -1420,7 +1420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ' "complicated" casts and make them static casts to ensure we are all on 
         ' the same page with what type should be tracked.
         Private Shared Function IsVarianceCast(toType As TypeSymbol, fromType As TypeSymbol) As Boolean
-            If (toType = fromType) Then
+            If (TypeSymbol.Equals(toType, fromType, TypeCompareKind.ConsiderEverything)) Then
                 Return False
             End If
 
@@ -1435,9 +1435,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Return IsVarianceCast(DirectCast(toType, ArrayTypeSymbol).ElementType, DirectCast(fromType, ArrayTypeSymbol).ElementType)
             End If
 
-            Return (toType.IsDelegateType() AndAlso toType <> fromType) OrElse
+            Return (toType.IsDelegateType() AndAlso Not TypeSymbol.Equals(toType, fromType, TypeCompareKind.ConsiderEverything)) OrElse
                    (toType.IsInterfaceType() AndAlso fromType.IsInterfaceType() AndAlso
-                    Not fromType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(DirectCast(toType, NamedTypeSymbol)))
+                    Not fromType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(DirectCast(toType, NamedTypeSymbol)))
 
         End Function
 
@@ -2156,7 +2156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Debug.Assert(getField IsNot Nothing)
             EmitSymbolToken(getField, node.Syntax)
-            If node.Type <> getField.ReturnType Then
+            If Not TypeSymbol.Equals(node.Type, getField.ReturnType, TypeCompareKind.ConsiderEverything) Then
                 _builder.EmitOpCode(ILOpCode.Castclass)
                 EmitSymbolToken(node.Type, node.Syntax)
             End If
@@ -2180,7 +2180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Debug.Assert(getMethod IsNot Nothing)
             EmitSymbolToken(getMethod, node.Syntax)
-            If node.Type <> getMethod.ReturnType Then
+            If Not TypeSymbol.Equals(node.Type, getMethod.ReturnType, TypeCompareKind.ConsiderEverything) Then
                 _builder.EmitOpCode(ILOpCode.Castclass)
                 EmitSymbolToken(node.Type, node.Syntax)
             End If

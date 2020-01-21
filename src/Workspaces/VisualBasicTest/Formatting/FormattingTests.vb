@@ -2291,7 +2291,7 @@ Module Module1
         Dim mmm = Sub(ByRef x As String, _
                                 y As Integer)
                       Console.WriteLine(x &amp; y)
-                  End Sub, kkk = Sub(y, _
+                  End Sub, zzz = Sub(y, _
                                             x)
                                      mmm(y, _
                                        x)
@@ -2309,7 +2309,7 @@ Module Module1
         Dim mmm = Sub(ByRef x As String, _
                                 y As Integer)
                       Console.WriteLine(x &amp; y)
-                  End Sub, kkk = Sub(y, _
+                  End Sub, zzz = Sub(y, _
                                             x)
                                      mmm(y, _
                                        x)
@@ -2333,7 +2333,7 @@ Module Module1
         Dim mmm = Sub(ByRef x As String, _
                                 y As Integer)
                       Console.WriteLine(x &amp; y)
-                  End Sub, kkk = Sub(y, _
+                  End Sub, zzz = Sub(y, _
 x)
                                      mmm(y, _
                                        x)
@@ -2352,7 +2352,7 @@ Module Module1
         Dim mmm = Sub(ByRef x As String, _
                                 y As Integer)
                       Console.WriteLine(x &amp; y)
-                  End Sub, kkk = Sub(y, _
+                  End Sub, zzz = Sub(y, _
 x)
                                      mmm(y, _
                                        x)
@@ -2797,14 +2797,14 @@ End Class</Code>
                 Dim root = Await document.GetSyntaxRootAsync()
 
                 ' format first time
-                Dim result = Await Formatter.GetFormattedTextChangesAsync(root, workspace)
+                Dim result = Formatter.GetFormattedTextChanges(root, workspace)
                 AssertResult(My.Resources.XmlLiterals.XmlTest4_Input_Output, Await document.GetTextAsync(), result)
 
                 Dim document2 = document.WithText((Await document.GetTextAsync()).WithChanges(result))
                 Dim root2 = Await document2.GetSyntaxRootAsync()
 
                 ' format second time
-                Dim result2 = Await Formatter.GetFormattedTextChangesAsync(root, workspace)
+                Dim result2 = Formatter.GetFormattedTextChanges(root, workspace)
                 AssertResult(My.Resources.XmlLiterals.XmlTest4_Input_Output, Await document2.GetTextAsync(), result2)
             End Using
         End Function
@@ -3452,7 +3452,7 @@ End Module</Code>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function ElasticNewlines() As Task
+        Public Sub ElasticNewlines()
             Dim text = <text>Class C
 Implements INotifyPropertyChanged
 Dim _p As Integer
@@ -3510,10 +3510,10 @@ End Class</text>.Value.Replace(vbLf, vbCrLf)
             root = root.ReplaceNode(method, method.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(goo))
 
             Using workspace = New AdhocWorkspace()
-                Dim result = (Await Formatter.FormatAsync(root, goo, workspace)).ToString()
+                Dim result = Formatter.Format(root, goo, workspace).ToString()
                 Assert.Equal(expected, result)
             End Using
-        End Function
+        End Sub
 
         <Fact>
         <WorkItem(545630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545630")>
@@ -4327,19 +4327,19 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function NewLineOption_LineFeedOnly() As Task
+        Public Sub NewLineOption_LineFeedOnly()
             Dim tree = SyntaxFactory.ParseCompilationUnit("Class C" & vbCrLf & "End Class")
 
             ' replace all EOL trivia with elastic markers to force the formatter to add EOL back
             tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(Function(tr) tr.IsKind(SyntaxKind.EndOfLineTrivia)), Function(o, r) SyntaxFactory.ElasticMarker)
 
-            Dim formatted = Await Formatter.FormatAsync(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, vbLf))
+            Dim formatted = Formatter.Format(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, vbLf))
             Dim actual = formatted.ToFullString()
 
             Dim expected = "Class C" & vbLf & "End Class"
 
             Assert.Equal(expected, actual)
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(2822, "https://github.com/dotnet/roslyn/issues/2822")>

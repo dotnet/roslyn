@@ -1,12 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Language.CallHierarchy
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
+    <[UseExportProvider]>
     Public Class CallHierarchyTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub TestScopes()
@@ -362,6 +363,52 @@ cla$$ss C
 {
     void Goo()
     {
+    }
+}
+        </Document>
+        </Project>
+    </Workspace>
+            Dim testState = CallHierarchyTestState.Create(input)
+            Dim root = testState.GetRoot()
+            Assert.Null(root)
+            Assert.NotNull(testState.NotificationMessage)
+        End Sub
+
+        <WorkItem(38303, "https://github.com/dotnet/roslyn/issues/38303")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        Public Sub TestDisplayErrorWhenNotOnMemberCS2()
+            Dim input =
+    <Workspace>
+        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+            <Document>
+class CC
+{
+    C$$C Goo()
+    {
+        return null;
+    }
+}
+        </Document>
+        </Project>
+    </Workspace>
+            Dim testState = CallHierarchyTestState.Create(input)
+            Dim root = testState.GetRoot()
+            Assert.Null(root)
+            Assert.NotNull(testState.NotificationMessage)
+        End Sub
+
+        <WorkItem(38303, "https://github.com/dotnet/roslyn/issues/38303")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        Public Sub TestDisplayErrorWhenNotOnMemberCS3()
+            Dim input =
+    <Workspace>
+        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+            <Document>
+class CC
+{
+    CC Goo(C$$C c)
+    {
+        return null;
     }
 }
         </Document>

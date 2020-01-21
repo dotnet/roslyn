@@ -24,13 +24,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 string memberName,
                 CancellationToken cancellationToken)
             {
-                var syntaxFacts = this.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
 
-                var updatedMethod = method.EnsureNonConflictingNames(
-                    this.State.ClassOrStructType, syntaxFacts, cancellationToken);
+                var updatedMethod = method.EnsureNonConflictingNames(State.ClassOrStructType, syntaxFacts);
 
                 updatedMethod = updatedMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
-                    this.State.ClassOrStructType,
+                    State.ClassOrStructType,
                     AttributesToRemove(compilation));
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
@@ -41,17 +40,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     name: memberName,
                     statements: generateAbstractly
                         ? default
-                        : ImmutableArray.Create(CreateStatement(compilation, updatedMethod, cancellationToken)));
+                        : ImmutableArray.Create(CreateStatement(compilation, updatedMethod)));
             }
 
-            private SyntaxNode CreateStatement(
-                Compilation compilation,
-                IMethodSymbol method,
-                CancellationToken cancellationToken)
+            private SyntaxNode CreateStatement(Compilation compilation, IMethodSymbol method)
             {
                 if (ThroughMember == null)
                 {
-                    var factory = this.Document.GetLanguageService<SyntaxGenerator>();
+                    var factory = Document.GetLanguageService<SyntaxGenerator>();
                     return factory.CreateThrowNotImplementedStatement(compilation);
                 }
                 else
@@ -63,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private SyntaxNode CreateDelegationStatement(
                 IMethodSymbol method)
             {
-                var factory = this.Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.GetLanguageService<SyntaxGenerator>();
                 var through = CreateThroughExpression(factory);
 
                 var memberName = method.IsGenericMethod

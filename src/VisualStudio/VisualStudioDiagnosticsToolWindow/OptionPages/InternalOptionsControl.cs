@@ -14,8 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     {
         private readonly string _featureOptionName;
 
-        public InternalOptionsControl(string featureOptionName, IServiceProvider serviceProvider)
-            : base(serviceProvider)
+        public InternalOptionsControl(string featureOptionName, OptionStore optionStore)
+            : base(optionStore)
         {
             _featureOptionName = featureOptionName;
 
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         protected virtual void AddOptions(Panel panel)
         {
-            foreach (var option in OptionService.GetRegisteredOptions().Where(o => o.Feature == _featureOptionName).OrderBy(o => o.Name))
+            foreach (var option in OptionStore.GetRegisteredOptions().Where(o => o.Feature == _featureOptionName).OrderBy(o => o.Name))
             {
                 if (!option.IsPerLanguage)
                 {

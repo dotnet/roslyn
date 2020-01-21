@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 {
                     // We now check the children of the old and new types against each other. If any of them have changed,
                     // it means that the old type has essentially been removed and a new one added.
-                    for (int i = 0; i < oldCount; i++)
+                    for (var i = 0; i < oldCount; i++)
                     {
                         if (!compare(oldChildren[i], newChildren[i], newNodeParent, null))
                         {
@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     ? eventQueue.Count
                     : 0;
 
-                bool hasChanges = false;
+                var hasChanges = false;
 
                 // Find first child that is different.
                 int i;
@@ -226,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 if (firstAdded >= 0)
                 {
-                    for (int i = 0; i < delta; i++)
+                    for (var i = 0; i < delta; i++)
                     {
                         EnqueueAddEvent(newChildren[firstAdded + i], newNodeParent, eventQueue);
                     }
@@ -278,7 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 if (firstRemoved >= 0)
                 {
-                    for (int i = 0; i < delta; i++)
+                    for (var i = 0; i < delta; i++)
                     {
                         EnqueueRemoveEvent(oldChildren[firstRemoved + i], newNodeParent, eventQueue);
                     }

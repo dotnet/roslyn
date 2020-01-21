@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static IList<SymbolDisplayPart> InlineDelegateAnonymousTypes(
             this IAnonymousTypeDisplayService service, IList<SymbolDisplayPart> parts, SemanticModel semanticModel, int position, ISymbolDisplayService displayService)
         {
-            IList<SymbolDisplayPart> result = parts;
+            var result = parts;
             while (true)
             {
                 var delegateAnonymousType = result.Select(p => p.Symbol).OfType<INamedTypeSymbol>().FirstOrDefault(s => s.IsAnonymousDelegateType());

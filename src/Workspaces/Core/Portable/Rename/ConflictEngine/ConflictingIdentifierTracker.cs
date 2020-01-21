@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 return;
             }
 
-            string name = token.ValueText;
+            var name = token.ValueText;
 
             if (_currentIdentifiersInScope.TryGetValue(name, out var conflictingTokens))
             {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 return;
             }
 
-            string name = token.ValueText;
+            var name = token.ValueText;
 
             var currentIdentifiers = _currentIdentifiersInScope[name];
             currentIdentifiers.Remove(token);

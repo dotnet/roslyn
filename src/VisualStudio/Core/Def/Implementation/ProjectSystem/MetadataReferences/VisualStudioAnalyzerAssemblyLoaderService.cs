@@ -13,6 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private readonly ShadowCopyAnalyzerAssemblyLoader _loader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
 
+        [ImportingConstructor]
+        public VsAnalyzerAssemblyLoaderService()
+        {
+        }
+
         public IAnalyzerAssemblyLoader GetLoader()
         {
             return _loader;

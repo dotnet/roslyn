@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis
     public abstract class SyntaxWalker
     {
         /// <summary>
-        /// Syntax the <see cref="SyntaxWalker"/> should descent into.
+        /// Syntax the <see cref="SyntaxWalker"/> should descend into.
         /// </summary>
         protected SyntaxWalkerDepth Depth { get; }
 
         /// <summary>
         /// Creates a new walker instance.
         /// </summary>
-        /// <param name="depth">Syntax the <see cref="SyntaxWalker"/> should descent into.</param>
+        /// <param name="depth">Syntax the <see cref="SyntaxWalker"/> should descend into.</param>
         protected SyntaxWalker(SyntaxWalkerDepth depth = SyntaxWalkerDepth.Node)
         {
             this.Depth = depth;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void VisitLeadingTrivia(SyntaxToken token)
+        private void VisitLeadingTrivia(in SyntaxToken token)
         {
             if (token.HasLeadingTrivia)
             {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void VisitTrailingTrivia(SyntaxToken token)
+        private void VisitTrailingTrivia(in SyntaxToken token)
         {
             if (token.HasTrailingTrivia)
             {

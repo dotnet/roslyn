@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     }
                 }
 
-                if (IsAttributeNameContext(token, position, out string elementName, out ISet<string> existingAttributes))
+                if (IsAttributeNameContext(token, position, out var elementName, out var existingAttributes))
                 {
                     return GetAttributeItems(elementName, existingAttributes);
                 }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return null;
                 }
 
-                if (IsAttributeValueContext(token, out elementName, out string attributeName))
+                if (IsAttributeValueContext(token, out elementName, out var attributeName))
                 {
                     return GetAttributeValueItems(declaredSymbol, elementName, attributeName);
                 }
@@ -238,11 +238,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 default:
                     nameSyntax = null;
-                    attributes = default(SyntaxList<XmlAttributeSyntax>);
+                    attributes = default;
                     break;
             }
 
-            return (name: nameSyntax?.LocalName.ValueText, attributes: attributes);
+            return (name: nameSyntax?.LocalName.ValueText, attributes);
         }
 
         private bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
@@ -352,9 +352,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static CompletionItemRules s_defaultRules = 
+        private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                filterCharacterRules: FilterRules, 
+                filterCharacterRules: FilterRules,
                 commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '>', '\t')),
                 enterKeyRule: EnterKeyRule.Never);
     }

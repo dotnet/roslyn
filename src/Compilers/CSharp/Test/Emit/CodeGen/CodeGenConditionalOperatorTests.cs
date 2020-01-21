@@ -124,7 +124,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
         }
@@ -1468,7 +1468,7 @@ class Program
             string expectedOutput = @"aaa
 bbb
 ccc";
-            CompileAndVerify(source, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1537,7 +1537,7 @@ class Goo
 ";
             string expectedOutput = @"10
 -10";
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1557,7 +1557,7 @@ class Program
 }
 ";
             string expectedOutput = @"100";
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1588,7 +1588,7 @@ public struct TestStruct
 }
 ";
             string expectedOutput = @"10";
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1641,11 +1641,9 @@ class Program
   IL_000a:  call       ""void System.Console.WriteLine(object)""
   IL_000f:  ret       
 }";
-            MetadataReference[] metadataRef = new[] { LinqAssemblyRef };
-
             // Dev11 compiler reports WRN_UnreachableExpr, but reachability is defined for statements not for expressions.
             // We don't report the warning.
-            CompileAndVerify(source, additionalRefs: metadataRef, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1693,7 +1691,7 @@ class Program
   IL_0036:  call       ""void System.Console.WriteLine(decimal)""
   IL_003b:  ret
 }";
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }).VerifyIL("Program.Main", expectedIL);
+            CompileAndVerify(source).VerifyIL("Program.Main", expectedIL);
         }
 
         [Fact, WorkItem(530071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530071")]
@@ -1718,7 +1716,7 @@ class Program
 3";
             // Dev11 compiler reports WRN_UnreachableExpr, but reachability is defined for statements not for expressions.
             // We don't report the warning.
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput).
+            CompileAndVerify(source, expectedOutput: expectedOutput).
                 VerifyDiagnostics();
         }
 
@@ -2694,7 +2692,7 @@ class Program
         public int field;
 
         public static implicit operator S1(int arg) => new S1 {field = arg };
-        
+
         public void Mutate()
         {
             field = 42;
@@ -2763,6 +2761,390 @@ class Program
   IL_005a:  ldfld      ""int Program.S1.field""
   IL_005f:  call       ""void System.Console.WriteLine(int)""
   IL_0064:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
+        public void ConditionalAccessUnconstrainedTField()
+        {
+            var source = @"using System;
+public class C<T>
+{
+    public C(T t) => this.t = t;
+    public C(){}
+
+    private T t;
+
+    public void Print()
+    {
+        Console.WriteLine(t?.ToString());
+        Console.WriteLine(t);
+    }
+
+}
+
+public struct S
+{
+    int a;
+    public override string ToString() => a++.ToString();
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        new C<S>().Print();
+        new C<S?>().Print();
+        new C<S?>(new S()).Print();
+        new C<string>(""hello"").Print();
+        new C<string>().Print();
+    }
+}";
+            var verify = CompileAndVerify(source, expectedOutput: @"0
+1
+
+
+0
+0
+hello
+hello");
+
+            verify.VerifyIL("C<T>.Print()", @"
+{
+  // Code size       75 (0x4b)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""T C<T>.t""
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  initobj    ""T""
+  IL_000e:  ldloc.0
+  IL_000f:  box        ""T""
+  IL_0014:  brtrue.s   IL_002a
+  IL_0016:  ldobj      ""T""
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldloc.0
+  IL_001f:  box        ""T""
+  IL_0024:  brtrue.s   IL_002a
+  IL_0026:  pop
+  IL_0027:  ldnull
+  IL_0028:  br.s       IL_0035
+  IL_002a:  constrained. ""T""
+  IL_0030:  callvirt   ""string object.ToString()""
+  IL_0035:  call       ""void System.Console.WriteLine(string)""
+  IL_003a:  ldarg.0
+  IL_003b:  ldfld      ""T C<T>.t""
+  IL_0040:  box        ""T""
+  IL_0045:  call       ""void System.Console.WriteLine(object)""
+  IL_004a:  ret
+}");
+
+        }
+
+        [Fact]
+        [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
+        public void ConditionalAccessReadonlyUnconstrainedTField()
+        {
+            var source = @"using System;
+public class C<T>
+{
+    public C(T t) => this.t = t;
+    public C(){}
+
+    readonly T t;
+
+    public void Print()
+    {
+        Console.WriteLine(t?.ToString());
+        Console.WriteLine(t);
+    }
+}
+
+public struct S
+{
+    int a;
+    public override string ToString() => a++.ToString();
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        new C<S>().Print();
+        new C<S?>().Print();
+        new C<S?>(new S()).Print();
+        new C<string>(""hello"").Print();
+        new C<string>().Print();
+    }
+}
+";
+            var verify = CompileAndVerify(source, expectedOutput: @"0
+0
+
+
+0
+0
+hello
+hello");
+
+            verify.VerifyIL("C<T>.Print()", @"
+{
+  // Code size       78 (0x4e)
+  .maxstack  2
+  .locals init (T V_0,
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""T C<T>.t""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    ""T""
+  IL_0011:  ldloc.1
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_002d
+  IL_0019:  ldobj      ""T""
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.1
+  IL_0022:  box        ""T""
+  IL_0027:  brtrue.s   IL_002d
+  IL_0029:  pop
+  IL_002a:  ldnull
+  IL_002b:  br.s       IL_0038
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""string object.ToString()""
+  IL_0038:  call       ""void System.Console.WriteLine(string)""
+  IL_003d:  ldarg.0
+  IL_003e:  ldfld      ""T C<T>.t""
+  IL_0043:  box        ""T""
+  IL_0048:  call       ""void System.Console.WriteLine(object)""
+  IL_004d:  ret
+}");
+
+        }
+
+        [Fact]
+        [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
+        public void ConditionalAccessUnconstrainedTLocal()
+        {
+            var source = @"using System;
+public class C<T>
+{
+    public C(T t) => this.t = t;
+    public C(){}
+
+    private T t;
+
+    public void Print()
+    {
+        var temp = t;
+        Console.WriteLine(temp?.ToString());
+        Console.WriteLine(temp);
+    }
+
+}
+
+public struct S
+{
+    int a;
+    public override string ToString() => a++.ToString();
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        new C<S>().Print();
+        new C<S?>().Print();
+        new C<S?>(new S()).Print();
+        new C<string>(""hello"").Print();
+        new C<string>().Print();
+    }
+}";
+            var verify = CompileAndVerify(source, expectedOutput: @"0
+1
+
+
+0
+1
+hello
+hello");
+
+            verify.VerifyIL("C<T>.Print()", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (T V_0) //temp
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""T C<T>.t""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  box        ""T""
+  IL_000d:  brtrue.s   IL_0012
+  IL_000f:  ldnull
+  IL_0010:  br.s       IL_001f
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  constrained. ""T""
+  IL_001a:  callvirt   ""string object.ToString()""
+  IL_001f:  call       ""void System.Console.WriteLine(string)""
+  IL_0024:  ldloc.0
+  IL_0025:  box        ""T""
+  IL_002a:  call       ""void System.Console.WriteLine(object)""
+  IL_002f:  ret
+}");
+
+        }
+
+        [Fact]
+        [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
+        public void ConditionalAccessUnconstrainedTTemp()
+        {
+            var source = @"using System;
+public class C<T>
+{
+    public C(T t) => this.t = t;
+    public C(){}
+
+    T t;
+
+    T M() => t;
+
+    public void Print() => Console.WriteLine(M()?.ToString());
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        new C<int>().Print();
+        new C<int?>().Print();
+        new C<int?>(0).Print();
+        new C<string>(""hello"").Print();
+        new C<string>().Print();
+    }
+}
+";
+            var verify = CompileAndVerify(source, expectedOutput: @"0
+
+0
+hello
+");
+
+            verify.VerifyIL("C<T>.Print()", @"
+{
+  // Code size       62 (0x3e)
+  .maxstack  2
+  .locals init (T V_0,
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T C<T>.M()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    ""T""
+  IL_0011:  ldloc.1
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_002d
+  IL_0019:  ldobj      ""T""
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.1
+  IL_0022:  box        ""T""
+  IL_0027:  brtrue.s   IL_002d
+  IL_0029:  pop
+  IL_002a:  ldnull
+  IL_002b:  br.s       IL_0038
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""string object.ToString()""
+  IL_0038:  call       ""void System.Console.WriteLine(string)""
+  IL_003d:  ret
+}");
+        }
+
+        [Fact, WorkItem(40690, "https://github.com/dotnet/roslyn/issues/40690")]
+        public void ConditionalAccess_GenericExtension_ValueTuple()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace bug
+{
+    public static class Extension
+    {
+        public static String GetValue(this object value) => value?.ToString();
+    }
+
+    public partial class BGen<__T__>
+    {
+        public (Int64, __T__) Data { get; }
+
+        public BGen((Int64, __T__) data)
+        {
+            this.Data = data;
+        }
+
+        internal String Value
+        {
+            get
+            {
+                /// This works fine:
+                //var i2 = Data.Item2;
+                //var q2 = i2?.GetValue();
+
+                // This causes the AccessViolation:
+                var q2 = Data.Item2?.GetValue();
+                return q2;
+            }
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var i = new BGen<string>((0, ""abc""));
+            var r = i.Value;
+
+            Console.Write(r);
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "abc");
+            verifier.VerifyIL("bug.BGen<__T__>.Value.get", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  2
+  .locals init (System.ValueTuple<long, __T__> V_0,
+                __T__ V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""System.ValueTuple<long, __T__> bug.BGen<__T__>.Data.get""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldflda     ""__T__ System.ValueTuple<long, __T__>.Item2""
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  initobj    ""__T__""
+  IL_0016:  ldloc.1
+  IL_0017:  box        ""__T__""
+  IL_001c:  brtrue.s   IL_0031
+  IL_001e:  ldobj      ""__T__""
+  IL_0023:  stloc.1
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  ldloc.1
+  IL_0027:  box        ""__T__""
+  IL_002c:  brtrue.s   IL_0031
+  IL_002e:  pop
+  IL_002f:  ldnull
+  IL_0030:  ret
+  IL_0031:  ldobj      ""__T__""
+  IL_0036:  box        ""__T__""
+  IL_003b:  call       ""string bug.Extension.GetValue(object)""
+  IL_0040:  ret
 }");
         }
     }

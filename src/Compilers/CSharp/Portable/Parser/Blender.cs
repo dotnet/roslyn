@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal partial struct Blender
+    internal readonly partial struct Blender
     {
         private readonly Lexer _lexer;
         private readonly Cursor _oldTreeCursor;

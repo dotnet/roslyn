@@ -11,6 +11,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node)
         {
+            return VisitMultipleLocalDeclarationsBase(node);
+        }
+
+        public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
+        {
+            return VisitMultipleLocalDeclarationsBase(node);
+        }
+
+        private BoundNode VisitMultipleLocalDeclarationsBase(BoundMultipleLocalDeclarationsBase node)
+        {
             ArrayBuilder<BoundStatement> inits = null;
 
             foreach (var decl in node.LocalDeclarations)
@@ -38,5 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null; // TODO: but what if hasErrors?  Have we lost that?
             }
         }
+
     }
 }

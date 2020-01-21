@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
@@ -18,71 +21,83 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
-        private readonly HostAnalyzerManager _hostAnalyzerManager;
-        private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
-        private readonly IAsynchronousOperationListener _listener;
+        private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+        private readonly AbstractHostDiagnosticUpdateSource? _hostDiagnosticUpdateSource;
+
+        public IAsynchronousOperationListener Listener { get; }
 
         [ImportingConstructor]
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
-            [Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null,
-            [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
-            : this(diagnosticAnalyzerProviderService != null ? diagnosticAnalyzerProviderService.GetHostDiagnosticAnalyzerPackages() : SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(),
-                diagnosticAnalyzerProviderService?.GetAnalyzerAssemblyLoader(),
-                hostDiagnosticUpdateSource,
-                registrationService, new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService))
+            IAsynchronousOperationListenerProvider listenerProvider,
+            PrimaryWorkspace primaryWorkspace,
+            [Import(AllowDefault = true)]IHostDiagnosticAnalyzerPackageProvider? diagnosticAnalyzerProviderService = null,
+            [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource = null)
+            : this(new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => GetHostDiagnosticAnalyzerPackage(diagnosticAnalyzerProviderService), isThreadSafe: true),
+                   diagnosticAnalyzerProviderService?.GetAnalyzerAssemblyLoader(),
+                   hostDiagnosticUpdateSource,
+                   primaryWorkspace,
+                   registrationService, listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
         {
-            // diagnosticAnalyzerProviderService and hostDiagnosticUpdateSource can only be null in test hardness otherwise, it should
-            // never be null
-        }
-
-        public IAsynchronousOperationListener Listener => _listener;
-
-        // protected for testing purposes.
-        protected DiagnosticAnalyzerService(
-            IEnumerable<HostDiagnosticAnalyzerPackage> workspaceAnalyzerPackages,
-            IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader,
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListener listener = null)
-            : this(new HostAnalyzerManager(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, registrationService, listener)
-        {
+            // diagnosticAnalyzerProviderService and hostDiagnosticUpdateSource can only be null in test harness. Otherwise, it should never be null.
         }
 
         // protected for testing purposes.
         protected DiagnosticAnalyzerService(
-            HostAnalyzerManager hostAnalyzerManager,
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> workspaceAnalyzerPackages,
+            IAnalyzerAssemblyLoader? hostAnalyzerAssemblyLoader,
+            AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource,
+            PrimaryWorkspace primaryWorkspace,
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListener listener = null) : this(registrationService)
+            IAsynchronousOperationListener? listener = null)
+            : this(new DiagnosticAnalyzerInfoCache(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource, primaryWorkspace),
+                   hostDiagnosticUpdateSource,
+                   registrationService,
+                   listener)
         {
-            _hostAnalyzerManager = hostAnalyzerManager;
+        }
+
+        // protected for testing purposes.
+        protected DiagnosticAnalyzerService(
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource,
+            IDiagnosticUpdateSourceRegistrationService registrationService,
+            IAsynchronousOperationListener? listener = null)
+            : this(registrationService)
+        {
+            _analyzerInfoCache = analyzerInfoCache;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            _listener = listener ?? AggregateAsynchronousOperationListener.CreateEmptyListener();
+            Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(Project projectOpt)
+        private static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackage(IHostDiagnosticAnalyzerPackageProvider? diagnosticAnalyzerProviderService)
+            => diagnosticAnalyzerProviderService?.GetHostDiagnosticAnalyzerPackages() ?? ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty;
+
+        public ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(Project project)
         {
-            if (projectOpt == null)
+            var map = _analyzerInfoCache.CreateDiagnosticAnalyzersPerReference(project);
+            return map.Values.SelectMany(v => v).ToImmutableArray();
+        }
+
+        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(Project? project)
+        {
+            if (project == null)
             {
-                return ConvertReferenceIdentityToName(_hostAnalyzerManager.GetHostDiagnosticDescriptorsPerReference());
+                return ConvertReferenceIdentityToName(_analyzerInfoCache.GetHostDiagnosticDescriptorsPerReference());
             }
 
-            return ConvertReferenceIdentityToName(_hostAnalyzerManager.CreateDiagnosticDescriptorsPerReference(projectOpt), projectOpt);
+            return ConvertReferenceIdentityToName(_analyzerInfoCache.CreateDiagnosticDescriptorsPerReference(project), project);
         }
 
         private ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> ConvertReferenceIdentityToName(
-            ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> descriptorsPerReference, Project projectOpt = null)
+            ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> descriptorsPerReference, Project? project = null)
         {
-            var map = _hostAnalyzerManager.CreateAnalyzerReferencesMap(projectOpt);
+            var map = _analyzerInfoCache.CreateAnalyzerReferencesMap(project);
 
             var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticDescriptor>>();
 
-            foreach (var kv in descriptorsPerReference)
+            foreach (var (id, descriptors) in descriptorsPerReference)
             {
-                var id = kv.Key;
-                var descriptors = kv.Value;
                 if (!map.TryGetValue(id, out var reference) || reference == null)
                 {
                     continue;
@@ -109,15 +124,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
         {
-            return _hostAnalyzerManager.GetDiagnosticDescriptors(analyzer);
+            return _analyzerInfoCache.GetDiagnosticDescriptors(analyzer);
         }
 
         public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
         {
-            return _hostAnalyzerManager.IsAnalyzerSuppressed(analyzer, project);
+            return _analyzerInfoCache.IsAnalyzerSuppressed(analyzer, project);
         }
 
-        public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
+        public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
         {
             var service = workspace.Services.GetService<ISolutionCrawlerService>();
             if (service != null && _map.TryGetValue(workspace, out var analyzer))
@@ -131,24 +146,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(document, range, diagnostics, includeSuppressedDiagnostics, cancellationToken), cancellationToken);
+                return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(document, range, diagnostics, diagnosticId: null, includeSuppressedDiagnostics, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.False;
         }
 
-        public Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticId = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(document, range, includeSuppressedDiagnostics, cancellationToken), cancellationToken);
+                return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(document, range, diagnosticId, includeSuppressedDiagnostics, blockForData: true, addOperationScope, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.EmptyEnumerable<DiagnosticData>();
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId projectId = null, DocumentId documentId = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId = null, DocumentId? documentId = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(workspace, out var analyzer))
             {
@@ -168,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId = null, DocumentId? documentId = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(solution.Workspace, out var analyzer))
             {
@@ -178,18 +193,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public async Task ForceAnalyzeAsync(Solution solution, ProjectId? projectId = null, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(solution.Workspace, out var analyzer))
             {
-                return analyzer.GetSpecificDiagnosticsAsync(solution, id, includeSuppressedDiagnostics, cancellationToken);
-            }
+                if (projectId != null)
+                {
+                    var project = solution.GetProject(projectId);
+                    if (project != null)
+                    {
+                        await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
+                    var tasks = new Task[solution.ProjectIds.Count];
+                    var index = 0;
+                    foreach (var project in solution.Projects)
+                    {
+                        var localProject = project;
+                        tasks[index++] = Task.Run(
+                            () => analyzer.ForceAnalyzeProjectAsync(project, cancellationToken));
+                    }
 
-            return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
+                }
+            }
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-            Solution solution, ProjectId projectId = null, DocumentId documentId = null, ImmutableHashSet<string> diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+            Solution solution, ProjectId? projectId = null, DocumentId? documentId = null, ImmutableHashSet<string>? diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(solution.Workspace, out var analyzer))
             {
@@ -200,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
-            Solution solution, ProjectId projectId = null, ImmutableHashSet<string> diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+            Solution solution, ProjectId? projectId = null, ImmutableHashSet<string>? diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(solution.Workspace, out var analyzer))
             {
@@ -212,44 +245,54 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)
         {
-            return _hostAnalyzerManager.IsCompilerDiagnostic(language, diagnostic);
+            return _analyzerInfoCache.IsCompilerDiagnostic(language, diagnostic);
         }
 
-        public DiagnosticAnalyzer GetCompilerDiagnosticAnalyzer(string language)
+        public DiagnosticAnalyzer? GetCompilerDiagnosticAnalyzer(string language)
         {
-            return _hostAnalyzerManager.GetCompilerDiagnosticAnalyzer(language);
+            return _analyzerInfoCache.GetCompilerDiagnosticAnalyzer(language);
         }
 
         public bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer)
         {
-            return _hostAnalyzerManager.IsCompilerDiagnosticAnalyzer(language, analyzer);
+            return _analyzerInfoCache.IsCompilerDiagnosticAnalyzer(language, analyzer);
+        }
+
+        public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
+        {
+            if (_map.TryGetValue(project.Solution.Workspace, out var analyzer))
+            {
+                return analyzer.IsCompilationEndAnalyzer(diagnosticAnalyzer, project, compilation);
+            }
+
+            return false;
         }
 
         public IEnumerable<AnalyzerReference> GetHostAnalyzerReferences()
         {
             // CreateAnalyzerReferencesMap will return only host analyzer reference map if project is not specified.
-            return _hostAnalyzerManager.CreateAnalyzerReferencesMap(projectOpt: null).Values;
+            return _analyzerInfoCache.CreateAnalyzerReferencesMap(project: null).Values;
         }
 
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
         {
             if (_map.TryGetValue(workspace, out var analyzer))
             {
-                return analyzer.ContainsDiagnostics(workspace, projectId);
+                return analyzer.ContainsDiagnostics(projectId);
             }
 
             return false;
         }
 
         // virtual for testing purposes.
-        internal virtual Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId, DiagnosticLogAggregator diagnosticLogAggregator)
+        internal virtual Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId, DiagnosticLogAggregator? logAggregator)
         {
             return (ex, analyzer, diagnostic) =>
             {
                 // Log telemetry, if analyzer supports telemetry.
-                DiagnosticAnalyzerLogger.LogAnalyzerCrashCount(analyzer, ex, diagnosticLogAggregator, projectId);
+                DiagnosticAnalyzerLogger.LogAnalyzerCrashCount(analyzer, ex, logAggregator);
 
-                AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
+                AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
             };
         }
     }

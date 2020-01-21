@@ -56,7 +56,7 @@ System.Console.WriteLine(1+1)
     </file>
     </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "System.Console.WriteLine(1+1)"))
         End Sub
 
@@ -141,7 +141,7 @@ End Sub
     </file>
     </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidInNamespace, "Sub Goo"))
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidInNamespace, "Sub Goo"))
         End Sub
 
         <Fact>
@@ -298,7 +298,7 @@ System.Console.Write("complete")
                 </compilation>,
                 parseOptions:=TestOptions.Script,
                 options:=TestOptions.DebugExe,
-                additionalRefs:={SystemCoreRef})
+                references:={SystemCoreRef})
             Dim verifier = CompileAndVerify(comp, expectedOutput:="complete")
             Dim methodData = verifier.TestData.GetMethodData("Script.<Initialize>")
             Assert.Equal("System.Threading.Tasks.Task(Of Object)", methodData.Method.ReturnType.ToDisplayString())
@@ -401,7 +401,7 @@ System.Console.Write("complete")
 
         <Fact>
         Public Sub ScriptEntryPoint_MissingMethods()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
                 <compilation>
                     <file name="a.vbx"><![CDATA[
 System.Console.WriteLine(1)

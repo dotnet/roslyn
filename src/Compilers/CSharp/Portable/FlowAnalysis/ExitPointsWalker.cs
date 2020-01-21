@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private new void Analyze(ref bool badRegion)
+        private void Analyze(ref bool badRegion)
         {
             // only one pass is needed.
             Scan(ref badRegion);
@@ -96,15 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitForStatement(node);
         }
 
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            if (IsInside)
-            {
-                _labelsInside.Add(node.BreakLabel);
-            }
-            return base.VisitSwitchStatement(node);
-        }
-
         public override BoundNode VisitWhileStatement(BoundWhileStatement node)
         {
             if (IsInside)
@@ -141,7 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case BoundKind.YieldReturnStatement:
                     case BoundKind.AwaitExpression:
-                        // We don't do anything with yield return statements or await expressions; they are treated as if they are not jumps.
+                    case BoundKind.UsingStatement:
+                    case BoundKind.ForEachStatement when ((BoundForEachStatement)pending.Branch).AwaitOpt != null:
+                        // We don't do anything with yield return statements, async using statement, async foreach statement, or await expressions;
+                        // they are treated as if they are not jumps.
                         continue;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(pending.Branch.Kind);

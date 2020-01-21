@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
@@ -20,6 +22,11 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol Type { get; }
 
         /// <summary>
+        /// The top-level nullability of the event.
+        /// </summary>
+        NullableAnnotation NullableAnnotation { get; }
+
+        /// <summary>
         /// Returns true if the event is a WinRT type event.
         /// </summary>
         bool IsWindowsRuntimeEvent { get; }
@@ -27,17 +34,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The 'add' accessor of the event.  Null only in error scenarios.
         /// </summary>
-        IMethodSymbol AddMethod { get; }
+        IMethodSymbol? AddMethod { get; }
 
         /// <summary>
         /// The 'remove' accessor of the event.  Null only in error scenarios.
         /// </summary>
-        IMethodSymbol RemoveMethod { get; }
+        IMethodSymbol? RemoveMethod { get; }
 
         /// <summary>
         /// The 'raise' accessor of the event.  Null if there is no raise method.
         /// </summary>
-        IMethodSymbol RaiseMethod { get; }
+        IMethodSymbol? RaiseMethod { get; }
 
         /// <summary>
         /// The original definition of the event. If the event is constructed from another
@@ -49,7 +56,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns the overridden event, or null.
         /// </summary>
-        IEventSymbol OverriddenEvent { get; }
+        IEventSymbol? OverriddenEvent { get; }
 
         /// <summary>
         /// Returns interface properties explicitly implemented by this event.

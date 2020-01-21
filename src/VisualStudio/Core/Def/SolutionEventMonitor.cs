@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private const string SolutionOpening = "Solution Opening";
 
         private IGlobalOperationNotificationService _notificationService;
-        private Dictionary<string, GlobalOperationRegistration> _operations = new Dictionary<string, GlobalOperationRegistration>();
+        private readonly Dictionary<string, GlobalOperationRegistration> _operations = new Dictionary<string, GlobalOperationRegistration>();
 
         public SolutionEventMonitor(VisualStudioWorkspace workspace)
         {

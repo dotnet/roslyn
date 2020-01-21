@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
@@ -26,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             // as opposed to 'fixing' the test by updating the benchmark code.
 
             //GNAMBOO: Changing this code has implications for perf tests.
-            CompileAndVerify(TestResources.PerfTests.CSPerfTest,
-                             additionalRefs: new[] { SystemCoreRef }).
+            CompileAndVerify(TestResources.PerfTests.CSPerfTest).
                              VerifyDiagnostics(
                                 // (2416,9): info CS8019: Unnecessary using directive.
                                 //         using nested;

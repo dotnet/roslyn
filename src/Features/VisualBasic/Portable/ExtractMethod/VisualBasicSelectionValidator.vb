@@ -212,8 +212,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Continue For
                 End If
 
-                If result.WrittenOutside().Any(Function(s) s Is local) OrElse
-result.ReadOutside().Any(Function(s) s Is local) Then
+                If result.WrittenOutside().Any(Function(s) Equals(s, local)) OrElse
+result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                     Return False
                 End If
             Next

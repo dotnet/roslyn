@@ -81,7 +81,7 @@ False
 
         End Sub
 
-        ' Function call in return expression 
+        ' Function call in return expression
         <WorkItem(541647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541647")>
         <Fact()>
         Public Sub FunctionCallAsArgument()
@@ -125,7 +125,7 @@ False
 }]]>)
         End Sub
 
-        ' Lambda works  in return argument 
+        ' Lambda works  in return argument
         <Fact()>
         Public Sub LambdaAsArgument_1()
             Dim compilation1 = CompileAndVerify(
@@ -211,7 +211,7 @@ End Module
             Dim compilation1 = CompileAndVerify(
 <compilation>
     <file name="a.vb">
-Option Infer on  
+Option Infer on
 Imports System
 Imports System.Linq.Expressions
 Module Program
@@ -364,7 +364,7 @@ End Module
 
         End Sub
 
-        ' Not boolean type as conditional-argument 
+        ' Not boolean type as conditional-argument
         <WorkItem(541647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541647")>
         <Fact()>
         Public Sub NotBooleanAsConditionalArgument()
@@ -405,7 +405,7 @@ End Module
 
         End Sub
 
-        ' Not boolean type as conditional-argument 
+        ' Not boolean type as conditional-argument
         <WorkItem(541647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541647")>
         <Fact()>
         Public Sub NotBooleanAsConditionalArgument_2()
@@ -522,7 +522,7 @@ End Module
 }]]>).Compilation
         End Sub
 
-        ' IF used in Redim 
+        ' IF used in Redim
         <WorkItem(528563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528563")>
         <Fact>
         Public Sub IfUsedInRedim()
@@ -560,7 +560,7 @@ End Module
 <compilation>
     <file name="a.vb">
 Imports System
-&lt;Assembly: CLSCompliant(If(True, False, True))&gt; 
+&lt;Assembly: CLSCompliant(If(True, False, True))&gt;
 Public Class base
     Public Shared sub Main()
     End Sub
@@ -615,7 +615,7 @@ End Module
 }]]>).Compilation
         End Sub
 
-        ' IF as Optional parameter 
+        ' IF as Optional parameter
         <Fact()>
         Public Sub IFAsOptionalParameter()
             Dim compilation1 = CompileAndVerify(
@@ -634,7 +634,7 @@ End Module
 </compilation>, expectedOutput:="61").Compilation
         End Sub
 
-        ' IF used in For step 
+        ' IF used in For step
         <Fact()>
         Public Sub IFUsedInForStep()
             CompileAndVerify(
@@ -651,7 +651,7 @@ End Module
 </compilation>, options:=TestOptions.ReleaseExe)
         End Sub
 
-        ' Passing IF as byref arg 
+        ' Passing IF as byref arg
         <WorkItem(541647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541647")>
         <Fact()>
         Public Sub IFAsByrefArg()
@@ -894,7 +894,7 @@ Class Test1
     Public Function m2() As IBase
         Return If(Derived.mask = 0, Me, y)
     End Function
-    'version2 
+    'version2
 End Class
     </file>
 </compilation>, options:=TestOptions.ReleaseExe).VerifyIL("Test1.m1", <![CDATA[
@@ -955,7 +955,7 @@ Class Test1
     Public Function m2() As IBase
         Return If(Me, y)
     End Function
-    'version2 
+    'version2
 End Class
     </file>
 </compilation>, options:=TestOptions.ReleaseExe).VerifyIL("Test1.m1", <![CDATA[
@@ -1016,7 +1016,7 @@ Class Test1
     Public Function m2() As IBase
         Return If (DirectCast(Me, IBase), y)
     End Function
-    'version2 
+    'version2
 End Class
     </file>
 </compilation>, options:=TestOptions.ReleaseExe).VerifyIL("Test1.m1", <![CDATA[
@@ -1210,7 +1210,7 @@ End Structure
         End Sub
 
         <Fact, WorkItem(545065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545065")>
-        Public Sub IfOnMethodTypeParameter()
+        Public Sub IfOnConstrainedMethodTypeParameter()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1247,5 +1247,135 @@ Friend Module BIFOpResult0011mod
 }]]>)
         End Sub
 
+        <Fact>
+        Public Sub IfOnUnconstrainedMethodTypeParameter()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Friend Module Mod1
+    Sub M1(Of T)(arg1 As T, arg2 As T)
+        System.Console.WriteLine(If(arg1, arg2))
+    End Sub
+
+    Sub M2(Of T1, T2 As T1)(arg1 as T1, arg2 As T2)
+        System.Console.WriteLine(If(arg2, arg1))
+    End Sub
+
+    Sub Main()
+        M1(Nothing, 1000)
+        M1(1, 1000)
+        M1(Nothing, "String Parameter 1")
+        M1("String Parameter 2", "Should not print")
+        M1(Of Integer?)(Nothing, 4)
+        M1(Of Integer?)(5, 1000)
+        M2(1000, 6)
+        M2(Of Object, Integer?)(7, Nothing)
+        M2(Of Object, Integer?)(1000, 8)
+        M2(Of Integer?, Integer?)(9, Nothing)
+        M2(Of Integer?, Integer?)(1000, 10)
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+0
+1
+String Parameter 1
+String Parameter 2
+4
+5
+6
+7
+8
+9
+10
+]]>).VerifyIL("Mod1.M1", <![CDATA[
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  box        "T"
+  IL_0007:  brtrue.s   IL_000b
+  IL_0009:  pop
+  IL_000a:  ldarg.1
+  IL_000b:  box        "T"
+  IL_0010:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0015:  ret
+}
+]]>).VerifyIL("Mod1.M2", <![CDATA[
+{
+  // Code size       33 (0x21)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  box        "T2"
+  IL_0006:  brtrue.s   IL_000b
+  IL_0008:  ldarg.0
+  IL_0009:  br.s       IL_0016
+  IL_000b:  ldarg.1
+  IL_000c:  box        "T2"
+  IL_0011:  unbox.any  "T1"
+  IL_0016:  box        "T1"
+  IL_001b:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0020:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub IfOnUnconstrainedTypeParameterWithNothingLHS()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Friend Module Mod1
+        Sub M1(Of T)(arg As T)
+            Console.WriteLine(If(Nothing, arg))
+        End Sub
+
+        Sub Main()
+            ' Note that this behavior is different than C#'s behavior. This is consistent with Roslyn's handling
+            ' of If(Nothing, 1), which will evaluate to 1
+            M1(1)
+            Console.WriteLine(If(Nothing, 1))
+            M1("String Parameter 1")
+            M1(Of Integer?)(3)
+        End Sub
+    End Module
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+1
+1
+String Parameter 1
+3
+]]>).VerifyIL("Mod1.M1", <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  box        "T"
+  IL_0006:  call       "Sub System.Console.WriteLine(Object)"
+  IL_000b:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub IfOnUnconstrainedTypeParametersOldLanguageVersion()
+            CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Friend Module Mod1
+    Sub M1(Of T)(arg1 As T, arg2 As T)
+        System.Console.WriteLine(If(arg1, arg2))
+    End Sub
+End Module
+    </file>
+</compilation>, parseOptions:=TestOptions.Regular15_5).AssertTheseDiagnostics(<![CDATA[
+BC36716: Visual Basic 15.5 does not support unconstrained type parameters in binary conditional expressions.
+        System.Console.WriteLine(If(arg1, arg2))
+                                 ~~~~~~~~~~~~~~
+]]>)
+        End Sub
     End Class
 End Namespace

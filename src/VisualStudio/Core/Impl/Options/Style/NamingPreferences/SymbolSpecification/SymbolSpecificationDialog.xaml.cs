@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             {
                 e.Handled = true;
 
-                bool targetCheckedState = !selectedItems.All(d => d.IsChecked);
+                var targetCheckedState = !selectedItems.All(d => d.IsChecked);
                 foreach (var item in selectedItems)
                 {
                     item.IsChecked = targetCheckedState;

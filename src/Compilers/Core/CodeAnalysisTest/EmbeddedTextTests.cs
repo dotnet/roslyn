@@ -78,7 +78,7 @@ class Program
         {
             var text = EmbeddedText.FromBytes("pathToEmpty", new ArraySegment<byte>(new byte[0], 0, 0), SourceHashAlgorithm.Sha1);
             Assert.Equal("pathToEmpty", text.FilePath);
-            Assert.Equal(text.ChecksumAlgorithm, SourceHashAlgorithm.Sha1);
+            Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
             AssertEx.Equal(SourceText.CalculateChecksum(new byte[0], 0, 0, SourceHashAlgorithm.Sha1), text.Checksum);
             AssertEx.Equal(new byte[] { 0, 0, 0, 0 }, text.Blob);
         }
@@ -90,7 +90,7 @@ class Program
             var checksum = SourceText.CalculateChecksum(new byte[0], 0, 0, SourceHashAlgorithm.Sha1);
 
             Assert.Equal("pathToEmpty", text.FilePath);
-            Assert.Equal(text.ChecksumAlgorithm, SourceHashAlgorithm.Sha1);
+            Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
             AssertEx.Equal(checksum, text.Checksum);
             AssertEx.Equal(new byte[] { 0, 0, 0, 0 }, text.Blob);
         }
@@ -116,7 +116,7 @@ class Program
             var text = EmbeddedText.FromBytes("pathToSmall", new ArraySegment<byte>(bytes, 0, bytes.Length));
 
             Assert.Equal("pathToSmall", text.FilePath);
-            Assert.Equal(text.ChecksumAlgorithm, SourceHashAlgorithm.Sha1);
+            Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
             AssertEx.Equal(checksum, text.Checksum);
             AssertEx.Equal(new byte[] { 0, 0, 0, 0 }, text.Blob.Take(4));
             AssertEx.Equal(bytes, text.Blob.Skip(4));
@@ -244,7 +244,7 @@ class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/12603")]
         public void FromBytes_EncodingFallbackCase()
         {
             var source = EncodedStringText.Create(new MemoryStream(new byte[] { 0xA9, 0x0D, 0x0A }), canBeEmbedded: true);

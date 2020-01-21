@@ -15,8 +15,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectInfoServ
     [ExportWorkspaceServiceFactory(typeof(IProjectInfoService), ServiceLayer.Editor), Shared]
     internal sealed class DefaultProjectInfoServiceFactory : IWorkspaceServiceFactory
     {
-        private Lazy<IProjectInfoService> _singleton =
+        private readonly Lazy<IProjectInfoService> _singleton =
             new Lazy<IProjectInfoService>(() => new DefaultProjectInfoService());
+
+        [ImportingConstructor]
+        public DefaultProjectInfoServiceFactory()
+        {
+        }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -11,13 +10,18 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 {
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract class AbstractResolveConflictMarkerCodeFixProvider : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         protected AbstractResolveConflictMarkerCodeFixProvider(string diagnosticId)
         {
             FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
+        }
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not currently supported for this code fix
+            // https://github.com/dotnet/roslyn/issues/34461
+            return null;
         }
 
         protected abstract bool IsEndOfLine(SyntaxTrivia trivia);
@@ -182,7 +186,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         {
             if (token.HasLeadingTrivia)
             {
-                int i = 0;
+                var i = 0;
                 foreach (var trivia in token.LeadingTrivia)
                 {
                     if (IsConflictMarker(text, trivia, '='))
@@ -204,7 +208,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         private bool IsConflictMarker(SourceText text, SyntaxTrivia trivia, char ch)
         {
-            return 
+            return
                 IsConflictMarker(trivia) &&
                 trivia.Span.Length > 0 &&
                 text[trivia.SpanStart] == ch;
@@ -212,7 +216,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

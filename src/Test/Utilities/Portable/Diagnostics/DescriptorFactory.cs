@@ -14,7 +14,8 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         /// <remarks>
         /// Returned <see cref="DiagnosticDescriptor"/> has
-        /// - empty <see cref="DiagnosticDescriptor.Title"/>, <see cref="DiagnosticDescriptor.MessageFormat"/> and <see cref="DiagnosticDescriptor.Category"/>
+        /// - empty <see cref="DiagnosticDescriptor.Title"/> and <see cref="DiagnosticDescriptor.Category"/>
+        /// - <see cref="DiagnosticDescriptor.MessageFormat"/> set to <paramref name="id"/>
         /// - <see cref="DiagnosticDescriptor.DefaultSeverity"/> set to <see cref="DiagnosticSeverity.Hidden"/>
         /// - <see cref="WellKnownDiagnosticTags.NotConfigurable"/> custom tag added in <see cref="DiagnosticDescriptor.CustomTags"/>.
         /// </remarks>
@@ -22,7 +23,7 @@ namespace Roslyn.Test.Utilities
         /// <returns>A <see cref="DiagnosticDescriptor"/> with specified <see cref="DiagnosticDescriptor.Id"/>.</returns>
         public static DiagnosticDescriptor CreateSimpleDescriptor(string id)
         {
-            return new DiagnosticDescriptor(id, title: "", messageFormat: "", category: "",
+            return new DiagnosticDescriptor(id, title: "", messageFormat: id, category: "",
                 defaultSeverity: DiagnosticSeverity.Hidden, isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.NotConfigurable);
         }

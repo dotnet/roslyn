@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 End If
 
                 Dim symbolInfo = _semanticModel.GetSymbolInfo(node)
-                Return symbolInfo.Symbol Is _localSymbol
+                Return Equals(symbolInfo.Symbol, _localSymbol)
             End Function
 
             Public Overrides Function VisitIdentifierName(node As IdentifierNameSyntax) As SyntaxNode

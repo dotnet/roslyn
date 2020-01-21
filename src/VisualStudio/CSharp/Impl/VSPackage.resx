@@ -142,23 +142,126 @@
     <comment>"C#" node help text in profile Import/Export.</comment>
   </data>
   <data name="306" xml:space="preserve">
-    <value>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</value>
+    <value>Show diagnostics for closed files;
+Colorize regular expression; 
+Highlight related components under cursor; 
+Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Using directives;
+Place system directives first when sorting usings;
+Separate using directive groups;
+Suggest usings for types in reference assemblies;
+Suggest usings for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused usings;
+Fade out unreachable code;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ///;
+Insert * at the start of new lines when writing /* */ comments;
+Show preview for rename tracking;
+Split string literals on Enter;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Don't put ref or out on custom struct;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;</value>
     <comment>C# Advanced options page keywords</comment>
   </data>
   <data name="307" xml:space="preserve">
-    <value>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</value>
+    <value>Automatically format when typing;
+Automatically format statement on semicolon ;
+Automatically format block on end brace;
+Automatically format on return;
+Automatically format on paste;</value>
     <comment>C# Formatting &gt; General options page keywords</comment>
   </data>
   <data name="308" xml:space="preserve">
-    <value>Indent block contents;Indent open and close braces, indent case contents;indent case labels;label indentation</value>
+    <value>Indent block contents; 
+indent open and close braces; 
+indent case contents; 
+indent case contents (when block); 
+indent case labels; 
+label indentation; 
+place goto labels in leftmost column; 
+indent labels normally; 
+place goto labels one indent less than current;</value>
     <comment>C# Formatting &gt; Indentation options page keywords</comment>
   </data>
   <data name="309" xml:space="preserve">
-    <value>New line formatting option for braces;New line formatting options for keywords</value>
+    <value>New line formatting option for braces;New line formatting options for keywords;New line options for braces;
+Place open brace on new line for types;
+Place open brace on new line for methods and local functions;
+Place open brace on new line for properties, indexers, and events;
+Place open brace on new line for property, indexer, and event accessors;
+Place open brace on new line for anonymous methods;
+Place open brace on new line for control blocks;
+Place open brace on new line for anonymous types;
+Place open brace on new line for object, collection and array initializers;
+New line options for keywords;
+Place else on new line;
+Place catch on new line;
+Place finally on new line;
+New line options for expression;
+Place members in object initializers on new line;
+Place members in anonymous types on new line;
+Place query expression clauses on new line;</value>
     <comment>C# Formatting &gt; New Lines options page keywords</comment>
   </data>
   <data name="310" xml:space="preserve">
-    <value>Set spacing for method declarations;set spacing for method calls;set other spacing options;set spacing for brackets;set spacing for delimiters;set spacing for operators</value>
+    <value>Set spacing for method declarations;
+Insert space between method name and its opening parenthesis;
+Insert space within parameter list parentheses;
+Insert space within empty parameter list parentheses;
+Set spacing for method calls;
+Insert space within argument list parentheses;
+Insert space within empty argument list parentheses;
+Set other spacing options;
+Insert space after keywords in control flow statements;
+Insert space within parentheses of expressions;
+Insert space within parentheses of type casts;
+Insert spaces within parentheses of control flow statements;
+Insert space after cast;
+Ignore spaces in declaration statements;
+Set spacing for brackets;
+Insert space before open square bracket;
+Insert space within empty square brackets;
+Insert spaces within square brackets;
+Set spacing for delimiters;
+Insert space after colon for base or interface in type declaration;
+Insert space after comma;
+Insert space after dot;
+Insert space after semicolon in for statement;
+Insert space before colon for base or interface in type declaration;
+Insert space before comma;
+Insert space before dot;
+Insert space before semicolon in for statement;
+Set spacing for operators;
+Ignore spaces around binary operators;
+Remove spaces before and after binary operators;
+Insert space before and after binary operators;</value>
     <comment>C# Formatting &gt; Spacing options page keywords</comment>
   </data>
   <data name="311" xml:space="preserve">
@@ -166,7 +269,20 @@
     <comment>C# Formatting &gt; Wrapping options page keywords</comment>
   </data>
   <data name="312" xml:space="preserve">
-    <value>Change completion list settings;Pre-select most recently used member</value>
+    <value>Change completion list settings;Pre-select most recently used member; Completion Lists;
+Show completion list after a character is typed;
+Show completion list after a character is deleted;
+Highlight matching portions of completion list items;
+Show completion item filters;
+Snippets behavior;
+Never include snippets;
+Always include snippets;
+Include snippets when ?-Tab is typed after an identifier;
+Enter key behavior;
+Never add new line on enter;
+Only add new line on enter after end of fully typed word;
+Always add new line on enter;
+Show name suggestions;</value>
     <comment>C# IntelliSense options page keywords</comment>
   </data>
   <data name="107" xml:space="preserve">
@@ -191,10 +307,10 @@
     <value>Spacing</value>
   </data>
   <data name="2358" xml:space="preserve">
-    <value>CSharp Editor</value>
+    <value>C# Editor</value>
   </data>
   <data name="2359" xml:space="preserve">
-    <value>CSharp Editor with Encoding</value>
+    <value>C# Editor with Encoding</value>
   </data>
   <data name="113" xml:space="preserve">
     <value>Microsoft Visual C#</value>
@@ -222,5 +338,11 @@
   <data name="117" xml:space="preserve">
     <value>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</value>
     <comment>Help &gt; About</comment>
+  </data>
+  <data name="Visual_CSharp_Script" xml:space="preserve">
+    <value>Visual C# Script</value>
+  </data>
+  <data name="An_empty_CSharp_script_file" xml:space="preserve">
+    <value>An empty C# script file.</value>
   </data>
 </root>

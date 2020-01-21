@@ -13,13 +13,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         Public Sub New()
             MyBase.New(VisualBasicSyntaxFactsService.Instance,
                        VisualBasicCodeStyleOptions.PreferredModifierOrder,
-                       VisualBasicOrderModifiersHelper.Instance)
+                       VisualBasicOrderModifiersHelper.Instance,
+                       LanguageNames.VisualBasic)
         End Sub
 
         Protected Overrides Sub Recurse(
             context As SyntaxTreeAnalysisContext,
             preferredOrder As Dictionary(Of Integer, Integer),
-            descriptor As DiagnosticDescriptor,
+            severity As ReportDiagnostic,
             root As SyntaxNode)
 
             For Each child In root.ChildNodesAndTokens()
@@ -27,10 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
                     Dim declarationStatement = TryCast(child.AsNode(), DeclarationStatementSyntax)
                     If declarationStatement IsNot Nothing Then
                         If ShouldCheck(declarationStatement) Then
-                            CheckModifiers(context, preferredOrder, descriptor, declarationStatement)
+                            CheckModifiers(context, preferredOrder, severity, declarationStatement)
                         End If
 
-                        Recurse(context, preferredOrder, descriptor, declarationStatement)
+                        Recurse(context, preferredOrder, severity, declarationStatement)
                     End If
                 End If
             Next
@@ -41,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
             If modifiers.Count >= 2 Then
                 ' We'll see modifiers twice in some circumstances.  First, on a VB block
                 ' construct, and then on the VB begin statement for that block.  In order
-                ' to not double report, only check the statement that teh modifier actually
+                ' to not double report, only check the statement that the modifier actually
                 ' belongs to.
                 Return modifiers.First().Parent Is statement
             End If

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact, WorkItem(846042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")]
         public void MovedOutsideOfMethod1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -18,7 +18,7 @@ class C
         <AS:0>Goo(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -41,7 +41,7 @@ class C
         [Fact]
         public void MovedOutsideOfMethod2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -49,7 +49,7 @@ class C
         <AS:0>Goo(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -72,7 +72,7 @@ class C
         [Fact]
         public void MovedOutsideOfLambda1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -80,7 +80,7 @@ class C
         Action a = () => { <AS:0>Goo(1);</AS:0> };
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -99,7 +99,7 @@ class C
         [Fact]
         public void MovedOutsideOfLambda2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -108,7 +108,7 @@ class C
         Action b = () => { Goo(2); };
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)

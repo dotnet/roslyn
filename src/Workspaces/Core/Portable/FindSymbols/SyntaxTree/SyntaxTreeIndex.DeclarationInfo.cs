@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     var declaredSymbolCount = reader.ReadInt32();
                     var builder = ImmutableArray.CreateBuilder<DeclaredSymbolInfo>(declaredSymbolCount);
-                    for (int i = 0; i < declaredSymbolCount; i++)
+                    for (var i = 0; i < declaredSymbolCount; i++)
                     {
                         builder.Add(DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, reader));
                     }

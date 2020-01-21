@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
     [ExportLanguageService(typeof(IAddImportFeatureService), LanguageNames.CSharp), Shared]
     internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<SimpleNameSyntax>
     {
+        [ImportingConstructor]
+        public CSharpAddImportFeatureService()
+        {
+        }
+
         protected override bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -90,8 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                         return false;
                     }
 
-                    var method = parent.Expression as MemberAccessExpressionSyntax;
-                    if (method != null)
+                    if (parent.Expression is MemberAccessExpressionSyntax method)
                     {
                         node = method.Name;
                     }
@@ -132,6 +136,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         protected override bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node)
             => diagnosticId == CS8129;
 
+        protected override bool CanAddImportForGetAwaiter(string diagnosticId, ISyntaxFactsService syntaxFactsService, SyntaxNode node)
+            => (diagnosticId == CS1061 || // Regular cases
+                diagnosticId == CS4036 || // WinRT async interfaces
+                diagnosticId == CS1929) && // An extension `GetAwaiter()` is in scope, but for another type
+                AncestorOrSelfIsAwaitExpression(syntaxFactsService, node);
+
         protected override bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
             nameNode = null;
@@ -139,14 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         }
 
         protected override bool CanAddImportForQuery(string diagnosticId, SyntaxNode node)
-        {
-            if (diagnosticId != CS1935)
-            {
-                return false;
-            }
-
-            return node.AncestorsAndSelf().Any(n => n is QueryExpressionSyntax && !(n.Parent is QueryContinuationSyntax));
-        }
+            => (diagnosticId == CS1935 || // Regular cases
+                diagnosticId == CS1929) && // An extension method is in scope, but for another type
+                node.AncestorsAndSelf().Any(n => n is QueryExpressionSyntax && !(n.Parent is QueryContinuationSyntax));
 
         protected override bool CanAddImportForType(string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
@@ -164,12 +169,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 case CS1580:
                 case CS1581:
                 case CS1955:
+                case CS0281:
                     break;
 
                 case CS1574:
                 case CS1584:
-                    var cref = node as QualifiedCrefSyntax;
-                    if (cref != null)
+                    if (node is QualifiedCrefSyntax cref)
                     {
                         node = cref.Container;
                     }
@@ -293,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
 
             var externAliasString = externAlias != null ? $"extern alias {externAlias.Identifier.ValueText};" : null;
-            var usingDirectiveString = usingDirective != null ? GetUsingDirectiveString(namespaceOrTypeSymbol) :null;
+            var usingDirectiveString = usingDirective != null ? GetUsingDirectiveString(namespaceOrTypeSymbol) : null;
 
             if (externAlias == null && usingDirective == null)
             {
@@ -368,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
                 var addImportService = document.GetLanguageService<IAddImportsService>();
                 var newRoot = addImportService.AddImports(
-                    semanticModel.Compilation, root, contextNode, newImports, placeSystemNamespaceFirst);
+                    semanticModel.Compilation, root, contextNode, newImports, placeSystemNamespaceFirst, cancellationToken);
                 return (CompilationUnitSyntax)newRoot;
             }
             finally
@@ -389,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var service = document.GetLanguageService<IAddImportsService>();
             var newRoot = service.AddImport(
-                compilation, root, contextNode, usingDirective, placeSystemNamespaceFirst);
+                compilation, root, contextNode, usingDirective, placeSystemNamespaceFirst, cancellationToken);
 
             return document.WithSyntaxRoot(newRoot);
         }
@@ -522,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 }
             }
 
-            // Didn't conflict with anything.  We shoudl remove the global:: alias.
+            // Didn't conflict with anything.  We should remove the global:: alias.
             return false;
         }
 
@@ -594,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
         protected override bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            var leftExpression = 
+            var leftExpression =
                 syntaxFacts.GetExpressionOfMemberAccessExpression(expression) ??
                 syntaxFacts.GetTargetOfMemberBinding(expression);
             if (leftExpression == null)

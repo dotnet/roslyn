@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Differencing;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal struct BidirectionalMap<T>
+    internal readonly struct BidirectionalMap<T>
     {
         public readonly IReadOnlyDictionary<T, T> Forward;
         public readonly IReadOnlyDictionary<T, T> Reverse;

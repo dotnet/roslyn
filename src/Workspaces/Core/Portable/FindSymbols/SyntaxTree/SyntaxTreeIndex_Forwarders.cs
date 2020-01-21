@@ -2,13 +2,20 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal sealed partial class SyntaxTreeIndex
     {
         public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos => _declarationInfo.DeclaredSymbolInfos;
+
+        public ImmutableDictionary<string, ImmutableArray<int>> SimpleExtensionMethodInfo
+            => _extensionMethodInfo.SimpleExtensionMethodInfo;
+
+        public ImmutableArray<int> ComplexExtensionMethodInfo
+            => _extensionMethodInfo.ComplexExtensionMethodInfo;
+
+        public bool ContainsExtensionMethod => _extensionMethodInfo.ContainsExtensionMethod;
 
         public bool ProbablyContainsIdentifier(string identifier) => _identifierInfo.ProbablyContainsIdentifier(identifier);
         public bool ProbablyContainsEscapedIdentifier(string identifier) => _identifierInfo.ProbablyContainsEscapedIdentifier(identifier);
@@ -21,6 +28,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public bool ContainsForEachStatement => _contextInfo.ContainsForEachStatement;
         public bool ContainsDeconstruction => _contextInfo.ContainsDeconstruction;
+        public bool ContainsAwait => _contextInfo.ContainsAwait;
         public bool ContainsLockStatement => _contextInfo.ContainsLockStatement;
         public bool ContainsUsingStatement => _contextInfo.ContainsUsingStatement;
         public bool ContainsQueryExpression => _contextInfo.ContainsQueryExpression;
@@ -28,5 +36,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsBaseConstructorInitializer => _contextInfo.ContainsBaseConstructorInitializer;
         public bool ContainsElementAccessExpression => _contextInfo.ContainsElementAccessExpression;
         public bool ContainsIndexerMemberCref => _contextInfo.ContainsIndexerMemberCref;
+        public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
     }
 }

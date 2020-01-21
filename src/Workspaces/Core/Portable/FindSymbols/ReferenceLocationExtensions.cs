@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var documentGroup in projectGroup)
                     {
                         var document = documentGroup.Key;
-                        await AddSymbolsAsync(document, documentGroup, result, cancellationToken).ConfigureAwait(false);
+                        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        AddSymbols(document, semanticModel, documentGroup, result);
                     }
 
                     GC.KeepAlive(compilation);
@@ -41,14 +42,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
-        private static async Task AddSymbolsAsync(
+        private static void AddSymbols(
             Document document,
+            SemanticModel semanticModel,
             IEnumerable<ReferenceLocation> references,
-            Dictionary<ISymbol, List<Location>> result,
-            CancellationToken cancellationToken)
+            Dictionary<ISymbol, List<Location>> result)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
             foreach (var reference in references)
             {
                 var containingSymbol = GetEnclosingMethodOrPropertyOrField(semanticModel, reference);

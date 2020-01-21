@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     // For most documents the compilationUnit.AttributeLists should be empty.
                     // Therefore we delay initialization of the builder
-                    builder = builder ?? ImmutableList.CreateBuilder<SyntaxNode>();
+                    builder ??= ImmutableList.CreateBuilder<SyntaxNode>();
                     builder.AddRange(attributeList.Attributes);
                 }
             }

@@ -20,11 +20,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Required]
         public string DestinationPath { get; set; }
 
-        static CopyRefAssembly()
-        {
-            AssemblyResolution.Install();
-        }
-
         public CopyRefAssembly()
         {
             TaskResources = ErrorString.ResourceManager;
@@ -40,7 +35,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (File.Exists(DestinationPath))
             {
-                Guid source;
+                var source = Guid.Empty;
                 try
                 {
                     source = ExtractMvid(SourcePath);

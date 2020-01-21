@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis
 {
     public enum Platform
@@ -32,19 +34,24 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Compiles your assembly to run on a computer that has an Advanced RISC Machine (ARM) processor.
         /// </summary>
-        Arm = 5
+        Arm = 5,
+
+        /// <summary>
+        /// Compiles your assembly to run on a computer that has an Advanced RISC Machine 64 bit (ARM64) processor.
+        /// </summary>
+        Arm64 = 6,
     };
 
     internal static partial class EnumBounds
     {
         internal static bool IsValid(this Platform value)
         {
-            return value >= Platform.AnyCpu && value <= Platform.Arm;
+            return value >= Platform.AnyCpu && value <= Platform.Arm64;
         }
 
         internal static bool Requires64Bit(this Platform value)
         {
-            return value == Platform.X64 || value == Platform.Itanium;
+            return value == Platform.X64 || value == Platform.Itanium || value == Platform.Arm64;
         }
 
         internal static bool Requires32Bit(this Platform value)

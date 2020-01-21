@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             Dim formatterRules = Formatter.GetDefaultFormattingRules(newDocument)
             If ApplyLineAdjustmentFormattingRule Then
-                formatterRules = New LineAdjustmentFormattingRule().Concat(formatterRules)
+                formatterRules = LineAdjustmentFormattingRule.Instance.Concat(formatterRules)
             End If
 
             Dim documentOptions = Await newDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(False)

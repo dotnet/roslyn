@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
     Partial Friend Class VisualBasicGenerateMethodService
         Inherits AbstractGenerateMethodService(Of VisualBasicGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsExplicitInterfaceGeneration(node As SyntaxNode) As Boolean
             Return TypeOf node Is QualifiedNameSyntax
         End Function

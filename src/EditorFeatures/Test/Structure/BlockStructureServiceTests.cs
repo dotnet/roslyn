@@ -5,12 +5,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
+    [UseExportProvider]
     public class BlockStructureServiceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -30,13 +32,11 @@ class C
 }
 ";
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var spans = await GetSpansFromWorkspaceAsync(workspace);
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var spans = await GetSpansFromWorkspaceAsync(workspace);
 
-                // ensure all 4 outlining region tags were found (usings, class, method, lambda)
-                Assert.Equal(4, spans.Length);
-            }
+            // ensure all 4 outlining region tags were found (usings, class, method, lambda)
+            Assert.Equal(4, spans.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -56,13 +56,11 @@ class C
 }
 ";
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var spans = await GetSpansFromWorkspaceAsync(workspace);
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var spans = await GetSpansFromWorkspaceAsync(workspace);
 
-                // ensure all 4 outlining region tags were found (usings, class, method, lambda)
-                Assert.Equal(4, spans.Length);
-            }
+            // ensure all 4 outlining region tags were found (usings, class, method, lambda)
+            Assert.Equal(4, spans.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -82,13 +80,11 @@ class C
 }
 ";
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var spans = await GetSpansFromWorkspaceAsync(workspace);
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var spans = await GetSpansFromWorkspaceAsync(workspace);
 
-                // ensure all 4 outlining region tags were found (usings, class, method, anonymous delegate)
-                Assert.Equal(4, spans.Length);
-            }
+            // ensure all 4 outlining region tags were found (usings, class, method, anonymous delegate)
+            Assert.Equal(4, spans.Length);
         }
 
         private static async Task<ImmutableArray<BlockSpan>> GetSpansFromWorkspaceAsync(
@@ -96,7 +92,7 @@ class C
         {
             var hostDocument = workspace.Documents.First();
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-            var outliningService = document.Project.LanguageServices.GetService<BlockStructureService>();
+            var outliningService = document.GetLanguageService<BlockStructureService>();
 
             var structure = await outliningService.GetBlockStructureAsync(document, CancellationToken.None);
             return structure.Spans;

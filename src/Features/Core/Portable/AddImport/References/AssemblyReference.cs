@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var textChanges = await GetTextChangesAsync(
                     document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
-                var title = $"{this.provider.GetDescription(this.SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
+                var title = $"{provider.GetDescription(SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
                 var fullyQualifiedTypeName = string.Join(
                     ".", _referenceAssemblyWithType.ContainingNamespaceNames.Concat(_referenceAssemblyWithType.TypeName));
 

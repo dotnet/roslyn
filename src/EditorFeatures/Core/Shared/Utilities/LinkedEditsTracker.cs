@@ -104,18 +104,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public void ApplyReplacementText(string replacementText)
         {
-            using (var edit = _subjectBuffer.CreateEdit(new EditOptions(), null, s_propagateSpansEditTag))
-            {
-                foreach (var span in _trackingSpans)
-                {
-                    if (span.GetText(_subjectBuffer.CurrentSnapshot) != replacementText)
-                    {
-                        edit.Replace(span.GetSpan(_subjectBuffer.CurrentSnapshot), replacementText);
-                    }
-                }
+            using var edit = _subjectBuffer.CreateEdit(new EditOptions(), null, s_propagateSpansEditTag);
 
-                edit.ApplyAndLogExceptions();
+            foreach (var span in _trackingSpans)
+            {
+                if (span.GetText(_subjectBuffer.CurrentSnapshot) != replacementText)
+                {
+                    edit.Replace(span.GetSpan(_subjectBuffer.CurrentSnapshot), replacementText);
+                }
             }
+
+            edit.ApplyAndLogExceptions();
         }
     }
 }

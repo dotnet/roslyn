@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents either a namespace or a type.
     /// </summary>
-    internal abstract class NamespaceOrTypeSymbol : Symbol, INamespaceOrTypeSymbol
+    internal abstract class NamespaceOrTypeSymbol : Symbol, INamespaceOrTypeSymbolInternal
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -111,13 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Default implementation is to use ordered version. When performance indicates, we specialize to have
             // separate implementation.
 
-#if DEBUG
-            // In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-            // more obviously.
-            return GetMembers().DeOrder();
-#else
-            return GetMembers();
-#endif
+            return GetMembers().ConditionallyDeOrder();
         }
 
         /// <summary>
@@ -138,13 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Default implementation is to use ordered version. When performance indicates, we specialize to have
             // separate implementation.
 
-#if DEBUG
-            // In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-            // more obviously.
-            return GetTypeMembers().DeOrder();
-#else
-            return GetTypeMembers();
-#endif
+            return GetTypeMembers().ConditionallyDeOrder();
         }
 
         /// <summary>
@@ -336,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-        Done:
+Done:
             if ((object)namedType == null)
             {
                 if (isTopLevel)
@@ -384,34 +373,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return symbols;
         }
-
-        #region INamespaceOrTypeSymbol Members
-
-        ImmutableArray<ISymbol> INamespaceOrTypeSymbol.GetMembers()
-        {
-            return StaticCast<ISymbol>.From(this.GetMembers());
-        }
-
-        ImmutableArray<ISymbol> INamespaceOrTypeSymbol.GetMembers(string name)
-        {
-            return StaticCast<ISymbol>.From(this.GetMembers(name));
-        }
-
-        ImmutableArray<INamedTypeSymbol> INamespaceOrTypeSymbol.GetTypeMembers()
-        {
-            return StaticCast<INamedTypeSymbol>.From(this.GetTypeMembers());
-        }
-
-        ImmutableArray<INamedTypeSymbol> INamespaceOrTypeSymbol.GetTypeMembers(string name)
-        {
-            return StaticCast<INamedTypeSymbol>.From(this.GetTypeMembers(name));
-        }
-
-        ImmutableArray<INamedTypeSymbol> INamespaceOrTypeSymbol.GetTypeMembers(string name, int arity)
-        {
-            return StaticCast<INamedTypeSymbol>.From(this.GetTypeMembers(name, arity));
-        }
-
-        #endregion
     }
 }

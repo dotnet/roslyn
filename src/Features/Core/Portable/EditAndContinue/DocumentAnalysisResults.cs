@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 
@@ -12,19 +13,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Spans of active statements in the document, or null if the document has syntax errors.
         /// </summary>
-        public readonly ImmutableArray<LinePositionSpan> ActiveStatements;
+        public ImmutableArray<ActiveStatement> ActiveStatements { get; }
 
         /// <summary>
-        /// Diagnostics for rude edits in the document, or null if the document is unchanged or has syntax errors.
+        /// Diagnostics for rude edits in the document, or empty if the document is unchanged or has syntax errors.
         /// If the compilation has semantic errors only syntactic rude edits are calculated.
         /// </summary>
-        public readonly ImmutableArray<RudeEditDiagnostic> RudeEditErrors;
+        public ImmutableArray<RudeEditDiagnostic> RudeEditErrors { get; }
 
         /// <summary>
         /// Edits made in the document, or null if the document is unchanged, has syntax errors, has rude edits,
         /// or if the compilation has semantic errors.
         /// </summary>
-        public readonly ImmutableArray<SemanticEdit> SemanticEdits;
+        public ImmutableArray<SemanticEdit> SemanticEdits { get; }
 
         /// <summary>
         /// Exception regions -- spans of catch and finally handlers that surround the active statements.
@@ -45,8 +46,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// For example:
         ///   try { } |finally { try { ... AS ... } catch {  } }|
         ///   try { } |finally { try { } catch { ... AS ... } }|
+        ///   try { try { } |finally { ... AS ... }| } |catch { } catch { } finally { }|
         /// </remarks>
-        public readonly ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions;
+        public ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions { get; }
 
         /// <summary>
         /// Line edits in the document, or null if the document has syntax errors or rude edits, 
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <remarks>
         /// Sorted by <see cref="LineChange.OldLine"/>
         /// </remarks>
-        public readonly ImmutableArray<LineChange> LineEdits;
+        public ImmutableArray<LineChange> LineEdits { get; }
 
         /// <summary>
         /// The compilation has compilation errors (syntactic or semantic), 
@@ -66,23 +68,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private DocumentAnalysisResults(ImmutableArray<RudeEditDiagnostic> rudeEdits)
         {
+            Debug.Assert(!rudeEdits.IsDefault);
             _hasCompilationErrors = rudeEdits.Length == 0;
-            this.RudeEditErrors = rudeEdits;
+            RudeEditErrors = rudeEdits;
         }
 
         public DocumentAnalysisResults(
-            ImmutableArray<LinePositionSpan> activeStatements,
+            ImmutableArray<ActiveStatement> activeStatements,
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
             ImmutableArray<SemanticEdit> semanticEditsOpt,
             ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegionsOpt,
             ImmutableArray<LineChange> lineEditsOpt,
             bool? hasSemanticErrors)
         {
+            Debug.Assert(!rudeEdits.IsDefault);
             Debug.Assert(!activeStatements.IsDefault);
+            Debug.Assert(activeStatements.All(a => a != null));
 
             if (hasSemanticErrors.HasValue)
             {
-                Debug.Assert(!rudeEdits.IsDefault);
 
                 if (hasSemanticErrors.Value || rudeEdits.Length > 0)
                 {
@@ -107,11 +111,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(exceptionRegionsOpt.IsDefault || exceptionRegionsOpt.Length == activeStatements.Length);
             }
 
-            this.RudeEditErrors = rudeEdits;
-            this.SemanticEdits = semanticEditsOpt;
-            this.ActiveStatements = activeStatements;
-            this.ExceptionRegions = exceptionRegionsOpt;
-            this.LineEdits = lineEditsOpt;
+            RudeEditErrors = rudeEdits;
+            SemanticEdits = semanticEditsOpt;
+            ActiveStatements = activeStatements;
+            ExceptionRegions = exceptionRegionsOpt;
+            LineEdits = lineEditsOpt;
             _hasCompilationErrors = hasSemanticErrors;
         }
 
@@ -121,7 +125,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             get
             {
-                return HasChanges && (_hasCompilationErrors.Value || !RudeEditErrors.IsDefaultOrEmpty);
+                return HasChanges && (_hasCompilationErrors.Value || !RudeEditErrors.IsEmpty);
             }
         }
 
@@ -133,7 +137,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public bool HasSignificantChanges
+        public bool HasSignificantValidChanges
         {
             get
             {
@@ -147,12 +151,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public static DocumentAnalysisResults Unchanged(
-            ImmutableArray<LinePositionSpan> activeStatements,
+            ImmutableArray<ActiveStatement> activeStatements,
             ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegionsOpt)
         {
             return new DocumentAnalysisResults(
                 activeStatements,
-                default,
+                ImmutableArray<RudeEditDiagnostic>.Empty,
                 ImmutableArray<SemanticEdit>.Empty,
                 exceptionRegionsOpt,
                 ImmutableArray<LineChange>.Empty,
@@ -160,7 +164,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public static DocumentAnalysisResults Errors(
-            ImmutableArray<LinePositionSpan> activeStatements,
+            ImmutableArray<ActiveStatement> activeStatements,
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
             bool hasSemanticErrors = false)
         {

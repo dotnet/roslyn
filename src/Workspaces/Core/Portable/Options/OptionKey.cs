@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Roslyn.Utilities;
+
+#if CODE_STYLE
+using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+#endif
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    public struct OptionKey : IEquatable<OptionKey>
+    public readonly struct OptionKey : IEquatable<OptionKey>
     {
         public IOption Option { get; }
         public string Language { get; }
@@ -38,14 +41,28 @@ namespace Microsoft.CodeAnalysis.Options
 
         public override int GetHashCode()
         {
-            var hash = Option.GetHashCode();
+            var hash = Option?.GetHashCode() ?? 0;
 
             if (Language != null)
             {
-                hash = Hash.Combine(Language.GetHashCode(), hash);
+                hash = unchecked((hash * (int)0xA5555529) + Language.GetHashCode());
             }
 
             return hash;
+        }
+
+        public override string ToString()
+        {
+            if (Option is null)
+            {
+                return "";
+            }
+
+            var languageDisplay = Option.IsPerLanguage
+                ? $"({Language}) "
+                : string.Empty;
+
+            return languageDisplay + Option.ToString();
         }
 
         public static bool operator ==(OptionKey left, OptionKey right)

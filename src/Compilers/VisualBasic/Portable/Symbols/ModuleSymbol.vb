@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -10,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class ModuleSymbol
         Inherits Symbol
-        Implements IModuleSymbol
+        Implements IModuleSymbol, IModuleSymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -126,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' If this symbol represents a metadata module returns the underlying <see cref="ModuleMetadata"/>.
         ''' 
-        ''' Otherwise, this returns <code>nothing</code>.
+        ''' Otherwise, this returns <see langword="Nothing"/>.
         ''' </summary>
         Public MustOverride Function GetMetadata() As ModuleMetadata Implements IModuleSymbol.GetMetadata
 

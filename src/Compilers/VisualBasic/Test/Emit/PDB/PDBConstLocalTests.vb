@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBConstLocalTests
         Inherits BasicTestBase
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestSimpleLocalConstants()
             Dim source =
 <compilation>
@@ -24,7 +24,7 @@ Public Class C
 end class
     </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 source,
                 TestOptions.DebugDll)
 
@@ -33,7 +33,7 @@ end class
             compilation.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -54,7 +54,7 @@ end class
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestLambdaLocalConstants()
             Dim source =
 <compilation>
@@ -80,7 +80,7 @@ end class
             c.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M" parameterNames="a">
@@ -119,7 +119,7 @@ end class
 
 #If False Then
         <WorkItem(11017)>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestIteratorLocalConstants()
             Dim text = <text>
 using System.Collections.Generic;
@@ -142,8 +142,9 @@ class C
         End Sub
 #End If
 
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(529101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529101")>
-        <Fact()>
         Public Sub TestLocalConstantsTypes()
             Dim source = <compilation>
                              <file>
@@ -160,14 +161,14 @@ Public Class C
 End Class
 </file>
                          </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 source,
                 TestOptions.DebugDll)
 
             compilation.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -180,8 +181,8 @@ End Class
                 <currentnamespace name=""/>
                 <constant name="o" value="null" type="Object"/>
                 <constant name="s" value="hello" type="String"/>
-                <constant name="f" value="-3.402823E+38" type="Single"/>
-                <constant name="d" value="1.79769313486232E+308" type="Double"/>
+                <constant name="f" value="0xFF7FFFFF" type="Single"/>
+                <constant name="d" value="0x7FEFFFFFFFFFFFFF" type="Double"/>
                 <constant name="dec" value="1.5" type="Decimal"/>
                 <constant name="dt" value="02/29/2012 00:00:00" type="DateTime"/>
             </scope>

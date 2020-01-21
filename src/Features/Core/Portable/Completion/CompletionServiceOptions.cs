@@ -1,0 +1,15 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis.Options;
+
+namespace Microsoft.CodeAnalysis.Completion
+{
+    internal static class CompletionServiceOptions
+    {
+        /// <summary>
+        /// Indicates if the completion is trigger by toggle the expander.
+        /// </summary>
+        public static readonly Option<bool> IsExpandedCompletion
+            = new Option<bool>(nameof(CompletionServiceOptions), nameof(IsExpandedCompletion), defaultValue: false);
+    }
+}

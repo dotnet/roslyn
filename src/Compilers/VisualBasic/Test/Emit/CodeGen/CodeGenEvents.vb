@@ -576,7 +576,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
       Event Reference: 
         IEventReferenceOperation: Event Program.E As Program.del1 (OperationKind.EventReference, Type: Program.del1) (Syntax: 'E')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'E')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'E')
       Handler: 
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program.del1, Constant: null, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -598,7 +598,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
       Event Reference: 
         IEventReferenceOperation: Event Program.E As Program.del1 (OperationKind.EventReference, Type: Program.del1) (Syntax: 'E')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'E')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'E')
       Handler: 
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program.del1, Constant: null, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -618,7 +618,7 @@ IRaiseEventOperation (OperationKind.RaiseEvent, Type: null) (Syntax: 'RaiseEvent
   Event Reference: 
     IEventReferenceOperation: Event Program.E As Program.del1 (OperationKind.EventReference, Type: Program.del1) (Syntax: 'E')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'E')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'E')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '42')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
@@ -1966,7 +1966,7 @@ End Class
         <Fact>
         <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_01()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Button
@@ -2187,7 +2187,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.ReleaseDll)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(source1, TestOptions.ReleaseDll)
 
             Dim source2 =
 <compilation>
@@ -2215,7 +2215,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
 "1
@@ -2231,7 +2231,7 @@ End Class
 3
 4")
 
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
 "1
@@ -2243,7 +2243,7 @@ End Class
         <Fact>
         <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_03()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2331,7 +2331,7 @@ End Module
         <Fact>
         <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_04()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Button
@@ -2436,7 +2436,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.ReleaseDll)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(source1, TestOptions.ReleaseDll)
 
             Dim source2 =
 <compilation>
@@ -2470,7 +2470,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
 
             compilation2.AssertTheseDiagnostics(
 <expected>
@@ -2500,14 +2500,14 @@ BC30506: Handles clause requires a WithEvents variable defined in the containing
 </expected>
             compilation2.AssertTheseDiagnostics(expected)
 
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
             compilation2.AssertTheseDiagnostics(expected)
         End Sub
 
         <Fact>
         <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_06()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Button
@@ -2596,7 +2596,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.ReleaseDll)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(source1, TestOptions.ReleaseDll)
 
             Dim source2 =
 <compilation>
@@ -2630,7 +2630,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
             Dim expected =
 <expected>
 BC30284: property 'Button1' cannot be declared 'Overrides' because it does not override a property in a base class.
@@ -2649,14 +2649,14 @@ BC30506: Handles clause requires a WithEvents variable defined in the containing
             compilation2 = CreateCompilationWithMscorlib45AndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
             compilation2.AssertTheseDiagnostics(expected)
 
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
             compilation2.AssertTheseDiagnostics(expected)
         End Sub
 
         <Fact>
         <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_08()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Button
@@ -2725,7 +2725,7 @@ End Class
         <WorkItem(14104, "https://github.com/dotnet/roslyn/issues/14104")>
         <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub HandlesOnMultipleLevels_09()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Button

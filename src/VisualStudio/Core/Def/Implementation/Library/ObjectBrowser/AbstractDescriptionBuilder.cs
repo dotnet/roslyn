@@ -297,7 +297,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private void BuildXmlDocumentation(ISymbol symbol, Compilation compilation, _VSOBJDESCOPTIONS options)
         {
-            var documentationComment = symbol.GetDocumentationComment(expandIncludes: true, cancellationToken: CancellationToken.None);
+            var documentationComment = symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: CancellationToken.None);
             if (documentationComment == null)
             {
                 return;

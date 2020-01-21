@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (MemoryStream stream = new MemoryStream())
             {
                 var text = CreateSourceText(stream);
-                Assert.Equal(text.Length, 0);
+                Assert.Equal(0, text.Length);
             }
         }
 
@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void IndexerTest()
         {
             var text = CreateSourceText(HelloWorld);
-            Assert.Throws(typeof(IndexOutOfRangeException), () => text[-1]);
-            Assert.Throws(typeof(IndexOutOfRangeException), () => text[HelloWorld.Length]);
+            Assert.Throws<IndexOutOfRangeException>(() => text[-1]);
+            Assert.Throws<IndexOutOfRangeException>(() => text[HelloWorld.Length]);
             for (int i = HelloWorld.Length - 1; i >= 0; i--)
             {
                 Assert.Equal(HelloWorld[i], text[i]);
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 var text = SourceText.From(stream);
-                Assert.IsType(typeof(LargeText), text);
+                Assert.IsType<LargeText>(text);
 
                 char[] buffer = new char[HelloWorld.Length];
                 for (int start = 0; start < text.Length; start += HelloWorld.Length)
@@ -191,10 +191,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void NewLines1()
         {
-            var data = CreateSourceText("goo" + Environment.NewLine + " bar");
+            var newline = Environment.NewLine;
+            var data = CreateSourceText("goo" + newline + " bar");
             Assert.Equal(2, data.Lines.Count);
-            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "goo");
-            CheckLine(data, lineNumber: 1, start: 5, length: 4, newlineLength: 0, lineText: " bar");
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: newline.Length, lineText: "goo");
+            CheckLine(data, lineNumber: 1, start: 3 + newline.Length, length: 4, newlineLength: 0, lineText: " bar");
         }
 
         [Fact]
@@ -206,9 +207,10 @@ bar
 baz";
             var data = CreateSourceText(text);
             Assert.Equal(3, data.Lines.Count);
-            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "goo");
-            CheckLine(data, lineNumber: 1, start: 5, length: 3, newlineLength: 2, lineText: "bar");
-            CheckLine(data, lineNumber: 2, start: 10, length: 3, newlineLength: 0, lineText: "baz");
+            var newlineLength = Environment.NewLine.Length;
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength, lineText: "goo");
+            CheckLine(data, lineNumber: 1, start: 3 + newlineLength, length: 3, newlineLength, lineText: "bar");
+            CheckLine(data, lineNumber: 2, start: 2 * (3 + newlineLength), length: 3, newlineLength: 0, lineText: "baz");
         }
 
         [Fact]

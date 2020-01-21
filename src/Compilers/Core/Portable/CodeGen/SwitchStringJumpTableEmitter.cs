@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -43,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// Delegate to compute string hash code.
         /// This piece is language-specific because VB treats "" and null as equal while C# does not.
         /// </summary>
-        public delegate uint GetStringHashCode(string key);
+        public delegate uint GetStringHashCode(string? key);
 
         /// <summary>
         /// Delegate to emit string compare call
@@ -58,19 +61,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Local storing the key hash value, used for emitting hash table based string switch.
         /// </summary>
-        private readonly LocalDefinition _keyHash;
+        private readonly LocalDefinition? _keyHash;
 
         internal SwitchStringJumpTableEmitter(
             ILBuilder builder,
             LocalOrParameter key,
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
-            LocalDefinition keyHash,
+            LocalDefinition? keyHash,
             EmitStringCompareAndBranch emitStringCondBranchDelegate,
             GetStringHashCode computeStringHashcodeDelegate)
         {
             Debug.Assert(caseLabels.Length > 0);
-            Debug.Assert(emitStringCondBranchDelegate != null);
+            RoslynDebug.Assert(emitStringCondBranchDelegate != null);
 
             _builder = builder;
             _key = key;
@@ -168,9 +171,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private void EmitCondBranchForStringSwitch(ConstantValue stringConstant, object targetLabel)
         {
-            Debug.Assert(stringConstant != null &&
+            RoslynDebug.Assert(stringConstant != null &&
                 (stringConstant.IsString || stringConstant.IsNull));
-            Debug.Assert(targetLabel != null);
+            RoslynDebug.Assert(targetLabel != null);
 
             _emitStringCondBranchDelegate(_key, stringConstant, targetLabel);
         }
@@ -181,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             KeyValuePair<ConstantValue, object>[] caseLabels,
             GetStringHashCode computeStringHashcodeDelegate)
         {
-            Debug.Assert(caseLabels != null);
+            RoslynDebug.Assert(caseLabels != null);
             var stringHashMap = new Dictionary<uint, HashBucket>(caseLabels.Length);
 
             foreach (var kvPair in caseLabels)
@@ -189,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 ConstantValue stringConstant = kvPair.Key;
                 Debug.Assert(stringConstant.IsNull || stringConstant.IsString);
 
-                uint hash = computeStringHashcodeDelegate((string)stringConstant.Value);
+                uint hash = computeStringHashcodeDelegate((string?)stringConstant.Value);
 
                 HashBucket bucket;
                 if (!stringHashMap.TryGetValue(hash, out bucket))

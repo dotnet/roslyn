@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -10,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static int CountOfBitsSet(long v)
         {
             // http://graphics.stanford.edu/~seander/bithacks.htm
-            int c = 0;
+            var c = 0;
             while (v != 0)
             {
                 // clear the least significant bit set
@@ -58,25 +57,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// Helper as VB's CType doesn't work without arithmetic overflow.
         /// </summary>
         public static long Convert(long v, SpecialType type)
-        {
-            switch (type)
+            => type switch
             {
-                case SpecialType.System_SByte:
-                    return unchecked((sbyte)v);
-                case SpecialType.System_Byte:
-                    return unchecked((byte)v);
-                case SpecialType.System_Int16:
-                    return unchecked((short)v);
-                case SpecialType.System_UInt16:
-                    return unchecked((ushort)v);
-                case SpecialType.System_Int32:
-                    return unchecked((int)v);
-                case SpecialType.System_UInt32:
-                    return unchecked((uint)v);
-                default:
-                    return v;
-            }
-        }
+                SpecialType.System_SByte => unchecked((sbyte)v),
+                SpecialType.System_Byte => unchecked((byte)v),
+                SpecialType.System_Int16 => unchecked((short)v),
+                SpecialType.System_UInt16 => unchecked((ushort)v),
+                SpecialType.System_Int32 => unchecked((int)v),
+                SpecialType.System_UInt32 => unchecked((uint)v),
+                _ => v,
+            };
 
         public static ulong ToUnsigned(long v)
         {

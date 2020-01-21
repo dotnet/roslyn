@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch.Patching
             fixed (byte* pSourceBuf = sourceBytes)
             fixed (byte* pPatchBuf = patchBytes)
             {
-                DeltaInput ds = new DeltaInput(pSourceBuf, sourceBytes.Length, true);
-                DeltaInput dp = new DeltaInput(pPatchBuf, patchBytes.Length, true);
+                var ds = new DeltaInput(pSourceBuf, sourceBytes.Length, true);
+                var dp = new DeltaInput(pPatchBuf, patchBytes.Length, true);
                 if (!ApplyDeltaB(DeltaApplyFlag.None,
                                   ds,
                                   dp,
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch.Patching
                     throw new Win32Exception();
                 }
 
-                byte[] targetBytes = new byte[output.cbBuf.ToInt32()];
+                var targetBytes = new byte[output.cbBuf.ToInt32()];
                 Marshal.Copy(output.pBuf, targetBytes, 0, targetBytes.Length);
                 DeltaFree(output.pBuf);
                 return targetBytes;

@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
@@ -169,6 +169,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Implement Abstract Class Or Interface.
+        '''</summary>
+        Friend ReadOnly Property Implement_Abstract_Class_Or_Interface() As String
+            Get
+                Return ResourceManager.GetString("Implement_Abstract_Class_Or_Interface", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Insert new line.
         '''</summary>
         Friend ReadOnly Property Insert_new_line() As String
@@ -183,15 +192,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
         Friend ReadOnly Property Line_commit() As String
             Get
                 Return ResourceManager.GetString("Line_commit", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to &lt;Multiple Types&gt;.
-        '''</summary>
-        Friend ReadOnly Property Multiple_Types() As String
-            Get
-                Return ResourceManager.GetString("Multiple_Types", resourceCulture)
             End Get
         End Property
         

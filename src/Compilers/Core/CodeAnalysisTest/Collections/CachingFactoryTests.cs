@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 (k, v) => k.Value == v.Value);
 
             var key = new CacheKey(0);
-            Assert.Equal(CacheKey.GetHashCode(key), 0);
+            Assert.Equal(0, CacheKey.GetHashCode(key));
 
             CacheValue value;
             bool found = cache.TryGetValue(key, out value);

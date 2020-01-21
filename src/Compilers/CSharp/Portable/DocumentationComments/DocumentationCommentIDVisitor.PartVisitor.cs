@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder.Append("``");
                 }
-                else 
+                else
                 {
                     Debug.Assert(containingSymbol is NamedTypeSymbol);
 
@@ -171,11 +171,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitNamedType(NamedTypeSymbol symbol, StringBuilder builder)
             {
-                if (symbol.IsTupleType)
-                {
-                    return VisitNamedType(((TupleTypeSymbol)symbol).UnderlyingNamedType, builder);
-                }
-
                 if ((object)symbol.ContainingSymbol != null && symbol.ContainingSymbol.Name.Length != 0)
                 {
                     Visit(symbol.ContainingSymbol, builder);
@@ -188,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Special case: dev11 treats types instances of the declaring type in the parameter list
                     // (and return type, for conversions) as constructed with its own type parameters.
-                    if (!_inParameterOrReturnType && symbol == symbol.ConstructedFrom)
+                    if (!_inParameterOrReturnType && TypeSymbol.Equals(symbol, symbol.ConstructedFrom, TypeCompareKind.ConsiderEverything2))
                     {
                         builder.Append('`');
                         builder.Append(symbol.Arity);
@@ -199,14 +194,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         bool needsComma = false;
 
-                        foreach (var typeArgument in symbol.TypeArgumentsNoUseSiteDiagnostics)
+                        foreach (var typeArgument in symbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                         {
                             if (needsComma)
                             {
                                 builder.Append(',');
                             }
 
-                            Visit(typeArgument, builder);
+                            Visit(typeArgument.Type, builder);
 
                             needsComma = true;
                         }

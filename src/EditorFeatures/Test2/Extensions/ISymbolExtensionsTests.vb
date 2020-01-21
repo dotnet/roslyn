@@ -3,9 +3,10 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.FindSymbols
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-
+    <[UseExportProvider]>
     Public Class ISymbolExtensionsTests
         Inherits TestBase
 
@@ -15,12 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim tree = Await document.GetSyntaxTreeAsync()
-                Dim commonSyntaxToken = Await tree.GetTouchingTokenAsync(cursorPosition, Nothing)
-
                 Dim semanticModel = Await document.GetSemanticModelAsync()
-                Dim symbol = semanticModel.GetSemanticInfo(commonSyntaxToken, document.Project.Solution.Workspace, Nothing).
-                                           GetAnySymbol(includeType:=False)
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, cursorPosition)
                 Dim namedTypeSymbol = semanticModel.GetEnclosingNamedType(cursorPosition, CancellationToken.None)
 
                 Dim actualVisible = symbol.IsAccessibleWithin(namedTypeSymbol)

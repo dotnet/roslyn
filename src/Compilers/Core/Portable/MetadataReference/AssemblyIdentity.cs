@@ -418,9 +418,9 @@ namespace Microsoft.CodeAnalysis
 
         internal int GetHashCodeIgnoringNameAndVersion()
         {
-            return 
-                Hash.Combine((int)_contentType, 
-                Hash.Combine(_isRetargetable, 
+            return
+                Hash.Combine((int)_contentType,
+                Hash.Combine(_isRetargetable,
                 AssemblyIdentityComparer.CultureComparer.GetHashCode(_cultureName)));
         }
 

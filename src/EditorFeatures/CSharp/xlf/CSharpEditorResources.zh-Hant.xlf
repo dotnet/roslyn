@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CSharpEditorResources.resx">
     <body>
+      <trans-unit id="Complete_statement_on_semicolon">
+        <source>Complete statement on ;</source>
+        <target state="translated">完成陳述式於 ;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_interpolated_verbatim_string">
+        <source>Fix interpolated verbatim string</source>
+        <target state="translated">修正插入的逐字字串</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (按 TAB 鍵插入)</target>

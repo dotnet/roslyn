@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 return l.ToOtherMethod(method, typeMap);
             }
-            var type = typeMap.SubstituteType(local.Type);
-            return new EELocalSymbol(method, local.Locations, local.Name, -1, local.DeclarationKind, type.Type, local.RefKind, local.IsPinned, local.IsCompilerGenerated, local.CanScheduleToStack);
+            var type = typeMap.SubstituteType(local.TypeWithAnnotations);
+            return new EELocalSymbol(method, local.Locations, local.Name, -1, local.DeclarationKind, type, local.RefKind, local.IsPinned, local.IsCompilerGenerated, local.CanScheduleToStack);
         }
     }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            var type = this.Type;
+            var type = this.TypeWithAnnotations;
             DiagnosticInfo result = null;
             if (!DeriveUseSiteDiagnosticFromType(ref result, type) && this.ContainingModule.HasUnifiedReferences)
             {

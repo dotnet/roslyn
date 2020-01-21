@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
         private class SuppressionFixAllProvider : FixAllProvider
         {
@@ -18,6 +18,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             public async override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
             {
+                // currently there's no FixAll support for local suppression, just bail out
+                if (NestedSuppressionCodeAction.IsEquivalenceKeyForLocalSuppression(fixAllContext.CodeActionEquivalenceKey))
+                {
+                    return null;
+                }
+
                 var batchFixer = WellKnownFixAllProviders.BatchFixer;
                 var suppressionFixer = (AbstractSuppressionCodeFixProvider)((WrapperCodeFixProvider)fixAllContext.CodeFixProvider).SuppressionFixProvider;
                 var isGlobalSuppression = NestedSuppressionCodeAction.IsEquivalenceKeyForGlobalSuppression(fixAllContext.CodeActionEquivalenceKey);
@@ -34,10 +40,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var title = fixAllContext.CodeActionEquivalenceKey;
                 if (fixAllContext.Document != null)
                 {
-                    var documentsAndDiagnosticsToFixMap = 
+                    var documentsAndDiagnosticsToFixMap =
                         await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
 
-                    return !isGlobalSuppression 
+                    return !isGlobalSuppression
                         ? await batchFixer.GetFixAsync(
                             documentsAndDiagnosticsToFixMap, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false)
                         : GlobalSuppressMessageFixAllCodeAction.Create(title, suppressionFixer, fixAllContext.Document, documentsAndDiagnosticsToFixMap);

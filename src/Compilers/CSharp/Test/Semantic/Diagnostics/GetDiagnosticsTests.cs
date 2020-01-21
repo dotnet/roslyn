@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -120,12 +121,12 @@ class C
             var hidden = diag.WithSeverity(DiagnosticSeverity.Hidden);
             Assert.Equal(DiagnosticSeverity.Hidden, hidden.Severity);
             Assert.Equal(DiagnosticSeverity.Warning, hidden.DefaultSeverity);
-            Assert.Equal(4, hidden.WarningLevel);
+            Assert.Equal(1, hidden.WarningLevel);
 
             var info = diag.WithSeverity(DiagnosticSeverity.Info);
             Assert.Equal(DiagnosticSeverity.Info, info.Severity);
             Assert.Equal(DiagnosticSeverity.Warning, info.DefaultSeverity);
-            Assert.Equal(4, info.WarningLevel);
+            Assert.Equal(1, info.WarningLevel);
         }
 
         [Fact, WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")]
@@ -273,7 +274,7 @@ namespace N1
                         var added = declaredSymbolNames.Add(symbol.Name);
                         if (!added)
                         {
-                            var method = symbol as Symbols.MethodSymbol;
+                            var method = symbol.GetSymbol() as Symbols.MethodSymbol;
                             Assert.NotNull(method);
 
                             var isPartialMethod = method.PartialDefinitionPart != null ||
@@ -298,7 +299,7 @@ namespace N1
         [Fact]
         public void TestEventQueueCompletionForEmptyCompilation()
         {
-            var compilation = CreateCompilationWithMscorlib45(SpecializedCollections.EmptyEnumerable<SyntaxTree>()).WithEventQueue(new AsyncQueue<CompilationEvent>());
+            var compilation = CreateCompilationWithMscorlib45(CSharpTestSource.None).WithEventQueue(new AsyncQueue<CompilationEvent>());
 
             // Force complete compilation event queue
             var unused = compilation.GetDiagnostics();
@@ -309,7 +310,7 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
         {
-            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
+            var compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
 
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8301: Invalid name for a preprocessing symbol; '1' is not a valid identifier
@@ -333,7 +334,7 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidLanguageVersionShouldProvideDiagnostics()
         {
-            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithLanguageVersion((LanguageVersion)10000));
+            var compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithLanguageVersion((LanguageVersion)10000));
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8192: Provided language version is unsupported or invalid: '10000'.
                 // 
@@ -343,7 +344,7 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidDocumentationModeShouldProvideDiagnostics()
         {
-            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100)));
+            var compilation = CreateEmptyCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100)));
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8191: Provided documentation mode is unsupported or invalid: '100'.
                 // 
@@ -357,7 +358,7 @@ namespace N1
             var syntaxTree2 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" }));
             var syntaxTree3 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "3" }));
 
-            var compilation = CreateCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
+            var compilation = CreateEmptyCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
             var diagnostics = compilation.GetDiagnostics();
 
             diagnostics.Verify(
@@ -386,7 +387,7 @@ namespace N1
             var syntaxTree2 = Parse(string.Empty, options: parseOptions2);
             var syntaxTree3 = Parse(string.Empty, options: parseOptions2);
 
-            var compilation = CreateStandardCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
+            var compilation = CreateCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
             var diagnostics = compilation.GetDiagnostics();
 
             diagnostics.Verify(
@@ -399,6 +400,23 @@ namespace N1
 
             Assert.True(diagnostics[0].Location.SourceTree.Equals(syntaxTree1));
             Assert.True(diagnostics[1].Location.SourceTree.Equals(syntaxTree2));
+        }
+
+        [Fact]
+        [WorkItem(24351, "https://github.com/dotnet/roslyn/issues/24351")]
+        public void GettingDeclarationDiagnosticsForATreeShouldNotFreezeCompilation()
+        {
+            var parseOptions = new CSharpParseOptions(LanguageVersion.Latest);
+            var tree1 = Parse(string.Empty, options: parseOptions);
+            var tree2 = Parse("ref struct X {}", options: parseOptions);
+
+            var compilation = CreateCompilation(new[] { tree1, tree2 });
+
+            // Verify diagnostics for the first tree. This should have sealed the attributes
+            compilation.GetSemanticModel(tree1).GetDeclarationDiagnostics().Verify();
+
+            // Verify diagnostics for the second tree. This should have triggered the assert
+            compilation.GetSemanticModel(tree2).GetDeclarationDiagnostics().Verify();
         }
     }
 }

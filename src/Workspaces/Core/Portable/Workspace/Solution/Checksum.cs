@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
@@ -15,40 +16,86 @@ namespace Microsoft.CodeAnalysis
     internal sealed partial class Checksum : IObjectWritable, IEquatable<Checksum>
     {
         /// <summary>
-        /// The intended size of the <see cref="Sha1Hash"/> structure. Some runtime environments are known to deviate
-        /// from this size, so the implementation code should remain functionally correct even when the structure size
-        /// is greater than this value.
+        /// The intended size of the <see cref="HashData"/> structure. 
         /// </summary>
-        /// <seealso href="https://bugzilla.xamarin.com/show_bug.cgi?id=60298">LayoutKind.Explicit, Size = 12 ignored with 64bit alignment</seealso>
-        /// <seealso href="https://github.com/dotnet/roslyn/issues/23722">Checksum throws on Mono 64-bit</seealso>
-        private const int Sha1HashSize = 20;
+        private const int HashSize = 20;
 
-        public static readonly Checksum Null = new Checksum(Array.Empty<byte>());
+        public static readonly Checksum Null = new Checksum(default);
 
-        private Sha1Hash _checkSum;
+        private readonly HashData _checksum;
 
-        public unsafe Checksum(byte[] checksum)
+        /// <summary>
+        /// Create Checksum from given byte array. if byte array is bigger than
+        /// <see cref="HashSize"/>, it will be truncated to the size
+        /// </summary>
+        public static Checksum From(byte[] checksum)
         {
             if (checksum.Length == 0)
             {
-                _checkSum = default;
-                return;
-            }
-            else if (checksum.Length != Sha1HashSize)
-            {
-                throw new ArgumentException($"{nameof(checksum)} must be a SHA-1 hash", nameof(checksum));
+                return Null;
             }
 
+            if (checksum.Length < HashSize)
+            {
+                throw new ArgumentException($"checksum must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
+            }
+
+            return FromWorker(checksum);
+        }
+
+        /// <summary>
+        /// Create Checksum from given byte array. if byte array is bigger than
+        /// <see cref="HashSize"/>, it will be truncated to the size
+        /// </summary>
+        public static Checksum From(ImmutableArray<byte> checksum)
+        {
+            if (checksum.Length == 0)
+            {
+                return Null;
+            }
+
+            if (checksum.Length < HashSize)
+            {
+                throw new ArgumentException($"{nameof(checksum)} must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
+            }
+
+            using var pooled = SharedPools.ByteArray.GetPooledObject();
+            var bytes = pooled.Object;
+            checksum.CopyTo(sourceIndex: 0, bytes, destinationIndex: 0, length: HashSize);
+
+            return FromWorker(bytes);
+        }
+
+        public static Checksum FromSerialized(byte[] checksum)
+        {
+            if (checksum.Length == 0)
+            {
+                return Null;
+            }
+
+            if (checksum.Length != HashSize)
+            {
+                throw new ArgumentException($"{nameof(checksum)} must be equal to the hash size: {HashSize}", nameof(checksum));
+            }
+
+            return FromWorker(checksum);
+        }
+
+        private static unsafe Checksum FromWorker(byte[] checksum)
+        {
             fixed (byte* data = checksum)
             {
-                // Avoid a direct dereferencing assignment since sizeof(Sha1Hash) may be greater than Sha1HashSize.
-                _checkSum = Sha1Hash.FromPointer((Sha1Hash*)data);
+                // Avoid a direct dereferencing assignment since sizeof(HashData) may be greater than HashSize.
+                //
+                // ex) "https://bugzilla.xamarin.com/show_bug.cgi?id=60298" - LayoutKind.Explicit, Size = 12 ignored with 64bit alignment
+                // or  "https://github.com/dotnet/roslyn/issues/23722" - Checksum throws on Mono 64-bit
+                return new Checksum(HashData.FromPointer((HashData*)data));
             }
         }
 
-        private Checksum(Sha1Hash hash)
+        private Checksum(HashData hash)
         {
-            _checkSum = hash;
+            _checksum = hash;
         }
 
         public bool Equals(Checksum other)
@@ -58,24 +105,24 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            return _checkSum == other._checkSum;
+            return _checksum == other._checksum;
         }
 
         public override bool Equals(object obj)
             => Equals(obj as Checksum);
 
         public override int GetHashCode()
-            => _checkSum.GetHashCode();
+            => _checksum.GetHashCode();
 
         public override unsafe string ToString()
         {
-            var data = new byte[sizeof(Sha1Hash)];
+            var data = new byte[sizeof(HashData)];
             fixed (byte* dataPtr = data)
             {
-                *(Sha1Hash*)dataPtr = _checkSum;
+                *(HashData*)dataPtr = _checksum;
             }
 
-            return Convert.ToBase64String(data, 0, Sha1HashSize);
+            return Convert.ToBase64String(data, 0, HashSize);
         }
 
         public static bool operator ==(Checksum left, Checksum right)
@@ -88,11 +135,13 @@ namespace Microsoft.CodeAnalysis
             return !(left == right);
         }
 
+        bool IObjectWritable.ShouldReuseInSerialization => true;
+
         public void WriteTo(ObjectWriter writer)
-            => _checkSum.WriteTo(writer);
+            => _checksum.WriteTo(writer);
 
         public static Checksum ReadFrom(ObjectReader reader)
-            => new Checksum(Sha1Hash.ReadFrom(reader));
+            => new Checksum(HashData.ReadFrom(reader));
 
         public static string GetChecksumLogInfo(Checksum checksum)
         {
@@ -105,11 +154,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This structure stores the 20-byte SHA 1 hash as an inline value rather than requiring the use of
+        /// This structure stores the 20-byte hash as an inline value rather than requiring the use of
         /// <c>byte[]</c>.
         /// </summary>
-        [StructLayout(LayoutKind.Explicit, Size = Sha1HashSize)]
-        private struct Sha1Hash : IEquatable<Sha1Hash>
+        [StructLayout(LayoutKind.Explicit, Size = HashSize)]
+        private struct HashData : IEquatable<HashData>
         {
             [FieldOffset(0)]
             private long Data1;
@@ -120,10 +169,10 @@ namespace Microsoft.CodeAnalysis
             [FieldOffset(16)]
             private int Data3;
 
-            public static bool operator ==(Sha1Hash x, Sha1Hash y)
+            public static bool operator ==(HashData x, HashData y)
                 => x.Equals(y);
 
-            public static bool operator !=(Sha1Hash x, Sha1Hash y)
+            public static bool operator !=(HashData x, HashData y)
                 => !x.Equals(y);
 
             public void WriteTo(ObjectWriter writer)
@@ -133,18 +182,18 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteInt32(Data3);
             }
 
-            public static unsafe Sha1Hash FromPointer(Sha1Hash* hash)
+            public static unsafe HashData FromPointer(HashData* hash)
             {
-                Sha1Hash result = default;
+                HashData result = default;
                 result.Data1 = hash->Data1;
                 result.Data2 = hash->Data2;
                 result.Data3 = hash->Data3;
                 return result;
             }
 
-            public static Sha1Hash ReadFrom(ObjectReader reader)
+            public static HashData ReadFrom(ObjectReader reader)
             {
-                Sha1Hash result = default;
+                HashData result = default;
                 result.Data1 = reader.ReadInt64();
                 result.Data2 = reader.ReadInt64();
                 result.Data3 = reader.ReadInt32();
@@ -158,9 +207,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override bool Equals(object obj)
-                => obj is Sha1Hash other && Equals(other);
+                => obj is HashData other && Equals(other);
 
-            public bool Equals(Sha1Hash other)
+            public bool Equals(HashData other)
             {
                 return Data1 == other.Data1
                     && Data2 == other.Data2

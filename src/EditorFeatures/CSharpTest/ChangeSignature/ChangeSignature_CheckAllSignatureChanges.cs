@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -148,7 +150,7 @@ class C
     void Goo5(int a, string b, bool c) { }
 }";
             var signaturePartCounts = new[] { 0, 3, 0, 0 };
-            await TestAllSignatureChangesAsync(LanguageNames.CSharp, markup, signaturePartCounts);
+            await TestAllSignatureChangesAsync(LanguageNames.CSharp, markup, signaturePartCounts, new CSharpParseOptions(LanguageVersion.CSharp7));
         }
     }
 }

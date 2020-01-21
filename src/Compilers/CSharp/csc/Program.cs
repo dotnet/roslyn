@@ -25,12 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 
         private static int MainCore(string[] args)
         {
-#if NET46
-            var loader = new DesktopAnalyzerAssemblyLoader();
-#else
-            var loader = new CoreClrAnalyzerAssemblyLoader();
+#if BOOTSTRAP
+            ExitingTraceListener.Install();
 #endif
-            return DesktopBuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, loader);
+
+            return BuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run);
         }
 
         public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)

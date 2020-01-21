@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_defaultOptions As New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild:=False)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overloads Function CreateCompilation(
             assemblyName As String,
             options As CompilationOptions) As Compilation Implements ICompilationFactoryService.CreateCompilation

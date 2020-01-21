@@ -1,17 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Target Name="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies"
-          BeforeTargets="CoreCompile"
-          Condition="'@(ReferencePathWithRefAssemblies)' == ''">
-    <!-- Common targets should populate this item from dev15.3, but this file
-         may be used (via NuGet package) on earlier MSBuilds. If the
-         adjusted-for-reference-assemblies item is not populated, just use
-         the older item's contents. -->
-    <ItemGroup>
-      <ReferencePathWithRefAssemblies Include="@(ReferencePath)" />
-    </ItemGroup>
-  </Target>
+  <Import Project="Microsoft.Managed.Core.targets"/>
 
   <Target Name="CoreCompile"
           Inputs="$(MSBuildAllProjects);
@@ -28,7 +18,8 @@
                   @(CustomAdditionalCompileInputs);
                   $(ResolvedCodeAnalysisRuleSet);
                   @(AdditionalFiles);
-                  @(EmbeddedFiles)"
+                  @(EmbeddedFiles);
+                  @(EditorConfigFiles)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
                    @(IntermediateRefAssembly);
@@ -36,7 +27,7 @@
                    $(NonExistentFile);
                    @(CustomAdditionalCompileOutputs)"
           Returns="@(VbcCommandLineArgs)"
-          DependsOnTargets="$(CoreCompileDependsOn)">
+          DependsOnTargets="$(CoreCompileDependsOn);_BeforeVBCSCoreCompile">
     <PropertyGroup>
       <_NoWarnings Condition="'$(WarningLevel)' == '0'">true</_NoWarnings>
       <_NoWarnings Condition="'$(WarningLevel)' == '1'">false</_NoWarnings>
@@ -47,33 +38,12 @@
       <PdbFile Condition="'$(PdbFile)' == '' AND '$(OutputType)' == 'winmdobj' AND '$(DebugSymbols)' == 'true'">$(IntermediateOutputPath)$(TargetName).compile.pdb</PdbFile>
     </PropertyGroup>
 
-    <ItemGroup Condition="'$(TargetingClr2Framework)' == 'true'">
-      <ReferencePathWithRefAssemblies>
-        <EmbedInteropTypes />
-      </ReferencePathWithRefAssemblies>
-    </ItemGroup>
-
-    <!-- Prefer32Bit was introduced in .NET 4.5. Set it to false if we are targeting 4.0 -->
-    <PropertyGroup Condition="('$(TargetFrameworkVersion)' == 'v4.0')">
-      <Prefer32Bit>false</Prefer32Bit>
-    </PropertyGroup>
-
-    <!-- TODO: Remove this ItemGroup once it has been moved to "_GenerateCompileInputs" target in Microsoft.Common.CurrentVersion.targets.
-         https://github.com/dotnet/roslyn/issues/12223 -->
-    <ItemGroup Condition="('$(AdditionalFileItemNames)' != '')">
-      <AdditionalFileItems Include="$(AdditionalFileItemNames)" />
-      <AdditionalFiles Include="@(%(AdditionalFileItems.Identity))" />
-    </ItemGroup>
-
-    <PropertyGroup Condition="'$(UseSharedCompilation)' == ''">
-      <UseSharedCompilation>true</UseSharedCompilation>
-    </PropertyGroup>
-
     <!-- Condition is to filter out the _CoreCompileResourceInputs so that it doesn't pass in culture resources to the compiler -->
     <Vbc Condition="'%(_CoreCompileResourceInputs.WithCulture)' != 'true'"
          AdditionalLibPaths="$(AdditionalLibPaths)"
          AddModules="@(AddModules)"
          AdditionalFiles="@(AdditionalFiles)"
+         AnalyzerConfigFiles="@(EditorConfigFiles)"
          Analyzers="@(Analyzer)"
          BaseAddress="$(BaseAddress)"
          ChecksumAlgorithm="$(ChecksumAlgorithm)"
@@ -82,6 +52,7 @@
          DebugType="$(DebugType)"
          DefineConstants="$(FinalDefineConstants)"
          DelaySign="$(DelaySign)"
+         DisableSdkPath="$(DisableSdkPath)"
          DisabledWarnings="$(NoWarn)"
          DocumentationFile="@(DocFileItem)"
          EmbedAllSources="$(EmbedAllSources)"
@@ -123,6 +94,7 @@
          PreferredUILang="$(PreferredUILang)"
          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"
          References="@(ReferencePathWithRefAssemblies)"
+         RefOnly="$(ProduceOnlyReferenceAssembly)"
          RemoveIntegerChecks="$(RemoveIntegerChecks)"
          ReportAnalyzer="$(ReportAnalyzer)"
          Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"

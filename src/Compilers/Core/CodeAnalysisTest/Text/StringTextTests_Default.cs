@@ -43,18 +43,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void Indexer1()
         {
             var data = Create(String.Empty);
-            Assert.Throws(
-                typeof(IndexOutOfRangeException),
+            Assert.Throws<IndexOutOfRangeException>(
                 () => { var value = data[-1]; });
         }
 
         [Fact]
         public void NewLines1()
         {
-            var data = Create("goo" + Environment.NewLine + " bar");
+            string newLine = Environment.NewLine;
+            var data = Create("goo" + newLine + " bar");
             Assert.Equal(2, data.Lines.Count);
             Assert.Equal(3, data.Lines[0].Span.Length);
-            Assert.Equal(5, data.Lines[1].Span.Start);
+            Assert.Equal(3 + newLine.Length, data.Lines[1].Span.Start);
         }
 
         [Fact]

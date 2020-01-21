@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTag
     [ExcludeFromCodeCoverage]
     internal class RenameFieldBackgroundAndBorderTagDefinition : MarkerFormatDefinition
     {
+        [ImportingConstructor]
         public RenameFieldBackgroundAndBorderTagDefinition()
         {
             // The Border color should match the BackgroundColor from the

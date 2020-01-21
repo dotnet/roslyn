@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-
     ''' <summary>
     ''' Represents the state of Option Strict checking.
     ''' </summary>

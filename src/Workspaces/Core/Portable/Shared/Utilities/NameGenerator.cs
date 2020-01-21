@@ -1,42 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal static class NameGenerator
     {
-        public static IList<string> EnsureUniqueness(
-            IList<string> names,
-            Func<string, bool> canUse = null)
-        {
-            return EnsureUniqueness(names, names.Select(_ => false).ToList(), canUse);
-        }
-
-        /// <summary>
-        /// Ensures that any 'names' is unique and does not collide with any other name.  Names that
-        /// are marked as IsFixed can not be touched.  This does mean that if there are two names
-        /// that are the same, and both are fixed that you will end up with non-unique names at the
-        /// end.
-        /// </summary>
-        public static IList<string> EnsureUniqueness(
-            IList<string> names,
-            IList<bool> isFixed,
-            Func<string, bool> canUse = null,
-            bool isCaseSensitive = true)
-        {
-            var copy = names.ToList();
-            EnsureUniquenessInPlace(copy, isFixed, canUse, isCaseSensitive);
-            return copy;
-        }
-
-        internal static IList<string> EnsureUniqueness(IList<string> names, bool isCaseSensitive)
-        {
-            return EnsureUniqueness(names, names.Select(_ => false).ToList(), isCaseSensitive: isCaseSensitive);
-        }
-
         /// <summary>
         /// Transforms baseName into a name that does not conflict with any name in 'reservedNames'
         /// </summary>
@@ -45,29 +21,83 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             IEnumerable<string> reservedNames,
             bool isCaseSensitive = true)
         {
-            var names = new List<string> { baseName };
-            var isFixed = new List<bool> { false };
+            using var namesDisposer = ArrayBuilder<string>.GetInstance(out var names);
+            using var isFixedDisposer = ArrayBuilder<bool>.GetInstance(out var isFixed);
+            using var nameSetDisposer = PooledHashSet<string>.GetInstance(out var nameSet);
 
-            names.AddRange(reservedNames.Distinct());
-            isFixed.AddRange(Enumerable.Repeat(true, names.Count - 1));
+            names.Add(baseName);
+            isFixed.Add(false);
 
-            var result = EnsureUniqueness(names, isFixed, isCaseSensitive: isCaseSensitive);
-            return result.First();
+            foreach (var reservedName in reservedNames)
+            {
+                if (nameSet.Add(reservedName))
+                {
+                    names.Add(reservedName);
+                    isFixed.Add(true);
+                }
+            }
+
+            EnsureUniquenessInPlace(names, isFixed, isCaseSensitive: isCaseSensitive);
+            return names.First();
         }
 
-        private static void EnsureUniquenessInPlace(
-            IList<string> names,
-            IList<bool> isFixed,
-            Func<string, bool> canUse,
+        public static ImmutableArray<string> EnsureUniqueness(
+            ImmutableArray<string> names,
+            Func<string, bool>? canUse = null,
             bool isCaseSensitive = true)
         {
-            canUse = canUse ?? (s => true);
+            using var isFixedDisposer = ArrayBuilder<bool>.GetInstance(names.Length, fillWithValue: false, out var isFixed);
+
+            var result = ArrayBuilder<string>.GetInstance(names.Length);
+            result.AddRange(names);
+            EnsureUniquenessInPlace(result, isFixed, canUse, isCaseSensitive);
+            return result.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Ensures that any 'names' is unique and does not collide with any other name.  Names that
+        /// are marked as IsFixed can not be touched.  This does mean that if there are two names
+        /// that are the same, and both are fixed that you will end up with non-unique names at the
+        /// end.
+        /// </summary>
+        public static ImmutableArray<string> EnsureUniqueness(
+            ImmutableArray<string> names,
+            ImmutableArray<bool> isFixed,
+            Func<string, bool>? canUse = null,
+            bool isCaseSensitive = true)
+        {
+            using var isFixedDisposer = ArrayBuilder<bool>.GetInstance(names.Length, out var isFixedBuilder);
+            isFixedBuilder.AddRange(isFixed);
+
+            var result = ArrayBuilder<string>.GetInstance(names.Length);
+            result.AddRange(names);
+
+            EnsureUniquenessInPlace(result, isFixedBuilder, canUse, isCaseSensitive);
+
+            return result.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Updates the names in <paramref name="names"/> to be unique.  A name at a particular
+        /// index <c>i</c> will not be touched if <c>isFixed[i]</c> is <see langword="true"/>. All
+        /// other names will not collide with any other in <paramref name="names"/> and will all
+        /// return <see langword="true"/> for <c>canUse(name)</c>.
+        /// </summary>
+        public static void EnsureUniquenessInPlace(
+            ArrayBuilder<string> names,
+            ArrayBuilder<bool> isFixed,
+            Func<string, bool>? canUse = null,
+            bool isCaseSensitive = true)
+        {
+            canUse ??= Functions<string>.True;
+
+            using var disposer = ArrayBuilder<int>.GetInstance(out var collisionIndices);
 
             // Don't enumerate as we will be modifying the collection in place.
             for (var i = 0; i < names.Count; i++)
             {
                 var name = names[i];
-                var collisionIndices = GetCollisionIndices(names, name, isCaseSensitive);
+                FillCollisionIndices(names, name, isCaseSensitive, collisionIndices);
 
                 if (canUse(name) && collisionIndices.Count < 2)
                 {
@@ -75,17 +105,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     continue;
                 }
 
-                HandleCollisions(isFixed, names, name, collisionIndices, canUse, isCaseSensitive);
+                HandleCollisions(names, isFixed, name, canUse, isCaseSensitive, collisionIndices);
             }
         }
 
         private static void HandleCollisions(
-            IList<bool> isFixed,
-            IList<string> names,
+            ArrayBuilder<string> names,
+            ArrayBuilder<bool> isFixed,
             string name,
-            List<int> collisionIndices,
             Func<string, bool> canUse,
-            bool isCaseSensitive = true)
+            bool isCaseSensitive,
+            ArrayBuilder<int> collisionIndices)
         {
             var suffix = 1;
             var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
@@ -111,18 +141,22 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private static List<int> GetCollisionIndices(
-            IList<string> names,
+        private static void FillCollisionIndices(
+            ArrayBuilder<string> names,
             string name,
-            bool isCaseSensitive = true)
+            bool isCaseSensitive,
+            ArrayBuilder<int> collisionIndices)
         {
+            collisionIndices.Clear();
+
             var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
-            var collisionIndices =
-                names.Select((currentName, index) => new { currentName, index })
-                     .Where(t => comparer.Equals(t.currentName, name))
-                     .Select(t => t.index)
-                     .ToList();
-            return collisionIndices;
+            for (int i = 0, n = names.Count; i < n; i++)
+            {
+                if (comparer.Equals(names[i], name))
+                {
+                    collisionIndices.Add(i);
+                }
+            }
         }
 
         public static string GenerateUniqueName(string baseName, Func<string, bool> canUse)

@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         private const string SerializationFormat = "2";
 
+        bool IObjectWritable.ShouldReuseInSerialization => true;
+
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             var isCaseSensitive = reader.ReadBoolean();
-            int hashFunctionCount = reader.ReadInt32();
+            var hashFunctionCount = reader.ReadInt32();
             var bitArray = ReadBitArray(reader);
             return new BloomFilter(bitArray, hashFunctionCount, isCaseSensitive);
         }

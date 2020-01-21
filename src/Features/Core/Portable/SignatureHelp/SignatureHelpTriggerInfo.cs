@@ -4,7 +4,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
-    internal struct SignatureHelpTriggerInfo
+    internal readonly struct SignatureHelpTriggerInfo
     {
         public SignatureHelpTriggerReason TriggerReason { get; }
         public char? TriggerCharacter { get; }
@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             : this()
         {
             Contract.ThrowIfTrue(triggerReason == SignatureHelpTriggerReason.TypeCharCommand && triggerCharacter == null);
-            this.TriggerReason = triggerReason;
-            this.TriggerCharacter = triggerCharacter;
+            TriggerReason = triggerReason;
+            TriggerCharacter = triggerCharacter;
         }
     }
 }

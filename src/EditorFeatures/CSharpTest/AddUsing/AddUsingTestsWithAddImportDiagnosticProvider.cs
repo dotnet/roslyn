@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -283,6 +284,22 @@ namespace ConsoleApp282
     {
         public async Task<IReadOnlyCollection<ProjectConfiguration>>
     }
+}");
+        }
+
+        [WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestMissingDiagnosticForNameOf()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    Action action = () => {
+        var x = [|nameof|](System);
+#warning xxx
+    };
 }");
         }
     }

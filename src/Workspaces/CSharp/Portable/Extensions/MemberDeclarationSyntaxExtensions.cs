@@ -5,10 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -28,50 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var dictionary = DeclarationFinder.GetAllDeclarations(member);
             return dictionary.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.AsImmutable<SyntaxToken>());
-        }
-
-        public static SyntaxList<AttributeListSyntax> GetAttributes(this MemberDeclarationSyntax member)
-        {
-            if (member != null)
-            {
-                switch (member.Kind())
-                {
-                    case SyntaxKind.EnumDeclaration:
-                        return ((EnumDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.EnumMemberDeclaration:
-                        return ((EnumMemberDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                        return ((TypeDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.DelegateDeclaration:
-                        return ((DelegateDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.FieldDeclaration:
-                        return ((FieldDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.EventFieldDeclaration:
-                        return ((EventFieldDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.ConstructorDeclaration:
-                        return ((ConstructorDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.DestructorDeclaration:
-                        return ((DestructorDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.PropertyDeclaration:
-                        return ((PropertyDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.EventDeclaration:
-                        return ((EventDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.IndexerDeclaration:
-                        return ((IndexerDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.OperatorDeclaration:
-                        return ((OperatorDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                        return ((ConversionOperatorDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.MethodDeclaration:
-                        return ((MethodDeclarationSyntax)member).AttributeLists;
-                    case SyntaxKind.IncompleteMember:
-                        return ((IncompleteMemberSyntax)member).AttributeLists;
-                }
-            }
-
-            return SyntaxFactory.List<AttributeListSyntax>();
         }
 
         public static SyntaxToken GetNameToken(this MemberDeclarationSyntax member)
@@ -340,6 +293,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return ((OperatorDeclarationSyntax)memberDeclaration).ExpressionBody;
                 case SyntaxKind.ConversionOperatorDeclaration:
                     return ((ConversionOperatorDeclarationSyntax)memberDeclaration).ExpressionBody;
+                case SyntaxKind.ConstructorDeclaration:
+                    return ((ConstructorDeclarationSyntax)memberDeclaration).ExpressionBody;
+                case SyntaxKind.DestructorDeclaration:
+                    return ((DestructorDeclarationSyntax)memberDeclaration).ExpressionBody;
                 default:
                     return null;
             }

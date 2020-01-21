@@ -1,14 +1,15 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
     Public Class CSharpSignatureHelpCommandHandlerTests
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestCreateAndDismiss() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
 {
@@ -28,7 +29,7 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TypingUpdatesParameters() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
 {
@@ -48,7 +49,7 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TypingChangeParameterByNavigating() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
 {
@@ -70,7 +71,7 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function NavigatingOutOfSpanDismissesSignatureHelp() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
 {
@@ -90,7 +91,7 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestNestedCalls() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
 {
@@ -114,7 +115,7 @@ class C
         <WorkItem(544547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544547")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestNoSigHelpOnGenericNamespace() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 namespace global::F$$
                               </Document>)
@@ -127,7 +128,7 @@ namespace global::F$$
         <WorkItem(544547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544547")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpOnExtraSpace() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class G&lt;S, T&gt; { };
 
@@ -148,7 +149,7 @@ class C
         <WorkItem(544551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestFilterOnNamedParameters1() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
 {
@@ -169,26 +170,25 @@ class Program
                 state.SendInvokeSignatureHelp()
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int third)")
-                Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal(2, state.GetSignatureHelpItems().Count)
 
                 state.SendTypeChars(":")
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)")
-                Assert.Equal(1, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal(1, state.GetSignatureHelpItems().Count)
 
-                ' Keep the same item selected when the colon is deleted, but now both items are
-                ' available again.
+                ' Now both items are available again, and we're sticking with last selection
                 state.SendBackspace()
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)")
-                Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal(2, state.GetSignatureHelpItems().Count)
             End Using
         End Function
 
         <WorkItem(545488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545488")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestKeepSelectedItemWhenNoneAreViable() As Task
-            Using state = TestState.CreateCSharpTestState(
+        Public Async Function TestUseBestOverload() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 class Program
 {
@@ -201,22 +201,77 @@ class Program
 }
 ]]></Document>)
 
+                ' We don't have a definite symbol, so default to first
                 state.SendTypeChars("(")
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
-                Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal(2, state.GetSignatureHelpItems().Count)
+                Assert.Equal({"void Program.F(int i)", "void Program.F(string s)"},
+                             state.GetSignatureHelpItems().Select(Function(i) i.ToString()))
 
-                state.SendTypeChars(""""",")
+                ' We now have a definite symbol (the string overload)
+                state.SendTypeChars("""""")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(string s)")
+                Assert.Equal(2, state.GetSignatureHelpItems().Count)
+
+                ' We stick with the last selection after deleting
+                state.SendBackspace()
+                state.SendBackspace()
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(string s)")
+                Assert.Equal(2, state.GetSignatureHelpItems().Count)
+
+                ' We now have a definite symbol (the int overload)
+                state.SendTypeChars("1")
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
-                Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal(2, state.GetSignatureHelpItems().Count)
+            End Using
+        End Function
+
+        <WorkItem(545488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545488")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestForgetSelectedItemWhenNoneAreViable() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document><![CDATA[
+class Program
+{
+    static void Main(string[] args)
+    {
+        F$$
+    }
+    static void F(int i) { }
+    static void F(string s) { }
+}
+]]></Document>)
+
+                ' We don't have a definite symbol, so default to first
+                state.SendTypeChars("(")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
+                Assert.Equal(2, state.GetSignatureHelpItems().Count)
+                Assert.Equal({"void Program.F(int i)", "void Program.F(string s)"},
+                             state.GetSignatureHelpItems().Select(Function(i) i.ToString()))
+
+                ' We now have a definite symbol (the string overload)
+                state.SendTypeChars("""""")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(string s)")
+                Assert.Equal(2, state.GetSignatureHelpItems().Count)
+
+                ' We don't have a definite symbol again, so we stick with last selection
+                state.SendTypeChars(",")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(string s)")
+                Assert.Equal(2, state.GetSignatureHelpItems().Count)
             End Using
         End Function
 
         <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestKeepSelectedItemAfterComma() As Task
-            Using state = TestState.CreateCSharpTestState(
+        Public Async Function TestKeepUserSelectedItem() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 class C
 {
@@ -234,13 +289,160 @@ class C
                 state.SendTypeChars("(")
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("void C.M()")
-                Assert.Equal(4, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
+                Assert.Equal(4, state.GetSignatureHelpItems().Count)
 
                 state.SendUpKey()
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
 
-                state.SendTypeChars("1, ")
+                state.SendTypeChars("1")
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
+
+                state.SendTypeChars(",")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
+
+                state.SendTypeChars("2,")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
+            End Using
+        End Function
+
+        <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestKeepUserSelectedItem2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        M$$
+    }
+
+    void M(int i) {  }
+    void M(int i, int j) { }
+    void M(int i, string x) { }
+    void M(int i, int j, int k) { }
+}
+]]></Document>)
+
+                state.SendTypeChars("(")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void C.M()")
+                Assert.Equal(5, state.GetSignatureHelpItems().Count)
+
+                state.SendTypeChars("1, ")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j)")
+
+                state.SendDownKey()
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
+
+                state.SendTypeChars("1")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
+            End Using
+        End Function
+
+        <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestKeepUserSelectedItem3() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        M$$
+    }
+
+    void M(int i) {  }
+    void M(int i, int j) { }
+    void M(int i, string x) { }
+    void M(int i, int j, int k) { }
+}
+]]></Document>)
+
+                state.SendTypeChars("(")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void C.M()")
+                Assert.Equal(5, state.GetSignatureHelpItems().Count)
+
+                state.SendTypeChars("1, """" ")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
+
+                state.SendUpKey()
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j)")
+
+                state.SendTypeChars(",")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
+
+                state.SendBackspace()
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
+            End Using
+        End Function
+
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestPathIndependent() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        M$$
+    }
+
+    void M(int i) {  }
+    void M(int i, int j) { }
+    void M(int i, string x) { }
+    void M(int i, int j, int k) { }
+}
+]]></Document>)
+
+                state.SendTypeChars("(")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void C.M()")
+                Assert.Equal(5, state.GetSignatureHelpItems().Count)
+                Assert.Equal({"void C.M()", "void C.M(int i)", "void C.M(int i, int j)", "void C.M(int i, string x)", "void C.M(int i, int j, int k)"},
+                             state.GetSignatureHelpItems().Select(Function(i) i.ToString()))
+
+                state.SendTypeChars("1")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i)")
+
+                state.SendTypeChars(",")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j)")
+
+                state.SendTypeChars(" ""a"" ")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
+            End Using
+        End Function
+
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestPathIndependent2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        M$$
+    }
+
+    void M(int i) {  }
+    void M(int i, int j) { }
+    void M(int i, string x) { }
+    void M(int i, int j, int k) { }
+}
+]]></Document>)
+
+                state.SendTypeChars("(")
+                Await state.AssertSignatureHelpSession()
+                Await state.AssertSelectedSignatureHelpItem("void C.M()")
+                Assert.Equal(5, state.GetSignatureHelpItems().Count)
+                Assert.Equal({"void C.M()", "void C.M(int i)", "void C.M(int i, int j)", "void C.M(int i, string x)", "void C.M(int i, int j, int k)"},
+                             state.GetSignatureHelpItems().Select(Function(i) i.ToString()))
+
+                state.SendTypeChars("1, ""a"" ")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
             End Using
         End Function
 
@@ -249,7 +451,7 @@ class C
         <WorkItem(636117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636117")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSessionMaintainedDuringIndexerErrorToleranceTransition() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 class Program
 {
@@ -273,7 +475,7 @@ class Program
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpInLinkedFiles() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                         <Document FilePath="C.cs">
@@ -313,7 +515,7 @@ class C
         <WorkItem(1060850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpNotDismissedAfterQuote() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 class C
 {
@@ -339,7 +541,7 @@ class C
         <WorkItem(1060850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpDismissedAfterComment() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 class C
 {
@@ -364,7 +566,7 @@ class C
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestGenericNameSigHelpInTypeParameterListAfterConditionalAccess() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 using System.Collections;
 using System.Collections.Generic;
@@ -387,7 +589,7 @@ class C
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestGenericNameSigHelpInTypeParameterListAfterMultipleConditionalAccess() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 using System.Collections;
 using System.Collections.Generic;
@@ -410,7 +612,7 @@ class C
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestGenericNameSigHelpInTypeParameterListMuchAfterConditionalAccess() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 using System.Collections;
 using System.Collections.Generic;
@@ -433,7 +635,7 @@ class C
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestGenericNameSigHelpInTypeParameterListAfterConditionalAccessAndNullCoalesce() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 using System.Collections;
 using System.Collections.Generic;
@@ -456,7 +658,7 @@ class C
         <WorkItem(5174, "https://github.com/dotnet/roslyn/issues/5174")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function DontShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
 {
@@ -468,7 +670,9 @@ class C
                               </Document>)
 
                 ' disable implicit sig help then type a trigger character -> no session should be available
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(SignatureHelpOptions.ShowSignatureHelp, "C#", False)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(SignatureHelpOptions.ShowSignatureHelp, "C#", False)))
                 state.SendTypeChars("(")
                 Await state.AssertNoSignatureHelpSession()
 
@@ -480,7 +684,7 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function MixedTupleNaming() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
 {
@@ -498,7 +702,7 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function ParameterSelectionWhileParsedAsParenthesizedExpression() As Task
-            Using state = TestState.CreateCSharpTestState(
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
 {

@@ -15,21 +15,23 @@ namespace Microsoft.CodeAnalysis.Operations
         [Flags]
         private enum ConversionKind
         {
-            None = 0b0000,
-            Exists = 0b0001,
-            IsIdentity = 0b0010,
-            IsNumeric = 0b0100,
-            IsReference = 0b1000
+            None = 0,
+            Exists = 1 << 0,
+            IsIdentity = 1 << 1,
+            IsNumeric = 1 << 2,
+            IsReference = 1 << 3,
+            IsImplicit = 1 << 4,
         }
 
         private readonly ConversionKind _conversionKind;
 
-        internal CommonConversion(bool exists, bool isIdentity, bool isNumeric, bool isReference, IMethodSymbol methodSymbol)
+        internal CommonConversion(bool exists, bool isIdentity, bool isNumeric, bool isReference, bool isImplicit, IMethodSymbol methodSymbol)
         {
             _conversionKind = (exists ? ConversionKind.Exists : ConversionKind.None) |
                               (isIdentity ? ConversionKind.IsIdentity : ConversionKind.None) |
                               (isNumeric ? ConversionKind.IsNumeric : ConversionKind.None) |
-                              (isReference ? ConversionKind.IsReference : ConversionKind.None);
+                              (isReference ? ConversionKind.IsReference : ConversionKind.None) |
+                              (isImplicit ? ConversionKind.IsImplicit : ConversionKind.None);
             MethodSymbol = methodSymbol;
         }
 
@@ -53,6 +55,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Returns true if the conversion is a reference conversion.
         /// </summary>
         public bool IsReference => (_conversionKind & ConversionKind.IsReference) == ConversionKind.IsReference;
+        /// <summary>
+        /// Returns true if the conversion is an implicit (C#) or widening (VB) conversion.
+        /// </summary>
+        public bool IsImplicit => (_conversionKind & ConversionKind.IsImplicit) == ConversionKind.IsImplicit;
         /// <summary>
         /// Returns true if the conversion is a user-defined conversion.
         /// </summary>

@@ -1110,7 +1110,7 @@ DoneWithDiagnostics:
 
             ReportUseSiteError(diagnostics, tree, convKind.Value)
 
-            ReportDiagnosticsIfObsolete(diagnostics, convKind.Value, tree)
+            ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, convKind.Value, tree)
 
             Debug.Assert(convKind.Value.IsUserDefinedOperator())
             If Me.ContainingMember Is convKind.Value Then
@@ -1651,7 +1651,7 @@ DoneWithDiagnostics:
                 convertedArguments.ToImmutableAndFree(),
                 targetType)
 
-            If sourceTuple.Type <> destination AndAlso convKind <> Nothing Then
+            If Not TypeSymbol.Equals(sourceTuple.Type, destination, TypeCompareKind.ConsiderEverything) AndAlso convKind <> Nothing Then
                 ' literal cast is applied to the literal 
                 result = New BoundConversion(sourceTuple.Syntax, result, convKind, checked:=False, explicitCastInCode:=isExplicit, type:=destination)
             End If

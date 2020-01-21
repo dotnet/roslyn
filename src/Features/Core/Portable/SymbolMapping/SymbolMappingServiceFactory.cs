@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.SymbolMapping
     [ExportWorkspaceService(typeof(ISymbolMappingService), ServiceLayer.Default), Shared]
     internal class DefaultSymbolMappingService : ISymbolMappingService
     {
+        [ImportingConstructor]
+        public DefaultSymbolMappingService()
+        {
+        }
+
         public async Task<SymbolMappingResult> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);

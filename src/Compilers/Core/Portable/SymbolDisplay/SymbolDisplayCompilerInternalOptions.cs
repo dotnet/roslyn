@@ -49,5 +49,10 @@ namespace Microsoft.CodeAnalysis
         ///   b) not setting this option will produce "int[][,]".
         /// </summary>
         ReverseArrayRankSpecifiers = 1 << 5,
+
+        /// <summary>
+        /// Display `System.ValueTuple` instead of tuple syntax `(...)`.
+        /// </summary>
+        UseValueTuple = 1 << 6,
     }
 }

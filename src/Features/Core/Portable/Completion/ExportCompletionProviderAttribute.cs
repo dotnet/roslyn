@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Completion
         public ExportCompletionProviderAttribute(string name, string language)
             : base(typeof(CompletionProvider))
         {
-            this.Name = name ?? throw new ArgumentNullException(nameof(name));
-            this.Language = language ?? throw new ArgumentNullException(nameof(language));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Language = language ?? throw new ArgumentNullException(nameof(language));
         }
     }
 }

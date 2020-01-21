@@ -16,9 +16,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class SemanticModelTests : CSharpTestBase
     {
         [Fact]
+        public void RefForEachVar()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(Span<int> span)
+    {
+        foreach (ref readonly int rx in span) { }
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetCompilationUnitRoot();
+            var rxDecl = root.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var model = comp.GetSemanticModel(tree);
+            ILocalSymbol rx = model.GetDeclaredSymbol(rxDecl);
+            Assert.NotNull(rx);
+            Assert.True(rx.IsRef);
+            Assert.Equal(RefKind.RefReadOnly, rx.RefKind);
+        }
+
+        [Fact]
+        public void RefForVar()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(int x)
+    {
+        for (ref readonly int rx = ref x;;) { }
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetCompilationUnitRoot();
+            var rxDecl = root.DescendantNodes().OfType<ForStatementSyntax>().Single().Declaration;
+            var model = comp.GetSemanticModel(tree);
+            ISymbol rx = model.GetDeclaredSymbol(rxDecl.Variables.Single());
+            Assert.NotNull(rx);
+            var rxLocal = Assert.IsAssignableFrom<ILocalSymbol>(rx);
+            Assert.True(rxLocal.IsRef);
+            Assert.Equal(RefKind.RefReadOnly, rxLocal.RefKind);
+        }
+
+        [Fact]
         public void TestGetDeclaredSymbolFromNamespace()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace A.B
 {
 }
@@ -35,7 +81,7 @@ namespace A.B
         [Fact]
         public void NamespaceAndClassWithNoNames()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class
 {
 }
@@ -60,7 +106,7 @@ class
         [Fact]
         public void TestGetDeclaredSymbolFromNestedNamespace()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace A.B
 {
    namespace C.D
@@ -81,7 +127,7 @@ namespace A.B
         [Fact]
         public void IncompleteNamespaceDeclaration()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace
 
 class C
@@ -104,7 +150,7 @@ class C
         [Fact]
         public void AmbiguousSymbolInNamespaceName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C { }
 
 namespace C.B 
@@ -129,7 +175,7 @@ namespace C.B
         [Fact]
         public void GetEnumDeclaration()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 enum E { }
 ");
 
@@ -147,7 +193,7 @@ enum E { }
         [Fact]
         public void GenericNameInNamespaceName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace C<int>.B 
 { 
     class Y { }
@@ -170,7 +216,7 @@ namespace C<int>.B
         [Fact]
         public void AliasedNameInNamespaceName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace alias::C<int>.B 
 { 
     class Y { }
@@ -193,7 +239,7 @@ namespace alias::C<int>.B
         [Fact]
         public void TestGetDeclaredSymbolFromType()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -213,7 +259,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromMethod()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -234,7 +280,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromProperty()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"class C
 {
     object P
@@ -265,7 +311,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromIndexer()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"class C
 {
     object this[int x, int y]
@@ -314,7 +360,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromCustomEvent()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"class C
 {
     event System.Action E
@@ -332,7 +378,7 @@ class C
             var eventSymbol = model.GetDeclaredSymbol(eventDecl);
             Assert.NotNull(eventSymbol);
             Assert.Equal("E", eventSymbol.Name);
-            Assert.IsType<SourceCustomEventSymbol>(eventSymbol);
+            Assert.IsType<SourceCustomEventSymbol>(eventSymbol.GetSymbol());
 
             var accessorList = eventDecl.AccessorList.Accessors;
             Assert.Equal(2, accessorList.Count);
@@ -344,7 +390,7 @@ class C
         [Fact()]
         public void TestGetDeclaredSymbolFromFieldLikeEvent()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"class C
 {
     event System.Action E;
@@ -359,14 +405,14 @@ class C
             Assert.NotNull(eventSymbol);
             Assert.Null(model.GetDeclaredSymbol(eventDecl)); // the event decl may have multiple variable declarators, the result for GetDeclaredSymbol will always be null
             Assert.Equal("E", eventSymbol.Name);
-            Assert.IsType<SourceFieldLikeEventSymbol>(eventSymbol);
+            Assert.IsType<SourceFieldLikeEventSymbol>(eventSymbol.GetSymbol());
         }
 
         [WorkItem(543574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543574")]
         [Fact()]
         public void GetDeclaredSymbolOfEventDeclarationSyntaxAsBasePropertyDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -387,7 +433,7 @@ public class Test
         [Fact()]
         public void GetDeclaredSymbolOfPropertyDeclarationSyntaxAsBasePropertyDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -409,7 +455,7 @@ public class Test
         [Fact()]
         public void GetDeclaredSymbolOfIndexerDeclarationSyntaxAsBasePropertyDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -434,7 +480,7 @@ public class Test
         [Fact()]
         public void GetDeclaredSymbolOfEventDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -456,7 +502,7 @@ public class Test
         [Fact()]
         public void GetDeclaredSymbolOfPropertyDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -478,7 +524,7 @@ public class Test
         [Fact()]
         public void GetDeclaredSymbolOfIndexerDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -502,7 +548,7 @@ public class Test
         [Fact]
         public void TestGetDeclaredSymbolFromLocalDeclarator()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -524,7 +570,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromMultipleLocalDeclarators()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -550,7 +596,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromMultipleLabelDeclarators()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -566,12 +612,12 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             LabeledStatementSyntax labeled1 = methodDecl.Body.Statements[0];
-            var symbol1 = model.GetDeclaredSymbol(labeled1);
+            var symbol1 = (ISymbol)model.GetDeclaredSymbol(labeled1);
             Assert.NotNull(symbol1);
             Assert.Equal("label1", symbol1.Name);
 
             var labeled2 = (LabeledStatementSyntax)labeled1.Statement;
-            var symbol2 = model.GetDeclaredSymbol(labeled2);
+            var symbol2 = (ISymbol)model.GetDeclaredSymbol(labeled2);
             Assert.NotNull(symbol2);
             Assert.Equal("label2", symbol2.Name);
         }
@@ -579,7 +625,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromAnonymousTypePropertyInitializer()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -604,7 +650,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromAnonymousTypePropertyInitializer_WithErrors()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -645,7 +691,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromSwitchCaseLabel()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -666,11 +712,10 @@ class C
             SwitchStatementSyntax switchStmt = methodDecl.Body.Statements[1];
             SwitchLabelSyntax switchLabel = switchStmt.Sections[0].Labels[0];
 
-            var symbol = model.GetDeclaredSymbol(switchLabel);
+            var symbol = (ISymbol)model.GetDeclaredSymbol(switchLabel);
             Assert.NotNull(symbol);
-            Assert.IsType<SourceLabelSymbol>(symbol);
 
-            var labelSymbol = (SourceLabelSymbol)symbol;
+            var labelSymbol = (SourceLabelSymbol)symbol.GetSymbol();
             Assert.Equal(ConstantValue.Default(SpecialType.System_Int32), labelSymbol.SwitchCaseLabelConstant);
             Assert.Equal(switchLabel, labelSymbol.IdentifierNodeOrToken.AsNode());
             Assert.Equal("case 0:", labelSymbol.Name);
@@ -679,7 +724,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromSwitchDefaultLabel()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -699,10 +744,10 @@ class C
 
             SwitchStatementSyntax switchStmt = methodDecl.Body.Statements[1];
             SwitchLabelSyntax switchLabel = switchStmt.Sections[0].Labels[0];
-            var symbol1 = model.GetDeclaredSymbol(switchLabel);
+            var symbol1 = (ISymbol)model.GetDeclaredSymbol(switchLabel);
             Assert.NotNull(symbol1);
-            Assert.IsAssignableFrom<SourceLabelSymbol>(symbol1);
-            var labelSymbol = (SourceLabelSymbol)symbol1;
+
+            var labelSymbol = (SourceLabelSymbol)symbol1.GetSymbol();
             Assert.Null(labelSymbol.SwitchCaseLabelConstant);
             Assert.Equal(switchLabel, labelSymbol.IdentifierNodeOrToken.AsNode());
             Assert.Equal("default", labelSymbol.Name);
@@ -711,7 +756,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromFieldDeclarator()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   int x;
@@ -733,7 +778,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromMultipleFieldDeclarators()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   int x, y;
@@ -759,7 +804,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M(int x)
@@ -780,7 +825,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromDelegateParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 delegate D(int x);
 ");
             var tree = compilation.SyntaxTrees[0];
@@ -795,7 +840,7 @@ delegate D(int x);
         [Fact]
         public void TestGetDeclaredSymbolFromMultipleParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M(int x, int y)
@@ -819,7 +864,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromClassTypeParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C<T>
 {
   void M()
@@ -839,7 +884,7 @@ class C<T>
         [Fact]
         public void TestGetDeclaredSymbolFromMethodTypeParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C
 {
   void M<T>()
@@ -859,7 +904,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolFromGenericPartialType()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace N1.N2
 {
     public struct St<T>
@@ -896,7 +941,7 @@ namespace N1.N2
             Assert.Equal("N1.N2.St<T>", structSymbol.ToTestDisplayString());
 
             var fieldDecl = (FieldDeclarationSyntax)typeDecl.Members[0];
-            var fSymbol = model.GetDeclaredSymbol(fieldDecl.Declaration.Variables[0]) as FieldSymbol;
+            var fSymbol = model.GetDeclaredSymbol(fieldDecl.Declaration.Variables[0]) as IFieldSymbol;
             Assert.Equal("field", fSymbol.Name);
             Assert.Equal("T", fSymbol.Type.Name);
             Assert.Equal<ISymbol>(structSymbol, fSymbol.ContainingSymbol);
@@ -921,14 +966,14 @@ namespace N1.N2
             Assert.Equal("V", ptsym.Name);
 
             var memDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var mSymbol = model.GetDeclaredSymbol(memDecl) as MethodSymbol;
+            var mSymbol = model.GetDeclaredSymbol(memDecl) as IMethodSymbol;
             Assert.Equal("ReturnEnum", mSymbol.Name);
             Assert.Equal("N1.N2.St<System.Object>.Em", mSymbol.ReturnType.ToTestDisplayString());
             Assert.Equal<ISymbol>(enumSymbol, mSymbol.ReturnType.OriginalDefinition);
 
             typeDecl = (TypeDeclarationSyntax)nsDecl.Members[1];
             memDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            mSymbol = model.GetDeclaredSymbol(memDecl) as MethodSymbol;
+            mSymbol = model.GetDeclaredSymbol(memDecl) as IMethodSymbol;
             Assert.Equal(2, mSymbol.Parameters.Length);
             Assert.Equal("p1", mSymbol.Parameters[0].Name);
             Assert.Equal("St", mSymbol.Parameters[0].Type.Name);
@@ -943,7 +988,7 @@ namespace N1.N2
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         public void TestGetDeclaredSymbolWithIncompleteDeclaration()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C0 { }
 
 class 
@@ -966,7 +1011,7 @@ class C1 { }
         [Fact]
         public void TestLookupUnresolvableNamespaceUsing()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 namespace A
                 {
                     using B.C;
@@ -987,7 +1032,7 @@ class C1 { }
         [Fact]
         public void TestLookupSourceSymbolHidesMetadataSymbol()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace System
 {
     public class DateTime
@@ -1010,7 +1055,7 @@ namespace System
         [Fact]
         public void TestLookupAllArities()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class B {}
 
                 class A
@@ -1045,7 +1090,7 @@ namespace System
         [Fact]
         public void TestLookupWithinClassAllArities()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 using AliasZ = B.Z;
 
                 class A
@@ -1091,7 +1136,7 @@ namespace System
             Assert.Equal(SymbolKind.Alias, symbols[0].Kind);
 
             symbols = model.LookupSymbols(positionInC, name: "C");
-            var container = (NamespaceOrTypeSymbol)symbols.Single();
+            var container = (INamespaceOrTypeSymbol)symbols.Single();
 
             symbols = model.LookupSymbols(positionInC, name: "AliasZ", container: container);
             Assert.Equal(0, symbols.Length);
@@ -1100,7 +1145,7 @@ namespace System
         [Fact]
         public void TestLookupTypesAllArities()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class B {}
 
                 class A
@@ -1131,7 +1176,7 @@ namespace System
         [Fact]
         public void TestLookupSymbolNames()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class A
                 {
                    public int X;
@@ -1150,7 +1195,7 @@ namespace System
                    {
                    }
                 }
-            ");
+            ", targetFramework: TargetFramework.StandardCompat);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1176,7 +1221,7 @@ namespace System
         [Fact]
         public void TestLookupSymbolNamesInCyclicClass()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class A : B
                 {
                    public int X;
@@ -1186,7 +1231,7 @@ namespace System
                 {
                    public int Y;
                 }
-            ");
+            ", targetFramework: TargetFramework.StandardCompat);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1205,7 +1250,7 @@ namespace System
         [Fact]
         public void TestLookupSymbolNamesInInterface()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 interface A
                 {
                    void AM();
@@ -1220,7 +1265,7 @@ namespace System
                 {
                    void CM();
                 }
-            ");
+            ", targetFramework: TargetFramework.StandardCompat);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1230,7 +1275,7 @@ namespace System
             var someMemberInC = (MemberDeclarationSyntax)typeDeclC.Members[0];
 
             var namesInC = model.LookupNames(someMemberInC.SpanStart);
-            Assert.Equal(15, namesInC.Count); // everything in System.Object is included, with an uncertain count
+            Assert.Equal(13, namesInC.Count); // everything with exception of protected members in System.Object is included, with an uncertain count
             Assert.Contains("A", namesInC);
             Assert.Contains("B", namesInC);
             Assert.Contains("C", namesInC);
@@ -1244,7 +1289,7 @@ namespace System
         [Fact]
         public void TestLookupSymbolNamesInTypeParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 interface IA
 {
     void MA();
@@ -1304,7 +1349,7 @@ class D<T>
         [Fact]
         public void TestLookupSymbolsInInterface()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 interface A
                 {
                    void M<T>(T t);
@@ -1320,7 +1365,7 @@ class D<T>
                    void F();
                    void M<T, U, V>(T t, U u, V v);
                 }
-            ");
+            ", targetFramework: TargetFramework.StandardCompat);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1331,6 +1376,7 @@ class D<T>
             int positionInC = someMemberInC.SpanStart;
 
             var symbolsInC = model.LookupSymbols(positionInC);
+            var test = symbolsInC.Where(s => s.ContainingAssembly == null).ToList();
             Assert.Equal(9, symbolsInC.Where(s => s.ContainingType == null || s.ContainingType.SpecialType != SpecialType.System_Object).Count());
             Assert.True(symbolsInC.Any(s => s.Name == "A" && s.Kind == SymbolKind.NamedType));
             Assert.True(symbolsInC.Any(s => s.Name == "B" && s.Kind == SymbolKind.NamedType));
@@ -1346,7 +1392,7 @@ class D<T>
         [Fact]
         public void TestLookupSymbolsInTypeParameter()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 interface IA
 {
     void MA();
@@ -1412,7 +1458,7 @@ class D<T>
         [Fact]
         public void TestLookupSymbolsTypeParameterConstraints()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"interface I<T> where T : new() { }
 class A
 {
@@ -1453,7 +1499,7 @@ struct B<T> where T : A
         [Fact]
         public void TestLookupSymbolsTypeParameterConstraintCycles()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"interface IA<T1, T2>
     where T1 : T2
     where T2 : T1
@@ -1500,12 +1546,12 @@ interface IB<T3, T4>
             CompilationUtils.CheckConstraints(symbol, TypeParameterConstraintKind.None, "U4");
         }
 
-        private static TypeParameterSymbol LookupTypeParameterFromConstraintClause(SemanticModel model, TypeParameterConstraintClauseSyntax constraintSyntax, string name)
+        private static ITypeParameterSymbol LookupTypeParameterFromConstraintClause(SemanticModel model, TypeParameterConstraintClauseSyntax constraintSyntax, string name)
         {
             var constraintStart = constraintSyntax.WhereKeyword.SpanStart;
             var symbols = model.LookupSymbols(constraintStart, null, name: name);
             Assert.Equal(1, symbols.Length);
-            var symbol = symbols[0] as TypeParameterSymbol;
+            var symbol = symbols[0] as ITypeParameterSymbol;
             Assert.NotNull(symbol);
             return symbol;
         }
@@ -1513,7 +1559,7 @@ interface IB<T3, T4>
         [Fact]
         public void TestLookupSymbolsAllNames()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class A
                 {
                    public int X;
@@ -1532,7 +1578,7 @@ interface IB<T3, T4>
                    {
                    }
                 }
-            ");
+            ", targetFramework: TargetFramework.StandardCompat);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1549,7 +1595,7 @@ interface IB<T3, T4>
         [Fact]
         public void TestLookupSymbolsAllNamesMustBeInstance()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class A
                 {
                    public int X;
@@ -1577,17 +1623,17 @@ interface IB<T3, T4>
             var someMemberInC = (MemberDeclarationSyntax)typeDeclC.Members[0];
             int position = someMemberInC.SpanStart;
 
-            var symbols = model.LookupSymbols(position).Where(s => !s.IsStatic && !((s is TypeSymbol)));
+            var symbols = model.LookupSymbols(position).Where(s => !s.IsStatic && !((s is ITypeSymbol)));
             Assert.Equal(9, symbols.Count());  // A.X, B.Y, C.Z, Object.ToString, Object.Equals, Object.Finalize, Object.GetHashCode, Object.GetType, Object.MemberwiseClone
 
-            var symbols2 = model.LookupSymbols(position, container: symbolC).Where(s => !s.IsStatic && !((s is TypeSymbol)));
+            var symbols2 = model.LookupSymbols(position, container: symbolC).Where(s => !s.IsStatic && !((s is ITypeSymbol)));
             Assert.Equal(9, symbols2.Count());  // A.X, B.Y, C.Z, Object.ToString, Object.Equals, Object.Finalize, Object.GetHashCode, Object.GetType, Object.MemberwiseClone
         }
 
         [Fact]
         public void TestLookupSymbolsAllNamesMustNotBeInstance()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class A
                 {
                    public int X;
@@ -1621,7 +1667,7 @@ interface IB<T3, T4>
         [Fact]
         public void TestLookupSymbolsExtensionMethods()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = (Compilation)CreateCompilation(
 @"namespace N
 {
     class C
@@ -1666,7 +1712,7 @@ static class S2
             Assert.NotNull(type);
 
             Func<ISymbol, bool> isExtensionMethod = symbol =>
-                symbol.Kind == SymbolKind.Method && (((MethodSymbol)symbol).IsExtensionMethod || ((MethodSymbol)symbol).MethodKind == MethodKind.ReducedExtension);
+                symbol.Kind == SymbolKind.Method && (((IMethodSymbol)symbol).IsExtensionMethod || ((IMethodSymbol)symbol).MethodKind == MethodKind.ReducedExtension);
 
             // All extension methods available for specific type.
             var symbols = model.LookupSymbols(typeDeclStart, type, name: null, includeReducedExtensionMethods: true).WhereAsArray(isExtensionMethod);
@@ -1742,7 +1788,7 @@ static class S2
         [Fact]
         public void TestLookupSymbolsGenericExtensionMethods()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = (Compilation)CreateCompilation(
 @"class C
 {
     static void M() { }
@@ -1789,7 +1835,7 @@ static class S
         [Fact]
         public void TestLookupSymbolsMoreGenericExtensionMethods()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"using System;
 class A<T> { }
 class B<T> : A<T> { }
@@ -1821,15 +1867,15 @@ static class S
             // Get types for A<int> and B<string>.
             var symbols = model.LookupSymbols(methodStart, null, name: "a");
             CheckSymbolsUnordered(symbols, "A<int> a");
-            var typeA = ((ParameterSymbol)symbols[0]).Type;
+            var typeA = ((IParameterSymbol)symbols[0]).Type;
             Assert.NotNull(typeA);
             symbols = model.LookupSymbols(methodStart, null, name: "b");
             CheckSymbolsUnordered(symbols, "B<string> b");
-            var typeB = ((ParameterSymbol)symbols[0]).Type;
+            var typeB = ((IParameterSymbol)symbols[0]).Type;
             Assert.NotNull(typeB);
 
             Func<ISymbol, bool> isExtensionMethod = symbol =>
-                symbol.Kind == SymbolKind.Method && (((MethodSymbol)symbol).IsExtensionMethod || ((MethodSymbol)symbol).MethodKind == MethodKind.ReducedExtension);
+                symbol.Kind == SymbolKind.Method && (((IMethodSymbol)symbol).IsExtensionMethod || ((IMethodSymbol)symbol).MethodKind == MethodKind.ReducedExtension);
 
             // Extension methods for B<string>
             symbols = model.LookupSymbols(methodStart, typeB, name: null, includeReducedExtensionMethods: true).WhereAsArray(isExtensionMethod);
@@ -1869,15 +1915,17 @@ static class E
     }
     internal static void F<T>(this T t) where T : A { }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (8,9): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "b.F").WithArguments("E.F<T>(T)", "A", "T", "B").WithLocation(8, 9));
+                // (8,11): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
+                //         b.F();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "F").WithArguments("E.F<T>(T)", "A", "T", "B").WithLocation(8, 11)
+);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var position = source.IndexOf("a.F()", StringComparison.Ordinal);
-            var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            var method = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("E").GetMember<IMethodSymbol>("M");
 
             // No type.
             var symbols = model.LookupSymbols(position, container: null, name: "F", includeReducedExtensionMethods: true);
@@ -1908,15 +1956,16 @@ static class E
 {
     internal static void F<T>(this T t) where T : A { }
 }";
-            compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (8,9): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "b.F").WithArguments("E.F<T>(T)", "A", "T", "B").WithLocation(8, 9));
+                // (8,11): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
+                //         b.F();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "F").WithArguments("E.F<T>(T)", "A", "T", "B").WithLocation(8, 11));
 
             tree = compilation.SyntaxTrees.Single();
             model = compilation.GetSemanticModel(tree);
             position = source.IndexOf("a.F()", StringComparison.Ordinal);
-            method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            method = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("M");
 
             // No type.
             symbols = model.LookupSymbols(position, container: null, name: "F", includeReducedExtensionMethods: true);
@@ -1928,16 +1977,14 @@ static class E
 
             // Type not satisfying constraint.
             symbols = model.LookupSymbols(position, container: method.Parameters[1].Type, name: "F", includeReducedExtensionMethods: true);
-            CheckSymbols(symbols);
+            CheckSymbolsUnordered(symbols);
         }
 
         [Fact]
         public void TestLookupSymbolsArrayExtensionMethods()
         {
-            var reference = SystemCoreRef;
-            var compilation = CreateStandardCompilation(
-                references: new MetadataReference[] { reference },
-                text:
+            var compilation = CreateCompilation(
+                source:
 @"using System.Linq;
 class C
 {
@@ -1957,7 +2004,7 @@ class C
             // Get type for object[].
             var symbols = model.LookupSymbols(methodStart, null, name: "o");
             CheckSymbolsUnordered(symbols, "object[] o");
-            var type = ((ParameterSymbol)symbols[0]).Type;
+            var type = ((IParameterSymbol)symbols[0]).Type;
             Assert.NotNull(type);
 
             // Extension method overloads for o.First.
@@ -1969,7 +2016,7 @@ class C
 
         private static void CheckSymbols(ImmutableArray<ISymbol> symbols, params string[] descriptions)
         {
-            CompilationUtils.CheckSymbols(symbols, descriptions);
+            CompilationUtils.CheckISymbols(symbols, descriptions);
         }
 
         private static void CheckSymbolsUnordered(ImmutableArray<ISymbol> symbols, params string[] descriptions)
@@ -1980,7 +2027,7 @@ class C
         [Fact]
         public void TestLookupSymbolsWithEmptyStringForNameDoesNotAssert()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
                 class A
                 {
                    public void M() 
@@ -2019,7 +2066,7 @@ class C
         catch (System.Exception b) { }
     };
 }";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var position = text.IndexOf('{', text.IndexOf("a)", StringComparison.Ordinal));
@@ -2106,11 +2153,11 @@ namespace TestNamespace_01
 [Goo()]
 class Bar { }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            Func<int, NamespaceOrTypeSymbol, string, bool, ImmutableArray<ISymbol>> lookupAttributeTypeWithQualifier = (pos, qualifierOpt, name, isVerbatim) =>
+            Func<int, INamespaceOrTypeSymbol, string, bool, ImmutableArray<ISymbol>> lookupAttributeTypeWithQualifier = (pos, qualifierOpt, name, isVerbatim) =>
             {
                 var options = isVerbatim ? LookupOptions.VerbatimNameAttributeTypeOnly : LookupOptions.AttributeTypeOnly;
 
@@ -2120,11 +2167,13 @@ class Bar { }
                 var lookupResult = LookupResult.GetInstance();
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 binder.LookupSymbolsSimpleName(
-                    lookupResult, qualifierOpt, plainName: name, arity: 0, basesBeingResolved: null, options: options, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics);
+                    lookupResult,
+                    ((CSharp.Symbols.PublicModel.NamespaceOrTypeSymbol)qualifierOpt)?.UnderlyingNamespaceOrTypeSymbol,
+                    plainName: name, arity: 0, basesBeingResolved: null, options: options, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics);
                 Assert.Null(useSiteDiagnostics);
                 var result = lookupResult.IsMultiViable ? lookupResult.Symbols.ToImmutable() : ImmutableArray.Create<Symbol>();
                 lookupResult.Free();
-                return StaticCast<ISymbol>.From(result);
+                return result.SelectAsArray(s => s.GetPublicSymbol());
             };
 
             Func<int, string, bool, ImmutableArray<ISymbol>> lookupAttributeType = (pos, name, isVerbatim) =>
@@ -2154,7 +2203,7 @@ class Bar { }
             var position2 = text.IndexOf("namespace InvalidWithoutSuffix", 0, StringComparison.Ordinal);
             var qnSymbols = model.LookupNamespacesAndTypes(position2, name: "InvalidWithoutSuffix");
             Assert.Equal(1, qnSymbols.Length);
-            var qnInvalidWithoutSuffix = (NamespaceOrTypeSymbol)qnSymbols[0];
+            var qnInvalidWithoutSuffix = (INamespaceOrTypeSymbol)qnSymbols[0];
 
             symbols = model.LookupNamespacesAndTypes(position, name: "Y", container: qnInvalidWithoutSuffix);
             Assert.Equal(1, symbols.Length);
@@ -2176,7 +2225,7 @@ class Bar { }
         [Fact]
         public void TestGetSemanticInfoOfInvocation()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2207,7 +2256,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfInvocationWithNoMatchingOverloads()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2244,7 +2293,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfInvocationWithNoMatchingOverloadsAndNonMatchingReturnTypes()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2280,7 +2329,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfIncompleteInvocation()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2316,7 +2365,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfMethodGroupAccess()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2351,7 +2400,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfTypeName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2381,7 +2430,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfTypeNameWithConflictingLocalName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2420,7 +2469,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfNamespaceName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2451,7 +2500,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfRightSideOfQualifiedName()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2488,7 +2537,7 @@ namespace N
         [Fact]
         public void TestGetSemanticInfoOfTypeInDeclaration()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2517,7 +2566,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoOfNamespaceInDeclaration()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2547,7 +2596,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoInParentInLocalInitializer()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2572,7 +2621,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoInParentInMultipleLocalInitializers()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2598,7 +2647,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoInParentInArgument()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2626,7 +2675,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoInParentInMultipleArguments()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -2712,7 +2761,7 @@ namespace A
         [Fact]
         public void GetDeclaredSymbolDupAliasNameErr()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = (Compilation)CreateCompilation(@"
 namespace NS {  class A {}  }
 
 namespace NS {
@@ -2723,13 +2772,13 @@ namespace NS {
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
+            var tree = compilation.SyntaxTrees.First();
             var root = tree.GetCompilationUnitRoot();
             var model = compilation.GetSemanticModel(tree);
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
-            var n1 = globalNS.GetMembers("NS").First() as NamespaceSymbol;
-            var typeB = n1.GetTypeMembers("B").First() as NamedTypeSymbol;
+            var n1 = globalNS.GetMembers("NS").First() as INamespaceSymbol;
+            var typeB = n1.GetTypeMembers("B").First() as INamedTypeSymbol;
             Assert.Equal(2, root.Members.Count);
             var nsSyntax = (root.Members[1] as NamespaceDeclarationSyntax);
             Assert.Equal(1, nsSyntax.Members.Count);
@@ -2742,7 +2791,7 @@ namespace NS {
         [Fact]
         public void GetDeclaredSymbolForUsingDirective()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace N1 {
 };
 
@@ -2767,7 +2816,7 @@ namespace N2 {
         [Fact]
         public void GetDeclaredSymbolForExplicitImplementations()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 interface I
 {
     void M();
@@ -2793,7 +2842,7 @@ class C : I
             var explicitMethodNode = (MethodDeclarationSyntax)classMemberNodes[0];
             Assert.Equal("M", explicitMethodNode.Identifier.ValueText);
 
-            var explicitMethodSymbol = (MethodSymbol)model.GetDeclaredSymbol(explicitMethodNode);
+            var explicitMethodSymbol = (IMethodSymbol)model.GetDeclaredSymbol(explicitMethodNode);
             Assert.NotNull(explicitMethodSymbol);
             Assert.Equal(MethodKind.ExplicitInterfaceImplementation, explicitMethodSymbol.MethodKind);
             Assert.Equal("I.M", explicitMethodSymbol.Name);
@@ -2802,7 +2851,7 @@ class C : I
             var explicitPropertyNode = (PropertyDeclarationSyntax)classMemberNodes[1];
             Assert.Equal("P", explicitPropertyNode.Identifier.ValueText);
 
-            var explicitPropertySymbol = (PropertySymbol)model.GetDeclaredSymbol(explicitPropertyNode);
+            var explicitPropertySymbol = (IPropertySymbol)model.GetDeclaredSymbol(explicitPropertyNode);
             Assert.NotNull(explicitPropertySymbol);
             Assert.Equal("I.P", explicitPropertySymbol.Name);
             Assert.Equal(1, explicitPropertySymbol.ExplicitInterfaceImplementations.Length);
@@ -2813,7 +2862,7 @@ class C : I
             var explicitPropertyGetterNode = explicitPropertyAccessors[0];
             Assert.Equal("get", explicitPropertyGetterNode.Keyword.ValueText);
 
-            var explicitPropertyGetterSymbol = (MethodSymbol)model.GetDeclaredSymbol(explicitPropertyGetterNode);
+            var explicitPropertyGetterSymbol = (IMethodSymbol)model.GetDeclaredSymbol(explicitPropertyGetterNode);
             Assert.NotNull(explicitPropertyGetterSymbol);
             Assert.Equal(MethodKind.PropertyGet, explicitPropertyGetterSymbol.MethodKind);
             Assert.Equal("I.get_P", explicitPropertyGetterSymbol.Name);
@@ -2823,7 +2872,7 @@ class C : I
             var explicitPropertySetterNode = explicitPropertyAccessors[1];
             Assert.Equal("set", explicitPropertySetterNode.Keyword.ValueText);
 
-            var explicitPropertySetterSymbol = (MethodSymbol)model.GetDeclaredSymbol(explicitPropertySetterNode);
+            var explicitPropertySetterSymbol = (IMethodSymbol)model.GetDeclaredSymbol(explicitPropertySetterNode);
             Assert.NotNull(explicitPropertySetterSymbol);
             Assert.Equal(MethodKind.PropertySet, explicitPropertySetterSymbol.MethodKind);
             Assert.Equal("I.set_P", explicitPropertySetterSymbol.Name);
@@ -2835,7 +2884,7 @@ class C : I
         [Fact]
         public void GetDeclaredSymbolDottedNSAPI()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = (Compilation)CreateCompilation(@"
 namespace N1 {
   namespace N2.N3
   {
@@ -2844,14 +2893,14 @@ namespace N1 {
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
+            var tree = compilation.SyntaxTrees.First();
             var root = tree.GetCompilationUnitRoot();
             var model = compilation.GetSemanticModel(tree);
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
-            var n1 = globalNS.GetMembers().First() as NamespaceSymbol;
-            var n2 = n1.GetMembers().First() as NamespaceSymbol;
-            var n3 = n2.GetMembers().First() as NamespaceSymbol;
+            var n1 = globalNS.GetMembers().First() as INamespaceSymbol;
+            var n2 = n1.GetMembers().First() as INamespaceSymbol;
+            var n3 = n2.GetMembers().First() as INamespaceSymbol;
 
             var nsSyntax = (root.Members[0] as NamespaceDeclarationSyntax);
             var dn1 = model.GetDeclaredSymbol(nsSyntax);
@@ -2868,17 +2917,17 @@ namespace N1 {
         [Fact]
         public void GetDeclaredSymbolGlobalSystemNSErr()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = (Compilation)CreateCompilation(@"
 namespace global::System {}
 
 class Test { }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
+            var tree = compilation.SyntaxTrees.First();
             var root = tree.GetCompilationUnitRoot();
             var model = compilation.GetSemanticModel(tree);
 
-            var compSym = compilation.GlobalNamespace.GetMembers("System").First() as NamespaceSymbol;
+            var compSym = compilation.GlobalNamespace.GetMembers("System").First() as INamespaceSymbol;
 
             var nsSyntax = (root.Members[0] as NamespaceDeclarationSyntax);
             var declsym = model.GetDeclaredSymbol(nsSyntax);
@@ -2890,7 +2939,7 @@ class Test { }
         [Fact]
         public void GetDeclaredSymbolInvalidOverloadsErr()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = (Compilation)CreateCompilation(@"
 class CGoo
 {
     void M() {}
@@ -2906,13 +2955,13 @@ class CGoo
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
+            var tree = compilation.SyntaxTrees.First();
             var root = tree.GetCompilationUnitRoot();
             var model = compilation.GetSemanticModel(tree);
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
 
-            var sym1 = globalNS.GetMembers("CGoo").First() as NamedTypeSymbol;
+            var sym1 = globalNS.GetMembers("CGoo").First() as INamedTypeSymbol;
             var mems = sym1.GetMembers("M");
             var node1 = (root.Members[0] as TypeDeclarationSyntax);
 
@@ -2921,12 +2970,12 @@ class CGoo
             // By Design - conflicting overloads bind to distinct symbols
             Assert.NotEqual(dsyma1, dsyma2);
             // for CC?
-            var sym2 = sym1.GetMembers("IGoo").First() as NamedTypeSymbol;
+            var sym2 = sym1.GetMembers("IGoo").First() as INamedTypeSymbol;
             var node2 = (node1.Members[2] as TypeDeclarationSyntax);
             var dsym2 = model.GetDeclaredSymbol(node2);
             Assert.Equal(TypeKind.Interface, dsym2.TypeKind);
 
-            var sym3 = sym1.GetMembers("SGoo").First() as NamedTypeSymbol;
+            var sym3 = sym1.GetMembers("SGoo").First() as INamedTypeSymbol;
             var node3 = (node1.Members[3] as TypeDeclarationSyntax);
             // CC?
             var dsym3 = model.GetDeclaredSymbol(node3);
@@ -2948,19 +2997,19 @@ class CGoo
         [Fact]
         public void GetDeclaredSymbolNoTypeSymbolWithErr()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = (Compilation)CreateCompilation(@"
 namespace NS
 {
   protected class A { }
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
+            var tree = compilation.SyntaxTrees.First();
             var root = tree.GetCompilationUnitRoot();
             var model = compilation.GetSemanticModel(tree);
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
-            var ns1 = globalNS.GetMembers("NS").Single() as NamespaceSymbol;
-            var srcSym = ns1.GetMembers("A").Single() as NamedTypeSymbol;
+            var ns1 = globalNS.GetMembers("NS").Single() as INamespaceSymbol;
+            var srcSym = ns1.GetMembers("A").Single() as INamedTypeSymbol;
 
             var nsSyntax = (root.Members[0] as NamespaceDeclarationSyntax);
             var declSym = model.GetDeclaredSymbol(nsSyntax.Members[0] as TypeDeclarationSyntax);
@@ -2972,7 +3021,7 @@ namespace NS
         [Fact]
         public void GetDeclaredSymbolExtraForDupTypesErr()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 namespace NS
 {
     static class Test { }
@@ -3001,7 +3050,7 @@ namespace NS
         [Fact]
         public void GetDeclaredSymbolSameNameMethodsDiffNSs()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = (Compilation)CreateCompilation(@"
 namespace Goo {
     class A { }
 }
@@ -3011,13 +3060,13 @@ namespace NS {
     class A { }
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
+            var tree = compilation.SyntaxTrees.First();
             var root = tree.GetCompilationUnitRoot();
             var model = compilation.GetSemanticModel(tree);
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
-            var ns1 = globalNS.GetMembers("NS").Single() as NamespaceSymbol;
-            var typeA = ns1.GetTypeMembers("A").First() as NamedTypeSymbol;
+            var ns1 = globalNS.GetMembers("NS").Single() as INamespaceSymbol;
+            var typeA = ns1.GetTypeMembers("A").First() as INamedTypeSymbol;
 
             var nsSyntax = (root.Members[1] as NamespaceDeclarationSyntax);
             var dsym1 = model.GetDeclaredSymbol(nsSyntax.Members[0] as TypeDeclarationSyntax);
@@ -3028,7 +3077,7 @@ namespace NS {
         [Fact]
         public void GetDeclaredSymbolNSCrossComps()
         {
-            var comp1 = CreateStandardCompilation(@"
+            var comp1 = CreateCompilation(@"
 namespace NS1 {
     namespace NS2 {    class A { }    }
     namespace NS2 {    class B { }    }
@@ -3042,18 +3091,18 @@ namespace NS1 {
 
             var ref1 = new CSharpCompilationReference(comp1);
 
-            var comp = CSharpCompilation.Create(
+            var comp = (Compilation)CSharpCompilation.Create(
                 "Repro",
                 new[] { SyntaxFactory.ParseSyntaxTree(text2) },
                 new[] { MscorlibRef, ref1 });
 
-            var tree = comp.SyntaxTrees[0];
+            var tree = comp.SyntaxTrees.First();
             var root = tree.GetCompilationUnitRoot();
             var model = comp.GetSemanticModel(tree);
 
             var nsg = comp.GlobalNamespace;
-            var ns1 = nsg.GetMembers("NS1").Single() as NamespaceSymbol;
-            var ns2 = ns1.GetMembers("NS2").Single() as NamespaceSymbol;
+            var ns1 = nsg.GetMembers("NS1").Single() as INamespaceSymbol;
+            var ns2 = ns1.GetMembers("NS2").Single() as INamespaceSymbol;
 
             var nsSyntax1 = (root.Members[0] as NamespaceDeclarationSyntax);
             var nsSyntax2 = (nsSyntax1.Members[0] as NamespaceDeclarationSyntax);
@@ -3076,15 +3125,15 @@ namespace NS1 {
 }
 ";
 
-            var compilation = CreateStandardCompilation(text1);
-            var tree = compilation.SyntaxTrees[0];
+            var compilation = (Compilation)CreateCompilation(text1);
+            var tree = compilation.SyntaxTrees.First();
             var root = tree.GetCompilationUnitRoot();
             var model = compilation.GetSemanticModel(tree);
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
-            var typeA = globalNS.GetTypeMembers("ErrorProp").First() as NamedTypeSymbol;
+            var typeA = globalNS.GetTypeMembers("ErrorProp").First() as INamedTypeSymbol;
 
-            var prop = typeA.GetMembers("Prop1").FirstOrDefault() as PropertySymbol;
+            var prop = typeA.GetMembers("Prop1").FirstOrDefault() as IPropertySymbol;
             var synType = root.Members[0] as TypeDeclarationSyntax;
             var accessors = (synType.Members[0] as PropertyDeclarationSyntax).AccessorList;
             var dsym = model.GetDeclaredSymbol(accessors.Accessors[0]);
@@ -3092,7 +3141,7 @@ namespace NS1 {
             dsym = model.GetDeclaredSymbol(accessors.Accessors[1]);
             Assert.Null(dsym);
 
-            prop = typeA.GetMembers("Prop2").FirstOrDefault() as PropertySymbol;
+            prop = typeA.GetMembers("Prop2").FirstOrDefault() as IPropertySymbol;
             accessors = (synType.Members[1] as PropertyDeclarationSyntax).AccessorList;
             dsym = model.GetDeclaredSymbol(accessors.Accessors[0]);
             Assert.Equal(prop.GetMethod, dsym);
@@ -3113,7 +3162,7 @@ public sealed class ErrorProp
     public string Prop1 { goo { return null; } } // invalid accessor name
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -3126,7 +3175,7 @@ public sealed class ErrorProp
         [Fact]
         public void TestOverloadsInImplementedInterfaceMethods()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class WorksheetClass : IWorksheet
 {
     public int M1()
@@ -3164,7 +3213,7 @@ public class MainClass
         [Fact]
         public void TestGetSemanticInfoBrokenDecl()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = (Compilation)CreateCompilation(@"
 class C 
 {
   void F()
@@ -3173,7 +3222,7 @@ class C
   }
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
+            var tree = compilation.SyntaxTrees.First();
             var methodDecl = (MethodDeclarationSyntax)((TypeDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0]).Members[0];
             var localDecl = (LocalDeclarationStatementSyntax)methodDecl.Body.Statements[0];
 
@@ -3188,7 +3237,7 @@ class C
         [Fact]
         public void TestGetSemanticInfoMethodGroupConversion()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C 
 {
   void M()
@@ -3240,7 +3289,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolForParamInLambdaExprPrecededByExplicitKeyword()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 class Program
 {
@@ -3269,7 +3318,7 @@ class Program
         [Fact]
         public void TestGetDeclaredSymbolForLambdaInDefaultValue1()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 class Program
 {
@@ -3295,7 +3344,7 @@ class Program
         [Fact]
         public void TestGetDeclaredSymbolForLambdaInDefaultValue2()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 class Program
 {
@@ -3320,7 +3369,7 @@ class Program
         [Fact]
         public void TestGetDeclaredSymbolForIncompleteMemberNode()
         {
-            var compilation = CreateStandardCompilation(@"u");
+            var compilation = CreateCompilation(@"u");
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
 
@@ -3338,7 +3387,7 @@ class Program
         [Fact]
         public void TestGetDeclaredSymbolForeachStmtWithPointerType()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class Test
 {
     static void Main(string[] args)
@@ -3361,7 +3410,7 @@ class Test
         [Fact]
         public void TestGetDeclaredSymbolConstDelegateDecl()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 public class Test
 {
     const delegate
@@ -3382,7 +3431,7 @@ public class Test
         [Fact]
         public void TestIncompleteUsingDirectiveSyntax()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using myType1 =
 ");
             var tree = compilation.SyntaxTrees[0];
@@ -3402,7 +3451,7 @@ using myType1 =
         [Fact]
         public void TestGetDeclaredSymbolForeachStmt()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C
 {
     static void Main(string[] args)
@@ -3430,7 +3479,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolForeachStmtError1()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C
 {
     static void Main(string[] args)
@@ -3453,7 +3502,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolForeachStmtError2()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C
 {
     static void Main(string[] args)
@@ -3486,7 +3535,7 @@ namespace N
         [Fact]
         public void TestGetDeclaredSymbolCatchClause()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C
 {
     static void Main(string[] args)
@@ -3517,7 +3566,7 @@ class C
         [Fact]
         public void TestGetDeclaredSymbolTopLevelMethod()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 class void Goo()
 {
@@ -3539,7 +3588,7 @@ class void Goo()
         [Fact]
         public void TestGetDeclaredSymbolNamespaceLevelMethod()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 namespace N
 {
@@ -3564,7 +3613,7 @@ namespace N
         [Fact]
         public void TestGetDeclaredSymbolEnumMemberDeclarationSyntax()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 enum EnumX
 {
@@ -3596,7 +3645,7 @@ enum EnumX
         [Fact]
         public void TestLambdaParameterInLambda()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 delegate int D(int x);
 class Program
@@ -3613,7 +3662,7 @@ class Program
             IdentifierNameSyntax x = methodDecl.Body.Statements[0].Declaration.Variables[0].Initializer.Value.Body;
             var info = model.GetSemanticInfoSummary(x);
             Assert.Equal(SymbolKind.Parameter, info.Symbol.Kind);
-            var parameter = (ParameterSymbol)info.Symbol;
+            var parameter = (IParameterSymbol)info.Symbol;
             Assert.Equal("x", parameter.Name);
             Assert.Equal(SpecialType.System_Int32, parameter.Type.SpecialType);
         }
@@ -3623,7 +3672,7 @@ class Program
         public void GetDeclaredSymbolOnGlobalStmtParseOptionScript()
         {
             var parseOptions = TestOptions.Script;
-            var compilation = CreateStandardCompilation(@"/", parseOptions: parseOptions);
+            var compilation = CreateCompilation(@"/", parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 
@@ -3638,7 +3687,7 @@ class Program
         [Fact]
         public void GetSymbolInGoto()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class Program
 {
     static void Main()
@@ -3661,7 +3710,7 @@ class Program
         [Fact]
         public void SourceNamespaceSymbolMergeWithMetadata()
         {
-            var compilation = CreateCompilation(new string[] {
+            var compilation = (Compilation)CreateEmptyCompilation(new string[] {
 @"namespace System {
     public partial class PartialClass 
     {
@@ -3677,7 +3726,7 @@ class Program
 }"},
 new[] { MscorlibRef });
 
-            var tree = compilation.SyntaxTrees[0];
+            var tree = compilation.SyntaxTrees.First();
             var root = tree.GetCompilationUnitRoot();
             var decl = (NamespaceDeclarationSyntax)root.Members[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3685,11 +3734,11 @@ new[] { MscorlibRef });
             Assert.NotNull(declSymbol);
             Assert.Equal("System", declSymbol.Name);
             Assert.Equal(3, declSymbol.Locations.Length);
-            Assert.Equal(typeof(MergedNamespaceSymbol).FullName, declSymbol.GetType().ToString());
+            Assert.IsType<MergedNamespaceSymbol>(declSymbol.GetSymbol());
             Assert.Equal(NamespaceKind.Compilation, declSymbol.NamespaceKind);
             Assert.Equal(2, declSymbol.ConstituentNamespaces.Length);
 
-            var tree2 = compilation.SyntaxTrees[1];
+            var tree2 = compilation.SyntaxTrees.ElementAt(1);
             var root2 = tree.GetCompilationUnitRoot();
             var decl2 = (NamespaceDeclarationSyntax)root2.Members[0];
             var model2 = compilation.GetSemanticModel(tree2);
@@ -3705,7 +3754,7 @@ new[] { MscorlibRef });
         [Fact]
         public void StructKeywordInsideSwitchWithScriptParseOption()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 
 class Test
@@ -3744,7 +3793,7 @@ using System;
 struct break;
 ";
 
-            var compilation = CreateStandardCompilation(code, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilation(code, parseOptions: TestOptions.Script);
 
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3757,7 +3806,7 @@ struct break;
         [Fact]
         public void IncompleteStructDeclWithSpace()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 
 namespace N1
@@ -3785,7 +3834,7 @@ class P
     double one = 1;
     public Func<int, int> z = (x => x + one);
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedExpressionSyntax>().First();
@@ -3805,7 +3854,7 @@ class C
     private Alias.String s;
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees[0];
             var node = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().DescendantTokens().Where(t => t.ToString() == "Alias").Last().Parent;
             var modelWeakReference = ObjectReference.CreateFromFactory(() => compilation.GetSemanticModel(tree));
@@ -3840,7 +3889,7 @@ partial class program
     static partial void goo(string name, int age, bool gender, int index1 = 1);
 }";
             var tree = Parse(sourceCode);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var param = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().Where(p => p.Identifier.ValueText == "name").First();
             var symbol = model.GetDeclaredSymbol(param);
@@ -3861,7 +3910,7 @@ class C
 }
 ";
             var tree = Parse(sourceCode);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var usingDirectives = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().ToArray();
 
@@ -3891,7 +3940,7 @@ class C
         [Fact]
         public void InaccessibleDefaultAttributeConstructor()
         {
-            var c1 = CreateStandardCompilation(@"
+            var c1 = CreateCompilation(@"
 using System;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
@@ -3905,7 +3954,7 @@ internal class MyAttribute : Attribute {
 public class X { }
 ");
 
-            var c2 = CreateStandardCompilation(tree2, references: new[] { new CSharpCompilationReference(c1) });
+            var c2 = CreateCompilation(tree2, references: new[] { new CSharpCompilationReference(c1) });
 
             var attr = (AttributeSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)tree2.GetCompilationUnitRoot()).Members[0]).AttributeLists[0].Attributes[0];
             var model = c2.GetSemanticModel(tree2);
@@ -3931,11 +3980,11 @@ public class A<T>
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = (Compilation)CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
-            var typeA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var typeB = typeA.GetMember<NamedTypeSymbol>("B");
+            var typeA = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("A");
+            var typeB = typeA.GetMember<INamedTypeSymbol>("B");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3944,66 +3993,66 @@ public class A<T>
             var typeofArgSyntax = typeofSyntax.Type;
             var typeofArgPosition = typeofArgSyntax.SpanStart;
 
-            TypeSymbol boundType;
+            ITypeSymbol boundType;
             SymbolInfo symbolInfo;
 
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("A<T>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
-            boundType = symbolInfo.Symbol as TypeSymbol;
+            boundType = symbolInfo.Symbol as ITypeSymbol;
             Assert.Equal(typeA, boundType);
             Assert.Equal(typeA, boundType.OriginalDefinition);
             Assert.False(boundType.IsUnboundGenericType());
 
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("A<int>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
-            boundType = symbolInfo.Symbol as TypeSymbol;
+            boundType = symbolInfo.Symbol as ITypeSymbol;
             Assert.NotEqual(typeA, boundType);
             Assert.Equal(typeA, boundType.OriginalDefinition);
             Assert.False(boundType.IsUnboundGenericType());
 
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("A<>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
-            boundType = symbolInfo.Symbol as TypeSymbol;
+            boundType = symbolInfo.Symbol as ITypeSymbol;
             Assert.NotEqual(typeA, boundType);
             Assert.Equal(typeA, boundType.OriginalDefinition);
             Assert.True(boundType.IsUnboundGenericType());
 
 
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("B<U>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
-            boundType = symbolInfo.Symbol as TypeSymbol;
+            boundType = symbolInfo.Symbol as ITypeSymbol;
             Assert.Equal(typeB, boundType);
             Assert.Equal(typeB, boundType.OriginalDefinition);
             Assert.False(boundType.IsUnboundGenericType());
 
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("B<int>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
-            boundType = symbolInfo.Symbol as TypeSymbol;
+            boundType = symbolInfo.Symbol as ITypeSymbol;
             Assert.NotEqual(typeB, boundType);
             Assert.Equal(typeB, boundType.OriginalDefinition);
             Assert.False(boundType.IsUnboundGenericType());
 
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("B<>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
-            boundType = symbolInfo.Symbol as TypeSymbol;
+            boundType = symbolInfo.Symbol as ITypeSymbol;
             Assert.NotEqual(typeB, boundType);
             Assert.Equal(typeB, boundType.OriginalDefinition);
             Assert.True(boundType.IsUnboundGenericType());
 
 
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("A<>.B<>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
-            boundType = symbolInfo.Symbol as TypeSymbol;
+            boundType = symbolInfo.Symbol as ITypeSymbol;
             Assert.NotEqual(typeB, boundType);
             Assert.Equal(typeB, boundType.OriginalDefinition);
             Assert.True(boundType.IsUnboundGenericType());
 
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("A<>.B<U>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
-            boundType = symbolInfo.Symbol as TypeSymbol;
+            boundType = symbolInfo.Symbol as ITypeSymbol;
             Assert.NotEqual(typeB, boundType); // unbound generic type not constructed since illegal
             Assert.False(boundType.IsUnboundGenericType());
 
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("A<T>.B<>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
-            boundType = symbolInfo.Symbol as TypeSymbol;
+            boundType = symbolInfo.Symbol as ITypeSymbol;
             Assert.NotEqual(typeB, boundType); // unbound generic type not constructed since illegal
             Assert.Equal(typeB, boundType.OriginalDefinition);
             Assert.False(boundType.IsUnboundGenericType());
 
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("A<T>.B<U>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
-            boundType = symbolInfo.Symbol as TypeSymbol;
+            boundType = symbolInfo.Symbol as ITypeSymbol;
             Assert.Equal(typeB, boundType);
             Assert.Equal(typeB, boundType.OriginalDefinition);
             Assert.False(boundType.IsUnboundGenericType());
@@ -4023,10 +4072,10 @@ class M {
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = (Compilation)CreateCompilation(source);
 
-            var classM = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("M");
-            var fieldB = classM.GetMember<FieldSymbol>("B");
+            var classM = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("M");
+            var fieldB = classM.GetMember<IFieldSymbol>("B");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -4065,7 +4114,7 @@ static class S
         writer.Write(value);
     }
 }";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -4074,7 +4123,7 @@ static class S
             SymbolInfo info = new SymbolInfo();
             info = model.GetSymbolInfo(call);
 
-            Assert.IsType<SourceOrdinaryMethodSymbol>(info.Symbol);
+            Assert.IsType<SourceOrdinaryMethodSymbol>(info.Symbol.GetSymbol());
 
             src = @"
 static class S
@@ -4084,14 +4133,14 @@ static class S
         writer.Write(value);
     }
 }";
-            comp = CreateStandardCompilation(src);
+            comp = CreateCompilation(src);
             tree = comp.SyntaxTrees.Single();
             model = comp.GetSemanticModel(tree);
 
             call = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
             info = model.GetSymbolInfo(call);
 
-            Assert.IsType<ReducedExtensionMethodSymbol>(info.Symbol);
+            Assert.IsType<ReducedExtensionMethodSymbol>(info.Symbol.GetSymbol());
         }
 
         [Fact]
@@ -4107,7 +4156,7 @@ class C {
     [Serializable] int i;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -4117,7 +4166,7 @@ class C {
 
             var symbolInfo = model.GetSpeculativeSymbolInfo(position, attr1);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4125,7 +4174,7 @@ class C {
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position, attr2);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.OverloadResolutionFailure);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
             Assert.Equal(3, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor()", symbolInfo.CandidateSymbols[0].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.CandidateSymbols[1].ToTestDisplayString());
@@ -4135,7 +4184,7 @@ class C {
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position, attr3);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4143,14 +4192,14 @@ class C {
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position, attr4);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
 
             var attr5 = ParseAttributeSyntax("[D]");
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position, attr5);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("C.DAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4159,7 +4208,7 @@ class C {
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position2, attr6);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4168,7 +4217,7 @@ class C {
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position3, attr7);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
         }
@@ -4186,7 +4235,7 @@ class C {
     [Serializable] int i;
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees.Single();
             var parentModel = compilation.GetSemanticModel(tree);
 
@@ -4201,7 +4250,7 @@ class C {
 
             var symbolInfo = speculativeModel.GetSymbolInfo(attr1);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4212,7 +4261,7 @@ class C {
 
             symbolInfo = speculativeModel.GetSymbolInfo(attr2);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.OverloadResolutionFailure);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
             Assert.Equal(3, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor()", symbolInfo.CandidateSymbols[0].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.CandidateSymbols[1].ToTestDisplayString());
@@ -4229,7 +4278,7 @@ class C {
             Assert.NotNull(speculativeModel);
             symbolInfo = speculativeModel.GetSymbolInfo(attr3);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4251,7 +4300,7 @@ class C {
 
             symbolInfo = speculativeModel.GetSymbolInfo(attr4);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
 
             var attr5 = ParseAttributeSyntax("[D]");
@@ -4262,7 +4311,7 @@ class C {
 
             symbolInfo = speculativeModel.GetSymbolInfo(attr5);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("C.DAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4275,7 +4324,7 @@ class C {
 
             symbolInfo = speculativeModel.GetSymbolInfo(attr6);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4298,7 +4347,7 @@ class C {
 
             symbolInfo = speculativeModel.GetSymbolInfo(attr7);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4320,7 +4369,7 @@ class C {
 
             symbolInfo = speculativeModel.GetSymbolInfo(attr8);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4338,7 +4387,7 @@ class C {
         [Fact]
         public void GetSymbolInfoSimpleLambda()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System.Collections.Generic;
 using System.Linq;
 class Goo
@@ -4375,9 +4424,9 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = (Compilation)CreateCompilation(source);
 
-            var conversion = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.ImplicitConversionName);
+            var conversion = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>(WellKnownMemberNames.ImplicitConversionName);
             Assert.Equal(MethodKind.Conversion, conversion.MethodKind);
 
             var tree = compilation.SyntaxTrees.Single();
@@ -4406,9 +4455,9 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = (Compilation)CreateCompilation(source);
 
-            var conversion = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.ExplicitConversionName);
+            var conversion = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>(WellKnownMemberNames.ExplicitConversionName);
             Assert.Equal(MethodKind.Conversion, conversion.MethodKind);
 
             var tree = compilation.SyntaxTrees.Single();
@@ -4437,9 +4486,9 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = (Compilation)CreateCompilation(source);
 
-            var @operator = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.AdditionOperatorName);
+            var @operator = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>(WellKnownMemberNames.AdditionOperatorName);
             Assert.Equal(MethodKind.UserDefinedOperator, @operator.MethodKind);
 
             var tree = compilation.SyntaxTrees.Single();
@@ -4468,13 +4517,13 @@ namespace Goo { }
 class C { }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = (Compilation)CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using Alias = Goo;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Alias = Goo;"));
 
-            var @namespace = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("Goo");
+            var @namespace = compilation.GlobalNamespace.GetMember<INamespaceSymbol>("Goo");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -4484,7 +4533,7 @@ class C { }
             var result = Parallel.For(0, 100, i =>
             {
                 var symbols = model.LookupSymbols(position, name: "Alias");
-                var alias = (AliasSymbol)symbols.Single();
+                var alias = (IAliasSymbol)symbols.Single();
 
                 Assert.Equal(@namespace, alias.Target);
             });
@@ -4505,13 +4554,13 @@ namespace Goo { }
 class C { }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = (Compilation)CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using Alias = Goo;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Alias = Goo;"));
 
-            var @namespace = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("Goo");
+            var @namespace = compilation.GlobalNamespace.GetMember<INamespaceSymbol>("Goo");
 
             var tree = compilation.SyntaxTrees.Single();
 
@@ -4521,7 +4570,7 @@ class C { }
             {
                 var model = compilation.GetSemanticModel(tree);
                 var symbols = model.LookupSymbols(position, name: "Alias");
-                var alias = (AliasSymbol)symbols.Single();
+                var alias = (IAliasSymbol)symbols.Single();
 
                 Assert.Equal(@namespace, alias.Target);
             });
@@ -4544,7 +4593,7 @@ class C
 
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var node = (DefaultExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Where(i => i is DefaultExpressionSyntax).First();
@@ -4593,7 +4642,7 @@ class Other
 
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = (Compilation)CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4602,9 +4651,9 @@ class Other
                 //         public event System.Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Enclosing.Declaring.E"));
 
-            var declaringType = compilation.GlobalNamespace.GetMember<TypeSymbol>("Enclosing").GetMember<TypeSymbol>("Declaring");
-            var fieldLikeEvent = declaringType.GetMember<EventSymbol>("E");
-            var customEvent = declaringType.GetMember<EventSymbol>("F");
+            var declaringType = compilation.GlobalNamespace.GetMember<ITypeSymbol>("Enclosing").GetMember<ITypeSymbol>("Declaring");
+            var fieldLikeEvent = declaringType.GetMember<IEventSymbol>("E");
+            var customEvent = declaringType.GetMember<IEventSymbol>("F");
 
             int enclosingTypePosition = text.IndexOf("AAA", StringComparison.Ordinal);
             Assert.InRange(enclosingTypePosition, 0, text.Length);
@@ -4632,13 +4681,13 @@ class Other
             var source =
 @"class A<T> { }
 class C : A<object>.B<> { }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.ClassDeclaration));
             var model = compilation.GetSemanticModel(tree);
-            var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            type = type.BaseType();
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "A<object>.B<?>");
+            var type = (INamedTypeSymbol)model.GetDeclaredSymbol(decl);
+            type = type.BaseType;
+            Assert.Equal("A<object>.B<?>", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
         }
 
         [Fact]
@@ -4647,13 +4696,13 @@ class C : A<object>.B<> { }";
             var source =
 @"class A<T, U> { }
 class C : A<,,>.B<object> { }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.ClassDeclaration));
             var model = compilation.GetSemanticModel(tree);
-            var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            type = type.BaseType();
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "A<?, ?, ?>.B<object>");
+            var type = (INamedTypeSymbol)model.GetDeclaredSymbol(decl);
+            type = type.BaseType;
+            Assert.Equal("A<?, ?, ?>.B<object>", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
         }
 
         [Fact]
@@ -4662,13 +4711,13 @@ class C : A<,,>.B<object> { }";
             var source =
 @"class A { }
 class C : A<>.B<> { }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.ClassDeclaration));
             var model = compilation.GetSemanticModel(tree);
-            var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            type = type.BaseType();
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "A<?>.B<?>");
+            var type = (INamedTypeSymbol)model.GetDeclaredSymbol(decl);
+            type = type.BaseType;
+            Assert.Equal("A<?>.B<?>", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
         }
 
         [WorkItem(563572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563572")]
@@ -4681,7 +4730,7 @@ public class C
     public event enum
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var enumDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<EnumDeclarationSyntax>().Single();
@@ -4693,7 +4742,7 @@ public class C
 
             var enumSymbol = model.GetDeclaredSymbol(enumDecl); //Used to assert.
             Assert.Equal(SymbolKind.NamedType, enumSymbol.Kind);
-            Assert.Equal(TypeKind.Enum, ((TypeSymbol)enumSymbol).TypeKind);
+            Assert.Equal(TypeKind.Enum, enumSymbol.TypeKind);
 
             var eventSymbol = model.GetDeclaredSymbol(eventDecl);
             Assert.Equal(SymbolKind.Event, eventSymbol.Kind);
@@ -4709,7 +4758,7 @@ public class S
     struct interface
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var structDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<StructDeclarationSyntax>().First();
@@ -4723,18 +4772,14 @@ public class S
             // The missing identifier of the struct declaration is contained in both declaration spans (since it has width zero).
             // We used to just pick the first matching span, but now we keep looking until we find a "good" match.
             Assert.NotEqual(structSymbol, interfaceSymbol);
-            Assert.Equal(TypeKind.Struct, ((TypeSymbol)structSymbol).TypeKind);
-            Assert.Equal(TypeKind.Interface, ((TypeSymbol)interfaceSymbol).TypeKind);
+            Assert.Equal(TypeKind.Struct, structSymbol.TypeKind);
+            Assert.Equal(TypeKind.Interface, interfaceSymbol.TypeKind);
         }
 
         [Fact]
         public void TupleLiteral001()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4742,28 +4787,22 @@ class C
         var t = (1, 2);
     }
 }
-
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
-            var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(int, int)");
-            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(1, 2)");
-            Assert.Equal(type.Locations.Single().IsInSource, true);
-
+            var type = (INamedTypeSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal("(int, int)", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("(1, 2)", type.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(type.Locations.Single().IsInSource);
         }
 
         [Fact]
         public void TupleLiteral002()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4771,27 +4810,22 @@ class C
         var t = (Alice: 1, Bob: 2);
     }
 }
-
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
-            var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(int Alice, int Bob)");
-            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(Alice: 1, Bob: 2)");
-            Assert.Equal(type.Locations.Single().IsInSource, true);
+            var type = (INamedTypeSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal("(int Alice, int Bob)", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("(Alice: 1, Bob: 2)", type.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(type.Locations.Single().IsInSource);
         }
 
         [Fact]
         public void TupleLiteral003()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4799,27 +4833,22 @@ class C
         (short Alice, int Bob) t = (1, 1);
     }
 }
-
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
-            var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short, int)");
-            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(1, 1)");
-            Assert.Equal(type.Locations.Single().IsInSource, true);
+            var type = (INamedTypeSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal("(short, int)", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("(1, 1)", type.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(type.Locations.Single().IsInSource);
         }
 
         [Fact]
         public void TupleLiteral004()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4827,27 +4856,22 @@ class C
         (short Alice, string Bob) t = (1, null);
     }
 }
-
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
-            var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short, string)");
-            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(1, null)");
-            Assert.Equal(type.Locations.Single().IsInSource, true);
+            var type = (INamedTypeSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal("(short, string)", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("(1, null)", type.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(type.Locations.Single().IsInSource);
         }
 
         [Fact]
         public void TupleLiteral005()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4855,27 +4879,22 @@ class C
         (short, string) t = (Alice:1, Bob:null);
     }
 }
-
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
-            var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob)");
-            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(Alice:1, Bob:null)");
-            Assert.Equal(type.Locations.Single().IsInSource, true);
+            var type = (INamedTypeSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal("(short Alice, string Bob)", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("(Alice:1, Bob:null)", type.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(type.Locations.Single().IsInSource);
         }
 
         [Fact]
         public void TupleLiteralElement001()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4883,27 +4902,22 @@ class C
         var t = (Alice: 1, Bob: 2);
     }
 }
-
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
-            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(int Alice, int Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            var element = (IFieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal("(int Alice, int Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
         public void TupleLiteralElement002()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4911,27 +4925,22 @@ class C
         (int X, short Y) t = (Alice: 1, Bob: 2);
     }
 }
-
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
-            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(int Alice, short Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            var element = (IFieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal("(int Alice, short Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
         public void TupleLiteralElement003()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4939,17 +4948,16 @@ class C
         (short X, string Y) t = (Alice: 1, Bob: null);
     }
 }
-
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
-            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            var element = (IFieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal("(short Alice, string Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -4966,7 +4974,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilationWithMscorlib46(source);
             compilation.VerifyDiagnostics(
                 // (6,31): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (short X, string Y) = (Alice: 1, Bob: null);
@@ -4981,10 +4989,10 @@ class C
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
-            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            var element = (IFieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal("(short Alice, string Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -5015,7 +5023,7 @@ namespace System
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,32): warning CS8123: The tuple element name 'Alice' is ignored because a different name or no name is specified by the target type '(short, string)'.
                 //         (short X, string Y) = (Alice: 1, Bob: null);
@@ -5027,10 +5035,10 @@ namespace System
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
-            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            var element = (IFieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal("(short Alice, string Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -5072,24 +5080,20 @@ namespace System
 
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
-            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            var element = (IFieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal("(short Alice, string Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
         public void TupleLiteralElement006()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -5097,23 +5101,22 @@ class C
         (short X, string) t = (1, Bob: null);
     }
 }
-
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
-            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short, string Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            var element = (IFieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal("(short, string Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
         public void TestIncompleteMemberNode_Visitor()
         {
-            var compilation = CreateStandardCompilation(@"u");
+            var compilation = CreateCompilation(@"u");
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
 
@@ -5145,6 +5148,120 @@ class C
                 this.Incompletes.Add(node);
                 base.VisitIncompleteMember(node);
             }
+        }
+
+        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
+        [Fact]
+        public void TestLookupStaticMembersLocalFunction()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    static void M()
+    {
+        void Local() {}
+    }
+}
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var cu = tree.GetCompilationUnitRoot();
+            var typeDeclC = (TypeDeclarationSyntax)cu.Members.Single();
+            var methodDeclM = (MethodDeclarationSyntax)typeDeclC.Members.Single();
+
+            var symbols = model.LookupStaticMembers(methodDeclM.Body.SpanStart);
+
+            Assert.Contains(symbols, s => s.Name == "Local");
+        }
+
+        [Fact]
+        public void InvalidParameterWithDefaultValue_Method()
+        {
+            var source =
+@"class Program
+{
+    static void F(int x = 2, = 3) { }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+            var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
+        }
+
+        [Fact]
+        [WorkItem(784401, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/784401")]
+        public void InvalidParameterWithDefaultValue_LocalFunction_01()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        void F(int x, = 3) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+            var symbol1 = VerifyParameter(model, decls[0], 0, "System.Int32 x", null, null);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
+        }
+
+        [Fact]
+        [WorkItem(784401, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/784401")]
+        public void InvalidParameterWithDefaultValue_LocalFunction_02()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        void F(int x = 2, = 3) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+            var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
+        }
+
+        private static IParameterSymbol VerifyParameter(
+            SemanticModel model,
+            ParameterSyntax decl,
+            int expectedOrdinal,
+            string expectedSymbol,
+            string expectedType,
+            object expectedConstant)
+        {
+            var symbol = (IParameterSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(expectedOrdinal, symbol.Ordinal);
+            Assert.Equal(expectedSymbol, symbol.ToTestDisplayString());
+
+            var valueSyntax = decl.Default?.Value;
+            if (valueSyntax == null)
+            {
+                Assert.Null(expectedType);
+                Assert.Null(expectedConstant);
+            }
+            else
+            {
+                var type = model.GetTypeInfo(valueSyntax);
+                Assert.Equal(expectedType, type.Type.ToTestDisplayString());
+                Optional<object> actualConstant = model.GetConstantValue(valueSyntax);
+                Assert.Equal(expectedConstant, actualConstant.Value);
+            }
+
+            return symbol;
         }
     }
 }

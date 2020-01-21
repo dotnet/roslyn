@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             protected VariableSymbol(Compilation compilation, ITypeSymbol type)
             {
-                this.OriginalTypeHadAnonymousTypeOrDelegate = type.ContainsAnonymousType();
-                this.OriginalType = this.OriginalTypeHadAnonymousTypeOrDelegate ? type.RemoveAnonymousTypes(compilation) : type;
+                OriginalTypeHadAnonymousTypeOrDelegate = type.ContainsAnonymousType();
+                OriginalType = OriginalTypeHadAnonymousTypeOrDelegate ? type.RemoveAnonymousTypes(compilation) : type;
             }
 
             public abstract int DisplayOrder { get; }
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public ITypeSymbol OriginalType { get; }
 
             public static int Compare(
-                VariableSymbol left, 
+                VariableSymbol left,
                 VariableSymbol right,
                 INamedTypeSymbol cancellationTokenType)
             {
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected abstract class NotMovableVariableSymbol : VariableSymbol
         {
-            public NotMovableVariableSymbol(Compilation compilation, ITypeSymbol type) :
-                base(compilation, type)
+            public NotMovableVariableSymbol(Compilation compilation, ITypeSymbol type)
+                : base(compilation, type)
             {
             }
 
@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             private readonly IParameterSymbol _parameterSymbol;
 
-            public ParameterVariableSymbol(Compilation compilation, IParameterSymbol parameterSymbol, ITypeSymbol type) :
-                base(compilation, type)
+            public ParameterVariableSymbol(Compilation compilation, IParameterSymbol parameterSymbol, ITypeSymbol type)
+                : base(compilation, type)
             {
                 Contract.ThrowIfNull(parameterSymbol);
                 _parameterSymbol = parameterSymbol;
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected override int CompareTo(VariableSymbol right)
             {
-                return this.CompareTo((ParameterVariableSymbol)right);
+                return CompareTo((ParameterVariableSymbol)right);
             }
 
             public int CompareTo(ParameterVariableSymbol other)
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return 0;
                 }
 
-                var compare = CompareTo((IMethodSymbol)_parameterSymbol.ContainingSymbol, (IMethodSymbol)other._parameterSymbol.ContainingSymbol);
+                var compare = CompareMethodParameters((IMethodSymbol)_parameterSymbol.ContainingSymbol, (IMethodSymbol)other._parameterSymbol.ContainingSymbol);
                 if (compare != 0)
                 {
                     return compare;
@@ -136,40 +136,32 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return (_parameterSymbol.Ordinal > other._parameterSymbol.Ordinal) ? 1 : -1;
             }
 
-            private int CompareTo(IMethodSymbol left, IMethodSymbol right)
+            private int CompareMethodParameters(IMethodSymbol left, IMethodSymbol right)
             {
                 if (left == null && right == null)
                 {
+                    // not method parameters
                     return 0;
                 }
 
                 if (left.Equals(right))
                 {
+                    // parameter of same method
                     return 0;
                 }
 
-                if (left.MethodKind == MethodKind.AnonymousFunction &&
-                    right.MethodKind != MethodKind.AnonymousFunction)
-                {
-                    return 1;
-                }
+                // these methods can be either regular one, anonymous function, local function and etc
+                // but all must belong to same outer regular method.
+                // so, it should have location pointing to same tree
+                var leftLocations = left.Locations;
+                var rightLocations = right.Locations;
 
-                if (left.MethodKind != MethodKind.AnonymousFunction &&
-                    right.MethodKind == MethodKind.AnonymousFunction)
-                {
-                    return -1;
-                }
+                var commonTree = leftLocations.Select(l => l.SourceTree).Intersect(rightLocations.Select(l => l.SourceTree)).WhereNotNull().First();
 
-                if (left.MethodKind == MethodKind.AnonymousFunction &&
-                    right.MethodKind == MethodKind.AnonymousFunction)
-                {
-                    Contract.ThrowIfFalse(left.Locations.Length == 1);
-                    Contract.ThrowIfFalse(right.Locations.Length == 1);
+                var leftLocation = leftLocations.First(l => l.SourceTree == commonTree);
+                var rightLocation = rightLocations.First(l => l.SourceTree == commonTree);
 
-                    return left.Locations[0].SourceSpan.Start - right.Locations[0].SourceSpan.Start;
-                }
-
-                return Contract.FailWithReturn<int>("Shouldn't reach here");
+                return leftLocation.SourceSpan.Start - rightLocation.SourceSpan.Start;
             }
 
             public override string Name
@@ -190,8 +182,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private readonly ILocalSymbol _localSymbol;
             private readonly HashSet<int> _nonNoisySet;
 
-            public LocalVariableSymbol(Compilation compilation, ILocalSymbol localSymbol, ITypeSymbol type, HashSet<int> nonNoisySet) :
-                base(compilation, type)
+            public LocalVariableSymbol(Compilation compilation, ILocalSymbol localSymbol, ITypeSymbol type, HashSet<int> nonNoisySet)
+                : base(compilation, type)
             {
                 Contract.ThrowIfNull(localSymbol);
                 Contract.ThrowIfNull(nonNoisySet);
@@ -205,7 +197,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected override int CompareTo(VariableSymbol right)
             {
-                return this.CompareTo((LocalVariableSymbol<T>)right);
+                return CompareTo((LocalVariableSymbol<T>)right);
             }
 
             public int CompareTo(LocalVariableSymbol<T> other)
@@ -257,12 +249,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public override void AddIdentifierTokenAnnotationPair(
                 List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
             {
-                annotations.Add(Tuple.Create(this.GetOriginalIdentifierToken(cancellationToken), _annotation));
+                annotations.Add(Tuple.Create(GetOriginalIdentifierToken(cancellationToken), _annotation));
             }
 
             public override bool GetUseSaferDeclarationBehavior(CancellationToken cancellationToken)
             {
-                var identifier = this.GetOriginalIdentifierToken(cancellationToken);
+                var identifier = GetOriginalIdentifierToken(cancellationToken);
 
                 // check whether there is a noisy trivia around the token.
                 if (ContainsNoisyTrivia(identifier.LeadingTrivia))
@@ -307,8 +299,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             private readonly IRangeVariableSymbol _symbol;
 
-            public QueryVariableSymbol(Compilation compilation, IRangeVariableSymbol symbol, ITypeSymbol type) :
-                base(compilation, type)
+            public QueryVariableSymbol(Compilation compilation, IRangeVariableSymbol symbol, ITypeSymbol type)
+                : base(compilation, type)
             {
                 Contract.ThrowIfNull(symbol);
                 _symbol = symbol;
@@ -318,7 +310,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected override int CompareTo(VariableSymbol right)
             {
-                return this.CompareTo((QueryVariableSymbol)right);
+                return CompareTo((QueryVariableSymbol)right);
             }
 
             public int CompareTo(QueryVariableSymbol other)

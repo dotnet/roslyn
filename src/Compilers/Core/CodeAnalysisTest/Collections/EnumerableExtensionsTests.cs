@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Text;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections

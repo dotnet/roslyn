@@ -6,24 +6,29 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax> : IIntroduceVariableService
-        where TService : AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax>
+    internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax> : IIntroduceVariableService
+        where TService : AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
         where TExpressionSyntax : SyntaxNode
         where TTypeSyntax : TExpressionSyntax
         where TTypeDeclarationSyntax : SyntaxNode
         where TQueryExpressionSyntax : TExpressionSyntax
+        where TNameSyntax : TTypeSyntax
     {
         protected abstract bool IsInNonFirstQueryClause(TExpressionSyntax expression);
         protected abstract bool IsInFieldInitializer(TExpressionSyntax expression);
@@ -39,16 +44,21 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract bool CanIntroduceVariableFor(TExpressionSyntax expression);
         protected abstract bool CanReplace(TExpressionSyntax expression);
 
+        protected abstract bool IsExpressionInStaticLocalFunction(TExpressionSyntax expression);
+
         protected abstract Task<Document> IntroduceQueryLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken);
         protected abstract Task<Document> IntroduceLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
-        protected abstract Task<Tuple<Document, SyntaxNode, int>> IntroduceFieldAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
+        protected abstract Task<Document> IntroduceFieldAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
+
+        protected abstract int DetermineFieldInsertPosition(TTypeDeclarationSyntax oldDeclaration, TTypeDeclarationSyntax newDeclaration);
+        protected abstract int DetermineConstantInsertPosition(TTypeDeclarationSyntax oldDeclaration, TTypeDeclarationSyntax newDeclaration);
 
         protected virtual bool BlockOverlapsHiddenPosition(SyntaxNode block, CancellationToken cancellationToken)
         {
             return block.OverlapsHiddenPosition(cancellationToken);
         }
 
-        public async Task<ImmutableArray<CodeAction>> IntroduceVariableAsync(
+        public async Task<CodeAction> IntroduceVariableAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -57,13 +67,19 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-                var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
+                var state = await State.GenerateAsync((TService)this, semanticDocument, textSpan, cancellationToken).ConfigureAwait(false);
                 if (state != null)
                 {
-                    var actions = await CreateActionsAsync(state, cancellationToken).ConfigureAwait(false);
-                    if (actions.Count > 0)
+                    var (title, actions) = CreateActions(state, cancellationToken);
+                    if (actions.Length > 0)
                     {
-                        return actions.AsImmutableOrNull();
+                        // We may end up creating a lot of viable code actions for the selected
+                        // piece of code.  Create a top level code action so that we don't overwhelm
+                        // the light bulb if there are a lot of other options in the list.  Set 
+                        // the code action as 'inlinable' so that if the lightbulb is not cluttered
+                        // then the nested items can just be lifted into it, giving the user fast
+                        // access to them.
+                        return new CodeActionWithNestedActions(title, actions, isInlinable: true);
                     }
                 }
 
@@ -71,45 +87,63 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
         }
 
-        private async Task<List<CodeAction>> CreateActionsAsync(State state, CancellationToken cancellationToken)
+        private (string title, ImmutableArray<CodeAction>) CreateActions(State state, CancellationToken cancellationToken)
         {
-            var actions = new List<CodeAction>();
+            var actions = ArrayBuilder<CodeAction>.GetInstance();
+            var title = AddActionsAndGetTitle(state, actions, cancellationToken);
 
+            return (title, actions.ToImmutableAndFree());
+        }
+
+        private string AddActionsAndGetTitle(State state, ArrayBuilder<CodeAction> actions, CancellationToken cancellationToken)
+        {
             if (state.InQueryContext)
             {
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: false, isLocal: false, isQueryLocal: true));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: false, isLocal: false, isQueryLocal: true));
+
+                return FeaturesResources.Introduce_query_variable;
             }
             else if (state.InParameterContext)
             {
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false));
+
+                return FeaturesResources.Introduce_constant;
             }
             else if (state.InFieldContext)
             {
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
+
+                return GetConstantOrFieldResource(state.IsConstant);
             }
             else if (state.InConstructorInitializerContext)
             {
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
+
+                return GetConstantOrFieldResource(state.IsConstant);
             }
             else if (state.InAutoPropertyInitializerContext)
             {
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false));
+
+                return GetConstantOrFieldResource(state.IsConstant);
             }
             else if (state.InAttributeContext)
             {
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false));
+
+                return FeaturesResources.Introduce_constant;
             }
             else if (state.InBlockContext)
             {
-                await CreateConstantFieldActionsAsync(state, actions, cancellationToken).ConfigureAwait(false);
+                CreateConstantFieldActions(state, actions, cancellationToken);
 
-                var blocks = this.GetContainingExecutableBlocks(state.Expression);
+                var blocks = GetContainingExecutableBlocks(state.Expression);
                 var block = blocks.FirstOrDefault();
 
                 if (!BlockOverlapsHiddenPosition(block, cancellationToken))
@@ -121,18 +155,30 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
                     }
                 }
+
+                return GetConstantOrLocalResource(state.IsConstant);
             }
             else if (state.InExpressionBodiedMemberContext)
             {
-                await CreateConstantFieldActionsAsync(state, actions, cancellationToken).ConfigureAwait(false);
+                CreateConstantFieldActions(state, actions, cancellationToken);
                 actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
                 actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
-            }
 
-            return actions;
+                return GetConstantOrLocalResource(state.IsConstant);
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        private async Task CreateConstantFieldActionsAsync(State state, List<CodeAction> actions, CancellationToken cancellationToken)
+        private static string GetConstantOrFieldResource(bool isConstant)
+            => isConstant ? FeaturesResources.Introduce_constant : FeaturesResources.Introduce_field;
+
+        private static string GetConstantOrLocalResource(bool isConstant)
+            => isConstant ? FeaturesResources.Introduce_constant : FeaturesResources.Introduce_local;
+
+        private void CreateConstantFieldActions(State state, ArrayBuilder<CodeAction> actions, CancellationToken cancellationToken)
         {
             if (state.IsConstant &&
                 !state.GetSemanticMap(cancellationToken).AllReferencedSymbols.OfType<ILocalSymbol>().Any() &&
@@ -141,29 +187,43 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 // If something is a constant, and it doesn't access any other locals constants,
                 // then we prefer to offer to generate a constant field instead of a constant
                 // local.
-                var action1 = CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false);
-                if (await CanGenerateIntoContainerAsync(state, action1, cancellationToken).ConfigureAwait(false))
+                if (CanGenerateIntoContainer(state, cancellationToken))
                 {
-                    actions.Add(action1);
-                }
-
-                var action2 = CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false);
-                if (await CanGenerateIntoContainerAsync(state, action2, cancellationToken).ConfigureAwait(false))
-                {
-                    actions.Add(action2);
+                    actions.Add(CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false));
+                    actions.Add(CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false));
                 }
             }
         }
 
-        private async Task<bool> CanGenerateIntoContainerAsync(State state, CodeAction action, CancellationToken cancellationToken)
+        protected int GetFieldInsertionIndex(
+            bool isConstant, TTypeDeclarationSyntax oldType, TTypeDeclarationSyntax newType, CancellationToken cancellationToken)
         {
-            var result = await this.IntroduceFieldAsync(
-                state.Document, state.Expression,
-                allOccurrences: false, isConstant: state.IsConstant, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var preferredInsertionIndex = isConstant
+                ? DetermineConstantInsertPosition(oldType, newType)
+                : DetermineFieldInsertPosition(oldType, newType);
 
-            SyntaxNode destination = result.Item2;
-            int insertionIndex = result.Item3;
+            var legalInsertionIndices = this.GetInsertionIndices(oldType, cancellationToken);
+            if (legalInsertionIndices[preferredInsertionIndex])
+            {
+                return preferredInsertionIndex;
+            }
 
+            // location we wanted to insert into isn't legal (i.e. it's hidden).  Try to find a
+            // non-hidden location.
+            var legalIndex = legalInsertionIndices.IndexOf(true);
+            if (legalIndex >= 0)
+            {
+                return legalIndex;
+            }
+
+            // Couldn't find a viable non-hidden position.  Fall back to the computed position we
+            // wanted originally.
+            return preferredInsertionIndex;
+        }
+
+        private bool CanGenerateIntoContainer(State state, CancellationToken cancellationToken)
+        {
+            var destination = state.Expression.GetAncestor<TTypeDeclarationSyntax>() ?? state.Document.Root;
             if (!destination.OverlapsHiddenPosition(cancellationToken))
             {
                 return true;
@@ -171,10 +231,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             if (destination is TTypeDeclarationSyntax typeDecl)
             {
-                var insertionIndices = this.GetInsertionIndices(typeDecl, cancellationToken);
-                if (insertionIndices != null &&
-                    insertionIndices.Count > insertionIndex &&
-                    insertionIndices[insertionIndex])
+                var insertionIndices = GetInsertionIndices(typeDecl, cancellationToken);
+                // We can generate into a containing type as long as there is at least one non-hidden location in it.
+                if (insertionIndices.Contains(true))
                 {
                     return true;
                 }
@@ -194,15 +253,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         protected static SyntaxToken GenerateUniqueFieldName(
-            SemanticDocument document,
+            SemanticDocument semanticDocument,
             TExpressionSyntax expression,
             bool isConstant,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
+            var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
 
-            var semanticModel = document.SemanticModel;
+            var semanticModel = semanticDocument.SemanticModel;
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, isConstant, cancellationToken);
 
@@ -215,26 +274,20 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         protected static SyntaxToken GenerateUniqueLocalName(
-            SemanticDocument document,
+            SemanticDocument semanticDocument,
             TExpressionSyntax expression,
             bool isConstant,
-            SyntaxNode container,
+            SyntaxNode containerOpt,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
+            var semanticModel = semanticDocument.SemanticModel;
 
-            var semanticModel = document.SemanticModel;
-            var existingSymbols = semanticModel.GetExistingSymbols(container, cancellationToken);
-
+            var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
-            var reservedNames = semanticModel.LookupSymbols(expression.SpanStart)
-                                             .Select(s => s.Name)
-                                             .Concat(existingSymbols.Select(s => s.Name));
 
-            return syntaxFacts.ToIdentifierToken(
-                NameGenerator.EnsureUniqueness(baseName, reservedNames, syntaxFacts.IsCaseSensitive));
+            return semanticFacts.GenerateUniqueLocalName(
+                semanticModel, expression, containerOpt, baseName, cancellationToken);
         }
 
         protected ISet<TExpressionSyntax> FindMatches(
@@ -251,7 +304,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             var result = new HashSet<TExpressionSyntax>();
             var matches = from nodeInCurrent in withinNodeInCurrent.DescendantNodesAndSelf().OfType<TExpressionSyntax>()
-                          where NodeMatchesExpression(originalSemanticModel, currentSemanticModel, syntaxFacts, expressionInOriginal, nodeInCurrent, allOccurrences, cancellationToken)
+                          where NodeMatchesExpression(originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent, allOccurrences, cancellationToken)
                           select nodeInCurrent;
             result.AddRange(matches.OfType<TExpressionSyntax>());
 
@@ -261,7 +314,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         private bool NodeMatchesExpression(
             SemanticModel originalSemanticModel,
             SemanticModel currentSemanticModel,
-            ISyntaxFactsService syntaxFacts,
             TExpressionSyntax expressionInOriginal,
             TExpressionSyntax nodeInCurrent,
             bool allOccurrences,
@@ -272,17 +324,52 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 return true;
             }
-            else
+
+            if (allOccurrences && CanReplace(nodeInCurrent))
             {
-                if (allOccurrences &&
-                    this.CanReplace(nodeInCurrent))
+                // Original expression and current node being semantically equivalent isn't enough when the original expression 
+                // is a member access via instance reference (either implicit or explicit), the check only ensures that the expression
+                // and current node are both backed by the same member symbol. So in this case, in addition to SemanticEquivalence check, 
+                // we also check if expression and current node are both instance member access.
+                //
+                // For example, even though the first `c` binds to a field and we are introducing a local for it,
+                // we don't want other references to that field to be replaced as well (i.e. the second `c` in the expression).
+                //
+                //  class C
+                //  {
+                //      C c;
+                //      void Test()
+                //      {
+                //          var x = [|c|].c;
+                //      }
+                //  }
+
+                if (SemanticEquivalence.AreEquivalent(
+                    originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent))
                 {
-                    return SemanticEquivalence.AreSemanticallyEquivalent(
-                        originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent);
+                    var originalOperation = originalSemanticModel.GetOperation(expressionInOriginal, cancellationToken);
+                    if (IsInstanceMemberReference(originalOperation))
+                    {
+                        var currentOperation = currentSemanticModel.GetOperation(nodeInCurrent, cancellationToken);
+                        return IsInstanceMemberReference(currentOperation);
+                    }
+
+                    // If the original expression is within a static local function, further checks are unnecessary since our scope has already been narrowed down to within the local function.
+                    // If the original expression is not within a static local function, we need to further check whether the expression we're comparing against is within a static local
+                    // function. If so, the expression is not a valid match since we cannot refer to instance variables from within static local functions.
+                    if (!IsExpressionInStaticLocalFunction(expressionInOriginal))
+                    {
+                        return !IsExpressionInStaticLocalFunction(nodeInCurrent);
+                    }
+
+                    return true;
                 }
             }
 
             return false;
+            static bool IsInstanceMemberReference(IOperation operation)
+                => operation is IMemberReferenceOperation memberReferenceOperation &&
+                    memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
         }
 
         protected TNode Rewrite<TNode>(
@@ -386,8 +473,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                 newSemanticDocument.Document,
                                 expandInsideNode: node =>
                                 {
-                                    var expression = node as TExpressionSyntax;
-                                    return expression == null
+                                    return !(node is TExpressionSyntax expression)
                                         || !newMatches.Contains(expression);
                                 },
                                 cancellationToken: ct)

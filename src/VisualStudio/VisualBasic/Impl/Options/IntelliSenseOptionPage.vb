@@ -8,8 +8,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <Guid(Guids.VisualBasicOptionPageIntelliSenseIdString)>
     Friend Class IntelliSenseOptionPage
         Inherits AbstractOptionPage
-        Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider) As AbstractOptionPageControl
-            Return New IntelliSenseOptionPageControl(serviceProvider)
+        Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider, optionStore As OptionStore) As AbstractOptionPageControl
+            Return New IntelliSenseOptionPageControl(optionStore)
         End Function
     End Class
 End Namespace

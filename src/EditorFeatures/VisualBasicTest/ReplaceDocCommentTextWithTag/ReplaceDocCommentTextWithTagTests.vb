@@ -16,11 +16,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ReplaceDocCommentT
         Public Async Function TestStartOfKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' TKey must implement the System.IDisposable [||]interface.
+''' Testing keyword [||]Nothing.
 class C(Of TKey)
 end class",
 "
-''' TKey must implement the System.IDisposable <see langword=""interface""/>.
+''' Testing keyword <see langword=""Nothing""/>.
 class C(Of TKey)
 end class")
         End Function
@@ -29,11 +29,11 @@ end class")
         Public Async Function TestStartOfKeywordCapitalized() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' TKey must implement the System.IDisposable [||]Interface.
+''' Testing keyword Shared[||].
 class C(Of TKey)
 end class",
 "
-''' TKey must implement the System.IDisposable <see langword=""Interface""/>.
+''' Testing keyword <see langword=""Shared""/>.
 class C(Of TKey)
 end class")
         End Function
@@ -42,11 +42,11 @@ end class")
         Public Async Function TestEndOfKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' TKey must implement the System.IDisposable interface[||].
+''' Testing keyword True[||].
 class C(Of TKey)
 end class",
 "
-''' TKey must implement the System.IDisposable <see langword=""interface""/>.
+''' Testing keyword <see langword=""True""/>.
 class C(Of TKey)
 end class")
         End Function
@@ -55,11 +55,11 @@ end class")
         Public Async Function TestEndOfKeyword_NewLineFollowing() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' TKey must implement the System.IDisposable interface[||]
+''' Testing keyword MustInherit[||]
 class C(Of TKey)
 end class",
 "
-''' TKey must implement the System.IDisposable <see langword=""interface""/>
+''' Testing keyword <see langword=""MustInherit""/>
 class C(Of TKey)
 end class")
         End Function
@@ -68,11 +68,11 @@ end class")
         Public Async Function TestSelectedKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' TKey must implement the System.IDisposable [|interface|].
+''' Testing keyword [|Async|].
 class C(Of TKey)
 end class",
 "
-''' TKey must implement the System.IDisposable <see langword=""interface""/>.
+''' Testing keyword <see langword=""Async""/>.
 class C(Of TKey)
 end class")
         End Function
@@ -81,11 +81,11 @@ end class")
         Public Async Function TestInsideKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' TKey must implement the System.IDisposable int[||]erface.
+''' Testing keyword Aw[||]ait.
 class C(Of TKey)
 end class",
 "
-''' TKey must implement the System.IDisposable <see langword=""interface""/>.
+''' Testing keyword <see langword=""Await""/>.
 class C(Of TKey)
 end class")
         End Function
@@ -314,6 +314,40 @@ interface I
     ''' <paramref name=""value""/> has type TKey so we don't box primitives.
     sub WriteLine(Of TKey)(value as TKey)
 end interface")
+        End Function
+
+        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        Public Async Function TestNotApplicableKeyword() As Task
+            Await TestMissingAsync(
+"
+''' Testing keyword interf[||]ace
+class C(Of TKey)
+end class")
+        End Function
+
+        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        Public Async Function TestInXMLAttribute() As Task
+            Await TestMissingAsync(
+"
+''' Testing keyword inside <see langword=""Noth[||]ing"">
+class C
+    sub WriteLine(Of TKey)(value as TKey)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        Public Async Function TestInXMLAttribute2() As Task
+            Await TestMissingAsync(
+"
+''' Testing keyword inside <see langword=""Not[||]hing""
+class C
+    sub WriteLine(Of TKey)(value as TKey)
+    end sub
+end class")
         End Function
     End Class
 End Namespace

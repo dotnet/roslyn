@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 @"[|clas|]s Class1 { }
  class Class2 { }";
 
-            await TestMissingInRegularAndScriptAsync(code);
+            await TestActionCountAsync(code, count: 3);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -98,7 +99,7 @@ class Class2 { }
 @"[|class Class1|] { }
 class Class2 { }";
 
-            await TestMissingInRegularAndScriptAsync(code);
+            await TestActionCountAsync(code, count: 3);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -880,7 +881,7 @@ partial class Outer
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
                 onAfterWorkspaceCreated: w =>
                 {
-                    w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, true);
+                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, true)));
                 });
         }
 
@@ -921,7 +922,7 @@ partial class Outer
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
                 onAfterWorkspaceCreated: w =>
                 {
-                    w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, false);
+                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, false)));
                 });
         }
 
@@ -1167,6 +1168,217 @@ class Class2
     }
 }
 ";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WorkItem(31377, "https://github.com/dotnet/roslyn/issues/31377")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestLeadingCommentInContainer()
+        {
+            var code =
+@"// Banner Text
+using System;
+
+class Class1
+// Leading comment
+{
+    class [||]Class2
+    {
+    }
+
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+
+    public int I() => 5;
+}
+";
+            var codeAfterMove = @"// Banner Text
+using System;
+
+partial class Class1
+// Leading comment
+{
+
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+
+    public int I() => 5;
+}
+";
+
+            var expectedDocumentName = "Class2.cs";
+            var destinationDocumentText = @"// Banner Text
+
+partial class Class1
+{
+    class Class2
+    {
+    }
+}
+";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WorkItem(31377, "https://github.com/dotnet/roslyn/issues/31377")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestLeadingCommentInContainer2()
+        {
+            var code =
+@"// Banner Text
+using System;
+
+class Class1
+{ // Leading comment
+    class [||]Class2
+    {
+    }
+
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+
+    public int I() => 5;
+}
+";
+            var codeAfterMove = @"// Banner Text
+using System;
+
+partial class Class1
+{ // Leading comment
+
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+
+    public int I() => 5;
+}
+";
+
+            var expectedDocumentName = "Class2.cs";
+            var destinationDocumentText = @"// Banner Text
+
+partial class Class1
+{
+    class Class2
+    {
+    }
+}
+";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WorkItem(31377, "https://github.com/dotnet/roslyn/issues/31377")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestTrailingCommentInContainer()
+        {
+            var code =
+@"// Banner Text
+using System;
+
+class Class1
+{
+    class [||]Class2
+    {
+    }
+
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+
+    public int I() => 5;
+    // End of class document
+}
+";
+            var codeAfterMove = @"// Banner Text
+using System;
+
+partial class Class1
+{
+
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+
+    public int I() => 5;
+    // End of class document
+}
+";
+
+            var expectedDocumentName = "Class2.cs";
+            var destinationDocumentText = @"// Banner Text
+
+partial class Class1
+{
+    class Class2
+    {
+    }
+}
+";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WorkItem(31377, "https://github.com/dotnet/roslyn/issues/31377")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestTrailingCommentInContainer2()
+        {
+            var code =
+@"// Banner Text
+using System;
+
+class Class1
+{
+    class [||]Class2
+    {
+    }
+
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+
+    public int I() => 5;
+} // End of class document
+";
+            var codeAfterMove = @"// Banner Text
+using System;
+
+partial class Class1
+{
+
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+
+    public int I() => 5;
+} // End of class document
+";
+
+            var expectedDocumentName = "Class2.cs";
+            var destinationDocumentText = @"// Banner Text
+
+partial class Class1
+{
+    class Class2
+    {
+    }
+}";
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);

@@ -270,13 +270,34 @@
   <data name="Fade_out_unused_imports" xml:space="preserve">
     <value>Fade out unused imports</value>
   </data>
-  <data name="Prefer_Is_Nothing_over_ReferenceEquals" xml:space="preserve">
-    <value>Prefer 'Is Nothing' over 'Object.ReferenceEquals(..., Nothing)'</value>
+  <data name="Prefer_Is_Nothing_for_reference_equality_checks" xml:space="preserve">
+    <value>Prefer 'Is Nothing' for reference equality checks</value>
   </data>
   <data name="Report_invalid_placeholders_in_string_dot_format_calls" xml:space="preserve">
     <value>Report invalid placeholders in 'String.Format' calls</value>
   </data>
   <data name="Separate_import_directive_groups" xml:space="preserve">
     <value>Separate import directive groups</value>
+  </data>
+  <data name="In_arithmetic_binary_operators" xml:space="preserve">
+    <value>In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</value>
+  </data>
+  <data name="In_other_binary_operators" xml:space="preserve">
+    <value>In other binary operators:  And   AndAlso   Or   OrElse</value>
+  </data>
+  <data name="In_relational_binary_operators" xml:space="preserve">
+    <value>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</value>
+  </data>
+  <data name="VB_Coding_Conventions" xml:space="preserve">
+    <value>VB Coding Conventions</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="Unused_local" xml:space="preserve">
+    <value>Unused local</value>
+  </data>
+  <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
+    <value>Show items from unimported namespaces (experimental)</value>
   </data>
 </root>

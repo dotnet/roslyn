@@ -1,15 +1,40 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 
 namespace Microsoft.CodeAnalysis.Options.Providers
 {
+    [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
     internal sealed class ExportOptionProviderAttribute : ExportAttribute
     {
-        public ExportOptionProviderAttribute() : base(typeof(IOptionProvider))
+        /// <summary>
+        /// Optional source language for language specific option providers.  See <see cref="LanguageNames"/>.
+        /// This will be empty string for language agnostic option providers.
+        /// </summary>
+        public string Language { get; }
+
+        /// <summary>
+        /// Constructor for language agnostic option providers.
+        /// Use <see cref="ExportOptionProviderAttribute(string)"/> overload for language specific option providers.
+        /// </summary>
+        public ExportOptionProviderAttribute()
+            : base(typeof(IOptionProvider))
         {
+            this.Language = string.Empty;
+        }
+
+        /// <summary>
+        /// Constructor for language specific option providers.
+        /// Use <see cref="ExportOptionProviderAttribute()"/> overload for language agnostic option providers.
+        /// </summary>
+        public ExportOptionProviderAttribute(string language)
+            : base(typeof(IOptionProvider))
+        {
+            this.Language = language ?? throw new ArgumentNullException(nameof(language));
         }
     }
 }

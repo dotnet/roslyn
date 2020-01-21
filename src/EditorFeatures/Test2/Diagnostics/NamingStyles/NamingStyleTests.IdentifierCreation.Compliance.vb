@@ -32,13 +32,25 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestManyEmptyWords()
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.PascalCase)
-            TestNameCompliance(namingStyle, "_____")
+            TestNameNoncomplianceAndFixedNames(namingStyle, "_____", "_")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestPascalCaseMultiplePrefixAndSuffixFixes()
             Dim namingStyle = CreateNamingStyle(prefix:="p_", suffix:="_s", capitalizationScheme:=Capitalization.PascalCase)
             TestNameNoncomplianceAndFixedNames(namingStyle, "_", "p_s", "p___s")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestPrefixAndCommonPrefix()
+            Dim namingStyle = CreateNamingStyle(prefix:="Test_", suffix:="_z", capitalizationScheme:=Capitalization.PascalCase)
+            TestNameNoncomplianceAndFixedNames(namingStyle, "Test_m_BaseName", "Test_M_BaseName_z", "Test_BaseName_z")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestCommonPrefixAndPrefix()
+            Dim namingStyle = CreateNamingStyle(prefix:="Test_", suffix:="_z", capitalizationScheme:=Capitalization.PascalCase)
+            TestNameNoncomplianceAndFixedNames(namingStyle, "m_Test_BaseName", "Test_BaseName_z")
         End Sub
 #End Region
 

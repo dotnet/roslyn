@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.Text
 {
     /// <summary>
@@ -21,5 +23,10 @@ namespace Microsoft.CodeAnalysis.Text
         /// Secure Hash Algorithm 2 with a hash size of 256 bits.
         /// </summary>
         Sha256 = 2,
+    }
+
+    internal static class SourceHashAlgorithmUtils
+    {
+        public const SourceHashAlgorithm DefaultContentHashAlgorithm = SourceHashAlgorithm.Sha256;
     }
 }

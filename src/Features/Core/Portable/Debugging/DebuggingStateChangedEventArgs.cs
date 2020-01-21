@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Debugging
 {
-    internal struct DebuggingStateChangedEventArgs
+    internal readonly struct DebuggingStateChangedEventArgs
     {
         public readonly DebuggingState Before;
         public readonly DebuggingState After;

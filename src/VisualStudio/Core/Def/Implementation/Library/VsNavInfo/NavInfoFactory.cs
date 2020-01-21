@@ -154,9 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
             }
             else
             {
-                var portableExecutableReference = compilation.GetMetadataReference(containingAssembly) as PortableExecutableReference;
-
-                libraryName = portableExecutableReference != null
+                libraryName = compilation.GetMetadataReference(containingAssembly) is PortableExecutableReference portableExecutableReference
                     ? portableExecutableReference.FilePath
                     : containingAssembly.Identity.Name;
 
@@ -182,8 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         {
             var result = project.Name;
 
-            var workspace = project.Solution.Workspace as VisualStudioWorkspace;
-            if (workspace == null)
+            if (!(project.Solution.Workspace is VisualStudioWorkspace workspace))
             {
                 return result;
             }

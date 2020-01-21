@@ -22,10 +22,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private IVsReferenceManager _referenceManager;
 
         [Import]
-        private AnalyzerItemsTracker _tracker = null;
+        private readonly AnalyzerItemsTracker _tracker = null;
 
         [ImportingConstructor]
-        internal AnalyzerReferenceManager(
+        public AnalyzerReferenceManager(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// </summary>
         public void ShowDialog()
         {
-            IVsReferenceManager referenceManager = GetReferenceManager();
+            var referenceManager = GetReferenceManager();
             if (referenceManager != null &&
                 _tracker.SelectedHierarchy != null)
             {

@@ -1,12 +1,15 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractInterface
 Imports Microsoft.CodeAnalysis.ExtractInterface
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractInterface
     Public Class ExtractInterfaceTests
@@ -339,6 +342,7 @@ End Class</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class TestClass
     Implements ITestClass
+
     Public Sub Goo() Implements ITestClass.Goo
     End Sub
 End Class</text>.NormalizedValue()
@@ -355,6 +359,7 @@ End Structure</text>.NormalizedValue()
             Dim expectedCode = <text>
 Structure TestClass
     Implements ITestClass
+
     Public Sub Goo() Implements ITestClass.Goo
     End Sub
 End Structure</text>.NormalizedValue()
@@ -697,6 +702,7 @@ End Class</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class Program
     Implements IProgram
+
     Public Sub Goo() Implements IProgram.Goo
     End Sub
 End Class</text>.NormalizedValue()
@@ -713,6 +719,7 @@ End Class</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class Program(Of T)
     Implements IProgram(Of T)
+
     Public Sub Goo(x As T) Implements IProgram(Of T).Goo
     End Sub
 End Class</text>.NormalizedValue()
@@ -729,6 +736,7 @@ End Class</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class Program(Of T As U, U)
     Implements IProgram(Of T, U)
+
     Public Sub Goo(x As T, y As U) Implements IProgram(Of T, U).Goo
     End Sub
 End Class</text>.NormalizedValue()
@@ -749,8 +757,7 @@ Interface ISomeInterface
 End Interface</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class Program
-    Implements ISomeInterface
-    Implements IProgram
+    Implements ISomeInterface, IProgram
 
     Public Sub Goo() Implements IProgram.Goo
     End Sub
@@ -812,8 +819,7 @@ Interface ISomeInterface(Of T)
 End Interface</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class Program(Of T, U)
-    Implements ISomeInterface(Of T)
-    Implements IProgram(Of T, U)
+    Implements ISomeInterface(Of T), IProgram(Of T, U)
 
     Public Sub Goo(t As T, u As U) Implements IProgram(Of T, U).Goo
     End Sub
@@ -842,8 +848,7 @@ Interface ISomeInterface2(Of T, U)
 End Interface</text>.NormalizedValue()
             Dim expectedCode = <text>
 Class Program(Of T, U)
-    Implements ISomeInterface(Of T), ISomeInterface2(Of T, U)
-    Implements IProgram(Of T, U)
+    Implements ISomeInterface(Of T), ISomeInterface2(Of T, U), IProgram(Of T, U)
 
     Public Sub Goo(t As T, u As U) Implements IProgram(Of T, U).Goo
     End Sub
@@ -882,6 +887,7 @@ End Class
             Dim expectedCode = <text>
 Class C
     Implements IC
+
     Public Sub Goo() Implements IC.Goo
     End Sub
 
@@ -935,8 +941,8 @@ End Interface
 </text>.NormalizedValue()
             Dim expectedCode = <text>
 Class C
-    Implements IC
-    Implements IC1
+    Implements IC, IC1
+
     Public Sub Goo() Implements IC.Goo, IC1.Goo
     End Sub
 
@@ -1160,6 +1166,7 @@ End Class</Document>
             Dim expectedDoc1Text = <text>
 Partial Class C
     Implements IC
+
     Public Sub Goo() Implements IC.Goo
     End Sub
     Public Function Bar() As Integer Implements IC.Bar
@@ -1177,9 +1184,9 @@ Partial Class C
     End Property
 End Class</text>.NormalizedValue()
 
-            Dim workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExtractInterfaceTestState.ExportProvider)
+            Dim workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExtractInterfaceTestState.ExportProviderFactory.CreateExportProvider())
             Using testState = New ExtractInterfaceTestState(workspace)
-                Dim result = testState.ExtractViaCommand()
+                Dim result = Await testState.ExtractViaCommandAsync()
                 Assert.True(result.Succeeded)
 
                 Dim part1Id = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).Id
@@ -1202,6 +1209,7 @@ End Class
             Dim expectedUpdatedDocument = <text>Imports System
 Class TestClass
     Implements ITestClass
+
     Public Sub Goo() Implements ITestClass.Goo
     End Sub
 End Class
@@ -1235,6 +1243,7 @@ End Namespace
 Namespace NS1
     Class TestClass
         Implements ITestClass
+
         Public Sub Goo() Implements ITestClass.Goo
         End Sub
     End Class
@@ -1260,8 +1269,9 @@ End Namespace
         <Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub TestExtractInterfaceCommandDisabledInSubmission()
-            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
+            Dim exportProvider = ExportProviderCache _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService))) _
+                .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -1280,19 +1290,94 @@ End Namespace
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New ExtractInterfaceCommandHandler()
-                Dim delegatedToNext = False
-                Dim nextHandler =
-                    Function()
-                        delegatedToNext = True
-                        Return CommandState.Unavailable
-                    End Function
+                Dim handler = New ExtractInterfaceCommandHandler(exportProvider.GetExportedValue(Of IThreadingContext))
 
-                Dim state = handler.GetCommandState(New Commands.ExtractInterfaceCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
+                Dim state = handler.GetCommandState(New ExtractInterfaceCommandArgs(textView, textView.TextBuffer))
+                Assert.True(state.IsUnspecified)
             End Using
         End Sub
+
+        <WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        Public Async Function TestExtractInterface_WithCopyright1() As Task
+            Dim markup = <text>'' Copyright
+
+Imports System
+Class TestClass
+    Public Sub Goo()$$
+    End Sub
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedUpdatedDocument = <text>'' Copyright
+
+Imports System
+Class TestClass
+    Implements ITestClass
+
+    Public Sub Goo() Implements ITestClass.Goo
+    End Sub
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedInterfaceCode = <text>'' Copyright
+
+Interface ITestClass
+    Sub Goo()
+End Interface
+</text>.NormalizedValue()
+
+            Await TestExtractInterfaceCommandVisualBasicAsync(
+                markup,
+                expectedSuccess:=True,
+                expectedUpdatedOriginalDocumentCode:=expectedUpdatedDocument,
+                expectedInterfaceCode:=expectedInterfaceCode,
+                rootNamespace:="RootNamespace")
+        End Function
+
+        <WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        Public Async Function TestExtractInterface_WithCopyright2() As Task
+            Dim markup = <text>'' Copyright
+
+Imports System
+
+Class Program
+    Class A$$
+        Sub Main(args As String())
+        End Sub
+    End Class
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedUpdatedDocument = <text>'' Copyright
+
+Imports System
+
+Class Program
+    Class A
+        Implements IA
+
+        Sub Main(args As String()) Implements IA.Main
+        End Sub
+    End Class
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedInterfaceCode = <text>'' Copyright
+
+Interface IA
+    Sub Main(args() As String)
+End Interface
+</text>.NormalizedValue()
+
+            Await TestExtractInterfaceCommandVisualBasicAsync(
+                markup,
+                expectedSuccess:=True,
+                expectedUpdatedOriginalDocumentCode:=expectedUpdatedDocument,
+                expectedInterfaceCode:=expectedInterfaceCode,
+                rootNamespace:="RootNamespace")
+        End Function
 
         Private Shared Async Function TestTypeDiscoveryAsync(markup As String, typeDiscoveryRule As TypeDiscoveryRule, expectedExtractable As Boolean) As System.Threading.Tasks.Task
             Using testState = ExtractInterfaceTestState.Create(markup, LanguageNames.VisualBasic, compilationOptions:=Nothing)

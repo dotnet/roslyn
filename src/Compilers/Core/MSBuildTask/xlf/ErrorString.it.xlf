@@ -94,6 +94,11 @@
         <target state="translated">MSB3104: il modello "{0}" a cui si fa riferimento non è stato trovato. Se l'assembly è prodotto da un altro progetto, assicurarsi di compilare tale progetto prima di compilare quello corrente.</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">Non è stato possibile leggere il file "{0}": {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">La compilazione condivisa non è riuscita. Verrà eseguito il fallback allo strumento: {0}</target>
@@ -118,6 +123,26 @@
         <source>MSB3402: There was an error creating the pdb file "{0}". {1}</source>
         <target state="translated">MSB3402: si è verificato un errore durante la creazione del file PDB "{0}". {1}</target>
         <note>{StrBegin="MSB3402: "}</note>
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="translated">{0} contiene elementi duplicati '{1}' con metadati in conflitto '{2}': '{3}' e '{4}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="translated">{0} percorsi devono terminare con una barra o una barra rovesciata: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="translated">{0} elementi devono includere almeno un elemento di primo livello (non annidato) quando {1} è true</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="translated">Il valore di {0} non è stato trovato negli elementi {1} oppure l'elemento corrispondente non è una radice di origine di primo livello: '{2}'</target>
+        <note />
       </trans-unit>
     </body>
   </file>

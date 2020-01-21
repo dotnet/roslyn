@@ -20,6 +20,15 @@ _
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function StepInForLoopAfterLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>
+    For i = 1 To 10 _ ' Test
+_
+|</MethodBody>, "Step")
+        End Function
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function StepInForLoopNotAfterEOLTest() As Task
             Await VerifyRecommendationsMissingAsync(
 <MethodBody>

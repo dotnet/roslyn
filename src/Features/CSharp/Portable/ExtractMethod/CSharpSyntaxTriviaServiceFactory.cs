@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     [ExportLanguageServiceFactory(typeof(ISyntaxTriviaService), LanguageNames.CSharp), Shared]
     internal class CSharpSyntaxTriviaServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpSyntaxTriviaServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
         {
             return new CSharpSyntaxTriviaService(provider);

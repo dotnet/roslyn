@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -14,32 +14,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Creation()
         {
-            using (var session = CreateSession("$$"))
-            {
-                Assert.NotNull(session);
-            }
+            using var session = CreateSession("$$");
+            Assert.NotNull(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Attribute_TopLevel()
         {
-            using (var session = CreateSession("$$"))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession("$$");
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Attribute_TopLevel2()
         {
-            using (var session = CreateSession("using System;$$"))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession("using System;$$");
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -49,10 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     string s = ""$$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -63,10 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     string s = @""
 $$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -76,10 +66,8 @@ $$
 {
     //$$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -89,10 +77,8 @@ $$
 {
     /* $$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -102,10 +88,8 @@ $$
 {
     /// $$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -115,10 +99,8 @@ $$
 {
     /** $$
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.Null(session);
-            }
+            using var session = CreateSession(code);
+            Assert.Null(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -131,12 +113,10 @@ $$
         /* */$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -149,12 +129,10 @@ $$
         /** */$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -167,12 +145,10 @@ $$
         var s = """"$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -185,12 +161,10 @@ $$
         var s = @""""$$
     }
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -199,12 +173,10 @@ $$
             var code = @"$$
 class C { }";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -213,13 +185,11 @@ class C { }";
             var code = @"$$
 class C { }";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckBackspace(session.Session);
-            }
+            CheckStart(session.Session);
+            CheckBackspace(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -228,13 +198,11 @@ class C { }";
             var code = @"$$
 class C { }";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckTab(session.Session);
-            }
+            CheckStart(session.Session);
+            CheckTab(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -243,13 +211,11 @@ class C { }";
             var code = @"$$
 class C { }";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-                CheckOverType(session.Session);
-            }
+            CheckStart(session.Session);
+            CheckOverType(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -260,12 +226,10 @@ class C { }";
     int [$$]
 }";
 
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -275,12 +239,10 @@ class C { }";
 {
     int [] i = new int [arr$$]
 }";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
 
-                CheckStart(session.Session);
-            }
+            CheckStart(session.Session);
         }
 
         internal Holder CreateSession(string code)

@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private sealed class ErrorAssembly : Cci.IAssemblyReference
         {
             public static readonly ErrorAssembly Singleton = new ErrorAssembly();
-            
+
             /// <summary>
             /// For the name we will use a word "Error" followed by a guid, generated on the spot.
             /// </summary>

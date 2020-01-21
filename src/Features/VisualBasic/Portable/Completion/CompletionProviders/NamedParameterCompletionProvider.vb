@@ -69,7 +69,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
                 For Each parameter In unspecifiedParameters
                     context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                        displayText:=parameter.Name & s_colonEquals,
+                        displayText:=parameter.Name,
+                        displayTextSuffix:=s_colonEquals,
                         insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
                         symbols:=ImmutableArray.Create(parameter),
                         contextPosition:=position,
@@ -164,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Dim delegateType = DirectCast(expressionType, INamedTypeSymbol)
                     Return SpecializedCollections.SingletonEnumerable(delegateType.DelegateInvokeMethod.Parameters.As(Of ISymbol)())
                 ElseIf indexers.Count > 0 Then
-                    Return indexers.Where(Function(i) i.IsAccessibleWithin(within, throughTypeOpt:=expressionType)).
+                    Return indexers.Where(Function(i) i.IsAccessibleWithin(within, throughType:=expressionType)).
                                     Select(Function(i) i.Parameters.As(Of ISymbol)())
                 End If
             End If

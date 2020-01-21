@@ -2,13 +2,16 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddFileBanner
@@ -17,17 +20,17 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
     {
         protected abstract bool IsCommentStartCharacter(char ch);
 
+        protected abstract SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-            
-            if (!context.Span.IsEmpty)
+            var (document, span, cancellationToken) = context;
+            if (!span.IsEmpty)
             {
                 return;
             }
 
-            var position = context.Span.Start;
+            var position = span.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var firstToken = root.GetFirstToken();
@@ -66,17 +69,45 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 if (siblingBanner.Length > 0 && !siblingDocument.IsGeneratedCode(cancellationToken))
                 {
                     context.RegisterRefactoring(
-                        new MyCodeAction(c => AddBannerAsync(document, root, siblingBanner, c)));
+                        new MyCodeAction(_ => AddBannerAsync(document, root, siblingDocument, siblingBanner)),
+                        new Text.TextSpan(position, length: 0));
                     return;
                 }
             }
         }
 
         private Task<Document> AddBannerAsync(
-            Document document, SyntaxNode root, ImmutableArray<SyntaxTrivia> banner, CancellationToken c)
+            Document document, SyntaxNode root,
+            Document siblingDocument, ImmutableArray<SyntaxTrivia> banner)
         {
+            banner = UpdateEmbeddedFileNames(siblingDocument, document, banner);
+
             var newRoot = root.WithPrependedLeadingTrivia(new SyntaxTriviaList(banner));
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
+        }
+
+        /// <summary>
+        /// Looks at <paramref name="banner"/> to see if it contains the name of <paramref name="sourceDocument"/>
+        /// in it.  If so, those names will be replaced with <paramref name="destinationDocument"/>'s name.
+        /// </summary>
+        private ImmutableArray<SyntaxTrivia> UpdateEmbeddedFileNames(
+            Document sourceDocument, Document destinationDocument, ImmutableArray<SyntaxTrivia> banner)
+        {
+            var sourceName = IOUtilities.PerformIO(() => Path.GetFileName(sourceDocument.FilePath));
+            var destinationName = IOUtilities.PerformIO(() => Path.GetFileName(destinationDocument.FilePath));
+            if (string.IsNullOrEmpty(sourceName) || string.IsNullOrEmpty(destinationName))
+            {
+                return banner;
+            }
+
+            var result = ArrayBuilder<SyntaxTrivia>.GetInstance();
+            foreach (var trivia in banner)
+            {
+                var updated = CreateTrivia(trivia, trivia.ToFullString().Replace(sourceName, destinationName));
+                result.Add(updated);
+            }
+
+            return result.ToImmutableAndFree();
         }
 
         private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
@@ -106,7 +137,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Add_file_banner, createChangedDocument)
             {
             }

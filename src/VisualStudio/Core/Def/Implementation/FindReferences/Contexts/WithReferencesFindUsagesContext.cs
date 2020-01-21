@@ -7,11 +7,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
+using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -27,8 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             public WithReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
-                IFindAllReferencesWindow findReferencesWindow)
-                : base(presenter, findReferencesWindow)
+                IFindAllReferencesWindow findReferencesWindow,
+                ImmutableArray<ITableColumnDefinition> customColumns,
+                bool includeContainingTypeAndMemberColumns,
+                bool includeKindColumn)
+                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
             {
             }
 
@@ -63,12 +66,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var declarations = ArrayBuilder<Entry>.GetInstance();
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
-                    var definitionEntry = await CreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, HighlightSpanKind.Definition).ConfigureAwait(false);
-                    if (definitionEntry != null)
-                    {
-                        declarations.Add(definitionEntry);
-                    }
+                    var definitionEntry = await TryCreateDocumentSpanEntryAsync(
+                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, SymbolUsageInfo.None, additionalProperties: definition.DisplayableProperties).ConfigureAwait(false);
+                    declarations.AddIfNotNull(definitionEntry);
                 }
 
                 var changed = false;
@@ -108,9 +108,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // Normal references go into both sets of entries.
                 return OnEntryFoundAsync(
                     reference.Definition,
-                    bucket => CreateDocumentSpanEntryAsync(
-                        bucket, reference.SourceSpan, 
-                        reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference),
+                    bucket => TryCreateDocumentSpanEntryAsync(
+                        bucket, reference.SourceSpan,
+                        reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
+                        reference.SymbolUsageInfo,
+                        reference.AdditionalProperties),
                     addToEntriesWhenGroupingByDefinition: true,
                     addToEntriesWhenNotGroupingByDefinition: true);
             }
@@ -134,6 +136,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // First find the bucket corresponding to our definition.
                 var definitionBucket = GetOrCreateDefinitionBucket(definition);
                 var entry = await createEntryAsync(definitionBucket).ConfigureAwait(false);
+                if (entry == null)
+                {
+                    return;
+                }
 
                 lock (Gate)
                 {

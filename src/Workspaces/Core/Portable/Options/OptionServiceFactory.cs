@@ -1,13 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -34,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// <see cref="Workspace"/> this is connected to.  i.e. instead of synchronously just passing
         /// along the underlying events, these will be enqueued onto the workspace's eventing queue.
         /// </summary>
-        // Internal for testing purposes.
         internal class OptionService : IWorkspaceOptionService
         {
             private readonly IGlobalOptionService _globalOptionService;
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Options
                     {
                         handler(this, e);
                     }
-                }, "OptionsService.SetOptions");
+                }, "OptionsService.OnGlobalOptionServiceOptionChanged");
             }
 
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> GetEventHandlers()
@@ -111,20 +114,25 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
-            public OptionSet GetOptions()
-            {
-                return new WorkspaceOptionSet(this);
-            }
-
             // Simple forwarding functions.
-            public object GetOption(OptionKey optionKey) => _globalOptionService.GetOption(optionKey);
-            public T GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
-            public T GetOption<T>(PerLanguageOption<T> option, string languageName) => _globalOptionService.GetOption(option, languageName);
+            public SerializableOptionSet GetOptions() => GetSerializableOptionsSnapshot(ImmutableHashSet<string>.Empty);
+            public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages) => _globalOptionService.GetSerializableOptionsSnapshot(languages, this);
+            public object? GetOption(OptionKey optionKey) => _globalOptionService.GetOption(optionKey);
+            [return: MaybeNull] public T GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
+            [return: MaybeNull] public T GetOption<T>(PerLanguageOption<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
             public IEnumerable<IOption> GetRegisteredOptions() => _globalOptionService.GetRegisteredOptions();
+            public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetRegisteredSerializableOptions(languages);
             public void SetOptions(OptionSet optionSet) => _globalOptionService.SetOptions(optionSet);
+            public void RegisterWorkspace(Workspace workspace) => _globalOptionService.RegisterWorkspace(workspace);
+            public void UnregisterWorkspace(Workspace workspace) => _globalOptionService.UnregisterWorkspace(workspace);
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
             {
+                if (documentOptionsProvider == null)
+                {
+                    throw new ArgumentNullException(nameof(documentOptionsProvider));
+                }
+
                 lock (_gate)
                 {
                     _documentOptionsProviders = _documentOptionsProviders.Add(documentOptionsProvider);
@@ -154,31 +162,29 @@ namespace Microsoft.CodeAnalysis.Options
                     }
                 }
 
-                return new DocumentSpecificOptionSet(document, realizedDocumentOptions, optionSet);
+                return new DocumentSpecificOptionSet(realizedDocumentOptions, optionSet);
             }
 
             private class DocumentSpecificOptionSet : OptionSet
             {
-                private readonly Document _document;
                 private readonly OptionSet _underlyingOptions;
                 private readonly List<IDocumentOptions> _documentOptions;
-                private readonly object _gate = new object();
-                private ImmutableDictionary<OptionKey, object> _values;
+                private ImmutableDictionary<OptionKey, object?> _values;
 
-                public DocumentSpecificOptionSet(Document document, List<IDocumentOptions> documentOptions, OptionSet underlyingOptions)
-                    : this(document, documentOptions, underlyingOptions, ImmutableDictionary<OptionKey, object>.Empty)
+                public DocumentSpecificOptionSet(List<IDocumentOptions> documentOptions, OptionSet underlyingOptions)
+                    : this(documentOptions, underlyingOptions, ImmutableDictionary<OptionKey, object?>.Empty)
                 {
                 }
 
-                public DocumentSpecificOptionSet(Document document, List<IDocumentOptions> documentOptions, OptionSet underlyingOptions, ImmutableDictionary<OptionKey, object> values)
+                public DocumentSpecificOptionSet(List<IDocumentOptions> documentOptions, OptionSet underlyingOptions, ImmutableDictionary<OptionKey, object?> values)
                 {
-                    _document = document;
                     _documentOptions = documentOptions;
                     _underlyingOptions = underlyingOptions;
                     _values = values;
                 }
 
-                public override object GetOption(OptionKey optionKey)
+                [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
+                public override object? GetOption(OptionKey optionKey)
                 {
                     // If we already know the document specific value, we're done
                     if (_values.TryGetValue(optionKey, out var value))
@@ -188,15 +194,10 @@ namespace Microsoft.CodeAnalysis.Options
 
                     foreach (var documentOptionSource in _documentOptions)
                     {
-                        if (documentOptionSource.TryGetDocumentOption(_document, optionKey, _underlyingOptions, out value))
+                        if (documentOptionSource.TryGetDocumentOption(optionKey, out value))
                         {
                             // Cache and return
-                            lock (_gate)
-                            {
-                                _values = _values.Add(optionKey, value);
-                            }
-
-                            return value;
+                            return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);
                         }
                     }
 
@@ -204,15 +205,15 @@ namespace Microsoft.CodeAnalysis.Options
                     return _underlyingOptions.GetOption(optionKey);
                 }
 
-                public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
+                public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
                 {
-                    return new DocumentSpecificOptionSet(_document, _documentOptions, _underlyingOptions, _values.Add(optionAndLanguage, value));
+                    return new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.SetItem(optionAndLanguage, value));
                 }
 
                 internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
                 {
                     // GetChangedOptions only needs to be supported for OptionSets that need to be compared during application,
-                    // but that's already enforced it must be a full WorkspaceOptionSet.
+                    // but that's already enforced it must be a full SerializableOptionSet.
                     throw new NotSupportedException();
                 }
             }

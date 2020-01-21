@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.CanImplementImplicitly
+                    return CanImplementImplicitly
                         ? ImmutableArray.Create<IEventSymbol>()
                         : _symbol.ExplicitInterfaceImplementations;
                 }
@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public IMethodSymbol RaiseMethod => _symbol.RaiseMethod;
             public IMethodSymbol RemoveMethod => _symbol.RemoveMethod;
             public ITypeSymbol Type => _symbol.Type;
+            public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;
         }
     }
 }

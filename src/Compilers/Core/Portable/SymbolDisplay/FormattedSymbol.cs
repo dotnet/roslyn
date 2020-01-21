@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
+using System;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
@@ -11,12 +13,12 @@ namespace Microsoft.CodeAnalysis
     /// which allows to defer building strings and doing many other things (like loading metadata) 
     /// associated with that until the error message is actually requested.
     /// </summary>
-    internal sealed class FormattedSymbol : IMessageSerializable
+    internal sealed class FormattedSymbol : IFormattable
     {
-        private readonly ISymbol _symbol;
+        private readonly ISymbolInternal _symbol;
         private readonly SymbolDisplayFormat _symbolDisplayFormat;
 
-        internal FormattedSymbol(ISymbol symbol, SymbolDisplayFormat symbolDisplayFormat)
+        internal FormattedSymbol(ISymbolInternal symbol, SymbolDisplayFormat symbolDisplayFormat)
         {
             Debug.Assert(symbol != null && symbolDisplayFormat != null);
 
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString()
         {
-            return _symbol.ToDisplayString(_symbolDisplayFormat);
+            return _symbol.GetISymbol().ToDisplayString(_symbolDisplayFormat);
         }
 
         public override bool Equals(object obj)
@@ -42,6 +44,11 @@ namespace Microsoft.CodeAnalysis
             return Hash.Combine(
                 _symbol.GetHashCode(),
                 _symbolDisplayFormat.GetHashCode());
+        }
+
+        string IFormattable.ToString(string format, IFormatProvider formatProvider)
+        {
+            return ToString();
         }
     }
 }

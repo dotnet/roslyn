@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub BC30371()  ' ModuleAsType1
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
     Module m1
@@ -84,7 +84,7 @@ BC30371: Module 'm1' cannot be used as a type.
 
         <Fact>
         Public Sub BC31422()  ' BadUseOfVoid
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
 Imports System        
@@ -144,7 +144,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
         <WorkItem(538814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538814")>
         <Fact>
         Public Sub DuplicateInterfaceInheritance()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
                <compilation name="C">
                    <file name="a.vb">
 Interface IA(OF T)
@@ -167,7 +167,7 @@ BC30584: 'IA(Of String)' cannot be inherited more than once.
         <WorkItem(543788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543788")>
         <Fact()>
         Public Sub BC30294_GenericStructureContainingInstanceOfItself()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation>
                     <file name="a.vb">
 Module GenStrErr100mod
@@ -199,7 +199,7 @@ BC42024: Unused local variable: 's'.
         <WorkItem(543909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543909")>
         <Fact()>
         Public Sub BC30294_GenericStructureContainingInstanceOfItself_2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation>
                     <file name="a.vb">
 Imports System
@@ -225,7 +225,7 @@ BC30294: Structure 's2' cannot contain an instance of itself:
 
         <Fact, WorkItem(607394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607394")>
         Public Sub Bug607394()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class C

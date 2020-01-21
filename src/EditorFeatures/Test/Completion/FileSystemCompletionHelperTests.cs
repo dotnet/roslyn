@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private void AssertItemsEqual(ImmutableArray<CompletionItem> actual, params string[] expected)
         {
             AssertEx.Equal(
-                expected, 
-                actual.Select(c => $"'{c.DisplayText}', {string.Join(", ", c.Tags)}, '{c.Properties["Description"]}'"), 
+                expected,
+                actual.Select(c => $"'{c.DisplayText}', {string.Join(", ", c.Tags)}, '{c.Properties["Description"]}'"),
                 itemInspector: c => $"@\"{c}\"");
 
             Assert.True(actual.All(i => i.Rules == TestFileSystemCompletionHelper.CompletionRules));
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 });
 
             // Note backslashes in description are escaped
-            AssertItemsEqual(fsc.GetItems("", CancellationToken.None),
+            AssertItemsEqual(fsc.GetTestAccessor().GetItems("", CancellationToken.None),
                 @"'file6.def', File, C#, 'Text|Z:\5CC\5Cfile6.def'",
                 @"'file.7.def', File, C#, 'Text|Z:\5CC\5Cfile.7.def'",
                 @"'X:', Folder, 'Text|X:'",
@@ -65,22 +65,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 @"'3', Folder, 'Text|X:\5CA\5C3'",
                 @"'file5.abc', File, C#, 'Text|X:\5CB\5Cfile5.abc'");
 
-            AssertItemsEqual(fsc.GetItems(@"X:\A\", CancellationToken.None),
+            AssertItemsEqual(fsc.GetTestAccessor().GetItems(@"X:\A\", CancellationToken.None),
                 @"'1', Folder, 'Text|X:\5CA\5C1'",
                 @"'2', Folder, 'Text|X:\5CA\5C2'",
                 @"'3', Folder, 'Text|X:\5CA\5C3'");
 
-            AssertItemsEqual(fsc.GetItems(@"X:\B\", CancellationToken.None),
+            AssertItemsEqual(fsc.GetTestAccessor().GetItems(@"X:\B\", CancellationToken.None),
                 @"'file5.abc', File, C#, 'Text|X:\5CB\5Cfile5.abc'");
 
-            AssertItemsEqual(fsc.GetItems(@"Z:\", CancellationToken.None),
+            AssertItemsEqual(fsc.GetTestAccessor().GetItems(@"Z:\", CancellationToken.None),
                 @"'C', Folder, 'Text|Z:\5CC'",
                 @"'D', Folder, 'Text|Z:\5CD'");
 
-            AssertItemsEqual(fsc.GetItems(@"Z:", CancellationToken.None),
+            AssertItemsEqual(fsc.GetTestAccessor().GetItems(@"Z:", CancellationToken.None),
                 @"'Z:', Folder, 'Text|Z:'");
 
-            AssertItemsEqual(fsc.GetItems(@"\", CancellationToken.None),
+            AssertItemsEqual(fsc.GetTestAccessor().GetItems(@"\", CancellationToken.None),
                 @"'\\', , 'Text|\5C\5C'");
         }
 
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 });
 
             // Note backslashes in description are escaped
-            AssertItemsEqual(fsc.GetItems(@"", CancellationToken.None),
+            AssertItemsEqual(fsc.GetTestAccessor().GetItems(@"", CancellationToken.None),
                 @"'X:', Folder, 'Text|X:'",
                 @"'\\', , 'Text|\5C\5C'",
                 @"'1', Folder, 'Text|X:\5CA\5C1'",
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 });
 
             // Note backslashes in description are escaped
-            AssertItemsEqual(fsc.GetItems(@"", CancellationToken.None),
+            AssertItemsEqual(fsc.GetTestAccessor().GetItems(@"", CancellationToken.None),
                 @"'X:', Folder, 'Text|X:'",
                 @"'\\', , 'Text|\5C\5C'");
         }
@@ -173,11 +173,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     @"\\server\share\D\e.cs",
                 });
 
-            AssertItemsEqual(fsc.GetItems(@"\\server\share\", CancellationToken.None),
+            AssertItemsEqual(fsc.GetTestAccessor().GetItems(@"\\server\share\", CancellationToken.None),
                 @"'C', Folder, 'Text|\5C\5Cserver\5Cshare\5CC'",
                 @"'D', Folder, 'Text|\5C\5Cserver\5Cshare\5CD'");
 
-            AssertItemsEqual(fsc.GetItems(@"\\server\share\C\", CancellationToken.None),
+            AssertItemsEqual(fsc.GetTestAccessor().GetItems(@"\\server\share\C\", CancellationToken.None),
                 @"'b.cs', File, C#, 'Text|\5C\5Cserver\5Cshare\5CC\5Cb.cs'",
                 @"'c.cs', File, C#, 'Text|\5C\5Cserver\5Cshare\5CC\5Cc.cs'");
         }
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 });
 
             // Note backslashes in description are escaped
-            AssertItemsEqual(fsc.GetItems(@"", CancellationToken.None),
+            AssertItemsEqual(fsc.GetTestAccessor().GetItems(@"", CancellationToken.None),
                 @"'file6.def', File, C#, 'Text|/C/file6.def'",
                 @"'file.7.def', File, C#, 'Text|/C/file.7.def'",
                 @"'/', Folder, 'Text|/'",
@@ -221,13 +221,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 @"'3', Folder, 'Text|/A/3'",
                 @"'file5.abc', File, C#, 'Text|/B/file5.abc'");
 
-            AssertItemsEqual(fsc.GetItems(@"/", CancellationToken.None),
+            AssertItemsEqual(fsc.GetTestAccessor().GetItems(@"/", CancellationToken.None),
                 @"'A', Folder, 'Text|/A'",
                 @"'B', Folder, 'Text|/B'",
                 @"'C', Folder, 'Text|/C'",
                 @"'D', Folder, 'Text|/D'");
 
-            AssertItemsEqual(fsc.GetItems(@"/B/", CancellationToken.None),
+            AssertItemsEqual(fsc.GetTestAccessor().GetItems(@"/B/", CancellationToken.None),
                 @"'file5.abc', File, C#, 'Text|/B/file5.abc'");
         }
     }

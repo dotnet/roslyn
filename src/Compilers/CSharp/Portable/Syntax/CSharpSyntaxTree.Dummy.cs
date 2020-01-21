@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -50,6 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 get { return CSharpParseOptions.Default; }
             }
 
+            public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions
+                => throw ExceptionUtilities.Unreachable;
+
             public override string FilePath
             {
                 get { return string.Empty; }
@@ -89,6 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override SyntaxTree WithFilePath(string path)
             {
                 return SyntaxFactory.SyntaxTree(_node, options: this.Options, path: path, encoding: null);
+            }
+
+            public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }

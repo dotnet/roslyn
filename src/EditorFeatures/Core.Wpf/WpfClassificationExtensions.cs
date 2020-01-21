@@ -8,7 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
 
@@ -18,12 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     {
         public static Run ToRun(this ClassifiedText part, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
         {
-            var text = part.Text;
+            var run = new Run(part.Text);
 
-            var run = new Run(text);
+            var classificationType = typeMap.GetClassificationType(part.ClassificationType);
 
-            var format = formatMap.GetTextProperties(typeMap.GetClassificationType(
-                part.ClassificationType));
+            var format = formatMap.GetTextProperties(classificationType);
             run.SetTextProperties(format);
 
             return run;
@@ -68,22 +66,29 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             ClassificationTypeMap typeMap)
         {
             var inlines = parts.ToInlines(formatMap, typeMap);
-            return inlines.ToTextBlock(formatMap, typeMap);
+            return inlines.ToTextBlock(formatMap);
         }
 
+        [Obsolete("Use 'public static TextBlock ToTextBlock(this IEnumerable <Inline> inlines, IClassificationFormatMap formatMap, bool wrap = true)' instead")]
         public static TextBlock ToTextBlock(
             this IEnumerable<Inline> inlines,
             IClassificationFormatMap formatMap,
             ClassificationTypeMap typeMap,
             string classificationFormatMap = null,
             bool wrap = true)
-        {
+            => inlines.ToTextBlock(formatMap, wrap);
 
+        public static TextBlock ToTextBlock(
+            this IEnumerable<Inline> inlines,
+            IClassificationFormatMap formatMap,
+            bool wrap = true)
+        {
             var textBlock = new TextBlock
             {
                 TextWrapping = wrap ? TextWrapping.Wrap : TextWrapping.NoWrap,
                 TextTrimming = wrap ? TextTrimming.None : TextTrimming.CharacterEllipsis
             };
+
             textBlock.SetDefaultTextProperties(formatMap);
             textBlock.Inlines.AddRange(inlines);
 

@@ -17,22 +17,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             MyBase.New(s_pool)
         End Sub
 
-        Private Overloads Shared Function SimplifyCast(
-            castNode As ExpressionSyntax,
-            innerNode As ExpressionSyntax,
-            optionSet As OptionSet,
-            cancellationToken As CancellationToken
-        ) As ExpressionSyntax
-
-            Dim resultNode = innerNode _
-                .WithLeadingTrivia(castNode.GetLeadingTrivia()) _
-                .WithTrailingTrivia(castNode.GetTrailingTrivia())
-
-            resultNode = SimplificationHelpers.CopyAnnotations(castNode, resultNode)
-
-            Return resultNode
-        End Function
-
         Private Shared ReadOnly s_simplifyCast As Func(Of CastExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyCast
 
         Private Overloads Shared Function SimplifyCast(
@@ -46,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return node
             End If
 
-            Return SimplifyCast(node, node.Expression, optionSet, cancellationToken)
+            Return node.Uncast()
         End Function
 
         Private Shared ReadOnly s_simplifyPredefinedCast As Func(Of PredefinedCastExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyPredefinedCast
@@ -62,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return node
             End If
 
-            Return SimplifyCast(node, node.Expression, optionSet, cancellationToken)
+            Return node.Uncast()
         End Function
     End Class
 End Namespace

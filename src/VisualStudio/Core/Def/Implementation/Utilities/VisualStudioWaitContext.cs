@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             _cancellationTokenSource = new CancellationTokenSource();
 
             this.ProgressTracker = showProgress
-                ? new ProgressTracker((_1, _2) => UpdateDialog())
+                ? new ProgressTracker((_1, _2, _3) => UpdateDialog())
                 : new ProgressTracker();
 
             _dialog = CreateDialog(dialogFactory, showProgress);
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
             dialog3.StartWaitDialogWithCallback(
                 szWaitCaption: _title,
-                szWaitMessage: _message,
+                szWaitMessage: this.ProgressTracker.Description ?? _message,
                 szProgressText: null,
                 varStatusBmpAnim: null,
                 szStatusBarText: null,
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         private void UpdateDialog()
         {
             _dialog.UpdateProgress(
-                _message,
+                this.ProgressTracker.Description ?? _message,
                 szProgressText: null,
                 szStatusBarText: null,
                 iCurrentStep: this.ProgressTracker.CompletedItems,

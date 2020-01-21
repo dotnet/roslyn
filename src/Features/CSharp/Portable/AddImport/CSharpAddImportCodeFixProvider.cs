@@ -112,6 +112,17 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         /// </summary>
         public const string CS8129 = nameof(CS8129);
 
+        /// <summary>
+        /// Internal symbol inaccessible because public key is wrong
+        /// </summary>
+        public const string CS0281 = nameof(CS0281);
+
+        /// <summary>
+        /// 'X' does not contain a definition for 'Y' and no extension method 'Y' accepting a first argument of type 'X' could be found (are you missing a using directive for 'System'?)
+        /// Specialized for WinRT
+        /// </summary>
+        public const string CS4036 = nameof(CS4036);
+
         public static ImmutableArray<string> FixableTypeIds =
             ImmutableArray.Create(
                 CS0103,
@@ -137,7 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     CS1929,
                     CS1955,
                     CS0428,
-                    CS7036));
+                    CS7036,
+                    CS0281,
+                    CS4036));
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImport), Shared]
@@ -145,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
     {
         public override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
 
+        [ImportingConstructor]
         public CSharpAddImportCodeFixProvider()
         {
         }

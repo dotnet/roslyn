@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static void AddLocalDiagnostics(
-            ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>  localDiagnostics,
+            ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localDiagnostics,
             ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers,
             ImmutableArray<Diagnostic>.Builder builder)
         {

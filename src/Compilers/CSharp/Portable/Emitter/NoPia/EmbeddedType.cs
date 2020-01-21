@@ -104,8 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     (CSharpSyntaxNode)context.SyntaxNodeOpt,
                     context.Diagnostics);
 
-                yield return @interface.GetTypeRefWithAttributes(
-                    UnderlyingNamedType.DeclaringCompilation,
+                var type = TypeWithAnnotations.Create(@interface);
+                yield return type.GetTypeRefWithAttributes(
+                    moduleBeingBuilt,
+                    declaringSymbol: UnderlyingNamedType,
                     typeRef);
             }
         }
@@ -149,6 +151,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             get
             {
                 return UnderlyingNamedType.IsInterfaceType();
+            }
+        }
+
+        protected override bool IsDelegate
+        {
+            get
+            {
+                return UnderlyingNamedType.IsDelegateType();
             }
         }
 

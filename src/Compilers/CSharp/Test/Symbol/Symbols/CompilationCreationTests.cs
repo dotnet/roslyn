@@ -73,13 +73,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             for (int i = 1; i <= (int)SpecialType.Count; i++)
             {
                 NamedTypeSymbol type = c1.GetSpecialType((SpecialType)i);
-                Assert.False(type.IsErrorType());
+                if (i == (int)SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+                {
+                    Assert.True(type.IsErrorType()); // Not available
+                }
+                else
+                {
+                    Assert.False(type.IsErrorType());
+                }
+
                 Assert.Equal((SpecialType)i, type.SpecialType);
             }
 
             Assert.Equal(SpecialType.None, c107.SpecialType);
 
-            var arrayOfc107 = ArrayTypeSymbol.CreateCSharpArray(c1.Assembly, c107);
+            var arrayOfc107 = ArrayTypeSymbol.CreateCSharpArray(c1.Assembly, TypeWithAnnotations.Create(c107));
 
             Assert.Equal(SpecialType.None, arrayOfc107.SpecialType);
 
@@ -2369,7 +2377,7 @@ public class C5 :
             Assert.False(foo2.IsVirtual);
             Assert.True(foo2.ReturnsVoid);
             Assert.Equal(0, foo2.TypeParameters.Length);
-            Assert.Equal(0, foo2.TypeArguments.Length);
+            Assert.Equal(0, foo2.TypeArgumentsWithAnnotations.Length);
 
             Assert.True(bar.IsStatic);
             Assert.False(bar.ReturnsVoid);
@@ -2382,8 +2390,8 @@ public class C5 :
 
             var foo3TypeParams = foo3.TypeParameters;
             Assert.Equal(1, foo3TypeParams.Length);
-            Assert.Equal(1, foo3.TypeArguments.Length);
-            Assert.Same(foo3TypeParams[0], foo3.TypeArguments[0]);
+            Assert.Equal(1, foo3.TypeArgumentsWithAnnotations.Length);
+            Assert.Same(foo3TypeParams[0], foo3.TypeArgumentsWithAnnotations[0].Type);
 
             var typeC301 = type3.GetTypeMembers("C301").Single();
             var typeC302 = type3.GetTypeMembers("C302").Single();
@@ -2531,7 +2539,7 @@ class Module1
     {}
 }
 ";
-            var c1 = CreateCompilation(text, new MetadataReference[]
+            var c1 = CreateEmptyCompilation(text, new MetadataReference[]
             {
                 MscorlibRef,
                 TestReferences.SymbolsTests.V1.MTTestLib1.dll,
@@ -2954,10 +2962,10 @@ Console.WriteLine(2);
             var source1 = "public class C1 { }";
             var source2 = "public class C2 { }";
 
-            var lib1 = CreateStandardCompilation(source1, assemblyName: "Lib1", options: TestOptions.ReleaseModule);
+            var lib1 = CreateCompilation(source1, assemblyName: "Lib1", options: TestOptions.ReleaseModule);
             var ref1 = lib1.EmitToImageReference(); // NOTE: can't use a compilation reference for a module.
 
-            var lib2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "Lib2");
+            var lib2 = CreateCompilation(source2, new[] { ref1 }, assemblyName: "Lib2");
             lib2.VerifyDiagnostics();
 
             var sourceAssembly = lib2.Assembly;

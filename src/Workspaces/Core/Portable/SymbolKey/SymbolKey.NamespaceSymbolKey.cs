@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -64,32 +61,32 @@ namespace Microsoft.CodeAnalysis
                     return new SymbolKeyResolution(reader.Compilation.GlobalNamespace);
                 }
 
-                var namespaces = GetAllSymbols(containingSymbolResolution).SelectMany(
-                    s => Resolve(s, metadataName));
+                using var result = PooledArrayBuilder<INamespaceSymbol>.GetInstance();
+                foreach (var container in containingSymbolResolution)
+                {
+                    switch (container)
+                    {
+                        case IAssemblySymbol assembly:
+                            Debug.Assert(metadataName == string.Empty);
+                            result.AddIfNotNull(assembly.GlobalNamespace);
+                            break;
+                        case IModuleSymbol module:
+                            Debug.Assert(metadataName == string.Empty);
+                            result.AddIfNotNull(module.GlobalNamespace);
+                            break;
+                        case INamespaceSymbol namespaceSymbol:
+                            foreach (var member in namespaceSymbol.GetMembers(metadataName))
+                            {
+                                if (member is INamespaceSymbol childNamespace)
+                                {
+                                    result.AddIfNotNull(childNamespace);
+                                }
+                            }
+                            break;
+                    }
+                }
 
-                return CreateSymbolInfo(namespaces);
-            }
-
-            private static IEnumerable<INamespaceSymbol> Resolve(ISymbol container, string metadataName)
-            {
-                if (container is IAssemblySymbol assembly)
-                {
-                    Debug.Assert(metadataName == string.Empty);
-                    return SpecializedCollections.SingletonEnumerable(assembly.GlobalNamespace);
-                }
-                else if (container is IModuleSymbol module)
-                {
-                    Debug.Assert(metadataName == string.Empty);
-                    return SpecializedCollections.SingletonEnumerable(module.GlobalNamespace);
-                }
-                else if (container is INamespaceSymbol namespaceSymbol)
-                {
-                    return namespaceSymbol.GetMembers(metadataName).OfType<INamespaceSymbol>();
-                }
-                else
-                {
-                    return SpecializedCollections.EmptyEnumerable<INamespaceSymbol>();
-                }
+                return CreateResolution(result);
             }
         }
     }

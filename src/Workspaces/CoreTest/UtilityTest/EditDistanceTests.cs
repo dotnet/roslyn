@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestSpecificMetric()
         {
             // If our edit distance is a metric then ED(CA,ABC) = 2 because CA -> AC -> ABC
-            // In this case.  This then satisifes the triangle inequality because 
+            // In this case.  This then satisfies the triangle inequality because 
             // ED(CA, AC) + ED(AC, ABC) >= ED(CA, ABC)   ...   1 + 1 >= 2
             //
             // If it's not implemented with a metric (like if we used the Optimal String Alignment

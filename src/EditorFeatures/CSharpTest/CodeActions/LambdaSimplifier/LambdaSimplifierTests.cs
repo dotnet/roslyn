@@ -3,6 +3,8 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -321,7 +323,7 @@ class C
 
         [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestMissingOnAmbiguity1()
+        public async Task TestMissingOnAmbiguity1_CSharp7()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -342,9 +344,60 @@ class A
 
     static void Main()
     {
-        Bar(x => [||]Goo(x));
+        Bar(x [||]=> Goo(x));
     }
-}");
+}", parameters: new TestParameters(TestOptions.Regular7));
+        }
+
+        [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        public async Task TestMissingOnAmbiguity1()
+        {
+            var code = @"
+using System;
+class A
+{
+    static void Goo<T>(T x) where T : class
+    {
+    }
+
+    static void Bar(Action<int> x)
+    {
+    }
+
+    static void Bar(Action<string> x)
+    {
+    }
+
+    static void Main()
+    {
+        Bar(x [||]=> Goo(x));
+    }
+}";
+
+            var expected = @"
+using System;
+class A
+{
+    static void Goo<T>(T x) where T : class
+    {
+    }
+
+    static void Bar(Action<int> x)
+    {
+    }
+
+    static void Bar(Action<string> x)
+    {
+    }
+
+    static void Main()
+    {
+        Bar(Goo);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, parseOptions: TestOptions.Regular7_3);
         }
 
         [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
@@ -500,6 +553,76 @@ class Program
         Action a = [||]() => {
             Console.WriteLine();
         };
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        Action a = Console.WriteLine;
+    }
+}");
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        public async Task TestMissingCaretPositionInside()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        Action a = () => {
+            Console.[||]WriteLine();
+        };
+    }
+}");
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        public async Task TestCaretPositionBeforeBody()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        Action a = () => [||]Console.WriteLine();
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        Action a = Console.WriteLine;
+    }
+}");
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        public async Task TestCaretPosition()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        [|Action a = () => {
+            Console.WriteLine();
+        };|]
     }
 }",
 @"using System;

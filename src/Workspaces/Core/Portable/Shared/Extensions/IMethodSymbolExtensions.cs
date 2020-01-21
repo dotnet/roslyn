@@ -1,13 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -42,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return false;
             }
 
-            for (int i = 0; i < method.Parameters.Length; i++)
+            for (var i = 0; i < method.Parameters.Length; i++)
             {
                 if (!invoke.Parameters[i].Type.InheritsFromOrEquals(method.Parameters[i].Type))
                 {
@@ -53,7 +58,28 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return true;
         }
 
-        public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, IList<string> newNames)
+        /// <summary>
+        /// Returns the methodSymbol and any partial parts.
+        /// </summary>
+        public static ImmutableArray<IMethodSymbol> GetAllMethodSymbolsOfPartialParts(this IMethodSymbol method)
+        {
+            if (method.PartialDefinitionPart != null)
+            {
+                Debug.Assert(method.PartialImplementationPart == null && !Equals(method.PartialDefinitionPart, method));
+                return ImmutableArray.Create(method, method.PartialDefinitionPart);
+            }
+            else if (method.PartialImplementationPart != null)
+            {
+                Debug.Assert(!Equals(method.PartialImplementationPart, method));
+                return ImmutableArray.Create(method.PartialImplementationPart, method);
+            }
+            else
+            {
+                return ImmutableArray.Create(method);
+            }
+        }
+
+        public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, ImmutableArray<string> newNames)
         {
             if (method.TypeParameters.Select(t => t.Name).SequenceEqual(newNames))
             {
@@ -64,8 +90,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var updatedTypeParameters = RenameTypeParameters(
                 method.TypeParameters, newNames, typeGenerator);
 
-            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
-            for (int i = 0; i < method.TypeParameters.Length; i++)
+            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(SymbolEqualityComparer.Default);
+            for (var i = 0; i < method.TypeParameters.Length; i++)
             {
                 mapping[method.TypeParameters[i]] = updatedTypeParameters[i];
             }
@@ -86,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IMethodSymbol RenameParameters(
-            this IMethodSymbol method, IList<string> parameterNames)
+            this IMethodSymbol method, ImmutableArray<string> parameterNames)
         {
             var parameterList = method.Parameters;
             if (parameterList.Select(p => p.Name).SequenceEqual(parameterNames))
@@ -111,14 +137,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ImmutableArray<ITypeParameterSymbol> RenameTypeParameters(
             ImmutableArray<ITypeParameterSymbol> typeParameters,
-            IList<string> newNames,
+            ImmutableArray<string> newNames,
             ITypeGenerator typeGenerator)
         {
             // We generate the type parameter in two passes.  The first creates the new type
             // parameter.  The second updates the constraints to point at this new type parameter.
             var newTypeParameters = new List<CodeGenerationTypeParameterSymbol>();
-            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
-            for (int i = 0; i < typeParameters.Length; i++)
+
+            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(SymbolEqualityComparer.Default);
+            for (var i = 0; i < typeParameters.Length; i++)
             {
                 var typeParameter = typeParameters[i];
 
@@ -127,10 +154,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     typeParameter.GetAttributes(),
                     typeParameter.Variance,
                     newNames[i],
+                    typeParameter.NullableAnnotation,
                     typeParameter.ConstraintTypes,
                     typeParameter.HasConstructorConstraint,
                     typeParameter.HasReferenceTypeConstraint,
                     typeParameter.HasValueTypeConstraint,
+                    typeParameter.HasUnmanagedTypeConstraint,
+                    typeParameter.HasNotNullConstraint,
                     typeParameter.Ordinal);
 
                 newTypeParameters.Add(newTypeParameter);
@@ -147,12 +177,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IMethodSymbol EnsureNonConflictingNames(
-            this IMethodSymbol method, INamedTypeSymbol containingType, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+            this IMethodSymbol method, INamedTypeSymbol containingType, ISyntaxFactsService syntaxFacts)
         {
             // The method's type parameters may conflict with the type parameters in the type
             // we're generating into.  In that case, rename them.
             var parameterNames = NameGenerator.EnsureUniqueness(
-                method.Parameters.Select(p => p.Name).ToList(), isCaseSensitive: syntaxFacts.IsCaseSensitive);
+                method.Parameters.SelectAsArray(p => p.Name), isCaseSensitive: syntaxFacts.IsCaseSensitive);
 
             var outerTypeParameterNames =
                 containingType.GetAllTypeParameters()
@@ -164,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 syntaxFacts.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
 
             var newTypeParameterNames = NameGenerator.EnsureUniqueness(
-                method.TypeParameters.Select(tp => tp.Name).ToList(),
+                method.TypeParameters.SelectAsArray(tp => tp.Name),
                 n => !unusableNames.Contains(n));
 
             var updatedMethod = method.RenameTypeParameters(newTypeParameterNames);
@@ -176,18 +206,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             params INamedTypeSymbol[] removeAttributeTypes)
         {
             bool shouldRemoveAttribute(AttributeData a) =>
-                removeAttributeTypes.Any(attr => attr != null && attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
+                removeAttributeTypes.Any(attr => attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
 
-            return method.RemoveAttributesCore(
-                shouldRemoveAttribute,
-                statements: default,
-                handlesExpressions: default);
-        }
-
-        private static IMethodSymbol RemoveAttributesCore(
-            this IMethodSymbol method, Func<AttributeData, bool> shouldRemoveAttribute,
-            ImmutableArray<SyntaxNode> statements, ImmutableArray<SyntaxNode> handlesExpressions)
-        {
             var methodHasAttribute = method.GetAttributes().Any(shouldRemoveAttribute);
 
             var someParameterHasAttribute = method.Parameters
@@ -201,23 +221,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                method.ContainingType,
-                method.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
-                method.DeclaredAccessibility,
-                method.GetSymbolModifiers(),
-                method.ReturnType,
-                method.RefKind,
-                method.ExplicitInterfaceImplementations,
-                method.Name,
-                method.TypeParameters,
-                method.Parameters.SelectAsArray(p =>
+                method,
+                containingType: method.ContainingType,
+                explicitInterfaceImplementations: method.ExplicitInterfaceImplementations,
+                attributes: method.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
+                parameters: method.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
                         p.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
                         p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
-                statements,
-                handlesExpressions,
-                method.GetReturnTypeAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)));
+                returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)));
         }
 
         public static bool? IsMoreSpecificThan(this IMethodSymbol method1, IMethodSymbol method2)
@@ -334,5 +347,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return PredefinedOperator.None;
             }
         }
+
+        /// <summary>
+        /// Returns true for void returning methods with two parameters, where
+        /// the first parameter is of <see cref="object"/> type and the second
+        /// parameter inherits from or equals <see cref="EventArgs"/> type.
+        /// </summary>
+        public static bool HasEventHandlerSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? eventArgsType)
+            => eventArgsType != null &&
+               method.Parameters.Length == 2 &&
+               method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+               method.Parameters[1].Type.InheritsFromOrEquals(eventArgsType);
     }
 }

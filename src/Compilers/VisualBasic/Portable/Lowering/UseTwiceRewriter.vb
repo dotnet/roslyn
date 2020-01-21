@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundArrayTemp As BoundLocal = Nothing
             Dim storeArray = CaptureInATemp(containingMember, node.Expression, arg, boundArrayTemp)
 
-            Dim n = node.Indices.Count
+            Dim n = node.Indices.Length
             Dim indicesFirst(n - 1) As BoundExpression
             Dim indicesSecond(n - 1) As BoundExpression
 
@@ -358,6 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             isLValue:=node.IsLValue,
                             receiverOpt:=receiver.First,
                             arguments:=firstArgs,
+                            defaultArguments:=node.DefaultArguments,
                             type:=node.Type)
 
             Dim second = node.Update(
@@ -368,6 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             isLValue:=node.IsLValue,
                             receiverOpt:=receiver.Second,
                             arguments:=secondArgs,
+                            defaultArguments:=node.DefaultArguments,
                             type:=node.Type)
 
             Return New Result(first, second)

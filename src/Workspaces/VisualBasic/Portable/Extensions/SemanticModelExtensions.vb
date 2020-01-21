@@ -4,6 +4,8 @@ Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -198,6 +200,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GenerateParameterNames(semanticModel As SemanticModel,
                                                arguments As IList(Of ArgumentSyntax),
+                                               reservedNames As IEnumerable(Of String),
+                                               parameterNamingRule As NamingRule,
+                                               cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
+            reservedNames = If(reservedNames, SpecializedCollections.EmptyEnumerable(Of String))
+            Return semanticModel.GenerateParameterNames(
+                arguments,
+                Function(s) Not reservedNames.Any(Function(n) CaseInsensitiveComparison.Equals(s, n)),
+                parameterNamingRule,
+                cancellationToken)
+        End Function
+
+        <Extension()>
+        Public Function GenerateParameterNames(semanticModel As SemanticModel,
+                                               arguments As IList(Of ArgumentSyntax),
                                                canUse As Func(Of String, Boolean),
                                                cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
             If arguments.Count = 0 Then
@@ -208,30 +224,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim isFixed = Aggregate arg In arguments
                           Select arg = TryCast(arg, SimpleArgumentSyntax)
                           Select arg IsNot Nothing AndAlso arg.NameColonEquals IsNot Nothing
-                          Into ToList()
+                          Into ToImmutableArray()
 
-            Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a, cancellationToken)).ToList()
+            Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a, cancellationToken)).ToImmutableArray()
             Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse).
                                  Select(Function(name, index) New ParameterName(name, isFixed(index))).
                                  ToImmutableArray()
         End Function
 
-        Private Function SetEquals(array1 As ImmutableArray(Of ISymbol), array2 As ImmutableArray(Of ISymbol)) As Boolean
-            ' Do some quick up front checks so we won't have to allocate memory below.
-            If array1.Length = 0 AndAlso array2.Length = 0 Then
-                Return True
+        <Extension()>
+        Public Function GenerateParameterNames(semanticModel As SemanticModel,
+                                               arguments As IList(Of ArgumentSyntax),
+                                               canUse As Func(Of String, Boolean),
+                                               parameterNamingRule As NamingRule,
+                                               cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
+            If arguments.Count = 0 Then
+                Return ImmutableArray(Of ParameterName).Empty
             End If
 
-            If array1.Length = 0 OrElse array2.Length = 0 Then
-                Return False
-            End If
+            ' We can't change the names of named parameters.  Any other names we're flexible on.
+            Dim isFixed = Aggregate arg In arguments
+                          Select arg = TryCast(arg, SimpleArgumentSyntax)
+                          Select arg IsNot Nothing AndAlso arg.NameColonEquals IsNot Nothing
+                          Into ToImmutableArray()
 
-            If array1.Length = 1 AndAlso array2.Length = 1 Then
-                Return array1(0).Equals(array2(0))
-            End If
-
-            Dim [set] = New HashSet(Of ISymbol)(array1)
-            Return [set].SetEquals(array2)
+            Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a, cancellationToken)).ToImmutableArray()
+            Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse).
+                                 Select(Function(name, index) New ParameterName(name, isFixed(index), parameterNamingRule)).
+                                 ToImmutableArray()
         End Function
 
         <Extension()>

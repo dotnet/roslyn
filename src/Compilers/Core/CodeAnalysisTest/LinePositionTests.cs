@@ -24,16 +24,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Ctor1()
         {
-            Assert.Throws(
-                typeof(ArgumentOutOfRangeException),
+            Assert.Throws<ArgumentOutOfRangeException>(
                 () => { var notUsed = new LinePosition(-1, 42); });
         }
 
         [Fact]
         public void Ctor2()
         {
-            Assert.Throws(
-                typeof(ArgumentOutOfRangeException),
+            Assert.Throws<ArgumentOutOfRangeException>(
                 () => { var notUsed = new LinePosition(42, -1); });
         }
 

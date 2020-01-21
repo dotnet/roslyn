@@ -2,7 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
+Imports Microsoft.CodeAnalysis.PreferFrameworkType
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
@@ -10,11 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
     Friend Class VisualBasicPreferFrameworkTypeDiagnosticAnalyzer
         Inherits PreferFrameworkTypeDiagnosticAnalyzerBase(Of SyntaxKind, ExpressionSyntax, PredefinedTypeSyntax)
 
-        Protected Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind)
-            Get
-                Return ImmutableArray.Create(SyntaxKind.PredefinedType)
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) =
+            ImmutableArray.Create(SyntaxKind.PredefinedType)
 
         Protected Overrides Function IsInMemberAccessOrCrefReferenceContext(node As ExpressionSyntax) As Boolean
             Return node.IsInMemberAccessContext() OrElse node.InsideCrefReference()
@@ -52,5 +49,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
             Return False
         End Function
     End Class
-
 End Namespace

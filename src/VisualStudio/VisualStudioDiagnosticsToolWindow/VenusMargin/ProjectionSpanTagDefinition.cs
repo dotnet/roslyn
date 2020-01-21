@@ -11,6 +11,7 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
     [Name(ProjectionSpanTag.TagId)]
     internal class ProjectionSpanTagDefinition : MarkerFormatDefinition
     {
+        [ImportingConstructor]
         public ProjectionSpanTagDefinition()
         {
             this.Border = new Pen(Brushes.DarkBlue, thickness: 1.5);

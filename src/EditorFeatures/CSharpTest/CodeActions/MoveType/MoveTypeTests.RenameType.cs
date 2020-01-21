@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -85,6 +86,30 @@ class Class2 { }";
 class [|test1|] { }";
 
             await TestRenameTypeToMatchFileAsync(code, codeWithTypeRenamedToMatchFileName);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")]
+        public async Task NothingOfferedWhenTypeHasNoNameYet1()
+        {
+            var code = @"class[||]";
+            await TestMissingAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")]
+        public async Task NothingOfferedWhenTypeHasNoNameYet2()
+        {
+            var code = @"class [||]";
+            await TestMissingAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")]
+        public async Task NothingOfferedWhenTypeHasNoNameYet3()
+        {
+            var code = @"class [||] { }";
+            await TestMissingAsync(code);
         }
     }
 }

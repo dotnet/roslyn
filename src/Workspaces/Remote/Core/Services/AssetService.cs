@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -15,23 +18,17 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// TODO: change this service to workspace service
     /// </summary>
-    internal class AssetService
+    internal sealed class AssetService : IAssetProvider
     {
-        // PREVIEW: unfortunately, I need dummy workspace since workspace services can be workspace specific
-        private static readonly Serializer s_serializer = new Serializer(new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: "dummy"));
-
+        private readonly ISerializerService _serializerService;
         private readonly int _scopeId;
         private readonly AssetStorage _assetStorage;
 
-        public AssetService(int scopeId, AssetStorage assetStorage)
+        public AssetService(int scopeId, AssetStorage assetStorage, ISerializerService serializerService)
         {
             _scopeId = scopeId;
             _assetStorage = assetStorage;
-        }
-
-        public static T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            return s_serializer.Deserialize<T>(kind, reader, cancellationToken);
+            _serializerService = serializerService;
         }
 
         public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
@@ -114,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Remote
             //
             // even if it got expired after this for whatever reason, functionality wise everything will still work, 
             // just perf will be impacted since we will fetch it from data source (VS)
-            return _assetStorage.TryGetAsset(checksum, out object unused);
+            return _assetStorage.TryGetAsset<object>(checksum, out _);
         }
 
         public async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
@@ -132,16 +129,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<object> RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            using (var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
-            {
-                pooledObject.Object.Add(checksum);
+            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+            pooledObject.Object.Add(checksum);
 
-                var tuple = await RequestAssetsAsync(pooledObject.Object, cancellationToken).ConfigureAwait(false);
-                return tuple[0].Item2;
-            }
+            var tuple = await RequestAssetsAsync(pooledObject.Object, cancellationToken).ConfigureAwait(false);
+            return tuple[0].Item2;
         }
 
-        private async Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
+        private async Task<IList<(Checksum, object)>> RequestAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
         {
             if (checksums.Count == 0)
             {
@@ -153,18 +148,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Contract.ThrowIfNull(source);
 
-            try
-            {
-                // ask one of asset source for data
-                return await source.RequestAssetsAsync(_scopeId, checksums, cancellationToken).ConfigureAwait(false);
-            }
-            catch (ObjectDisposedException)
-            {
-                // object disposed exception can happen if StreamJsonRpc get disconnected
-                // in the middle of read/write due to cancellation
-                cancellationToken.ThrowIfCancellationRequested();
-                throw;
-            }
+            // ask one of asset source for data
+            return await source.RequestAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
         }
     }
 }

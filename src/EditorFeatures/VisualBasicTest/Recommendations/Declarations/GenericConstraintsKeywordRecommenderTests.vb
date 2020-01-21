@@ -60,5 +60,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 <File>Class Goo(Of T As _
 |</File>, "New")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<File>Class Goo(Of T As _ ' Test
+|</File>, "New")
+        End Function
     End Class
 End Namespace

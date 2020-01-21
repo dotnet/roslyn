@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -33,8 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 // that statement must be a block
-                var block = statements.Single() as BlockSyntax;
-                if (block == null)
+                if (!(statements.Single() is BlockSyntax block))
                 {
                     return statements;
                 }
@@ -160,8 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 // 3. no trivia except whitespace
                 // 4. type must be known
 
-                var declarationStatement = statement as LocalDeclarationStatementSyntax;
-                if (declarationStatement == null)
+                if (!(statement is LocalDeclarationStatementSyntax declarationStatement))
                 {
                     return false;
                 }
@@ -232,10 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     return statements;
                 }
-
-                var declaration = statements.ElementAtOrDefault(0) as LocalDeclarationStatementSyntax;
-                var returnStatement = statements.ElementAtOrDefault(1) as ReturnStatementSyntax;
-                if (declaration == null || returnStatement == null)
+                if (!(statements.ElementAtOrDefault(0) is LocalDeclarationStatementSyntax declaration) || !(statements.ElementAtOrDefault(1) is ReturnStatementSyntax returnStatement))
                 {
                     return statements;
                 }
@@ -267,11 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public IEnumerable<StatementSyntax> RemoveDeclarationAssignmentPattern(IEnumerable<StatementSyntax> statements)
             {
-                // if we have inline temp variable as service, we could just use that service here.
-                // since it is not a service right now, do very simple clean up
-                var declaration = statements.ElementAtOrDefault(0) as LocalDeclarationStatementSyntax;
-                var assignment = statements.ElementAtOrDefault(1) as ExpressionStatementSyntax;
-                if (declaration == null || assignment == null)
+                if (!(statements.ElementAtOrDefault(0) is LocalDeclarationStatementSyntax declaration) || !(statements.ElementAtOrDefault(1) is ExpressionStatementSyntax assignment))
                 {
                     return statements;
                 }

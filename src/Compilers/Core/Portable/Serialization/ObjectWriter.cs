@@ -69,16 +69,18 @@ namespace Roslyn.Utilities
         /// Creates a new instance of a <see cref="ObjectWriter"/>.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public ObjectWriter(
             Stream stream,
+            bool leaveOpen = false,
             CancellationToken cancellationToken = default)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
-            _writer = new BinaryWriter(stream, Encoding.UTF8);
+            _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen);
             _objectReferenceMap = new WriterReferenceMap(valueEquality: false);
             _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
             _cancellationToken = cancellationToken;
@@ -98,6 +100,7 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
+            _writer.Dispose();
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
             _recursionDepth = 0;
@@ -361,10 +364,14 @@ namespace Roslyn.Utilities
             public bool TryGetReferenceId(object value, out int referenceId)
                 => _valueToIdMap.TryGetValue(value, out referenceId);
 
-            public void Add(object value)
+            public void Add(object value, bool isReusable)
             {
                 var id = _nextId++;
-                _valueToIdMap.Add(value, id);
+
+                if (isReusable)
+                {
+                    _valueToIdMap.Add(value, id);
+                }
             }
         }
 
@@ -410,8 +417,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                int id;
-                if (_stringReferenceMap.TryGetReferenceId(value, out id))
+                if (_stringReferenceMap.TryGetReferenceId(value, out int id))
                 {
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
@@ -432,7 +438,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    _stringReferenceMap.Add(value);
+                    _stringReferenceMap.Add(value, isReusable: true);
 
                     if (value.IsValidUnicodeString())
                     {
@@ -506,7 +512,7 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        a => WriteArrayValues((Array)a), 
+                        a => WriteArrayValues((Array)a),
                         array,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
@@ -801,9 +807,9 @@ namespace Roslyn.Utilities
 
         private void WriteObjectWorker(IObjectWritable writable)
         {
-            // emit object header up front
-            _objectReferenceMap.Add(writable);
+            _objectReferenceMap.Add(writable, writable.ShouldReuseInSerialization);
 
+            // emit object header up front
             _writer.Write((byte)EncodingKind.Object);
 
             // Directly write out the type-id for this object.  i.e. no need to write out the 'Type'
@@ -823,7 +829,7 @@ namespace Roslyn.Utilities
         }
 
         // we have s_typeMap and s_reversedTypeMap since there is no bidirectional map in compiler
-        // Note: s_typeMap is effectively immutable.  However, for maxiumum perf we use mutable types because
+        // Note: s_typeMap is effectively immutable.  However, for maximum perf we use mutable types because
         // they are used in hotspots.
         internal static readonly Dictionary<Type, EncodingKind> s_typeMap;
 
