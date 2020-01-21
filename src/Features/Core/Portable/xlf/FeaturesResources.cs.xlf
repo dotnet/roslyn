@@ -127,11 +127,6 @@
         <target state="translated">Pokud se změní {0} na {1}, relace ladění nebude moct pokračovat, protože dojde ke změně tvaru stavového počítače.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_Quality">
-        <source>Code Quality</source>
-        <target state="translated">Kvalita kódu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Nakonfigurovat styl kódu {0}</target>
@@ -1671,16 +1666,6 @@ Chcete pokračovat?</target>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">Implementovat rozhraní se vzorem Dispose</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compiler1">
-        <source>Compiler</source>
-        <target state="translated">Kompilátor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Styl</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">

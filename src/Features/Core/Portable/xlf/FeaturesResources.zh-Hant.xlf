@@ -127,11 +127,6 @@
         <target state="translated">將 '{0}' 變更為 '{1}' 會變更狀態機器的圖形，進而使偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_Quality">
-        <source>Code Quality</source>
-        <target state="translated">程式碼品質</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">設定 {0} 程式碼樣式</target>
@@ -1671,16 +1666,6 @@ Do you want to continue?</source>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">使用 Dispose 模式實作介面</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compiler1">
-        <source>Compiler</source>
-        <target state="translated">編譯器</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">樣式</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">

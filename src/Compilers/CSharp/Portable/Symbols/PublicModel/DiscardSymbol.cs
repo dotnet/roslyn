@@ -1,18 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
     internal sealed class DiscardSymbol : Symbol, IDiscardSymbol
     {
         private readonly Symbols.DiscardSymbol _underlying;
-        private ITypeSymbol _lazyType;
+        private ITypeSymbol? _lazyType;
 
         public DiscardSymbol(Symbols.DiscardSymbol underlying)
         {
-            Debug.Assert(underlying != null);
+            RoslynDebug.Assert(underlying != null);
             _underlying = underlying;
         }
 
@@ -34,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         CodeAnalysis.NullableAnnotation IDiscardSymbol.NullableAnnotation => _underlying.TypeWithAnnotations.ToPublicAnnotation();
 
         protected override void Accept(SymbolVisitor visitor) => visitor.VisitDiscard(this);
+        [return: MaybeNull]
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);
     }
 }

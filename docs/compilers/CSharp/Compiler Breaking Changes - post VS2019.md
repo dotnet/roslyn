@@ -101,3 +101,10 @@ could be different than the one that compiler used to find.
 16. In *Visual Studio 2019 version 16.5* and language version 8.0 and later, the compiler will no longer accept `throw null` when there is no type `System.Exception`.
 
 17. https://github.com/dotnet/roslyn/issues/39852 Previously the compiler would allow an invocation of an implicit index or range indexer to specify any named argument. In *Visual Studio 2019 version 16.5* argument names are no longer permitted for these invocations.
+
+18. https://github.com/dotnet/roslyn/issues/36039 In *Visual Studio 2019 version 16.3* and onwards, the compiler only honored nullability flow annotation attributes for callers of an API. In *Visual Studio 2019 version 16.5* the compiler honors those attributes within member bodies.
+For instance, returning `default` from a method declared with a `[MaybeNull] T` return type will no longer warn.
+Similarly, a value from a `[DisallowNull] ref string? p` parameter will be assumed to be not-null when first read.
+On the other hand, we'll warn for returning a `null` from a method declared with `[NotNull] string?` return type, and we'll treat the value from a `[AllowNull] ref string p` parameter as maybe-null.
+Conditional attributes are treated leniently. For instance, no warning will be produced for assigning a maybe-null value to an `[MaybeNullWhen(...)] out string p` parameter.
+

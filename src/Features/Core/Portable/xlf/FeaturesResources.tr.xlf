@@ -127,11 +127,6 @@
         <target state="translated">'{0}' öğesini '{1}' olarak değiştirmek, durum makinesinin şeklini değiştirdiğinden hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_Quality">
-        <source>Code Quality</source>
-        <target state="translated">Kod kalite</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">{0} kod stilini yapılandır</target>
@@ -1671,16 +1666,6 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">Ara birimi Dispose düzeniyle uygula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compiler1">
-        <source>Compiler</source>
-        <target state="translated">Derleyici</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Stil</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">

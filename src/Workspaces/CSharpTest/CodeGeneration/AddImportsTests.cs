@@ -1240,7 +1240,7 @@ class C
 }", safe: true, useSymbolAnnotations);
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/39641"), InlineData(true), InlineData(false)]
+        [Theory, InlineData(true), InlineData(false)]
         [WorkItem(39641, "https://github.com/dotnet/roslyn/issues/39641")]
         public async Task TestSafeWithMatchingSimpleNameInAllLocations(bool useSymbolAnnotations)
         {
