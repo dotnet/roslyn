@@ -11,12 +11,12 @@ using Roslyn.Utilities;
 namespace Roslyn.Hosting.Diagnostics.Waiters
 {
     [Export, Shared]
-    public class TestingOnly_WaitingService
+    internal class TestingOnly_WaitingService
     {
         private readonly AsynchronousOperationListenerProvider _provider;
 
         [ImportingConstructor]
-        private TestingOnly_WaitingService(IAsynchronousOperationListenerProvider provider)
+        public TestingOnly_WaitingService(IAsynchronousOperationListenerProvider provider)
         {
             _provider = (AsynchronousOperationListenerProvider)provider;
         }

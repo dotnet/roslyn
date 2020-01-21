@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal ToggleLineCommentCommandHandler(
+        public ToggleLineCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
             : base(undoHistoryRegistry, editorOperationsFactoryService)
