@@ -17,13 +17,16 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     [ExportSignatureHelpProvider("InvocationExpressionSignatureHelpProvider", LanguageNames.CSharp), Shared]
-    internal partial class InvocationExpressionSignatureHelpProvider : AbstractOrdinaryMethodSignatureHelpProvider
+    internal sealed class InvocationExpressionSignatureHelpProvider : InvocationExpressionSignatureHelpProviderBase
     {
         [ImportingConstructor]
         public InvocationExpressionSignatureHelpProvider()
         {
         }
+    }
 
+    internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractOrdinaryMethodSignatureHelpProvider
+    {
         public override bool IsTriggerCharacter(char ch)
         {
             return ch == '(' || ch == ',';
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             // get the regular signature help items
-            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
+            var symbolDisplayService = document.Project.LanguageServices.GetRequiredService<ISymbolDisplayService>();
             var methodGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken)
                                            .OfType<IMethodSymbol>()
                                            .ToImmutableArray()
@@ -89,17 +92,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             methodGroup = methodGroup.Sort(
                 symbolDisplayService, semanticModel, invocationExpression.SpanStart);
 
-
-            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
+            var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
+            var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             if (methodGroup.Any())
             {
-                var (items, selectedItem) = GetMethodGroupItemsAndSelection(
-                    document, invocationExpression, semanticModel, within, methodGroup, symbolInfo, cancellationToken);
+                var accessibleMethods = GetAccessibleMethods(invocationExpression, semanticModel, within, methodGroup, cancellationToken);
+                var (items, selectedItem) = await GetMethodGroupItemsAndSelectionAsync(accessibleMethods, document, invocationExpression, semanticModel, symbolInfo, cancellationToken).ConfigureAwait(false);
 
                 return CreateSignatureHelpItems(
                     items,
@@ -107,17 +109,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken),
                     selectedItem);
             }
-            else if (semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type is INamedTypeSymbol expressionType && expressionType.TypeKind == TypeKind.Delegate)
+
+            if (semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type is INamedTypeSymbol expressionType && expressionType.TypeKind == TypeKind.Delegate)
             {
                 var items = GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService,
                     documentationCommentFormattingService, within, expressionType, out var selectedItem, cancellationToken);
 
                 return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)

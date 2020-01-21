@@ -13,29 +13,40 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
-        protected SignatureHelpItem ConvertMethodGroupMethod(
+        internal static SignatureHelpItem ConvertMethodGroupMethod(
             Document document,
             IMethodSymbol method,
             int position,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
+            return ConvertMethodGroupMethod(document, method, position, semanticModel, descriptionParts: null);
+        }
+
+        internal static SignatureHelpItem ConvertMethodGroupMethod(
+            Document document,
+            IMethodSymbol method,
+            int position,
+            SemanticModel semanticModel,
+            IList<SymbolDisplayPart> descriptionParts)
+        {
             var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
             var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
 
-            return CreateItem(
+            return CreateItemImpl(
                 method, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 method.IsParams(),
                 c => method.OriginalDefinition.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
                 GetMethodGroupPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
-                GetMethodGroupPostambleParts(method),
-                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                GetMethodGroupPostambleParts(),
+                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, CancellationToken.None)).ToList(),
+                descriptionParts: descriptionParts);
         }
 
-        private IList<SymbolDisplayPart> GetMethodGroupPreambleParts(
+        private static IList<SymbolDisplayPart> GetMethodGroupPreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)
@@ -75,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetMethodGroupPostambleParts(IMethodSymbol method)
+        private static IList<SymbolDisplayPart> GetMethodGroupPostambleParts()
             => SpecializedCollections.SingletonList(Punctuation(SyntaxKind.CloseParenToken));
     }
 }
