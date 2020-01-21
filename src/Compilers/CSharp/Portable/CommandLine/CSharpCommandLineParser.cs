@@ -1900,11 +1900,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (RoslynString.IsNullOrEmpty(filePath))
+            if (RoslynString.IsNullOrWhiteSpace(filePath))
             {
                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
                 return null;
             }
+            Debug.Assert(!resourceName.IsEmpty()); // see ParseResourceDescription's check on filePath
 
             if (!PathUtilities.IsValidFilePath(fullPath))
             {

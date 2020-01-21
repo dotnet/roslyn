@@ -632,13 +632,13 @@ namespace Microsoft.CodeAnalysis
             out string? filePath,
             out string? fullPath,
             out string? fileName,
-            [NotNull] out string? resourceName,
+            out string resourceName,
             out string? accessibility)
         {
             filePath = null;
             fullPath = null;
             fileName = null;
-            resourceName = null;
+            resourceName = "";
             accessibility = null;
 
             // resource descriptor is: "<filePath>[,<string name>[,public|private]]"
@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis
 
             // The default resource name is the file name.
             // Also use the file name for the name when user specifies string like "filePath,,private"
-            if (string.IsNullOrWhiteSpace(resourceName))
+            if (RoslynString.IsNullOrWhiteSpace(resourceName))
             {
                 resourceName = fileName;
             }
