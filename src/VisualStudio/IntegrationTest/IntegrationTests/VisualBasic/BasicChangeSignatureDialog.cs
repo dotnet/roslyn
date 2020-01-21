@@ -249,4 +249,5 @@ Class C
     End Sub
 End Class", actualText);
         }
+    }
 }
