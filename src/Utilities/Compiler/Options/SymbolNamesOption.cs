@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 
@@ -12,10 +14,10 @@ namespace Analyzer.Utilities
     {
         public static readonly SymbolNamesOption Empty = new SymbolNamesOption();
 
-        private readonly ImmutableHashSet<string> _names;
-        private readonly ImmutableHashSet<ISymbol> _symbols;
+        private readonly ImmutableDictionary<string, string?> _names;
+        private readonly ImmutableDictionary<ISymbol, string?> _symbols;
 
-        private SymbolNamesOption(ImmutableHashSet<string> names, ImmutableHashSet<ISymbol> symbols)
+        private SymbolNamesOption(ImmutableDictionary<string, string?> names, ImmutableDictionary<ISymbol, string?> symbols)
         {
             Debug.Assert(!names.IsEmpty || !symbols.IsEmpty);
 
@@ -25,33 +27,41 @@ namespace Analyzer.Utilities
 
         private SymbolNamesOption()
         {
-            _names = ImmutableHashSet<string>.Empty;
-            _symbols = ImmutableHashSet<ISymbol>.Empty;
+            _names = ImmutableDictionary<string, string?>.Empty;
+            _symbols = ImmutableDictionary<ISymbol, string?>.Empty;
         }
 
-        public static SymbolNamesOption Create(ImmutableArray<string> symbolNames, Compilation compilation, string? optionalPrefix)
+        public static SymbolNamesOption Create(ImmutableArray<string> symbolNames, Compilation compilation, string? optionalPrefix,
+            Func<string, NameParts>? getSymbolNamePartsFunc = null)
         {
             if (symbolNames.IsEmpty)
             {
                 return Empty;
             }
 
-            var namesBuilder = PooledHashSet<string>.GetInstance();
-            var symbolsBuilder = PooledHashSet<ISymbol>.GetInstance();
+            var namesBuilder = PooledDictionary<string, string?>.GetInstance();
+            var symbolsBuilder = PooledDictionary<ISymbol, string?>.GetInstance();
 
-            foreach (var name in symbolNames)
+            foreach (var symbolName in symbolNames)
             {
-                if (name.Equals(".ctor", StringComparison.Ordinal) ||
-                    name.Equals(".cctor", StringComparison.Ordinal) ||
-                    !name.Contains(".") && !name.Contains(":"))
+                var parts = getSymbolNamePartsFunc != null
+                    ? getSymbolNamePartsFunc(symbolName)
+                    : new NameParts(symbolName);
+
+                if (parts.SymbolName.Equals(".ctor", StringComparison.Ordinal) ||
+                    parts.SymbolName.Equals(".cctor", StringComparison.Ordinal) ||
+                    !parts.SymbolName.Contains(".") && !parts.SymbolName.Contains(":"))
                 {
-                    namesBuilder.Add(name);
+                    if (!namesBuilder.ContainsKey(parts.SymbolName))
+                    {
+                        namesBuilder.Add(parts.SymbolName, parts.Value);
+                    }
                 }
                 else
                 {
-                    var nameWithPrefix = (string.IsNullOrEmpty(optionalPrefix) || name.StartsWith(optionalPrefix, StringComparison.Ordinal)) ?
-                        name :
-                        optionalPrefix + name;
+                    var nameWithPrefix = (string.IsNullOrEmpty(optionalPrefix) || parts.SymbolName.StartsWith(optionalPrefix, StringComparison.Ordinal))
+                        ? parts.SymbolName
+                        : optionalPrefix + parts.SymbolName;
 
 #pragma warning disable CA1307 // Specify StringComparison - https://github.com/dotnet/roslyn-analyzers/issues/1552
                     // Documentation comment ID for constructors uses '#ctor', but '#' is a comment start token for editorconfig.
@@ -63,18 +73,26 @@ namespace Analyzer.Utilities
 
                     foreach (var symbol in DocumentationCommentId.GetSymbolsForDeclarationId(nameWithPrefix, compilation))
                     {
-                        if (symbol != null)
+                        if (symbol == null)
                         {
-                            if (symbol is INamespaceSymbol namespaceSymbol &&
-                                namespaceSymbol.ConstituentNamespaces.Length > 1)
+                            continue;
+                        }
+
+                        if (symbol is INamespaceSymbol namespaceSymbol &&
+                            namespaceSymbol.ConstituentNamespaces.Length > 1)
+                        {
+                            foreach (var constituentNamespace in namespaceSymbol.ConstituentNamespaces)
                             {
-                                foreach (var constituentNamespace in namespaceSymbol.ConstituentNamespaces)
+                                if (!symbolsBuilder.ContainsKey(constituentNamespace))
                                 {
-                                    symbolsBuilder.Add(constituentNamespace);
+                                    symbolsBuilder.Add(constituentNamespace, parts.Value);
                                 }
                             }
+                        }
 
-                            symbolsBuilder.Add(symbol);
+                        if (!symbolsBuilder.ContainsKey(symbol))
+                        {
+                            symbolsBuilder.Add(symbol, parts.Value);
                         }
                     }
                 }
@@ -85,29 +103,46 @@ namespace Analyzer.Utilities
                 return Empty;
             }
 
-            return new SymbolNamesOption(namesBuilder.ToImmutableAndFree(), symbolsBuilder.ToImmutableAndFree());
+            return new SymbolNamesOption(namesBuilder.ToImmutableDictionaryAndFree(), symbolsBuilder.ToImmutableDictionaryAndFree());
         }
 
         public bool IsEmpty => ReferenceEquals(this, Empty);
 
         public bool Contains(ISymbol symbol)
-            => _symbols.Contains(symbol) || _names.Contains(symbol.Name);
+            => _symbols.ContainsKey(symbol) || _names.ContainsKey(symbol.Name);
 
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as SymbolNamesOption);
-        }
+        /// <summary>
+        /// Gets the value associated with the specified symbol in the option specification.
+        /// </summary>
+        public bool TryGetValue(ISymbol symbol, [NotNullWhen(true)] out string? value) =>
+            _symbols.TryGetValue(symbol, out value) || _names.TryGetValue(symbol.Name, out value);
+
+        public override bool Equals(object obj) => Equals(obj as SymbolNamesOption);
 
         public bool Equals(SymbolNamesOption? other)
-        {
-            return other != null &&
-                _names.SetEquals(other._names) &&
-                _symbols.SetEquals(other._symbols);
-        }
+            => other != null && _names.IsEqualTo(other._names) && _symbols.IsEqualTo(other._symbols);
 
         public override int GetHashCode()
+            => HashUtilities.Combine(HashUtilities.Combine(_names), HashUtilities.Combine(_symbols));
+
+        /// <summary>
+        /// Represents the two parts of a symbol name option when the symbol name is tighted to some specific value.
+        /// This allows to link a value to a symbol while following the symbol's documentation ID format.
+        /// </summary>
+        /// <example>
+        /// On the rule CA1710, we allow user specific suffix to be registered for symbol names using the following format:
+        /// MyClass->Suffix or T:MyNamespace.MyClass->Suffix or N:MyNamespace->Suffix.
+        /// </example>
+        public sealed class NameParts
         {
-            return HashUtilities.Combine(HashUtilities.Combine(_names), HashUtilities.Combine(_symbols));
+            public NameParts(string symbolName, string? value = null)
+            {
+                SymbolName = symbolName.Trim();
+                Value = value?.Trim();
+            }
+
+            public string SymbolName { get; }
+            public string? Value { get; }
         }
     }
 }

@@ -163,13 +163,33 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetSymbolNamesOption(EditorConfigOptionNames.DisallowedSymbolNames, namePrefixOpt: null, rule, compilation, cancellationToken);
 
+        public static SymbolNamesOption GetAdditionalRequiredSuffixesOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        {
+            return options.GetSymbolNamesOption(EditorConfigOptionNames.AdditionalRequiredSuffixes, namePrefixOpt: "T:", rule, compilation, cancellationToken, GetParts);
+
+            static SymbolNamesOption.NameParts GetParts(string name)
+            {
+                var split = name.Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries);
+
+                // If we don't find exactly one '->', we assume that there is no given suffix.
+                return split.Length == 2
+                    ? new SymbolNamesOption.NameParts(split[0], split[1])
+                    : new SymbolNamesOption.NameParts(name);
+            }
+        }
+
         private static SymbolNamesOption GetSymbolNamesOption(
             this AnalyzerOptions options,
             string optionName,
             string? namePrefixOpt,
             DiagnosticDescriptor rule,
             Compilation compilation,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            Func<string, SymbolNamesOption.NameParts>? getTypeAndSuffixFunc = null)
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
             return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParse, defaultValue: SymbolNamesOption.Empty);
@@ -184,7 +204,7 @@ namespace Analyzer.Utilities
                 }
 
                 var names = s.Split('|').ToImmutableArray();
-                option = SymbolNamesOption.Create(names, compilation, namePrefixOpt);
+                option = SymbolNamesOption.Create(names, compilation, namePrefixOpt, getTypeAndSuffixFunc);
                 return true;
             }
         }

@@ -40,7 +40,9 @@ namespace Analyzer.Utilities
                 customTags = customTags.Concat(additionalCustomTags).ToArray();
             }
 
+#pragma warning disable RS0030 // The symbol 'DiagnosticDescriptor.DiagnosticDescriptor.#ctor' is banned in this project: Use 'DiagnosticDescriptorHelper.Create' instead
             return new DiagnosticDescriptor(id, title, messageFormat, category, defaultSeverity, enabledByDefault, description, helpLink, customTags);
+#pragma warning restore RS0030
 
 #pragma warning disable CA1801 // Remove unused parameter - parameters used conditionally
             static (DiagnosticSeverity defaultSeverity, bool enabledByDefault) GetDefaultSeverityAndEnabledByDefault(

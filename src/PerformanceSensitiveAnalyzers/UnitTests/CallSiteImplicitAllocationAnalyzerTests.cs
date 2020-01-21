@@ -140,7 +140,7 @@ enum E { A }
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         E.A.GetHashCode();
     }

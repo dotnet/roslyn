@@ -502,7 +502,7 @@ class BannedAttribute : Attribute { }
 class C 
 {
     [Banned]
-    public int Foo { get; }
+    public int SomeProperty { get; }
 }
 ";
             var bannedText = @"T:BannedAttribute";
@@ -962,7 +962,7 @@ End Class
 
 Class C
     <Banned>
-    Public ReadOnly Property Foo As Integer
+    Public ReadOnly Property SomeProperty As Integer
 End Class
 ";
             var bannedText = @"T:BannedAttribute";

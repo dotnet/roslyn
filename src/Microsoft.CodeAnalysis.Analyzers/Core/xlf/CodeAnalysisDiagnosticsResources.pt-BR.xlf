@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerMessage">
         <source>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</source>
-        <target state="new">Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</target>
+        <target state="translated">Herdar o tipo '{0}' de DiagnosticAnalyzer ou remover os DiagnosticAnalyzerAttributes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerTitle">
         <source>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</source>
-        <target state="new">Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</target>
+        <target state="translated">Os tipos marcados com DiagnosticAnalyzerAttributes devem ser herdados de DiagnosticAnalyzer.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
@@ -169,17 +169,17 @@
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
         <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
-        <target state="new">The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</target>
+        <target state="translated">O valor 'customTags' é usado como uma maneira de habilitar as ações e os filtros específicos nos descritores de diagnóstico com base nos valores específicos das marcas. Todo analisador de Roslyn deve ter pelo menos uma marca da classe 'WellKnownDiagnosticTags'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorMessage">
         <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</source>
-        <target state="new">Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</target>
+        <target state="translated">Considere fornecer um 'customTags' não nulo ao construtor de descritor de diagnóstico para habilitar a filtragem de metadados de descritores de diagnóstico.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorTitle">
         <source>Provide non-null 'customTags' value to diagnostic descriptor constructor.</source>
-        <target state="new">Provide non-null 'customTags' value to diagnostic descriptor constructor.</target>
+        <target state="translated">Forneça um valor de 'customTags' não nulo para o construtor de descritor de diagnóstico.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
@@ -454,12 +454,12 @@
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleDescription">
         <source>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</source>
-        <target state="translated">Os tipos do analisador de diagnóstico não devem usar tipos de assemblies de workspaces. Esses assemblies estão disponíveis apenas quando o analisador é executado na análise dinâmica do IDE do Visual Studio, mas não estão disponíveis durante o build da linha de comando. Referenciar tipos de assemblies de workspaces levará a uma exceção de tempo de execução durante a execução do analisador no build de linha de comando.</target>
+        <target state="translated">Os tipos do analisador de diagnóstico não devem usar tipos de Assemblies de workspaces. Esses Assemblies estão disponíveis apenas quando o analisador é executado na análise dinâmica do IDE do Visual Studio, mas não estão disponíveis durante o build da linha de comando. Referenciar tipos de Assemblies de workspaces levará a uma exceção de tempo de execução durante a execução do analisador no build de linha de comando.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleTitle">
         <source>Do not use types from Workspaces assembly in an analyzer</source>
-        <target state="translated">Não use tipos de assembly de workspaces em um analisador</target>
+        <target state="translated">Não use tipos de Assembly de workspaces em um analisador</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleIndirectMessage">
