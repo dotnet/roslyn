@@ -42,6 +42,11 @@
         <target state="translated">commenti dopo la continuazione di riga</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_UncheckedExpressions">
+        <source>Unchecked Expressions</source>
+        <target state="new">Unchecked Expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
         <target state="translated">parametri di tipo non senza vincoli in espressioni condizionali binarie</target>

@@ -42,6 +42,11 @@
         <target state="translated">行接續符號後註解</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_UncheckedExpressions">
+        <source>Unchecked Expressions</source>
+        <target state="new">Unchecked Expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
         <target state="translated">二進位條件運算式中的非限制式型別參數</target>

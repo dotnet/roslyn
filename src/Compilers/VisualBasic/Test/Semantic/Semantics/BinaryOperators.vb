@@ -1502,6 +1502,25 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="58430604")
         End Sub
 
+        <Fact>
+        Public Sub UncheckedExpression()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module M
+    Sub Main()
+        Dim ten = 10
+        Dim i2 = Unchecked ( 2147483647  + ten )
+        System.Console.WriteLine(i2)
+    End Sub
+End Module
+    </file>
+</compilation>
+            Dim compilation = CompilationUtils.CreateCompilation(compilationDef, options:=TestOptions.ReleaseExe)
+            compilation.VerifyDiagnostics()
+            CompileAndVerify(compilation, expectedOutput:="-2147483639")
+        End Sub
     End Class
 
 End Namespace

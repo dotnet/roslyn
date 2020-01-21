@@ -1918,32 +1918,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If checkedKeyword Is Nothing Then
                 TryIdentifierAsContextualKeyword(CurrentToken, checkedKeyword)
 
-                Debug.Assert(checkedKeyword IsNot Nothing AndAlso checkedKeyword.Kind = SyntaxKind.checkedKeyword)
+                Debug.Assert(checkedKeyword IsNot Nothing AndAlso checkedKeyword.Kind = SyntaxKind.CheckedKeyword)
             End If
 
             GetNextToken()
 
             Dim expression = ParseTerm()
-
-            Return SyntaxFactory.CheckedExpression(checkedKeyword, expression)
-
+            Dim checkedExpression = SyntaxFactory.CheckedExpression(checkedKeyword, expression)
+            Return CheckFeatureAvailability(Feature.CheckedExpressions, checkedExpression)
         End Function
 
         Private Function ParseUncheckedExpression(Optional uncheckedKeyword As KeywordSyntax = Nothing) As UncheckedExpressionSyntax
 
-            Debug.Assert(DirectCast(CurrentToken, IdentifierTokenSyntax).ContextualKind = SyntaxKind.CheckedKeyword)
+            Debug.Assert(DirectCast(CurrentToken, IdentifierTokenSyntax).ContextualKind = SyntaxKind.UncheckedKeyword)
 
             If uncheckedKeyword Is Nothing Then
                 TryIdentifierAsContextualKeyword(CurrentToken, uncheckedKeyword)
 
-                Debug.Assert(uncheckedKeyword IsNot Nothing AndAlso uncheckedKeyword.Kind = SyntaxKind.checkedKeyword)
+                Debug.Assert(uncheckedKeyword IsNot Nothing AndAlso uncheckedKeyword.Kind = SyntaxKind.UncheckedKeyword)
             End If
 
             GetNextToken()
 
             Dim expression = ParseTerm()
-
-            Return SyntaxFactory.UncheckedExpression(uncheckedKeyword, expression)
+            Dim uncheckedExpression = SyntaxFactory.UncheckedExpression(uncheckedKeyword, expression)
+            Return CheckFeatureAvailability(Feature.UncheckedExpressions, uncheckedExpression)
 
         End Function
     End Class

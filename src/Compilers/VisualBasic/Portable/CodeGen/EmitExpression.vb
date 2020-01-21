@@ -198,6 +198,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BoundKind.SourceDocumentIndex
                     Debug.Assert(used)
                     EmitSourceDocumentIndex(DirectCast(expression, BoundSourceDocumentIndex))
+                Case BoundKind.UncheckedExpression
+                    EmitExpressionCore(DirectCast(expression, BoundUncheckedExpression).Operand, used)
+                Case BoundKind.CheckedExpression
+                    EmitExpressionCore(DirectCast(expression, BoundCheckedExpression).Operand, used)
 
                 Case Else
                     ' Code gen should not be invoked if there are errors.

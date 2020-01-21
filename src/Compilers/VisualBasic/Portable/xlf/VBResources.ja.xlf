@@ -42,6 +42,11 @@
         <target state="translated">行連結後のコメント</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_UncheckedExpressions">
+        <source>Unchecked Expressions</source>
+        <target state="new">Unchecked Expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
         <target state="translated">バイナリ条件式での非制約型パラメーター</target>

@@ -214,9 +214,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim NoOverflowChecks As Boolean = CheckOverflow
             If HasExplicitUnchecked(node) Then
-                NoOverflowChecks = True
+                NoOverflowChecks = false
             ElseIf HasExplicitChecked(node) Then
-                NoOverflowChecks = False
+                NoOverflowChecks = true
             End If
 
             ' Deal with NOTHING literal as an input.

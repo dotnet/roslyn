@@ -12081,6 +12081,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Checked Expressions.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_CheckedExpressions() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_CheckedExpressions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to CObj in attribute arguments.
         '''</summary>
         Friend ReadOnly Property FEATURE_CObjInAttributeArguments() As String
@@ -12293,6 +12302,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_TypeOfIsNot() As String
             Get
                 Return ResourceManager.GetString("FEATURE_TypeOfIsNot", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Unchecked Expressions.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_UncheckedExpressions() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_UncheckedExpressions", resourceCulture)
             End Get
         End Property
         

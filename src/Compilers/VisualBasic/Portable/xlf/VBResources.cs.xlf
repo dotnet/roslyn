@@ -42,6 +42,11 @@
         <target state="translated">komentáře po pokračování řádku</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_UncheckedExpressions">
+        <source>Unchecked Expressions</source>
+        <target state="new">Unchecked Expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
         <target state="translated">parametry neomezeného typu v binárních podmíněných výrazech</target>
