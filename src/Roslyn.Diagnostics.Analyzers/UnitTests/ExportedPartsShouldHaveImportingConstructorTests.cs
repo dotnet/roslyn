@@ -445,7 +445,7 @@ class C {{
             }.RunAsync();
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/31720")]
+        [Theory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task ImplicitConstructor_VisualBasic(string mefNamespace)
@@ -529,7 +529,7 @@ class C {{
             }.RunAsync();
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/31720")]
+        [Theory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task ImplicitConstructorPlacement_VisualBasic(string mefNamespace)
@@ -620,7 +620,7 @@ class C {{
             }.RunAsync();
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/31720")]
+        [Theory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task MissingAttributeConstructor_VisualBasic(string mefNamespace)

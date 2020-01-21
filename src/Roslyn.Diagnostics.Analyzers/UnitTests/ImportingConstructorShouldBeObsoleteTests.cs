@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
             }.RunAsync();
         }
 
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/31720")]
+        [Theory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task NotMarkedObsolete_VisualBasic(string mefNamespace)
@@ -269,7 +269,7 @@ Class C
     End Sub
 End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef
     Module MefConstruction
         Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
     End Module
@@ -282,12 +282,12 @@ Imports {mefNamespace}
 <Export>
 Class C
     <ImportingConstructor>
-    <Obsolete(Microsoft.CodeAnalysis.Host.Mef.MefConstruction.ImportingConstructorMessage, True)>
+    <Obsolete(Microsoft.CodeAnalysis.Host.Mef.ImportingConstructorMessage, True)>
     Public Sub New()
     End Sub
 End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef
     Module MefConstruction
         Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
     End Module
