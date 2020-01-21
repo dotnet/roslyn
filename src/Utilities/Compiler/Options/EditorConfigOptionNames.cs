@@ -119,5 +119,20 @@ namespace Analyzer.Utilities
         ///   3. Default FxCop heuristic (75% of enum values)
         /// </summary>
         public const string EnumValuesPrefixTrigger = "enum_values_prefix_trigger";
+
+        /// <summary>
+        /// String option to configure names of types (separated by '|'), with their suffixes (separated by '->').
+        /// Configurable rules: CA1710 (https://docs.microsoft.com/visualstudio/code-quality/ca1710-identifiers-should-have-correct-suffix).
+        /// Allowed type name formats:
+        ///   1. Type name only (includes all types with the name, regardless of the containing type or namespace)
+        ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
+        ///      with an optional "T:" prefix.
+        /// </summary>
+        public const string AdditionalRequiredSuffixes = "additional_required_suffixes";
+
+        /// <summary>
+        /// Boolean option to prevent analyzing indirect base types (walking more than one level up) when suggesting suffixes.
+        /// </summary>
+        public const string ExcludeIndirectBaseTypes = "exclude_indirect_base_types";
     }
 }
