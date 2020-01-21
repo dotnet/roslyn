@@ -141,8 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var debugText = expr?.Syntax.ToFullString() ?? originalSymbol.ToDisplayString();
                     Debug.Assert((object)originalSymbol != updatedSymbol, $"Recorded exact same symbol for {debugText}");
-                    Debug.Assert(originalSymbol is object, $"Recorded null original symbol for {debugText}");
-                    Debug.Assert(updatedSymbol is object, $"Recorded null updated symbol for {debugText}");
+                    RoslynDebug.Assert(originalSymbol is object, $"Recorded null original symbol for {debugText}");
+                    RoslynDebug.Assert(updatedSymbol is object, $"Recorded null updated symbol for {debugText}");
                     Debug.Assert(AreCloseEnough(originalSymbol, updatedSymbol), @$"Symbol for `{debugText}` changed:
 Was {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}
 Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
@@ -197,7 +197,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
 
                 internal int EnterNewWalker(Symbol symbol)
                 {
-                    Debug.Assert(symbol is object);
+                    RoslynDebug.Assert(symbol is object);
                     var previousSlot = _currentWalkerSlot;
 
                     // Because we potentially run multiple passes, we

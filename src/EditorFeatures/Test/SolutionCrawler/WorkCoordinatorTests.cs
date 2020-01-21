@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             workspace.OnSolutionAdded(solutionInfo);
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            var worker = await ExecuteOperation(workspace, w => w.Options = w.Options.WithChangedOption(Analyzer.TestOption, false));
+            var worker = await ExecuteOperation(workspace, w => w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(Analyzer.TestOption, false))));
 
             Assert.Equal(10, worker.SyntaxDocumentIds.Count);
             Assert.Equal(10, worker.DocumentIds.Count);
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(BackgroundAnalysisScope.Default, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
 
             var newAnalysisScope = BackgroundAnalysisScope.ActiveFile;
-            var worker = await ExecuteOperation(workspace, w => w.Options = w.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope));
+            var worker = await ExecuteOperation(workspace, w => w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope))));
 
             Assert.Equal(newAnalysisScope, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
             Assert.Equal(1, worker.SyntaxDocumentIds.Count);
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(BackgroundAnalysisScope.Default, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
 
             var newAnalysisScope = BackgroundAnalysisScope.FullSolution;
-            var worker = await ExecuteOperation(workspace, w => w.Options = w.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope));
+            var worker = await ExecuteOperation(workspace, w => w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope))));
 
             Assert.Equal(newAnalysisScope, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
             Assert.Equal(10, worker.SyntaxDocumentIds.Count);
@@ -1063,7 +1063,8 @@ End Class";
             var solution = GetInitialSolutionInfoWithP2P();
 
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
-            workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, false);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, false)));
 
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1083,7 +1084,8 @@ End Class";
             var solution = GetInitialSolutionInfoWithP2P();
 
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
-            workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, true);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, true)));
 
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1378,12 +1380,13 @@ End Class";
         private static void SetOptions(Workspace workspace)
         {
             // override default timespan to make test run faster
-            workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS, 0)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                                                 .WithChangedOption(InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS, 0)
                                                  .WithChangedOption(InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS, 0)
                                                  .WithChangedOption(InternalSolutionCrawlerOptions.PreviewBackOffTimeSpanInMS, 0)
                                                  .WithChangedOption(InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS, 0)
                                                  .WithChangedOption(InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS, 0)
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS, 100);
+                                                 .WithChangedOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS, 100)));
         }
 
         private static void MakeFirstDocumentActive(Project project)
@@ -1415,13 +1418,14 @@ End Class";
                 Assert.False(_workspaceWaiter.HasPendingWork);
                 Assert.False(_solutionCrawlerWaiter.HasPendingWork);
 
-                SetOptions(this);
+                WorkCoordinatorTests.SetOptions(this);
             }
 
             public static WorkCoordinatorWorkspace CreateWithAnalysisScope(BackgroundAnalysisScope analysisScope, string workspaceKind = null, bool disablePartialSolutions = true)
             {
                 var workspace = new WorkCoordinatorWorkspace(workspaceKind, disablePartialSolutions);
-                workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope)));
                 return workspace;
             }
 

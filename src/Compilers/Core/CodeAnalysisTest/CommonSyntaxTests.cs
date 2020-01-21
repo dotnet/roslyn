@@ -58,10 +58,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var d = (SyntaxNodeOrToken)((SyntaxNode)null);
 
-            Assert.False(d.IsToken);
-            Assert.True(d.IsNode);
-
-            Assert.False(d.IsEquivalentTo(default(SyntaxNodeOrToken)));
+            Assert.True(d.IsToken);
+            Assert.False(d.IsNode);
 
             Assert.Equal(0, d.RawKind);
             Assert.Equal("", d.Language);

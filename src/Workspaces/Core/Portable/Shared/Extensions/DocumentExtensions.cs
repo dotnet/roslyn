@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -230,5 +231,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return model ?? throw new InvalidOperationException();
         }
+
+        internal static Document WithSolutionOptions(this Document document, OptionSet options)
+            => document.Project.Solution.WithOptions(options).GetDocument(document.Id)!;
     }
 }

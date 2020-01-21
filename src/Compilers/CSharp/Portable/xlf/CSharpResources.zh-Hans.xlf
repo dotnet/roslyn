@@ -22,6 +22,11 @@
         <target state="translated">若要对内插逐字字符串使用 "@$" 而不是 "$@"，请使用语言版本 {0} 或更高版本。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
+        <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
+        <target state="new">Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">无法在对象创建中使用可为 null 的引用类型。</target>
@@ -1375,12 +1380,12 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
-        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
         <target state="needs-review-translation">可能的 null 值可能不会传递到用 [DisallowNull] 属性标记的目标</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
-        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
         <target state="needs-review-translation">可能的 null 值可能不会传递到用 [DisallowNull] 属性标记的目标</target>
         <note />
       </trans-unit>

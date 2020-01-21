@@ -40,9 +40,10 @@ namespace Microsoft.CodeAnalysis
 
                 var serializer = _solutionServices.Workspace.Services.GetService<ISerializerService>();
                 var infoChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
+                var optionsChecksum = serializer.CreateChecksum(Options, cancellationToken);
 
                 var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
-                return new SolutionStateChecksums(infoChecksum, new ProjectChecksumCollection(projectChecksums));
+                return new SolutionStateChecksums(infoChecksum, optionsChecksum, new ProjectChecksumCollection(projectChecksums));
             }
         }
     }

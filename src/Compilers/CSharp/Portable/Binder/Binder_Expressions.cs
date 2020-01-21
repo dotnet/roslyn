@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected virtual bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
         {
-            return _next.IsUnboundTypeAllowed(syntax);
+            return Next.IsUnboundTypeAllowed(syntax);
         }
 
         /// <summary>
@@ -274,15 +274,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case BoundTupleLiteral sourceTuple:
-                    result = new BoundConvertedTupleLiteral(
-                        sourceTuple.Syntax,
-                        sourceTuple,
-                        wasTargetTyped: false,
-                        sourceTuple.Arguments.SelectAsArray(e => BindToNaturalType(e, diagnostics, reportDefaultMissingType)),
-                        sourceTuple.ArgumentNamesOpt,
-                        sourceTuple.InferredNamesOpt,
-                        sourceTuple.Type, // same type to keep original element names
-                        sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
+                    {
+                        var boundArgs = ArrayBuilder<BoundExpression>.GetInstance(sourceTuple.Arguments.Length);
+                        foreach (var arg in sourceTuple.Arguments)
+                        {
+                            boundArgs.Add(BindToNaturalType(arg, diagnostics, reportDefaultMissingType));
+                        }
+                        result = new BoundConvertedTupleLiteral(
+                            sourceTuple.Syntax,
+                            sourceTuple,
+                            wasTargetTyped: false,
+                            boundArgs.ToImmutableAndFree(),
+                            sourceTuple.ArgumentNamesOpt,
+                            sourceTuple.InferredNamesOpt,
+                            sourceTuple.Type, // same type to keep original element names
+                            sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
+                    }
                     break;
                 case BoundDefaultLiteral defaultExpr:
                     {

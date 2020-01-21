@@ -332,9 +332,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return nodeOrToken.AsToken().ApplyDirectives(stack);
             }
 
-            if (nodeOrToken.IsNode)
+            if (nodeOrToken.AsNode(out var node))
             {
-                return nodeOrToken.AsNode().ApplyDirectives(stack);
+                return node.ApplyDirectives(stack);
             }
 
             return stack;

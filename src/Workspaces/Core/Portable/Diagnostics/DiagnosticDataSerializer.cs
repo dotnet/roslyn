@@ -45,9 +45,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             Contract.ThrowIfFalse(document == null || document.Project == project);
 
             using var stream = SerializableBytes.CreateWritableStream();
-            using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
 
-            WriteDiagnosticData(writer, items, cancellationToken);
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            {
+                WriteDiagnosticData(writer, items, cancellationToken);
+            }
 
             using var storage = persistentService.GetStorage(project.Solution);
 

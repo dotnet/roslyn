@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
             private readonly TextSpan _textSpan;
 
+            private bool? _implementIEqutableOptionValue;
+            private bool? _generateOperatorsOptionValue;
+
             public GenerateEqualsAndGetHashCodeWithDialogCodeAction(
                 GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
                 Document document,
@@ -69,19 +72,13 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var implementIEqutableOption = result.Options.FirstOrDefault(o => o.Id == ImplementIEquatableId);
                 if (implementIEqutableOption != null)
                 {
-                    workspace.Options = workspace.Options.WithChangedOption(
-                        GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable,
-                        _document.Project.Language,
-                        implementIEqutableOption.Value);
+                    _implementIEqutableOptionValue = implementIEqutableOption.Value;
                 }
 
                 var generateOperatorsOption = result.Options.FirstOrDefault(o => o.Id == GenerateOperatorsId);
                 if (generateOperatorsOption != null)
                 {
-                    workspace.Options = workspace.Options.WithChangedOption(
-                        GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators,
-                        _document.Project.Language,
-                        generateOperatorsOption.Value);
+                    _generateOperatorsOptionValue = generateOperatorsOption.Value;
                 }
 
                 var implementIEquatable = (implementIEqutableOption?.Value).GetValueOrDefault();
@@ -95,6 +92,29 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             public override string Title
                 => GenerateEqualsAndGetHashCodeAction.GetTitle(_generateEquals, _generateGetHashCode) + "...";
+
+            protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            {
+                var solution = await base.GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+
+                if (_implementIEqutableOptionValue.HasValue)
+                {
+                    solution = solution.WithOptions(solution.Options.WithChangedOption(
+                        GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable,
+                        _document.Project.Language,
+                        _implementIEqutableOptionValue.Value));
+                }
+
+                if (_generateOperatorsOptionValue.HasValue)
+                {
+                    solution = solution.WithOptions(solution.Options.WithChangedOption(
+                        GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators,
+                        _document.Project.Language,
+                        _generateOperatorsOptionValue.Value));
+                }
+
+                return solution;
+            }
         }
     }
 }

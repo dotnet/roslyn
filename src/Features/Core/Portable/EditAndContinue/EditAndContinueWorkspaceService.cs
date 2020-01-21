@@ -92,18 +92,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        /// <summary>
-        /// Invoked whenever a module instance is loaded to a process being debugged.
-        /// </summary>
-        public void OnManagedModuleInstanceLoaded(Guid mvid)
-            => _editSession?.ModuleInstanceLoadedOrUnloaded(mvid);
-
-        /// <summary>
-        /// Invoked whenever a module instance is unloaded from a process being debugged.
-        /// </summary>
-        public void OnManagedModuleInstanceUnloaded(Guid mvid)
-            => _editSession?.ModuleInstanceLoadedOrUnloaded(mvid);
-
         public void StartDebuggingSession()
         {
             var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(_workspace, _debugeeModuleMetadataProvider, _activeStatementProvider, _compilationOutputsProvider), null);
@@ -205,6 +193,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 var (oldDocument, oldDocumentState) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document.Id, cancellationToken).ConfigureAwait(false);
                 if (oldDocumentState == CommittedSolution.DocumentState.OutOfSync ||
+                    oldDocumentState == CommittedSolution.DocumentState.Indeterminate ||
                     oldDocumentState == CommittedSolution.DocumentState.DesignTimeOnly)
                 {
                     // Do not report diagnostics for existing out-of-sync documents or design-time-only documents.
@@ -236,33 +225,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // is about to be updated, so that it can start initializing it for EnC update, reducing the amount of time applying
                     // the change blocks the UI when the user "continues".
                     debuggingSession.PrepareModuleForUpdate(mvid);
-
-                    // Check if EnC is allowed for all loaded modules corresponding to the project.
-                    var moduleDiagnostics = editSession.GetModuleDiagnostics(mvid, project.Name);
-
-                    if (!moduleDiagnostics.IsEmpty)
-                    {
-                        // track the document, so that we can refresh or clean diagnostics at the end of edit session:
-                        editSession.TrackDocumentWithReportedDiagnostics(document.Id);
-
-                        var newSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                        Contract.ThrowIfNull(newSyntaxTree);
-
-                        var changedSpans = await GetChangedSpansAsync(oldDocument, newSyntaxTree, cancellationToken).ConfigureAwait(false);
-
-                        var diagnosticsBuilder = ArrayBuilder<Diagnostic>.GetInstance();
-                        foreach (var span in changedSpans)
-                        {
-                            var location = Location.Create(newSyntaxTree, span);
-
-                            foreach (var diagnostic in moduleDiagnostics)
-                            {
-                                diagnosticsBuilder.Add(diagnostic.ToDiagnostic(location));
-                            }
-                        }
-
-                        return diagnosticsBuilder.ToImmutableAndFree();
-                    }
                 }
 
                 if (analysis.RudeEditErrors.IsEmpty)
@@ -396,7 +358,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// but does not provide a definitive answer. Only <see cref="EmitSolutionUpdateAsync"/> can definitively determine whether
         /// the update is valid or not.
         /// </returns>
-        public Task<SolutionUpdateStatus> GetSolutionUpdateStatusAsync(string sourceFilePath, CancellationToken cancellationToken)
+        public Task<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
         {
             // GetStatusAsync is called outside of edit session when the debugger is determining 
             // whether a source file checksum matches the one in PDB.
@@ -404,10 +366,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var editSession = _editSession;
             if (editSession == null)
             {
-                return Task.FromResult(SolutionUpdateStatus.None);
+                return Task.FromResult(false);
             }
 
-            return editSession.GetSolutionUpdateStatusAsync(_workspace.CurrentSolution, sourceFilePath, cancellationToken);
+            return editSession.HasChangesAsync(_workspace.CurrentSolution, sourceFilePath, cancellationToken);
         }
 
         public async Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(CancellationToken cancellationToken)
@@ -428,8 +390,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     solution,
                     solutionUpdate.EmitBaselines,
                     solutionUpdate.Deltas,
-                    solutionUpdate.ModuleReaders,
-                    solutionUpdate.ChangedDocuments));
+                    solutionUpdate.ModuleReaders));
 
                 // commit/discard was not called:
                 Contract.ThrowIfFalse(previousPendingUpdate == null);

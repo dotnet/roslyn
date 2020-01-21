@@ -1766,9 +1766,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string parameterName,
                 SyntaxNode node)
             {
-                if (node.IsKind(SyntaxKind.IdentifierName))
+                if (node.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
                 {
-                    var identifierName = (IdentifierNameSyntax)node;
                     if (identifierName.Identifier.ValueText.Equals(parameterName) &&
                         SemanticModel.GetSymbolInfo(identifierName.Identifier).Symbol?.Kind == SymbolKind.Parameter)
                     {
@@ -2197,9 +2196,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementTypesBuilder.Add(GetTypes(declaration.Type).FirstOrDefault().InferredType);
 
                 var designation = declaration.Designation;
-                if (designation.IsKind(SyntaxKind.SingleVariableDesignation))
+                if (designation.IsKind(SyntaxKind.SingleVariableDesignation, out SingleVariableDesignationSyntax singleVariable))
                 {
-                    var singleVariable = (SingleVariableDesignationSyntax)designation;
                     var name = singleVariable.Identifier.ValueText;
 
                     if (name != string.Empty)

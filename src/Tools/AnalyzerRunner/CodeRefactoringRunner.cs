@@ -51,7 +51,7 @@ namespace AnalyzerRunner
             }
 
             var solution = workspace.CurrentSolution;
-            var stopwatch = Stopwatch.StartNew();
+            var stopwatch = PerformanceTracker.StartNew();
 
             var updatedSolution = solution;
 

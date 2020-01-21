@@ -52,11 +52,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             Next
         End Sub
 
-        Public Overrides Sub WriteTo(options As OptionSet, writer As ObjectWriter, cancellationToken As CancellationToken)
-            WriteOptionSetTo(options, LanguageNames.VisualBasic, writer, cancellationToken)
-            WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken)
-        End Sub
-
         Public Overrides Function ReadCompilationOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As CompilationOptions
             Dim outputKind As OutputKind
             Dim reportSuppressedDiagnostics As Boolean
@@ -127,15 +122,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             Next
             Dim options = New VisualBasicParseOptions(languageVersion, documentationMode, kind, builder.MoveToImmutable())
             Return options.WithFeatures(features)
-        End Function
-
-        Public Overrides Function ReadOptionSetFrom(reader As ObjectReader, cancellationToken As CancellationToken) As OptionSet
-            Dim options As OptionSet = New SerializedPartialOptionSet()
-
-            options = ReadOptionSetFrom(options, LanguageNames.VisualBasic, reader, cancellationToken)
-            options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken)
-
-            Return options
         End Function
     End Class
 End Namespace

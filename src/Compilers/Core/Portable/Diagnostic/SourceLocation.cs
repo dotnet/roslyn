@@ -34,8 +34,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SourceLocation(in SyntaxNodeOrToken nodeOrToken)
-            : this(nodeOrToken.SyntaxTree, nodeOrToken.Span)
+            : this(nodeOrToken.SyntaxTree!, nodeOrToken.Span)
         {
+            RoslynDebug.Assert(nodeOrToken.SyntaxTree is object);
         }
 
         public SourceLocation(in SyntaxTrivia trivia)

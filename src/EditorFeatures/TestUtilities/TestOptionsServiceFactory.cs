@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [ExportWorkspaceServiceFactory(typeof(IOptionService), TestWorkspaceName.Name), Shared]
     internal class TestOptionsServiceFactory : IWorkspaceServiceFactory
     {
-        private readonly ImmutableArray<Lazy<IOptionProvider>> _providers;
+        private readonly ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>> _providers;
 
         [ImportingConstructor]
         public TestOptionsServiceFactory(
-            [ImportMany] IEnumerable<Lazy<IOptionProvider>> optionProviders)
+            [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders)
         {
             _providers = optionProviders.ToImmutableArray();
         }
