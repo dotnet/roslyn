@@ -7,10 +7,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Log
@@ -21,9 +19,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
         private const string AnalyzerCount = nameof(AnalyzerCount);
         private const string AnalyzerName = "Analyzer.Name";
         private const string AnalyzerHashCode = "Analyzer.NameHashCode";
-        private const string AnalyzerCrashCount = "Analyzer.CrashCount";
-        private const string AnalyzerException = "Analyzer.Exception";
-        private const string AnalyzerExceptionHashCode = "Analyzer.ExceptionHashCode";
 
         private static string ComputeSha256Hash(string name)
         {
@@ -37,41 +32,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             {
                 m[AnalyzerCount] = analyzers.Length;
             }));
-        }
-
-        public static void LogAnalyzerCrashCountSummary(int correlationId, LogAggregator logAggregator)
-        {
-            if (logAggregator == null)
-            {
-                return;
-            }
-
-            foreach (var analyzerCrash in logAggregator)
-            {
-                Logger.Log(FunctionId.DiagnosticAnalyzerDriver_AnalyzerCrash, KeyValueLogMessage.Create(m =>
-                {
-                    var key = (ValueTuple<bool, Type, Type>)analyzerCrash.Key;
-                    var telemetry = key.Item1;
-                    m[Id] = correlationId;
-
-                    // we log analyzer name and exception as it is, if telemetry is allowed
-                    if (telemetry)
-                    {
-                        m[AnalyzerName] = key.Item2.FullName;
-                        m[AnalyzerCrashCount] = analyzerCrash.Value.GetCount();
-                        m[AnalyzerException] = key.Item3.FullName;
-                    }
-                    else
-                    {
-                        var analyzerName = key.Item2.FullName;
-                        var exceptionName = key.Item3.FullName;
-
-                        m[AnalyzerHashCode] = ComputeSha256Hash(analyzerName);
-                        m[AnalyzerCrashCount] = analyzerCrash.Value.GetCount();
-                        m[AnalyzerExceptionHashCode] = ComputeSha256Hash(exceptionName);
-                    }
-                }));
-            }
         }
 
         public static void LogAnalyzerTypeCountSummary(int correlationId, DiagnosticLogAggregator logAggregator)

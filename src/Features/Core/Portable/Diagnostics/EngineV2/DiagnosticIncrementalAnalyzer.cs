@@ -245,7 +245,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public void LogAnalyzerCountSummary()
         {
-            DiagnosticAnalyzerLogger.LogAnalyzerCrashCountSummary(_correlationId, DiagnosticLogAggregator);
             DiagnosticAnalyzerLogger.LogAnalyzerTypeCountSummary(_correlationId, DiagnosticLogAggregator);
 
             // reset the log aggregator
@@ -264,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private static string GetDocumentLogMessage(string title, Document document, DiagnosticAnalyzer analyzer)
         {
-            return $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer.ToString()})";
+            return $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer})";
         }
 
         private static string GetProjectLogMessage(Project project, IEnumerable<StateSet> stateSets)

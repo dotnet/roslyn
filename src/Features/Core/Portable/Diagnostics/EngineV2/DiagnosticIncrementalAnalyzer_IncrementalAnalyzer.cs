@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                         .Where(a => !DiagnosticAnalyzerInfoCache.IsAnalyzerSuppressed(a, project) && !a.IsOpenFileOnly(options));
 
                 // get driver only with active analyzers.
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await AnalyzerService.CreateCompilationWithAnalyzersAsync(project, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                 if (result.OldResult == null)

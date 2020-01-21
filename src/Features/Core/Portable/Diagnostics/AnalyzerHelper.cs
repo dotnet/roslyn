@@ -227,12 +227,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analysisResult.Select(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
         }
 
-        public static async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzers(
+        public static async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(
             this DiagnosticAnalyzerService service,
             Project project,
             IEnumerable<DiagnosticAnalyzer> analyzers,
             bool includeSuppressedDiagnostics,
-            DiagnosticLogAggregator? logAggregator,
             CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -259,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // async being used with synchronous blocking concurrency.
             var analyzerOptions = new CompilationWithAnalyzersOptions(
                 options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution),
-                onAnalyzerException: service.GetOnAnalyzerException(project.Id, logAggregator),
+                onAnalyzerException: null,
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
                 logAnalyzerExecutionTime: true,
@@ -301,7 +300,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             AnalysisKind kind,
             TextSpan? span,
-            DiagnosticLogAggregator? logAggregator,
             CancellationToken cancellationToken)
         {
             var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
@@ -321,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
             {
                 var diagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
-                    service, document, documentAnalyzer, kind, compilationWithAnalyzers?.Compilation, logAggregator, cancellationToken).ConfigureAwait(false);
+                    service, document, documentAnalyzer, kind, compilationWithAnalyzers?.Compilation, cancellationToken).ConfigureAwait(false);
 
                 return diagnostics.ConvertToLocalDiagnostics(document);
             }
@@ -391,17 +389,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static async Task<IEnumerable<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
+        public static async Task<ImmutableArray<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
             this DiagnosticAnalyzerService service,
             Document document,
             DocumentDiagnosticAnalyzer analyzer,
             AnalysisKind kind,
             Compilation? compilation,
-            DiagnosticLogAggregator? logAggregator,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            ImmutableArray<Diagnostic> diagnostics;
             try
             {
                 var analyzeAsync = kind switch
@@ -411,11 +409,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _ => throw ExceptionUtilities.UnexpectedValue(kind),
                 };
 
-                var diagnostics = (await analyzeAsync.ConfigureAwait(false)).NullToEmpty();
-                if (compilation != null)
-                {
-                    return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation);
-                }
+                diagnostics = (await analyzeAsync.ConfigureAwait(false)).NullToEmpty();
 
 #if DEBUG
                 // since all DocumentDiagnosticAnalyzers are from internal users, we only do debug check. also this can be expensive at runtime
@@ -423,69 +417,57 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // from intern teams.
                 await VerifyDiagnosticLocationsAsync(diagnostics, document.Project, cancellationToken).ConfigureAwait(false);
 #endif
-
-                return diagnostics;
             }
             catch (Exception e) when (!IsCanceled(e, cancellationToken))
             {
-                OnAnalyzerException(service, analyzer, document.Project.Id, compilation, e, logAggregator);
-                return ImmutableArray<Diagnostic>.Empty;
+                diagnostics = ImmutableArray.Create(CreateAnalyzerExceptionDiagnostic(analyzer, e));
             }
+
+            if (compilation != null)
+            {
+                diagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).ToImmutableArrayOrEmpty();
+            }
+
+            return diagnostics;
         }
 
-        public static async Task<IEnumerable<Diagnostic>> ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(
+        public static async Task<ImmutableArray<Diagnostic>> ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(
             this DiagnosticAnalyzerService service,
             Project project,
             ProjectDiagnosticAnalyzer analyzer,
             Compilation? compilation,
-            DiagnosticLogAggregator? logAggregator,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            ImmutableArray<Diagnostic> diagnostics;
             try
             {
-                var diagnostics = (await analyzer.AnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false)).NullToEmpty();
-
-                // Apply filtering from compilation options (source suppressions, ruleset, etc.)
-                if (compilation != null)
-                {
-                    diagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).ToImmutableArrayOrEmpty();
-                }
-
+                diagnostics = (await analyzer.AnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false)).NullToEmpty();
 #if DEBUG
                 // since all ProjectDiagnosticAnalyzers are from internal users, we only do debug check. also this can be expensive at runtime
                 // since it requires await. if we find any offender through NFW, we should be able to fix those since all those should
                 // from intern teams.
                 await VerifyDiagnosticLocationsAsync(diagnostics, project, cancellationToken).ConfigureAwait(false);
 #endif
-
-                return diagnostics;
             }
             catch (Exception e) when (!IsCanceled(e, cancellationToken))
             {
-                OnAnalyzerException(service, analyzer, project.Id, compilation, e, logAggregator);
-                return ImmutableArray<Diagnostic>.Empty;
+                diagnostics = ImmutableArray.Create(CreateAnalyzerExceptionDiagnostic(analyzer, e));
             }
+
+            // Apply filtering from compilation options (source suppressions, ruleset, etc.)
+            if (compilation != null)
+            {
+                diagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).ToImmutableArrayOrEmpty();
+            }
+
+            return diagnostics;
         }
 
         private static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
         {
             return (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
-        }
-
-        private static void OnAnalyzerException(
-            DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, ProjectId projectId, Compilation? compilation, Exception ex, DiagnosticLogAggregator? logAggregator)
-        {
-            var exceptionDiagnostic = AnalyzerHelper.CreateAnalyzerExceptionDiagnostic(analyzer, ex);
-
-            if (compilation != null)
-            {
-                exceptionDiagnostic = CompilationWithAnalyzers.GetEffectiveDiagnostics(ImmutableArray.Create(exceptionDiagnostic), compilation).SingleOrDefault();
-            }
-
-            var onAnalyzerException = service.GetOnAnalyzerException(projectId, logAggregator);
-            onAnalyzerException?.Invoke(ex, analyzer, exceptionDiagnostic);
         }
 
         private static async Task VerifyDiagnosticLocationsAsync(ImmutableArray<Diagnostic> diagnostics, Project project, CancellationToken cancellationToken)

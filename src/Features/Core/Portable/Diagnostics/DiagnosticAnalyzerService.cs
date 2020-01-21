@@ -206,23 +206,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return false;
         }
-
-        // virtual for testing purposes.
-        internal virtual Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId, DiagnosticLogAggregator? logAggregator)
-        {
-            return (ex, analyzer, diagnostic) =>
-            {
-                if (logAggregator == null || ex is OperationCanceledException)
-                {
-                    return;
-                }
-
-                var isTelemetryCollectionAllowed = AnalyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
-
-                logAggregator.IncreaseCount((isTelemetryCollectionAllowed, analyzer.GetType(), ex.GetType()));
-
-                AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
-            };
-        }
     }
 }

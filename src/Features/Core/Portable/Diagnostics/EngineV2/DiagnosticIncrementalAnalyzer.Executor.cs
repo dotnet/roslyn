@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
                     }
 
-                    var diagnostics = await AnalyzerService.ComputeDiagnosticsAsync(compilation, document, stateSet.Analyzer, kind, span: null, DiagnosticLogAggregator, cancellationToken).ConfigureAwait(false);
+                    var diagnostics = await AnalyzerService.ComputeDiagnosticsAsync(compilation, document, stateSet.Analyzer, kind, span: null, cancellationToken).ConfigureAwait(false);
 
                     // this is no-op in product. only run in test environment
                     Logger.Log(functionId, (t, d, a, ds) => $"{GetDocumentLogMessage(t, d, a)}, {string.Join(Environment.NewLine, ds)}",
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // since we might have up to date results for analyzers from compiler but not for 
                     // workspace analyzers.
                     var compilationWithReducedAnalyzers = (analyzersToRun.Length == 0) ? null :
-                        await CreateCompilationWithAnalyzersAsync(project, analyzersToRun, compilation.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                        await AnalyzerService.CreateCompilationWithAnalyzersAsync(project, analyzersToRun, compilation.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                     var result = await ComputeDiagnosticsAsync(compilationWithReducedAnalyzers, project, ideAnalyzers, forcedAnalysis, cancellationToken).ConfigureAwait(false);
                     return MergeExistingDiagnostics(version, existing, result);
@@ -319,13 +319,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                     var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                                     if (tree != null)
                                     {
-                                        builder.AddSyntaxDiagnostics(tree, await AnalyzerService.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Syntax, compilation, DiagnosticLogAggregator, cancellationToken).ConfigureAwait(false));
-                                        builder.AddSemanticDiagnostics(tree, await AnalyzerService.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Semantic, compilation, DiagnosticLogAggregator, cancellationToken).ConfigureAwait(false));
+                                        builder.AddSyntaxDiagnostics(tree, await AnalyzerService.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false));
+                                        builder.AddSemanticDiagnostics(tree, await AnalyzerService.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false));
                                     }
                                     else
                                     {
-                                        builder.AddExternalSyntaxDiagnostics(document.Id, await AnalyzerService.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Syntax, compilation, DiagnosticLogAggregator, cancellationToken).ConfigureAwait(false));
-                                        builder.AddExternalSemanticDiagnostics(document.Id, await AnalyzerService.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Semantic, compilation, DiagnosticLogAggregator, cancellationToken).ConfigureAwait(false));
+                                        builder.AddExternalSyntaxDiagnostics(document.Id, await AnalyzerService.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false));
+                                        builder.AddExternalSemanticDiagnostics(document.Id, await AnalyzerService.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false));
                                     }
                                 }
                             }
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             break;
 
                         case ProjectDiagnosticAnalyzer projectAnalyzer:
-                            builder.AddCompilationDiagnostics(await AnalyzerService.ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(project, projectAnalyzer, compilation, DiagnosticLogAggregator, cancellationToken).ConfigureAwait(false));
+                            builder.AddCompilationDiagnostics(await AnalyzerService.ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(project, projectAnalyzer, compilation, cancellationToken).ConfigureAwait(false));
                             break;
                     }
 

@@ -91,8 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 return DiagnosticAnalysisResultMap.Create(
                     builderMap.ToImmutableDictionary(kv => kv.Key, kv => DiagnosticAnalysisResult.CreateFromBuilder(kv.Value)),
-                    analysisResult.AnalyzerTelemetryInfo,
-                    exceptions: ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>.Empty);
+                    analysisResult.AnalyzerTelemetryInfo);
             }
 
             private async Task FireAndForgetReportAnalyzerPerformanceAsync(Project project, RemoteHostClient? client, AnalysisResult analysisResult, CancellationToken cancellationToken)
@@ -149,14 +148,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
                 }
 
-                var result = await session.Connection.InvokeAsync(
+                return await session.Connection.InvokeAsync(
                     nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
                     new object[] { argument },
                     (stream, cancellationToken) => ReadCompilerAnalysisResultAsync(stream, analyzerMap, project, cancellationToken), cancellationToken).ConfigureAwait(false);
-
-                ReportAnalyzerExceptions(project, result.Exceptions);
-
-                return result;
             }
 
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
@@ -171,17 +166,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Contract.ThrowIfNull(reader);
 
                 return DiagnosticResultSerializer.ReadDiagnosticAnalysisResults(reader, analyzerMap, project, version, cancellationToken);
-            }
-
-            private void ReportAnalyzerExceptions(Project project, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> exceptions)
-            {
-                foreach (var (analyzer, diagnostics) in exceptions)
-                {
-                    foreach (var diagnostic in diagnostics)
-                    {
-                        _hostDiagnosticUpdateSource.ReportAnalyzerDiagnostic(analyzer, diagnostic, project);
-                    }
-                }
             }
         }
     }

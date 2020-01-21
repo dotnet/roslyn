@@ -95,10 +95,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return new DiagnosticAnalyzerInfoCache(hostAnalyzerReferences, hostDiagnosticUpdateSource);
         }
-
-        internal override Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId, DiagnosticLogAggregator diagnosticLogAggregator)
-        {
-            return _onAnalyzerException ?? base.GetOnAnalyzerException(projectId, diagnosticLogAggregator);
-        }
     }
 }

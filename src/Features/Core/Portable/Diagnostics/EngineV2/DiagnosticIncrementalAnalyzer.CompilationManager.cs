@@ -50,10 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => CreateCompilationWithAnalyzersAsync(project, stateSets.Select(s => s.Analyzer), includeSuppressedDiagnostics, cancellationToken);
-
-        private Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IEnumerable<DiagnosticAnalyzer> analyzers, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => AnalyzerService.CreateCompilationWithAnalyzers(project, analyzers, includeSuppressedDiagnostics, DiagnosticLogAggregator, cancellationToken);
+            => AnalyzerService.CreateCompilationWithAnalyzersAsync(project, stateSets.Select(s => s.Analyzer), includeSuppressedDiagnostics, cancellationToken);
 
         private void ClearCompilationsWithAnalyzersCache()
         {

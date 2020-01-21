@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     internal class DiagnosticComputer
     {
         private readonly Project _project;
-        private readonly Dictionary<DiagnosticAnalyzer, HashSet<DiagnosticData>> _exceptions;
         private readonly IPerformanceTrackerService? _performanceTracker;
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
@@ -29,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         {
             _project = project;
             _analyzerInfoCache = analyzerInfoCache;
-            _exceptions = new Dictionary<DiagnosticAnalyzer, HashSet<DiagnosticData>>();
 
             // we only track performance from primary branch. all forked branch we don't care such as preview.
             _performanceTracker = project.IsFromPrimaryBranch() ? project.Solution.Workspace.Services.GetService<IPerformanceTrackerService>() : null;
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
             var analyzerOptions = new CompilationWithAnalyzersOptions(
                 options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution),
-                onAnalyzerException: OnAnalyzerException,
+                onAnalyzerException: null,
                 analyzerExceptionFilter: null,
                 concurrentAnalysis: useConcurrent,
                 logAnalyzerExecutionTime: logAnalyzerExecutionTime,
@@ -99,17 +97,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             return DiagnosticAnalysisResultMap.Create(
                 builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                _exceptions.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value.ToImmutableArray()));
-        }
-
-        private void OnAnalyzerException(Exception exception, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
-        {
-            lock (_exceptions)
-            {
-                var list = _exceptions.GetOrAdd(analyzer, _ => new HashSet<DiagnosticData>());
-                list.Add(DiagnosticData.Create(diagnostic, _project));
-            }
+                analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value));
         }
 
         private string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)
