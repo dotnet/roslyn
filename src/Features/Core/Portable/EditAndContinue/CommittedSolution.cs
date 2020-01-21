@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Returns true if the PDB contains a document record for given <paramref name="sourceFilePath"/>,
         /// in which case <paramref name="checksum"/> and <paramref name="algorithm"/> contain its checksum.
         /// False if the document is not found in the PDB.
-        /// Null if it can't be determined because the PDB is not available or an error occured while reading the PDB.
+        /// Null if it can't be determined because the PDB is not available or an error occurred while reading the PDB.
         /// </summary>
         private bool? TryReadSourceFileChecksumFromPdb(string sourceFilePath, ProjectId projectId, out ImmutableArray<byte> checksum, out SourceHashAlgorithm algorithm)
         {
