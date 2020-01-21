@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected void CheckModifiersAndType(BindingDiagnosticBag diagnostics)
         {
             Location location = this.Locations[0];
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
             bool isExplicitInterfaceImplementationInInterface = ContainingType.IsInterface && IsExplicitInterfaceImplementation;
 
             if (this.DeclaredAccessibility == Accessibility.Private && (IsVirtual || (IsAbstract && !isExplicitInterfaceImplementationInInterface) || IsOverride))

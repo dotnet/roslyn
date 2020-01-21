@@ -453,7 +453,7 @@ lAgain:
             returnType = Nothing
 
             Dim typeParameterAwareBinder As Binder = Me.GetOrCreateTypeParametersAwareBinder(typeParameters)
-            Dim diagnostic = If(diagnosticBag, BindingDiagnosticBag.GetInstance())
+            Dim diagnostic = If(diagnosticBag, BindingDiagnosticBag.Discarded)
 
             Dim signature As CrefSignatureSyntax = reference.Signature
             Debug.Assert(signature IsNot Nothing)
@@ -472,8 +472,6 @@ lAgain:
             If reference.AsClause IsNot Nothing Then
                 returnType = typeParameterAwareBinder.BindTypeSyntax(reference.AsClause.Type, diagnostic)
             End If
-
-            If diagnosticBag Is Nothing Then diagnostic.Free()
         End Sub
 
         Private Sub CollectCrefNameSymbolsStrict(nameFromCref As TypeSyntax,

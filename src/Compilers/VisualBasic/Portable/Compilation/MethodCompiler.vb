@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        cancellationToken As CancellationToken)
 
             Debug.Assert(diagnostics IsNot Nothing)
-            Debug.Assert(diagnostics.DiagnosticBag IsNot Nothing)
+            Debug.Assert(diagnostics.AccumulatesDiagnostics)
             Debug.Assert(diagnostics.DependenciesBag Is Nothing OrElse TypeOf diagnostics.DependenciesBag Is ConcurrentSet(Of AssemblySymbol))
 
             _compilation = compilation
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               diagnostics As BindingDiagnosticBag,
                                               Optional cancellationToken As CancellationToken = Nothing)
             Debug.Assert(diagnostics IsNot Nothing)
-            Debug.Assert(diagnostics.DiagnosticBag IsNot Nothing)
+            Debug.Assert(diagnostics.AccumulatesDiagnostics)
 
             If compilation.PreviousSubmission IsNot Nothing Then
                 ' In case there is a previous submission, we should ensure 
@@ -287,14 +287,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              moduleBeingBuilt As PEModuleBuilder,
                                              diagnostics As BindingDiagnosticBag,
                                              cancellationToken As CancellationToken) As MethodSymbol
-            Debug.Assert(diagnostics.DiagnosticBag IsNot Nothing)
+            Debug.Assert(diagnostics.AccumulatesDiagnostics)
             Dim entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken)
             If entryPointAndDiagnostics Is Nothing Then
                 Return Nothing
             End If
 
-            Debug.Assert(Not entryPointAndDiagnostics.Diagnostics.Diagnostics.IsDefault)
-            Debug.Assert(Not entryPointAndDiagnostics.Diagnostics.Dependencies.IsDefault)
+            Debug.Assert(Not entryPointAndDiagnostics.Diagnostics.IsDefault)
             diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics)
 
             Dim entryPoint = entryPointAndDiagnostics.MethodSymbol
@@ -321,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody)
             End If
 
-            Debug.Assert(entryPoint IsNot Nothing OrElse entryPointAndDiagnostics.Diagnostics.Diagnostics.HasAnyErrors() OrElse Not compilation.Options.Errors.IsDefaultOrEmpty)
+            Debug.Assert(entryPoint IsNot Nothing OrElse entryPointAndDiagnostics.Diagnostics.HasAnyErrors() OrElse Not compilation.Options.Errors.IsDefaultOrEmpty)
             Return entryPoint
         End Function
 
@@ -870,7 +869,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim compilationState As New TypeCompilationState(_compilation, _moduleBeingBuiltOpt, initializeComponentOpt:=Nothing)
             For Each method As MethodSymbol In privateImplClass.GetMethods(Nothing)
-                Dim diagnosticsThisMethod = BindingDiagnosticBag.GetInstance()
+                Dim diagnosticsThisMethod = BindingDiagnosticBag.GetInstance(_diagnostics)
 
                 Dim boundBody = method.GetBoundMethodBody(compilationState, diagnosticsThisMethod)
 
@@ -916,7 +915,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim methodOrdinal As Integer = 0
 
                 For Each method In additionalType.GetMethodsToEmit()
-                    Dim diagnosticsThisMethod = BindingDiagnosticBag.GetInstance()
+                    Dim diagnosticsThisMethod = BindingDiagnosticBag.GetInstance(_diagnostics)
 
                     Dim boundBody = method.GetBoundMethodBody(compilationState, diagnosticsThisMethod)
 
@@ -1004,7 +1003,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each methodWithBody In compilationState.SynthesizedMethods
                 If Not methodWithBody.Body.HasErrors Then
                     Dim method = methodWithBody.Method
-                    Dim diagnosticsThisMethod = BindingDiagnosticBag.GetInstance()
+                    Dim diagnosticsThisMethod = BindingDiagnosticBag.GetInstance(_diagnostics)
 
                     Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                          method,
@@ -1222,7 +1221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' In order to avoid generating code for methods with errors, we create a diagnostic bag just for this method.
-            Dim diagsForCurrentMethod = BindingDiagnosticBag.GetInstance()
+            Dim diagsForCurrentMethod = BindingDiagnosticBag.GetInstance(_diagnostics)
 
             Dim methodBinderOpt As Binder = Nothing
             Dim injectConstructorCall As Boolean
@@ -1410,7 +1409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             constructorToInject As MethodSymbol,
             ByRef delegateRelaxationIdDispenser As Integer
         )
-            Debug.Assert(diagsForCurrentMethod.DiagnosticBag IsNot Nothing)
+            Debug.Assert(diagsForCurrentMethod.AccumulatesDiagnostics)
 
             Dim constructorInitializerOpt = If(constructorToInject Is Nothing,
                                                Nothing,
@@ -1444,7 +1443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If method.IsImplicitlyDeclared AndAlso
                method.AssociatedSymbol IsNot Nothing AndAlso
                method.AssociatedSymbol.IsMyGroupCollectionProperty Then
-                diagnostics = BindingDiagnosticBag.GetInstance()
+                diagnostics = BindingDiagnosticBag.GetInstance(diagsForCurrentMethod)
             End If
 
             Dim lazyVariableSlotAllocator As VariableSlotAllocator = Nothing
@@ -1540,7 +1539,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   emittingPdb As Boolean,
                                                   emitTestCoverageData As Boolean,
                                                   dynamicAnalysisSpans As ImmutableArray(Of SourceSpan)) As MethodBody
-            Debug.Assert(diagnostics.DiagnosticBag IsNot Nothing)
+            Debug.Assert(diagnostics.AccumulatesDiagnostics)
 
             Dim compilation = moduleBuilder.Compilation
             Dim localSlotManager = New LocalSlotManager(variableSlotAllocatorOpt)
@@ -1728,7 +1727,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        ByRef injectDefaultConstructorCall As Boolean,
                                                        ByRef methodBodyBinder As Binder) As BoundBlock
 
-            Debug.Assert(diagnostics.DiagnosticBag IsNot Nothing)
+            Debug.Assert(diagnostics.AccumulatesDiagnostics)
 
             referencedConstructor = Nothing
             injectDefaultConstructorCall = False
@@ -1854,7 +1853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim candidate As MethodSymbol = Nothing
             Dim atLeastOneAccessibleCandidateFound As Boolean = False
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, containingType.ContainingAssembly)
             For Each m In defaultConstructorType.InstanceConstructors
 
                 ' NOTE: Generic constructors are disallowed, but in case they 

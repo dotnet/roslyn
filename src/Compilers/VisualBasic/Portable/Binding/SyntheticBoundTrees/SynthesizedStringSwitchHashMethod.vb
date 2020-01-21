@@ -51,7 +51,7 @@ start:
         ''' This method should be kept consistent with ComputeStringHash
         ''' </remarks>
         Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-            Dim F = New SyntheticBoundNodeFactory(Me, Me, Me.Syntax, Nothing, diagnostics)
+            Dim F = New SyntheticBoundNodeFactory(Me, Me, Me.Syntax, compilationState, diagnostics)
             F.CurrentMethod = Me
 
             Dim i As LocalSymbol = F.SynthesizedLocal(Me.ContainingAssembly.GetSpecialType(SpecialType.System_Int32))

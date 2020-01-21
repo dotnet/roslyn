@@ -106,42 +106,99 @@ namespace Microsoft.CodeAnalysis
     internal struct CompoundUseSiteInfo<TAssemblySymbol> where TAssemblySymbol : class, IAssemblySymbolInternal
     {
         private bool _hasErrors;
-        private readonly bool _discarded;
+        private readonly DiscardLevel _discardLevel;
         private HashSet<DiagnosticInfo>? _diagnostics;
         private HashSet<TAssemblySymbol>? _dependencies;
+        private TAssemblySymbol? _assemblyBeingBuilt;
 
-        public static CompoundUseSiteInfo<TAssemblySymbol> Discarded => new CompoundUseSiteInfo<TAssemblySymbol>(discarded: true);
+        public static CompoundUseSiteInfo<TAssemblySymbol> Discarded => new CompoundUseSiteInfo<TAssemblySymbol>(DiscardLevel.DiagnosticsAndDependencies);
+        public static CompoundUseSiteInfo<TAssemblySymbol> DiscardedDependecies => new CompoundUseSiteInfo<TAssemblySymbol>(DiscardLevel.Dependencies);
 
-        private CompoundUseSiteInfo(bool discarded)
+        private enum DiscardLevel : byte
         {
-            this = default;
-            _discarded = discarded;
+            None,
+            Dependencies,
+            DiagnosticsAndDependencies
         }
 
-        public bool IsDiscarded
+        public CompoundUseSiteInfo(TAssemblySymbol assemblyBeingBuilt)
+        {
+            Debug.Assert(assemblyBeingBuilt is object);
+            Debug.Assert(assemblyBeingBuilt is ISourceAssemblySymbolInternal);
+
+            this = default;
+            _assemblyBeingBuilt = assemblyBeingBuilt;
+        }
+
+        public CompoundUseSiteInfo(BindingDiagnosticBag<TAssemblySymbol>? futureDestination, TAssemblySymbol assemblyBeingBuilt)
+        {
+            Debug.Assert(assemblyBeingBuilt is object);
+            Debug.Assert(assemblyBeingBuilt is ISourceAssemblySymbolInternal);
+
+            this = default;
+
+            if (futureDestination is null)
+            {
+                _discardLevel = DiscardLevel.DiagnosticsAndDependencies;
+            }
+            else if (!futureDestination.AccumulatesDependencies)
+            {
+                _discardLevel = DiscardLevel.Dependencies;
+            }
+            else
+            {
+                _discardLevel = DiscardLevel.None;
+                _assemblyBeingBuilt = assemblyBeingBuilt;
+            }
+        }
+
+        public CompoundUseSiteInfo(CompoundUseSiteInfo<TAssemblySymbol> template)
+        {
+            this = default;
+            _discardLevel = template._discardLevel;
+            _assemblyBeingBuilt = template._assemblyBeingBuilt;
+        }
+
+        private CompoundUseSiteInfo(DiscardLevel discardLevel)
+        {
+            Debug.Assert(discardLevel != DiscardLevel.None);
+            this = default;
+            _discardLevel = discardLevel;
+        }
+
+        public TAssemblySymbol? AssemblyBeingBuilt => _assemblyBeingBuilt;
+
+        private DiscardLevel DiscardLevelWithValidation
         {
             get
             {
 #if DEBUG
-                if (_discarded)
+                switch (_discardLevel)
                 {
-                    Debug.Assert(_diagnostics is null);
-                    Debug.Assert(_dependencies is null);
-                    Debug.Assert(!_hasErrors);
+                    case DiscardLevel.DiagnosticsAndDependencies:
+                        Debug.Assert(_diagnostics is null);
+                        Debug.Assert(_dependencies is null);
+                        Debug.Assert(!_hasErrors);
+                        break;
+
+                    case DiscardLevel.Dependencies:
+                        Debug.Assert(_dependencies is null);
+                        break;
                 }
-                else
-                {
-                    AssertInternalConsistency();
-                }
+
+                AssertInternalConsistency();
 #endif
-                return _discarded;
+                return _discardLevel;
             }
         }
+
+        public bool AccumulatesDiagnostics => DiscardLevelWithValidation != DiscardLevel.DiagnosticsAndDependencies;
 
         public IReadOnlyCollection<DiagnosticInfo>? Diagnostics
         {
             get
             {
+                Debug.Assert(AccumulatesDiagnostics);
                 AssertInternalConsistency();
                 return _diagnostics;
             }
@@ -150,15 +207,18 @@ namespace Microsoft.CodeAnalysis
         [Conditional("DEBUG")]
         private readonly void AssertInternalConsistency()
         {
-            Debug.Assert(!_discarded);
+            Debug.Assert(_discardLevel switch { DiscardLevel.None => true, DiscardLevel.Dependencies => true, DiscardLevel.DiagnosticsAndDependencies => true, _ => false });
             Debug.Assert(_hasErrors == (_diagnostics?.Any(d => d.Severity == DiagnosticSeverity.Error) ?? false));
             Debug.Assert(!_hasErrors || (_dependencies is null));
         }
+
+        public bool AccumulatesDependencies => DiscardLevelWithValidation == DiscardLevel.None;
 
         public IReadOnlyCollection<TAssemblySymbol>? Dependencies
         {
             get
             {
+                Debug.Assert(AccumulatesDependencies);
                 AssertInternalConsistency();
                 return _dependencies;
             }
@@ -168,6 +228,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
+                Debug.Assert(AccumulatesDiagnostics);
                 AssertInternalConsistency();
                 return _hasErrors;
             }
@@ -175,7 +236,7 @@ namespace Microsoft.CodeAnalysis
 
         public void AddDiagnostics(UseSiteInfo<TAssemblySymbol> info)
         {
-            if (_discarded)
+            if (!AccumulatesDiagnostics)
             {
                 return;
             }
@@ -198,7 +259,7 @@ namespace Microsoft.CodeAnalysis
 
         public void AddDiagnostics(ICollection<DiagnosticInfo>? diagnostics)
         {
-            if (_discarded)
+            if (!AccumulatesDiagnostics)
             {
                 return;
             }
@@ -219,7 +280,7 @@ namespace Microsoft.CodeAnalysis
 
         public void AddDiagnostics(IReadOnlyCollection<DiagnosticInfo>? diagnostics)
         {
-            if (_discarded)
+            if (!AccumulatesDiagnostics)
             {
                 return;
             }
@@ -240,7 +301,7 @@ namespace Microsoft.CodeAnalysis
 
         public void AddDiagnostics(ImmutableArray<DiagnosticInfo> diagnostics)
         {
-            if (_discarded)
+            if (!AccumulatesDiagnostics)
             {
                 return;
             }
@@ -261,20 +322,33 @@ namespace Microsoft.CodeAnalysis
 
         public void AddDependencies(UseSiteInfo<TAssemblySymbol> info)
         {
-            if (!_hasErrors && !_discarded)
+            if (!_hasErrors && AccumulatesDependencies)
             {
-                HashSetExtensions.InitializeAndAdd(ref _dependencies, info.PrimaryDependency);
+                if (info.PrimaryDependency != _assemblyBeingBuilt)
+                {
+                    HashSetExtensions.InitializeAndAdd(ref _dependencies, info.PrimaryDependency);
+                }
 
-                if (info.SecondaryDependencies?.IsEmpty == false)
+                if (info.SecondaryDependencies?.IsEmpty == false && (_assemblyBeingBuilt is null || info.SecondaryDependencies.AsSingleton() != _assemblyBeingBuilt))
                 {
                     (_dependencies ??= new HashSet<TAssemblySymbol>()).AddAll(info.SecondaryDependencies);
                 }
             }
         }
 
+        public void AddDependencies(CompoundUseSiteInfo<TAssemblySymbol> info)
+        {
+            Debug.Assert(!info.AccumulatesDependencies || this.AccumulatesDependencies);
+            if (!_hasErrors && AccumulatesDependencies)
+            {
+                AddDependencies(info.Dependencies);
+            }
+        }
+
         public void AddDependencies(ICollection<TAssemblySymbol>? dependencies)
         {
-            if (!_hasErrors && !_discarded && !dependencies.IsNullOrEmpty())
+            if (!_hasErrors && AccumulatesDependencies && !dependencies.IsNullOrEmpty() &&
+                (_assemblyBeingBuilt is null || dependencies.AsSingleton() != _assemblyBeingBuilt))
             {
                 (_dependencies ??= new HashSet<TAssemblySymbol>()).AddAll(dependencies);
             }
@@ -282,7 +356,8 @@ namespace Microsoft.CodeAnalysis
 
         public void AddDependencies(IReadOnlyCollection<TAssemblySymbol>? dependencies)
         {
-            if (!_hasErrors && !_discarded && !dependencies.IsNullOrEmpty())
+            if (!_hasErrors && AccumulatesDependencies && !dependencies.IsNullOrEmpty() &&
+                (_assemblyBeingBuilt is null || dependencies.AsSingleton() != _assemblyBeingBuilt))
             {
                 (_dependencies ??= new HashSet<TAssemblySymbol>()).AddAll(dependencies);
             }
@@ -290,7 +365,8 @@ namespace Microsoft.CodeAnalysis
 
         public void AddDependencies(ImmutableArray<TAssemblySymbol> dependencies)
         {
-            if (!_hasErrors && !_discarded && !dependencies.IsDefaultOrEmpty)
+            if (!_hasErrors && AccumulatesDependencies && !dependencies.IsDefaultOrEmpty &&
+                (_assemblyBeingBuilt is null || dependencies.Length != 1 || dependencies[0] != _assemblyBeingBuilt))
             {
                 (_dependencies ??= new HashSet<TAssemblySymbol>()).AddAll(dependencies);
             }
@@ -298,10 +374,12 @@ namespace Microsoft.CodeAnalysis
 
         public void MergeAndClear(ref CompoundUseSiteInfo<TAssemblySymbol> other)
         {
-            Debug.Assert(!other._discarded);
+            Debug.Assert(other.AccumulatesDiagnostics);
+            Debug.Assert(other._discardLevel != DiscardLevel.None || _discardLevel == DiscardLevel.None);
 
-            if (_discarded)
+            if (!AccumulatesDiagnostics)
             {
+                Debug.Assert(!AccumulatesDependencies);
                 other._diagnostics = null;
                 other._dependencies = null;
                 other._hasErrors = false;
@@ -316,7 +394,7 @@ namespace Microsoft.CodeAnalysis
                 other._hasErrors = false;
             }
 
-            if (!_hasErrors)
+            if (!_hasErrors && AccumulatesDependencies)
             {
                 mergeAndClear(ref _dependencies, ref other._dependencies);
             }
@@ -342,8 +420,9 @@ namespace Microsoft.CodeAnalysis
 
         public void Add(UseSiteInfo<TAssemblySymbol> other)
         {
-            if (_discarded)
+            if (!AccumulatesDiagnostics)
             {
+                Debug.Assert(!AccumulatesDependencies);
                 return;
             }
 

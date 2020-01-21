@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodGroup = MethodGroup.GetInstance();
             methodGroup.PopulateWithSingleMethod(boundExpression, delegateType.DelegateInvokeMethod);
             var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             OverloadResolution.MethodInvocationOverloadResolution(
                 methods: methodGroup.Methods,
                 typeArguments: methodGroup.TypeArguments,
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool anyApplicableCandidates)
         {
             BoundExpression result;
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var resolution = this.ResolveMethodGroup(
                 methodGroup, expression, methodName, analyzedArguments, isMethodGroupConversion: false,
                 useSiteInfo: ref useSiteInfo, allowUnexpandedForm: allowUnexpandedForm);
@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var finalCandidates = ArrayBuilder<TMethodOrPropertySymbol>.GetInstance();
             BindingDiagnosticBag firstFailed = null;
-            var candidateDiagnostics = BindingDiagnosticBag.GetInstance();
+            var candidateDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
 
             for (int i = 0, n = overloadResolutionResult.ResultsBuilder.Count; i < n; i++)
             {
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (firstFailed == null)
                     {
                         firstFailed = candidateDiagnostics;
-                        candidateDiagnostics = BindingDiagnosticBag.GetInstance();
+                        candidateDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                     }
                     else
                     {
@@ -1557,7 +1557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void EnsureNameofExpressionSymbols(BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics)
         {
             // Check that the method group contains something applicable. Otherwise error.
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
             diagnostics.Add(methodGroup.Syntax, useSiteInfo);
             diagnostics.AddRange(resolution.Diagnostics);

@@ -649,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Determine the appropriate overload, allowing
                 ' XElement or IEnumerable(Of XElement) argument.
                 Dim xmlType = GetWellKnownType(WellKnownType.System_Xml_Linq_XElement, syntax, diagnostics)
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 If receiverType.IsOrDerivedFrom(xmlType, useSiteInfo) OrElse receiverType.IsCompatibleWithGenericIEnumerableOfType(xmlType, useSiteInfo) Then
                     group = GetXmlMethodOrPropertyGroup(syntax,
                                                             GetInternalXmlHelperType(syntax, diagnostics),
@@ -700,7 +700,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Determine the appropriate overload, allowing
                 ' XContainer or IEnumerable(Of XContainer) argument.
                 Dim xmlType = GetWellKnownType(WellKnownType.System_Xml_Linq_XContainer, syntax, diagnostics)
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
                 If receiverType.IsOrDerivedFrom(xmlType, useSiteInfo) Then
                     group = GetXmlMethodOrPropertyGroup(syntax,
@@ -966,7 +966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' on this type only, not base types, and ignore extension methods or properties
             ' from the current scope. (Extension methods and properties will be included,
             ' as shared members, if the members are defined on 'type' however.)
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             LookupMember(result,
                          type,
                          memberName,

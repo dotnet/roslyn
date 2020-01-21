@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim fieldAccess = New BoundFieldAccess(node.Syntax, Nothing, missingField, isLValue:=False, type:=missingField.Type)
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
             Dim conversion = Conversions.ClassifyDirectCastConversion(fieldAccess.Type, node.Type, useSiteInfo)
             _diagnostics.Add(node, useSiteInfo)
 

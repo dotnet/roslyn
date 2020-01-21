@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Dim bad = False
 
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(typeParameter.ContainingAssembly)
 
                     If (pair1.TypeParameter Is typeParameter) AndAlso (pair2.TypeParameter Is typeParameter) Then
                         ' Check direct constraints to handle inherited constraints on overridden methods.
@@ -382,10 +382,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub CheckAllConstraints(
                                         type As TypeSymbol,
                                         loc As Location,
-                                        diagnostics As BindingDiagnosticBag)
+                                        diagnostics As BindingDiagnosticBag,
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol))
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            type.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            type.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -407,10 +408,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub CheckAllConstraints(
                                         type As TypeSymbol,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo))
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol))
             Dim diagnostics As New CheckConstraintsDiagnosticsBuilders()
             diagnostics.diagnosticsBuilder = diagnosticsBuilder
             diagnostics.useSiteDiagnosticsBuilder = useSiteDiagnosticsBuilder
+            diagnostics.template = template
 
             type.VisitType(s_checkConstraintsSingleTypeFunc, diagnostics)
 
@@ -420,13 +423,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Class CheckConstraintsDiagnosticsBuilders
             Public diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)
             Public useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)
+            Public template As CompoundUseSiteInfo(Of AssemblySymbol)
         End Class
 
         Private ReadOnly s_checkConstraintsSingleTypeFunc As Func(Of TypeSymbol, CheckConstraintsDiagnosticsBuilders, Boolean) = AddressOf CheckConstraintsSingleType
 
         Private Function CheckConstraintsSingleType(type As TypeSymbol, diagnostics As CheckConstraintsDiagnosticsBuilders) As Boolean
             If type.Kind = SymbolKind.NamedType Then
-                DirectCast(type, NamedTypeSymbol).CheckConstraints(diagnostics.diagnosticsBuilder, diagnostics.useSiteDiagnosticsBuilder)
+                DirectCast(type, NamedTypeSymbol).CheckConstraints(diagnostics.diagnosticsBuilder, diagnostics.useSiteDiagnosticsBuilder, diagnostics.template)
             End If
             Return False ' continue walking types
         End Function
@@ -436,7 +440,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     tuple As TupleTypeSymbol,
                                     syntaxNode As SyntaxNode,
                                     elementLocations As ImmutableArray(Of Location),
-                                    diagnostics As BindingDiagnosticBag)
+                                    diagnostics As BindingDiagnosticBag,
+                                    template As CompoundUseSiteInfo(Of AssemblySymbol))
             Dim type As NamedTypeSymbol = tuple.TupleUnderlyingType
             If Not RequiresChecking(type) Then
                 Return
@@ -453,7 +458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim offset As Integer = 0
             For Each underlyingTuple In underlyingTupleTypeChain
                 Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-                CheckTypeConstraints(underlyingTuple, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+                CheckTypeConstraints(underlyingTuple, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
 
                 If useSiteDiagnosticsBuilder IsNot Nothing Then
                     diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -481,7 +486,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Function CheckConstraintsForNonTuple(
                                         type As NamedTypeSymbol,
                                         typeArgumentsSyntax As SeparatedSyntaxList(Of TypeSyntax),
-                                        diagnostics As BindingDiagnosticBag) As Boolean
+                                        diagnostics As BindingDiagnosticBag,
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Debug.Assert(Not type.IsTupleType)
             Debug.Assert(typeArgumentsSyntax.Count = type.Arity)
             If Not RequiresChecking(type) Then
@@ -490,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            Dim result = CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Dim result = CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -510,7 +516,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Function CheckConstraints(
                                         type As NamedTypeSymbol,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             ' We do not report element locations in method parameters and return types
             ' so we will simply unwrap the type if it was a tuple. We are relying on
             ' TypeSymbolExtensions.VisitType to dig into the "Rest" tuple so that they
@@ -520,21 +527,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If Not RequiresChecking(type) Then
                 Return True
             End If
-            Return CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Return CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
         End Function
 
         <Extension()>
         Public Function CheckConstraints(
                                         method As MethodSymbol,
                                         diagnosticLocation As Location,
-                                        diagnostics As BindingDiagnosticBag) As Boolean
+                                        diagnostics As BindingDiagnosticBag,
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             If Not RequiresChecking(method) Then
                 Return True
             End If
 
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            Dim result = CheckMethodConstraints(method, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Dim result = CheckMethodConstraints(method, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -552,27 +560,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Function CheckConstraints(
                                         method As MethodSymbol,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             If Not RequiresChecking(method) Then
                 Return True
             End If
-            Return CheckMethodConstraints(method, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Return CheckMethodConstraints(method, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
         End Function
 
         Private Function CheckTypeConstraints(
                                         type As NamedTypeSymbol,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Dim substitution = type.TypeSubstitution
-            Return CheckConstraints(type, substitution, type.OriginalDefinition.TypeParameters, type.TypeArgumentsNoUseSiteDiagnostics, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Return CheckConstraints(type, substitution, type.OriginalDefinition.TypeParameters, type.TypeArgumentsNoUseSiteDiagnostics, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
         End Function
 
         Private Function CheckMethodConstraints(
                                         method As MethodSymbol,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Dim substitution = DirectCast(method, SubstitutedMethodSymbol).TypeSubstitution
-            Return CheckConstraints(method, substitution, method.OriginalDefinition.TypeParameters, method.TypeArguments, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Return CheckConstraints(method, substitution, method.OriginalDefinition.TypeParameters, method.TypeArguments, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
         End Function
 
         ''' <summary>
@@ -590,7 +601,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                          typeParameters As ImmutableArray(Of TypeParameterSymbol),
                                          typeArguments As ImmutableArray(Of TypeSymbol),
                                          diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                         template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Debug.Assert(typeParameters.Length = typeArguments.Length)
 
             Dim n = typeParameters.Length
@@ -599,7 +611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For i = 0 To n - 1
                 Dim typeArgument = typeArguments(i)
                 Dim typeParameter = typeParameters(i)
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(template)
                 If Not CheckConstraints(constructedSymbol, substitution, typeParameter, typeArgument, diagnosticsBuilder, useSiteInfo) Then
                     succeeded = False
                 End If
@@ -675,7 +687,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)
         ) As Boolean
 
-            If useSiteInfo.Diagnostics.IsNullOrEmpty AndAlso useSiteInfo.Dependencies.IsNullOrEmpty Then
+            Dim hasErrors As Boolean = useSiteInfo.AccumulatesDiagnostics AndAlso Not useSiteInfo.Diagnostics.IsNullOrEmpty
+
+            If Not hasErrors AndAlso (Not useSiteInfo.AccumulatesDependencies OrElse useSiteInfo.Dependencies.IsNullOrEmpty) Then
                 Return False
             End If
 
@@ -683,8 +697,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 useSiteDiagnosticsBuilder = New ArrayBuilder(Of TypeParameterDiagnosticInfo)()
             End If
 
-            If useSiteInfo.Diagnostics.IsNullOrEmpty Then
-                If Not useSiteInfo.Dependencies.IsNullOrEmpty() Then
+            If Not hasErrors Then
+                If useSiteInfo.AccumulatesDependencies AndAlso Not useSiteInfo.Dependencies.IsNullOrEmpty() Then
                     useSiteDiagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter,
                                                                               If(useSiteInfo.Dependencies.Count = 1,
                                                                                   New UseSiteInfo(Of AssemblySymbol)(useSiteInfo.Dependencies.Single()),

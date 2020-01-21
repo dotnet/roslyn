@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Interface IA(Of T As C) : End Interface
             ' Interface IB(Of T As C) : Inherits IA(Of T) : End Interface
             If checkConstraints AndAlso ShouldCheckConstraints Then
-                constructedType.CheckConstraintsForNonTuple(syntaxArguments, diagnostics)
+                constructedType.CheckConstraintsForNonTuple(syntaxArguments, diagnostics, template:=GetNewCompoundUseSiteInfo(diagnostics))
             End If
 
             constructedType = DirectCast(TupleTypeSymbol.TransformToTupleIfCompatible(constructedType), NamedTypeSymbol)
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 binder.AddTypesAssemblyAsDependency(TryCast(typeSymbol, NamedTypeSymbol), diagBag)
                             End If
 
-                            If diagBag.DiagnosticBag IsNot Nothing AndAlso typeSymbol.Kind = SymbolKind.NamedType AndAlso binder.SourceModule.AnyReferencedAssembliesAreLinked Then
+                            If diagBag.AccumulatesDiagnostics AndAlso typeSymbol.Kind = SymbolKind.NamedType AndAlso binder.SourceModule.AnyReferencedAssembliesAreLinked Then
                                 Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(DirectCast(typeSymbol, NamedTypeSymbol), typeSyntax, diagBag.DiagnosticBag)
                             End If
 
@@ -864,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     reportedAnError = True
                     Debug.Assert(lookupResult.IsClear)
                 Else
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagBag)
 
                     If SyntaxFacts.IsAttributeName(basicNameSyntax) Then
                         binder.LookupAttributeType(lookupResult, Nothing, idText, LookupOptions.AttributeTypeOnly, useSiteInfo)
@@ -897,7 +897,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim arity As Integer = typeArgumentsSyntax.Arguments.Count
 
                 ' Bind the generic symbol with the current binder.
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagBag)
                 binder.Lookup(lookupResult, idText, arity, LookupOptions.NamespacesOrTypesOnly, useSiteInfo)
 
                 diagBag.Add(genericNameSyntax, useSiteInfo)
@@ -979,7 +979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 binder.AddTypesAssemblyAsDependency(leftSymbol, diagBag)
 
                 lookupResult.Clear()
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagBag)
 
                 If SyntaxFacts.IsAttributeName(rightIdentSyntax) Then
                     binder.LookupAttributeType(lookupResult,
@@ -1079,7 +1079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Lookup the generic type.
                 lookupResult.Clear()
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagBag)
                 binder.LookupMember(lookupResult,
                                     leftSymbol,
                                     rightIdentSyntax.ValueText,

@@ -1409,7 +1409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function OptimizeMethodCallForDelegateInvoke(node As BoundCall) As BoundCall
             Dim method = node.Method
             Dim receiver = node.ReceiverOpt
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(Diagnostics, CompilationState.Compilation.Assembly)
 
             If method.MethodKind = MethodKind.DelegateInvoke AndAlso
                     method.ContainingType.IsAnonymousType AndAlso

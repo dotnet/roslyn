@@ -467,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Perform any validation of import statements that must occur
         ''' after the import statements have been added to the module.
         ''' </summary>
-        Private Shared Sub ValidateImports(
+        Private Sub ValidateImports(
                                          memberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
                                          memberImportsInfo As ImmutableArray(Of GlobalImportInfo),
                                          aliasImports As ImmutableArray(Of AliasAndImportsClausePosition),
@@ -506,10 +506,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' after the statement has been added to the module. Specifically,
         ''' constraints are checked for generic type references.
         ''' </summary>
-        Private Shared Sub ValidateImport(type As TypeSymbol, info As GlobalImportInfo, diagnostics As BindingDiagnosticBag)
+        Private Sub ValidateImport(type As TypeSymbol, info As GlobalImportInfo, diagnostics As BindingDiagnosticBag)
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            type.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            type.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, ContainingAssembly))
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -689,7 +689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Accumulate all the errors that were generated.
             diagnostics.AddRange(Me._diagnosticBagDeclare)
-            diagnostics.AddRange(Me._lazyBoundImports.Diagnostics)
+            diagnostics.AddRange(Me._lazyBoundImports.Diagnostics, allowMismatchInDependencyAccumulation:=True)
             diagnostics.AddRange(Me._lazyLinkedAssemblyDiagnostics)
 
             For Each tree In SyntaxTrees
@@ -851,7 +851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Shared Function IsEmptyIgnoringLazyDiagnostics(diagBag As BindingDiagnosticBag) As Boolean
             Return diagBag.DependenciesBag.IsNullOrEmpty() AndAlso
-                   (diagBag.DiagnosticBag Is Nothing OrElse HasAllLazyDiagnostics(diagBag.DiagnosticBag))
+                   (Not diagBag.AccumulatesDiagnostics OrElse HasAllLazyDiagnostics(diagBag.DiagnosticBag))
         End Function
 
         ' Atomically store value into variable, and store the diagnostics away for later retrieval.

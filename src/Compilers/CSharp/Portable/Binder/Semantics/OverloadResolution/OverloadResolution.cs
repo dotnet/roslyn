@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 RemoveStaticInstanceMismatches(results, arguments, receiver);
 
-                RemoveConstraintViolations(results);
+                RemoveConstraintViolations(results, template: new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo));
 
                 if (isMethodGroupConversion)
                 {
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void RemoveConstraintViolations<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results) where TMember : Symbol
+        private void RemoveConstraintViolations<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, CompoundUseSiteInfo<AssemblySymbol> template) where TMember : Symbol
         {
             // When the feature 'ImprovedOverloadCandidates' is enabled, we do not include methods for which the type arguments
             // violate the constraints of the method's type parameters.
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // a constraint failure on the method trumps (for reporting purposes) a previously-detected
                 // constraint failure on the constructed type of a parameter
                 if ((result.Result.IsValid || result.Result.Kind == MemberResolutionKind.ConstructedParameterFailedConstraintCheck) &&
-                    FailsConstraintChecks(member, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt))
+                    FailsConstraintChecks(member, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt, template))
                 {
                     results[f] = new MemberResolutionResult<TMember>(
                         result.Member, result.LeastOverriddenMember,
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool FailsConstraintChecks(MethodSymbol method, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt)
+        private bool FailsConstraintChecks(MethodSymbol method, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt, CompoundUseSiteInfo<AssemblySymbol> template)
         {
             if (method.Arity == 0 || method.OriginalDefinition == (object)method)
             {
@@ -388,7 +388,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Compilation,
                 diagnosticsBuilder,
                 nullabilityDiagnosticsBuilderOpt: null,
-                ref useSiteDiagnosticsBuilder);
+                ref useSiteDiagnosticsBuilder,
+                template);
 
             if (!constraintsSatisfied)
             {

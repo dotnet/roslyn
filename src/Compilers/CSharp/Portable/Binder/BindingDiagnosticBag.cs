@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -43,8 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static void AddForSymbol(this ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, Symbol? symbol, bool addDiagnostics = true)
         {
-            if (symbol is null || useSiteInfo.IsDiscarded)
+            if (symbol is null)
             {
+                return;
+            }
+
+            if (!useSiteInfo.AccumulatesDiagnostics)
+            {
+                Debug.Assert(!useSiteInfo.AccumulatesDependencies);
                 return;
             }
 
@@ -84,6 +91,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static BindingDiagnosticBag GetInstance()
         {
             return new BindingDiagnosticBag(usePool: true);
+        }
+
+        internal static BindingDiagnosticBag GetInstance(bool withDiagnostics, bool withDependencies)
+        {
+            if (withDiagnostics)
+            {
+                if (withDependencies)
+                {
+                    return GetInstance();
+                }
+
+                return new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+            }
+            else if (withDependencies)
+            {
+                return new BindingDiagnosticBag(diagnosticBag: null, PooledHashSet<AssemblySymbol>.GetInstance());
+            }
+            else
+            {
+                return Discarded;
+            }
+        }
+
+        internal static BindingDiagnosticBag GetInstance(BindingDiagnosticBag template)
+        {
+            return GetInstance(template.AccumulatesDiagnostics, template.AccumulatesDependencies);
+        }
+
+        internal static BindingDiagnosticBag Create(BindingDiagnosticBag template)
+        {
+            if (template.AccumulatesDiagnostics)
+            {
+                if (template.AccumulatesDependencies)
+                {
+                    return new BindingDiagnosticBag();
+                }
+
+                return new BindingDiagnosticBag(new DiagnosticBag());
+            }
+            else if (template.AccumulatesDependencies)
+            {
+                return new BindingDiagnosticBag(diagnosticBag: null, new HashSet<AssemblySymbol>());
+            }
+            else
+            {
+                return Discarded;
+            }
         }
 
         internal void AddDependencies(Symbol? symbol)

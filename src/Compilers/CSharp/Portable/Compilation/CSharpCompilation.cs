@@ -1605,7 +1605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // These diagnostics (warning only) are added to the compilation only if
                 // there were not any main methods found.
-                var noMainFoundDiagnostics = BindingDiagnosticBag.GetInstance();
+                var noMainFoundDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
 
                 bool CheckValid(MethodSymbol candidate, bool isCandidate, BindingDiagnosticBag specificDiagnostics)
                 {
@@ -1629,7 +1629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var candidate in entryPointCandidates)
                 {
-                    var perCandidateBag = BindingDiagnosticBag.GetInstance();
+                    var perCandidateBag = BindingDiagnosticBag.GetInstance(diagnostics);
                     var (IsCandidate, IsTaskLike) = HasEntryPointSignature(candidate, perCandidateBag);
 
                     if (IsTaskLike)
@@ -2453,7 +2453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                builder.AddRange(GetSourceDeclarationDiagnostics(cancellationToken: cancellationToken));
+                builder.AddRange(GetSourceDeclarationDiagnostics(cancellationToken: cancellationToken), allowMismatchInDependencyAccumulation: true);
 
                 if (EventQueue != null && SyntaxTrees.Length == 0)
                 {
@@ -2608,7 +2608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (syntaxTree != null)
             {
-                var builder = BindingDiagnosticBag.GetInstance();
+                var builder = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                 ClsComplianceChecker.CheckCompliance(this, builder, cancellationToken, syntaxTree, filterSpanWithinTree);
                 return builder.ToReadOnlyAndFree();
             }

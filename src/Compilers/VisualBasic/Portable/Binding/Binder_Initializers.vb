@@ -485,7 +485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As BoundExpression
             constValue = Nothing
             Dim boundInitValue As BoundExpression = Nothing
-            Dim initValueDiagnostics = BindingDiagnosticBag.GetInstance
+            Dim initValueDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
             If equalsValueOrAsNewSyntax.Kind = SyntaxKind.EqualsValue Then
                 Dim equalsValueSyntax As EqualsValueSyntax = DirectCast(equalsValueOrAsNewSyntax, EqualsValueSyntax)

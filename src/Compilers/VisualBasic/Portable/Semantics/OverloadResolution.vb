@@ -2894,7 +2894,7 @@ Bailout:
                 If method.IsGenericMethod Then
                     Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                     Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-                    Dim satisfiedConstraints = method.CheckConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder)
+                    Dim satisfiedConstraints = method.CheckConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=useSiteInfo)
                     diagnosticsBuilder.Free()
 
                     If useSiteDiagnosticsBuilder IsNot Nothing AndAlso useSiteDiagnosticsBuilder.Count > 0 Then
@@ -4899,7 +4899,7 @@ ContinueCandidatesLoop:
                                 Dim diagnostics = candidate.TypeArgumentInferenceDiagnosticsOpt
 
                                 If diagnostics Is Nothing Then
-                                    diagnostics = New BindingDiagnosticBag()
+                                    diagnostics = BindingDiagnosticBag.Create(withDiagnostics:=True, useSiteInfo.AccumulatesDependencies)
                                     candidate.TypeArgumentInferenceDiagnosticsOpt = diagnostics
                                 End If
 

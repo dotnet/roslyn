@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             TypeSymbol type = t.Type;
                             var outputTemp = new BoundDagTemp(t.Syntax, type, t);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = _localRewriter.GetNewCompoundUseSiteInfo();
                             Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, ref useSiteInfo);
                             _localRewriter._diagnostics.Add(t.Syntax, useSiteInfo);
                             BoundExpression evaluated;
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out BoundExpression sideEffect,
                 out BoundExpression testExpression)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = _localRewriter.GetNewCompoundUseSiteInfo();
 
                 // case 1: type test followed by cast to that type
                 if (test is BoundDagTypeTest typeDecision &&

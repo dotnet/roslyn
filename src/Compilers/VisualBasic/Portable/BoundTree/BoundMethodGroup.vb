@@ -38,23 +38,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class ExtensionMethodGroup
         Private ReadOnly _lookupBinder As Binder
         Private ReadOnly _lookupOptions As LookupOptions
+        Private ReadOnly _withDependencies As Boolean
         Private _lazyMethods As ImmutableArray(Of MethodSymbol)
         Private _lazyUseSiteDiagnostics As IReadOnlyCollection(Of DiagnosticInfo)
         Private _lazyUseSiteDependencies As IReadOnlyCollection(Of AssemblySymbol)
 
-        Public Sub New(lookupBinder As Binder, lookupOptions As LookupOptions)
+        Public Sub New(lookupBinder As Binder, lookupOptions As LookupOptions, withDependencies As Boolean)
             Debug.Assert(lookupBinder IsNot Nothing)
             _lookupBinder = lookupBinder
             _lookupOptions = lookupOptions
+            _withDependencies = withDependencies
         End Sub
 
         Public Function LazyLookupAdditionalExtensionMethods(group As BoundMethodGroup, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of MethodSymbol)
             Debug.Assert(group.PendingExtensionMethodsOpt Is Me)
+            Debug.Assert(Not useSiteInfo.AccumulatesDependencies OrElse _withDependencies)
 
             If _lazyMethods.IsDefault Then
                 Dim receiverOpt As BoundExpression = group.ReceiverOpt
                 Dim methods As ImmutableArray(Of MethodSymbol) = ImmutableArray(Of MethodSymbol).Empty
-                Dim localUseSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim localUseSiteInfo = If(_withDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(_lookupBinder.Compilation.Assembly), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependecies)
 
                 If receiverOpt IsNot Nothing AndAlso receiverOpt.Type IsNot Nothing Then
                     Dim lookup = LookupResult.GetInstance()
@@ -74,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Interlocked.CompareExchange(_lazyUseSiteDiagnostics, localUseSiteInfo.Diagnostics, Nothing)
-                Interlocked.CompareExchange(_lazyUseSiteDependencies, localUseSiteInfo.Dependencies, Nothing)
+                Interlocked.CompareExchange(_lazyUseSiteDependencies, If(localUseSiteInfo.AccumulatesDependencies, localUseSiteInfo.Dependencies, Nothing), Nothing)
                 ImmutableInterlocked.InterlockedCompareExchange(_lazyMethods, methods, Nothing)
             End If
 

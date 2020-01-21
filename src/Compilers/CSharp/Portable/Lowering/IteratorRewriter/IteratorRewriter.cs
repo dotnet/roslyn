@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </returns>
         protected bool VerifyPresenceOfRequiredAPIs()
         {
-            var bag = BindingDiagnosticBag.GetInstance();
+            var bag = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
 
             EnsureSpecialType(SpecialType.System_Int32, bag);
             EnsureSpecialType(SpecialType.System_IDisposable, bag);

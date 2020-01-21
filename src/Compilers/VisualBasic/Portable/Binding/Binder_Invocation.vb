@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             node As SyntaxNode,
             lookupResult As LookupResult,
             lookupOptionsUsed As LookupOptions,
+            withDependencies As Boolean,
             receiver As BoundExpression,
             typeArgumentsOpt As BoundTypeArguments,
             qualKind As QualificationKind,
@@ -31,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' method, we might need to look for extension methods later, on demand.
             Debug.Assert((lookupOptionsUsed And LookupOptions.EagerlyLookupExtensionMethods) = 0)
             If lookupResult.IsGood AndAlso Not lookupResult.Symbols(0).IsReducedExtensionMethod() Then
-                pendingExtensionMethods = New ExtensionMethodGroup(Me, lookupOptionsUsed)
+                pendingExtensionMethods = New ExtensionMethodGroup(Me, lookupOptionsUsed, withDependencies)
             End If
 
             Return New BoundMethodGroup(
@@ -404,7 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Not IsCallStatementContext(node) AndAlso
                 ShouldBindWithoutArguments(node, group, diagnostics) Then
 
-                Dim tmpDiagnostics = BindingDiagnosticBag.GetInstance()
+                Dim tmpDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                 Dim result As BoundExpression = Nothing
 
                 Debug.Assert(node.Expression IsNot Nothing)
@@ -482,7 +483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 group,
                                 boundArguments,
                                 argumentNames,
-                                tmpDiagnostics,
+                                BindingDiagnosticBag.Discarded,
                                 callerInfoOpt:=group.Syntax)
                         End If
                     End If
@@ -517,7 +518,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindDefaultPropertyGroup(node As VisualBasicSyntaxNode, target As BoundExpression, diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim result = LookupResult.GetInstance()
             Dim defaultMemberGroup As BoundExpression = Nothing
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
             MemberLookup.LookupDefaultProperty(result, target.Type, Me, useSiteInfo)
 
@@ -531,7 +532,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Else
                 ' All queryable sources have default indexer, which maps to an ElementAtOrDefault method or property on the source.
-                Dim tempDiagnostics = BindingDiagnosticBag.GetInstance()
+                Dim tempDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
 
                 target = MakeRValue(target, tempDiagnostics)
 
@@ -575,7 +576,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' In case of method group it may also update the group by filtering out all subs
         ''' </summary>
         Private Function ShouldBindWithoutArguments(node As VisualBasicSyntaxNode, ByRef group As BoundMethodOrPropertyGroup, diagnostics As BindingDiagnosticBag) As Boolean
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             Dim result = ShouldBindWithoutArguments(group, useSiteInfo)
             diagnostics.Add(node, useSiteInfo)
             Return result
@@ -739,7 +740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' It is possible to get here with method group with ResultKind = LookupResultKind.Inaccessible.
             ' When this happens, it is worth trying to do overload resolution on the "bad" set
             ' to report better errors.
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.MethodOrPropertyInvocationOverloadResolution(group, boundArguments, argumentNames, Me, callerInfoOpt, useSiteInfo, forceExpandedForm:=forceExpandedForm)
 
             If diagnostics.Add(node, useSiteInfo) Then
@@ -767,7 +768,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Next
 
                         If Not haveAnExtensionMethod Then
-                            useSiteInfo = Nothing
+                            useSiteInfo = New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo)
                             haveAnExtensionMethod = Not methodGroup.AdditionalExtensionMethods(useSiteInfo).IsEmpty
                             diagnostics.Add(node, useSiteInfo)
                         End If
@@ -1034,7 +1035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Not receiver.Type.IsErrorType() Then
 
                 Dim oldReceiver As BoundExpression = receiver
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 receiver = PassArgument(receiver,
                                         Conversions.ClassifyConversion(receiver, targetType, Me, useSiteInfo),
                                         False,
@@ -1857,7 +1858,7 @@ ProduceBoundNode:
                     i += 1
                 End If
 
-                Dim candidateDiagnostics = BindingDiagnosticBag.GetInstance()
+                Dim candidateDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
 
                 ' Collect diagnostic for this candidate
                 ReportOverloadResolutionFailureForASingleCandidate(node, diagnosticLocation, lookupResult, candidates(i), arguments, argumentNames,
@@ -2279,7 +2280,7 @@ ProduceBoundNode:
                     Dim method = DirectCast(candidate.UnderlyingSymbol, MethodSymbol)
                     ' TODO: Dev10 uses the location of the type parameter or argument that
                     ' violated the constraint, rather than  the entire invocation expression.
-                    Dim succeeded = method.CheckConstraints(diagnosticLocation, diagnostics)
+                    Dim succeeded = method.CheckConstraints(diagnosticLocation, diagnostics, template:=GetNewCompoundUseSiteInfo(diagnostics))
                     Debug.Assert(Not succeeded)
                     Return
                 End If

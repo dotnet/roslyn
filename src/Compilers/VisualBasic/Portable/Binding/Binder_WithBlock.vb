@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' by EnsureExpressionAndPlaceholder call, note that this call might have
             ' been before in which case the diagnostics were stored in '_withBlockInfo'
             ' See also comment in PrepareBindingOfOmittedLeft(...)
-            diagnostics.AddRange(Me._withBlockInfo.Diagnostics)
+            diagnostics.AddRange(Me._withBlockInfo.Diagnostics, allowMismatchInDependencyAccumulation:=True)
 
             Return New BoundWithStatement(node,
                                           Me._withBlockInfo.OriginalExpression,

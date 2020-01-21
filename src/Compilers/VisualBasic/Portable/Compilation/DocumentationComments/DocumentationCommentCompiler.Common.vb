@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        ERRID.ERR_None)
 
                         If nameAttribute IsNot Nothing Then
-                            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                            Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(Me._diagnostics)
                             Dim bindResult As ImmutableArray(Of Symbol) = binder.BindXmlNameAttributeValue(nameAttribute.Reference, useSiteInfo)
 
                             If node.SyntaxTree.ReportDocumentationCommentDiagnostics() Then

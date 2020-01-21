@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations constraintType,
             BindingDiagnosticBag diagnostics)
         {
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, containingSymbol.ContainingAssembly);
             if (!containingSymbol.IsNoMoreVisibleThan(constraintType, ref useSiteInfo))
             {
                 // "Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'"

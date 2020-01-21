@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' and the common operand type.
             Dim intrinsicOperatorType As SpecialType = SpecialType.None
             Dim userDefinedOperator As OverloadResolution.OverloadResolutionResult = Nothing
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             Dim operatorKind As BinaryOperatorKind = OverloadResolution.ResolveBinaryOperator(preliminaryOperatorKind, left, right, Me,
                                                                                               True,
                                                                                               intrinsicOperatorType,
@@ -671,7 +671,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Find IsTrue/IsFalse operator
             Dim leftCheckOperator As OverloadResolution.OverloadResolutionResult
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
             If opKind = BinaryOperatorKind.AndAlso Then
                 leftCheckOperator = OverloadResolution.ResolveIsFalseOperator(leftPlaceholder, Me, useSiteInfo)
@@ -1121,7 +1121,7 @@ Done:
 
             Dim intrinsicOperatorType As SpecialType = SpecialType.None
             Dim userDefinedOperator As OverloadResolution.OverloadResolutionResult = Nothing
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             Dim operatorKind As UnaryOperatorKind = OverloadResolution.ResolveUnaryOperator(preliminaryOperatorKind, operand, Me, intrinsicOperatorType, userDefinedOperator, useSiteInfo)
 
             If diagnostics.Add(node, useSiteInfo) Then

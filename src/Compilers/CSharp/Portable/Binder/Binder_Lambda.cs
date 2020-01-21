@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return new UnboundLambda(syntax, this, refKinds, types, names, discardsOpt, isAsync);
+            return new UnboundLambda(syntax, this, diagnostics.AccumulatesDependencies, refKinds, types, names, discardsOpt, isAsync);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {

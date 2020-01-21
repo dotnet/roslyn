@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Sub New(slotAllocatorOpt As VariableSlotAllocator, compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, preserveOriginalLocals As Boolean)
             Debug.Assert(compilationState IsNot Nothing)
-            Debug.Assert(diagnostics.DiagnosticBag IsNot Nothing)
+            Debug.Assert(diagnostics.AccumulatesDiagnostics)
             Me.CompilationState = compilationState
             Me.Diagnostics = diagnostics
             Me.SlotAllocatorOpt = slotAllocatorOpt

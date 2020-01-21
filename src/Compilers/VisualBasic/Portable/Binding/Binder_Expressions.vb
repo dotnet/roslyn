@@ -784,7 +784,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ReportDiagnostic(diagnostics, node.Expression, ERRID.ERR_TypeOfRequiresReferenceType1, operandType)
 
             Else
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 Dim convKind As ConversionKind = Conversions.ClassifyTryCastConversion(operandType, targetType, useSiteInfo)
 
                 If diagnostics.Add(node, useSiteInfo) Then
@@ -1052,7 +1052,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Function TryDefaultInstanceProperty(typeExpr As BoundTypeExpression, diagnosticsBagFor_ERR_CantReferToMyGroupInsideGroupType1 As BindingDiagnosticBag) As BoundExpression
+        Friend Function TryDefaultInstanceProperty(typeExpr As BoundTypeExpression, diagnostics As BindingDiagnosticBag) As BoundExpression
 
             If Not IsDefaultInstancePropertyAllowed Then
                 Return Nothing
@@ -1118,7 +1118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim ret = DirectCast(functionBlock.Statements(0), ReturnStatementSyntax)
-            Dim exprDiagnostics = BindingDiagnosticBag.GetInstance()
+            Dim exprDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
             Dim result As BoundExpression = (New DefaultInstancePropertyBinder(Me)).BindValue(ret.Expression, exprDiagnostics)
 
             If result.HasErrors OrElse exprDiagnostics.HasAnyErrors() Then
@@ -1126,6 +1126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
+            diagnostics.AddDependencies(exprDiagnostics)
             exprDiagnostics.Free()
 
             ' if the default inst expression cannot be correctly bound to an instance of the same type as the class
@@ -1134,9 +1135,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            If diagnosticsBagFor_ERR_CantReferToMyGroupInsideGroupType1 IsNot Nothing AndAlso
-               ContainingType Is classType AndAlso Not ContainingMember.IsShared Then
-                ReportDiagnostic(diagnosticsBagFor_ERR_CantReferToMyGroupInsideGroupType1, typeExpr.Syntax, ERRID.ERR_CantReferToMyGroupInsideGroupType1, classType)
+            If ContainingType Is classType AndAlso Not ContainingMember.IsShared Then
+                ReportDiagnostic(diagnostics, typeExpr.Syntax, ERRID.ERR_CantReferToMyGroupInsideGroupType1, classType)
             End If
 
             ' We need to change syntax node for the result to match typeExpr's syntax node.
@@ -1277,7 +1277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             If Not ReportUseSite(diagnostics, syntax, getMethod) Then
                                 Dim accessThroughType = GetAccessThroughType(propertyAccess.ReceiverOpt)
-                                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
                                 If IsAccessible(getMethod, useSiteInfo, accessThroughType) OrElse
                                    Not IsAccessible(propertySymbol, useSiteInfo, accessThroughType) Then
@@ -2481,7 +2481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arity As Integer = If(typeArguments IsNot Nothing, typeArguments.Arguments.Count, 0)
             Dim result As LookupResult = LookupResult.GetInstance()
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             Me.Lookup(result, name, arity, options, useSiteInfo)
             diagnostics.Add(node, useSiteInfo)
 
@@ -2698,13 +2698,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If leftOpt.Kind = SyntaxKind.IdentifierName Then
                 Dim node = DirectCast(leftOpt, SimpleNameSyntax)
-                Dim leftDiagnostics = BindingDiagnosticBag.GetInstance()
+                Dim leftDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                 Dim boundLeft = Me.BindSimpleName(node, False, leftDiagnostics)
 
                 Dim boundValue = boundLeft
                 Dim propertyDiagnostics As BindingDiagnosticBag = Nothing
                 If boundLeft.Kind = BoundKind.PropertyGroup Then
-                    propertyDiagnostics = BindingDiagnosticBag.GetInstance()
+                    propertyDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                     boundValue = Me.AdjustReceiverValue(boundLeft, node, propertyDiagnostics)
                 End If
 
@@ -2732,7 +2732,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If leftType IsNot Nothing Then
                         Dim leftName = node.Identifier.ValueText
                         If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TypeKind.TypeParameter Then
-                            Dim typeDiagnostics = New BindingDiagnosticBag()
+                            Dim typeDiagnostics = BindingDiagnosticBag.Create(diagnostics)
                             Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
                             If TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything) Then
                                 Dim err As ERRID = Nothing
@@ -2743,7 +2743,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Return boundType
                                 End If
 
-                                Dim valueDiagnostics = New BindingDiagnosticBag()
+                                Dim valueDiagnostics = BindingDiagnosticBag.Create(diagnostics)
                                 valueDiagnostics.AddRangeAndFree(leftDiagnostics)
                                 If propertyDiagnostics IsNot Nothing Then
                                     valueDiagnostics.AddRangeAndFree(propertyDiagnostics)
@@ -2784,7 +2784,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(left IsNot Nothing)
             Debug.Assert(right IsNot Nothing)
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
             ' Check if 'left' is of type which is a class or struct and 'name' is "New"
             Dim leftTypeSymbol As TypeSymbol = left.Type
@@ -2818,7 +2818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim accessibleConstructors = GetAccessibleConstructors(namedLeftTypeSymbol, useSiteInfo)
 
                         diagnostics.Add(node, useSiteInfo)
-                        useSiteInfo = Nothing
+                        useSiteInfo = New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo)
 
                         If accessibleConstructors.IsEmpty Then
 
@@ -3124,7 +3124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               lookupResult.Kind,
                                               symbols,
                                               If(receiver IsNot Nothing, ImmutableArray.Create(receiver), ImmutableArray(Of BoundExpression).Empty),
-                                              GetCommonExpressionType(node, symbols, ConstantFieldsInProgress), hasErrors:=True)
+                                              GetCommonExpressionTypeForErrorRecovery(node, symbols, ConstantFieldsInProgress), hasErrors:=True)
             End If
 
             Select Case lookupResult.Symbols(0).Kind ' all symbols in a lookupResult must be of the same kind.
@@ -3135,6 +3135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 node,
                                 lookupResult,
                                 lookupOptionsUsed,
+                                diagnostics.AccumulatesDependencies,
                                 receiver,
                                 BindTypeArguments(typeArgumentsOpt, diagnostics),
                                 qualKind,
@@ -3528,7 +3529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw ExceptionUtilities.UnexpectedValue(member.Kind)
             End Select
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             If CheckAccessibility(memberType, useSiteInfo, accessThroughType:=Nothing) <> AccessCheckResult.Accessible Then
                 ReportDiagnostic(diagnostics, node,
                                  New BadSymbolDiagnostic(member,
@@ -3759,7 +3760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If type.IsInterfaceType Then
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                     ' In case IsExtensibleInterfaceNoUseSiteDiagnostics above failed because there were bad inherited interfaces.
                     type.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteInfo)
                     diagnostics.Add(node, useSiteInfo)
@@ -3957,7 +3958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' in error cases to give a type in ambiguity situations.
         ' If we can't find a common type, create an error type. If all the types have a common name,
         ' that name is used as the type of the error type (useful in ambiguous type lookup situations)
-        Private Function GetCommonExpressionType(
+        Private Function GetCommonExpressionTypeForErrorRecovery(
             symbolReference As VisualBasicSyntaxNode,
             symbols As ImmutableArray(Of Symbol),
             constantFieldsInProgress As SymbolsInProgress(Of FieldSymbol)
@@ -3967,11 +3968,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim noCommonType As Boolean = False
             Dim noCommonName As Boolean = False
 
-            Dim diagnostics = BindingDiagnosticBag.GetInstance()
+            Dim discardedDiagnostics = BindingDiagnosticBag.Discarded
 
             For i As Integer = 0 To symbols.Length - 1
 
-                Dim expressionType As TypeSymbol = GetExpressionType(symbolReference, symbols(i), constantFieldsInProgress, diagnostics)
+                Dim expressionType As TypeSymbol = GetExpressionType(symbolReference, symbols(i), constantFieldsInProgress, discardedDiagnostics)
 
 
                 If expressionType IsNot Nothing Then
@@ -3988,8 +3989,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
             Next
-
-            diagnostics.Free()
 
             If noCommonType Then
                 If noCommonName Then
@@ -4583,7 +4582,7 @@ lElseClause:
             ' Note: if there were no candidate types in the list, this will fail with errorReason = NoneBest.
             errorReasons = InferenceErrorReasons.Other
             Dim results = ArrayBuilder(Of DominantTypeData).GetInstance()
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             typeList.FindDominantType(results, errorReasons, useSiteInfo)
 
             If diagnostics.Add(syntax, useSiteInfo) Then
@@ -4695,15 +4694,15 @@ lElseClause:
                 End If
             End If
 
-            Dim ignoreDiagnostics = BindingDiagnosticBag.GetInstance()
-
-            ' Will accumulate all ignored diagnostics in case we want to add them
-            Dim allIgnoreDiagnostics = BindingDiagnosticBag.GetInstance()
-
             If operand.HasErrors Then
                 ' Disable error reporting going forward.
                 diagnostics = BindingDiagnosticBag.Discarded
             End If
+
+            Dim ignoreDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
+
+            ' Will accumulate all ignored diagnostics in case we want to add them
+            Dim allIgnoreDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
 
             Dim awaitableInstancePlaceholder = New BoundRValuePlaceholder(operand.Syntax, operand.Type).MakeCompilerGenerated()
             Dim awaiterInstancePlaceholder As BoundLValuePlaceholder = Nothing
@@ -4737,7 +4736,7 @@ lElseClause:
                 Debug.Assert(operand.Type.IsErrorType() OrElse ignoreDiagnostics.DiagnosticBag.IsEmptyWithoutResolution())
             Else
                 Dim lookupResult As LookupResult = LookupResult.GetInstance()
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
                 ' 11.25 Await Operator
                 '
@@ -4751,6 +4750,7 @@ lElseClause:
                                 node,
                                 lookupResult,
                                 LookupOptions.Default,
+                                ignoreDiagnostics.AccumulatesDependencies,
                                 awaitableInstancePlaceholder,
                                 Nothing,
                                 QualificationKind.QualifiedViaValue).MakeCompilerGenerated()
@@ -4848,6 +4848,7 @@ lElseClause:
                                     node,
                                     lookupResult,
                                     LookupOptions.Default,
+                                    ignoreDiagnostics.AccumulatesDependencies,
                                     awaiterInstancePlaceholder,
                                     Nothing,
                                     QualificationKind.QualifiedViaValue).MakeCompilerGenerated()

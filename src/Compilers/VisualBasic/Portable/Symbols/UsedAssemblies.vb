@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '                                    and we either already encountered errors, or have done all the work 
                 '                                    to record usage.
                 Dim diagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance(), New ConcurrentSet(Of AssemblySymbol)())
-                RoslynDebug.Assert(diagnostics.DiagnosticBag IsNot Nothing)
+                RoslynDebug.Assert(diagnostics.AccumulatesDiagnostics)
 
                 GetDiagnosticsWithoutFiltering(CompilationStage.Declare, includeEarlierStages:=True, diagnostics, cancellationToken)
 

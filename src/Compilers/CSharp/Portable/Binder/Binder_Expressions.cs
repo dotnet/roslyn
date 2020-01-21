@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = argument.HasAnyErrors;
 
             TypeSymbol typedReferenceType = this.Compilation.GetSpecialType(SpecialType.System_TypedReference);
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion conversion = this.Conversions.ClassifyConversionFromExpression(argument, typedReferenceType, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
             if (!conversion.IsImplicit || !conversion.IsValid)
@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol typedReferenceType = this.Compilation.GetSpecialType(SpecialType.System_TypedReference);
             TypeSymbol typeType = this.GetWellKnownType(WellKnownType.System_Type, diagnostics, node);
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion conversion = this.Conversions.ClassifyConversionFromExpression(argument, typedReferenceType, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
             if (!conversion.IsImplicit || !conversion.IsValid)
@@ -1330,7 +1330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var name = node.Identifier.ValueText;
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsWithFallback(lookupResult, name, arity: arity, useSiteInfo: ref useSiteInfo, options: options);
             diagnostics.Add(node, useSiteInfo);
 
@@ -1612,7 +1612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             //
                             FieldSymbol possibleField = null;
                             var lookupResult = LookupResult.GetInstance();
-                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                             this.LookupMembersInType(
                                 lookupResult,
                                 ContainingType,
@@ -1753,9 +1753,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var currentType = this.ContainingType;
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             NamedTypeSymbol declaringType = member.ContainingType;
-            if (currentType.IsEqualToOrDerivedFrom(declaringType, TypeCompareKind.ConsiderEverything, useSiteInfo: ref useSiteInfo) ||
+            if (currentType.IsEqualToOrDerivedFrom(declaringType, TypeCompareKind.ConsiderEverything, useSiteInfo: ref discardedUseSiteInfo) ||
                 (currentType.IsInterface && (declaringType.IsObjectType() || currentType.AllInterfacesNoUseSiteDiagnostics.Contains(declaringType))))
             {
                 bool hasErrors = false;
@@ -1889,7 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = LookupResult.GetInstance();
             string labelName = name.Identifier.ValueText;
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsWithFallback(result, labelName, arity: 0, useSiteInfo: ref useSiteInfo, options: LookupOptions.LabelsOnly);
             diagnostics.Add(node, useSiteInfo);
 
@@ -2057,7 +2057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 indexType = nullableType.Construct(indexType);
             }
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(boundOperand, intType, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 
@@ -2163,7 +2163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 indexType = nullableType.Construct(indexType);
             }
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(boundOperand, indexType, ref useSiteInfo);
             diagnostics.Add(operand, useSiteInfo);
 
@@ -2178,7 +2178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindCastCore(ExpressionSyntax node, BoundExpression operand, TypeWithAnnotations targetTypeWithAnnotations, bool wasCompilerGenerated, BindingDiagnosticBag diagnostics)
         {
             TypeSymbol targetType = targetTypeWithAnnotations.Type;
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion conversion = this.Conversions.ClassifyConversionFromExpression(operand, targetType, ref useSiteInfo, forCast: true);
             diagnostics.Add(node, useSiteInfo);
 
@@ -3033,7 +3033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<BoundExpression> boundInitializerExpressions = BindArrayInitializerExpressions(initializer, diagnostics, dimension: 1, rank: rank);
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 
@@ -3060,7 +3060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerExpressionSyntax initializer = node.Initializer;
             ImmutableArray<BoundExpression> boundInitializerExpressions = BindArrayInitializerExpressions(initializer, diagnostics, dimension: 1, rank: 1);
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 
@@ -4002,7 +4002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We should try to bind it anyway in order for intellisense to work.
 
                     UnboundLambda unboundLambda = (UnboundLambda)argument;
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     var conversion = this.Conversions.ClassifyConversionFromExpression(unboundLambda, type, ref useSiteInfo);
                     diagnostics.Add(node, useSiteInfo);
                     // Attempting to make the conversion caches the diagnostics and the bound state inside
@@ -4067,7 +4067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         methodGroup.PopulateWithSingleMethod(argument, sourceDelegate.DelegateInvokeMethod);
-                        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                         Conversion conv = Conversions.MethodGroupConversion(argument.Syntax, methodGroup, type, ref useSiteInfo);
                         diagnostics.Add(node, useSiteInfo);
                         if (!conv.Exists)
@@ -4640,7 +4640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE:    its implemented interfaces. However the native compiler checks to see if there is conversion from initializer
                 // NOTE:    type to the predefined System.Collections.IEnumerable type, so we do the same.
 
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var result = Conversions.ClassifyImplicitConversionFromType(initializerType, collectionsIEnumerableType, ref useSiteInfo).IsValid;
                 diagnostics.Add(node, useSiteInfo);
                 return result;
@@ -4912,7 +4912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             BoundObjectInitializerExpressionBase boundInitializerOpt = null;
 
             // If we have a dynamic argument then do overload resolution to see if there are one or more
@@ -4925,7 +4925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 this.OverloadResolution.ObjectCreationOverloadResolution(GetAccessibleConstructorsForOverloadResolution(type, ref useSiteInfo), analyzedArguments, overloadResolutionResult, ref useSiteInfo);
                 diagnostics.Add(node, useSiteInfo);
-                useSiteInfo = default;
+                useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
 
                 if (overloadResolutionResult.HasAnyApplicableMember)
                 {
@@ -5148,7 +5148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var classCreation = BindClassCreationExpression(node, coClassType, coClassType.Name, diagnostics, interfaceType);
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 Conversion conversion = this.Conversions.ClassifyConversionFromExpression(classCreation, interfaceType, ref useSiteInfo, forCast: true);
                 diagnostics.Add(node, useSiteInfo);
                 if (!conversion.IsValid)
@@ -5295,7 +5295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Get accessible constructors for performing overload resolution.
             ImmutableArray<MethodSymbol> allInstanceConstructors;
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             candidateConstructors = GetAccessibleConstructorsForOverloadResolution(typeContainingConstructors, allowProtectedConstructorsOfBaseType, out allInstanceConstructors, ref useSiteInfo);
 
             OverloadResolutionResult<MethodSymbol> result = OverloadResolutionResult<MethodSymbol>.GetInstance();
@@ -5340,7 +5340,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             diagnostics.Add(errorLocation, useSiteInfo);
-            useSiteInfo = default;
 
             if (succeededIgnoringAccessibility)
             {
@@ -5565,7 +5564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left.Kind() == SyntaxKind.IdentifierName)
             {
                 var node = (IdentifierNameSyntax)left;
-                var valueDiagnostics = new BindingDiagnosticBag();
+                var valueDiagnostics = BindingDiagnosticBag.Create(diagnostics);
                 var boundValue = BindIdentifier(node, invoked: false, indexed: false, diagnostics: valueDiagnostics);
 
                 Symbol leftSymbol;
@@ -5595,7 +5594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var leftName = node.Identifier.ValueText;
                             if (leftType.Name == leftName || IsUsingAliasInScope(leftName))
                             {
-                                var typeDiagnostics = new BindingDiagnosticBag();
+                                var typeDiagnostics = BindingDiagnosticBag.Create(diagnostics);
                                 var boundType = BindNamespaceOrType(node, typeDiagnostics);
                                 if (TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything2))
                                 {
@@ -5787,7 +5786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // then the result is that namespace.
 
                             var ns = ((BoundNamespaceExpression)boundLeft).NamespaceSymbol;
-                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                             this.LookupMembersWithFallback(lookupResult, ns, rightName, rightArity, ref useSiteInfo, options: options);
                             diagnostics.Add(right, useSiteInfo);
 
@@ -5855,7 +5854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                                 this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
                                 diagnostics.Add(right, useSiteInfo);
                                 if (lookupResult.IsMultiViable)
@@ -5927,7 +5926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.MethodGroup:
                     {
                         var methodGroup = (BoundMethodGroup)expr;
-                        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                         var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
                         diagnostics.Add(expr.Syntax, useSiteInfo);
                         if (!expr.HasAnyErrors)
@@ -5989,7 +5988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options |= LookupOptions.UseBaseReferenceAccessibility;
                 }
 
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
                 diagnostics.Add(right, useSiteInfo);
 
@@ -6360,7 +6359,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             bool isMethodGroupConversion,
             RefKind returnRefKind,
-            TypeSymbol returnType)
+            TypeSymbol returnType,
+            bool withDependencies)
         {
             var firstResult = new MethodGroupResolution();
             AnalyzedArguments actualArguments = null;
@@ -6368,7 +6368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var scope in new ExtensionMethodScopes(this))
             {
                 var methodGroup = MethodGroup.GetInstance();
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies);
 
                 this.PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, expression, left, methodName, typeArgumentsWithAnnotations, diagnostics);
 
@@ -6409,7 +6409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 OverloadResolution.MethodInvocationOverloadResolution(
                     methods: methodGroup.Methods,
                     typeArguments: methodGroup.TypeArguments,
@@ -6479,7 +6479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var lookupResult = LookupResult.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupExtensionMethodsInSingleBinder(scope, lookupResult, rightName, arity, options, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 
@@ -6693,7 +6693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind lookupResult,
             bool hasErrors)
         {
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             bool isUsableAsField = eventSymbol.HasAssociatedField && this.IsAccessible(eventSymbol.AssociatedField, ref useSiteInfo, (receiver != null) ? receiver.Type : null);
             diagnostics.Add(node, useSiteInfo);
 
@@ -7111,7 +7111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Give the error that would be given upon conversion to int32.
                 NamedTypeSymbol int32 = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 Conversion failedConversion = this.Conversions.ClassifyConversionFromExpression(index, int32, ref useSiteInfo);
                 diagnostics.Add(node, useSiteInfo);
                 GenerateImplicitConversionError(diagnostics, node, failedConversion, index, int32);
@@ -7125,7 +7125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression TryImplicitConversionToArrayIndex(BoundExpression expr, WellKnownType wellKnownType, SyntaxNode node, BindingDiagnosticBag diagnostics)
         {
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             TypeSymbol type = GetWellKnownType(wellKnownType, ref useSiteInfo);
 
             if (type.IsErrorType())
@@ -7133,7 +7133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var attemptDiagnostics = BindingDiagnosticBag.GetInstance();
+            var attemptDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
             var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
             if (result is object)
             {
@@ -7146,7 +7146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression TryImplicitConversionToArrayIndex(BoundExpression expr, SpecialType specialType, SyntaxNode node, BindingDiagnosticBag diagnostics)
         {
-            var attemptDiagnostics = BindingDiagnosticBag.GetInstance();
+            var attemptDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
 
             TypeSymbol type = GetSpecialType(specialType, attemptDiagnostics, node);
 
@@ -7166,7 +7166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expr != null);
             Debug.Assert((object)targetType != null);
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(expr, targetType, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
             if (!conversion.Exists)
@@ -7255,7 +7255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResult lookupResult = LookupResult.GetInstance();
             LookupOptions lookupOptions = expr.Kind == BoundKind.BaseReference ? LookupOptions.UseBaseReferenceAccessibility : LookupOptions.Default;
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupMembersWithFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0, useSiteInfo: ref useSiteInfo, options: lookupOptions);
             diagnostics.Add(node, useSiteInfo);
 
@@ -7411,7 +7411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             OverloadResolutionResult<PropertySymbol> overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
             bool allowRefOmittedArguments = receiverOpt.IsExpressionOfComImportType();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.OverloadResolution.PropertyOverloadResolution(propertyGroup, receiverOpt, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments, ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo);
             BoundExpression propertyAccess;
@@ -7583,7 +7583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             PropertySymbol lengthOrCountProperty;
 
             var lookupResult = LookupResult.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
             // Look for Length first
 
@@ -7608,7 +7608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LookupOptions.Default,
                     originalBinder: this,
                     diagnose: false,
-                    ref useSiteInfo);
+                    ref discardedUseSiteInfo);
 
                 if (lookupResult.IsMultiViable)
                 {
@@ -7616,7 +7616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!candidate.IsStatic &&
                             candidate is PropertySymbol property &&
-                            IsAccessible(property, ref useSiteInfo) &&
+                            IsAccessible(property, ref discardedUseSiteInfo) &&
                             property.OriginalDefinition is { ParameterCount: 1 } original &&
                             isIntNotByRef(original.Parameters[0]))
                         {
@@ -7666,14 +7666,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LookupOptions.Default,
                     originalBinder: this,
                     diagnose: false,
-                    ref useSiteInfo);
+                    ref discardedUseSiteInfo);
 
                 if (lookupResult.IsMultiViable)
                 {
                     foreach (var candidate in lookupResult.Symbols)
                     {
                         if (!candidate.IsStatic &&
-                            IsAccessible(candidate, ref useSiteInfo) &&
+                            IsAccessible(candidate, ref discardedUseSiteInfo) &&
                             candidate is MethodSymbol method &&
                             method.OriginalDefinition is var original &&
                             original.ParameterCount == 2 &&
@@ -7697,7 +7697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            cleanup(lookupResult, ref useSiteInfo);
+            cleanup(lookupResult);
             if (patternIndexerAccess is null)
             {
                 return false;
@@ -7707,10 +7707,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             checkWellKnown(WellKnownMember.System_Index__GetOffset);
             return true;
 
-            static void cleanup(LookupResult lookupResult, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            static void cleanup(LookupResult lookupResult)
             {
                 lookupResult.Free();
-                useSiteInfo = default;
             }
 
             static bool isIntNotByRef(ParameterSymbol param)
@@ -7736,7 +7735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LookupOptions.Default,
                     originalBinder: this,
                     diagnose: false,
-                    useSiteInfo: ref useSiteInfo);
+                    useSiteInfo: ref discardedUseSiteInfo);
 
                 if (lookupResult.IsSingleViable &&
                     lookupResult.Symbols[0] is PropertySymbol property &&
@@ -7744,15 +7743,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     getMethod.ReturnType.SpecialType == SpecialType.System_Int32 &&
                     getMethod.RefKind == RefKind.None &&
                     !getMethod.IsStatic &&
-                    IsAccessible(getMethod, ref useSiteInfo))
+                    IsAccessible(getMethod, ref discardedUseSiteInfo))
                 {
                     lookupResult.Clear();
-                    useSiteInfo = default;
                     valid = property;
                     return true;
                 }
                 lookupResult.Clear();
-                useSiteInfo = default;
                 valid = null;
                 return false;
             }
@@ -7815,7 +7812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(node.LookupError == null);
 
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, useSiteInfo.AccumulatesDependencies);
                 diagnostics.AddRange(methodResolution.Diagnostics); // Could still have use site warnings.
                 BindMemberAccessReportError(node, diagnostics);
 
@@ -7851,7 +7848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var extensionMethodResolution = BindExtensionMethod(
                 expression, methodName, analyzedArguments, methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt, isMethodGroupConversion,
-                returnRefKind: returnRefKind, returnType: returnType);
+                returnRefKind: returnRefKind, returnType: returnType, withDependencies: useSiteInfo.AccumulatesDependencies);
             bool preferExtensionMethodResolution = false;
 
             if (extensionMethodResolution.HasAnyApplicableMethod)
@@ -7920,7 +7917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sealedDiagnostics = ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
             if (node.LookupError != null)
             {
-                var diagnostics = BindingDiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                 Error(diagnostics, node.LookupError, node.NameSyntax);
                 sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
             }

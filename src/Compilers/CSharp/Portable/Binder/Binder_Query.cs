@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var x = state.rangeVariable;
                         var e = state.fromExpression;
                         var v = selectClause.Expression;
-                        var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), x, v);
+                        var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), x, v, diagnostics.AccumulatesDependencies);
                         var result = MakeQueryInvocation(state.selectOrGroup, e, "Select", lambda, diagnostics);
                         return MakeQueryClause(selectClause, result, queryInvocation: result);
                     }
@@ -173,11 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var k = groupClause.ByExpression;
                         var vId = v as IdentifierNameSyntax;
                         BoundCall result;
-                        var lambdaLeft = MakeQueryUnboundLambda(state.RangeVariableMap(), x, k);
+                        var lambdaLeft = MakeQueryUnboundLambda(state.RangeVariableMap(), x, k, diagnostics.AccumulatesDependencies);
 
                         // this is the unoptimized form (when v is not the identifier x)
-                        var d = BindingDiagnosticBag.GetInstance();
-                        BoundExpression lambdaRight = MakeQueryUnboundLambda(state.RangeVariableMap(), x, v);
+                        var d = BindingDiagnosticBag.GetInstance(diagnostics);
+                        BoundExpression lambdaRight = MakeQueryUnboundLambda(state.RangeVariableMap(), x, v, diagnostics.AccumulatesDependencies);
                         result = MakeQueryInvocation(state.selectOrGroup, e, "GroupBy", ImmutableArray.Create(lambdaLeft, lambdaRight), d);
                         // k and v appear reversed in the invocation, so we reorder their evaluation
                         result = ReverseLastTwoParameterOrder(result);
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     ...
             // is translated into
             //     from x in ( e ) . Where ( x => f )
-            var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), state.rangeVariable, where.Condition);
+            var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), state.rangeVariable, where.Condition, diagnostics.AccumulatesDependencies);
             var invocation = MakeQueryInvocation(where, state.fromExpression, "Where", lambda, diagnostics);
             state.fromExpression = MakeQueryClause(where, invocation, queryInvocation: invocation);
         }
@@ -292,11 +292,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 inExpression = castInvocation;
             }
 
-            var outerKeySelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), state.rangeVariable, join.LeftExpression);
+            var outerKeySelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), state.rangeVariable, join.LeftExpression, diagnostics.AccumulatesDependencies);
 
             var x1 = state.rangeVariable;
             var x2 = state.AddRangeVariable(this, join.Identifier, diagnostics);
-            var innerKeySelectorLambda = MakeQueryUnboundLambda(QueryTranslationState.RangeVariableMap(x2), x2, join.RightExpression);
+            var innerKeySelectorLambda = MakeQueryUnboundLambda(QueryTranslationState.RangeVariableMap(x2), x2, join.RightExpression, diagnostics.AccumulatesDependencies);
 
             if (state.clauses.IsEmpty() && state.selectOrGroup.Kind() == SyntaxKind.SelectClause)
             {
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //     select v
                     // is translated into
                     //     ( e1 ) . Join( e2 , x1 => k1 , x2 => k2 , ( x1 , x2 ) => v )
-                    var resultSelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x1, x2), select.Expression);
+                    var resultSelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x1, x2), select.Expression, diagnostics.AccumulatesDependencies);
 
                     invocation = MakeQueryInvocation(
                         join,
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     state.allRangeVariables.Remove(x2);
                     var g = state.AddRangeVariable(this, join.Into.Identifier, diagnostics);
 
-                    var resultSelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x1, g), select.Expression);
+                    var resultSelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x1, g), select.Expression, diagnostics.AccumulatesDependencies);
 
                     invocation = MakeQueryInvocation(
                         join,
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //     from * in ( e1 ) . Join(
                     //           e2 , x1 => k1 , x2 => k2 , ( x1 , x2 ) => new { x1 , x2 })
                     //     ...
-                    var resultSelectorLambda = MakePairLambda(join, state, x1, x2);
+                    var resultSelectorLambda = MakePairLambda(join, state, x1, x2, diagnostics.AccumulatesDependencies);
 
                     invocation = MakeQueryInvocation(
                         join,
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     state.allRangeVariables.Remove(x2);
 
                     var g = state.AddRangeVariable(this, join.Into.Identifier, diagnostics);
-                    var resultSelectorLambda = MakePairLambda(join, state, x1, g);
+                    var resultSelectorLambda = MakePairLambda(join, state, x1, g, diagnostics.AccumulatesDependencies);
 
                     invocation = MakeQueryInvocation(
                         join,
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var ordering in orderby.Orderings)
             {
                 string methodName = (first ? "OrderBy" : "ThenBy") + (ordering.IsKind(SyntaxKind.DescendingOrdering) ? "Descending" : "");
-                var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), state.rangeVariable, ordering.Expression);
+                var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), state.rangeVariable, ordering.Expression, diagnostics.AccumulatesDependencies);
                 var invocation = MakeQueryInvocation(ordering, state.fromExpression, methodName, lambda, diagnostics);
                 state.fromExpression = MakeQueryClause(ordering, invocation, queryInvocation: invocation);
                 first = false;
@@ -441,11 +441,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression collectionSelectorLambda;
             if (from.Type == null)
             {
-                collectionSelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), x1, from.Expression);
+                collectionSelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), x1, from.Expression, diagnostics.AccumulatesDependencies);
             }
             else
             {
-                collectionSelectorLambda = MakeQueryUnboundLambdaWithCast(state.RangeVariableMap(), x1, from.Expression, from.Type, BindTypeArgument(from.Type, diagnostics));
+                collectionSelectorLambda = MakeQueryUnboundLambdaWithCast(state.RangeVariableMap(), x1, from.Expression, from.Type, BindTypeArgument(from.Type, diagnostics), diagnostics.AccumulatesDependencies);
             }
 
             var x2 = state.AddRangeVariable(this, from.Identifier, diagnostics);
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     select v
                 // is translated into
                 //     ( e1 ) . SelectMany( x1 => e2 , ( x1 , x2 ) => v )
-                var resultSelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x1, x2), select.Expression);
+                var resultSelectorLambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x1, x2), select.Expression, diagnostics.AccumulatesDependencies);
 
                 var invocation = MakeQueryInvocation(
                     from,
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // are accessed as TRID.Item1 (or members of that), and x2 is accessed
                 // as TRID.Item2, where TRID is the compiler-generated identifier used
                 // to represent the transparent identifier in the result.
-                var resultSelectorLambda = MakePairLambda(from, state, x1, x2);
+                var resultSelectorLambda = MakePairLambda(from, state, x1, x2, diagnostics.AccumulatesDependencies);
 
                 var invocation = MakeQueryInvocation(
                     from,
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return i1;
         }
 
-        private UnboundLambda MakePairLambda(CSharpSyntaxNode node, QueryTranslationState state, RangeVariableSymbol x1, RangeVariableSymbol x2)
+        private UnboundLambda MakePairLambda(CSharpSyntaxNode node, QueryTranslationState state, RangeVariableSymbol x1, RangeVariableSymbol x2, bool withDependencies)
         {
             Debug.Assert(LambdaUtilities.IsQueryPairLambda(node));
 
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return lambdaBodyBinder.CreateBlockFromExpression(node, ImmutableArray<LocalSymbol>.Empty, RefKind.None, construction, null, d);
             };
 
-            var result = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x1, x2), node, bodyFactory);
+            var result = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x1, x2), node, bodyFactory, withDependencies);
             state.rangeVariable = state.TransparentRangeVariable(this);
             state.AddTransparentIdentifier(x1.Name);
             var x2m = state.allRangeVariables[x2];
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return lambdaBodyBinder.CreateLambdaBlockForQueryClause(let.Expression, construction, d);
             };
 
-            var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x), let.Expression, bodyFactory);
+            var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x), let.Expression, bodyFactory, diagnostics.AccumulatesDependencies);
             state.rangeVariable = state.TransparentRangeVariable(this);
             state.AddTransparentIdentifier(x.Name);
             var y = state.AddRangeVariable(this, let.Identifier, diagnostics);
@@ -655,12 +655,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return e.Type ?? CreateErrorType();
         }
 
-        private UnboundLambda MakeQueryUnboundLambda(RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression)
+        private UnboundLambda MakeQueryUnboundLambda(RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression, bool withDependencies)
         {
-            return MakeQueryUnboundLambda(qvm, ImmutableArray.Create(parameter), expression);
+            return MakeQueryUnboundLambda(qvm, ImmutableArray.Create(parameter), expression, withDependencies);
         }
 
-        private UnboundLambda MakeQueryUnboundLambda(RangeVariableMap qvm, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax expression)
+        private UnboundLambda MakeQueryUnboundLambda(RangeVariableMap qvm, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax expression, bool withDependencies)
         {
             return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, parameters, (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics) =>
             {
@@ -668,10 +668,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(lambdaSymbol != null);
                 BoundExpression boundExpression = lambdaBodyBinder.BindValue(expression, diagnostics, BindValueKind.RValue);
                 return lambdaBodyBinder.CreateLambdaBlockForQueryClause(expression, boundExpression, diagnostics);
-            }));
+            }), withDependencies);
         }
 
-        private UnboundLambda MakeQueryUnboundLambdaWithCast(RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression, TypeSyntax castTypeSyntax, TypeWithAnnotations castType)
+        private UnboundLambda MakeQueryUnboundLambdaWithCast(RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression, TypeSyntax castTypeSyntax, TypeWithAnnotations castType, bool withDependencies)
         {
             return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, ImmutableArray.Create(parameter), (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics) =>
             {
@@ -683,18 +683,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundExpression = lambdaBodyBinder.MakeQueryInvocation(expression, boundExpression, "Cast", castTypeSyntax, castType, diagnostics);
 
                 return lambdaBodyBinder.CreateLambdaBlockForQueryClause(expression, boundExpression, diagnostics);
-            }));
+            }), withDependencies);
         }
 
-        private UnboundLambda MakeQueryUnboundLambda(RangeVariableMap qvm, ImmutableArray<RangeVariableSymbol> parameters, CSharpSyntaxNode node, LambdaBodyFactory bodyFactory)
+        private UnboundLambda MakeQueryUnboundLambda(RangeVariableMap qvm, ImmutableArray<RangeVariableSymbol> parameters, CSharpSyntaxNode node, LambdaBodyFactory bodyFactory, bool withDependencies)
         {
-            return MakeQueryUnboundLambda(node, new QueryUnboundLambdaState(this, qvm, parameters, bodyFactory));
+            return MakeQueryUnboundLambda(node, new QueryUnboundLambdaState(this, qvm, parameters, bodyFactory), withDependencies);
         }
 
-        private UnboundLambda MakeQueryUnboundLambda(CSharpSyntaxNode node, QueryUnboundLambdaState state)
+        private UnboundLambda MakeQueryUnboundLambda(CSharpSyntaxNode node, QueryUnboundLambdaState state, bool withDependencies)
         {
             Debug.Assert(node is ExpressionSyntax || LambdaUtilities.IsQueryPairLambda(node));
-            var lambda = new UnboundLambda(node, state, hasErrors: false) { WasCompilerGenerated = true };
+            var lambda = new UnboundLambda(node, state, withDependencies, hasErrors: false) { WasCompilerGenerated = true };
             state.SetUnboundLambda(lambda);
             return lambda;
         }
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (ultimateReceiver.Kind == BoundKind.MethodGroup)
                 {
                     var methodGroup = (BoundMethodGroup)ultimateReceiver;
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
                     diagnostics.Add(node, useSiteInfo);
                     diagnostics.AddRange(resolution.Diagnostics);

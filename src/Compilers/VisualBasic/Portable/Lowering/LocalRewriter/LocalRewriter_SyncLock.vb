@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim visitedLockExpression = VisitExpressionNode(node.LockExpression)
 
             Dim objectType = GetSpecialType(SpecialType.System_Object)
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
             Dim conversionKind = Conversions.ClassifyConversion(visitedLockExpression.Type, objectType, useSiteInfo).Key
             _diagnostics.Add(node, useSiteInfo)
 

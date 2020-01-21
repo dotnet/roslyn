@@ -677,7 +677,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             type As TypeSymbol,
             <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
-            useSiteInfo.Add(type.GetUseSiteInfo())
+            If useSiteInfo.AccumulatesDiagnostics Then
+                useSiteInfo.Add(type.GetUseSiteInfo())
+            Else
+                Debug.Assert(Not useSiteInfo.AccumulatesDependencies)
+            End If
         End Sub
 
         <Extension()>

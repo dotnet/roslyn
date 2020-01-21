@@ -30,14 +30,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Not body.HasErrors)
             Debug.Assert(compilationState.ModuleBuilderOpt IsNot Nothing)
-            Debug.Assert(diagnostics.DiagnosticBag IsNot Nothing)
+            Debug.Assert(diagnostics.AccumulatesDiagnostics)
 
             ' performs node-specific lowering.
             Dim sawLambdas As Boolean
             Dim symbolsCapturedWithoutCopyCtor As ISet(Of Symbol) = Nothing
             Dim rewrittenNodes As HashSet(Of BoundNode) = Nothing
             Dim flags = If(allowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.AllowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.Default)
-            Dim localDiagnostics = BindingDiagnosticBag.GetInstance()
+            Dim localDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
+            Debug.Assert(localDiagnostics.AccumulatesDiagnostics)
             dynamicAnalysisSpans = ImmutableArray(Of SourceSpan).Empty
 
             Try

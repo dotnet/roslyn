@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // If the expression is a lambda, anonymous method, or method group then it will
                     // have no compile-time type; give the same error as if the type was wrong.
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
                     if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteInfo), ref useSiteInfo))
                     {
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasError = false;
 
             var result = LookupResult.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var binder = this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteInfo: ref useSiteInfo, options: LookupOptions.LabelsOnly);
 
             // result.Symbols can be empty in some malformed code, e.g. when a labeled statement is used an embedded statement in an if or foreach statement    
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
                 || result == PatternLookupResult.NotAMethod)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 if (this.IsAccessible(disposeMethod, ref useSiteInfo))
                 {
                     diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntaxNode.Location, expr.Type, MessageID.IDS_Disposable.Localize(), disposeMethod);
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(declTypeOpt.HasType || isVar);
             Debug.Assert(typeSyntax != null);
 
-            var localDiagnostics = BindingDiagnosticBag.GetInstance();
+            var localDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
             // if we are not given desired syntax, we use declarator
             associatedSyntaxNode = associatedSyntaxNode ?? declarator;
 
@@ -1090,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (kind == LocalDeclarationKind.Constant && initializerOpt != null && !localDiagnostics.HasAnyResolvedErrors())
             {
                 var constantValueDiagnostics = localSymbol.GetConstantValueDiagnostics(initializerOpt);
-                diagnostics.AddRange(constantValueDiagnostics);
+                diagnostics.AddRange(constantValueDiagnostics, allowMismatchInDependencyAccumulation: true);
                 hasErrors = constantValueDiagnostics.Diagnostics.HasAnyErrors();
             }
 
@@ -1228,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // check for a special ref-returning method
-                    var additionalDiagnostics = BindingDiagnosticBag.GetInstance();
+                    var additionalDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                     fixedPatternMethod = GetFixedPatternMethodOpt(initializerOpt, additionalDiagnostics);
 
                     // check for String
@@ -1320,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode initializerSyntax = initializer.Syntax;
 
             TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion elementConversion = this.Conversions.ClassifyConversionFromType(pointerType, declType, ref useSiteInfo);
             diagnostics.Add(initializerSyntax, useSiteInfo);
 
@@ -1740,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics = BindingDiagnosticBag.Discarded;
             }
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var conversion = this.Conversions.ClassifyConversionFromExpression(expression, targetType, ref useSiteInfo);
             diagnostics.Add(expression.Syntax, useSiteInfo);
 
@@ -2283,7 +2283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Is the operand implicitly convertible to bool?
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var conversion = this.Conversions.ClassifyConversionFromExpression(expr, boolean, ref useSiteInfo);
             diagnostics.Add(expr.Syntax, useSiteInfo);
 
@@ -2734,7 +2734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion conversion;
             bool badAsyncReturnAlreadyReported = false;
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             if (IsInAsyncMethod())
             {
                 Debug.Assert(returnRefKind == RefKind.None);
@@ -2854,7 +2854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     TypeSymbol effectiveType = type.EffectiveType(ref useSiteInfo);
                     if (!Compilation.IsExceptionType(effectiveType, ref useSiteInfo))
                     {
@@ -2896,7 +2896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if ((object)type != null)
                         {
-                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
                             if (Conversions.HasIdentityOrImplicitReferenceConversion(type, previousType, ref useSiteInfo))
                             {
@@ -3278,7 +3278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal PatternLookupResult PerformPatternMethodLookup(BoundExpression receiver, string methodName,
                                                                 SyntaxNode syntaxNode, BindingDiagnosticBag diagnostics, out MethodSymbol result)
         {
-            var bindingDiagnostics = BindingDiagnosticBag.GetInstance();
+            var bindingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
 
             try
             {

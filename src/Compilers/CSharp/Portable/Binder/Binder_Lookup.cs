@@ -437,8 +437,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Result without 'Attribute' suffix added.
             Symbol symbolWithoutSuffix;
-            CompoundUseSiteInfo<AssemblySymbol> attributeTypeWithoutSuffixViabilityUseSiteInfo;
-            bool resultWithoutSuffixIsViable = IsSingleViableAttributeType(result, out symbolWithoutSuffix, out attributeTypeWithoutSuffixViabilityUseSiteInfo);
+            var attributeTypeWithoutSuffixViabilityUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
+            bool resultWithoutSuffixIsViable = IsSingleViableAttributeType(result, out symbolWithoutSuffix, ref attributeTypeWithoutSuffixViabilityUseSiteInfo);
 
             // Generic types are not allowed.
             Debug.Assert(arity == 0 || !result.IsMultiViable);
@@ -446,13 +446,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Result with 'Attribute' suffix added.
             LookupResult resultWithSuffix = null;
             Symbol symbolWithSuffix = null;
-            CompoundUseSiteInfo<AssemblySymbol> attributeTypeWithSuffixViabilityUseSiteInfo = default;
+            var attributeTypeWithSuffixViabilityUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
             bool resultWithSuffixIsViable = false;
             if (!options.IsVerbatimNameAttributeTypeLookup())
             {
                 resultWithSuffix = LookupResult.GetInstance();
                 this.LookupSymbolsOrMembersInternal(resultWithSuffix, qualifierOpt, name + "Attribute", arity, basesBeingResolved, options, diagnose, ref useSiteInfo);
-                resultWithSuffixIsViable = IsSingleViableAttributeType(resultWithSuffix, out symbolWithSuffix, out attributeTypeWithSuffixViabilityUseSiteInfo);
+                resultWithSuffixIsViable = IsSingleViableAttributeType(resultWithSuffix, out symbolWithSuffix, ref attributeTypeWithSuffixViabilityUseSiteInfo);
 
                 // Generic types are not allowed.
                 Debug.Assert(arity == 0 || !result.IsMultiViable);
@@ -567,10 +567,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private bool IsSingleViableAttributeType(LookupResult result, out Symbol symbol, out CompoundUseSiteInfo<AssemblySymbol> attributeTypeViabilityUseSiteInfo)
+        private bool IsSingleViableAttributeType(LookupResult result, out Symbol symbol, ref CompoundUseSiteInfo<AssemblySymbol> attributeTypeViabilityUseSiteInfo)
         {
-            attributeTypeViabilityUseSiteInfo = default;
-
             if (IsAmbiguousResult(result, out symbol))
             {
                 return false;
@@ -582,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             DiagnosticInfo discarded = null;
-            return CheckAttributeTypeViability(UnwrapAliasNoDiagnostics(symbol), diagnose: false, diagInfo: ref discarded, out attributeTypeViabilityUseSiteInfo);
+            return CheckAttributeTypeViability(UnwrapAliasNoDiagnostics(symbol), diagnose: false, diagInfo: ref discarded, ref attributeTypeViabilityUseSiteInfo);
         }
 
         private SingleLookupResult GenerateNonViableAttributeTypeResult(Symbol symbol, DiagnosticInfo diagInfo, bool diagnose)
@@ -590,15 +588,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)symbol != null);
 
             symbol = UnwrapAliasNoDiagnostics(symbol);
-            CheckAttributeTypeViability(symbol, diagnose, ref diagInfo, out var attributeTypeViabilityUseSiteInfo);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            CheckAttributeTypeViability(symbol, diagnose, ref diagInfo, ref discardedUseSiteInfo);
             return LookupResult.NotAnAttributeType(symbol, diagInfo);
         }
 
-        private bool CheckAttributeTypeViability(Symbol symbol, bool diagnose, ref DiagnosticInfo diagInfo, out CompoundUseSiteInfo<AssemblySymbol> attributeTypeViabilityUseSiteInfo)
+        private bool CheckAttributeTypeViability(Symbol symbol, bool diagnose, ref DiagnosticInfo diagInfo, ref CompoundUseSiteInfo<AssemblySymbol> attributeTypeViabilityUseSiteInfo)
         {
             Debug.Assert((object)symbol != null);
-
-            attributeTypeViabilityUseSiteInfo = default;
 
             if (symbol.Kind == SymbolKind.NamedType)
             {
@@ -617,18 +614,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (Compilation.IsEqualOrDerivedFromWellKnownClass(namedType, WellKnownType.System_Attribute, ref attributeTypeViabilityUseSiteInfo))
+                    var useSiteInfo = attributeTypeViabilityUseSiteInfo.AccumulatesDependencies || !diagnose ?
+                                          new CompoundUseSiteInfo<AssemblySymbol>(attributeTypeViabilityUseSiteInfo) :
+                                          CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
+                    Debug.Assert(!diagnose || useSiteInfo.AccumulatesDiagnostics);
+
+                    if (Compilation.IsEqualOrDerivedFromWellKnownClass(namedType, WellKnownType.System_Attribute, ref useSiteInfo))
                     {
+                        attributeTypeViabilityUseSiteInfo.MergeAndClear(ref useSiteInfo);
                         // Reuse existing diagnostic info.
                         return true;
                     }
 
-                    CompoundUseSiteInfo<AssemblySymbol> copyUseSiteInfo = attributeTypeViabilityUseSiteInfo;
-                    attributeTypeViabilityUseSiteInfo = default;
-
-                    if (diagnose && copyUseSiteInfo.HasErrors)
+                    if (diagnose && useSiteInfo.HasErrors)
                     {
-                        foreach (var info in copyUseSiteInfo.Diagnostics)
+                        foreach (var info in useSiteInfo.Diagnostics)
                         {
                             if (info.Severity == DiagnosticSeverity.Error)
                             {

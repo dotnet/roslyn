@@ -1986,7 +1986,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         groupByArguments = {keysLambda, itemsLambda, inferenceLambda}
                     End If
 
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                     Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.QueryOperatorInvocationOverloadResolution(methodGroup,
                                                                                                                                               groupByArguments.AsImmutableOrNull(), Me,
                                                                                                                                               useSiteInfo)
@@ -2060,7 +2060,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim groupJoinArguments() As BoundExpression = {inner, outerKeyLambda, innerKeyLambda, inferenceLambda}
 
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                     Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.QueryOperatorInvocationOverloadResolution(methodGroup,
                                                                                                                                               groupJoinArguments.AsImmutableOrNull(), Me,
                                                                                                                                               useSiteInfo)
@@ -2330,7 +2330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Need to verify result type of the condition and enforce ExprIsOperandOfConditionalBranch for possible future conversions. 
             ' In order to do verification, we simply attempt conversion to boolean in the same manner as BindBooleanExpression.
-            Dim conversionDiagnostic = BindingDiagnosticBag.GetInstance()
+            Dim conversionDiagnostic = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
             Dim boolSymbol As NamedTypeSymbol = GetSpecialType(SpecialType.System_Boolean, condition, diagnostics)
 
@@ -3476,7 +3476,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Apply conversion if available.
                     Dim targetType As TypeSymbol = Nothing
                     Dim intrinsicOperatorType As SpecialType = SpecialType.None
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = outerKeyBinder.GetNewCompoundUseSiteInfo(diagnostics)
+
                     Dim operatorKind As BinaryOperatorKind = OverloadResolution.ResolveBinaryOperator(BinaryOperatorKind.Equals,
                                                                                                       outerKey, innerKey,
                                                                                                       innerKeyBinder,
@@ -3492,7 +3493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty)
                         diagnostics.AddDependencies(useSiteInfo)
                         targetType = innerKeyBinder.GetSpecialTypeForBinaryOperator(joinCondition, outerKey.Type, innerKey.Type, intrinsicOperatorType,
-                                                                                    (operatorKind And BinaryOperatorKind.Lifted) <> 0, diagnostics)
+                                                                                (operatorKind And BinaryOperatorKind.Lifted) <> 0, diagnostics)
                     Else
                         ' Use dominant type.
                         Dim inferenceCollection = New TypeInferenceCollection()
@@ -4359,7 +4360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim result As BoundExpression = Nothing
-            Dim additionalDiagnostics = BindingDiagnosticBag.GetInstance()
+            Dim additionalDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
 
             ' Does it have Function AsQueryable() As CT returning queryable collection?
             Dim asQueryable As BoundExpression = BindQueryOperatorCall(source.Syntax, source, StringConstants.AsQueryableMethod,
@@ -4434,7 +4435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Look for Select methods available for the source.
             Dim lookupResult As LookupResult = LookupResult.GetInstance()
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             LookupMember(lookupResult, source.Type, StringConstants.SelectMethod, 0, QueryOperatorLookupOptions, useSiteInfo)
 
             If lookupResult.IsGood Then
@@ -4568,7 +4569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As BindingDiagnosticBag
         ) As BoundMethodGroup
             Dim lookupResult As LookupResult = LookupResult.GetInstance()
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             LookupMember(lookupResult, source.Type, operatorName, 0, QueryOperatorLookupOptions, useSiteInfo)
 
             Dim methodGroup As BoundMethodGroup = Nothing
@@ -4586,6 +4587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             node,
                             lookupResult,
                             QueryOperatorLookupOptions,
+                            diagnostics.AccumulatesDependencies,
                             source,
                             typeArgumentsOpt,
                             QualificationKind.QualifiedViaValue).MakeCompilerGenerated()
@@ -4653,7 +4655,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundCall As BoundExpression = Nothing
 
             If methodGroup IsNot Nothing Then
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.QueryOperatorInvocationOverloadResolution(methodGroup,
                                                                                                                                           arguments, Me,
                                                                                                                                           useSiteInfo)

@@ -67,6 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Sub New(topLevelMethod As MethodSymbol, currentMethod As MethodSymbol, currentClass As NamedTypeSymbol, node As SyntaxNode, compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag)
+            Debug.Assert(compilationState IsNot Nothing)
             Me.CompilationState = compilationState
             Me.CurrentMethod = currentMethod
             Me.TopLevelMethod = topLevelMethod
@@ -347,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function [Return](Optional expression As BoundExpression = Nothing) As BoundReturnStatement
             If expression IsNot Nothing Then
                 ' If necessary, add a conversion on the return expression.
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(Diagnostics, Me.Compilation.Assembly)
                 Dim conversion = Conversions.ClassifyDirectCastConversion(expression.Type, Me.CurrentMethod.ReturnType, useSiteInfo)
                 Debug.Assert(Conversions.IsWideningConversion(conversion))
                 Diagnostics.Add(expression, useSiteInfo)

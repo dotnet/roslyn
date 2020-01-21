@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use implicit conversion to Boolean if it is defined on the static type of the left operand.
             // If not the type has to implement IsTrue/IsFalse operator - we checked it during binding.
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
             var conversion = _compilation.Conversions.ClassifyConversionFromExpression(loweredLeft, boolean, ref useSiteInfo);
             _diagnostics.Add(loweredLeft.Syntax, useSiteInfo);
             if (conversion.IsImplicit)
@@ -696,6 +696,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(leftTruthOperator != null);
             return BoundCall.Synthesized(syntax, null, leftTruthOperator, loweredLeft);
+        }
+
+        private CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo()
+        {
+            return new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
         }
 
         private BoundExpression LowerUserDefinedBinaryOperator(

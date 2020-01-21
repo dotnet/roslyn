@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                       type:=parameterSymbol.Type).MakeCompilerGenerated
 
             Dim delegateUpdate As BoundExpression
-            Dim conversionsUseSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim conversionsUseSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, compilation.Assembly)
             Dim conversionKind1 As ConversionKind
             Dim conversionKind2 As ConversionKind
 

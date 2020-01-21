@@ -324,7 +324,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeWithAnnotations GetTypeSymbol()
         {
-            var diagnostics = BindingDiagnosticBag.GetInstance();
+            //
+            // Note that we drop the diagnostics on the floor! That is because this code is invoked mainly in
+            // IDE scenarios where we are attempting to use the types of a variable before we have processed
+            // the code which causes the variable's type to be inferred. In batch compilation, on the
+            // other hand, local variables have their type inferred, if necessary, in the course of binding
+            // the statements of a method from top to bottom, and an inferred type is given to a variable
+            // before the variable's type is used by the compiler.
+            //
+            var diagnostics = BindingDiagnosticBag.Discarded;
 
             Binder typeBinder = this.TypeSyntaxBinder;
 
@@ -359,15 +367,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(declType.HasType);
 
-            //
-            // Note that we drop the diagnostics on the floor! That is because this code is invoked mainly in
-            // IDE scenarios where we are attempting to use the types of a variable before we have processed
-            // the code which causes the variable's type to be inferred. In batch compilation, on the
-            // other hand, local variables have their type inferred, if necessary, in the course of binding
-            // the statements of a method from top to bottom, and an inferred type is given to a variable
-            // before the variable's type is used by the compiler.
-            //
-            diagnostics.Free();
             return declType;
         }
 

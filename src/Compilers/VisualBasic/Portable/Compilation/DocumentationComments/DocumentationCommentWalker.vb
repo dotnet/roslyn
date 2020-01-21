@@ -146,8 +146,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(Not reference.ContainsDiagnostics)
 
                         Dim crefBinder = CreateDocumentationCommentBinderForSymbol(Me.Module, Me._symbol, Me._syntaxTree, DocumentationCommentBinder.BinderType.Cref)
-                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
-                        Dim diagnostics = BindingDiagnosticBag.GetInstance
+                        Dim useSiteInfo = crefBinder.GetNewCompoundUseSiteInfo(_diagnostics)
+                        Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, _diagnostics.AccumulatesDependencies)
                         Dim result As ImmutableArray(Of Symbol) = crefBinder.BindInsideCrefAttributeValue(reference, preserveAliases:=False, diagnosticBag:=diagnostics, useSiteInfo:=useSiteInfo)
                         _diagnostics.AddDependencies(diagnostics)
                         _diagnostics.AddDependencies(useSiteInfo)

@@ -3,6 +3,7 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -130,6 +131,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return delegateType Is info.Item1
         End Function
 
+        Public ReadOnly Property WithDependencies As Boolean
+            Get
+                Return _BindingCache.WithDependencies
+            End Get
+        End Property
+
         Friend Class TargetSignature
             Public ReadOnly ParameterTypes As ImmutableArray(Of TypeSymbol)
             Public ReadOnly ReturnType As TypeSymbol
@@ -217,10 +224,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' outside of the UnboundLambda class.
         ''' </summary>
         Public Class UnboundLambdaBindingCache
+            Public ReadOnly WithDependencies As Boolean
             Public AnonymousDelegate As Tuple(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))
             Public ReadOnly InferredReturnType As New ConcurrentDictionary(Of TargetSignature, KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)))()
             Public ReadOnly BoundLambdas As New ConcurrentDictionary(Of TargetSignature, BoundLambda)()
             Public ErrorRecoverySignature As TargetSignature
+
+            Public Sub New(withDependencies As Boolean)
+                Me.WithDependencies = withDependencies
+            End Sub
         End Class
     End Class
 

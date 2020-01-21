@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ' If delegate is a function method we should already have diagnostics about that
                     If delInvoke IsNot Nothing AndAlso delInvoke.IsSub Then
-                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics)
                         Dim conversion = Conversions.ClassifyMethodConversionForEventRaise(
                                                             delInvoke,
                                                             parameters,

@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagnostics.Add(ERRID.ERR_DocFileGen, Location.None, ex.Message)
                 End Try
 
-                If diagnostics.DiagnosticBag IsNot Nothing Then
+                If diagnostics.AccumulatesDiagnostics Then
                     If filterTree IsNot Nothing Then
                         MislocatedDocumentationCommentFinder.ReportUnprocessed(filterTree, filterSpanWithinTree, diagnostics.DiagnosticBag, cancellationToken)
                     Else

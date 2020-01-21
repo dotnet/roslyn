@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private ImmutableArray<Symbol> ComputeSortedCrefMembers(CSharpSyntaxNode syntax, NamespaceOrTypeSymbol containerOpt, string memberName, int arity, bool hasParameterList, BindingDiagnosticBag diagnostics)
         {
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var result = ComputeSortedCrefMembers(containerOpt, memberName, arity, hasParameterList, ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo);
             return result;

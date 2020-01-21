@@ -1238,7 +1238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         Dim bag = symbol.GetConstantValueDiagnostics(Me)
                         If bag IsNot Nothing Then
-                            diagnostics.AddRange(bag)
+                            diagnostics.AddRange(bag, allowMismatchInDependencyAccumulation:=True)
                         End If
                     End If
                 End If
@@ -1929,7 +1929,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 isError = True
                             Else
                                 Dim accessThroughType = GetAccessThroughType(propertyAccess.ReceiverOpt)
-                                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
                                 If Not IsAccessible(setMethod, useSiteInfo, accessThroughType) AndAlso
                                    IsAccessible(propertySymbol, useSiteInfo, accessThroughType) Then
@@ -2291,7 +2291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         hasErrors = True
                     Else
-                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                         Dim accessThroughType = GetAccessThroughType(actualEventAccess.ReceiverOpt)
                         If Not Me.IsAccessible(method, useSiteInfo, accessThroughType) Then
                             Debug.Assert(eventSymbol.DeclaringCompilation IsNot Me.Compilation)
@@ -2442,7 +2442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If eventSym.HasAssociatedField Then
                 ' field is not nothing when event IsFieldLike
                 Dim eventField = eventSym.AssociatedField
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
                 If Not IsAccessible(eventField, useSiteInfo, Me.ContainingType) Then
                     ReportDiagnostic(diagnostics, node.Name, ERRID.ERR_CantRaiseBaseEvent)
@@ -2624,7 +2624,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If Not warn Then
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                     ' 2. 
                     If IsOrInheritsFromOrImplementsInterface(boundExpression.Type, WellKnownType.Windows_Foundation_IAsyncAction, useSiteInfo:=useSiteInfo) OrElse
                        IsOrInheritsFromOrImplementsInterface(boundExpression.Type, WellKnownType.Windows_Foundation_IAsyncActionWithProgress_T, useSiteInfo:=useSiteInfo) OrElse
@@ -2635,7 +2635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ElseIf IsInAsyncContext() Then
                         ' 3.
-                        Dim diagBag = BindingDiagnosticBag.GetInstance()
+                        Dim diagBag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
                         If Not BindAwait(statement, boundExpression, diagBag, bindAsStatement:=True).HasErrors AndAlso Not diagBag.HasAnyErrors Then
                             diagnostics.AddDependencies(diagBag)
@@ -2942,7 +2942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim identifier = DirectCast(controlVariableSyntax, IdentifierNameSyntax).Identifier
                     Dim name = identifier.ValueText
                     Dim result As LookupResult = LookupResult.GetInstance
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                     Lookup(result, name, 0, LookupOptions.AllMethodsOfAnyArity, useSiteInfo)
                     diagnostics.Add(node, useSiteInfo)
 
@@ -3149,7 +3149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim booleanType = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
 
             Dim udfOperators As BoundForToUserDefinedOperators = Nothing
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
             ' normalize initValue, limit and step to the common type
             If Not hasErrors Then
@@ -3235,7 +3235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim isRelational As Boolean = (opCode = BinaryOperatorKind.LessThanOrEqual OrElse opCode = BinaryOperatorKind.GreaterThanOrEqual)
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             Dim userDefinedOperator As OverloadResolution.OverloadResolutionResult = OverloadResolution.ResolveUserDefinedBinaryOperator(left, right, opCode, Me, includeEliminatedCandidates:=False,
                                                                                                                                          useSiteInfo:=useSiteInfo)
 
@@ -3277,7 +3277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Verify that control variable can actually be used as a control variable
-        Private Shared Function IsValidForControlVariableType(node As ForOrForEachBlockSyntax,
+        Private Function IsValidForControlVariableType(node As ForOrForEachBlockSyntax,
                                     targetType As TypeSymbol,
                                     diagnostics As BindingDiagnosticBag) As Boolean
 
@@ -3294,7 +3294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
             If targetType.IsIntrinsicOrEnumType OrElse Not targetType.CanContainUserDefinedOperators(useSiteInfo) Then
                 diagnostics.Add(DirectCast(node.ForOrForEachStatement, ForStatementSyntax).ControlVariable, useSiteInfo)
@@ -3464,7 +3464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' was not Nothing.
 
                     ' create TryCast
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                     Dim conversionKind As ConversionKind = Conversions.ClassifyTryCastConversion(enumeratorType, idisposableType, useSiteInfo)
 
                     If diagnostics.Add(collectionSyntax, useSiteInfo) Then
@@ -3704,7 +3704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' because it is more efficient.
 
             Dim interfaceSpecialType As SpecialType = SpecialType.None
-            Dim detailedDiagnostics = BindingDiagnosticBag.GetInstance
+            Dim detailedDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
             If MatchesForEachCollectionDesignPattern(collectionType, collection,
                                                      currentType,
@@ -3724,10 +3724,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 isEnumerable = True
             Else
                 ' using a temporary diagnostic bag to only report use site errors for IEnumerable or IEnumerable(Of T) if they are used.
-                Dim ienumerableUseSiteDiagnostics = BindingDiagnosticBag.GetInstance
+                Dim ienumerableUseSiteDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                 Dim genericIEnumerable = GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T, collectionSyntax, ienumerableUseSiteDiagnostics)
                 Dim matchingInterfaces As New HashSet(Of NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
                 If Not collection.IsNothingLiteral AndAlso
                    Not collectionType.IsArrayType AndAlso
@@ -3949,7 +3949,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Not boundGetEnumeratorCall.HasErrors AndAlso Not boundGetEnumeratorCall.Type.IsErrorType Then
 
                     Dim getEnumeratorReturnType = boundGetEnumeratorCall.Type
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                     Dim conversionKind = Conversions.ClassifyDirectCastConversion(getEnumeratorReturnType, idisposable, useSiteInfo)
 
                     diagnostics.Add(collectionSyntax, useSiteInfo)
@@ -4022,7 +4022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             <Out()> ByRef collectionPlaceholder As BoundRValuePlaceholder,
             temporaryDiagnostics As BindingDiagnosticBag
         ) As Boolean
-            Debug.Assert(temporaryDiagnostics.DiagnosticBag.IsEmptyWithoutResolution)
+            Debug.Assert(If(temporaryDiagnostics.DiagnosticBag?.IsEmptyWithoutResolution, True))
 
             currentType = Nothing
             boundGetEnumeratorCall = Nothing
@@ -4073,6 +4073,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim methodOrPropertyGroup As BoundMethodOrPropertyGroup = CreateBoundMethodGroup(collectionSyntax,
                                                                                              lookupResult,
                                                                                              LookupOptions.AllMethodsOfAnyArity,
+                                                                                             temporaryDiagnostics.AccumulatesDependencies,
                                                                                              collectionPlaceholder,
                                                                                              Nothing,
                                                                                              QualificationKind.QualifiedViaValue)
@@ -4108,6 +4109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             methodOrPropertyGroup = CreateBoundMethodGroup(collectionSyntax,
                                                                lookupResult,
                                                                LookupOptions.AllMethodsOfAnyArity,
+                                                               temporaryDiagnostics.AccumulatesDependencies,
                                                                boundEnumeratorPlaceholder,
                                                                Nothing,
                                                                QualificationKind.QualifiedViaValue)
@@ -4228,11 +4230,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As Boolean
             result.Clear()
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             LookupMember(result, container, name, 0, LookupOptions.AllMethodsOfAnyArity, useSiteInfo)
 
             diagnostics.Add(syntax, useSiteInfo)
-            useSiteInfo = Nothing
+            useSiteInfo = New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo)
 
             If result.IsGood Then
                 For Each candidateSymbol In result.Symbols
@@ -4553,7 +4555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         )
             If Not placeholderInfo.ContainsKey(resourceType) Then
                 ' TODO: add late binding, see statementsemantics.cpp lines 6765++
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 Dim conversionKind = Conversions.ClassifyDirectCastConversion(resourceType, iDisposable, useSiteInfo)
 
                 If diagnostics.Add(syntaxNode, useSiteInfo) Then
@@ -4782,7 +4784,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' type of the catch variable must derive from Exception
                         Debug.Assert(exceptionType IsNot Nothing)
 
-                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
                         If exceptionType.IsErrorType() Then
                             hasError = True
@@ -4831,7 +4833,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Exit For
                         End If
 
-                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                         Dim isBaseType As Boolean = exceptionType.IsOrDerivedFrom(previousType, useSiteInfo)
 
                         diagnostics.Add(declaration, useSiteInfo)
@@ -4946,7 +4948,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindReturn(originalSyntax As ReturnStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
-            Dim expressionSyntax As expressionSyntax = originalSyntax.Expression
+            Dim expressionSyntax As ExpressionSyntax = originalSyntax.Expression
 
             ' UNDONE - Handle ERRID_ReturnFromEventMethod
 
@@ -5009,7 +5011,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' and the return expression can't be converted to T but is identical to Task<T>,
                         ' then don't give the normal error message about "there is no conversion from T to Task<T>"
                         ' and instead say "Since this is async, the return expression must be 'T' rather than 'Task<T>'."
-                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                         If isAsync AndAlso Not retType.IsErrorType() AndAlso methodReturnType.Equals(arg.Type) AndAlso
                             methodReturnType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)) AndAlso
                             Not Conversions.ConversionExists(Conversions.ClassifyConversion(arg, retType, Me, useSiteInfo).Key) Then
@@ -5087,7 +5089,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindYield(originalSyntax As YieldStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
-            Dim expressionSyntax As expressionSyntax = originalSyntax.Expression
+            Dim expressionSyntax As ExpressionSyntax = originalSyntax.Expression
             Dim arg As BoundExpression = Me.BindValue(expressionSyntax, diagnostics)
 
             If BindingTopLevelScriptCode Then
@@ -5123,7 +5125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindThrow(node As ThrowStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
-            Dim expressionSyntax As expressionSyntax = node.Expression
+            Dim expressionSyntax As ExpressionSyntax = node.Expression
             Dim hasError As Boolean = False
 
             If expressionSyntax Is Nothing Then
@@ -5169,7 +5171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim exceptionType = value.Type
                 If Not exceptionType.IsErrorType Then
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
                     If Not exceptionType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Exception, Compilation, useSiteInfo) Then
                         hasError = True

@@ -1142,7 +1142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Sub GetAllDeclarationErrors(diagnostics As BindingDiagnosticBag, Optional cancellationToken As CancellationToken = Nothing)
             Dim hasExtensionMethods As Boolean = False
             SourceModule.GetAllDeclarationErrors(diagnostics, cancellationToken, hasExtensionMethods)
-            diagnostics.AddRange(GetAssemblyLevelDeclarationErrors(hasExtensionMethods))
+            diagnostics.AddRange(GetAssemblyLevelDeclarationErrors(hasExtensionMethods), allowMismatchInDependencyAccumulation:=True)
         End Sub
 
         ''' <summary>

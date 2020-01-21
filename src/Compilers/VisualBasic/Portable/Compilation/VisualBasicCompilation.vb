@@ -1392,11 +1392,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Me.Options.MainTypeName IsNot Nothing AndAlso Not Me.Options.MainTypeName.IsValidClrTypeName() Then
                 Debug.Assert(Not Me.Options.Errors.IsDefaultOrEmpty)
-                Return New EntryPoint(Nothing, ImmutableBindingDiagnostic(Of AssemblySymbol).Empty)
+                Return New EntryPoint(Nothing, ImmutableArray(Of Diagnostic).Empty)
             End If
 
             If _lazyEntryPoint Is Nothing Then
-                Dim diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol) = Nothing
+                Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
                 Dim entryPoint = FindEntryPoint(cancellationToken, diagnostics)
                 Interlocked.CompareExchange(_lazyEntryPoint, New EntryPoint(entryPoint, diagnostics), Nothing)
             End If
@@ -1404,8 +1404,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _lazyEntryPoint
         End Function
 
-        Private Function FindEntryPoint(cancellationToken As CancellationToken, ByRef sealedDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)) As MethodSymbol
-            Dim diagnostics = BindingDiagnosticBag.GetInstance()
+        Private Function FindEntryPoint(cancellationToken As CancellationToken, ByRef sealedDiagnostics As ImmutableArray(Of Diagnostic)) As MethodSymbol
+            Dim diagnostics = DiagnosticBag.GetInstance()
             Dim entryPointCandidates = ArrayBuilder(Of MethodSymbol).GetInstance()
 
             Try
@@ -1559,9 +1559,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Class EntryPoint
             Public ReadOnly MethodSymbol As MethodSymbol
-            Public ReadOnly Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+            Public ReadOnly Diagnostics As ImmutableArray(Of Diagnostic)
 
-            Public Sub New(methodSymbol As MethodSymbol, diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol))
+            Public Sub New(methodSymbol As MethodSymbol, diagnostics As ImmutableArray(Of Diagnostic))
                 Me.MethodSymbol = methodSymbol
                 Me.Diagnostics = diagnostics
             End Sub
@@ -1648,7 +1648,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub AddImportsDependencies(diagnostics As BindingDiagnosticBag, infoTree As SyntaxTree, clauseSpan As TextSpan)
             Dim dependencies As ImmutableArray(Of AssemblySymbol) = Nothing
 
-            If diagnostics.DependenciesBag IsNot Nothing AndAlso _lazyImportClauseDependencies IsNot Nothing AndAlso
+            If diagnostics.AccumulatesDependencies AndAlso _lazyImportClauseDependencies IsNot Nothing AndAlso
                _lazyImportClauseDependencies.TryGetValue((infoTree, clauseSpan.Start), dependencies) Then
                 diagnostics.AddDependencies(dependencies)
             End If
@@ -2022,7 +2022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    builder As BindingDiagnosticBag,
                                                    Optional cancellationToken As CancellationToken = Nothing)
 
-            Debug.Assert(builder.DiagnosticBag IsNot Nothing)
+            Debug.Assert(builder.AccumulatesDiagnostics)
 
             ' Add all parsing errors.
             If (stage = CompilationStage.Parse OrElse stage > CompilationStage.Parse AndAlso includeEarlierStages) Then
@@ -2062,7 +2062,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.AddRange(Options.Errors)
                 builder.AddRange(GetBoundReferenceManager().Diagnostics)
                 SourceAssembly.GetAllDeclarationErrors(builder, cancellationToken)
-                builder.AddRange(GetClsComplianceDiagnostics(cancellationToken))
+                AddClsComplianceDiagnostics(builder, cancellationToken)
 
                 If EventQueue IsNot Nothing AndAlso SyntaxTrees.Length = 0 Then
                     EnsureCompilationEventQueueCompleted()
@@ -2074,18 +2074,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Note: this phase does not need to be parallelized because 
                 '       it is already implemented in method compiler
                 Dim methodBodyDiagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance(),
-                                                                     If(builder.DependenciesBag IsNot Nothing, New ConcurrentSet(Of AssemblySymbol), Nothing))
+                                                                     If(builder.AccumulatesDependencies, New ConcurrentSet(Of AssemblySymbol), Nothing))
                 GetDiagnosticsForAllMethodBodies(builder.HasAnyErrors(), methodBodyDiagnostics, doLowering:=False, cancellationToken)
                 builder.AddRange(methodBodyDiagnostics)
                 methodBodyDiagnostics.DiagnosticBag.Free()
             End If
         End Sub
 
-        Private Function GetClsComplianceDiagnostics(cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing) As ImmutableBindingDiagnostic(Of AssemblySymbol)
+        Private Sub AddClsComplianceDiagnostics(diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing)
             If filterTree IsNot Nothing Then
-                Dim builder = BindingDiagnosticBag.GetInstance()
-                ClsComplianceChecker.CheckCompliance(Me, builder, cancellationToken, filterTree, filterSpanWithinTree)
-                Return builder.ToReadOnlyAndFree()
+                ClsComplianceChecker.CheckCompliance(Me, diagnostics, cancellationToken, filterTree, filterSpanWithinTree)
+                Return
             End If
 
             Debug.Assert(filterSpanWithinTree Is Nothing)
@@ -2099,8 +2098,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Not _lazyClsComplianceDependencies.IsDefault)
             Debug.Assert(Not _lazyClsComplianceDiagnostics.IsDefault)
-            Return New ImmutableBindingDiagnostic(Of AssemblySymbol)(_lazyClsComplianceDiagnostics, _lazyClsComplianceDependencies)
-        End Function
+
+            diagnostics.AddRange(New ImmutableBindingDiagnostic(Of AssemblySymbol)(_lazyClsComplianceDiagnostics, _lazyClsComplianceDependencies), allowMismatchInDependencyAccumulation:=True)
+        End Sub
 
         Private Shared Iterator Function FilterDiagnosticsByLocation(diagnostics As IEnumerable(Of Diagnostic), tree As SyntaxTree, filterSpanWithinTree As TextSpan?) As IEnumerable(Of Diagnostic)
             For Each diagnostic In diagnostics
@@ -2134,7 +2134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim declarationDiags = DirectCast(SourceModule, SourceModuleSymbol).GetDeclarationErrorsInTree(tree, filterSpanWithinTree, AddressOf FilterDiagnosticsByLocation, cancellationToken)
                 Dim filteredDiags = FilterDiagnosticsByLocation(declarationDiags, tree, filterSpanWithinTree)
                 builder.AddRange(filteredDiags)
-                builder.AddRange(GetClsComplianceDiagnostics(cancellationToken, tree, filterSpanWithinTree))
+                AddClsComplianceDiagnostics(builder, cancellationToken, tree, filterSpanWithinTree)
             End If
 
             ' Add method body declaring errors.

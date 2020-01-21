@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the expression does not have a constant value, an error will be reported in the caller
                 if (!hasErrors && expression.ConstantValue is object)
                 {
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     if (expression.ConstantValue == ConstantValue.Null)
                     {
                         if (inputType.IsNonNullableValueType())
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 bool? matchPossible = ExpressionOfTypeMatchesPatternType(
                     Conversions, inputType, patternType, ref useSiteInfo, out Conversion conversion, operandConstantValue: null, operandCouldBeNull: true);
                 diagnostics.Add(typeSyntax, useSiteInfo);
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // It is not a tuple type. Seek an appropriate Deconstruct method.
                     var inputPlaceholder = new BoundImplicitReceiver(positionalClause, declType); // A fake receiver expression to permit us to reuse binding logic
-                    var deconstructDiagnostics = BindingDiagnosticBag.GetInstance();
+                    var deconstructDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                     BoundExpression deconstruct = MakeDeconstructInvocationExpression(
                         positionalClause.Subpatterns.Count, inputPlaceholder, positionalClause,
                         deconstructDiagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders,
@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasBaseInterface(TypeSymbol type, NamedTypeSymbol possibleBaseInterface)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var result = Compilation.Conversions.ClassifyBuiltInConversion(type, possibleBaseInterface, ref useSiteInfo).IsImplicit;
                 diagnostics.Add(node, useSiteInfo);
                 return result;
@@ -900,7 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // It is not a tuple type. Seek an appropriate Deconstruct method.
                             var inputPlaceholder = new BoundImplicitReceiver(node, strippedInputType); // A fake receiver expression to permit us to reuse binding logic
-                            var deconstructDiagnostics = BindingDiagnosticBag.GetInstance();
+                            var deconstructDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                             BoundExpression deconstruct = MakeDeconstructInvocationExpression(
                                 tupleDesignation.Variables.Count, inputPlaceholder, node, deconstructDiagnostics,
                                 outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders,

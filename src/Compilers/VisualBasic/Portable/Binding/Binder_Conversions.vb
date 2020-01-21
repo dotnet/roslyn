@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Classify conversion
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             Dim conv As ConversionKind = Conversions.ClassifyDirectCastConversion(argument, targetType, Me, useSiteInfo)
 
             If diagnostics.Add(node, useSiteInfo) Then
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim conv As ConversionKind
 
             If targetType.IsReferenceType Then
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 conv = Conversions.ClassifyTryCastConversion(argument, targetType, Me, useSiteInfo)
 
                 If diagnostics.Add(node, useSiteInfo) Then
@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Not isOperandOfConditionalBranch OrElse targetType.IsBooleanType())
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
             If isOperandOfConditionalBranch AndAlso targetType.IsBooleanType() Then
                 Debug.Assert(Not isExplicit)
@@ -470,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' If the conversion from the inferred element type to the source type of the user defined conversion is a narrowing conversion then
                 ' skip to the user defined conversion. Conversion errors on the individual elements will be reported when the array literal is reclassified.
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 reportArrayLiteralElementNarrowingConversion =
                     Not isExplicit AndAlso
                     Conversions.IsNarrowingConversion(convKind.Key) AndAlso
@@ -655,7 +655,7 @@ DoneWithDiagnostics:
             diagnostics As BindingDiagnosticBag,
             justWarn As Boolean
         ) As Boolean
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             Dim result As Boolean = MakeVarianceConversionSuggestion(convKind, location, sourceType, targetType, diagnostics, useSiteInfo, justWarn)
             diagnostics.AddDependencies(useSiteInfo)
             Return result
@@ -1021,7 +1021,7 @@ DoneWithDiagnostics:
                                                   New BoundRelaxationLambda(tree, boundLambdaOpt, relaxationReceiverPlaceholderOpt).MakeCompilerGenerated()),
                                                targetType)
                 Else
-                    Debug.Assert(diagnostics.DiagnosticBag Is Nothing OrElse diagnostics.HasAnyErrors())
+                    Debug.Assert(Not diagnostics.AccumulatesDiagnostics OrElse diagnostics.HasAnyErrors())
                 End If
             End If
 
@@ -1095,7 +1095,7 @@ DoneWithDiagnostics:
 
             Dim intermediateConv As ConversionKind
             Dim inOutConversionFlags As Byte = 0
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
             If argument.Kind = BoundKind.ArrayLiteral Then
                 ' For array literals, report Option Strict diagnostics for each element when reportArrayLiteralElementNarrowingConversion is true.
@@ -1705,7 +1705,7 @@ DoneWithDiagnostics:
                     classType = DirectCast(sourceType, NamedTypeSymbol)
                 End If
 
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
                 If classType IsNot Nothing AndAlso
                     interfaceType IsNot Nothing AndAlso

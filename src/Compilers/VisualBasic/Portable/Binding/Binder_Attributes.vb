@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Else
                 Dim namedType = DirectCast(symbol, NamedTypeSymbol)
-                Dim localUseSiteInfo = If(useSiteInfo.IsDiscarded, CompoundUseSiteInfo(Of AssemblySymbol).Discarded, Nothing)
+                Dim localUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(Compilation.Assembly), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependecies)
 
                 ' type cannot be generic
                 If namedType.IsGenericType Then
@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not attributeTypeForBinding.IsErrorType() Then
 
                 ' Filter out inaccessible constructors 
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 Dim accessibleConstructors = GetAccessibleConstructors(attributeTypeForBinding, useSiteInfo)
 
                 If accessibleConstructors.Length = 0 Then
@@ -436,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As LookupResult = LookupResult.GetInstance()
             Dim identifierName As IdentifierNameSyntax = namedArg.NameColonEquals.Name
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             LookupMember(result, container, identifierName.Identifier.ValueText, 0, LookupOptions.IgnoreExtensionMethods, useSiteInfo)
 
             ' Validating the expression is done when the bound expression is converted to a TypedConstant
