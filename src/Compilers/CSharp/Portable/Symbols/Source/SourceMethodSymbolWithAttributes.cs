@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -281,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Called when this thread loaded the method's attributes. For method symbols with completion state.
         /// </summary>
-        protected virtual void NoteAttributesComplete(bool forReturnType) { }
+        protected abstract void NoteAttributesComplete(bool forReturnType);
 
         /// <summary>
         /// Gets the attributes applied on this symbol.
@@ -831,6 +832,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+        }
+
+        protected void AsyncMethodChecks(DiagnosticBag diagnostics)
+        {
+            if (IsAsync)
+            {
+                var errorLocation = this.Locations[0];
+
+                if (this.RefKind != RefKind.None)
+                {
+                    var returnTypeSyntax = this.SyntaxNode switch
+                    {
+                        MethodDeclarationSyntax { ReturnType: var methodReturnType } => methodReturnType,
+                        LocalFunctionStatementSyntax { ReturnType: var localReturnType } => localReturnType,
+                        var unexpected => throw ExceptionUtilities.UnexpectedValue(unexpected)
+                    };
+
+                    ReportBadRefToken(returnTypeSyntax, diagnostics);
+                }
+                else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
+                }
+
+                for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
+                {
+                    var sourceNamedTypeSymbol = curr as SourceNamedTypeSymbol;
+                    if ((object)sourceNamedTypeSymbol != null && sourceNamedTypeSymbol.HasSecurityCriticalAttributes)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
+                        break;
+                    }
+                }
+
+                if ((this.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) != 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
+                }
+
+                if (!diagnostics.HasAnyResolvedErrors())
+                {
+                    ReportAsyncParameterErrors(diagnostics, errorLocation);
+                }
+
+                var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+                if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
+                    GetInMethodSyntaxNode() is object)
+                {
+                    var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+                    var enumeratorCancellationCount = Parameters.Count(p => p.IsSourceParameterWithEnumeratorCancellationAttribute());
+                    if (enumeratorCancellationCount == 0 &&
+                        ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)))
+                    {
+                        // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
+                        // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
+                        diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, errorLocation, this);
+                    }
+
+                    if (enumeratorCancellationCount > 1)
+                    {
+                        // The [EnumeratorCancellation] attribute can only be used on one parameter
+                        diagnostics.Add(ErrorCode.ERR_MultipleEnumeratorCancellationAttributes, errorLocation);
+                    }
+                }
+            }
         }
 
         private static FlowAnalysisAnnotations DecodeReturnTypeAnnotationAttributes(ReturnTypeWellKnownAttributeData attributeData)
