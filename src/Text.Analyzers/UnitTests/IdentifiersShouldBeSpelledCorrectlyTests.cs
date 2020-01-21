@@ -4,10 +4,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Test.Utilities;
 using Text.CSharp.Analyzers;
 using Text.VisualBasic.Analyzers;
-using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Text.CSharp.Analyzers.CSharpIdentifiersShouldBeSpelledCorrectlyAnalyzer,
     Text.CSharp.Analyzers.CSharpIdentifiersShouldBeSpelledCorrectlyFixer>;
-using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
     Text.VisualBasic.Analyzers.BasicIdentifiersShouldBeSpelledCorrectlyAnalyzer,
     Text.VisualBasic.Analyzers.BasicIdentifiersShouldBeSpelledCorrectlyFixer>;
 

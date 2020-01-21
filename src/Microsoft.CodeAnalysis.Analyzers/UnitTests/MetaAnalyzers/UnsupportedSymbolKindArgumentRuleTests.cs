@@ -1,10 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
@@ -243,23 +249,14 @@ End Class
             await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind)
-        {
-            return GetExpectedDiagnostic(CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer.UnsupportedSymbolKindArgumentRule,
-                line, column, unsupportedSymbolKind);
-        }
-
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind)
-        {
-            return GetExpectedDiagnostic(VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.UnsupportedSymbolKindArgumentRule,
-                line, column, unsupportedSymbolKind);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column, SymbolKind unsupportedSymbolKind)
-        {
-            return new DiagnosticResult(rule)
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind) =>
+            VerifyCS.Diagnostic(CSharpRegisterActionAnalyzer.UnsupportedSymbolKindArgumentRule)
                 .WithLocation(line, column)
                 .WithArguments(unsupportedSymbolKind);
-        }
+
+        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind) =>
+            VerifyVB.Diagnostic(BasicRegisterActionAnalyzer.UnsupportedSymbolKindArgumentRule)
+                .WithLocation(line, column)
+                .WithArguments(unsupportedSymbolKind);
     }
 }

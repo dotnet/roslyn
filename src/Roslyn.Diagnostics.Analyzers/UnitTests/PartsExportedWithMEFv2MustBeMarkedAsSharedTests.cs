@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Analyzer.Utilities;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
@@ -158,18 +156,14 @@ End Class
 
         #endregion
 
-        private static DiagnosticResult GetCSharpResultAt(int line, int column, string typeName)
-        {
-            return new DiagnosticResult(PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer.Rule)
+        private static DiagnosticResult GetCSharpResultAt(int line, int column, string typeName) =>
+            VerifyCS.Diagnostic()
                 .WithLocation(line, column)
                 .WithArguments(typeName);
-        }
 
-        private static DiagnosticResult GetBasicResultAt(int line, int column, string typeName)
-        {
-            return new DiagnosticResult(PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer.Rule)
+        private static DiagnosticResult GetBasicResultAt(int line, int column, string typeName) =>
+            VerifyVB.Diagnostic()
                 .WithLocation(line, column)
                 .WithArguments(typeName);
-        }
     }
 }
