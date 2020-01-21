@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis
         public UseSiteInfo(DiagnosticInfo? diagnosticInfo, TAssemblySymbol? primaryDependency, ImmutableHashSet<TAssemblySymbol>? secondaryDependencies)
         {
             Debug.Assert(diagnosticInfo?.Severity != DiagnosticSeverity.Error || (primaryDependency is null && secondaryDependencies?.IsEmpty != false));
-            // PROTOTYPE(UsedAssemblyReferences): Add an assert to verify that a core library is not among the dependencies
+            Debug.Assert(primaryDependency is null || primaryDependency != primaryDependency.CorLibrary);
+            Debug.Assert(secondaryDependencies?.IsEmpty != false || !secondaryDependencies.Any(dependency => dependency == dependency.CorLibrary));
 
             DiagnosticInfo = diagnosticInfo;
             PrimaryDependency = primaryDependency;
