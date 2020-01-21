@@ -12,6 +12,7 @@ using Newtonsoft.Json.Linq;
 using Task = System.Threading.Tasks.Task;
 using LS = Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.CodeAnalysis.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
@@ -85,32 +86,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                     })));
 
             languageServerGuestService.RegisterClientMetadata(
-                new string[] { StringConstants.CSharpLspContentTypeName, StringConstants.VBLspLanguageName },
+                new string[] { ContentTypeNames.CSharpLspContentTypeName, ContentTypeNames.VBLspContentTypeName },
                 new LS.LanguageServerClientMetadata(
                     true,
                     JObject.FromObject(new ServerCapabilities
                     {
                         // Uses Roslyn client.
-                        DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions(),
-                        DocumentRangeFormattingProvider = true,
-                        DocumentFormattingProvider = true,
-                        DocumentSymbolProvider = true,
                         CodeActionProvider = true,
                         ExecuteCommandProvider = new ExecuteCommandOptions(),
-                        DocumentHighlightProvider = true,
                         ReferencesProvider = true,
-                        DefinitionProvider = true,
-                        SignatureHelpProvider = new SignatureHelpOptions() { },
-                        CompletionProvider = new CompletionOptions(),
-                        ImplementationProvider = true,
-
-                        // Uses LSP SDK client.
-                        DocumentLinkProvider = null,
-                        RenameProvider = false,
-                        CodeLensProvider = null,
-                        WorkspaceSymbolProvider = false,
-                        HoverProvider = false,
-                        TextDocumentSync = null,
                     })));
 
             var lifeTimeService = LspClientLifeTimeService;

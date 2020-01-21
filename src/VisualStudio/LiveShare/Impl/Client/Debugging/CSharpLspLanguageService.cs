@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
 
         public override Guid LanguageServiceId { get; } = LanguageServiceGuid;
 
-        protected override string ContentTypeName => StringConstants.CSharpLspContentTypeName;
+        protected override string ContentTypeName => ContentTypeNames.CSharpLspContentTypeName;
 
         protected override string LanguageName => StringConstants.CSharpLspLanguageName;
 

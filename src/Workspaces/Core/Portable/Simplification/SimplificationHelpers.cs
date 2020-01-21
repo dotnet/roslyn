@@ -101,15 +101,19 @@ namespace Microsoft.CodeAnalysis.Simplification
             return symbol != null && !symbol.IsErrorType();
         }
 
-        internal static bool ShouldSimplifyMemberAccessExpression(SemanticModel semanticModel, SyntaxNode expression, OptionSet optionSet)
+        internal static bool ShouldSimplifyThisOrMeMemberAccessExpression(
+            SemanticModel semanticModel, OptionSet optionSet, ISymbol symbol)
         {
-            var symbol = GetOriginalSymbolInfo(semanticModel, expression);
-            if (symbol == null ||
-                (!symbol.IsStatic &&
-                 (symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(CodeStyleOptions.QualifyFieldAccess, semanticModel.Language).Value ||
-                 (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(CodeStyleOptions.QualifyPropertyAccess, semanticModel.Language).Value) ||
-                 (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(CodeStyleOptions.QualifyMethodAccess, semanticModel.Language).Value) ||
-                 (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(CodeStyleOptions.QualifyEventAccess, semanticModel.Language).Value))))
+            // If we're accessing a static member off of this/me then we should always consider this
+            // simplifiable.  Note: in C# this isn't even legal to access a static off of `this`,
+            // but in VB it is legal to access a static off of `me`.
+            if (symbol.IsStatic)
+                return true;
+
+            if ((symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(CodeStyleOptions.QualifyFieldAccess, semanticModel.Language).Value ||
+                (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(CodeStyleOptions.QualifyPropertyAccess, semanticModel.Language).Value) ||
+                (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(CodeStyleOptions.QualifyMethodAccess, semanticModel.Language).Value) ||
+                (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(CodeStyleOptions.QualifyEventAccess, semanticModel.Language).Value)))
             {
                 return false;
             }

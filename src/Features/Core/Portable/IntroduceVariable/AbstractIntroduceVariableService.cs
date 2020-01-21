@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract bool CanIntroduceVariableFor(TExpressionSyntax expression);
         protected abstract bool CanReplace(TExpressionSyntax expression);
 
+        protected abstract bool IsExpressionInStaticLocalFunction(TExpressionSyntax expression);
+
         protected abstract Task<Document> IntroduceQueryLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken);
         protected abstract Task<Document> IntroduceLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
         protected abstract Task<Document> IntroduceFieldAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
@@ -352,6 +354,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         return IsInstanceMemberReference(currentOperation);
                     }
 
+                    // If the original expression is within a static local function, further checks are unnecessary since our scope has already been narrowed down to within the local function.
+                    // If the original expression is not within a static local function, we need to further check whether the expression we're comparing against is within a static local
+                    // function. If so, the expression is not a valid match since we cannot refer to instance variables from within static local functions.
+                    if (!IsExpressionInStaticLocalFunction(expressionInOriginal))
+                    {
+                        return !IsExpressionInStaticLocalFunction(nodeInCurrent);
+                    }
+
                     return true;
                 }
             }
@@ -402,17 +412,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             if (typeInfo.Type?.SpecialType == SpecialType.System_String &&
                 typeInfo.ConvertedType?.IsFormattableString() == true)
             {
-                return typeInfo.GetConvertedTypeWithFlowNullability();
+                return typeInfo.ConvertedType;
             }
 
             if (typeInfo.Type != null)
             {
-                return typeInfo.GetTypeWithFlowNullability();
+                return typeInfo.Type;
             }
 
             if (typeInfo.ConvertedType != null)
             {
-                return typeInfo.GetConvertedTypeWithFlowNullability();
+                return typeInfo.ConvertedType;
             }
 
             if (objectAsDefault)

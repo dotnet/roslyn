@@ -34,10 +34,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             string expectedOutputMarkup,
             Action callback,
             bool verifyUndo = true,
-            IndentStyle indentStyle = IndentStyle.Smart)
+            IndentStyle indentStyle = IndentStyle.Smart,
+            bool useTabs = false)
         {
             using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
-            workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
+                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
+
+            if (useTabs && expectedOutputMarkup != null)
+            {
+                Assert.Contains("\t", expectedOutputMarkup);
+            }
 
             var document = workspace.Documents.Single();
             var view = document.GetTextView();
@@ -91,7 +99,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         /// </summary>
         private void TestHandled(
             string inputMarkup, string expectedOutputMarkup,
-            bool verifyUndo = true, IndentStyle indentStyle = IndentStyle.Smart)
+            bool verifyUndo = true, IndentStyle indentStyle = IndentStyle.Smart,
+            bool useTabs = false)
         {
             TestWorker(
                 inputMarkup, expectedOutputMarkup,
@@ -99,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 {
                     Assert.True(false, "Should not reach here.");
                 },
-                verifyUndo, indentStyle);
+                verifyUndo, indentStyle, useTabs);
         }
 
         private void TestNotHandled(string inputMarkup)
@@ -831,6 +840,54 @@ $""[||]"";
             $""[||]ello {location}!"";
     }
 }");
+        }
+
+        [WorkItem(40277, "https://github.com/dotnet/roslyn/issues/40277")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInStringWithKeepTabsEnabled1()
+        {
+            TestHandled(
+@"class C
+{
+	void M()
+	{
+		var s = ""Hello [||]world"";
+	}
+}",
+@"class C
+{
+	void M()
+	{
+		var s = ""Hello "" +
+			""[||]world"";
+	}
+}",
+            useTabs: true);
+        }
+
+        [WorkItem(40277, "https://github.com/dotnet/roslyn/issues/40277")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInStringWithKeepTabsEnabled2()
+        {
+            TestHandled(
+@"class C
+{
+	void M()
+	{
+		var s = ""Hello "" +
+			""there [||]world"";
+	}
+}",
+@"class C
+{
+	void M()
+	{
+		var s = ""Hello "" +
+			""there "" +
+			""[||]world"";
+	}
+}",
+            useTabs: true);
         }
     }
 }

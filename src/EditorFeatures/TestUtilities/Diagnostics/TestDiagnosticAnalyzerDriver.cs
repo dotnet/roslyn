@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             Project project,
             Document document,
-            TextSpan span,
+            TextSpan? filterSpan,
             bool getDocumentDiagnostics,
             bool getProjectDiagnostics)
         {
@@ -66,7 +66,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             if (getDocumentDiagnostics)
             {
                 var dxs = await _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, document.Id, _includeSuppressedDiagnostics);
-                documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.HasTextSpan && d.GetTextSpan().IntersectsWith(span)), project, CancellationToken.None);
+                documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(
+                    filterSpan is null
+                        ? dxs.Where(d => d.HasTextSpan)
+                        : dxs.Where(d => d.HasTextSpan && d.GetTextSpan().IntersectsWith(filterSpan.Value)),
+                    project,
+                    CancellationToken.None);
             }
 
             if (getProjectDiagnostics)
@@ -86,9 +91,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             return allDiagnostics;
         }
 
-        public Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Document document, TextSpan span)
+        public Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Document document, TextSpan? filterSpan)
         {
-            return GetDiagnosticsAsync(document.Project, document, span, getDocumentDiagnostics: true, getProjectDiagnostics: true);
+            return GetDiagnosticsAsync(document.Project, document, filterSpan, getDocumentDiagnostics: true, getProjectDiagnostics: true);
         }
 
         public async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project)
@@ -106,18 +111,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             return diagnostics;
         }
 
-        public async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Solution solution)
-        {
-            var diagnostics = new List<Diagnostic>();
-            foreach (var project in solution.Projects)
-            {
-                var projectDiagnostics = await GetAllDiagnosticsAsync(project);
-                diagnostics.AddRange(projectDiagnostics);
-            }
-
-            return diagnostics;
-        }
-
         public Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, TextSpan span)
         {
             return GetDiagnosticsAsync(document.Project, document, span, getDocumentDiagnostics: true, getProjectDiagnostics: false);
@@ -125,7 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         public Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
         {
-            return GetDiagnosticsAsync(project, document: null, span: default, getDocumentDiagnostics: false, getProjectDiagnostics: true);
+            return GetDiagnosticsAsync(project, document: null, filterSpan: default, getDocumentDiagnostics: false, getProjectDiagnostics: true);
         }
 
         private async Task SynchronizeGlobalAssetToRemoteHostIfNeededAsync(Workspace workspace)

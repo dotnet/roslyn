@@ -353,6 +353,9 @@ dotnet_diagnostic.IDE0069.severity = %value%
 # IDE0070
 dotnet_diagnostic.IDE0070.severity = %value%
 
+# IDE0071
+dotnet_style_prefer_simplified_interpolation = true:suggestion
+
 # IDE0072
 dotnet_diagnostic.IDE0072.severity = %value%
 
@@ -486,6 +489,9 @@ dotnet_diagnostic.IDE0069.severity = %value%
 
 # IDE0070
 dotnet_diagnostic.IDE0070.severity = %value%
+
+# IDE0071
+dotnet_style_prefer_simplified_interpolation = true:suggestion
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
@@ -835,6 +841,9 @@ No editorconfig based code style option
 # IDE0070
 No editorconfig based code style option
 
+# IDE0071, PreferSimplifiedInterpolation
+dotnet_style_prefer_simplified_interpolation = true:suggestion
+
 # IDE0072
 No editorconfig based code style option
 
@@ -1001,6 +1010,9 @@ No editorconfig based code style option
 
 # IDE0070
 No editorconfig based code style option
+
+# IDE0071, PreferSimplifiedInterpolation
+dotnet_style_prefer_simplified_interpolation = true:suggestion
 
 # IDE1006
 No editorconfig based code style option

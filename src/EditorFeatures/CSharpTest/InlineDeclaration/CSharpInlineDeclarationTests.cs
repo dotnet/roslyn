@@ -2253,5 +2253,30 @@ class C
     }}
 }}");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task InlineVariable_NullableEnable()
+        {
+            await TestInRegularAndScriptAsync(@"
+#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        [|C|] c;
+        M(out c);
+        c2 = c;
+    }
+}", @"
+#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out C c);
+        c2 = c;
+    }
+}");
+        }
     }
 }

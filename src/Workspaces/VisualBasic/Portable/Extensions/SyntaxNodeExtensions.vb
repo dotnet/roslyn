@@ -797,9 +797,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension>
-        Public Function IsLeftSideOfAnyAssignStatement(node As SyntaxNode) As Boolean
+        Public Function IsLeftSideOfSimpleAssignmentStatement(node As SyntaxNode) As Boolean
             Return node.IsParentKind(SyntaxKind.SimpleAssignmentStatement) AndAlso
                 DirectCast(node.Parent, AssignmentStatementSyntax).Left Is node
+        End Function
+
+        <Extension>
+        Public Function IsLeftSideOfAnyAssignmentStatement(node As SyntaxNode) As Boolean
+            Return node IsNot Nothing AndAlso
+                node.Parent.IsAnyAssignmentStatement() AndAlso
+                DirectCast(node.Parent, AssignmentStatementSyntax).Left Is node
+        End Function
+
+        <Extension>
+        Public Function IsAnyAssignmentStatement(node As SyntaxNode) As Boolean
+            Return node IsNot Nothing AndAlso
+                SyntaxFacts.IsAssignmentStatement(node.Kind)
+        End Function
+
+        <Extension>
+        Public Function IsLeftSideOfCompoundAssignmentStatement(node As SyntaxNode) As Boolean
+            Return node IsNot Nothing AndAlso
+                node.Parent.IsCompoundAssignmentStatement() AndAlso
+                DirectCast(node.Parent, AssignmentStatementSyntax).Left Is node
+        End Function
+
+        <Extension>
+        Public Function IsCompoundAssignmentStatement(node As SyntaxNode) As Boolean
+            If node IsNot Nothing Then
+                Select Case node.Kind
+                    Case SyntaxKind.AddAssignmentStatement,
+                         SyntaxKind.SubtractAssignmentStatement,
+                         SyntaxKind.MultiplyAssignmentStatement,
+                         SyntaxKind.DivideAssignmentStatement,
+                         SyntaxKind.IntegerDivideAssignmentStatement,
+                         SyntaxKind.ExponentiateAssignmentStatement,
+                         SyntaxKind.LeftShiftAssignmentStatement,
+                         SyntaxKind.RightShiftAssignmentStatement,
+                         SyntaxKind.ConcatenateAssignmentStatement
+                        Return True
+                End Select
+            End If
+
+            Return False
         End Function
 
         <Extension>

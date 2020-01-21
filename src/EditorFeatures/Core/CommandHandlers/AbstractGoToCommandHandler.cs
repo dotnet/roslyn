@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             var findUsagesService = document?.GetLanguageService<TLanguageService>();
             return findUsagesService != null
                 ? CommandState.Available
-                : CommandState.Unavailable;
+                : CommandState.Unspecified;
         }
 
         public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)

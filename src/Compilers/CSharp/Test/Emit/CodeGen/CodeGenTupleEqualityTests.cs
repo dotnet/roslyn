@@ -2583,6 +2583,7 @@ namespace System
     public struct Int32 { }
     public struct Int64 { }
     public struct Nullable<T> where T : struct, IInterface { public T GetValueOrDefault() => default(T); }
+    public class Exception { }
 
     public struct ValueTuple<T1, T2>
     {

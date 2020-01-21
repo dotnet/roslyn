@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         }
 
         Task<IList<TextChange>?> IEditorFormattingService.GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<IList<TextChange>?>();
+            => SpecializedTasks.Null<IList<TextChange>>();
 
         private static async Task<bool> TokenShouldNotFormatOnTypeCharAsync(
             SyntaxToken token, CancellationToken cancellationToken)
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             // mess with it if it's inside a line.
             if (token.IsKind(SyntaxKind.OpenBraceToken))
             {
-                var text = await token.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await token.SyntaxTree!.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (!token.IsFirstTokenOnLine(text))
                 {
                     return true;

@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool ReportSuppressedDiagnostics;
         public bool LogAnalyzerExecutionTime;
         public ProjectId ProjectId;
-        public Checksum OptionSetChecksum;
         public string[] AnalyzerIds;
 
         public DiagnosticArguments()
@@ -23,16 +22,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool reportSuppressedDiagnostics,
             bool logAnalyzerExecutionTime,
             ProjectId projectId,
-            Checksum optionSetChecksum,
             string[] analyzerIds)
         {
             ForcedAnalysis = forcedAnalysis;
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
             LogAnalyzerExecutionTime = logAnalyzerExecutionTime;
-
             ProjectId = projectId;
-
-            OptionSetChecksum = optionSetChecksum;
             AnalyzerIds = analyzerIds;
         }
     }

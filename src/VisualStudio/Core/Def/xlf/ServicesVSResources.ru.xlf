@@ -112,9 +112,9 @@
         <target state="translated">Содержащий тип</target>
         <note />
       </trans-unit>
-      <trans-unit id="Current_Document">
-        <source>Current Document</source>
-        <target state="new">Current Document</target>
+      <trans-unit id="Current_document">
+        <source>Current document</source>
+        <target state="new">Current document</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -122,9 +122,9 @@
         <target state="translated">Элемент недопустим.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Entire_Solution">
-        <source>Entire Solution</source>
-        <target state="new">Entire Solution</target>
+      <trans-unit id="Entire_solution">
+        <source>Entire solution</source>
+        <target state="new">Entire solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -171,6 +171,11 @@
         <source>Kind</source>
         <target state="translated">Вид</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Live_Share_CSharp_Visual_Basic_Language_Server_Client">
+        <source>Live Share C#/Visual Basic Language Server Client</source>
+        <target state="new">Live Share C#/Visual Basic Language Server Client</target>
+        <note>'Live Share' is a product name and does not need to be localized.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
@@ -367,9 +372,9 @@
         <target state="translated">Методы, не являющиеся открытыми</target>
         <note />
       </trans-unit>
-      <trans-unit id="Open_Documents_and_Projects">
-        <source>Open Documents and Projects</source>
-        <target state="new">Open Documents and Projects</target>
+      <trans-unit id="Open_documents">
+        <source>Open documents</source>
+        <target state="new">Open documents</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">

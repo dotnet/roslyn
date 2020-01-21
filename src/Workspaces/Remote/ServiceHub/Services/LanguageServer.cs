@@ -10,8 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
-using Roslyn.Utilities;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -35,23 +34,21 @@ namespace Microsoft.CodeAnalysis.Remote
                 NavigateToItemKind.Structure);
 
         public LanguageServer(Stream stream, IServiceProvider serviceProvider)
-            : base(serviceProvider, stream, SpecializedCollections.EmptyEnumerable<JsonConverter>())
+            : base(serviceProvider, stream)
         {
             StartService();
         }
 
         [JsonRpcMethod(Methods.InitializeName)]
-        public object Initialize(int? processId, string rootPath, Uri rootUri, ClientCapabilities capabilities, TraceSetting trace, CancellationToken cancellationToken)
+        public Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
         {
-            // our LSP server only supports WorkspaceStreamingSymbolProvider capability
-            // for now
-            return new InitializeResult()
+            return Task.FromResult(new InitializeResult()
             {
                 Capabilities = new VSServerCapabilities()
                 {
                     WorkspaceStreamingSymbolProvider = true
                 }
-            };
+            });
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
@@ -109,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var convertedResults = await ConvertAsync(results, cancellationToken).ConfigureAwait(false);
 
-                await InvokeAsync(
+                await EndPoint.InvokeAsync(
                     VSSymbolMethods.WorkspacePublishSymbolName,
                     new object[] { new VSPublishSymbolParams() { SearchId = searchId, Symbols = convertedResults } },
                     cancellationToken).ConfigureAwait(false);

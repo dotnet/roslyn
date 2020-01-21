@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
-using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -23,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public readonly string Id;
         public readonly string Category;
-        public readonly string Message;
-        public readonly string ENUMessageForBingSearch;
+        public readonly string? Message;
+        public readonly string? ENUMessageForBingSearch;
 
         public readonly DiagnosticSeverity Severity;
         public readonly DiagnosticSeverity DefaultSeverity;
@@ -56,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticData(
             string id,
             string category,
-            string message,
-            string enuMessageForBingSearch,
+            string? message,
+            string? enuMessageForBingSearch,
             DiagnosticSeverity severity,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
@@ -165,8 +164,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 DataLocation?.OriginalStartColumn);
         }
 
-        public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
-            => HasTextSpan ? EnsureInBounds(GetTextSpan(), text) : GetTextSpan(DataLocation, text);
+        public static TextSpan GetExistingOrCalculatedTextSpan(DiagnosticDataLocation? diagnosticLocation, SourceText text)
+        {
+            if (diagnosticLocation?.SourceSpan != null)
+            {
+                return EnsureInBounds(diagnosticLocation.SourceSpan.Value, text);
+            }
+            else
+            {
+                return GetTextSpan(diagnosticLocation, text);
+            }
+        }
 
         private static TextSpan EnsureInBounds(TextSpan textSpan, SourceText text)
             => TextSpan.FromBounds(
@@ -384,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // Get the effective severity of the diagnostic from the compilation options.
                 // PERF: We do not check if the diagnostic was suppressed by a source suppression, as this requires us to force complete the assembly attributes, which is very expensive.
-                var reportDiagnostic = descriptor.GetEffectiveSeverity(project.CompilationOptions);
+                var reportDiagnostic = descriptor.GetEffectiveSeverity(project.CompilationOptions!);
                 if (reportDiagnostic == ReportDiagnostic.Suppress)
                 {
                     // Rule is disabled by compilation options.

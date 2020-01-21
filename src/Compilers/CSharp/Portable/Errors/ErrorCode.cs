@@ -1605,6 +1605,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UndecoratedCancellationTokenParameter = 8425,
         ERR_MultipleEnumeratorCancellationAttributes = 8426,
         ERR_VarianceInterfaceNesting = 8427,
+        ERR_ImplicitIndexIndexerWithName = 8428,
+        ERR_ImplicitRangeIndexerWithName = 8429,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -1738,8 +1740,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InternalError = 8751,
 
         ERR_ExternEventInitializer = 8760,
-        ERR_BadRecordDeclaration = 8761,
-        ERR_DuplicateRecordConstructor = 8762,
+        ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
+
+        ERR_BadRecordDeclaration = 8770,
+        ERR_DuplicateRecordConstructor = 8771,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

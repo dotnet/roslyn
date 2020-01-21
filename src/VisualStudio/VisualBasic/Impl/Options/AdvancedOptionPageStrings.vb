@@ -22,13 +22,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ServicesVSResources.Background_analysis_scope_colon
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Active_File As String =
-            ServicesVSResources.Current_Document
+            ServicesVSResources.Current_document
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files_And_Projects As String =
-            ServicesVSResources.Open_Documents_and_Projects
+            ServicesVSResources.Open_documents
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution As String =
-            ServicesVSResources.Entire_Solution
+            ServicesVSResources.Entire_solution
 
         Public ReadOnly Property Option_use_editorconfig_compatibility_mode As String = ServicesVSResources.Use_editorconfig_compatibility_mode
 

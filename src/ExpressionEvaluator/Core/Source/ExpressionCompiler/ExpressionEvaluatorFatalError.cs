@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Reflection;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         private const string RegistryKey = @"Software\Microsoft\ExpressionEvaluator";
 
-        internal static object GetRegistryValue(string name)
+        internal static object? GetRegistryValue(string name)
         {
             try
             {
@@ -28,17 +30,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var hKeyCurrentUserField = registryType.GetTypeInfo().GetDeclaredField("CurrentUser");
                     if (hKeyCurrentUserField != null && hKeyCurrentUserField.IsStatic)
                     {
-                        using (var currentUserKey = (IDisposable)hKeyCurrentUserField.GetValue(null))
+                        using var currentUserKey = (IDisposable)hKeyCurrentUserField.GetValue(null);
+                        var openSubKeyMethod = currentUserKey.GetType().GetTypeInfo().GetDeclaredMethod("OpenSubKey", new Type[] { typeof(string), typeof(bool) });
+
+                        using var eeKey = (IDisposable?)openSubKeyMethod?.Invoke(currentUserKey, new object[] { RegistryKey, /*writable*/ false });
+                        if (eeKey != null)
                         {
-                            var openSubKeyMethod = currentUserKey.GetType().GetTypeInfo().GetDeclaredMethod("OpenSubKey", new Type[] { typeof(string), typeof(bool) });
-                            using (var eeKey = (IDisposable)openSubKeyMethod.Invoke(currentUserKey, new object[] { RegistryKey, /*writable*/ false }))
-                            {
-                                if (eeKey != null)
-                                {
-                                    var getValueMethod = eeKey.GetType().GetTypeInfo().GetDeclaredMethod("GetValue", new Type[] { typeof(string) });
-                                    return getValueMethod.Invoke(eeKey, new object[] { name });
-                                }
-                            }
+                            var getValueMethod = eeKey.GetType().GetTypeInfo().GetDeclaredMethod("GetValue", new Type[] { typeof(string) });
+                            return getValueMethod?.Invoke(eeKey, new object[] { name });
                         }
                     }
                 }

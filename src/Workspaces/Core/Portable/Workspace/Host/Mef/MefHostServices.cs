@@ -112,11 +112,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
         }
 
-        private static ImmutableArray<Assembly> LoadDefaultAssemblies()
-        {
-            // build a MEF composition using the main workspaces assemblies and the known VisualBasic/CSharp workspace assemblies.
-            // updated: includes feature assemblies since they now have public API's.
-            var assemblyNames = new string[]
+        // Used to build a MEF composition using the main workspaces assemblies and the known VisualBasic/CSharp workspace assemblies.
+        // updated: includes feature assemblies since they now have public API's.
+        private static readonly string[] s_defaultAssemblyNames = new string[]
             {
                 "Microsoft.CodeAnalysis.Workspaces",
                 "Microsoft.CodeAnalysis.CSharp.Workspaces",
@@ -126,7 +124,15 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 "Microsoft.CodeAnalysis.VisualBasic.Features"
             };
 
-            return LoadNearbyAssemblies(assemblyNames);
+        internal static bool IsDefaultAssembly(Assembly assembly)
+        {
+            var name = assembly.GetName().Name;
+            return s_defaultAssemblyNames.Contains(name);
+        }
+
+        private static ImmutableArray<Assembly> LoadDefaultAssemblies()
+        {
+            return LoadNearbyAssemblies(s_defaultAssemblyNames);
         }
 
         internal static ImmutableArray<Assembly> LoadNearbyAssemblies(string[] assemblyNames)
