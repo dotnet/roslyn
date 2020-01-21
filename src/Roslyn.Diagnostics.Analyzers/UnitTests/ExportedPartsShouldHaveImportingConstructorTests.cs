@@ -486,6 +486,78 @@ End Class
         [Theory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
+        public async Task ImplicitConstructorAddImport_CSharp(string mefNamespace)
+        {
+            var source = $@"
+[{mefNamespace}.Export]
+class C {{ }}
+";
+            var fixedSource = $@"
+using {mefNamespace};
+
+[{mefNamespace}.Export]
+class C {{
+    [ImportingConstructor]
+    public C()
+    {{
+    }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(2, 2, 2, mefNamespace.Length + 9).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task ImplicitConstructorAddImport_VisualBasic(string mefNamespace)
+        {
+            var source = $@"
+<{mefNamespace}.Export>
+Class C
+End Class
+";
+            var fixedSource = $@"
+Imports {mefNamespace}
+
+<{mefNamespace}.Export>
+Class C
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(2, 2, 2, mefNamespace.Length + 9).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
         public async Task ImplicitConstructorPlacement_CSharp(string mefNamespace)
         {
             var source = $@"
@@ -652,6 +724,80 @@ End Class
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(6, 5, 6, 21).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task MissingAttributeConstructorAddImport_CSharp(string mefNamespace)
+        {
+            var source = $@"
+[{mefNamespace}.Export]
+class C {{
+    public C() {{ }}
+}}
+";
+            var fixedSource = $@"
+using {mefNamespace};
+
+[{mefNamespace}.Export]
+class C {{
+    [ImportingConstructor]
+    public C() {{ }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(4, 5, 4, 19).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task MissingAttributeConstructorAddImport_VisualBasic(string mefNamespace)
+        {
+            var source = $@"
+<{mefNamespace}.Export>
+Class C
+    Public Sub New()
+    End Sub
+End Class
+";
+            var fixedSource = $@"
+Imports {mefNamespace}
+
+<{mefNamespace}.Export>
+Class C
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(4, 5, 4, 21).WithArguments("C") },
                 },
                 FixedState =
                 {
