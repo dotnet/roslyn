@@ -7,7 +7,6 @@ agent:
 dependencies:
   - .yamato/build.yml
 commands:
-  # Script needs the version string of the source artifact (which must match StevedoreUpload args).
   - ./stevedore-build-artifacts.sh
   - curl -sSo StevedoreUpload.exe "$STEVEDORE_UPLOAD_TOOL_URL"
   - mono StevedoreUpload.exe --repo=public --version-len=12 --version="$GIT_REVISION" producedbuilds/*
