@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.IL;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -77,7 +78,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var tuple = ServiceSetup(codeFix);
             using var workspace = tuple.Item1;
             GetDocumentAndExtensionManager(tuple.Item2, workspace, out var document, out var extensionManager, analyzerReference);
+
+            // Verify that we do not crash when computing fixes.
             _ = await tuple.Item3.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeConfigurationFixes: false, cancellationToken: CancellationToken.None);
+
+            // Verify that code fix is invoked with both the diagnostics in the context,
+            // i.e. duplicate diagnostics are not silently discarded by the CodeFixService.
+            Assert.Equal(2, codeFix.ContextDiagnosticsCount);
         }
 
         [Fact]
@@ -197,7 +204,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         internal class MockFixer : CodeFixProvider
         {
             public const string Id = "MyDiagnostic";
-            public bool Called = false;
+            public bool Called;
+            public int ContextDiagnosticsCount;
 
             public sealed override ImmutableArray<string> FixableDiagnosticIds
             {
@@ -207,6 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
             {
                 Called = true;
+                ContextDiagnosticsCount = context.Diagnostics.Length;
                 return Task.CompletedTask;
             }
         }
