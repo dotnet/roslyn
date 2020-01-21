@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -33,20 +35,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var parameter in Parameters)
             {
-                var loc = parameter.Locations.FirstOrDefault() ?? location;
                 if (parameter.RefKind != RefKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
+                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, getLocation(parameter, location));
                 }
                 else if (parameter.Type.IsUnsafe())
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, loc);
+                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, getLocation(parameter, location));
                 }
                 else if (parameter.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, getLocation(parameter, location), parameter.Type);
                 }
             }
+
+            static Location getLocation(ParameterSymbol parameter, Location location)
+                => parameter.Locations.FirstOrDefault() ?? location;
         }
     }
 }
