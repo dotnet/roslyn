@@ -71,12 +71,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return GetSolutionAsync(RoslynServices, _solutionInfo, cancellationToken);
         }
 
-        protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-        {
-            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
-            return GetSolutionAsync(localRoslynService, solutionInfo, cancellationToken);
-        }
-
         private static Task<Solution> GetSolutionAsync(RoslynServices roslynService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             var solutionController = (ISolutionController)roslynService.SolutionService;
@@ -144,6 +138,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected void Log(TraceEventType errorType, string message)
             => Logger.TraceEvent(errorType, 0, $"{DebugInstanceString}: {message}");
+
+        protected SolutionService CreateSolutionService(PinnedSolutionInfo solutionInfo)
+            => new SolutionService(SolutionService.CreateAssetProvider(solutionInfo, AssetStorage));
+
+        protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+            => CreateSolutionService(solutionInfo).GetSolutionAsync(solutionInfo, cancellationToken);
 
         protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
         {
