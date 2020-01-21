@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             var response = await handler.HandleRequestAsync(requestContext.Context, param, clientCapabilities, cancellationToken).ConfigureAwait(false);
 
             // Since hierarchicalSupport will never be true, it is safe to cast the response to SymbolInformation[]
-            return response.Select(obj => (SymbolInformation)obj).ToArray();
+            return response.Cast<SymbolInformation>().ToArray();
         }
     }
 
