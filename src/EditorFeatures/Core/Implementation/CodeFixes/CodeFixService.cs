@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     [Export(typeof(ICodeFixService)), Shared]
     internal partial class CodeFixService : ForegroundThreadAffinitizedObject, ICodeFixService
     {
+        private static readonly Comparer<DiagnosticData> s_diagnosticDataComparerById =
+            Comparer<DiagnosticData>.Create(new Comparison<DiagnosticData>((d1, d2) => DiagnosticId.CompareOrdinal(d1.Id, d2.Id)));
+
         private readonly IDiagnosticAnalyzerService _diagnosticService;
 
         private readonly ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>> _workspaceFixersMap;
@@ -161,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // group diagnostics by their diagnostics span
             // invariant: later code gathers & runs CodeFixProviders for diagnostics with one identical diagnostics span (that gets set later as CodeFixCollection's TextSpan)
             // order diagnostics by span and then diagnostic ID.
-            SortedDictionary<TextSpan, SortedList<DiagnosticId, DiagnosticData>>? aggregatedDiagnostics = null;
+            SortedDictionary<TextSpan, SortedSet<DiagnosticData>>? aggregatedDiagnostics = null;
             foreach (var diagnostic in await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, diagnosticIdOpt: null, includeConfigurationFixes, addOperationScope, cancellationToken).ConfigureAwait(false))
             {
                 if (diagnostic.IsSuppressed)
@@ -171,8 +174,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                aggregatedDiagnostics ??= new SortedDictionary<TextSpan, SortedList<string, DiagnosticData>>();
-                aggregatedDiagnostics.GetOrAdd(diagnostic.GetTextSpan(), _ => new SortedList<DiagnosticId, DiagnosticData>()).Add(diagnostic.Id, diagnostic);
+                aggregatedDiagnostics ??= new SortedDictionary<TextSpan, SortedSet<DiagnosticData>>();
+                aggregatedDiagnostics.GetOrAdd(diagnostic.GetTextSpan(), _ => new SortedSet<DiagnosticData>(s_diagnosticDataComparerById)).Add(diagnostic);
             }
 
             if (aggregatedDiagnostics == null)
@@ -185,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var spanAndDiagnostic in aggregatedDiagnostics)
             {
                 await AppendFixesAsync(
-                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value.Values, fixAllForInSpan: false, isBlocking,
+                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan: false, isBlocking,
                     result, addOperationScope, cancellationToken).ConfigureAwait(false);
             }
 
@@ -205,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 foreach (var spanAndDiagnostic in aggregatedDiagnostics)
                 {
                     await AppendConfigurationsAsync(
-                        document, spanAndDiagnostic.Key, spanAndDiagnostic.Value.Values,
+                        document, spanAndDiagnostic.Key, spanAndDiagnostic.Value,
                         result, cancellationToken).ConfigureAwait(false);
                 }
             }
