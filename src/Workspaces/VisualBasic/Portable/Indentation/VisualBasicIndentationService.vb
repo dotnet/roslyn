@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -24,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Me.New(New SpecialFormattingRule())
         End Sub
 
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification:="Intentionally used for creating multiple instances")>
         Private Sub New(specializedIndentationRule As AbstractFormattingRule)
             _specializedIndentationRule = specializedIndentationRule
         End Sub
