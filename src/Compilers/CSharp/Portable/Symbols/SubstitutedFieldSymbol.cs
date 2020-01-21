@@ -106,13 +106,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var other = obj as SubstitutedFieldSymbol;
-            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, compareKind) && OriginalDefinition == other.OriginalDefinition;
+            var other = obj as FieldSymbol;
+            return (object)other != null && TypeSymbol.Equals(_containingType, other.ContainingType, compareKind) && OriginalDefinition == other.OriginalDefinition;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_containingType, OriginalDefinition.GetHashCode());
+            // Substituted fields can still be considered equal to other field symbols when 
+            // the substituted type is considered equal (e.g. when ignoring nullability).
+            // We defer the hashcode to the original definition so it will match in those scenarios. 
+            // See https://github.com/dotnet/roslyn/issues/38195
+            return this.OriginalDefinition.GetHashCode();
         }
     }
 }
