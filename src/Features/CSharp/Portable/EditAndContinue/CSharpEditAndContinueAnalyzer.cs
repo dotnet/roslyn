@@ -208,9 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             var bodyTokens = SyntaxUtilities.TryGetMethodDeclarationBody(node)?.DescendantTokens();
 
-            if (node.IsKind(SyntaxKind.ConstructorDeclaration))
+            if (node.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax? ctor))
             {
-                var ctor = (ConstructorDeclarationSyntax)node;
                 if (ctor.Initializer != null)
                 {
                     bodyTokens = ctor.Initializer.DescendantTokens().Concat(bodyTokens);
@@ -729,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     fieldOrPropertyModifiers = SyntaxUtilities.TryGetFieldOrPropertyModifiers(statement);
                     direction = +1;
 
-                    yield return KeyValuePairUtil.Create(nodeOrToken.AsNode(), 0);
+                    yield return KeyValuePairUtil.Create(nodeOrToken.AsNode()!, 0);
                 }
                 else
                 {
@@ -3296,9 +3295,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static bool IsSimpleAwaitAssignment(SyntaxNode node, SyntaxNode awaitExpression)
         {
-            if (node.IsKind(SyntaxKind.SimpleAssignmentExpression))
+            if (node.IsKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment))
             {
-                var assignment = (AssignmentExpressionSyntax)node;
                 return assignment.Left.IsKind(SyntaxKind.IdentifierName) && assignment.Right == awaitExpression;
             }
 

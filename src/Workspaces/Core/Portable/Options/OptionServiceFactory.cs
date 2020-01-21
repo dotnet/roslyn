@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Options
                     {
                         handler(this, e);
                     }
-                }, "OptionsService.SetOptions");
+                }, "OptionsService.OnGlobalOptionServiceOptionChanged");
             }
 
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> GetEventHandlers()
@@ -113,17 +114,17 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
-            public OptionSet GetOptions()
-            {
-                return new WorkspaceOptionSet(this);
-            }
-
             // Simple forwarding functions.
-            public object GetOption(OptionKey optionKey) => _globalOptionService.GetOption(optionKey);
-            public T GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
-            public T GetOption<T>(PerLanguageOption<T> option, string languageName) => _globalOptionService.GetOption(option, languageName);
+            public SerializableOptionSet GetOptions() => GetSerializableOptionsSnapshot(ImmutableHashSet<string>.Empty);
+            public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages) => _globalOptionService.GetSerializableOptionsSnapshot(languages, this);
+            public object? GetOption(OptionKey optionKey) => _globalOptionService.GetOption(optionKey);
+            [return: MaybeNull] public T GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
+            [return: MaybeNull] public T GetOption<T>(PerLanguageOption<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
             public IEnumerable<IOption> GetRegisteredOptions() => _globalOptionService.GetRegisteredOptions();
+            public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetRegisteredSerializableOptions(languages);
             public void SetOptions(OptionSet optionSet) => _globalOptionService.SetOptions(optionSet);
+            public void RegisterWorkspace(Workspace workspace) => _globalOptionService.RegisterWorkspace(workspace);
+            public void UnregisterWorkspace(Workspace workspace) => _globalOptionService.UnregisterWorkspace(workspace);
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
             {
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Options
                 internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
                 {
                     // GetChangedOptions only needs to be supported for OptionSets that need to be compared during application,
-                    // but that's already enforced it must be a full WorkspaceOptionSet.
+                    // but that's already enforced it must be a full SerializableOptionSet.
                     throw new NotSupportedException();
                 }
             }

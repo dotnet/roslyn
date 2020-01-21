@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -133,5 +134,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return compilation;
         }
+
+        internal static Project WithSolutionOptions(this Project project, OptionSet options)
+            => project.Solution.WithOptions(options).GetProject(project.Id)!;
     }
 }

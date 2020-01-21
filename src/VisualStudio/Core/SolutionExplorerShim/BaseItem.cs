@@ -9,6 +9,7 @@ using System.Windows.Media;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                return Enumerable.Empty<string>();
+                return SpecializedCollections.EmptyEnumerable<string>();
             }
         }
 

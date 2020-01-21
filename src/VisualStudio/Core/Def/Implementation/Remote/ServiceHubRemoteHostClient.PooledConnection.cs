@@ -35,14 +35,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> directStreamReader, CancellationToken cancellationToken)
                     => _connection.InvokeAsync(targetName, arguments, directStreamReader, cancellationToken);
 
-                protected override void Dispose(bool disposing)
+                protected override void DisposeImpl()
                 {
-                    if (disposing)
-                    {
-                        _connectionManager.Free(_serviceName, _connection);
-                    }
-
-                    base.Dispose(disposing);
+                    _connectionManager.Free(_serviceName, _connection);
+                    base.DisposeImpl();
                 }
             }
         }

@@ -51,18 +51,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly object _analysesGuard = new object();
 
         /// <summary>
-        /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
-        /// 
-        /// The capability of a module to apply edits may change during edit session if the user attaches debugger to 
-        /// an additional process that doesn't support EnC (or detaches from such process). The diagnostic reflects 
-        /// the state of the module when queried for the first time. Before we actually apply an edit to the module 
-        /// we need to query again instead of just reusing the diagnostic.
-        /// </summary>
-        private readonly Dictionary<Guid, ImmutableArray<LocationlessDiagnostic>> _moduleDiagnostics
-             = new Dictionary<Guid, ImmutableArray<LocationlessDiagnostic>>();
-        private readonly object _moduleDiagnosticsGuard = new object();
-
-        /// <summary>
         /// A <see cref="DocumentId"/> is added whenever <see cref="EditAndContinueDiagnosticAnalyzer"/> reports 
         /// rude edits or module diagnostics. At the end of the session we ask the diagnostic analyzer to reanalyze 
         /// the documents to clean up the diagnostics.
@@ -89,42 +77,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _cancellationSource.Dispose();
         }
 
-        internal void ModuleInstanceLoadedOrUnloaded(Guid mvid)
+        /// <summary>
+        /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
+        /// </summary>
+        public ImmutableArray<Diagnostic> GetModuleDiagnostics(Guid mvid, string projectDisplayName)
         {
-            // invalidate diagnostic cache for the module:
-            lock (_moduleDiagnosticsGuard)
+            if (DebuggingSession.DebugeeModuleMetadataProvider.IsEditAndContinueAvailable(mvid, out var errorCode, out var localizedMessage))
             {
-                _moduleDiagnostics.Remove(mvid);
-            }
-        }
-
-        public ImmutableArray<LocationlessDiagnostic> GetModuleDiagnostics(Guid mvid, string projectDisplayName)
-        {
-            ImmutableArray<LocationlessDiagnostic> result;
-            lock (_moduleDiagnosticsGuard)
-            {
-                if (_moduleDiagnostics.TryGetValue(mvid, out result))
-                {
-                    return result;
-                }
+                return ImmutableArray<Diagnostic>.Empty;
             }
 
-            var newResult = ImmutableArray<LocationlessDiagnostic>.Empty;
-            if (!DebuggingSession.DebugeeModuleMetadataProvider.IsEditAndContinueAvailable(mvid, out var errorCode, out var localizedMessage))
-            {
-                var descriptor = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(errorCode);
-                newResult = ImmutableArray.Create(new LocationlessDiagnostic(descriptor, new[] { projectDisplayName, localizedMessage }));
-            }
-
-            lock (_moduleDiagnosticsGuard)
-            {
-                if (!_moduleDiagnostics.TryGetValue(mvid, out result))
-                {
-                    _moduleDiagnostics.Add(mvid, result = newResult);
-                }
-            }
-
-            return result;
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(errorCode);
+            return ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { projectDisplayName, localizedMessage }));
         }
 
         private async Task<ActiveStatementsMap> GetBaseActiveStatementsAsync(CancellationToken cancellationToken)
@@ -307,11 +271,34 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async Task<(ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)>, ImmutableArray<Diagnostic> Diagnostics)> GetChangedDocumentsAnalysesAsync(
-            Project baseProject, Project project, CancellationToken cancellationToken)
+        private static async Task PopulateChangedAndAddedDocumentsAsync(CommittedSolution baseSolution, Project project, ArrayBuilder<Document> changedDocuments, ArrayBuilder<Document> addedDocuments, CancellationToken cancellationToken)
         {
-            var changedDocuments = ArrayBuilder<(Document? Old, Document New)>.GetInstance();
-            var outOfSyncDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
+            changedDocuments.Clear();
+            addedDocuments.Clear();
+
+            if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(project))
+            {
+                return;
+            }
+
+            var baseProject = baseSolution.GetProject(project.Id);
+            if (baseProject == project)
+            {
+                return;
+            }
+
+            // When debugging session is started some projects might not have been loaded to the workspace yet. 
+            // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
+            // and will result in source mismatch when the user steps into them.
+            //
+            // TODO (https://github.com/dotnet/roslyn/issues/1204):
+            // hook up the debugger reported error, check that the project has not been loaded and report a better error.
+            // Here, we assume these projects are not modified.
+            if (baseProject == null)
+            {
+                EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not loaded", project.Id.DebugName, project.Id);
+                return;
+            }
 
             var changes = project.GetChanges(baseProject);
             foreach (var documentId in changes.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
@@ -338,24 +325,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
-                var (oldDocument, oldDocumentState) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(documentId, cancellationToken, reloadOutOfSyncDocument: true).ConfigureAwait(false);
-                switch (oldDocumentState)
-                {
-                    case CommittedSolution.DocumentState.DesignTimeOnly:
-                        continue;
-
-                    case CommittedSolution.DocumentState.OutOfSync:
-                        var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee);
-                        outOfSyncDiagnostics.Add(Diagnostic.Create(descriptor, Location.Create(document.FilePath!, textSpan: default, lineSpan: default), new[] { document.FilePath }));
-                        continue;
-
-                    default:
-                        // Include the document regardless of whether the module it was built into has been loaded or not.
-                        // If the module has been built it might get loaded later during the debugging session,
-                        // at which point we apply all changes that have been made to the project so far.
-                        changedDocuments.Add((oldDocument, document));
-                        break;
-                }
+                changedDocuments.Add(document);
             }
 
             foreach (var documentId in changes.GetAddedDocuments())
@@ -366,20 +336,59 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
-                changedDocuments.Add((null, document));
+                addedDocuments.Add(document);
             }
+        }
 
-            var result = ImmutableArray<(Document, AsyncLazy<DocumentAnalysisResults>)>.Empty;
-            if (changedDocuments.Count != 0)
+        private async Task<(ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)>, ImmutableArray<Diagnostic> DocumentDiagnostics)> AnalyzeDocumentsAsync(
+            ArrayBuilder<Document> changedDocuments, ArrayBuilder<Document> addedDocuments, CancellationToken cancellationToken)
+        {
+            var documentDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
+            var builder = ArrayBuilder<(Document? Old, Document New)>.GetInstance();
+
+            foreach (var document in changedDocuments)
             {
-                lock (_analysesGuard)
+                var (oldDocument, oldDocumentState) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document.Id, cancellationToken, reloadOutOfSyncDocument: true).ConfigureAwait(false);
+                switch (oldDocumentState)
                 {
-                    result = changedDocuments.SelectAsArray(change => (change.New, GetDocumentAnalysisNoLock(change.Old, change.New)));
+                    case CommittedSolution.DocumentState.DesignTimeOnly:
+                        continue;
+
+                    case CommittedSolution.DocumentState.Indeterminate:
+                    case CommittedSolution.DocumentState.OutOfSync:
+                        var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor((oldDocumentState == CommittedSolution.DocumentState.Indeterminate) ?
+                            EditAndContinueErrorCode.UnableToReadSourceFileOrPdb : EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee);
+                        documentDiagnostics.Add(Diagnostic.Create(descriptor, Location.Create(document.FilePath!, textSpan: default, lineSpan: default), new[] { document.FilePath }));
+                        continue;
+
+                    case CommittedSolution.DocumentState.MatchesBuildOutput:
+                        // Include the document regardless of whether the module it was built into has been loaded or not.
+                        // If the module has been built it might get loaded later during the debugging session,
+                        // at which point we apply all changes that have been made to the project so far.
+                        builder.Add((oldDocument, document));
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(oldDocumentState);
                 }
             }
 
-            changedDocuments.Free();
-            return (result, outOfSyncDiagnostics.ToImmutableAndFree());
+            foreach (var document in addedDocuments)
+            {
+                builder.Add((null, document));
+            }
+
+            var result = ImmutableArray<(Document, AsyncLazy<DocumentAnalysisResults>)>.Empty;
+            if (builder.Count != 0)
+            {
+                lock (_analysesGuard)
+                {
+                    result = builder.SelectAsArray(change => (change.New, GetDocumentAnalysisNoLock(change.Old, change.New)));
+                }
+            }
+
+            builder.Free();
+            return (result, documentDiagnostics.ToImmutableAndFree());
         }
 
         public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document? baseDocument, Document document)
@@ -449,108 +458,78 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         /// <summary>
-        /// Determines the status of projects containing given <paramref name="sourceFilePath"/> or the entire solution if <paramref name="sourceFilePath"/> is null.
+        /// Determines whether projects contain any changes that might need to be applied.
+        /// Checks only projects containing a given <paramref name="sourceFilePath"/> or all projects of the solution if <paramref name="sourceFilePath"/> is null.
         /// Invoked by the debugger on every step. It is critical for stepping performance that this method returns as fast as possible in absence of changes.
         /// </summary>
-        public async Task<SolutionUpdateStatus> GetSolutionUpdateStatusAsync(Solution solution, string sourceFilePath, CancellationToken cancellationToken)
+        public async Task<bool> HasChangesAsync(Solution solution, string? sourceFilePath, CancellationToken cancellationToken)
         {
             try
             {
                 if (_changesApplied)
                 {
-                    return SolutionUpdateStatus.None;
+                    return false;
                 }
 
-                if (DebuggingSession.LastCommittedSolution.HasNoChanges(solution))
+                var baseSolution = DebuggingSession.LastCommittedSolution;
+                if (baseSolution.HasNoChanges(solution))
                 {
-                    return SolutionUpdateStatus.None;
+                    return false;
                 }
 
                 var projects = (sourceFilePath == null) ? solution.Projects :
                     from documentId in solution.GetDocumentIdsWithFilePath(sourceFilePath)
                     select solution.GetDocument(documentId)!.Project;
 
-                bool anyChanges = false;
+                using var changedDocumentsDisposer = ArrayBuilder<Document>.GetInstance(out var changedDocuments);
+                using var addedDocumentsDisposer = ArrayBuilder<Document>.GetInstance(out var addedDocuments);
+
                 foreach (var project in projects)
                 {
-                    if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(project))
+                    await PopulateChangedAndAddedDocumentsAsync(baseSolution, project, changedDocuments, addedDocuments, cancellationToken).ConfigureAwait(false);
+                    if (changedDocuments.IsEmpty() && addedDocuments.IsEmpty())
                     {
                         continue;
                     }
 
-                    var baseProject = DebuggingSession.LastCommittedSolution.GetProject(project.Id);
-                    if (baseProject == project)
+                    // Check MVID before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
+                    var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(project.Id, cancellationToken).ConfigureAwait(false);
+                    if (mvidReadError != null)
                     {
+                        // Can't read MVID. This might be an intermittent failure, so don't report it here.
+                        // Report the project as containing changes, so that we proceed to EmitSolutionUpdateAsync where we report the error if it still persists.
+                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not built", project.Id.DebugName, project.Id);
+                        return true;
+                    }
+
+                    if (mvid == Guid.Empty)
+                    {
+                        // Project not built. We ignore any changes made in its sources.
+                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not built", project.Id.DebugName, project.Id);
                         continue;
                     }
 
-                    // When debugging session is started some projects might not have been loaded to the workspace yet. 
-                    // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
-                    // and will result in source mismatch when the user steps into them.
-                    //
-                    // TODO (https://github.com/dotnet/roslyn/issues/1204):
-                    // hook up the debugger reported error, check that the project has not been loaded and report a better error.
-                    // Here, we assume these projects are not modified.
-                    if (baseProject == null)
-                    {
-                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not loaded", project.Id.DebugName, project.Id);
-                        continue;
-                    }
-
-                    var (changedDocumentAnalyses, diagnostics) = await GetChangedDocumentsAnalysesAsync(baseProject, project, cancellationToken).ConfigureAwait(false);
-                    if (diagnostics.Any())
+                    var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(changedDocuments, addedDocuments, cancellationToken).ConfigureAwait(false);
+                    if (documentDiagnostics.Any())
                     {
                         EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: out-of-sync documents present (diagnostic: '{2}')",
-                            project.Id.DebugName, project.Id, diagnostics[0]);
+                            project.Id.DebugName, project.Id, documentDiagnostics[0]);
 
-                        return SolutionUpdateStatus.Blocked;
-                    }
-
-                    if (changedDocumentAnalyses.Length == 0)
-                    {
-                        continue;
+                        // Although we do not apply changes in out-of-sync/indeterminate documents we report that changes are present,
+                        // so that the debugger triggers emit of updates. There we check if these documents are still in a bad state and report warnings
+                        // that any changes in such documents are not applied.
+                        return true;
                     }
 
                     var projectSummary = await GetProjectAnalysisSymmaryAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
-                    if (projectSummary == ProjectAnalysisSummary.ValidChanges)
+                    if (projectSummary != ProjectAnalysisSummary.NoChanges)
                     {
-                        var (mvid, _) = await DebuggingSession.GetProjectModuleIdAsync(baseProject.Id, cancellationToken).ConfigureAwait(false);
-                        if (mvid == Guid.Empty)
-                        {
-                            // project not built
-                            EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not built", project.Id.DebugName, project.Id);
-                            continue;
-                        }
-
-                        if (!GetModuleDiagnostics(mvid, project.Name).IsEmpty)
-                        {
-                            EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: module blocking EnC", project.Id.DebugName, project.Id);
-                            return SolutionUpdateStatus.Blocked;
-                        }
-                    }
-
-                    EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: {2}", project.Id.DebugName, project.Id, projectSummary);
-
-                    switch (projectSummary)
-                    {
-                        case ProjectAnalysisSummary.NoChanges:
-                            continue;
-
-                        case ProjectAnalysisSummary.CompilationErrors:
-                        case ProjectAnalysisSummary.RudeEdits:
-                            return SolutionUpdateStatus.Blocked;
-
-                        case ProjectAnalysisSummary.ValidChanges:
-                        case ProjectAnalysisSummary.ValidInsignificantChanges:
-                            anyChanges = true;
-                            continue;
-
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(projectSummary);
+                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: {2}", project.Id.DebugName, project.Id, projectSummary);
+                        return true;
                     }
                 }
 
-                return anyChanges ? SolutionUpdateStatus.Ready : SolutionUpdateStatus.None;
+                return false;
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
             {
@@ -665,46 +644,42 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal ImmutableArray<LocationlessDiagnostic> GetDebugeeStateDiagnostics()
-        {
-            return ImmutableArray<LocationlessDiagnostic>.Empty;
-        }
-
         public async Task<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var deltas = ArrayBuilder<Deltas>.GetInstance();
-            var emitBaselines = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance();
-            var readers = ArrayBuilder<IDisposable>.GetInstance();
-            var diagnostics = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance();
-            var changedDocuments = ArrayBuilder<Document>.GetInstance();
-
             try
             {
-                bool isBlocked = false;
+                using var deltasDisposer = ArrayBuilder<Deltas>.GetInstance(out var deltas);
+                using var emitBaselinesDisposer = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance(out var emitBaselines);
+                using var readersDisposer = ArrayBuilder<IDisposable>.GetInstance(out var readers);
+                using var diagnosticsDisposer = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
+                using var changedDocumentsDisposer = ArrayBuilder<Document>.GetInstance(out var changedDocuments);
+                using var addedDocumentsDisposer = ArrayBuilder<Document>.GetInstance(out var addedDocuments);
 
+                var baseSolution = DebuggingSession.LastCommittedSolution;
+
+                bool isBlocked = false;
                 foreach (var project in solution.Projects)
                 {
-                    if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(project))
+                    await PopulateChangedAndAddedDocumentsAsync(baseSolution, project, changedDocuments, addedDocuments, cancellationToken).ConfigureAwait(false);
+                    if (changedDocuments.IsEmpty() && addedDocuments.IsEmpty())
                     {
-                        continue;
-                    }
-
-                    var baseProject = DebuggingSession.LastCommittedSolution.GetProject(project.Id);
-
-                    // TODO (https://github.com/dotnet/roslyn/issues/1204):
-                    // When debugging session is started some projects might not have been loaded to the workspace yet. 
-                    // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
-                    // and will result in source mismatch when the user steps into them.
-                    // TODO: hook up the debugger reported error, check that the project has not been loaded and report a better error.
-                    // Here, we assume these projects are not modified.
-                    if (baseProject == null)
-                    {
-                        EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]: project not loaded", project.Id.DebugName, project.Id);
                         continue;
                     }
 
                     var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(project.Id, cancellationToken).ConfigureAwait(false);
-                    if (mvid == Guid.Empty && mvidReadError == null)
+                    if (mvidReadError != null)
+                    {
+                        // The error hasn't been reported by GetDocumentDiagnosticsAsync since it might have been intermittent.
+                        // The MVID is required for emit so we consider the error permanent and report it here.
+                        // Bail before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
+                        diagnostics.Add((project.Id, ImmutableArray.Create(mvidReadError)));
+
+                        Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, ImmutableArray.Create(mvidReadError.Descriptor.Id));
+                        isBlocked = true;
+                        continue;
+                    }
+
+                    if (mvid == Guid.Empty)
                     {
                         EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]: project not built", project.Id.DebugName, project.Id);
                         continue;
@@ -724,48 +699,35 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // e.g. the binary was built with an overload C.M(object), but a generator updated class C to also contain C.M(string),
                     // which change we have not observed yet. Then call-sites of C.M in a changed document observed by the analysis will be seen as C.M(object) 
                     // instead of the true C.M(string).
-                    var (changedDocumentAnalyses, outOfSyncDiagnostics) = await GetChangedDocumentsAnalysesAsync(baseProject, project, cancellationToken).ConfigureAwait(false);
-                    if (outOfSyncDiagnostics.Any())
+                    var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(changedDocuments, addedDocuments, cancellationToken).ConfigureAwait(false);
+                    if (documentDiagnostics.Any())
                     {
-                        // The error hasn't been reported by GetDocumentDiagnosticsAsync since out-of-sync documents are likely to be synchronized
-                        // before the changes are attempted to be applied. If they are not the project changes can't be applied.
-                        diagnostics.Add((project.Id, outOfSyncDiagnostics));
-
-                        Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.RudeEdits, outOfSyncDiagnostics);
-                        isBlocked = true;
-                        continue;
+                        // The diagnostic hasn't been reported by GetDocumentDiagnosticsAsync since out-of-sync documents are likely to be synchronized
+                        // before the changes are attempted to be applied. If we still have any out-of-sync documents we report warnings and ignore changes in them.
+                        // If in future the file is updated so that its content matches the PDB checksum, the document transitions to a matching state, 
+                        // and we consider any further changes to it for application.
+                        diagnostics.Add((project.Id, documentDiagnostics));
                     }
 
-                    var projectSummary = await GetProjectAnalysisSymmaryAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
-
-                    if (projectSummary != ProjectAnalysisSummary.ValidChanges)
-                    {
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, ImmutableArray<string>.Empty);
-
-                        if (projectSummary == ProjectAnalysisSummary.CompilationErrors || projectSummary == ProjectAnalysisSummary.RudeEdits)
-                        {
-                            isBlocked = true;
-                        }
-
-                        continue;
-                    }
-
-                    if (mvidReadError != null)
-                    {
-                        // The error hasn't been reported by GetDocumentDiagnosticsAsync since it might have been intermittent.
-                        // The MVID is required for emit so we consider the error permanent and report it here.
-                        diagnostics.Add((project.Id, ImmutableArray.Create(mvidReadError)));
-
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, ImmutableArray.Create(mvidReadError.Descriptor.Id));
-                        isBlocked = true;
-                        continue;
-                    }
-
+                    // The capability of a module to apply edits may change during edit session if the user attaches debugger to 
+                    // an additional process that doesn't support EnC (or detaches from such process). Before we apply edits 
+                    // we need to check with the debugger.
                     var moduleDiagnostics = GetModuleDiagnostics(mvid, project.Name);
                     if (!moduleDiagnostics.IsEmpty)
                     {
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, moduleDiagnostics.SelectAsArray(d => d.Descriptor.Id));
+                        diagnostics.Add((project.Id, moduleDiagnostics));
                         isBlocked = true;
+                    }
+
+                    var projectSummary = await GetProjectAnalysisSymmaryAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
+                    if (projectSummary == ProjectAnalysisSummary.CompilationErrors || projectSummary == ProjectAnalysisSummary.RudeEdits)
+                    {
+                        isBlocked = true;
+                    }
+
+                    if (!moduleDiagnostics.IsEmpty || projectSummary != ProjectAnalysisSummary.ValidChanges)
+                    {
+                        Telemetry.LogProjectAnalysisSummary(projectSummary, moduleDiagnostics.SelectAsArray(d => d.Descriptor.Id));
                         continue;
                     }
 
@@ -801,11 +763,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     else
                     {
                         Emit();
-                    }
-
-                    if (!isBlocked)
-                    {
-                        changedDocuments.AddRange(changedDocumentAnalyses.Select(a => a.Document));
                     }
 
                     void Emit()
@@ -903,27 +860,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (isBlocked)
                 {
-                    deltas.Free();
-                    emitBaselines.Free();
-
                     foreach (var reader in readers)
                     {
                         reader.Dispose();
                     }
 
-                    readers.Free();
-                    changedDocuments.Free();
-
-                    return SolutionUpdate.Blocked(diagnostics.ToImmutableAndFree());
+                    return SolutionUpdate.Blocked(diagnostics.ToImmutable());
                 }
 
                 return new SolutionUpdate(
                     (deltas.Count > 0) ? SolutionUpdateStatus.Ready : SolutionUpdateStatus.None,
-                    deltas.ToImmutableAndFree(),
-                    readers.ToImmutableAndFree(),
-                    emitBaselines.ToImmutableAndFree(),
-                    changedDocuments.ToImmutableAndFree(),
-                    diagnostics.ToImmutableAndFree());
+                    deltas.ToImmutable(),
+                    readers.ToImmutable(),
+                    emitBaselines.ToImmutable(),
+                    diagnostics.ToImmutable());
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
             {

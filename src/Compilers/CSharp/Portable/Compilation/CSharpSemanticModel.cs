@@ -5084,13 +5084,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return context;
 
-            static NullableContext getFlag(bool? contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
+            static NullableContext getFlag(NullableContextState.State contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
                 contextState switch
                 {
-                    null when defaultEnableState => (inheritedFlag | enableFlag),
-                    null => inheritedFlag,
-                    true => enableFlag,
-                    false => NullableContext.Disabled
+                    NullableContextState.State.Enabled => enableFlag,
+                    NullableContextState.State.Disabled => NullableContext.Disabled,
+                    _ when defaultEnableState => (inheritedFlag | enableFlag),
+                    _ => inheritedFlag,
                 };
         }
 

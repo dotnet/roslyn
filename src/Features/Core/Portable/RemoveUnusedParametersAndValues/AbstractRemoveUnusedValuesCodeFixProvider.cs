@@ -100,12 +100,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             SyntaxEditor editor,
             ISyntaxFactsService syntaxFacts);
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics[0];
             if (!AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.TryGetUnusedValuePreference(diagnostic, out var preference))
             {
-                return Task.CompletedTask;
+                return;
             }
 
             var isRemovableAssignment = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostic);
@@ -126,10 +126,26 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         {
                             // Do not offer a fix to replace unused foreach iteration variable with discard.
                             // User should probably replace it with a for loop based on the collection length.
-                            return Task.CompletedTask;
+                            return;
                         }
 
                         title = FeaturesResources.Use_discard_underscore;
+
+                        // Check if this is compound assignment which is not parented by an expression statement,
+                        // for example "return x += M();" OR "=> x ??= new C();"
+                        // If so, we will be replacing this compound assignment with the underlying binary operation.
+                        // For the above examples, it will be "return x + M();" AND "=> x ?? new C();" respectively.
+                        // For these cases, we want to show the title as "Remove redundant assignment" instead of "Use discard _".
+
+                        var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
+                        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+                        var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
+                        if (syntaxFacts.IsLeftSideOfCompoundAssignment(node) &&
+                            !syntaxFacts.IsExpressionStatement(node.Parent))
+                        {
+                            title = FeaturesResources.Remove_redundant_assignment;
+                        }
+
                         break;
 
                     case UnusedValuePreference.UnusedLocalVariable:
@@ -137,7 +153,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         break;
 
                     default:
-                        return Task.CompletedTask;
+                        return;
                 }
             }
 
@@ -148,7 +164,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     equivalenceKey: GetEquivalenceKey(preference, isRemovableAssignment)),
                 diagnostic);
 
-            return Task.CompletedTask;
+            return;
         }
 
         private static bool IsForEachIterationVariableDiagnostic(Diagnostic diagnostic, Document document, CancellationToken cancellationToken)

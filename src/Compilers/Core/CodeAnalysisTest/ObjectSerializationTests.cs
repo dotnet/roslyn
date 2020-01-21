@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        private void TestInvalidStreamVersion()
+        public void TestInvalidStreamVersion()
         {
             var stream = new MemoryStream();
             stream.WriteByte(0);
@@ -35,17 +35,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction, bool recursive)
         {
-            var stream = new MemoryStream();
-            var writer = new ObjectWriter(stream);
+            using var stream = new MemoryStream();
 
-            writeAction(writer);
-            writer.Dispose();
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
+                writeAction(writer);
+            }
 
             stream.Position = 0;
-            using (var reader = ObjectReader.TryGetReader(stream))
-            {
-                readAction(reader);
-            }
+            using var reader = ObjectReader.TryGetReader(stream);
+            readAction(reader);
         }
 
         private void TestRoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction)
@@ -56,17 +55,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
         {
-            var stream = new MemoryStream();
-            var writer = new ObjectWriter(stream);
+            using var stream = new MemoryStream();
 
-            writeAction(writer, value);
-            writer.Dispose();
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
+                writeAction(writer, value);
+            }
 
             stream.Position = 0;
-            using (var reader = ObjectReader.TryGetReader(stream))
-            {
-                return (T)readAction(reader);
-            }
+            using var reader = ObjectReader.TryGetReader(stream);
+            return readAction(reader);
         }
 
         private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
@@ -1111,17 +1109,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestObjectMapLimits()
         {
-            using (var stream = new MemoryStream())
+            using var stream = new MemoryStream();
+            var instances = new List<TypeWithTwoMembers<int, string>>();
+
+            // We need enough items to exercise all sizes of ObjectRef
+            for (int i = 0; i < ushort.MaxValue + 1; i++)
             {
-                var instances = new List<TypeWithTwoMembers<int, string>>();
+                instances.Add(new TypeWithTwoMembers<int, string>(i, i.ToString()));
+            }
 
-                // We need enough items to exercise all sizes of ObjectRef
-                for (int i = 0; i < ushort.MaxValue + 1; i++)
-                {
-                    instances.Add(new TypeWithTwoMembers<int, string>(i, i.ToString()));
-                }
-
-                var writer = new ObjectWriter(stream);
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
                 // Write each instance twice. The second time around, they'll become ObjectRefs
                 for (int pass = 0; pass < 2; pass++)
                 {
@@ -1130,20 +1128,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         writer.WriteValue(instance);
                     }
                 }
+            }
 
-                writer.Dispose();
-
-                stream.Position = 0;
-                using (var reader = ObjectReader.TryGetReader(stream))
+            stream.Position = 0;
+            using (var reader = ObjectReader.TryGetReader(stream, leaveOpen: true))
+            {
+                for (int pass = 0; pass < 2; pass++)
                 {
-                    for (int pass = 0; pass < 2; pass++)
+                    foreach (var instance in instances)
                     {
-                        foreach (var instance in instances)
-                        {
-                            var obj = reader.ReadValue();
-                            Assert.NotNull(obj);
-                            Assert.True(Equalish(obj, instance));
-                        }
+                        var obj = reader.ReadValue();
+                        Assert.NotNull(obj);
+                        Assert.True(Equalish(obj, instance));
                     }
                 }
             }
