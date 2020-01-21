@@ -101,10 +101,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
             }
 
-            int? insertPositionOpt = TryGetInsertPositionFromDeclaration(symbol.Locations.FirstOrDefault().FindNode(cancellationToken));
-            if (insertPositionOpt == null)
+            if (symbol.Locations.FirstOrDefault().IsInMetadata)
             {
-                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
+
             }
 
             if (symbol is IMethodSymbol method)
@@ -136,6 +135,29 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             if (symbol.Locations.Any(loc => loc.IsInMetadata))
             {
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DefinedInMetadata);
+            }
+
+            // This should be called after the metadata check above to avoid looking for nodes in metadata.
+            var declarationLocation = symbol.Locations.FirstOrDefault();
+            if (declarationLocation == default)
+            {
+                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DefinedInMetadata);
+            }
+
+            var solution = document.Project.Solution;
+            var documentId = solution.GetDocumentId(declarationLocation.SourceTree);
+            var declarationDocument = solution.GetDocument(documentId);
+            var declarationChangeSignatureService = declarationDocument?.GetRequiredLanguageService<AbstractChangeSignatureService>();
+
+            if (declarationChangeSignatureService == default)
+            {
+                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationLanguageServiceNotFound);
+            }
+
+            int? insertPositionOpt = declarationChangeSignatureService.TryGetInsertPositionFromDeclaration(symbol.Locations.FirstOrDefault().FindNode(cancellationToken));
+            if (insertPositionOpt == null)
+            {
+                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationMethodPositionNotFound);
             }
 
             if (!symbol.MatchesKind(SymbolKind.Method, SymbolKind.Property, SymbolKind.NamedType))

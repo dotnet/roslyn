@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         // We will insert a new comma and a parameter.
         protected override int? TryGetInsertPositionFromDeclaration(SyntaxNode matchingNode)
         {
-            var parameters = matchingNode.ChildNodes().OfType<ParameterListSyntax>().SingleOrDefault();
+            var parameters = matchingNode.ChildNodes().OfType<BaseParameterListSyntax>().SingleOrDefault();
 
             if (parameters == null)
             {
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 {
                     // (params a)
                     // (<new parameter> new comma ->, params a)
-                    return parameters.OpenParenToken.SpanStart + 1;
+                    return parameters.Parameters.FirstOrDefault().SpanStart;
                 }
                 else
                 {
@@ -179,7 +179,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             //
             // (a, b, c, d put here->)
             // (a, b, c, d,<- new comma <new parameter>)
-            return parameters.CloseParenToken.SpanStart;
+
+            switch (parameters)
+            {
+                case ParameterListSyntax parameterListSyntax:
+                    return parameterListSyntax.CloseParenToken.SpanStart;
+                case BracketedParameterListSyntax bracketedParameterListSyntax:
+                    return bracketedParameterListSyntax.CloseBracketToken.SpanStart;
+            }
+
+            return null;
         }
 
         private SyntaxNode GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)
