@@ -19,22 +19,5 @@
         </InterfaceGroup>
       </Implements>
     </Class>
-    <Class Name="Microsoft.VisualStudio.LanguageServices.EditAndContinue.VisualStudioDebugStateChangeListener+DebuggerService">
-      <Implements>
-        <InterfaceGroup>
-          <Filter>
-            <SourceId RequiredValue="StateChangeListenerMessageSourceId"/>
-          </Filter>
-          <Interface Name="IDkmCustomMessageForwardReceiver"/>
-        </InterfaceGroup>
-        <InterfaceGroup CallOnlyWhenLoaded="true">
-          <Filter>
-            <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
-          </Filter>
-          <Interface Name="IDkmModuleInstanceLoadNotification"/>
-          <Interface Name="IDkmModuleInstanceUnloadNotification"/>
-        </InterfaceGroup>
-      </Implements>
-    </Class>
   </ManagedComponent>
 </Configuration>
