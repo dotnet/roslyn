@@ -2005,7 +2005,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             if (TryEmitAssignmentInPlace(assignmentOperator, useKind != UseKind.Unused))
             {
-                Debug.Assert(!assignmentOperator.IsRef);
                 return;
             }
 
@@ -2072,6 +2071,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         //    i.e. target must not be on the heap and we should not be in a try block.
         private bool TryEmitAssignmentInPlace(BoundAssignmentOperator assignmentOperator, bool used)
         {
+            // If the left hand is itself a ref, then we can't use in-place assignment
+            // because we need to spill the creation. This code can't be written in C#, but
+            // can be produced by lowering.
+            if (assignmentOperator.IsRef)
+            {
+                return false;
+            }
+
             var left = assignmentOperator.Left;
 
             // if result is used, and lives on heap, we must keep RHS value on the stack.
