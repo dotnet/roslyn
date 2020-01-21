@@ -2185,20 +2185,22 @@ class C
 
             var declarations = root.DescendantNodes().OfType<ForEachStatementSyntax>().ToList();
 
-            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[0]);
+            assertAnnotation(declarations[1]);
+            assertAnnotation(declarations[2]);
+            assertAnnotation(declarations[3]);
 
-            void assertAnnotation(ForEachStatementSyntax foreachStatement, PublicNullableAnnotation expectedAnnotation)
+            void assertAnnotation(ForEachStatementSyntax foreachStatement)
             {
                 var symbol = model.GetDeclaredSymbol(foreachStatement);
-                Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
-                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, symbol.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
 
                 var typeInfo = model.GetTypeInfo(foreachStatement.Type);
-                Assert.Equal(expectedAnnotation, typeInfo.Nullability.Annotation);
-                Assert.Equal(expectedAnnotation, typeInfo.ConvertedNullability.Annotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.ConvertedNullability.Annotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.Type.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.ConvertedType.NullableAnnotation);
             }
         }
 

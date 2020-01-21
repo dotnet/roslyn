@@ -670,7 +670,7 @@ class Program
 {
     void Method(Program? x, Program2 x2)
     {
-        (Program y1, Program2 y2) = (x, x2);
+        (Program? y1, Program2? y2) = (x, x2);
     }
 }";
             // The type is not intrinsic and not apparent
@@ -895,7 +895,7 @@ class Program
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/37491"), Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
         public async Task NotNullableType_ForeachVarDeconstruction()
         {
@@ -913,14 +913,13 @@ class Program
         }
     }
 }";
-            // UNDONE: should be `foreach ((Program? y1, Program? y2) in x)`
             var after = @"
 class Program
 {
     void Method(System.Collections.Generic.IEnumerable<(Program, Program)> x)
     {
 #nullable enable
-        foreach ((Program y1, Program y2) in x)
+        foreach ((Program? y1, Program? y2) in x)
         {
         }
     }
