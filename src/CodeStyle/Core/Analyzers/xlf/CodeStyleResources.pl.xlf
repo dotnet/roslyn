@@ -42,11 +42,6 @@
         <target state="translated">Tylko refaktoryzacja</target>
         <note />
       </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Styl</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">Sugestia</target>
