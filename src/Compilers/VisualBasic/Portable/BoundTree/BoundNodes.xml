@@ -1829,7 +1829,15 @@
     <Field Name="IsCompleted" Type="BoundExpression" Null="disallow"/>
     <Field Name="GetResult" Type="BoundExpression" Null="disallow"/>
   </Node>
-
+  
+  <Node Name="BoundCheckedExpression" Base="BoundExpression" HasValidate="true">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Operand" Type="BoundExpression" Null="disallow"/>
+  </Node>
+  <Node Name="BoundUncheckedExpression" Base="BoundExpression" HasValidate="true">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Operand" Type="BoundExpression" Null="disallow"/>
+  </Node>
   <!-- Normal sequence nodes can't be used for await expressions, because await
        expression side-effects include control flow.
        

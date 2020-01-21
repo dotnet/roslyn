@@ -32499,6 +32499,244 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
+    ''' Represents an checked expression.
+    ''' </summary>
+    Friend NotInheritable Class CheckedExpressionSyntax
+        Inherits ExpressionSyntax
+
+        Friend ReadOnly _checkedKeyword as KeywordSyntax
+        Friend ReadOnly _expression as ExpressionSyntax
+
+        Friend Sub New(ByVal kind As SyntaxKind, checkedKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
+            MyBase.New(kind)
+            MyBase._slotCount = 2
+
+            AdjustFlagsAndWidth(checkedKeyword)
+            Me._checkedKeyword = checkedKeyword
+            AdjustFlagsAndWidth(expression)
+            Me._expression = expression
+
+        End Sub
+
+        Friend Sub New(ByVal kind As SyntaxKind, checkedKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
+            MyBase.New(kind)
+            MyBase._slotCount = 2
+            Me.SetFactoryContext(context)
+
+            AdjustFlagsAndWidth(checkedKeyword)
+            Me._checkedKeyword = checkedKeyword
+            AdjustFlagsAndWidth(expression)
+            Me._expression = expression
+
+        End Sub
+
+        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), checkedKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
+            MyBase.New(kind, errors, annotations)
+            MyBase._slotCount = 2
+
+            AdjustFlagsAndWidth(checkedKeyword)
+            Me._checkedKeyword = checkedKeyword
+            AdjustFlagsAndWidth(expression)
+            Me._expression = expression
+
+        End Sub
+
+        Friend Sub New(reader as ObjectReader)
+          MyBase.New(reader)
+            MyBase._slotCount = 2
+          Dim _checkedKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
+          If _checkedKeyword isnot Nothing 
+             AdjustFlagsAndWidth(_checkedKeyword)
+             Me._checkedKeyword = _checkedKeyword
+          End If
+          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
+          If _expression isnot Nothing 
+             AdjustFlagsAndWidth(_expression)
+             Me._expression = _expression
+          End If
+        End Sub
+        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New CheckedExpressionSyntax(o)
+
+
+        Friend Overrides Sub WriteTo(writer as ObjectWriter)
+          MyBase.WriteTo(writer)
+          writer.WriteValue(Me._checkedKeyword)
+          writer.WriteValue(Me._expression)
+        End Sub
+
+        Shared Sub New()
+          ObjectBinder.RegisterTypeReader(GetType(CheckedExpressionSyntax), Function(r) New CheckedExpressionSyntax(r))
+        End Sub
+
+        Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
+            Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax(Me, parent, startLocation)
+        End Function
+
+        ''' <summary>
+        ''' The "Checked" keyword.
+        ''' </summary>
+        Friend  ReadOnly Property CheckedKeyword As InternalSyntax.KeywordSyntax
+            Get
+                Return Me._checkedKeyword
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' The expression being checked.
+        ''' </summary>
+        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+            Get
+                Return Me._expression
+            End Get
+        End Property
+
+        Friend Overrides Function GetSlot(i as Integer) as GreenNode
+            Select case i
+                Case 0
+                    Return Me._checkedKeyword
+                Case 1
+                    Return Me._expression
+                Case Else
+                     Debug.Assert(false, "child index out of range")
+                     Return Nothing
+            End Select
+        End Function
+
+
+        Friend Overrides Function SetDiagnostics(ByVal newErrors As DiagnosticInfo()) As GreenNode
+            Return new CheckedExpressionSyntax(Me.Kind, newErrors, GetAnnotations, _checkedKeyword, _expression)
+        End Function
+
+        Friend Overrides Function SetAnnotations(ByVal annotations As SyntaxAnnotation()) As GreenNode
+            Return new CheckedExpressionSyntax(Me.Kind, GetDiagnostics, annotations, _checkedKeyword, _expression)
+        End Function
+
+        Public Overrides Function Accept(ByVal visitor As VisualBasicSyntaxVisitor) As VisualBasicSyntaxNode
+            Return visitor.VisitCheckedExpression(Me)
+        End Function
+
+    End Class
+
+    ''' <summary>
+    ''' Represents an unchecked expression.
+    ''' </summary>
+    Friend NotInheritable Class UncheckedExpressionSyntax
+        Inherits ExpressionSyntax
+
+        Friend ReadOnly _uncheckedKeyword as KeywordSyntax
+        Friend ReadOnly _expression as ExpressionSyntax
+
+        Friend Sub New(ByVal kind As SyntaxKind, uncheckedKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
+            MyBase.New(kind)
+            MyBase._slotCount = 2
+
+            AdjustFlagsAndWidth(uncheckedKeyword)
+            Me._uncheckedKeyword = uncheckedKeyword
+            AdjustFlagsAndWidth(expression)
+            Me._expression = expression
+
+        End Sub
+
+        Friend Sub New(ByVal kind As SyntaxKind, uncheckedKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
+            MyBase.New(kind)
+            MyBase._slotCount = 2
+            Me.SetFactoryContext(context)
+
+            AdjustFlagsAndWidth(uncheckedKeyword)
+            Me._uncheckedKeyword = uncheckedKeyword
+            AdjustFlagsAndWidth(expression)
+            Me._expression = expression
+
+        End Sub
+
+        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), uncheckedKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
+            MyBase.New(kind, errors, annotations)
+            MyBase._slotCount = 2
+
+            AdjustFlagsAndWidth(uncheckedKeyword)
+            Me._uncheckedKeyword = uncheckedKeyword
+            AdjustFlagsAndWidth(expression)
+            Me._expression = expression
+
+        End Sub
+
+        Friend Sub New(reader as ObjectReader)
+          MyBase.New(reader)
+            MyBase._slotCount = 2
+          Dim _uncheckedKeyword = DirectCast(reader.ReadValue(), KeywordSyntax)
+          If _uncheckedKeyword isnot Nothing 
+             AdjustFlagsAndWidth(_uncheckedKeyword)
+             Me._uncheckedKeyword = _uncheckedKeyword
+          End If
+          Dim _expression = DirectCast(reader.ReadValue(), ExpressionSyntax)
+          If _expression isnot Nothing 
+             AdjustFlagsAndWidth(_expression)
+             Me._expression = _expression
+          End If
+        End Sub
+        Friend Shared CreateInstance As Func(Of ObjectReader, Object) = Function(o) New UncheckedExpressionSyntax(o)
+
+
+        Friend Overrides Sub WriteTo(writer as ObjectWriter)
+          MyBase.WriteTo(writer)
+          writer.WriteValue(Me._uncheckedKeyword)
+          writer.WriteValue(Me._expression)
+        End Sub
+
+        Shared Sub New()
+          ObjectBinder.RegisterTypeReader(GetType(UncheckedExpressionSyntax), Function(r) New UncheckedExpressionSyntax(r))
+        End Sub
+
+        Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
+            Return new Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax(Me, parent, startLocation)
+        End Function
+
+        ''' <summary>
+        ''' The "Unchecked" keyword.
+        ''' </summary>
+        Friend  ReadOnly Property UncheckedKeyword As InternalSyntax.KeywordSyntax
+            Get
+                Return Me._uncheckedKeyword
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' The expression being Unchecked.
+        ''' </summary>
+        Friend  ReadOnly Property Expression As InternalSyntax.ExpressionSyntax
+            Get
+                Return Me._expression
+            End Get
+        End Property
+
+        Friend Overrides Function GetSlot(i as Integer) as GreenNode
+            Select case i
+                Case 0
+                    Return Me._uncheckedKeyword
+                Case 1
+                    Return Me._expression
+                Case Else
+                     Debug.Assert(false, "child index out of range")
+                     Return Nothing
+            End Select
+        End Function
+
+
+        Friend Overrides Function SetDiagnostics(ByVal newErrors As DiagnosticInfo()) As GreenNode
+            Return new UncheckedExpressionSyntax(Me.Kind, newErrors, GetAnnotations, _uncheckedKeyword, _expression)
+        End Function
+
+        Friend Overrides Function SetAnnotations(ByVal annotations As SyntaxAnnotation()) As GreenNode
+            Return new UncheckedExpressionSyntax(Me.Kind, GetDiagnostics, annotations, _uncheckedKeyword, _expression)
+        End Function
+
+        Public Overrides Function Accept(ByVal visitor As VisualBasicSyntaxVisitor) As VisualBasicSyntaxNode
+            Return visitor.VisitUncheckedExpression(Me)
+        End Function
+
+    End Class
+
+    ''' <summary>
     ''' Represents a single syntactic token in a VB program. A token is a keyword,
     ''' punctuator, literal, identifier or XML token. The type of keyword or punctuator
     ''' can be determined from the Kind property.
@@ -37625,6 +37863,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(node IsNot Nothing)
             Return VisitExpression(node)
         End Function
+        Public Overridable Function VisitCheckedExpression(ByVal node As CheckedExpressionSyntax) As VisualBasicSyntaxNode
+            Debug.Assert(node IsNot Nothing)
+            Return VisitExpression(node)
+        End Function
+        Public Overridable Function VisitUncheckedExpression(ByVal node As UncheckedExpressionSyntax) As VisualBasicSyntaxNode
+            Debug.Assert(node IsNot Nothing)
+            Return VisitExpression(node)
+        End Function
         Public Overridable Function VisitStructuredTrivia(ByVal node As StructuredTriviaSyntax) As VisualBasicSyntaxNode
             Debug.Assert(node IsNot Nothing)
             Return VisitVisualBasicSyntaxNode(node)
@@ -41496,6 +41742,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Function
 
+        Public Overrides Function VisitCheckedExpression(ByVal node As CheckedExpressionSyntax) As VisualBasicSyntaxNode
+            Dim anyChanges As Boolean = False
+
+            Dim newCheckedKeyword = DirectCast(Visit(node.CheckedKeyword), KeywordSyntax)
+            If node._checkedKeyword IsNot newCheckedKeyword Then anyChanges = True
+            Dim newExpression = DirectCast(Visit(node._expression), ExpressionSyntax)
+            If node._expression IsNot newExpression Then anyChanges = True
+
+            If anyChanges Then
+                Return New CheckedExpressionSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, newCheckedKeyword, newExpression)
+            Else
+                Return node
+            End If
+        End Function
+
+        Public Overrides Function VisitUncheckedExpression(ByVal node As UncheckedExpressionSyntax) As VisualBasicSyntaxNode
+            Dim anyChanges As Boolean = False
+
+            Dim newUncheckedKeyword = DirectCast(Visit(node.UncheckedKeyword), KeywordSyntax)
+            If node._uncheckedKeyword IsNot newUncheckedKeyword Then anyChanges = True
+            Dim newExpression = DirectCast(Visit(node._expression), ExpressionSyntax)
+            If node._expression IsNot newExpression Then anyChanges = True
+
+            If anyChanges Then
+                Return New UncheckedExpressionSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, newUncheckedKeyword, newExpression)
+            Else
+                Return node
+            End If
+        End Function
+
         Public Overrides Function VisitSkippedTokensTrivia(ByVal node As SkippedTokensTriviaSyntax) As VisualBasicSyntaxNode
             Dim anyChanges As Boolean = False
 
@@ -42192,6 +42468,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
               GetType(QualifiedCrefOperatorReferenceSyntax),
               GetType(YieldStatementSyntax),
               GetType(AwaitExpressionSyntax),
+              GetType(CheckedExpressionSyntax),
+              GetType(UncheckedExpressionSyntax),
               GetType(SyntaxToken),
               GetType(KeywordSyntax),
               GetType(PunctuationSyntax),
@@ -53542,6 +53820,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Dim result = New AwaitExpressionSyntax(SyntaxKind.AwaitExpression, awaitKeyword, expression)
+            If hash >= 0 Then
+                SyntaxNodeCache.AddNode(result, hash)
+            End If
+
+            Return result
+        End Function
+
+
+        ''' <summary>
+        ''' Represents an checked expression.
+        ''' </summary>
+        ''' <param name="checkedKeyword">
+        ''' The "Checked" keyword.
+        ''' </param>
+        ''' <param name="expression">
+        ''' The expression being checked.
+        ''' </param>
+        Friend Shared Function CheckedExpression(checkedKeyword As KeywordSyntax, expression As ExpressionSyntax) As CheckedExpressionSyntax
+            Debug.Assert(checkedKeyword IsNot Nothing AndAlso checkedKeyword.Kind = SyntaxKind.CheckedKeyword)
+            Debug.Assert(expression IsNot Nothing)
+
+            Dim hash As Integer
+            Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.CheckedExpression, checkedKeyword, expression, hash)
+            If cached IsNot Nothing Then
+                Return DirectCast(cached, CheckedExpressionSyntax)
+            End If
+
+            Dim result = New CheckedExpressionSyntax(SyntaxKind.CheckedExpression, checkedKeyword, expression)
+            If hash >= 0 Then
+                SyntaxNodeCache.AddNode(result, hash)
+            End If
+
+            Return result
+        End Function
+
+
+        ''' <summary>
+        ''' Represents an unchecked expression.
+        ''' </summary>
+        ''' <param name="uncheckedKeyword">
+        ''' The "Unchecked" keyword.
+        ''' </param>
+        ''' <param name="expression">
+        ''' The expression being Unchecked.
+        ''' </param>
+        Friend Shared Function UncheckedExpression(uncheckedKeyword As KeywordSyntax, expression As ExpressionSyntax) As UncheckedExpressionSyntax
+            Debug.Assert(uncheckedKeyword IsNot Nothing AndAlso uncheckedKeyword.Kind = SyntaxKind.UncheckedKeyword)
+            Debug.Assert(expression IsNot Nothing)
+
+            Dim hash As Integer
+            Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.UncheckedExpression, uncheckedKeyword, expression, hash)
+            If cached IsNot Nothing Then
+                Return DirectCast(cached, UncheckedExpressionSyntax)
+            End If
+
+            Dim result = New UncheckedExpressionSyntax(SyntaxKind.UncheckedExpression, uncheckedKeyword, expression)
             If hash >= 0 Then
                 SyntaxNodeCache.AddNode(result, hash)
             End If
@@ -65618,6 +65952,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Dim result = New AwaitExpressionSyntax(SyntaxKind.AwaitExpression, awaitKeyword, expression, _factoryContext)
+            If hash >= 0 Then
+                SyntaxNodeCache.AddNode(result, hash)
+            End If
+
+            Return result
+        End Function
+
+
+        ''' <summary>
+        ''' Represents an checked expression.
+        ''' </summary>
+        ''' <param name="checkedKeyword">
+        ''' The "Checked" keyword.
+        ''' </param>
+        ''' <param name="expression">
+        ''' The expression being checked.
+        ''' </param>
+        Friend Function CheckedExpression(checkedKeyword As KeywordSyntax, expression As ExpressionSyntax) As CheckedExpressionSyntax
+            Debug.Assert(checkedKeyword IsNot Nothing AndAlso checkedKeyword.Kind = SyntaxKind.CheckedKeyword)
+            Debug.Assert(expression IsNot Nothing)
+
+            Dim hash As Integer
+            Dim cached = VisualBasicSyntaxNodeCache.TryGetNode(SyntaxKind.CheckedExpression, checkedKeyword, expression, _factoryContext, hash)
+            If cached IsNot Nothing Then
+                Return DirectCast(cached, CheckedExpressionSyntax)
+            End If
+
+            Dim result = New CheckedExpressionSyntax(SyntaxKind.CheckedExpression, checkedKeyword, expression, _factoryContext)
+            If hash >= 0 Then
+                SyntaxNodeCache.AddNode(result, hash)
+            End If
+
+            Return result
+        End Function
+
+
+        ''' <summary>
+        ''' Represents an unchecked expression.
+        ''' </summary>
+        ''' <param name="uncheckedKeyword">
+        ''' The "Unchecked" keyword.
+        ''' </param>
+        ''' <param name="expression">
+        ''' The expression being Unchecked.
+        ''' </param>
+        Friend Function UncheckedExpression(uncheckedKeyword As KeywordSyntax, expression As ExpressionSyntax) As UncheckedExpressionSyntax
+            Debug.Assert(uncheckedKeyword IsNot Nothing AndAlso uncheckedKeyword.Kind = SyntaxKind.UncheckedKeyword)
+            Debug.Assert(expression IsNot Nothing)
+
+            Dim hash As Integer
+            Dim cached = VisualBasicSyntaxNodeCache.TryGetNode(SyntaxKind.UncheckedExpression, uncheckedKeyword, expression, _factoryContext, hash)
+            If cached IsNot Nothing Then
+                Return DirectCast(cached, UncheckedExpressionSyntax)
+            End If
+
+            Dim result = New UncheckedExpressionSyntax(SyntaxKind.UncheckedExpression, uncheckedKeyword, expression, _factoryContext)
             If hash >= 0 Then
                 SyntaxNodeCache.AddNode(result, hash)
             End If

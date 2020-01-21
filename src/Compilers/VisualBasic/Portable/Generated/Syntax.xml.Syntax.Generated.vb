@@ -33115,6 +33115,216 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     End Class
 
     ''' <summary>
+    ''' Represents an checked expression.
+    ''' </summary>
+    Public NotInheritable Class CheckedExpressionSyntax
+        Inherits ExpressionSyntax
+
+        Friend _expression as ExpressionSyntax
+
+        Friend Sub New(ByVal green As GreenNode, ByVal parent as SyntaxNode, ByVal startLocation As Integer)
+            MyBase.New(green, parent, startLocation)
+            Debug.Assert(green IsNot Nothing)
+            Debug.Assert(startLocation >= 0)
+        End Sub
+
+        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), checkedKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
+            Me.New(New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.CheckedExpressionSyntax(kind, errors, annotations, checkedKeyword, DirectCast(expression.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ExpressionSyntax)), Nothing, 0)
+        End Sub
+
+        ''' <summary>
+        ''' The "Checked" keyword.
+        ''' </summary>
+        Public  ReadOnly Property CheckedKeyword As SyntaxToken
+            Get
+                return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.CheckedExpressionSyntax)._checkedKeyword, Me.Position, 0)
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns a copy of this with the CheckedKeyword property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Shadows Function WithCheckedKeyword(checkedKeyword as SyntaxToken) As CheckedExpressionSyntax
+            return Update(checkedKeyword, Me.Expression)
+        End Function
+
+        ''' <summary>
+        ''' The expression being checked.
+        ''' </summary>
+        Public  ReadOnly Property Expression As ExpressionSyntax
+            Get
+                Return GetRed(_expression, 1)
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns a copy of this with the Expression property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Shadows Function WithExpression(expression as ExpressionSyntax) As CheckedExpressionSyntax
+            return Update(Me.CheckedKeyword, expression)
+        End Function
+
+        Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
+            Select case i
+                Case 1
+                    Return Me._expression
+                Case Else
+                     Return Nothing
+            End Select
+        End Function
+
+        Friend Overrides Function GetNodeSlot(i as Integer) as SyntaxNode
+            Select case i
+                Case 1
+                    Return Me.Expression
+                Case Else
+                     Return Nothing
+            End Select
+        End Function
+
+        Public Overrides Function Accept(Of TResult)(ByVal visitor As VisualBasicSyntaxVisitor(Of TResult)) As TResult
+            Return visitor.VisitCheckedExpression(Me)
+        End Function
+
+        Public Overrides Sub Accept(ByVal visitor As VisualBasicSyntaxVisitor)
+            visitor.VisitCheckedExpression(Me)
+        End Sub
+
+
+        ''' <summary>
+        ''' Returns a copy of this with the specified changes. Returns this instance if
+        ''' there are no actual changes.
+        ''' </summary>
+        ''' <param name="checkedKeyword">
+        ''' The value for the CheckedKeyword property.
+        ''' </param>
+        ''' <param name="expression">
+        ''' The value for the Expression property.
+        ''' </param>
+        Public Function Update(checkedKeyword As SyntaxToken, expression As ExpressionSyntax) As CheckedExpressionSyntax
+            If checkedKeyword <> Me.CheckedKeyword OrElse expression IsNot Me.Expression Then
+                Dim newNode = SyntaxFactory.CheckedExpression(checkedKeyword, expression)
+                Dim annotations = Me.GetAnnotations()
+                If annotations IsNot Nothing AndAlso annotations.Length > 0
+                    return newNode.WithAnnotations(annotations)
+                End If
+                Return newNode
+            End If
+            Return Me
+        End Function
+
+    End Class
+
+    ''' <summary>
+    ''' Represents an unchecked expression.
+    ''' </summary>
+    Public NotInheritable Class UncheckedExpressionSyntax
+        Inherits ExpressionSyntax
+
+        Friend _expression as ExpressionSyntax
+
+        Friend Sub New(ByVal green As GreenNode, ByVal parent as SyntaxNode, ByVal startLocation As Integer)
+            MyBase.New(green, parent, startLocation)
+            Debug.Assert(green IsNot Nothing)
+            Debug.Assert(startLocation >= 0)
+        End Sub
+
+        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), uncheckedKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
+            Me.New(New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.UncheckedExpressionSyntax(kind, errors, annotations, uncheckedKeyword, DirectCast(expression.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ExpressionSyntax)), Nothing, 0)
+        End Sub
+
+        ''' <summary>
+        ''' The "Unchecked" keyword.
+        ''' </summary>
+        Public  ReadOnly Property UncheckedKeyword As SyntaxToken
+            Get
+                return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.UncheckedExpressionSyntax)._uncheckedKeyword, Me.Position, 0)
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns a copy of this with the UncheckedKeyword property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Shadows Function WithUncheckedKeyword(uncheckedKeyword as SyntaxToken) As UncheckedExpressionSyntax
+            return Update(uncheckedKeyword, Me.Expression)
+        End Function
+
+        ''' <summary>
+        ''' The expression being Unchecked.
+        ''' </summary>
+        Public  ReadOnly Property Expression As ExpressionSyntax
+            Get
+                Return GetRed(_expression, 1)
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns a copy of this with the Expression property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Shadows Function WithExpression(expression as ExpressionSyntax) As UncheckedExpressionSyntax
+            return Update(Me.UncheckedKeyword, expression)
+        End Function
+
+        Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
+            Select case i
+                Case 1
+                    Return Me._expression
+                Case Else
+                     Return Nothing
+            End Select
+        End Function
+
+        Friend Overrides Function GetNodeSlot(i as Integer) as SyntaxNode
+            Select case i
+                Case 1
+                    Return Me.Expression
+                Case Else
+                     Return Nothing
+            End Select
+        End Function
+
+        Public Overrides Function Accept(Of TResult)(ByVal visitor As VisualBasicSyntaxVisitor(Of TResult)) As TResult
+            Return visitor.VisitUncheckedExpression(Me)
+        End Function
+
+        Public Overrides Sub Accept(ByVal visitor As VisualBasicSyntaxVisitor)
+            visitor.VisitUncheckedExpression(Me)
+        End Sub
+
+
+        ''' <summary>
+        ''' Returns a copy of this with the specified changes. Returns this instance if
+        ''' there are no actual changes.
+        ''' </summary>
+        ''' <param name="uncheckedKeyword">
+        ''' The value for the UncheckedKeyword property.
+        ''' </param>
+        ''' <param name="expression">
+        ''' The value for the Expression property.
+        ''' </param>
+        Public Function Update(uncheckedKeyword As SyntaxToken, expression As ExpressionSyntax) As UncheckedExpressionSyntax
+            If uncheckedKeyword <> Me.UncheckedKeyword OrElse expression IsNot Me.Expression Then
+                Dim newNode = SyntaxFactory.UncheckedExpression(uncheckedKeyword, expression)
+                Dim annotations = Me.GetAnnotations()
+                If annotations IsNot Nothing AndAlso annotations.Length > 0
+                    return newNode.WithAnnotations(annotations)
+                End If
+                Return newNode
+            End If
+            Return Me
+        End Function
+
+    End Class
+
+    ''' <summary>
     ''' Abstract class that represent structured trivia.
     ''' </summary>
     Public MustInherit Class StructuredTriviaSyntax

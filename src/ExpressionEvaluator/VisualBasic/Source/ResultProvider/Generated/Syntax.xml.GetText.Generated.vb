@@ -408,6 +408,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return "Iterator"
         Case SyntaxKind.YieldKeyword
             Return "Yield"
+        Case SyntaxKind.CheckedKeyword
+            Return "Checked"
+        Case SyntaxKind.UncheckedKeyword
+            Return "Unchecked"
         Case SyntaxKind.ExclamationToken
             Return "!"
         Case SyntaxKind.AtToken

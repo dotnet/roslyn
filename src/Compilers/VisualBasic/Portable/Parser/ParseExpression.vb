@@ -216,13 +216,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             If nextToken.Kind = SyntaxKind.SubKeyword OrElse nextToken.Kind = SyntaxKind.FunctionKeyword Then
                                 term = ParseLambda(parseModifiers:=True)
 
+
                                 Exit Select
                             End If
 
                         ElseIf Context.IsWithinAsyncMethodOrLambda AndAlso keyword.Kind = SyntaxKind.AwaitKeyword Then
                             term = ParseAwaitExpression(keyword)
-
                             Exit Select
+
+                        Else If keyword.Kind = SyntaxKind.UncheckedKeyword Then
+                            term = ParseUncheckedExpression(keyword)
+                            Exit Select
+
+                        Else If keyword.Kind = SyntaxKind.CheckedKeyword Then
+                            term = ParseCheckedExpression(keyword)
+                            Exit Select
+
                         End If
                     End If
 
@@ -1901,6 +1910,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
+
+        Private Function ParseCheckedExpression(Optional checkedKeyword As KeywordSyntax = Nothing) As CheckedExpressionSyntax
+
+            Debug.Assert(DirectCast(CurrentToken, IdentifierTokenSyntax).ContextualKind = SyntaxKind.CheckedKeyword)
+
+            If checkedKeyword Is Nothing Then
+                TryIdentifierAsContextualKeyword(CurrentToken, checkedKeyword)
+
+                Debug.Assert(checkedKeyword IsNot Nothing AndAlso checkedKeyword.Kind = SyntaxKind.checkedKeyword)
+            End If
+
+            GetNextToken()
+
+            Dim expression = ParseTerm()
+
+            Return SyntaxFactory.CheckedExpression(checkedKeyword, expression)
+
+        End Function
+
+        Private Function ParseUncheckedExpression(Optional uncheckedKeyword As KeywordSyntax = Nothing) As UncheckedExpressionSyntax
+
+            Debug.Assert(DirectCast(CurrentToken, IdentifierTokenSyntax).ContextualKind = SyntaxKind.CheckedKeyword)
+
+            If uncheckedKeyword Is Nothing Then
+                TryIdentifierAsContextualKeyword(CurrentToken, uncheckedKeyword)
+
+                Debug.Assert(uncheckedKeyword IsNot Nothing AndAlso uncheckedKeyword.Kind = SyntaxKind.checkedKeyword)
+            End If
+
+            GetNextToken()
+
+            Dim expression = ParseTerm()
+
+            Return SyntaxFactory.UncheckedExpression(uncheckedKeyword, expression)
+
+        End Function
     End Class
 
 End Namespace

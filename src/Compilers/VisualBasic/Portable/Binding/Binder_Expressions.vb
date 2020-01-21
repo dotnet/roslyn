@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -241,6 +242,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.AwaitExpression
                     Return BindAwait(DirectCast(node, AwaitExpressionSyntax), diagnostics)
 
+                Case SyntaxKind.CheckedExpression
+                    Return BindCheckedExpression(DirectCast(node, CheckedExpressionSyntax), diagnostics)
+                Case SyntaxKind.UncheckedExpression
+                    Return BindUncheckedExpression(DirectCast(node, UncheckedExpressionSyntax), diagnostics)
+
                 Case SyntaxKind.ConditionalAccessExpression
                     Return BindConditionalAccessExpression(DirectCast(node, ConditionalAccessExpressionSyntax), diagnostics)
 
@@ -258,6 +264,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return BadExpression(node, ImmutableArray(Of BoundExpression).Empty, ErrorTypeSymbol.UnknownResultType)
 
             End Select
+        End Function
+
+        Private Function BindCheckedExpression(node As CheckedExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+            Dim expr = BindExpression(node.Expression,diagnostics)
+            Return New BoundCheckedExpression(node,expr, expr.Type)
+        End Function
+
+        Private Function BindUncheckedExpression(node As UncheckedExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+            Dim expr = BindExpression(node.Expression, diagnostics)
+            Return New BoundUncheckedExpression(node, expr, expr.Type)
         End Function
 
         ''' <summary>
@@ -635,7 +651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Sub BindNamespaceOrTypeSyntaxForSemanticModelGetExpressionSymbols(expression As BoundExpression, symbols As ArrayBuilder(Of Symbol))
             expression.GetExpressionSymbols(symbols)
 
-            If symbols.Count = 1 AndAlso symbols(0).Kind = SymbolKind.ErrorType Then
+            If symbols.Count = 1 AndAlso symbols(0).Kind = Global.Microsoft.CodeAnalysis.SymbolKind.ErrorType Then
                 Dim errorType = DirectCast(symbols(0), ErrorTypeSymbol)
                 symbols.Clear()
                 Dim diagnosticInfo = TryCast(errorType.ErrorInfo, IDiagnosticInfoWithSymbols)
@@ -668,7 +684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim typeExpression = New BoundTypeExpression(node.Type, Nothing, aliasSym, typeSym, typeSym.IsErrorType())
 
             ' System.Void() is not allowed for VB.
-            If typeSym.IsArrayType AndAlso DirectCast(typeSym, ArrayTypeSymbol).ElementType.SpecialType = SpecialType.System_Void Then
+            If typeSym.IsArrayType AndAlso DirectCast(typeSym, ArrayTypeSymbol).ElementType.SpecialType = Global.Microsoft.CodeAnalysis.SpecialType.System_Void Then
                 ReportDiagnostic(diagnostics, node.Type, ErrorFactory.ErrorInfo(ERRID.ERR_VoidArrayDisallowed))
             End If
 
@@ -1093,7 +1109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim cdiag = TryCast(diag, DiagnosticWithInfo)
                 Debug.Assert(cdiag Is Nothing OrElse Not cdiag.HasLazyInfo,
                              "If we decide to allow lazy syntax diagnostics, we'll have to check all call sites of SyntaxTree.GetDiagnostics")
-                If diag.Severity = DiagnosticSeverity.Error Then
+                If diag.Severity = Global.Microsoft.CodeAnalysis.DiagnosticSeverity.Error Then
                     Return Nothing
                 End If
             Next
@@ -1241,7 +1257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim syntax = expr.Syntax
 
             If Not expr.IsValue() OrElse
-               (exprType IsNot Nothing AndAlso exprType.SpecialType = SpecialType.System_Void) Then
+               (exprType IsNot Nothing AndAlso exprType.SpecialType = Global.Microsoft.CodeAnalysis.SpecialType.System_Void) Then
 
                 ReportDiagnostic(diagnostics, syntax, ERRID.ERR_VoidValue)
                 Return BadExpression(syntax, expr, LookupResultKind.NotAValue, ErrorTypeSymbol.UnknownResultType)
@@ -1521,11 +1537,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ElseIf (sourceType.Rank = 1 OrElse arrayLiteral.IsEmptyArrayLiteral) AndAlso
                 originalTargetType IsNot Nothing AndAlso
-                (originalTargetType.SpecialType = SpecialType.System_Collections_Generic_IEnumerable_T OrElse
-                 originalTargetType.SpecialType = SpecialType.System_Collections_Generic_IList_T OrElse
-                 originalTargetType.SpecialType = SpecialType.System_Collections_Generic_ICollection_T OrElse
-                 originalTargetType.SpecialType = SpecialType.System_Collections_Generic_IReadOnlyList_T OrElse
-                 originalTargetType.SpecialType = SpecialType.System_Collections_Generic_IReadOnlyCollection_T) Then
+                (originalTargetType.SpecialType = Global.Microsoft.CodeAnalysis.SpecialType.System_Collections_Generic_IEnumerable_T OrElse
+                 originalTargetType.SpecialType = Global.Microsoft.CodeAnalysis.SpecialType.System_Collections_Generic_IList_T OrElse
+                 originalTargetType.SpecialType = Global.Microsoft.CodeAnalysis.SpecialType.System_Collections_Generic_ICollection_T OrElse
+                 originalTargetType.SpecialType = Global.Microsoft.CodeAnalysis.SpecialType.System_Collections_Generic_IReadOnlyList_T OrElse
+                 originalTargetType.SpecialType = Global.Microsoft.CodeAnalysis.SpecialType.System_Collections_Generic_IReadOnlyCollection_T) Then
 
                 targetElementType = targetType.TypeArgumentsNoUseSiteDiagnostics(0)
                 sourceType = ArrayTypeSymbol.CreateVBArray(targetElementType, Nothing, 1, Compilation)
@@ -1721,7 +1737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
 
                     expression = invocation.Update(invocation.Member,
-                                                   newArguments.AsImmutableOrNull(),
+newArguments.AsImmutableOrNull(),
                                                    invocation.ArgumentNamesOpt,
                                                    invocation.AccessKind,
                                                    invocation.MethodOrPropertyGroupOpt,
@@ -1857,11 +1873,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim containingMethodKind As MethodKind = Me.KindOfContainingMethodAtRunTime()
 
-            If containingMethodKind = MethodKind.Constructor Then
+            If containingMethodKind = Global.Microsoft.CodeAnalysis.MethodKind.Constructor Then
                 If field.IsShared OrElse Not (receiver IsNot Nothing AndAlso receiver.IsInstanceReference()) Then
                     Return False
                 End If
-            ElseIf containingMethodKind = MethodKind.SharedConstructor Then
+            ElseIf containingMethodKind = Global.Microsoft.CodeAnalysis.MethodKind.SharedConstructor Then
                 If Not field.IsShared Then
                     Return False
                 End If
@@ -2588,8 +2604,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function TryBindInteractiveReceiver(syntax As VisualBasicSyntaxNode, currentMember As Symbol, currentType As NamedTypeSymbol, memberDeclaringType As NamedTypeSymbol) As BoundExpression
-            If currentType.TypeKind = TypeKind.Submission AndAlso Not currentMember.IsShared Then
-                If memberDeclaringType.TypeKind = TypeKind.Submission Then
+            If currentType.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Submission AndAlso Not currentMember.IsShared Then
+                If memberDeclaringType.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Submission Then
                     Return New BoundPreviousSubmissionReference(syntax, currentType, memberDeclaringType)
                 Else
                     ' TODO (tomat): host object binding
@@ -2802,7 +2818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim leftTypeKind As TypeKind = leftTypeSymbol.TypeKind
 
-                    If leftTypeKind = TypeKind.Class OrElse leftTypeKind = TypeKind.Structure OrElse leftTypeKind = TypeKind.Module Then
+                    If leftTypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Class OrElse leftTypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Structure OrElse leftTypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Module Then
 
                         ' Bind to method group representing available instance constructors
                         Dim namedLeftTypeSymbol = DirectCast(leftTypeSymbol, NamedTypeSymbol)
@@ -2885,7 +2901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf left.Kind = BoundKind.TypeExpression Then
                     type = DirectCast(left, BoundTypeExpression).Type
 
-                    If type.TypeKind = TypeKind.TypeParameter Then
+                    If type.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.TypeParameter Then
                         Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_TypeParamQualifierDisallowed), left)
                     Else
                         If String.IsNullOrEmpty(rightName) Then
@@ -3089,7 +3105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ReportDiagnostic(diagnostics, node, di)
                     End If
 
-                    If di.Severity = DiagnosticSeverity.Error Then
+                    If di.Severity = Global.Microsoft.CodeAnalysis.DiagnosticSeverity.Error Then
                         hasError = True
                         reportedLookupError = True
                     End If
@@ -3402,7 +3418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function AddReceiverNamespaces(namespaces As SmallDictionary(Of NamespaceSymbol, Boolean), candidate As Symbol, compilation As VisualBasicCompilation) As Boolean
-            If candidate.Kind = SymbolKind.Namespace AndAlso
+            If candidate.Kind = Global.Microsoft.CodeAnalysis.SymbolKind.Namespace AndAlso
                DirectCast(candidate, NamespaceSymbol).NamespaceKind = NamespaceKindNamespaceGroup Then
                 For Each constituent In DirectCast(candidate, NamespaceSymbol).ConstituentNamespaces
                     If Not AddContainingNamespaces(namespaces, constituent, compilation) Then
@@ -3417,7 +3433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function AddContainingNamespaces(namespaces As SmallDictionary(Of NamespaceSymbol, Boolean), candidate As Symbol, compilation As VisualBasicCompilation) As Boolean
-            If candidate Is Nothing OrElse candidate.Kind = SymbolKind.ErrorType Then
+            If candidate Is Nothing OrElse candidate.Kind = Global.Microsoft.CodeAnalysis.SymbolKind.ErrorType Then
                 Return False
             End If
 
@@ -3740,7 +3756,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not type.IsErrorType() Then
 
-                If type.SpecialType = SpecialType.System_Object OrElse type.IsExtensibleInterfaceNoUseSiteDiagnostics() Then
+                If type.SpecialType = Global.Microsoft.CodeAnalysis.SpecialType.System_Object OrElse type.IsExtensibleInterfaceNoUseSiteDiagnostics() Then
                     Dim name = node.Name
                     Dim arg = New BoundLiteral(name, ConstantValue.Create(node.Name.Identifier.ValueText), GetSpecialType(SpecialType.System_String, name, diagnostics))
                     Dim boundArguments = ImmutableArray.Create(Of BoundExpression)(arg)
@@ -3778,7 +3794,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case TypeKind.Array, TypeKind.Enum
                             ReportQualNotObjectRecord(left, diagnostics)
                         Case TypeKind.Class
-                            If type.SpecialType = SpecialType.System_Array Then
+                            If type.SpecialType = Global.Microsoft.CodeAnalysis.SpecialType.System_Array Then
                                 ReportDefaultMemberNotProperty(left, diagnostics)
                             Else
                                 ReportNoDefaultProperty(left, diagnostics)
@@ -4595,7 +4611,7 @@ lElseClause:
                 ' Use the inferred Object() from the array literal.  ReclassifyArrayLiteral depends on the array identity for correct error reporting
                 ' of inference errors.
                 dominantType = anEmptyArray.InferredType
-                Debug.Assert(dominantType.IsArrayType AndAlso DirectCast(dominantType, ArrayTypeSymbol).Rank = 1 AndAlso DirectCast(dominantType, ArrayTypeSymbol).ElementType.SpecialType = SpecialType.System_Object)
+                Debug.Assert(dominantType.IsArrayType AndAlso DirectCast(dominantType, ArrayTypeSymbol).Rank = 1 AndAlso DirectCast(dominantType, ArrayTypeSymbol).ElementType.SpecialType = Global.Microsoft.CodeAnalysis.SpecialType.System_Object)
 
             ElseIf allConvertibleToObject AndAlso (errorReasons And InferenceErrorReasons.Ambiguous) <> 0 Then
                 ' special case: there were multiple dominant types, so we fall back to Object
@@ -4624,11 +4640,11 @@ lElseClause:
         End Function
 
         Public Function IsInAsyncContext() As Boolean
-            Return ContainingMember.Kind = SymbolKind.Method AndAlso DirectCast(ContainingMember, MethodSymbol).IsAsync
+            Return ContainingMember.Kind = Global.Microsoft.CodeAnalysis.SymbolKind.Method AndAlso DirectCast(ContainingMember, MethodSymbol).IsAsync
         End Function
 
         Public Function IsInIteratorContext() As Boolean
-            Return ContainingMember.Kind = SymbolKind.Method AndAlso DirectCast(ContainingMember, MethodSymbol).IsIterator
+            Return ContainingMember.Kind = Global.Microsoft.CodeAnalysis.SymbolKind.Method AndAlso DirectCast(ContainingMember, MethodSymbol).IsIterator
         End Function
 
         Private Function BindAwait(
@@ -4735,7 +4751,7 @@ lElseClause:
 
                 Dim methodGroup As BoundMethodGroup = Nothing
 
-                If lookupResult.Kind = LookupResultKind.Good AndAlso lookupResult.Symbols(0).Kind = SymbolKind.Method Then
+                If lookupResult.Kind = LookupResultKind.Good AndAlso lookupResult.Symbols(0).Kind = Global.Microsoft.CodeAnalysis.SymbolKind.Method Then
                     methodGroup = CreateBoundMethodGroup(
                                 node,
                                 lookupResult,
@@ -4785,7 +4801,7 @@ lElseClause:
                     LookupMember(lookupResult, awaiterInstancePlaceholder.Type, WellKnownMemberNames.IsCompleted, 0,
                                  LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods, useSiteDiagnostics)
 
-                    If lookupResult.Kind = LookupResultKind.Good AndAlso lookupResult.Symbols(0).Kind = SymbolKind.Property Then
+                    If lookupResult.Kind = LookupResultKind.Good AndAlso lookupResult.Symbols(0).Kind = Global.Microsoft.CodeAnalysis.SymbolKind.Property Then
                         Dim propertyGroup = New BoundPropertyGroup(node,
                                                                    lookupResult.Symbols.ToDowncastedImmutable(Of PropertySymbol),
                                                                    lookupResult.Kind,
@@ -4830,7 +4846,7 @@ lElseClause:
                     LookupMember(lookupResult, awaiterInstancePlaceholder.Type, WellKnownMemberNames.GetResult, 0,
                                  LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods, useSiteDiagnostics)
 
-                    If lookupResult.Kind = LookupResultKind.Good AndAlso lookupResult.Symbols(0).Kind = SymbolKind.Method Then
+                    If lookupResult.Kind = LookupResultKind.Good AndAlso lookupResult.Symbols(0).Kind = Global.Microsoft.CodeAnalysis.SymbolKind.Method Then
                         methodGroup = CreateBoundMethodGroup(
                                     node,
                                     lookupResult,
@@ -4938,7 +4954,7 @@ lElseClause:
             End If
 
             For Each diag In bag.AsEnumerable()
-                If diag.Severity = DiagnosticSeverity.Error Then
+                If diag.Severity = Global.Microsoft.CodeAnalysis.DiagnosticSeverity.Error Then
                     Select Case diag.Code
                         Case ERRID.ERR_UseOfObsoletePropertyAccessor2,
                              ERRID.ERR_UseOfObsoletePropertyAccessor3,
@@ -4958,7 +4974,7 @@ lElseClause:
         Private Function GetAwaitInNonAsyncError() As DiagnosticInfo
             If Me.IsInLambda Then
                 Return ErrorFactory.ErrorInfo(ERRID.ERR_BadAwaitInNonAsyncLambda)
-            ElseIf ContainingMember.Kind = SymbolKind.Method Then
+            ElseIf ContainingMember.Kind = Global.Microsoft.CodeAnalysis.SymbolKind.Method Then
                 Dim method = DirectCast(ContainingMember, MethodSymbol)
 
                 If method.IsSub Then

@@ -18,8 +18,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Determine if the kind represents a contextual keyword
         ''' </summary>
         Public Shared Function IsContextualKeyword(kind As SyntaxKind) As Boolean
-            Return kind = SyntaxKind.ReferenceKeyword OrElse
-                (SyntaxKind.AggregateKeyword <= kind AndAlso kind <= SyntaxKind.YieldKeyword)
+            Select Case kind
+                Case SyntaxKind.CheckedKeyword,
+                     SyntaxKind.UncheckedKeyword
+                    Return True
+                Case SyntaxKind.ReferenceKeyword
+                    Return True
+                Case SyntaxKind.AggregateKeyword To SyntaxKind.YieldKeyword
+                   Return True
+            End Select
+            Return False
         End Function
 
         ''' <summary>
@@ -239,7 +247,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return s_reservedKeywords
         End Function
 
-        Private Shared ReadOnly s_contextualKeywords As SyntaxKind() = New SyntaxKind() {
+        Private Shared ReadOnly s_contextualKeywords As SyntaxKind() =
+            {
             SyntaxKind.AggregateKeyword,
             SyntaxKind.AllKeyword,
             SyntaxKind.AnsiKeyword,
@@ -286,7 +295,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             SyntaxKind.AsyncKeyword,
             SyntaxKind.AwaitKeyword,
             SyntaxKind.IteratorKeyword,
-            SyntaxKind.YieldKeyword
+            SyntaxKind.YieldKeyword,
+            SyntaxKind.CheckedKeyword,
+            SyntaxKind.UncheckedKeyword
             }
         ''' <summary>
         ''' Get contextual keywords
@@ -764,8 +775,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Shared ReadOnly s_contextualKeywordToSyntaxKindMap As Dictionary(Of String, SyntaxKind) =
-            New Dictionary(Of String, SyntaxKind)(IdentifierComparison.Comparer) From
+        Private Shared ReadOnly s_contextualKeywordToSyntaxKindMap As New Dictionary(Of String, SyntaxKind)(IdentifierComparison.Comparer) From
             {
                    {"aggregate", SyntaxKind.AggregateKeyword},
                    {"all", SyntaxKind.AllKeyword},
@@ -813,7 +823,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    {"async", SyntaxKind.AsyncKeyword},
                    {"await", SyntaxKind.AwaitKeyword},
                    {"iterator", SyntaxKind.IteratorKeyword},
-                   {"yield", SyntaxKind.YieldKeyword}
+                   {"yield", SyntaxKind.YieldKeyword},
+                   {"checked", SyntaxKind.CheckedKeyword},
+                   {"unchecked", SyntaxKind.UncheckedKeyword}
             }
 
         Public Shared Function GetContextualKeywordKind(text As String) As SyntaxKind
@@ -822,8 +834,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(s_contextualKeywordToSyntaxKindMap.TryGetValue(text, kind), kind, SyntaxKind.None)
         End Function
 
-        Private Shared ReadOnly s_preprocessorKeywordToSyntaxKindMap As Dictionary(Of String, SyntaxKind) =
-            New Dictionary(Of String, SyntaxKind)(IdentifierComparison.Comparer) From
+        Private Shared ReadOnly s_preprocessorKeywordToSyntaxKindMap As New Dictionary(Of String, SyntaxKind)(IdentifierComparison.Comparer) From
             {
                    {"if", SyntaxKind.IfKeyword},
                    {"elseif", SyntaxKind.ElseIfKeyword},

@@ -181,6 +181,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         UnstructuredExceptionOnErrorSwitch
         UnstructuredExceptionResumeSwitch
         AwaitOperator
+        CheckedExpression
+        UncheckedExpression
         SpillSequence
         StopStatement
         EndStatement
@@ -8700,6 +8702,86 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    Friend NotInheritable Partial Class BoundCheckedExpression
+        Inherits BoundExpression
+
+        Public Sub New(syntax As SyntaxNode, operand As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+            MyBase.New(BoundKind.CheckedExpression, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors())
+
+            Debug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+
+            Me._Operand = operand
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
+        End Sub
+
+
+        Private ReadOnly _Operand As BoundExpression
+        Public ReadOnly Property Operand As BoundExpression
+            Get
+                Return _Operand
+            End Get
+        End Property
+
+        <DebuggerStepThrough>
+        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+            Return visitor.VisitCheckedExpression(Me)
+        End Function
+
+        Public Function Update(operand As BoundExpression, type As TypeSymbol) As BoundCheckedExpression
+            If operand IsNot Me.Operand OrElse type IsNot Me.Type Then
+                Dim result = New BoundCheckedExpression(Me.Syntax, operand, type, Me.HasErrors)
+                result.CopyAttributes(Me)
+                Return result
+            End If
+            Return Me
+        End Function
+    End Class
+
+    Friend NotInheritable Partial Class BoundUncheckedExpression
+        Inherits BoundExpression
+
+        Public Sub New(syntax As SyntaxNode, operand As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+            MyBase.New(BoundKind.UncheckedExpression, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors())
+
+            Debug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+
+            Me._Operand = operand
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
+        End Sub
+
+
+        Private ReadOnly _Operand As BoundExpression
+        Public ReadOnly Property Operand As BoundExpression
+            Get
+                Return _Operand
+            End Get
+        End Property
+
+        <DebuggerStepThrough>
+        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+            Return visitor.VisitUncheckedExpression(Me)
+        End Function
+
+        Public Function Update(operand As BoundExpression, type As TypeSymbol) As BoundUncheckedExpression
+            If operand IsNot Me.Operand OrElse type IsNot Me.Type Then
+                Dim result = New BoundUncheckedExpression(Me.Syntax, operand, type, Me.HasErrors)
+                result.CopyAttributes(Me)
+                Return result
+            End If
+            Return Me
+        End Function
+    End Class
+
     Friend NotInheritable Partial Class BoundSpillSequence
         Inherits BoundExpression
 
@@ -9608,6 +9690,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return VisitUnstructuredExceptionResumeSwitch(CType(node, BoundUnstructuredExceptionResumeSwitch), arg)
                 Case BoundKind.AwaitOperator: 
                     Return VisitAwaitOperator(CType(node, BoundAwaitOperator), arg)
+                Case BoundKind.CheckedExpression: 
+                    Return VisitCheckedExpression(CType(node, BoundCheckedExpression), arg)
+                Case BoundKind.UncheckedExpression: 
+                    Return VisitUncheckedExpression(CType(node, BoundUncheckedExpression), arg)
                 Case BoundKind.SpillSequence: 
                     Return VisitSpillSequence(CType(node, BoundSpillSequence), arg)
                 Case BoundKind.StopStatement: 
@@ -10288,6 +10374,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overridable Function VisitAwaitOperator(node As BoundAwaitOperator, arg As A) As R
+            Return Me.DefaultVisit(node, arg)
+        End Function
+
+        Public Overridable Function VisitCheckedExpression(node As BoundCheckedExpression, arg As A) As R
+            Return Me.DefaultVisit(node, arg)
+        End Function
+
+        Public Overridable Function VisitUncheckedExpression(node As BoundUncheckedExpression, arg As A) As R
             Return Me.DefaultVisit(node, arg)
         End Function
 
@@ -10991,6 +11085,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overridable Function VisitAwaitOperator(node As BoundAwaitOperator) As BoundNode
+            Return Me.DefaultVisit(node)
+        End Function
+
+        Public Overridable Function VisitCheckedExpression(node As BoundCheckedExpression) As BoundNode
+            Return Me.DefaultVisit(node)
+        End Function
+
+        Public Overridable Function VisitUncheckedExpression(node As BoundUncheckedExpression) As BoundNode
             Return Me.DefaultVisit(node)
         End Function
 
@@ -11919,6 +12021,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.Visit(node.AwaiterInstancePlaceholder)
             Me.Visit(node.IsCompleted)
             Me.Visit(node.GetResult)
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitCheckedExpression(node As BoundCheckedExpression) As BoundNode
+            Me.Visit(node.Operand)
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitUncheckedExpression(node As BoundUncheckedExpression) As BoundNode
+            Me.Visit(node.Operand)
             Return Nothing
         End Function
 
@@ -13000,6 +13112,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim getResult As BoundExpression = DirectCast(Me.Visit(node.GetResult), BoundExpression)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
             Return node.Update(operand, awaitableInstancePlaceholder, getAwaiter, awaiterInstancePlaceholder, isCompleted, getResult, type)
+        End Function
+
+        Public Overrides Function VisitCheckedExpression(node As BoundCheckedExpression) As BoundNode
+            Dim operand As BoundExpression = DirectCast(Me.Visit(node.Operand), BoundExpression)
+            Dim type as TypeSymbol = Me.VisitType(node.Type)
+            Return node.Update(operand, type)
+        End Function
+
+        Public Overrides Function VisitUncheckedExpression(node As BoundUncheckedExpression) As BoundNode
+            Dim operand As BoundExpression = DirectCast(Me.Visit(node.Operand), BoundExpression)
+            Dim type as TypeSymbol = Me.VisitType(node.Type)
+            Return node.Update(operand, type)
         End Function
 
         Public Overrides Function VisitSpillSequence(node As BoundSpillSequence) As BoundNode
@@ -14439,6 +14563,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 New TreeDumperNode("awaiterInstancePlaceholder", Nothing, new TreeDumperNode() { Visit(node.AwaiterInstancePlaceholder, Nothing) }),
                 New TreeDumperNode("isCompleted", Nothing, new TreeDumperNode() { Visit(node.IsCompleted, Nothing) }),
                 New TreeDumperNode("getResult", Nothing, new TreeDumperNode() { Visit(node.GetResult, Nothing) }),
+                New TreeDumperNode("type", node.Type, Nothing)
+            })
+        End Function
+
+        Public Overrides Function VisitCheckedExpression(node As BoundCheckedExpression, arg As Object) As TreeDumperNode
+            Return New TreeDumperNode("checkedExpression", Nothing, New TreeDumperNode() {
+                New TreeDumperNode("operand", Nothing, new TreeDumperNode() { Visit(node.Operand, Nothing) }),
+                New TreeDumperNode("type", node.Type, Nothing)
+            })
+        End Function
+
+        Public Overrides Function VisitUncheckedExpression(node As BoundUncheckedExpression, arg As Object) As TreeDumperNode
+            Return New TreeDumperNode("uncheckedExpression", Nothing, New TreeDumperNode() {
+                New TreeDumperNode("operand", Nothing, new TreeDumperNode() { Visit(node.Operand, Nothing) }),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function

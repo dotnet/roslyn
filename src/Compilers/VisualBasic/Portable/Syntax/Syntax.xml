@@ -7757,6 +7757,55 @@ Unify Enum declarations with other block type declarations.
       </child>
     </node-structure>
 
+    <!--****************
+      -  CheckedExpression
+      ******************-->
+    <node-structure name="CheckedExpressionSyntax" parent="ExpressionSyntax">
+      <description>Represents an checked expression.</description>
+      <lm-equiv name="CheckedExpressionNode"></lm-equiv>
+      <native-equiv name="CheckedExpression"></native-equiv>
+
+      <node-kind name="CheckedExpression">
+        <lm-equiv name="CheckedExpression" />
+        <native-equiv name="Expression.Opcodes.Checked" />
+      </node-kind>
+
+      <child name="CheckedKeyword" kind="CheckedKeyword">
+        <description>The "Checked" keyword.</description>
+        <lm-equiv name="CheckedKeyword"></lm-equiv>
+      </child>
+
+      <child name="Expression" kind="@ExpressionSyntax">
+        <description>
+          The expression being checked.
+        </description>
+      </child>
+    </node-structure>
+    
+    <!--****************
+      -  UncheckedExpression
+      ******************-->
+    <node-structure name="UncheckedExpressionSyntax" parent="ExpressionSyntax">
+      <description>Represents an unchecked expression.</description>
+      <lm-equiv name="CheckedExpressionNode"></lm-equiv>
+      <native-equiv name="CheckedExpression"></native-equiv>
+
+      <node-kind name="UncheckedExpression">
+        <lm-equiv name="UncheckedExpression" />
+        <native-equiv name="Expression.Opcodes.Unchecked" />
+      </node-kind>
+
+      <child name="UncheckedKeyword" kind="UncheckedKeyword">
+        <description>The "Unchecked" keyword.</description>
+        <lm-equiv name="UncheckedKeyword"></lm-equiv>
+      </child>
+
+      <child name="Expression" kind="@ExpressionSyntax">
+        <description>
+          The expression being Unchecked.
+        </description>
+      </child>
+    </node-structure>
     <!-- ************************************************************************************************** -->
     <!-- **  TOKENS                                                                                      ** -->
     <!-- ************************************************************************************************** -->
@@ -8589,6 +8638,17 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="YieldKeyword" />
         <native-equiv name="" />
       </node-kind>
+      <!-- Visual Basic 16.0 Keywords -->
+
+      <node-kind name="CheckedKeyword" token-text="Checked">
+        <lm-equiv name="CheckedKeyword" />
+        <native-equiv name="" />
+      </node-kind>
+      <node-kind name="UncheckedKeyword" token-text="Unchecked">
+        <lm-equiv name="UncheckedKeyword" />
+        <native-equiv name="" />
+      </node-kind>
+
 
     </node-structure>
 

@@ -1179,6 +1179,7 @@ expression
   | binary_conditional_expression
   | binary_expression
   | cast_expression
+  | checked_expression
   | collection_initializer
   | conditional_access_expression
   | event_container
@@ -1202,6 +1203,7 @@ expression
   | type
   | type_of_expression
   | unary_expression
+  | unchecked_expression
   | xml_member_access_expression
   | xml_node
   ;
@@ -1366,6 +1368,10 @@ direct_cast_expression
 
 try_cast_expression
   : 'TryCast' '(' expression ',' type ')'
+  ;
+
+checked_expression
+  : 'Checked' expression
   ;
 
 conditional_access_expression
@@ -1661,6 +1667,10 @@ unary_minus_expression
 
 unary_plus_expression
   : '+' expression
+  ;
+
+unchecked_expression
+  : 'Unchecked' expression
   ;
 
 xml_member_access_expression

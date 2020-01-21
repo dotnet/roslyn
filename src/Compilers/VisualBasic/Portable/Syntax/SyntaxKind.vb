@@ -3199,5 +3199,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ConflictMarkerTrivia = 792
 
+        CheckedKeyword = 800
+        UncheckedKeyword = 801
+        CheckedExpression = 802
+        UncheckedExpression = 803
+
     End Enum
 End Namespace

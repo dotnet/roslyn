@@ -1,1 +1,30 @@
-
+Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax.CheckedKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax.Expression() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax.Update(checkedKeyword As Microsoft.CodeAnalysis.SyntaxToken, expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax.WithCheckedKeyword(checkedKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax.WithExpression(expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax.Expression() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax.UncheckedKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax.Update(uncheckedKeyword As Microsoft.CodeAnalysis.SyntaxToken, expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax.WithExpression(expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax.WithUncheckedKeyword(uncheckedKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.CheckedExpression = 802 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
+Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.CheckedKeyword = 800 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
+Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.UncheckedExpression = 803 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
+Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.UncheckedKeyword = 801 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult).VisitCheckedExpression(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax) -> TResult
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult).VisitUncheckedExpression(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax) -> TResult
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor.VisitCheckedExpression(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax) -> Void
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor.VisitUncheckedExpression(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax) -> Void
+Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax.Accept(Of TResult)(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult)) -> TResult
+Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
+Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax.Accept(Of TResult)(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult)) -> TResult
+Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitCheckedExpression(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax) -> Microsoft.CodeAnalysis.SyntaxNode
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitUncheckedExpression(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax) -> Microsoft.CodeAnalysis.SyntaxNode
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.CheckedExpression(checkedKeyword As Microsoft.CodeAnalysis.SyntaxToken, expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.CheckedExpression(expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CheckedExpressionSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.UncheckedExpression(expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.UncheckedExpression(uncheckedKeyword As Microsoft.CodeAnalysis.SyntaxToken, expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.UncheckedExpressionSyntax

@@ -212,6 +212,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostics = New DiagnosticBag()
             End If
 
+            Dim NoOverflowChecks As Boolean = CheckOverflow
+            If HasExplicitUnchecked(node) Then
+                NoOverflowChecks = True
+            ElseIf HasExplicitChecked(node) Then
+                NoOverflowChecks = False
+            End If
+
             ' Deal with NOTHING literal as an input.
             ConvertNothingLiterals(preliminaryOperatorKind, left, right, diagnostics)
 
@@ -290,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If operatorKind = BinaryOperatorKind.Error Then
                 ReportUndefinedOperatorError(node, left, right, operatorTokenKind, preliminaryOperatorKind, diagnostics)
 
-                Return New BoundBinaryOperator(node, preliminaryOperatorKind Or BinaryOperatorKind.Error, left, right, CheckOverflow, ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
+                Return New BoundBinaryOperator(node, preliminaryOperatorKind Or BinaryOperatorKind.Error, left, right, NoOverflowChecks, ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
             End If
 
             ' We are dealing with intrinsic operator 
@@ -516,8 +523,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
+
             Dim result As BoundExpression = New BoundBinaryOperator(node, operatorKind Or If(isOperandOfConditionalBranch, BinaryOperatorKind.IsOperandOfConditionalBranch, Nothing),
-                                                                    left, right, CheckOverflow, value, operatorResultType, hasError)
+                                                                    left, right, NoOverflowChecks, value, operatorResultType, hasError)
 
             If forceToBooleanType IsNot Nothing Then
                 Debug.Assert(forceToBooleanType.IsBooleanType())
@@ -528,6 +536,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
+        Private Function HasExplicitChecked(node As SyntaxNode) As Boolean?
+            Dim curr = node
+            While curr IsNot Nothing AndAlso TypeOf curr Is ExpressionSyntax
+                If curr.Kind = SyntaxKind.CheckedExpression Then Return True
+                curr = curr.Parent
+            End While
+            Return False
+        End Function
+        Private Function HasExplicitUnchecked(node As SyntaxNode) As Boolean?
+            Dim curr = node
+            While curr IsNot Nothing AndAlso TypeOf curr Is ExpressionSyntax
+                If curr.Kind = SyntaxKind.UncheckedExpression Then Return True
+                curr = curr.Parent
+            End While
+            Return False
+        End Function
         ''' <summary>
         ''' This helper is used to wrap nullable argument into something that would return null string if argument is null.
         '''
