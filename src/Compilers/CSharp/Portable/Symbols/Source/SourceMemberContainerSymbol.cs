@@ -1427,6 +1427,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
+            var baseType = BaseTypeNoUseSiteDiagnostics;
+            var interfaces = GetInterfacesToEmit();
             if (compilation.ShouldEmitNullableAttributes(this))
             {
                 if (ShouldEmitNullableContextValue(out _))
@@ -1435,13 +1437,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
-                var baseType = BaseTypeNoUseSiteDiagnostics;
-                var interfaces = GetInterfacesToEmit();
                 if (baseType?.NeedsNullableAttribute() == true ||
-                    interfaces.Any(t => t.NeedsNullableAttribute()))
+                     interfaces.Any(t => t.NeedsNullableAttribute()))
                 {
                     compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
+            }
+
+            if (needsTupleElementNamesAttribute(baseType) ||
+                interfaces.Any(t => needsTupleElementNamesAttribute(t)))
+            {
+                Binder.ReportMissingTupleElementNamesAttributesIfNeeded(compilation, location, diagnostics);
+            }
+
+            static bool needsTupleElementNamesAttribute(TypeSymbol type)
+            {
+                if (type is null)
+                {
+                    return false;
+                }
+
+                var resultType = type.VisitType(
+                    predicate: (t, a, b) => !t.TupleElementNames.IsDefaultOrEmpty && !t.IsErrorType(),
+                    arg: (object)null);
+                return resultType is object;
             }
         }
 

@@ -193,6 +193,86 @@ public class C1 : C0
             }
         }
 
+        [Theory]
+        [InlineData(true)]
+        //[InlineData(false)] // TODO2
+        [WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
+        public void SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit(bool useImageReferences)
+        {
+            Func<CSharpCompilation, MetadataReference> getReference = c => useImageReferences ? c.EmitToImageReference() : c.ToMetadataReference();
+
+            var valueTuple_source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+    }
+}";
+
+            var valueTuple_comp = CreateCompilationWithMscorlib40(valueTuple_source);
+            valueTuple_comp.VerifyDiagnostics();
+
+            var tupleElementNamesAttribute_source = @"
+
+namespace System.Runtime.CompilerServices
+{
+    public class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute(string[] transformNames) { }
+    }
+}";
+            var tupleElementNamesAttribute_comp = CreateCompilationWithMscorlib40(tupleElementNamesAttribute_source);
+            tupleElementNamesAttribute_comp.VerifyDiagnostics();
+
+            var lib1_source = @"
+using System.Threading.Tasks;
+
+public interface I2<T, TResult>
+{
+    Task<TResult> ExecuteAsync(T parameter);
+}
+
+public interface I1<T> : I2<T, (object a, object b)>
+{
+}
+";
+            var lib1_comp = CreateCompilationWithMscorlib40(lib1_source, references: new[] { getReference(valueTuple_comp), getReference(tupleElementNamesAttribute_comp) });
+            lib1_comp.VerifyDiagnostics();
+
+            var lib2_source = @"
+public interface I0 : I1<string>
+{
+}";
+            var lib2_comp = CreateCompilationWithMscorlib40(lib2_source, references: new[] { getReference(lib1_comp), getReference(valueTuple_comp) }); // missing TupleElementNamesAttribute
+            lib2_comp.VerifyDiagnostics(
+                // (2,18): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                // public interface I0 : I1<string>
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "I0").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(2, 18)
+                );
+
+            var imc1 = (TypeSymbol)lib2_comp.GlobalNamespace.GetMember("I0");
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>" },
+                imc1.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+
+            AssertEx.SetEqual(
+                new[] { "I1<System.String>", "I2<System.String, (System.Object a, System.Object b)>" },
+                imc1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
+        }
+
         [Fact]
         public void ExplicitAttributeFromSource()
         {
