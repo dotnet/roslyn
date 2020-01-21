@@ -15,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             ExpressionStatementSyntax,
             LocalDeclarationStatementSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsValid(expressionStatement As ExpressionStatementSyntax, span As TextSpan) As Boolean
             ' Expression is likely too simple to want to offer to generate a local for.
             ' This leads to too many false cases where this is offered.

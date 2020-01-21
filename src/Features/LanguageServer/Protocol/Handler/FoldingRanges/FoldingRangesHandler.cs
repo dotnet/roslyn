@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(Methods.TextDocumentFoldingRangeName)]
     internal class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]>
     {
+        [ImportingConstructor]
+        public FoldingRangesHandler()
+        {
+        }
+
         public async Task<FoldingRange[]> HandleRequestAsync(Solution solution, FoldingRangeParams request,
             ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {

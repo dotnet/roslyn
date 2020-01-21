@@ -16,6 +16,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
     internal class ContainingMemberColumnDefinition : TableColumnDefinitionBase
     {
         public const string ColumnName = AbstractReferenceFinder.ContainingMemberInfoPropertyName;
+
+        [ImportingConstructor]
+        public ContainingMemberColumnDefinition()
+        {
+        }
+
         public override bool IsFilterable => true;
         public override string Name => ColumnName;
         public override string DisplayName => ServicesVSResources.Containing_member;

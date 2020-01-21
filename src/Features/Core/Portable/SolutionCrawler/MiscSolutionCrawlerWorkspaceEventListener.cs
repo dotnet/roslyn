@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.MiscellaneousFiles), Shared]
     internal class MiscSolutionCrawlerWorkspaceEventListener : IEventListener<object>, IEventListenerStoppable
     {
+        [ImportingConstructor]
+        public MiscSolutionCrawlerWorkspaceEventListener()
+        {
+        }
+
         public void StartListening(Workspace workspace, object serviceOpt)
         {
             // misc workspace will enable syntax errors and semantic errors for script files for

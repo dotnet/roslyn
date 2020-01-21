@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(Methods.TextDocumentDocumentHighlightName)]
     internal class DocumentHighlightsHandler : IRequestHandler<TextDocumentPositionParams, DocumentHighlight[]>
     {
+        [ImportingConstructor]
+        public DocumentHighlightsHandler()
+        {
+        }
+
         public async Task<DocumentHighlight[]> HandleRequestAsync(Solution solution, TextDocumentPositionParams request,
             ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {

@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
     [ExportOptionProvider, Shared]
     internal class PythiaOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public PythiaOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; }
             = ImmutableArray.Create<IOption>(
                 PythiaOptions.ShowDebugInfo,

@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(MakeLocalFunctionStaticCodeRefactoringProvider)), Shared]
     internal sealed class MakeLocalFunctionStaticCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public MakeLocalFunctionStaticCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;

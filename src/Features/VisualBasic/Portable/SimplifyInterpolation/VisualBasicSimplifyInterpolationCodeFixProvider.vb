@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
             InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax,
             InterpolationFormatClauseSyntax, InterpolatedStringExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function WithExpression(interpolation As InterpolationSyntax, expression As ExpressionSyntax) As InterpolationSyntax
             Return interpolation.WithExpression(expression)
         End Function

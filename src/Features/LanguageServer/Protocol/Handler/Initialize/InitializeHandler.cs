@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         };
 
+        [ImportingConstructor]
+        public InitializeHandler()
+        {
+        }
+
         public Task<InitializeResult> HandleRequestAsync(Solution solution, InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             => Task.FromResult(s_initializeResult);
     }

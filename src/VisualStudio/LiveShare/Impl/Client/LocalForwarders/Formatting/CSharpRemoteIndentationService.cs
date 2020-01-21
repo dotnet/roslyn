@@ -10,6 +10,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(IIndentationService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspIndentationServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpLspIndentationServiceFactory()
+        {
+        }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {

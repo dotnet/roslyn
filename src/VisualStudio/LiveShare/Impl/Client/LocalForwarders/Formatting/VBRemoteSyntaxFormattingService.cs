@@ -10,6 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(ISyntaxFormattingService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspSyntaxFormattingServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public VBLspSyntaxFormattingServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return languageServices.GetOriginalLanguageService<ISyntaxFormattingService>();

@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMemberStatic
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpMakeMemberStaticCodeFixProvider)), Shared]
     internal sealed class CSharpMakeMemberStaticCodeFixProvider : AbstractMakeMemberStaticCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpMakeMemberStaticCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(
                 "CS0708" // 'MyMethod': cannot declare instance members in a static class

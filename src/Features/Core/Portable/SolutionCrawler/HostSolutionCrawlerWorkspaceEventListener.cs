@@ -8,6 +8,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class HostSolutionCrawlerWorkspaceEventListener : IEventListener<object>, IEventListenerStoppable
     {
+        [ImportingConstructor]
+        public HostSolutionCrawlerWorkspaceEventListener()
+        {
+        }
+
         public void StartListening(Workspace workspace, object serviceOpt)
         {
             var registration = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();

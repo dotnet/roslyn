@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
     {
         private static readonly ImmutableArray<bool> s_boolValues = ImmutableArray.Create(true, false);
 
+        [ImportingConstructor]
+        public ConfigureCodeStyleOptionCodeFixProvider()
+        {
+        }
+
         public bool IsFixableDiagnostic(Diagnostic diagnostic)
         {
             // We only offer fix for configurable code style diagnostics which have one of more editorconfig based storage locations.

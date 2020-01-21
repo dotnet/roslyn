@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(PassInCapturedVariablesAsArgumentsCodeFixProvider)), Shared]
     internal sealed class PassInCapturedVariablesAsArgumentsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public PassInCapturedVariablesAsArgumentsCodeFixProvider()
+        {
+        }
+
         //  "CS8421: A static local function can't contain a reference to <variable>."
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8421");
 

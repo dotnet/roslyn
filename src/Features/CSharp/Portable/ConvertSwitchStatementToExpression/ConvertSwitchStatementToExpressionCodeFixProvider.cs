@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public ConvertSwitchStatementToExpressionCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId);
 

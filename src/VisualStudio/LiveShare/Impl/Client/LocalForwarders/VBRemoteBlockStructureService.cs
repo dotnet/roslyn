@@ -10,6 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(BlockStructureService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspBlockStructureServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public VBLspBlockStructureServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return languageServices.GetOriginalLanguageService<BlockStructureService>();

@@ -9,6 +9,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageService(typeof(IRenameTrackingLanguageHeuristicsService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspRenameTrackingLanguageHeuristicsService : IRenameTrackingLanguageHeuristicsService
     {
+        [ImportingConstructor]
+        public VBLspRenameTrackingLanguageHeuristicsService()
+        {
+        }
+
         public bool IsIdentifierValidForRenameTracking(string name)
         {
             return false;

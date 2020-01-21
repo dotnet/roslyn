@@ -9,6 +9,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(ICompilationFactoryService), StringConstants.VBLspLanguageName), Shared]
     internal class VBRemoteCompilationFactoryService : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public VBRemoteCompilationFactoryService()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return languageServices.GetOriginalLanguageService<ICompilationFactoryService>();

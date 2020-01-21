@@ -10,6 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(IEditorBraceCompletionSessionFactory), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspBraceCompletionServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpLspBraceCompletionServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return languageServices.GetOriginalLanguageService<IEditorBraceCompletionSessionFactory>();

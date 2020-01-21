@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
     internal class CSharpImplementImplicitlyCodeRefactoringProvider :
         AbstractChangeImplementionCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public CSharpImplementImplicitlyCodeRefactoringProvider()
+        {
+        }
+
         protected override string Implement_0 => FeaturesResources.Implement_0_implicitly;
         protected override string Implement_all_interfaces => FeaturesResources.Implement_all_interfaces_implicitly;
         protected override string Implement => FeaturesResources.Implement_implicitly;

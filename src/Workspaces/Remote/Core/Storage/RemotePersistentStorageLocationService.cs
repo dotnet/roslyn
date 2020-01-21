@@ -10,12 +10,22 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
     [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: WorkspaceKind.RemoteWorkspace), Shared]
     internal class RemoteWorkspacePersistentStorageLocationService : DefaultPersistentStorageLocationService
     {
+        [ImportingConstructor]
+        public RemoteWorkspacePersistentStorageLocationService()
+        {
+        }
+
         public override bool IsSupported(Workspace workspace) => true;
     }
 
     [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: WorkspaceKind.RemoteTemporaryWorkspace), Shared]
     internal class RemoteTemporaryWorkspacePersistentStorageLocationService : DefaultPersistentStorageLocationService
     {
+        [ImportingConstructor]
+        public RemoteTemporaryWorkspacePersistentStorageLocationService()
+        {
+        }
+
         public override bool IsSupported(Workspace workspace) => true;
     }
 }

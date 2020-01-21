@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                 (nameof(EditorConfigSeverityStrings.Warning), EditorConfigSeverityStrings.Warning),
                 (nameof(EditorConfigSeverityStrings.Error), EditorConfigSeverityStrings.Error));
 
+        [ImportingConstructor]
+        public ConfigureSeverityLevelCodeFixProvider()
+        {
+        }
+
         // We only offer fix for configurable diagnostics.
         // Also skip suppressed diagnostics defensively, though the code fix engine should ideally never call us for suppressed diagnostics.
         public bool IsFixableDiagnostic(Diagnostic diagnostic)

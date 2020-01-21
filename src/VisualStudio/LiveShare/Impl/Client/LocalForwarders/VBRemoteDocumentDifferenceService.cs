@@ -10,6 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(IDocumentDifferenceService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspDocumentDifferenceServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public VBLspDocumentDifferenceServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return languageServices.GetOriginalLanguageService<IDocumentDifferenceService>();

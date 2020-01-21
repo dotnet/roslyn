@@ -227,11 +227,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeFixProvider)), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeFixProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeFixProvider
     {
+        [ImportingConstructor]
+        public UseExpressionBodyForLambdaCodeFixProvider()
+        {
+        }
     }
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeRefactoringProvider)), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public UseExpressionBodyForLambdaCodeRefactoringProvider()
+        {
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]

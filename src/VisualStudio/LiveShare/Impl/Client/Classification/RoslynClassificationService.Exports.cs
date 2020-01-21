@@ -10,12 +10,22 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
     [ExportLanguageServiceFactory(typeof(IClassificationService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspClassificationServiceFactory : RoslynClassificationServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpLspClassificationServiceFactory()
+        {
+        }
+
         protected override string LiveShareContentType => StringConstants.CSharpLspLanguageName;
     }
 
     [ExportLanguageServiceFactory(typeof(IClassificationService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspClassificationServiceFactory : RoslynClassificationServiceFactory
     {
+        [ImportingConstructor]
+        public VBLspClassificationServiceFactory()
+        {
+        }
+
         protected override string LiveShareContentType => StringConstants.VBLspLanguageName;
     }
 

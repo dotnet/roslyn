@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(Methods.TextDocumentOnTypeFormattingName)]
     internal class FormatDocumentOnTypeHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
+        [ImportingConstructor]
+        public FormatDocumentOnTypeHandler()
+        {
+        }
+
         public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentOnTypeFormattingParams request, ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {

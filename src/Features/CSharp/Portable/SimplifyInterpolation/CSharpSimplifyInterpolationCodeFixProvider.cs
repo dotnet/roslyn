@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
         InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax,
         InterpolationFormatClauseSyntax, InterpolatedStringExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpSimplifyInterpolationCodeFixProvider()
+        {
+        }
+
         protected override InterpolationSyntax WithExpression(InterpolationSyntax interpolation, ExpressionSyntax expression)
             => interpolation.WithExpression(expression);
 

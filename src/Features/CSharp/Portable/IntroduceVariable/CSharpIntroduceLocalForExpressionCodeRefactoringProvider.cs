@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             ExpressionStatementSyntax,
             LocalDeclarationStatementSyntax>
     {
+        [ImportingConstructor]
+        public CSharpIntroduceLocalForExpressionCodeRefactoringProvider()
+        {
+        }
+
         protected override bool IsValid(ExpressionStatementSyntax expressionStatement, TextSpan span)
         {
             // Expression is likely too simple to want to offer to generate a local for.

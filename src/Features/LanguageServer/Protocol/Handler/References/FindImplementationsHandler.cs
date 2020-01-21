@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentImplementationName)]
     internal class FindImplementationsHandler : IRequestHandler<LSP.TextDocumentPositionParams, object>
     {
+        [ImportingConstructor]
+        public FindImplementationsHandler()
+        {
+        }
+
         public async Task<object> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
             LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {

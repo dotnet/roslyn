@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName)]
     internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
+        [ImportingConstructor]
+        public CompletionResolveHandler()
+        {
+        }
+
         public async Task<LSP.CompletionItem> HandleRequestAsync(Solution solution, LSP.CompletionItem completionItem,
             LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {

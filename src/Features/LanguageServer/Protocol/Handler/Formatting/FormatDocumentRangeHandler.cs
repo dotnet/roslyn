@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(Methods.TextDocumentRangeFormattingName)]
     internal class FormatDocumentRangeHandler : FormatDocumentHandlerBase, IRequestHandler<DocumentRangeFormattingParams, TextEdit[]>
     {
+        [ImportingConstructor]
+        public FormatDocumentRangeHandler()
+        {
+        }
+
         public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentRangeFormattingParams request, ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {

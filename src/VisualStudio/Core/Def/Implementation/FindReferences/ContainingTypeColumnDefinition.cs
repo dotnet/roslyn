@@ -16,6 +16,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
     internal class ContainingTypeColumnDefinition : TableColumnDefinitionBase
     {
         public const string ColumnName = AbstractReferenceFinder.ContainingTypeInfoPropertyName;
+
+        [ImportingConstructor]
+        public ContainingTypeColumnDefinition()
+        {
+        }
+
         public override bool IsFilterable => true;
         public override string Name => ColumnName;
         public override string DisplayName => ServicesVSResources.Containing_type;

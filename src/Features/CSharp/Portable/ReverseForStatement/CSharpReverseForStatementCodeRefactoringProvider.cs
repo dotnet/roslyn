@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
     internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public CSharpReverseForStatementCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var forStatement = await context.TryGetRelevantNodeAsync<ForStatementSyntax>().ConfigureAwait(false);

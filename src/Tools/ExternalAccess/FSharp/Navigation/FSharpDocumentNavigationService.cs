@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
     [ExportWorkspaceService(typeof(IFSharpDocumentNavigationService)), Shared]
     internal class FSharpDocumentNavigationService : IFSharpDocumentNavigationService
     {
+        [ImportingConstructor]
+        public FSharpDocumentNavigationService()
+        {
+        }
+
         /// <summary>
         /// Determines whether it is possible to navigate to the given position in the specified document.
         /// </summary>

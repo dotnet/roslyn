@@ -15,5 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
     internal class CSharpPopulateSwitchStatementCodeFixProvider : AbstractPopulateSwitchStatementCodeFixProvider<
         SwitchStatementSyntax, SwitchSectionSyntax, MemberAccessExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpPopulateSwitchStatementCodeFixProvider()
+        {
+        }
     }
 }

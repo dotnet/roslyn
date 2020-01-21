@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     internal class UseSystemHashCodeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseSystemHashCodeCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseSystemHashCode);
 

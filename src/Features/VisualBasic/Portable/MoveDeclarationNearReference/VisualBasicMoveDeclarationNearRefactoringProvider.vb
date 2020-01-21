@@ -10,5 +10,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MoveDeclarationNearReference
     <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.InlineTemporary)>
     Class VisualBasicMoveDeclarationNearReferenceCodeRefactoringProvider
         Inherits AbstractMoveDeclarationNearReferenceCodeRefactoringProvider(Of LocalDeclarationStatementSyntax)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

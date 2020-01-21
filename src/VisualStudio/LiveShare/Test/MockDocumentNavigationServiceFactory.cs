@@ -15,6 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
     [PartNotDiscoverable]
     internal class MockDocumentNavigationServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public MockDocumentNavigationServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new MockDocumentNavigationService();

@@ -10,6 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(ICommentSelectionService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspCommentSelectionServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpLspCommentSelectionServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return languageServices.GetOriginalLanguageService<ICommentSelectionService>();

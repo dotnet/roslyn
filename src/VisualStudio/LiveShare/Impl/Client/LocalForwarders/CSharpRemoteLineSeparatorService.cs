@@ -10,6 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(ILineSeparatorService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspLineSeparatorServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpLspLineSeparatorServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return languageServices.GetOriginalLanguageService<ILineSeparatorService>();

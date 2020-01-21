@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.CommentSelection
     [ExportLanguageService(typeof(ICommentSelectionService), LanguageNames.FSharp)]
     internal class FSharpCommentSelectionService : ICommentSelectionService
     {
+        [ImportingConstructor]
+        public FSharpCommentSelectionService()
+        {
+        }
+
         public Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, CancellationToken cancellationToken)
         {
             return Task.FromResult(document);

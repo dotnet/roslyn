@@ -16,6 +16,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(IBreakpointResolutionService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspBreakpointServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpLspBreakpointServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return new CSharpRemoteBreakpointService(languageServices);
