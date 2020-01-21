@@ -168,13 +168,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             var env = curScope.DeclaredEnvironment;
-                            if (env?.IsStruct == false)
+                            if (!(env is null))
                             {
-                                Debug.Assert(!oldEnv.IsStruct);
-                                oldEnv.CapturesParent = true;
-                                oldEnv = env;
+                                if (!env.IsStruct)
+                                {
+                                    Debug.Assert(!oldEnv.IsStruct);
+                                    oldEnv.CapturesParent = true;
+                                    oldEnv = env;
+                                }
+                                capturedEnvs.Remove(env);
                             }
-                            capturedEnvs.Remove(env);
                             curScope = curScope.Parent;
                         }
 

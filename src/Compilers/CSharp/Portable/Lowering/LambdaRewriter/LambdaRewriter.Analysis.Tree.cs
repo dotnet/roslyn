@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// </summary>
                 public ClosureEnvironment? DeclaredEnvironment = null;
 
-#nullable disable
+#nullable restore
 
                 public Scope(Scope parent, BoundNode boundNode, Closure containingClosure)
                 {
