@@ -9,6 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Rename
     [ExportLanguageService(typeof(IEditorInlineRenameService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspRenameService : RoslynRenameService
     {
+        [ImportingConstructor]
         public CSharpLspRenameService()
         {
         }
@@ -17,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Rename
     [ExportLanguageService(typeof(IEditorInlineRenameService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspRenameService : RoslynRenameService
     {
+        [ImportingConstructor]
         public VBLspRenameService()
         {
         }

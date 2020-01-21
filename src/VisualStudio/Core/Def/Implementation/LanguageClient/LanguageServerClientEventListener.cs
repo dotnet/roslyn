@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         public Task WorkspaceStarted => _taskCompletionSource.Task;
 
+        [ImportingConstructor]
         public LanguageServerClientEventListener()
         {
             _taskCompletionSource = new TaskCompletionSource<object>();
