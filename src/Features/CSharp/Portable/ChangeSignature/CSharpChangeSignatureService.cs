@@ -289,37 +289,32 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // Update declarations parameter lists
-            if (updatedNode.IsKind(SyntaxKind.MethodDeclaration))
+            if (updatedNode.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax method))
             {
-                var method = (MethodDeclarationSyntax)updatedNode;
                 var updatedParameters = PermuteDeclaration(method.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.LocalFunctionStatement, out LocalFunctionStatementSyntax localFunction))
             {
-                var localFunction = (LocalFunctionStatementSyntax)updatedNode;
                 var updatedParameters = PermuteDeclaration(localFunction.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return localFunction.WithParameterList(localFunction.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax constructor))
             {
-                var constructor = (ConstructorDeclarationSyntax)updatedNode;
                 var updatedParameters = PermuteDeclaration(constructor.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return constructor.WithParameterList(constructor.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.IndexerDeclaration, out IndexerDeclarationSyntax indexer))
             {
-                var indexer = (IndexerDeclarationSyntax)updatedNode;
                 var updatedParameters = PermuteDeclaration(indexer.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return indexer.WithParameterList(indexer.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax delegateDeclaration))
             {
-                var delegateDeclaration = (DelegateDeclarationSyntax)updatedNode;
                 var updatedParameters = PermuteDeclaration(delegateDeclaration.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return delegateDeclaration.WithParameterList(delegateDeclaration.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
@@ -360,16 +355,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             if (updatedNode.IsKind(SyntaxKind.ParenthesizedLambdaExpression, out ParenthesizedLambdaExpressionSyntax parenLambda))
             {
-                var lambda = (ParenthesizedLambdaExpressionSyntax)updatedNode;
-                bool doNotSkipParameterType = lambda.ParameterList.Parameters.Any() && lambda.ParameterList.Parameters.First().Type != null;
+                bool doNotSkipParameterType = parenLambda.ParameterList.Parameters.Any() && parenLambda.ParameterList.Parameters.First().Type != null;
                 Func<AddedParameter, ParameterSyntax> createNewParameterDelegate =
                     p => CreateNewParameterSyntax(p, !doNotSkipParameterType);
 
                 var updatedParameters = PermuteDeclaration(
-                    lambda.ParameterList.Parameters,
+                    parenLambda.ParameterList.Parameters,
                     signaturePermutation,
                     createNewParameterDelegate);
-                return lambda.WithParameterList(lambda.ParameterList.WithParameters(updatedParameters));
+                return parenLambda.WithParameterList(parenLambda.ParameterList.WithParameters(updatedParameters));
             }
 
             // Update reference site argument lists
@@ -395,7 +389,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             if (updatedNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objCreation))
             {
-                var objCreation = (ObjectCreationExpressionSyntax)updatedNode;
                 var newArguments = PermuteArgumentList(declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation);
                 return objCreation.WithArgumentList(objCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
@@ -403,27 +396,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer) ||
                 updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer))
             {
-                var objCreation = (ConstructorInitializerSyntax)updatedNode;
-                var newArguments = PermuteArgumentList(declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation);
-                return objCreation.WithArgumentList(objCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var constructorInit = (ConstructorInitializerSyntax)updatedNode;
+                var newArguments = PermuteArgumentList(declarationSymbol, constructorInit.ArgumentList.Arguments, signaturePermutation);
+                return objCreation.WithArgumentList(constructorInit.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax elementAccess))
             {
-                var elementAccess = (ElementAccessExpressionSyntax)updatedNode;
                 var newArguments = PermuteArgumentList(declarationSymbol, elementAccess.ArgumentList.Arguments, signaturePermutation);
                 return elementAccess.WithArgumentList(elementAccess.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.Attribute, out AttributeSyntax attribute))
             {
-                var attribute = (AttributeSyntax)updatedNode;
                 var newArguments = PermuteAttributeArgumentList(declarationSymbol, attribute.ArgumentList.Arguments, signaturePermutation);
                 return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             // Handle references in crefs
-            if (updatedNode.IsKind(SyntaxKind.NameMemberCref))
+            if (updatedNode.IsKind(SyntaxKind.NameMemberCref, out NameMemberCrefSyntax nameMemberCref))
             {
                 if (nameMemberCref.Parameters == null ||
                     !nameMemberCref.Parameters.Parameters.Any())
