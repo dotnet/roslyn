@@ -54,11 +54,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Lazy<ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>> _lazyHostDiagnosticAnalyzersPerReferenceMap;
 
         /// <summary>
-        /// Host diagnostic update source for analyzer host specific diagnostics.
-        /// </summary>
-        private readonly AbstractHostDiagnosticUpdateSource? _hostDiagnosticUpdateSource;
-
-        /// <summary>
         /// map to compiler diagnostic analyzer.
         /// </summary>
         private ImmutableDictionary<string, DiagnosticAnalyzer> _compilerDiagnosticAnalyzerMap;
@@ -92,15 +87,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public DiagnosticAnalyzerInfoCache(Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> hostAnalyzerPackages, IAnalyzerAssemblyLoader? hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource, PrimaryWorkspace primaryWorkspace)
             : this(new Lazy<ImmutableArray<AnalyzerReference>>(() => CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages.Value, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource, primaryWorkspace), hostAnalyzerAssemblyLoader), isThreadSafe: true),
-                   hostAnalyzerPackages, hostDiagnosticUpdateSource)
+                   hostAnalyzerPackages)
         {
         }
 
         private DiagnosticAnalyzerInfoCache(
-            Lazy<ImmutableArray<AnalyzerReference>> hostAnalyzerReferences, Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> hostAnalyzerPackages, AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource)
+            Lazy<ImmutableArray<AnalyzerReference>> hostAnalyzerReferences, Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> hostAnalyzerPackages)
         {
             _hostDiagnosticAnalyzerPackages = hostAnalyzerPackages;
-            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
             _hostAnalyzerReferencesMap = new Lazy<ImmutableDictionary<object, AnalyzerReference>>(() => hostAnalyzerReferences.Value.IsDefaultOrEmpty ? ImmutableDictionary<object, AnalyzerReference>.Empty : CreateAnalyzerReferencesMap(hostAnalyzerReferences.Value), isThreadSafe: true);
             _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);
@@ -112,8 +106,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _descriptorsInfo = new ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo>();
         }
 
-        internal DiagnosticAnalyzerInfoCache(ImmutableArray<AnalyzerReference> hostAnalyzerReferences, AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource)
-            : this(new Lazy<ImmutableArray<AnalyzerReference>>(() => hostAnalyzerReferences), new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty), hostDiagnosticUpdateSource)
+        internal DiagnosticAnalyzerInfoCache(ImmutableArray<AnalyzerReference> hostAnalyzerReferences)
+            : this(new Lazy<ImmutableArray<AnalyzerReference>>(() => hostAnalyzerReferences), new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty))
         {
         }
 
@@ -130,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => _hostAnalyzerReferencesMap.Value;
 
         /// <summary>
-        /// Return <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
+        /// Returns <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
             => GetOrCreateDescriptorsInfo(analyzer).SupportedDescriptors;
@@ -152,14 +146,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // SupportedDiagnostics is user code and can throw an exception.
                 descriptors = analyzer.SupportedDiagnostics.NullToEmpty();
             }
-            catch (Exception ex)
+            catch
             {
-                AnalyzerHelper.OnAnalyzerExceptionForSupportedDiagnostics(analyzer, ex, _hostDiagnosticUpdateSource);
+                // No need to report the exception to the user.
+                // Eventually, when the analyzer runs the compiler analyzer driver will report a diagnostic.
                 descriptors = ImmutableArray<DiagnosticDescriptor>.Empty;
             }
 
             bool telemetryAllowed = IsTelemetryCollectionAllowed(analyzer, descriptors);
-
             return new DiagnosticDescriptorsInfo(descriptors, telemetryAllowed);
         }
 

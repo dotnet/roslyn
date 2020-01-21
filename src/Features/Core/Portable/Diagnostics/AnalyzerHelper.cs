@@ -106,29 +106,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return workspaceAnalyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken);
         }
 
-        internal static void OnAnalyzerException_NoTelemetryLogging(
-            DiagnosticAnalyzer analyzer,
-            Diagnostic? diagnostic,
-            AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource,
-            ProjectId? projectId)
-        {
-            if (diagnostic != null)
-            {
-                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, projectId);
-            }
-        }
-
-        internal static void OnAnalyzerExceptionForSupportedDiagnostics(DiagnosticAnalyzer analyzer, Exception exception, AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource)
-        {
-            if (exception is OperationCanceledException)
-            {
-                return;
-            }
-
-            var diagnostic = CreateAnalyzerExceptionDiagnostic(analyzer, exception);
-            OnAnalyzerException_NoTelemetryLogging(analyzer, diagnostic, hostDiagnosticUpdateSource, projectId: null);
-        }
-
         /// <summary>
         /// Create a diagnostic for exception thrown by the given analyzer.
         /// </summary>

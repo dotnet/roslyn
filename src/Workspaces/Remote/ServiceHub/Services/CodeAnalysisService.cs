@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // TODO: currently we only use the cache for information that doesn't involve references or packages.
             // Once we move all analysis OOP we will create the full cache.
-            _analyzerInfoCache = new DiagnosticAnalyzerInfoCache(ImmutableArray<AnalyzerReference>.Empty, hostDiagnosticUpdateSource: null);
+            _analyzerInfoCache = new DiagnosticAnalyzerInfoCache(ImmutableArray<AnalyzerReference>.Empty);
 
             StartService();
         }
