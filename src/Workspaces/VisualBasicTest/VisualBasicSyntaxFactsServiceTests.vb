@@ -530,6 +530,24 @@ End Class"
 
             Return service.IsQueryKeyword(token)
         End Function
+
+        <Fact, WorkItem(40917, "https://github.com/dotnet/roslyn/issues/40917")>
+        Public Sub IsLeftSideOfCompoundAssignment()
+            Assert.True(IsLeftSideOfCompoundAssignment(WrapInMethod("
+Dim index As Integer = 0
+$$index += 1")))
+        End Sub
+
+        Private Function IsLeftSideOfCompoundAssignment(markup As String) As Boolean
+            Dim code As String = Nothing
+            Dim position As Integer
+            MarkupTestFile.GetPosition(markup, code, position)
+            Dim tree = SyntaxFactory.ParseSyntaxTree(code)
+            Dim node = tree.GetRoot().FindToken(position).Parent
+            Dim service = VisualBasicSyntaxFactsService.Instance
+
+            Return service.IsLeftSideOfCompoundAssignment(node)
+        End Function
     End Class
 
 End Namespace

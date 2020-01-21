@@ -127,11 +127,6 @@
         <target state="translated">Zmiana elementu „{0}” na „{1}” uniemożliwi kontynuowanie sesji debugowania, ponieważ powoduje zmianę kształtu automatu stanów.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_Quality">
-        <source>Code Quality</source>
-        <target state="translated">Jakość kodu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Konfiguruj styl kodu {0}</target>
@@ -1671,16 +1666,6 @@ Czy chcesz kontynuować?</target>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">Implementuj interfejs za pomocą wzorca likwidacji</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compiler1">
-        <source>Compiler</source>
-        <target state="translated">Kompilator</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Styl</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">

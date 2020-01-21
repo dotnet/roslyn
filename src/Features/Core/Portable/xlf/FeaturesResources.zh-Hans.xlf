@@ -127,11 +127,6 @@
         <target state="translated">将“{0}”更改为“{1}”会阻止调试会话继续执行，因为它会更改状态机的形状。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_Quality">
-        <source>Code Quality</source>
-        <target state="translated">代码质量</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">配置 {0} 代码样式</target>
@@ -1671,16 +1666,6 @@ Do you want to continue?</source>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">通过释放模式实现接口</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compiler1">
-        <source>Compiler</source>
-        <target state="translated">编译器</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">样式</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">

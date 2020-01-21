@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -73,9 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             // Check for both:  "if (...) { a(); }" and "if (...) a();"
             var innerStatement = ifStatement.Statement;
-            if (innerStatement.IsKind(SyntaxKind.Block))
+            if (innerStatement.IsKind(SyntaxKind.Block, out BlockSyntax block))
             {
-                var block = (BlockSyntax)innerStatement;
                 if (block.Statements.Count != 1)
                 {
                     return;
