@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ExportIncrementalAnalyzerProvider(WellKnownSolutionCrawlerAnalyzers.Diagnostic, workspaceKinds: null)]
     internal partial class DefaultDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
     {
-        private readonly IDiagnosticAnalyzerService _analyzerService;
+        private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
         [ImportingConstructor]
         public DefaultDiagnosticAnalyzerService(
             IDiagnosticAnalyzerService analyzerService,
             IDiagnosticUpdateSourceRegistrationService registrationService)
         {
-            _analyzerService = analyzerService;
+            _analyzerInfoCache = analyzerService.AnalyzerInfoCache;
             registrationService.Register(this);
         }
 
@@ -155,19 +155,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
                 }
 
-                // given service must be DiagnosticAnalyzerService
-                var diagnosticService = (DiagnosticAnalyzerService)_service._analyzerService;
+                var analyzerInfoCache = _service._analyzerInfoCache;
+                var analyzers = GetAnalyzers(analyzerInfoCache, document.Project);
 
-                var analyzers = GetAnalyzers(diagnosticService.AnalyzerInfoCache, document.Project);
-
-                var compilationWithAnalyzers = await diagnosticService.CreateCompilationWithAnalyzersAsync(
+                var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
                     document.Project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
 
                 var builder = ArrayBuilder<DiagnosticData>.GetInstance();
                 foreach (var analyzer in analyzers)
                 {
-                    builder.AddRange(await diagnosticService.ComputeDiagnosticsAsync(
-                        compilationWithAnalyzers, document, analyzer, kind, span: null, cancellationToken).ConfigureAwait(false));
+                    builder.AddRange(await AnalyzerHelper.ComputeDiagnosticsAsync(analyzer,
+                        document, kind, analyzerInfoCache, compilationWithAnalyzers, span: null, cancellationToken).ConfigureAwait(false));
                 }
 
                 return builder.ToImmutableAndFree();

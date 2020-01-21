@@ -13,13 +13,10 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -205,7 +202,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(
-            this DiagnosticAnalyzerService service,
             Project project,
             IEnumerable<DiagnosticAnalyzer> analyzers,
             bool includeSuppressedDiagnostics,
@@ -271,11 +267,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Return all local diagnostics (syntax, semantic) that belong to given document for the given StateSet (analyzer) by calculating them
         /// </summary>
         public static async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(
-            this DiagnosticAnalyzerService service,
-            CompilationWithAnalyzers? compilationWithAnalyzers,
-            Document document,
             DiagnosticAnalyzer analyzer,
+            Document document,
             AnalysisKind kind,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            CompilationWithAnalyzers? compilationWithAnalyzers,
             TextSpan? span,
             CancellationToken cancellationToken)
         {
@@ -296,13 +292,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
             {
                 var diagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
-                    service, document, documentAnalyzer, kind, compilationWithAnalyzers?.Compilation, cancellationToken).ConfigureAwait(false);
+                    documentAnalyzer, document, kind, compilationWithAnalyzers?.Compilation, cancellationToken).ConfigureAwait(false);
 
                 return diagnostics.ConvertToLocalDiagnostics(document);
             }
 
             // quick optimization to reduce allocations.
-            if (compilationWithAnalyzers == null || !service.AnalyzerInfoCache.SupportAnalysisKind(analyzer, document.Project.Language, kind))
+            if (compilationWithAnalyzers == null || !analyzerInfoCache.SupportAnalysisKind(analyzer, document.Project.Language, kind))
             {
                 if (kind == AnalysisKind.Syntax)
                 {
@@ -315,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
             if (kind != AnalysisKind.Syntax &&
-                service.AnalyzerInfoCache.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer))
+                analyzerInfoCache.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer))
             {
                 var isEnabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -367,9 +363,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static async Task<ImmutableArray<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
-            this DiagnosticAnalyzerService service,
-            Document document,
             DocumentDiagnosticAnalyzer analyzer,
+            Document document,
             AnalysisKind kind,
             Compilation? compilation,
             CancellationToken cancellationToken)
@@ -409,9 +404,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static async Task<ImmutableArray<Diagnostic>> ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(
-            this DiagnosticAnalyzerService service,
-            Project project,
             ProjectDiagnosticAnalyzer analyzer,
+            Project project,
             Compilation? compilation,
             CancellationToken cancellationToken)
         {
