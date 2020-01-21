@@ -132,15 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
 
             If parameters Is Nothing Then
-                Return 0
-            End If
-
-            If parameters.Parameters.Count > 0 AndAlso parameters.Parameters.Last().Modifiers.Any(SyntaxKind.ParamArrayKeyword) Then
-                If parameters.Parameters.Count = 1 Then
-                    Return parameters.OpenParenToken.SpanStart + 1
-                Else
-                    Return parameters.Parameters.GetSeparators().Last().SpanStart
-                End If
+                Return Nothing
             End If
 
             Return parameters.CloseParenToken.SpanStart

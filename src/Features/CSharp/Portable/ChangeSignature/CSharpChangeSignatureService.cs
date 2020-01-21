@@ -157,29 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return null;
             }
 
-            if (parameters.Parameters.Count > 0 &&
-                parameters.Parameters.Last().Modifiers.Any(SyntaxKind.ParamsKeyword))
-            {
-                if (parameters.Parameters.Count == 1)
-                {
-                    // (params a)
-                    // (<new parameter> new comma ->, params a)
-                    return parameters.Parameters.FirstOrDefault().SpanStart;
-                }
-                else
-                {
-                    // (a, b, c, d put here ->, params e)
-                    // (a, b, c, d,<- new comma <new parameter>, params e)
-                    return parameters.Parameters.GetSeparators().Last().SpanStart;
-                }
-            }
-
-            // ( put here->)
-            // (,<- new comma for intellisense <new parameter>)
-            //
-            // (a, b, c, d put here->)
-            // (a, b, c, d,<- new comma <new parameter>)
-
             switch (parameters)
             {
                 case ParameterListSyntax parameterListSyntax:
