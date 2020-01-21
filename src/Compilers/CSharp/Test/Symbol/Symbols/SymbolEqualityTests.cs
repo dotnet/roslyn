@@ -220,7 +220,6 @@ public class A
             var type2 = ((IFieldSymbol)comp.GetMember("A.field2")).Type;
 
             VerifyEquality(type1, type2,
-                expectedDefault: true,
                 expectedIncludeNullability: true
             );
         }
@@ -245,22 +244,18 @@ public class A
             var type2 = ((IFieldSymbol)comp.GetMember("A.field2")).Type;
 
             VerifyEquality(type1.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), type2.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None),
-                expectedDefault: true,
                 expectedIncludeNullability: true // We don't consider top-level nullability
                 );
 
             VerifyEquality(type1, type2,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
             VerifyEquality(type1, type2.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None),
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
             VerifyEquality(type1.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), type2,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
         }
@@ -285,7 +280,6 @@ public class A<T>
             var type2 = ((IFieldSymbol)comp.GetMember("A.field2")).Type;
 
             VerifyEquality(type1, type2,
-                expectedDefault: true,
                 expectedIncludeNullability: false // nested nullability is different
                 );
         }
@@ -310,7 +304,6 @@ public class A<T>
             var type2 = ((IFieldSymbol)comp.GetMember("A.field2")).Type;
 
             VerifyEquality(type1, type2,
-                expectedDefault: true,
                 expectedIncludeNullability: true // nested nullability is the same
                 );
         }
@@ -348,17 +341,14 @@ public class B
             var type2 = ((IFieldSymbol)comp2.GetMember("B.field2")).Type;
 
             VerifyEquality(type1comp1, type1comp2,
-                expectedDefault: true,
                 expectedIncludeNullability: true
                 );
 
             VerifyEquality(type1comp1, type2,
-                expectedDefault: true,
                 expectedIncludeNullability: true
                 );
 
             VerifyEquality(type1comp2, type2,
-                expectedDefault: true,
                 expectedIncludeNullability: true
                 );
         }
@@ -460,7 +450,6 @@ public class A
             var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
 
             VerifyEquality(type1, type2,
-                expectedDefault: true,
                 expectedIncludeNullability: true
             );
         }
@@ -492,22 +481,18 @@ public class A
             var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
 
             VerifyEquality(type1.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), type2.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None),
-                expectedDefault: true,
                 expectedIncludeNullability: true // We don't consider top-level nullability
                 );
 
             VerifyEquality(type1, type2,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
             VerifyEquality(type1, type2.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None),
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
             VerifyEquality(type1.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), type2,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
         }
@@ -539,7 +524,6 @@ public class A<T>
             var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
 
             VerifyEquality(type1, type2,
-                expectedDefault: true,
                 expectedIncludeNullability: false // nested nullability is different
                 );
         }
@@ -571,7 +555,6 @@ public class A<T>
             var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
 
             VerifyEquality(type1, type2,
-                expectedDefault: true,
                 expectedIncludeNullability: true // nested nullability is the same
                 );
         }
@@ -608,7 +591,6 @@ public class A
             var create2Symbol = model.GetSymbolInfo(create2Syntax).Symbol;
 
             VerifyEquality(create1Symbol, create2Symbol,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
         }
@@ -644,7 +626,6 @@ public class B
             var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
 
             VerifyEquality(type1, type2,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
@@ -652,7 +633,6 @@ public class B
             var property2 = (IPropertySymbol)type2.GetMembers()[0];
 
             VerifyEquality(property1, property2,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
@@ -660,7 +640,6 @@ public class B
             var prop2Type = property2.Type;
 
             VerifyEquality(prop1Type, prop2Type,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
         }
@@ -696,7 +675,6 @@ public class B
             var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
 
             VerifyEquality(type1, type2,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
@@ -704,7 +682,6 @@ public class B
             var field2 = (IFieldSymbol)type2.GetMembers()[0];
 
             VerifyEquality(field1, field2,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
@@ -712,7 +689,6 @@ public class B
             var prop2Type = field2.Type;
 
             VerifyEquality(prop1Type, prop2Type,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
         }
@@ -751,7 +727,6 @@ public class B
             var type2 = ((IFieldSymbol)model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0])).Type;
 
             VerifyEquality(type1, type2,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
@@ -759,7 +734,6 @@ public class B
             var event2 = (IEventSymbol)type2.GetMembers()[2];
 
             VerifyEquality(event1, event2,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
@@ -767,7 +741,6 @@ public class B
             var prop2Type = event2.Type;
 
             VerifyEquality(prop1Type, prop2Type,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
         }
@@ -804,7 +777,6 @@ public class A<T>
             var field2 = (IFieldSymbol)model.GetSymbolInfo(member2Syntax).Symbol;                                               // A<T!>! A<T!>.field
 
             VerifyEquality(field1, field2,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
@@ -812,7 +784,6 @@ public class A<T>
             var field2Type = field2.Type; // A<T!>
 
             VerifyEquality(field1Type, field2Type,
-                expectedDefault: true,
                 expectedIncludeNullability: true
                 );
 
@@ -820,7 +791,6 @@ public class A<T>
             var field2ContainingType = field2.ContainingType; //A<T!>
 
             VerifyEquality(field1ContainingType, field2ContainingType,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
@@ -858,7 +828,6 @@ public class A<T>
             var method2 = (IMethodSymbol)model.GetSymbolInfo(member2Syntax).Symbol;                                           // A<T!>! A<T!>.M(A<T!>! t)
 
             VerifyEquality(method1, method2,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
@@ -866,7 +835,6 @@ public class A<T>
             var method2ReturnType = method2.ReturnType; // A<T!>
 
             VerifyEquality(method1ReturnType, method2ReturnType,
-                expectedDefault: true,
                 expectedIncludeNullability: true
                 );
 
@@ -874,7 +842,6 @@ public class A<T>
             var method2ParamType = method2.Parameters.First().Type; // A<T!>
 
             VerifyEquality(method1ParamType, method2ParamType,
-                expectedDefault: true,
                 expectedIncludeNullability: true
                 );
 
@@ -882,7 +849,6 @@ public class A<T>
             var method2ContainingType = method2.ContainingType; //A<T!>
 
             VerifyEquality(method1ContainingType, method2ContainingType,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
         }
@@ -923,7 +889,6 @@ public class A<T>
             var event2 = (IEventSymbol)model.GetSymbolInfo(member2Syntax).Symbol;                                                 // System.EventHandler<T!>! A<T!>.MyEvent
 
             VerifyEquality(event1, event2,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
 
@@ -931,7 +896,6 @@ public class A<T>
             var event2Type = event2.Type; // System.EventHandler<T!>
 
             VerifyEquality(event1Type, event2Type,
-                expectedDefault: true,
                 expectedIncludeNullability: true
                 );
 
@@ -939,24 +903,23 @@ public class A<T>
             var event2ContainingType = event2.ContainingType; //A<T!>
 
             VerifyEquality(event1ContainingType, event2ContainingType,
-                expectedDefault: true,
                 expectedIncludeNullability: false
                 );
         }
 
-        private void VerifyEquality(ISymbol symbol1, ISymbol symbol2, bool expectedDefault, bool expectedIncludeNullability)
+        private void VerifyEquality(ISymbol symbol1, ISymbol symbol2, bool expectedIncludeNullability)
         {
             // Symbol.Equals
             Assert.True(symbol1.Equals(symbol1));
             Assert.True(symbol2.Equals(symbol2));
-            Assert.Equal(expectedDefault, symbol1.Equals(symbol2));
-            Assert.Equal(expectedDefault, symbol2.Equals(symbol1));
+            Assert.True(symbol1.Equals(symbol2));
+            Assert.True(symbol2.Equals(symbol1));
 
             // TypeSymbol.Equals - Default
             Assert.True(symbol1.Equals(symbol1, SymbolEqualityComparer.Default));
             Assert.True(symbol2.Equals(symbol2, SymbolEqualityComparer.Default));
-            Assert.Equal(expectedDefault, symbol1.Equals(symbol2, SymbolEqualityComparer.Default));
-            Assert.Equal(expectedDefault, symbol2.Equals(symbol1, SymbolEqualityComparer.Default));
+            Assert.True(symbol1.Equals(symbol2, SymbolEqualityComparer.Default));
+            Assert.True(symbol2.Equals(symbol1, SymbolEqualityComparer.Default));
 
             // TypeSymbol.Equals - IncludeNullability
             Assert.True(symbol1.Equals(symbol1, SymbolEqualityComparer.IncludeNullability));
