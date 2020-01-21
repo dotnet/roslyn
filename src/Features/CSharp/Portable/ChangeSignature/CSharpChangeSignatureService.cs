@@ -364,9 +364,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             if (updatedNode.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
             {
                 var lambda = (ParenthesizedLambdaExpressionSyntax)updatedNode;
-                bool doNotSkipType = lambda.ParameterList.Parameters.Any() && lambda.ParameterList.Parameters.First().Type != null;
+                bool doNotSkipParameterType = lambda.ParameterList.Parameters.Any() && lambda.ParameterList.Parameters.First().Type != null;
                 Func<AddedParameter, ParameterSyntax> createNewParameterDelegate =
-                    p => CreateNewParameterSyntax(p, !doNotSkipType);
+                    p => CreateNewParameterSyntax(p, !doNotSkipParameterType);
 
                 var updatedParameters = PermuteDeclaration(
                     lambda.ParameterList.Parameters,
@@ -517,13 +517,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         private static ParameterSyntax CreateNewParameterSyntax(AddedParameter addedParameter)
-            => CreateNewParameterSyntax(addedParameter, skipType: false);
+            => CreateNewParameterSyntax(addedParameter, skipParameterType: false);
 
-        private static ParameterSyntax CreateNewParameterSyntax(AddedParameter addedParameter, bool skipType)
+        private static ParameterSyntax CreateNewParameterSyntax(AddedParameter addedParameter, bool skipParameterType)
             => SyntaxFactory.Parameter(
                 attributeLists: SyntaxFactory.List<AttributeListSyntax>(),
                 modifiers: SyntaxFactory.TokenList(),
-                type: skipType ? default : SyntaxFactory.ParseTypeName(addedParameter.TypeName).WithTrailingTrivia(SyntaxFactory.ElasticSpace),
+                type: skipParameterType ? default : SyntaxFactory.ParseTypeName(addedParameter.TypeName).WithTrailingTrivia(SyntaxFactory.ElasticSpace),
                 SyntaxFactory.Identifier(addedParameter.ParameterName),
                 @default: default);
 
@@ -578,10 +578,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SignatureChange updatedSignature,
             bool isReducedExtensionMethod = false)
         {
-            var newArguments = PermuteArguments(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(),
+            var newArguments = PermuteArguments(
+                declarationSymbol,
+                arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(),
                 updatedSignature,
-                 callSiteValue => UnifiedArgumentSyntax.Create(SyntaxFactory.Argument(SyntaxFactory.ParseExpression(callSiteValue))),
-                 isReducedExtensionMethod);
+                callSiteValue => UnifiedArgumentSyntax.Create(SyntaxFactory.Argument(SyntaxFactory.ParseExpression(callSiteValue))),
+                isReducedExtensionMethod);
 
             // copy whitespace trivia from original position
             var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(
