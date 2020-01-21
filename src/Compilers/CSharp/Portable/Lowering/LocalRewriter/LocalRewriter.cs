@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
-                // PROTOTYPE(local-function-attributes): support ExcludeFromCodeCoverageAttribute
                 var factory = new SyntheticBoundNodeFactory(method, statement.Syntax, compilationState, diagnostics);
                 DynamicAnalysisInjector dynamicInstrumenter = instrumentForDynamicAnalysis ? DynamicAnalysisInjector.TryCreate(method, statement, factory, diagnostics, debugDocumentProvider, Instrumenter.NoOp) : null;
 
@@ -277,14 +276,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var oldContainingSymbol = _factory.CurrentFunction;
+            var oldIsNestedExcludeCodeCoverage = _factory.IsNestedExcludeCodeCoverage;
             try
             {
                 _factory.CurrentFunction = localFunction;
+                if (!oldIsNestedExcludeCodeCoverage)
+                {
+                    _factory.IsNestedExcludeCodeCoverage = localFunction.IsDirectlyExcludedFromCodeCoverage;
+                }
                 return base.VisitLocalFunctionStatement(node);
             }
             finally
             {
                 _factory.CurrentFunction = oldContainingSymbol;
+                _factory.IsNestedExcludeCodeCoverage = oldIsNestedExcludeCodeCoverage;
             }
         }
 
