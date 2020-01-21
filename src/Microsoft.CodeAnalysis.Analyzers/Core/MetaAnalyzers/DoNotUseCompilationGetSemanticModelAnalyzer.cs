@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-            context.RegisterCompilationStartAction(csac =>
+            context.RegisterCompilationStartAction(compilationContext =>
             {
-                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(csac.Compilation);
+                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilationContext.Compilation);
 
                 if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzer, out var diagnosticAnalyzerType) ||
                     !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCompilation, out var compilationType))
@@ -46,14 +46,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var csharpCompilation = wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpCSharpCompilation);
                 var visualBasicCompilation = wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation);
 
-                csac.RegisterOperationBlockStartAction(obsac =>
+                compilationContext.RegisterOperationBlockStartAction(operationBlockContext =>
                 {
-                    if (obsac.OwningSymbol is IMethodSymbol methodSymbol &&
+                    if (operationBlockContext.OwningSymbol is IMethodSymbol methodSymbol &&
                         methodSymbol.ContainingType.Inherits(diagnosticAnalyzerType))
                     {
-                        obsac.RegisterOperationAction(oac =>
+                        operationBlockContext.RegisterOperationAction(operationContext =>
                         {
-                            var invocation = (IInvocationOperation)oac.Operation;
+                            var invocation = (IInvocationOperation)operationContext.Operation;
 
                             if (invocation.TargetMethod.Name.Equals("GetSemanticModel", StringComparison.Ordinal) &&
                                 (
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                     invocation.TargetMethod.ContainingType.Equals(visualBasicCompilation)
                                 ))
                             {
-                                oac.ReportDiagnostic(invocation.Syntax.CreateDiagnostic(Rule));
+                                operationContext.ReportDiagnostic(invocation.Syntax.CreateDiagnostic(Rule));
                             }
                         }, OperationKind.Invocation);
                     }
