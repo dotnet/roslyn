@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -109,6 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         ''' <summary>	
         ''' For testing purposes so that tests can pass in mocks for these values.	
         ''' </summary>	
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification:="Used incorrectly by tests")>
         Friend Sub New(installerService As IPackageInstallerService,
                        searchService As ISymbolSearchService)
             MyBase.New(installerService, searchService)
