@@ -399,6 +399,94 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(solution, "B", new string[] { "A" });
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestForwardReferencesAfterProjectRemoval()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B -> C -> D
+            //
+            // and will then remove project B.
+
+            var solution = CreateSolutionFromReferenceMap("A:B B:C C:D D");
+            VerifyDirectReferences(solution, "A", new string[] { "B" });
+            VerifyDirectReferences(solution, "B", new string[] { "C" });
+            VerifyDirectReferences(solution, "C", new string[] { "D" });
+            VerifyDirectReferences(solution, "D", new string[] { });
+
+            solution = solution.RemoveProject(solution.GetProjectsByName("B").Single().Id);
+
+            VerifyDirectReferences(solution, "A", new string[] { });
+            VerifyDirectReferences(solution, "C", new string[] { "D" });
+            VerifyDirectReferences(solution, "D", new string[] { });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestForwardTransitiveReferencesAfterProjectRemoval()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B -> C -> D
+            //
+            // and will then remove project B.
+
+            var solution = CreateSolutionFromReferenceMap("A:B B:C C:D D");
+            VerifyTransitiveReferences(solution, "A", new string[] { "B", "C", "D" });
+            VerifyTransitiveReferences(solution, "B", new string[] { "C", "D" });
+            VerifyTransitiveReferences(solution, "C", new string[] { "D" });
+            VerifyTransitiveReferences(solution, "D", new string[] { });
+
+            solution = solution.RemoveProject(solution.GetProjectsByName("B").Single().Id);
+
+            VerifyTransitiveReferences(solution, "A", new string[] { });
+            VerifyTransitiveReferences(solution, "C", new string[] { "D" });
+            VerifyTransitiveReferences(solution, "D", new string[] { });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestReverseReferencesAfterProjectRemoval()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B -> C -> D
+            //
+            // and will then remove project B.
+
+            var solution = CreateSolutionFromReferenceMap("A:B B:C C:D D");
+            VerifyDirectReverseReferences(solution, "A", new string[] { });
+            VerifyDirectReverseReferences(solution, "B", new string[] { "A" });
+            VerifyDirectReverseReferences(solution, "C", new string[] { "B" });
+            VerifyDirectReverseReferences(solution, "D", new string[] { "C" });
+
+            solution = solution.RemoveProject(solution.GetProjectsByName("B").Single().Id);
+
+            VerifyDirectReverseReferences(solution, "A", new string[] { });
+            VerifyDirectReverseReferences(solution, "C", new string[] { });
+            VerifyDirectReverseReferences(solution, "D", new string[] { "C" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestReverseTransitiveReferencesAfterProjectRemoval()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B -> C -> D
+            //
+            // and will then remove project B.
+
+            var solution = CreateSolutionFromReferenceMap("A:B B:C C:D D");
+            VerifyReverseTransitiveReferences(solution, "A", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "B", new string[] { "A" });
+            VerifyReverseTransitiveReferences(solution, "C", new string[] { "A", "B" });
+            VerifyReverseTransitiveReferences(solution, "D", new string[] { "A", "B", "C" });
+
+            solution = solution.RemoveProject(solution.GetProjectsByName("B").Single().Id);
+
+            VerifyReverseTransitiveReferences(solution, "A", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "C", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "D", new string[] { "C" });
+        }
+
         private void VerifyDirectReverseReferences(Solution solution, string project, string[] expectedResults)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
