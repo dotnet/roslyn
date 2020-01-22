@@ -399,12 +399,12 @@
     <value>Do not use reserved diagnostic IDs.</value>
   </data>
   <data name="DoNotUseCompilationGetSemanticModelDescription" xml:space="preserve">
-    <value>This call leads the compiler to rebind the entire file, and doing it multiple times (say with SyntaxNode callbacks) can be a performance hog.</value>
+    <value>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</value>
   </data>
   <data name="DoNotUseCompilationGetSemanticModelMessage" xml:space="preserve">
-    <value>This call can lead to performance hog and should be used carefully.</value>
+    <value>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</value>
   </data>
   <data name="DoNotUseCompilationGetSemanticModelTitle" xml:space="preserve">
-    <value>Do not invoke Compilation.GetSemanticModel() method.</value>
+    <value>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</value>
   </data>
 </root>
