@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
                     }
                 }
             }
+
             return false;
         }
     }
