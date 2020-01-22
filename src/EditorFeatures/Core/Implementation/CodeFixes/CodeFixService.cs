@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (result.Count > 0)
             {
                 // sort the result to the order defined by the fixers
-                var priorityMap = _fixerPriorityMap[document.Project.Language].Value;
+                ImmutableDictionary<CodeFixProvider, int> priorityMap = _fixerPriorityMap[document.Project.Language].Value;
                 result.Sort((d1, d2) => GetValue(d1).CompareTo(GetValue(d2)));
 
                 int GetValue(CodeFixCollection c)
