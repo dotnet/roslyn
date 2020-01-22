@@ -10,7 +10,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
 
 
     Partial Friend Class SplitCommentCommandHandler
-
         Private Class CommentSplitter
             Protected Shared ReadOnly RightNodeAnnotation As SyntaxAnnotation = New SyntaxAnnotation()
 
