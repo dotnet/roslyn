@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -650,6 +651,21 @@ namespace Microsoft.CodeAnalysis
             return reverseReferencesMap
                 .Select(kvp => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(kvp.Key, kvp.Value.ToImmutableHashSet()))
                 .ToImmutableDictionary();
+        }
+
+        /// <summary>
+        /// Gets the list of projects that directly or transitively this project depends on, if it has already been
+        /// cached.
+        /// </summary>
+        internal ImmutableHashSet<ProjectId>? TryGetProjectsThatThisProjectTransitivelyDependsOn(ProjectId projectId)
+        {
+            if (projectId is null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            _transitiveReferencesMap.TryGetValue(projectId, out var projects);
+            return projects;
         }
 
         /// <summary>

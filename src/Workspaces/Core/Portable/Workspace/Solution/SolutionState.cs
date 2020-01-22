@@ -1812,20 +1812,32 @@ namespace Microsoft.CodeAnalysis
         private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId projectId, ProjectDependencyGraph dependencyGraph)
         {
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, CompilationTracker>();
-            var dependencies = dependencyGraph.TryGetProjectsThatTransitivelyDependOnThisProject(projectId);
+            IEnumerable<ProjectId>? dependencies = null;
 
-            foreach (var projectIdAndTracker in _projectIdToTrackerMap)
+            foreach (var (id, tracker) in _projectIdToTrackerMap)
             {
-                var id = projectIdAndTracker.Key;
-                var tracker = projectIdAndTracker.Value;
-
                 if (!tracker.HasCompilation)
                 {
                     continue;
                 }
 
-                var canReuse = id == projectId || (dependencies is object && !dependencies.Contains(id));
-                builder.Add(id, canReuse ? tracker : tracker.Fork(tracker.ProjectState));
+                builder.Add(id, CanReuse() ? tracker : tracker.Fork(tracker.ProjectState));
+
+                // Returns true if 'tracker' can be reused for project 'id'
+                bool CanReuse()
+                {
+                    if (id == projectId)
+                        return true;
+
+                    var forwardDependencies = dependencyGraph.TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
+                    if (forwardDependencies is object && !forwardDependencies.Contains(projectId))
+                    {
+                        return true;
+                    }
+
+                    dependencies ??= dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
+                    return !dependencies.Contains(id);
+                }
             }
 
             return builder.ToImmutable();
