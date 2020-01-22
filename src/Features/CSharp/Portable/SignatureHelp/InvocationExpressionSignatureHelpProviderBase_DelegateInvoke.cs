@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
-    internal partial class InvocationExpressionSignatureHelpProvider
+    internal partial class InvocationExpressionSignatureHelpProviderBase
     {
         private IList<SignatureHelpItem> GetDelegateInvokeItems(
             InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, ISymbolDisplayService symbolDisplayService, IAnonymousTypeDisplayService anonymousTypeDisplayService,
