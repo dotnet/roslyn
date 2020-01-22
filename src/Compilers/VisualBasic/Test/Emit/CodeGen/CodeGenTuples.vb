@@ -22624,6 +22624,79 @@ End Class
                 Assert.False(tuple.IsTupleType)
             End If
         End Sub
+
+        '<InlineData(False)> TODO2 
+        <Theory>
+        <InlineData(True)>
+        <WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")>
+        Public Sub SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit(ByVal useImageReferences As Boolean)
+
+            Dim getReference As Func(Of Compilation, MetadataReference) = Function(c) If(useImageReferences, c.EmitToImageReference(), c.ToMetadataReference())
+
+            Dim valueTuple_source = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return ""{"" + Item1?.ToString() + "", "" + Item2?.ToString() + ""}""
+        End Function
+    End Structure
+End Namespace
+"
+            Dim valueTuple_comp = CreateCompilationWithMscorlib40(valueTuple_source)
+
+            Dim tupleElementNamesAttribute_comp = CreateCompilationWithMscorlib40(s_tupleattributes)
+            tupleElementNamesAttribute_comp.AssertNoDiagnostics()
+
+            Dim lib1_source = "
+Imports System.Threading.Tasks
+
+Public Interface I2(Of T, TResult)
+    Function ExecuteAsync(parameter As T) As Task(Of TResult)
+End Interface
+
+Public Interface I1(Of T)
+    Inherits I2(Of T, (a As Object, b As Object))
+End Interface 
+"
+            Dim lib1_comp = CreateCompilationWithMscorlib40(lib1_source, references:={getReference(valueTuple_comp), getReference(tupleElementNamesAttribute_comp)})
+            lib1_comp.AssertNoDiagnostics()
+
+            Dim lib2_source = "
+Public interface I0 
+    Inherits I1(Of string)
+End Interface 
+"
+            Dim lib2_comp = CreateCompilationWithMscorlib40(lib2_source, references:={getReference(lib1_comp), getReference(valueTuple_comp)}) ' Missing TupleElementNamesAttribute
+            lib2_comp.AssertNoDiagnostics()
+
+            Dim imc1 = CType(lib2_comp.GlobalNamespace.GetMember("I0"), TypeSymbol)
+            AssertEx.SetEqual({"I1(Of System.String)"}, imc1.InterfacesNoUseSiteDiagnostics().Select(Function(i) i.ToTestDisplayString()))
+            AssertEx.SetEqual({"I1(Of System.String)", "I2(Of System.String, (a As System.Object, b As System.Object))"}, imc1.AllInterfacesNoUseSiteDiagnostics.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim client_source = "
+Public Class C
+    Public Sub M(imc As I0)
+        imc.ExecuteAsync("""")
+    End Sub
+End Class
+"
+            Dim client_comp = CreateCompilationWithMscorlib40(client_source, references:={getReference(lib1_comp), getReference(lib2_comp), getReference(valueTuple_comp)})
+            client_comp.AssertNoDiagnostics()
+
+            Dim imc2 = CType(client_comp.GlobalNamespace.GetMember("I0"), TypeSymbol)
+            AssertEx.SetEqual({"I1(Of System.String)"}, imc2.InterfacesNoUseSiteDiagnostics().Select(Function(i) i.ToTestDisplayString()))
+            AssertEx.SetEqual({"I1(Of System.String)", "I2(Of System.String, (a As System.Object, b As System.Object))"}, imc2.AllInterfacesNoUseSiteDiagnostics.Select(Function(i) i.ToTestDisplayString()))
+
+        End Sub
+
     End Class
 
 End Namespace

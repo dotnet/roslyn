@@ -195,7 +195,7 @@ public class C1 : C0
 
         [Theory]
         [InlineData(true)]
-        //[InlineData(false)] // TODO2
+        [InlineData(false)]
         [WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
         public void SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit(bool useImageReferences)
         {
