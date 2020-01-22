@@ -22,6 +22,11 @@
         <target state="translated">挿入される verbatim 文字列で '$@' の代わりに '@$' を使用するには、言語バージョン '{0}' 以上をご使用ください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
+        <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
+        <target state="new">Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">オブジェクト作成では Null 許容参照型を使用できません。</target>
@@ -1375,12 +1380,12 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
-        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
         <target state="needs-review-translation">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
-        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
         <target state="needs-review-translation">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
         <note />
       </trans-unit>

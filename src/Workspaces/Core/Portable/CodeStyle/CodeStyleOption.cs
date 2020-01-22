@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         object Value { get; }
         NotificationOption Notification { get; }
         ICodeStyleOption WithValue(object value);
+        ICodeStyleOption WithNotification(NotificationOption notification);
     }
 
     /// <summary>
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         object ICodeStyleOption.Value => this.Value;
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption<T>((T)value, Notification);
+        ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption notification) => new CodeStyleOption<T>(Value, notification);
 
         private int EnumValueAsInt32 => (int)(object)Value;
 

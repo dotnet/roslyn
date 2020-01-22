@@ -69,8 +69,9 @@ class C
 
                               </Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendTypeChars("repl")
                 state.SendTab()
@@ -303,8 +304,10 @@ class Class1
     }
 }</Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.EnterKeyBehavior, LanguageNames.CSharp, EnterKeyRule.AfterFullyTypedWord)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.EnterKeyBehavior, LanguageNames.CSharp, EnterKeyRule.AfterFullyTypedWord)))
+
                 state.SendTypeChars("System.TimeSpan.FromMin")
                 state.SendReturn()
                 Assert.Equal(<text>
@@ -329,9 +332,9 @@ class Class1
         $$
     }
 }</Document>)
-
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.EnterKeyBehavior, LanguageNames.CSharp, EnterKeyRule.AfterFullyTypedWord)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.EnterKeyBehavior, LanguageNames.CSharp, EnterKeyRule.AfterFullyTypedWord)))
 
                 state.SendTypeChars("System.TimeSpan.FromMinutes")
                 state.SendReturn()
@@ -660,8 +663,9 @@ class Variable
     }
 }]]></Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendBackspace()
                 ' This completionImplementation is hard-selected because the suggestion mode never triggers on backspace
@@ -690,8 +694,9 @@ class Variable
     }
 }]]></Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendBackspace()
                 ' This completionImplementation is hard-selected because the suggestion mode never triggers on backspace
@@ -2800,8 +2805,9 @@ class$$ C
 {
 }]]></Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
@@ -2829,8 +2835,9 @@ class Program
     }
 }]]></Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
@@ -3467,8 +3474,10 @@ class Program
     }
 }
             ]]></Document>)
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 For Each c In "Offset"
                     state.SendBackspace()
@@ -3494,8 +3503,10 @@ class Program
     }
 }
             ]]></Document>)
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 For Each c In "Offset."
                     state.SendBackspace()
@@ -3611,8 +3622,9 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)))
 
                 state.SendTypeChars("Sys.")
                 Await state.AssertNoCompletionSession()
@@ -3629,8 +3641,9 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(Task.FromResult(True))})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)))
 
                 state.SendTypeChars("Sys")
                 Await state.AssertSelectedCompletionItem(displayText:="System")
@@ -3659,8 +3672,9 @@ class C
                                   using $$
                               </Document>, {provider})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)))
 
                 state.SendTypeChars("Sys")
 
@@ -3733,8 +3747,9 @@ class C
                                   using $$
                               </Document>, {provider})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)))
 
                 state.SendTypeChars("Sys")
                 Dim task1 As Task = Nothing
@@ -3821,8 +3836,9 @@ class C
                 provider.UpdateTask(tcs.Task)
 
                 ' Switch to the non-blocking mode
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)))
 
                 ' re-use of TestNoBlockOnCompletionItems1
                 state.SendTypeChars("Sys.")
@@ -3842,8 +3858,8 @@ class C
                 provider.UpdateTask(tcs.Task)
 
                 ' Switch to the blocking mode
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, True)
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, True)))
 
 #Disable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
                 Task.Run(Function()
@@ -4054,7 +4070,10 @@ class Program
                               </Document>)
 
                 Dim key = New OptionKey(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp)
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(key, True)
+
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(key, True)))
 
                 state.SendBackspace()
                 Await state.AssertSelectedCompletionItem(displayText:="Environment", isHardSelected:=True)
@@ -4503,8 +4522,9 @@ public class Program
 }
                               </Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendInvokeCompletionList()
                 state.SendBackspace()
@@ -4527,8 +4547,9 @@ public class Program
 }
                               </Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendInvokeCompletionList()
                 state.SelectAndMoveCaret(-6)
@@ -4574,8 +4595,9 @@ class C
     }
 }</Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendBackspace()
                 Await state.AssertCompletionItemsContainAll("WriteLine")
@@ -4801,8 +4823,9 @@ class C
 }
                               </Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
@@ -4827,8 +4850,9 @@ class C
 }
                               </Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
@@ -4900,8 +4924,9 @@ class C
 }
                               </Document>, {provider})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendBackspace()
                 Await state.AssertCompletionItemsContainAll("Normalize", "★ Normalize")
@@ -4991,8 +5016,9 @@ class C
 }
                               </Document>, {provider})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendTypeChars(".nor")
                 Await state.AssertCompletionItemsContainAll("Normalize", "★ Normalize")
@@ -5036,8 +5062,9 @@ class C
 }
                               </Document>, {provider})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendTypeChars(".nor")
                 Await state.AssertCompletionItemsContainAll("Normalize", "★ Normalize")
@@ -5090,7 +5117,9 @@ namespace NS2
 }
 ]]></Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)))
 
                 ' trigger completion with import completion disabled
                 state.SendInvokeCompletionList()
@@ -5156,8 +5185,9 @@ namespace NS2
 }
 ]]></Document>)
 
-                state.Workspace.Options = state.Workspace.Options _
-                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 ' trigger completion with import completion enabled
                 state.SendInvokeCompletionList()
@@ -5196,7 +5226,9 @@ namespace NS1
 }
 ]]></Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 ' trigger completion with import completion enabled
                 state.SendInvokeCompletionList()
@@ -5600,8 +5632,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.Options = state.Workspace.Options _
-                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -5671,8 +5704,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.Options = state.Workspace.Options _
-                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -5742,8 +5776,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.Options = state.Workspace.Options _
-                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -5813,8 +5848,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.Options = state.Workspace.Options _
-                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -5885,8 +5921,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.Options = state.Workspace.Options _
-                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -5933,8 +5970,9 @@ namespace NS
     class ATaAaSaKa { }
 } </Document>, extraExportedTypes:={GetType(TestExperimentationService)}.ToList())
 
-                state.Workspace.Options = state.Workspace.Options _
-                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)))
 
                 state.SendTypeChars("task")
                 Await state.WaitForAsynchronousOperationsAsync()

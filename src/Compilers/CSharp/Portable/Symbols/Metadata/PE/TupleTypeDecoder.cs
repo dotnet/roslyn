@@ -66,11 +66,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // Keep track of how many names we've "used" during decoding. Starts at
         // the back of the array and moves forward.
         private int _namesIndex;
+        private bool _foundUsableErrorType;
+        private bool _decodingFailed;
 
         private TupleTypeDecoder(ImmutableArray<string?> elementNames)
         {
             _elementNames = elementNames;
             _namesIndex = elementNames.IsDefault ? 0 : elementNames.Length;
+            _decodingFailed = false;
+            _foundUsableErrorType = false;
         }
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(
@@ -129,23 +133,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             RoslynDebug.AssertNotNull(metadataType);
 
             var decoder = new TupleTypeDecoder(elementNames);
-            try
+            var decoded = decoder.DecodeType(metadataType);
+            if (!decoder._decodingFailed)
             {
-                var decoded = decoder.DecodeType(metadataType);
-                // If not all of the names have been used, the metadata is bad
-                if (!hasTupleElementNamesAttribute ||
-                    decoder._namesIndex == 0)
+                if (!hasTupleElementNamesAttribute || decoder._namesIndex == 0)
                 {
                     return decoded;
                 }
             }
-            catch (InvalidOperationException)
-            {
-                // Indicates that the tuple info in the attribute didn't match
-                // the type. Bad metadata.
-            }
 
-            if (metadataType.HasUseSiteError)
+            // If not all of the names have been used, the metadata is bad
+            if (decoder._foundUsableErrorType)
             {
                 return metadataType;
             }
@@ -159,6 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             switch (type.Kind)
             {
                 case SymbolKind.ErrorType:
+                    if (type.HasUseSiteError)
+                    {
+                        _foundUsableErrorType = true;
+                    }
+                    return type;
                 case SymbolKind.DynamicType:
                 case SymbolKind.TypeParameter:
                 case SymbolKind.PointerType:
@@ -205,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // Now check the container
             NamedTypeSymbol containingType = type.ContainingType;
-            NamedTypeSymbol decodedContainingType;
+            NamedTypeSymbol? decodedContainingType;
             if (containingType is object && containingType.IsGenericType)
             {
                 decodedContainingType = DecodeNamedType(containingType);
@@ -307,7 +310,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // We've gone past the end of the names -- bad metadata
             if (numberOfElements > _namesIndex)
             {
-                throw new InvalidOperationException();
+                // We'll want to continue decoding without consuming more names to see if there are any error types
+                _namesIndex = 0;
+                _decodingFailed = true;
+                return default;
             }
 
             // Check to see if all the elements are null

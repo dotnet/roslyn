@@ -599,8 +599,9 @@ namespace IOperationGenerator
                     { IsAbstract: true } => "kind",
                     { } when multipleValidKinds => "kind",
                     { IsInternal: true } => "OperationKind.None",
-                    _ => $"OperationKind.{getKind(type)}"
+                    _ => $"OperationKind.{getKind(type!)}"
                 };
+                Debug.Assert(type is object);
                 Write($"{(includeKind || multipleValidKinds ? $"{kind}, " : string.Empty)}semanticModel, syntax, type, constantValue, isImplicit)");
 
                 Outdent();

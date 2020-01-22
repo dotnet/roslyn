@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
             return builder.ToImmutable();
 
-            static bool HasGlobalAlias(MetadataReference metadataReference)
+            static bool HasGlobalAlias(MetadataReference? metadataReference)
                 => metadataReference != null && (metadataReference.Properties.Aliases.IsEmpty || metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias));
         }
 

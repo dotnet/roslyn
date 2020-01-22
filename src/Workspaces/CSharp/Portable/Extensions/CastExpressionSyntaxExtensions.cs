@@ -25,9 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            if (parentNode.IsKind(SyntaxKind.CastExpression))
+            if (parentNode.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression))
             {
-                var castExpression = (CastExpressionSyntax)parentNode;
                 return semanticModel.GetTypeInfo(castExpression).Type;
             }
 
@@ -48,9 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32);
             }
 
-            if (parentNode.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (parentNode.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
             {
-                var memberAccess = (MemberAccessExpressionSyntax)parentNode;
                 if (memberAccess.Expression == expression)
                 {
                     var memberSymbol = semanticModel.GetSymbolInfo(memberAccess).Symbol;
@@ -236,12 +234,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool EnumCastDefinitelyCantBeRemoved(CastExpressionSyntax cast, ITypeSymbol expressionType)
+        private static bool EnumCastDefinitelyCantBeRemoved(CastExpressionSyntax cast, ITypeSymbol expressionType, ITypeSymbol castType)
         {
-            if (expressionType != null
-                && expressionType.IsEnumType()
-                && cast.WalkUpParentheses().IsParentKind(SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
+            if (expressionType is null || !expressionType.IsEnumType())
             {
+                return false;
+            }
+
+            var outerExpression = cast.WalkUpParentheses();
+            if (outerExpression.IsParentKind(SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
+            {
+                // -(NumericType)value
+                // +(NumericType)value
+                return true;
+            }
+
+            if (castType.IsNumericType() && !outerExpression.IsParentKind(SyntaxKind.CastExpression))
+            {
+                if (outerExpression.Parent is BinaryExpressionSyntax
+                    || outerExpression.Parent is PrefixUnaryExpressionSyntax)
+                {
+                    // Let the parent code handle this, since it could be something like this:
+                    //
+                    //   (int)enumValue > 0
+                    //   ~(int)enumValue
+                    return false;
+                }
+
+                // Explicit enum cast to numeric type, but not part of a chained cast or binary expression
                 return true;
             }
 
@@ -344,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var expressionTypeInfo = semanticModel.GetTypeInfo(cast.Expression, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
 
-            if (EnumCastDefinitelyCantBeRemoved(cast, expressionType))
+            if (EnumCastDefinitelyCantBeRemoved(cast, expressionType, castType))
             {
                 return false;
             }

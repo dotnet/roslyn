@@ -686,5 +686,60 @@ End Class
 
             Await TestAsync(markup, expected)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        <WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")>
+        Public Async Function TestAddMissingCasesForNullableEnum As Task
+            Dim markup =
+<File>
+Module Program
+    Sub Main(args As String())
+        Dim bar As Bar? = Program.Bar.Option1
+
+        [||]Select Case bar
+            Case Program.Bar.Option1
+                Exit Select
+            Case Program.Bar.Option2
+                Exit Select
+            Case vbNull
+                Exit Select
+        End Select
+    End Sub
+
+    Enum Bar
+        Option1 = 1
+        Option2 = 2
+        Option3 = 3
+    End Enum
+End Module
+</File>
+            Dim expected =
+<File>
+Module Program
+    Sub Main(args As String())
+        Dim bar As Bar? = Program.Bar.Option1
+
+        Select Case bar
+            Case Program.Bar.Option1
+                Exit Select
+            Case Program.Bar.Option2
+                Exit Select
+            Case vbNull
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+    End Sub
+
+    Enum Bar
+        Option1 = 1
+        Option2 = 2
+        Option3 = 3
+    End Enum
+End Module
+</File>
+
+            Await TestAsync(markup, expected)
+        End Function
     End Class
 End Namespace

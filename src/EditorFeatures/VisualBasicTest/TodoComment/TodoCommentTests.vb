@@ -181,7 +181,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             MarkupTestFile.GetSpans(codeWithMarker.NormalizedValue, code, list)
 
             Using workspace = TestWorkspace.CreateVisualBasic(code, openDocuments:=False)
-                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, remote)
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, remote)))
 
                 Dim commentTokens = New TodoCommentTokens()
                 Dim provider = New TodoCommentIncrementalAnalyzerProvider(commentTokens, Array.Empty(Of Lazy(Of IEventListener, EventListenerMetadata))())

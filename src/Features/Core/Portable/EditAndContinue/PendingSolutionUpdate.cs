@@ -11,20 +11,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> EmitBaselines;
         public readonly ImmutableArray<Deltas> Deltas;
         public readonly ImmutableArray<IDisposable> ModuleReaders;
-        public readonly ImmutableArray<Document> ChangedDocuments;
 
         public PendingSolutionUpdate(
             Solution solution,
             ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> emitBaselines,
             ImmutableArray<Deltas> deltas,
-            ImmutableArray<IDisposable> moduleReaders,
-            ImmutableArray<Document> changedDocuments)
+            ImmutableArray<IDisposable> moduleReaders)
         {
             Solution = solution;
             EmitBaselines = emitBaselines;
             Deltas = deltas;
             ModuleReaders = moduleReaders;
-            ChangedDocuments = changedDocuments;
         }
     }
 }

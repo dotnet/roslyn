@@ -22,6 +22,11 @@
         <target state="translated">Para usar "@$" en lugar de "$@" para una cadena textual interpolada, use la versión "{0}" del lenguaje o una posterior.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
+        <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
+        <target state="new">Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">No se puede usar un tipo de referencia que acepte valores NULL en la creación de objetos.</target>
@@ -1376,12 +1381,12 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
-        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
         <target state="needs-review-translation">No se puede pasar un posible valor NULL a un destino marcado con el atributo [DisallowNull]</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
-        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
         <target state="needs-review-translation">No se puede pasar un posible valor NULL a un destino marcado con el atributo [DisallowNull]</target>
         <note />
       </trans-unit>

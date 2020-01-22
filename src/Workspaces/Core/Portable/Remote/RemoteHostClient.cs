@@ -53,12 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
             OnStatusChanged(started: true);
         }
 
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-        }
-
-        protected virtual void Dispose(bool disposing)
+        public virtual void Dispose()
         {
             OnStatusChanged(started: false);
         }
@@ -220,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken);
             public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken);
 
-            protected virtual void Dispose(bool disposing)
+            protected virtual void DisposeImpl()
             {
                 // do nothing
             }
@@ -234,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 _disposed = true;
 
-                Dispose(disposing: true);
+                DisposeImpl();
                 GC.SuppressFinalize(this);
             }
 

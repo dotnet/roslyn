@@ -579,10 +579,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindPatternDesignation(
                 node.Designation, declTypeWithAnnotations, inputValEscape, typeSyntax, diagnostics,
                 ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
+            bool isExplicitNotNullTest =
+                node.Designation is null &&
+                boundDeclType is null &&
+                properties.IsDefaultOrEmpty &&
+                deconstructMethod is null &&
+                deconstructionSubpatterns.IsDefault;
             return new BoundRecursivePattern(
-                syntax: node, declaredType: boundDeclType, inputType: inputType, deconstructMethod: deconstructMethod,
+                syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
                 deconstruction: deconstructionSubpatterns, properties: properties, variable: variableSymbol,
-                variableAccess: variableAccess, hasErrors: hasErrors);
+                variableAccess: variableAccess, isExplicitNotNullTest: isExplicitNotNullTest, inputType: inputType, hasErrors: hasErrors);
         }
 
         private MethodSymbol BindDeconstructSubpatterns(
@@ -933,8 +939,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         return new BoundRecursivePattern(
-                            syntax: node, declaredType: null, inputType: inputType, deconstructMethod: deconstructMethod,
-                            deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null, hasErrors: hasErrors);
+                            syntax: node, declaredType: null, deconstructMethod: deconstructMethod,
+                            deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null,
+                            isExplicitNotNullTest: false, inputType: inputType, hasErrors: hasErrors);
 
                         void addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations> elementTypes)
                         {

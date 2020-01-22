@@ -42,7 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.DesignerAttri
         private static async Task TestAsync(string codeWithMarker, bool designer, bool remote)
         {
             using var workspace = TestWorkspace.CreateCSharp(codeWithMarker, openDocuments: false);
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, remote);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(RemoteHostOptions.RemoteHostTest, remote)));
 
             var hostDocument = workspace.Documents.First();
             var documentId = hostDocument.Id;

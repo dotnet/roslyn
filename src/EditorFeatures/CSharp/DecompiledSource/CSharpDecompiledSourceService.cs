@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -93,8 +94,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             // Load the assembly.
             var file = new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
 
+            var logger = new StringBuilder();
+
             // Initialize a decompiler with default settings.
-            var decompiler = new CSharpDecompiler(file, new AssemblyResolver(compilation), new DecompilerSettings());
+            var decompiler = new CSharpDecompiler(file, new AssemblyResolver(compilation, logger), new DecompilerSettings());
             // Escape invalid identifiers to prevent Roslyn from failing to parse the generated code.
             // (This happens for example, when there is compiler-generated code that is not yet recognized/transformed by the decompiler.)
             decompiler.AstTransforms.Add(new EscapeInvalidIdentifiers());
@@ -103,6 +106,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
             // Try to decompile; if an exception is thrown the caller will handle it
             var text = decompiler.DecompileTypeAsString(fullTypeName);
+
+            text += "#if false // " + CSharpEditorResources.Decompilation_log + Environment.NewLine;
+            text += logger.ToString();
+            text += "#endif" + Environment.NewLine;
+
             return document.WithText(SourceText.From(text));
         }
 

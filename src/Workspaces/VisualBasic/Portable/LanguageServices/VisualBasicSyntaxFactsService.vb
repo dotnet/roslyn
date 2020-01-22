@@ -1326,11 +1326,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsLeftSideOfAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAssignment
-            Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignStatement
+            Return TryCast(node, ExpressionSyntax).IsLeftSideOfSimpleAssignmentStatement
         End Function
 
         Public Function IsLeftSideOfAnyAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAnyAssignment
-            Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignStatement
+            Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignmentStatement
+        End Function
+
+        Public Function IsLeftSideOfCompoundAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfCompoundAssignment
+            Return TryCast(node, ExpressionSyntax).IsLeftSideOfCompoundAssignmentStatement
         End Function
 
         Public Function GetRightHandSideOfAssignment(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightHandSideOfAssignment

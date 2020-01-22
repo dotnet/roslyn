@@ -412,7 +412,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             explicitInitializer = explicitInitializer.CastIfPossible(local.Type,
                                                                      modifiedIdentifier.SpanStart,
                                                                      semanticModel,
-                                                                     wasCastAdded)
+                                                                     wasCastAdded,
+                                                                     cancellationToken)
 
             Return explicitInitializer.WithAdditionalAnnotations(s_expressionToInlineAnnotation)
         End Function
