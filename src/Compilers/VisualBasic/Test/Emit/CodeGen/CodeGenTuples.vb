@@ -22625,9 +22625,9 @@ End Class
             End If
         End Sub
 
-        '<InlineData(False)> TODO2 
         <Theory>
         <InlineData(True)>
+        <InlineData(False)>
         <WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")>
         Public Sub SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit(ByVal useImageReferences As Boolean)
 
