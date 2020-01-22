@@ -7420,6 +7420,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // It is possible for the awaiter type returned from GetAwaiter to not be a named type. e.g. it could be a type parameter.
+                // Proper handling of this is additional work which only benefits a very uncommon scenario,
+                // so we will just use the originally bound GetResult method in this case.
                 var reinferredGetResult = _visitResult.RValueType.Type is NamedTypeSymbol taskAwaiterType
                     ? awaitableInfo.GetResult.OriginalDefinition.AsMember(taskAwaiterType)
                     : awaitableInfo.GetResult;
