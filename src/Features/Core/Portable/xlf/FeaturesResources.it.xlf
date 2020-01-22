@@ -127,11 +127,6 @@
         <target state="translated">Se si modifica '{0}' in '{1}', la sessione di debug non potrà continuare perché modifica la forma della macchina a stati.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_Quality">
-        <source>Code Quality</source>
-        <target state="translated">Qualità del codice</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configura lo stile del codice di {0}</target>
@@ -1676,16 +1671,6 @@ Continuare?</target>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">Implementa l'interfaccia con il criterio Dispose</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compiler1">
-        <source>Compiler</source>
-        <target state="translated">Compilatore</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Stile</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">

@@ -33,6 +33,12 @@ namespace AnalyzerRunner
 
         public TimeSpan Elapsed => _stopwatch.Elapsed;
 
+#if NETCOREAPP
+        public long AllocatedBytes => GC.GetTotalAllocatedBytes(true) - _initialTotalAllocatedBytes;
+#else
+        public long AllocatedBytes => 0;
+#endif
+
         public string GetSummary(bool preciseMemory = true)
         {
 #if NETCOREAPP
