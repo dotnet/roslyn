@@ -454,20 +454,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 {
                     if (updatedParameters[i] is AddedParameter addedParameter)
                     {
-                        if (addedParameter.CallSiteValue != null)
-                        {
-                            fullList.Add(SyntaxFactory.Argument(
-                                seenNameEquals ? SyntaxFactory.NameColon(addedParameter.Name) : default,
-                                refKindKeyword: default,
-                                expression: SyntaxFactory.ParseExpression(addedParameter.CallSiteValue)));
-                            separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
-                        }
+                        fullList.Add(SyntaxFactory.Argument(
+                            seenNameEquals ? SyntaxFactory.NameColon(addedParameter.Name) : default,
+                            refKindKeyword: default,
+                            expression: SyntaxFactory.ParseExpression(addedParameter.CallSiteValue)));
+                        separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
                     }
                     else
                     {
                         if (indexInExistingList < newArguments.Count)
                         {
-                            if (newArguments[indexInExistingList].NameColon != default)
+                            if (newArguments[indexInExistingList].NameColon != null)
                             {
                                 seenNameEquals = true;
                             }
@@ -505,6 +502,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         private static ParameterSyntax CreateNewParameterSyntax(AddedParameter addedParameter)
             => CreateNewParameterSyntax(addedParameter, skipParameterType: false);
 
+        // TODO consider using symbol for TypeName instead of parsing it
+        // https://github.com/dotnet/roslyn/issues/41046
+        // Consider cross-platform scenarios here.
         private static ParameterSyntax CreateNewParameterSyntax(AddedParameter addedParameter, bool skipParameterType)
             => SyntaxFactory.Parameter(
                 attributeLists: SyntaxFactory.List<AttributeListSyntax>(),
@@ -689,7 +689,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             var lastDocumentationCommentTriviaSyntax = node.GetLeadingTrivia()
                 .LastOrDefault(t => t.HasStructure && t.GetStructure() is DocumentationCommentTriviaSyntax);
-            DocumentationCommentTriviaSyntax documentationCommeStructuredTrivia = lastDocumentationCommentTriviaSyntax.GetStructure() as DocumentationCommentTriviaSyntax;
 
             foreach (var trivia in node.GetLeadingTrivia())
             {

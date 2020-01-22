@@ -225,6 +225,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
 #nullable enable
 
+        // TODO refactor this: https://github.com/dotnet/roslyn/issues/41136
         private async Task<Solution?> TryCreateUpdatedSolutionAsync(
             ChangeSignatureAnalyzedSucceedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
@@ -507,7 +508,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             // 5. Add added arguments (only at end for the moment)
-            var brandNewParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters().Where(p => p is AddedParameter).Cast<AddedParameter>();
+            var brandNewParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters().OfType<AddedParameter>();
 
             foreach (var brandNewParameter in brandNewParameters)
             {
