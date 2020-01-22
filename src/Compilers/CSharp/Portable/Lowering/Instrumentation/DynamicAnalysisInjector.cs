@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement AddDynamicAnalysis(BoundStatement original, BoundStatement rewritten)
         {
-            if (!original.WasCompilerGenerated && !_methodBodyFactory.IsCodeCoverageDisabled)
+            if (!original.WasCompilerGenerated)
             {
                 // Do not instrument implicit constructor initializers
                 if (!original.IsConstructorInitializer() || original.Syntax.Kind() != SyntaxKind.ConstructorDeclaration)

@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
         private bool _needsSpilling;
+        private Instrumenter _instrumenter;
         private readonly DiagnosticBag _diagnostics;
-        private readonly Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
 
         private Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderReplacementMapDoNotUseDirectly;
@@ -276,20 +276,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var oldContainingSymbol = _factory.CurrentFunction;
-            var oldIsCodeCoverageDisabled = _factory.IsCodeCoverageDisabled;
+            var oldInstrumenter = _instrumenter;
             try
             {
                 _factory.CurrentFunction = localFunction;
-                if (!oldIsCodeCoverageDisabled)
+                if (localFunction.IsDirectlyExcludedFromCodeCoverage)
                 {
-                    _factory.IsCodeCoverageDisabled = localFunction.IsDirectlyExcludedFromCodeCoverage;
+                    _instrumenter = removeDynamicAnalysisInjectors(oldInstrumenter);
                 }
                 return base.VisitLocalFunctionStatement(node);
             }
             finally
             {
                 _factory.CurrentFunction = oldContainingSymbol;
-                _factory.IsCodeCoverageDisabled = oldIsCodeCoverageDisabled;
+                _instrumenter = oldInstrumenter;
+            }
+
+            static Instrumenter removeDynamicAnalysisInjectors(Instrumenter instrumenter)
+            {
+                switch (instrumenter)
+                {
+                    case DynamicAnalysisInjector { Previous: var previous }:
+                        return removeDynamicAnalysisInjectors(previous);
+                    case DebugInfoInjector { Previous: var previous } injector:
+                        var newPrevious = removeDynamicAnalysisInjectors(previous);
+                        return (object)newPrevious != previous ? new DebugInfoInjector(newPrevious) : injector;
+                    case CompoundInstrumenter compound:
+                        // If we hit this it means a new kind of compound instrumenter is in use.
+                        // Either add a new case or add an abstraction that lets us
+                        // filter out the unwanted injectors in a more generalized way.
+                        throw ExceptionUtilities.UnexpectedValue(compound);
+                    default:
+                        return instrumenter;
+                }
             }
         }
 

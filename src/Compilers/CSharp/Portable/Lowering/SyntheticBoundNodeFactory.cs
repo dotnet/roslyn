@@ -74,13 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// Indicates whether we are inside a declaration with an ExcludeCodeCoverageAttribute (e.g. a local function),
-        /// possibly via multiple levels of nesting. Note that this flag is unused for members with ExcludeCodeCoverageAttribute,
-        /// because in those scenarios we simply do not include a DynamicAnalysisInjector in the instrumenter chain.
-        /// </summary>
-        public bool IsCodeCoverageDisabled { get; set; }
-
         // The nearest enclosing non-lambda method, or null if not available
         private MethodSymbol _topLevelMethod;
         public MethodSymbol TopLevelMethod
