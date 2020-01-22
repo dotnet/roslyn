@@ -134,5 +134,19 @@ namespace Analyzer.Utilities
         /// Boolean option to prevent analyzing indirect base types (walking more than one level up) when suggesting suffixes.
         /// </summary>
         public const string ExcludeIndirectBaseTypes = "exclude_indirect_base_types";
+
+        /// <summary>
+        /// Names of types or namespaces (separated by '|'), such that the type or type's namespace doesn't count in the inheritance hierarchy tree.
+        /// Configurable rules: CA1501 (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca1501)
+        /// Allowed name formats:
+        ///   1. Type or namespace name (includes all types with the name, regardless of the containing type or namespace and all types whose namespace contains the name)
+        ///   2. Type or namespace name ending with a wildcard symbol (includes all types whose name starts with the given name, regardless of the containing type or namespace
+        ///      and all types whose namespace contains the name)
+        ///   3. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
+        ///      with an optional "T:" prefix for types or "N:" prefix for namespaces.
+        ///   4. Fully qualified wildcard names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
+        ///      with an optional "T:" prefix for types or "N:" prefix for namespaces and ending with the wildcard symbol.
+        /// </summary>
+        public const string InheritanceExcludedTypeNames = "inheritance_excluded_type_names";
     }
 }

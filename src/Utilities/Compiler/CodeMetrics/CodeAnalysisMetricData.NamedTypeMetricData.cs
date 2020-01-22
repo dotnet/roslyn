@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
@@ -28,12 +27,12 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
             }
 
-            internal static async Task<NamedTypeMetricData> ComputeAsync(INamedTypeSymbol namedType, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+            internal static async Task<NamedTypeMetricData> ComputeAsync(INamedTypeSymbol namedType, CodeMetricsAnalysisContext context)
             {
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = namedType.DeclaringSyntaxReferences;
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
-                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, namedType, coupledTypesBuilder, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, namedType, coupledTypesBuilder, context).ConfigureAwait(false);
 
                 // Compat: Filter out nested types as they are children of most closest containing namespace.
                 var members = namedType.GetMembers().Where(m => m.Kind != SymbolKind.NamedType);
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 members = members.Where(m => m.Kind != SymbolKind.Method || ((IMethodSymbol)m).AssociatedSymbol == null);
 #endif
 
-                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(members, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(members, context).ConfigureAwait(false);
 
                 // Heuristic to prevent simple fields (no initializer or simple initializer) from skewing the complexity.
                 ImmutableHashSet<IFieldSymbol> filteredFieldsForComplexity = getFilteredFieldsForComplexity();
@@ -75,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     cyclomaticComplexity = 1;
                 }
 
-                int depthOfInheritance = CalculateDepthOfInheritance(namedType);
-                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, namedType, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                int depthOfInheritance = CalculateDepthOfInheritance(namedType, context.IsExcludedFromInheritanceCountFunc);
+                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, namedType, context).ConfigureAwait(false);
                 int maintainabilityIndex = singleEffectiveChildMaintainabilityIndex != -1 ?
                     singleEffectiveChildMaintainabilityIndex :
                     CalculateMaintainabilityIndex(computationalComplexityMetrics, cyclomaticComplexity, effectiveChildrenCountForComplexity);
@@ -106,16 +105,18 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 }
             }
 
-            private static int CalculateDepthOfInheritance(INamedTypeSymbol namedType)
+            private static int CalculateDepthOfInheritance(INamedTypeSymbol namedType, Func<INamedTypeSymbol, bool> isExcludedFromInheritanceCount)
             {
                 switch (namedType.TypeKind)
                 {
                     case TypeKind.Class:
                     case TypeKind.Interface:
                         int depth = 0;
-                        for (; namedType.BaseType != null; namedType = namedType.BaseType)
+                        var parent = namedType.BaseType;
+                        while (parent != null && !isExcludedFromInheritanceCount(parent))
                         {
                             depth++;
+                            parent = parent.BaseType;
                         }
                         return depth;
 

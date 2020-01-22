@@ -133,35 +133,35 @@ namespace Analyzer.Utilities
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesOption(EditorConfigOptionNames.NullCheckValidationMethods, namePrefixOpt: "M:", rule, compilation, cancellationToken);
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.NullCheckValidationMethods, namePrefixOpt: "M:", optionDefaultValue: null, rule, compilation, cancellationToken);
 
         public static SymbolNamesOption GetAdditionalStringFormattingMethodsOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesOption(EditorConfigOptionNames.AdditionalStringFormattingMethods, namePrefixOpt: "M:", rule, compilation, cancellationToken);
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.AdditionalStringFormattingMethods, namePrefixOpt: "M:", optionDefaultValue: null, rule, compilation, cancellationToken);
 
         public static SymbolNamesOption GetExcludedSymbolNamesOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedSymbolNames, namePrefixOpt: null, rule, compilation, cancellationToken);
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedSymbolNames, namePrefixOpt: null, optionDefaultValue: null, rule, compilation, cancellationToken);
 
         public static SymbolNamesOption GetExcludedTypeNamesWithDerivedTypesOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, namePrefixOpt: "T:", rule, compilation, cancellationToken);
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, namePrefixOpt: "T:", optionDefaultValue: null, rule, compilation, cancellationToken);
 
         public static SymbolNamesOption GetDisallowedSymbolNamesOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesOption(EditorConfigOptionNames.DisallowedSymbolNames, namePrefixOpt: null, rule, compilation, cancellationToken);
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.DisallowedSymbolNames, namePrefixOpt: null, optionDefaultValue: null, rule, compilation, cancellationToken);
 
         public static SymbolNamesOption GetAdditionalRequiredSuffixesOption(
             this AnalyzerOptions options,
@@ -169,7 +169,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             CancellationToken cancellationToken)
         {
-            return options.GetSymbolNamesOption(EditorConfigOptionNames.AdditionalRequiredSuffixes, namePrefixOpt: "T:", rule, compilation, cancellationToken, GetParts);
+            return options.GetSymbolNamesOption(EditorConfigOptionNames.AdditionalRequiredSuffixes, namePrefixOpt: "T:", optionDefaultValue: null, rule, compilation, cancellationToken, GetParts);
 
             static SymbolNamesOption.NameParts GetParts(string name)
             {
@@ -182,19 +182,26 @@ namespace Analyzer.Utilities
             }
         }
 
+        public static SymbolNamesOption GetInheritanceExcludedTypeNamesOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.InheritanceExcludedTypeNames, namePrefixOpt: null, optionDefaultValue: "N:System.*", rule, compilation, cancellationToken);
+
         private static SymbolNamesOption GetSymbolNamesOption(
             this AnalyzerOptions options,
             string optionName,
             string? namePrefixOpt,
+            string? optionDefaultValue,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken,
             Func<string, SymbolNamesOption.NameParts>? getTypeAndSuffixFunc = null)
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
-            return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParse, defaultValue: SymbolNamesOption.Empty);
+            return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParse, defaultValue: GetDefaultValue());
 
-            // Local functions.
             bool TryParse(string s, out SymbolNamesOption option)
             {
                 if (string.IsNullOrEmpty(s))
@@ -207,6 +214,13 @@ namespace Analyzer.Utilities
                 option = SymbolNamesOption.Create(names, compilation, namePrefixOpt, getTypeAndSuffixFunc);
                 return true;
             }
+
+            SymbolNamesOption GetDefaultValue()
+#pragma warning disable CS8604 // Possible null reference argument.
+                => !string.IsNullOrEmpty(optionDefaultValue) && TryParse(optionDefaultValue, out var option)
+#pragma warning restore CS8604 // Possible null reference argument.
+                    ? option
+                    : SymbolNamesOption.Empty;
         }
 
         private static CategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions(

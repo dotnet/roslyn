@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
             }
 
-            internal static async Task<MethodMetricData> ComputeAsync(IMethodSymbol method, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+            internal static async Task<MethodMetricData> ComputeAsync(IMethodSymbol method, CodeMetricsAnalysisContext context)
             {
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = method.DeclaringSyntaxReferences;
-                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, method, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, method, context).ConfigureAwait(false);
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
-                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, method, coupledTypesBuilder, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, method, coupledTypesBuilder, context).ConfigureAwait(false);
                 MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, method.Parameters);
                 if (!method.ReturnsVoid)
                 {
