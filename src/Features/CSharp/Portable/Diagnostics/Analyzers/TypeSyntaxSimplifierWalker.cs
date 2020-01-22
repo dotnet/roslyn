@@ -2,8 +2,10 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 
@@ -65,7 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public override void VisitIdentifierName(IdentifierNameSyntax node)
         {
-            if (node.IsKind(SyntaxKind.IdentifierName) && TrySimplify(node))
+            // Always try to simplify identifiers with an 'Attribute' suffix.
+            //
+            // In other cases, don't bother looking at the right side of A.B or A::B. We will process those in
+            // one of our other top level Visit methods (like VisitQualifiedName).
+            var canTrySimplify = node.Identifier.ValueText!.EndsWith("Attribute", StringComparison.Ordinal)
+                || !node.IsRightSideOfDotOrArrowOrColonColon();
+
+            if (canTrySimplify && TrySimplify(node))
             {
                 // found a match. report it and stop processing.
                 return;
