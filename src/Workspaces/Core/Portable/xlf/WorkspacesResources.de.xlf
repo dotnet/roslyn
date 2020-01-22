@@ -1207,6 +1207,16 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Das Entfernen von Konfigurationsdokumenten des Analysetools wird nicht unterstützt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="new">Rename '{0}' to '{1}'</target>
+        <note>Description for renaming a type when renaming a file</note>
+      </trans-unit>
+      <trans-unit id="Renaming_0_may_result_in_naming_conflicts">
+        <source>Renaming '{0}' may result in naming conflicts</source>
+        <target state="new">Renaming '{0}' may result in naming conflicts</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
         <source>Symbol "{0}" is not from source.</source>
         <target state="translated">Symbol "{0}" ist nicht aus Quelle.</target>
@@ -1286,6 +1296,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <source>Symbol specifications</source>
         <target state="translated">Symbolspezifikationen</target>
         <note />
+      </trans-unit>
+      <trans-unit id="The_project_does_not_support_sync_namespace">
+        <source>The project does not support sync namespace</source>
+        <target state="new">The project does not support sync namespace</target>
+        <note>This is an error message generated to show that the project a document is in does not currently support the feature to sync namespaces</note>
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>

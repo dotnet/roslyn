@@ -9,13 +9,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
-    public static class Renamer
+    public static partial class Renamer
     {
+
         public static Task<Solution> RenameSymbolAsync(
             Solution solution, ISymbol symbol, string newName, OptionSet optionSet, CancellationToken cancellationToken = default)
         {
@@ -23,6 +25,78 @@ namespace Microsoft.CodeAnalysis.Rename
                 solution,
                 SymbolAndProjectId.Create(symbol, projectId: null),
                 newName, optionSet, cancellationToken);
+        }
+
+        /// <summary>
+        /// Similar to calling <see cref="Document.WithName(string)" /> with additional changes to the solution. 
+        /// Each change is added as a <see cref="RenameDocumentAction"/> in the returned <see cref="RenameDocumentActionInfo.ApplicableActions" />.
+        /// 
+        /// Each action may individually encounter errors that prevent it from behaving correctly. Those are reported in <see cref="RenameDocumentAction.Errors"/>.
+        /// 
+        /// Current supported actions that may be returned: 
+        /// * <see cref="RenameSymbolDocumentAction"/> that will rename the type to match the document name
+        /// </summary>
+        public static async Task<RenameDocumentActionInfo> RenameDocumentNameAsync(
+            Document document,
+            string newDocumentName,
+            OptionSet optionSet,
+            CancellationToken cancellationToken = default)
+        {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            if (newDocumentName == null)
+            {
+                throw new ArgumentNullException(nameof(newDocumentName));
+            }
+
+            var actions = new ArrayBuilder<RenameDocumentAction>();
+
+            if (!newDocumentName.Equals(document.Name))
+            {
+                var renameAction = await RenameSymbolDocumentAction.CreateAsync(document, newDocumentName, optionSet, cancellationToken).ConfigureAwait(false);
+                actions.Add(renameAction);
+            }
+
+            return new RenameDocumentActionInfo(actions.ToImmutableAndFree(), document.Project.Solution);
+        }
+
+        /// <summary>
+        /// Similar to calling <see cref="Document.WithFolders(IEnumerable{string})" /> with additional changes to the solution. 
+        /// Each change is added as a <see cref="RenameDocumentAction"/> in the returned <see cref="RenameDocumentActionInfo.ApplicableActions" />.
+        /// 
+        /// Each action may individually encounter errors that prevent it from behaving correctly. Those are reported in <see cref="RenameDocumentAction.Errors"/>.
+        /// 
+        /// Current supported actions that may be returned: 
+        /// * <see cref="SyncNamespaceDocumentAction"/> that will sync the namespace(s) of the document to match the document folders
+        /// </summary>
+        public static async Task<RenameDocumentActionInfo> RenameDocumentFoldersAsync(
+            Document document,
+            IReadOnlyList<string> newFolders,
+            OptionSet optionSet,
+            CancellationToken cancellationToken = default)
+        {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            if (newFolders == null)
+            {
+                throw new ArgumentNullException(nameof(newFolders));
+            }
+
+            var actions = new ArrayBuilder<RenameDocumentAction>();
+
+            if (!newFolders.SequenceEqual(document.Folders))
+            {
+                var action = await SyncNamespaceDocumentAction.CreateAsync(document, newFolders, optionSet, cancellationToken).ConfigureAwait(false);
+                actions.Add(action);
+            }
+
+            return new RenameDocumentActionInfo(actions.ToImmutableAndFree(), document.Project.Solution);
         }
 
         internal static Task<Solution> RenameSymbolAsync(

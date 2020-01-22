@@ -12,3 +12,13 @@ abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ElementBindingExpression
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberBindingExpression(Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Extern.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Volatile.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction.Errors.get -> System.Collections.Immutable.ImmutableArray<string>
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo.ApplicableActions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction>
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo.GetSolutionAsync() -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo.GetSolutionAsync(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction> actions) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo.Solution.get -> Microsoft.CodeAnalysis.Solution
+abstract Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction.GetDescription(System.Globalization.CultureInfo culture = null) -> string
+static Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentFoldersAsync(Microsoft.CodeAnalysis.Document document, System.Collections.Generic.IReadOnlyList<string> newFolders, Microsoft.CodeAnalysis.Options.OptionSet optionSet, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo>
+static Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentNameAsync(Microsoft.CodeAnalysis.Document document, string newDocumentName, Microsoft.CodeAnalysis.Options.OptionSet optionSet, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo>
