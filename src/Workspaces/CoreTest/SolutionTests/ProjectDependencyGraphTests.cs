@@ -489,6 +489,91 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestReverseTransitiveReferencesAfterProjectReferenceRemoval_PreserveThroughUnrelatedSequence()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B -> C
+            // A -> D
+            //
+            // and will then remove the project reference A->B. This test verifies that the new project dependency graph
+            // did not lose previously-computed information about the transitive reverse references for D.
+
+            var solution = CreateSolutionFromReferenceMap("A:B,D B:C C D");
+            VerifyReverseTransitiveReferences(solution, "D", new string[] { "A" });
+
+            var a = solution.GetProjectsByName("A").Single();
+            var b = solution.GetProjectsByName("B").Single();
+            var d = solution.GetProjectsByName("D").Single();
+            var expected = solution.State.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(d.Id);
+
+            var aToB = a.ProjectReferences.Single(reference => reference.ProjectId == b.Id);
+            solution = solution.RemoveProjectReference(a.Id, aToB);
+
+            // Before any other operations, verify that TryGetProjectsThatTransitivelyDependOnThisProject returns a
+            // non-null set. Specifically, it returns the _same_ set that was computed prior to the project reference
+            // removal.
+            Assert.Same(expected, solution.State.GetProjectDependencyGraph().TryGetProjectsThatTransitivelyDependOnThisProject(d.Id));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestReverseTransitiveReferencesAfterProjectReferenceRemoval_PreserveUnrelated()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B -> C
+            // D -> E
+            //
+            // and will then remove the project reference A->B. This test verifies that the new project dependency graph
+            // did not lose previously-computed information about the transitive reverse references for E.
+
+            var solution = CreateSolutionFromReferenceMap("A:B B:C C D:E E");
+            VerifyReverseTransitiveReferences(solution, "E", new string[] { "D" });
+
+            var a = solution.GetProjectsByName("A").Single();
+            var b = solution.GetProjectsByName("B").Single();
+            var e = solution.GetProjectsByName("E").Single();
+            var expected = solution.State.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(e.Id);
+
+            var aToB = a.ProjectReferences.Single(reference => reference.ProjectId == b.Id);
+            solution = solution.RemoveProjectReference(a.Id, aToB);
+
+            // Before any other operations, verify that TryGetProjectsThatTransitivelyDependOnThisProject returns a
+            // non-null set. Specifically, it returns the _same_ set that was computed prior to the project reference
+            // removal.
+            Assert.Same(expected, solution.State.GetProjectDependencyGraph().TryGetProjectsThatTransitivelyDependOnThisProject(e.Id));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestReverseTransitiveReferencesAfterProjectReferenceRemoval_DiscardImpacted()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B -> C
+            // A -> D
+            //
+            // and will then remove the project reference A->B. This test verifies that the new project dependency graph
+            // discards previously-computed information about the transitive reverse references for C.
+
+            var solution = CreateSolutionFromReferenceMap("A:B,D B:C C D");
+            VerifyReverseTransitiveReferences(solution, "C", new string[] { "A", "B" });
+
+            var a = solution.GetProjectsByName("A").Single();
+            var b = solution.GetProjectsByName("B").Single();
+            var c = solution.GetProjectsByName("C").Single();
+            var notExpected = solution.State.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(c.Id);
+            Assert.NotNull(notExpected);
+
+            var aToB = a.ProjectReferences.Single(reference => reference.ProjectId == b.Id);
+            solution = solution.RemoveProjectReference(a.Id, aToB);
+
+            // Before any other operations, verify that TryGetProjectsThatTransitivelyDependOnThisProject returns a
+            // null set.
+            Assert.Null(solution.State.GetProjectDependencyGraph().TryGetProjectsThatTransitivelyDependOnThisProject(c.Id));
+            VerifyReverseTransitiveReferences(solution, "C", new string[] { "B" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestSameDependencyGraphAfterOneOfMultipleReferencesRemoved()
         {
             // We are going to create a solution with the references:
