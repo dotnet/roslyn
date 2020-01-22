@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -54,23 +55,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Lazy<ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>> _lazyHostDiagnosticAnalyzersPerReferenceMap;
 
         /// <summary>
-        /// map to compiler diagnostic analyzer.
+        /// Maps <see cref="LanguageNames"/> to compiler diagnostic analyzers.
         /// </summary>
         private ImmutableDictionary<string, DiagnosticAnalyzer> _compilerDiagnosticAnalyzerMap;
 
         /// <summary>
-        /// map from host diagnostic analyzer to package name it came from
+        /// Map from host diagnostic analyzer to package name it came from.
         /// </summary>
+        /// <remarks>
+        /// Instances of <see cref="DiagnosticAnalyzer"/> coming from the host (e.g. VSIX) are never released.
+        /// </remarks>
         private ImmutableDictionary<DiagnosticAnalyzer, string> _hostDiagnosticAnalyzerPackageNameMap;
 
         /// <summary>
-        /// map to compiler diagnostic analyzer descriptor.
+        /// Set of diagnostic ids supported by a given compiler diagnostic analyzer.
+        /// Allows us to quickly determine whether a diagnostic is a compiler diagnostic.
         /// </summary>
         private ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>> _compilerDiagnosticAnalyzerDescriptorMap;
 
         /// <summary>
-        /// Cache from <see cref="DiagnosticAnalyzer"/> information about its supported descriptors.
+        /// Supported descriptors of each <see cref="DiagnosticAnalyzer"/>. 
         /// </summary>
+        /// <remarks>
+        /// Holds on <see cref="DiagnosticAnalyzer"/> instances weakly so that we don't keep analyzers coming from package references alive.
+        /// They need to be released when the project stops referencing the analyzer.
+        /// 
+        /// The purpose of this map is to avoid multiple calls to <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> that might return different values
+        /// (they should not but we need a guarantee to function correctly).
+        /// </remarks>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo> _descriptorsInfo;
 
         private sealed class DiagnosticDescriptorsInfo
@@ -504,10 +516,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 builder.Add(reference);
             }
 
-            var references = builder.ToImmutable();
-            DiagnosticAnalyzerLogger.LogWorkspaceAnalyzers(references);
+            LogWorkspaceAnalyzerCount(builder.Count);
+            return builder.ToImmutable();
+        }
 
-            return references;
+        private static void LogWorkspaceAnalyzerCount(int analyzerCount)
+        {
+            Logger.Log(FunctionId.DiagnosticAnalyzerService_Analyzers, KeyValueLogMessage.Create(m =>
+            {
+                m["AnalyzerCount"] = analyzerCount;
+            }));
         }
 
         private static ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> MergeDiagnosticAnalyzerMap(
