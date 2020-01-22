@@ -956,7 +956,7 @@ namespace Microsoft.CodeAnalysis
             var newProject = oldProject.RemoveProjectReference(projectReference);
 
             ProjectDependencyGraph newDependencyGraph;
-            if (newProject.ContainsAnyReferenceToProject(projectReference.ProjectId))
+            if (newProject.ContainsReferenceToProject(projectReference.ProjectId))
             {
                 // The project contained multiple references to the project, and not all of them were removed. The
                 // dependency graph doesn't change.
@@ -1829,12 +1829,17 @@ namespace Microsoft.CodeAnalysis
                     if (id == projectId)
                         return true;
 
+                    // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
+                    // If the information is not available, do not compute it.
                     var forwardDependencies = dependencyGraph.TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
                     if (forwardDependencies is object && !forwardDependencies.Contains(projectId))
                     {
                         return true;
                     }
 
+                    // Compute the set of all projects that depend on 'projectId'. This information answers the same
+                    // question as the previous check, but involves at most one transitive computation within the
+                    // dependency graph.
                     dependencies ??= dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
                     return !dependencies.Contains(id);
                 }

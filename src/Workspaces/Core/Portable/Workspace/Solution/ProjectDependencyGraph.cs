@@ -542,13 +542,17 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfFalse(_projectIds.Contains(projectId));
             Contract.ThrowIfFalse(_referencesMap[projectId].Contains(referencedProjectId));
 
+            // Removing a project reference doesn't change the set of projects
             var projectIds = _projectIds;
+
+            // Incrementally update the graph
             var referencesMap = _referencesMap.SetItem(projectId, _referencesMap[projectId].Remove(referencedProjectId));
             var reverseReferencesMap = _lazyReverseReferencesMap is object
                 ? ComputeNewReverseReferencesMapForRemovedProjectReference(_lazyReverseReferencesMap, projectId, referencedProjectId)
                 : null;
             var transitiveReferencesMap = ComputeNewTransitiveReferencesMapForRemovedProjectReference(_transitiveReferencesMap, projectId, referencedProjectId);
             var reverseTransitiveReferencesMap = ComputeNewReverseTransitiveReferencesMapForRemovedProjectReference(_reverseTransitiveReferencesMap, projectId, referencedProjectId);
+
             return new ProjectDependencyGraph(
                 projectIds,
                 referencesMap,

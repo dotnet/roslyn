@@ -617,7 +617,12 @@ namespace Microsoft.CodeAnalysis
             return project1.LanguageServices == project2.LanguageServices;
         }
 
-        public bool ContainsAnyReferenceToProject(ProjectId projectId)
+        /// <summary>
+        /// Determines whether <see cref="ProjectReferences"/> contains a reference to a specified project.
+        /// </summary>
+        /// <param name="projectId">The target project of the reference.</param>
+        /// <returns><see langword="true"/> if this project references <paramref name="projectId"/>; otherwise, <see langword="false"/>.</returns>
+        public bool ContainsReferenceToProject(ProjectId projectId)
         {
             foreach (var projectReference in ProjectReferences)
             {
