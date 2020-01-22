@@ -333,8 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod = True
                 End If
 
-                Dim signaturePermutationWithoutAddedParameters = updatedSignature.WithoutAddedParameters()
-                Dim newArguments = PermuteArgumentList(invocation.ArgumentList.Arguments, signaturePermutationWithoutAddedParameters, declarationSymbol, isReducedExtensionMethod)
+                Dim newArguments = PermuteArgumentList(invocation.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol, isReducedExtensionMethod)
                 newArguments = AddNewArgumentsToList(newArguments, updatedSignature, isReducedExtensionMethod)
                 Return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
@@ -353,7 +352,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             If vbnode.IsKind(SyntaxKind.ObjectCreationExpression) Then
                 Dim objectCreation = DirectCast(vbnode, ObjectCreationExpressionSyntax)
-                Dim newArguments = PermuteArgumentList(objectCreation.ArgumentList.Arguments, updatedSignature, declarationSymbol,)
+                Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+
+                Dim isReducedExtensionMethod = False
+                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, ObjectCreationExpressionSyntax))
+                Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
+                If methodSymbol IsNot Nothing AndAlso methodSymbol.MethodKind = MethodKind.ReducedExtension Then
+                    isReducedExtensionMethod = True
+                End If
+
+                Dim newArguments = PermuteArgumentList(objectCreation.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol, isReducedExtensionMethod)
+                newArguments = AddNewArgumentsToList(newArguments, updatedSignature, isReducedExtensionMethod)
                 Return objectCreation.WithArgumentList(objectCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 

@@ -38,8 +38,8 @@ Class C
         b As Integer, a As Integer)
 
         Method(6,
-            5, d:=4,
-            c:=3, b:=2, a:=1, newIntegerParameter:=12345)
+            5, 12345, 4,
+            3, 2, 1)
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
@@ -66,7 +66,7 @@ Class C
     Sub Method(y As Integer,
         newIntegerParameter As Integer, x As Integer)
         Method(2,
-            x:=1, newIntegerParameter:=12345)
+            12345, 1)
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
@@ -93,7 +93,7 @@ Class C
     Sub Method(y As Integer,
         newIntegerParameter As Integer, x As Integer)
         Method(2,
-            x:=1, newIntegerParameter:=12345)
+            12345, 1)
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
@@ -188,7 +188,7 @@ Class C
 
     Sub M()
         Dim x = New C(2,
-            a:=1, newIntegerParameter:=12345)
+            12345, 1)
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
@@ -233,9 +233,9 @@ Class C
 
     Sub M()
         Dim x = NewProperty(2,
-            x:=1, newIntegerParameter:=12345)
+            12345, 1)
         NewProperty(2,
-            x:=1, newIntegerParameter:=12345) = x
+            12345, 1) = x
     End Sub
 End Class
 ]]></Text>.NormalizedValue()

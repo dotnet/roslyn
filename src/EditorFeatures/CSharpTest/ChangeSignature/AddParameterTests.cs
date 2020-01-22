@@ -333,7 +333,7 @@ class MyClass
 
     public MyClass(string y, byte b, int x)
     {
-        var t = new MyClass(y, x: x, b: 34);
+        var t = new MyClass(y, 34, x);
     }
 }";
 

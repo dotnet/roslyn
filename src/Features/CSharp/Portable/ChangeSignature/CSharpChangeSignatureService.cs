@@ -367,9 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // Update reference site argument lists
-            if (updatedNode.IsKind(SyntaxKind.InvocationExpression))
+            if (updatedNode.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
             {
-                var invocation = (InvocationExpressionSyntax)updatedNode;
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
@@ -380,16 +379,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     isReducedExtensionMethod = true;
                 }
 
-                SignatureChange signaturePermutationWithoutAddedParameters = signaturePermutation.WithoutAddedParameters();
-
-                var newArguments = PermuteArgumentList(declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutationWithoutAddedParameters, isReducedExtensionMethod);
+                var newArguments = PermuteArgumentList(declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters(), isReducedExtensionMethod);
                 newArguments = AddNewArgumentsToList(newArguments, signaturePermutation, isReducedExtensionMethod);
                 return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objCreation))
             {
-                var newArguments = PermuteArgumentList(declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                var symbolInfo = semanticModel.GetSymbolInfo((ObjectCreationExpressionSyntax)originalNode, cancellationToken);
+                var isReducedExtensionMethod = false;
+
+                if (symbolInfo.Symbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.ReducedExtension)
+                {
+                    isReducedExtensionMethod = true;
+                }
+
+                var newArguments = PermuteArgumentList(declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters());
+                newArguments = AddNewArgumentsToList(newArguments, signaturePermutation, isReducedExtensionMethod);
                 return objCreation.WithArgumentList(objCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 

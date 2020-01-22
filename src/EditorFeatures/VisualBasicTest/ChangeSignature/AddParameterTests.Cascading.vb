@@ -131,7 +131,7 @@ Class D
     Inherits B
 
     Public Overrides Sub Goo(y As String, newIntegerParameter As Integer, x As Integer)
-        MyBase.Goo(y, x:=x, newIntegerParameter:=12345)
+        MyBase.Goo(y, 12345, x)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -167,7 +167,7 @@ Class D
     Inherits B
 
     Public Overrides Sub Goo(y As String, newIntegerParameter As Integer, x As Integer)
-        MyBase.Goo(y, x:=x, newIntegerParameter:=12345)
+        MyBase.Goo(y, 12345, x)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -209,14 +209,14 @@ End Class
 Class C
     Inherits B
     Public Overrides Sub Goo(y As String, newIntegerParameter As Integer, x As Integer)
-        MyBase.Goo(y, x:=x, newIntegerParameter:=12345)
+        MyBase.Goo(y, 12345, x)
     End Sub
 End Class
 
 Class D
     Inherits C
     Public Overrides Sub Goo(y As String, newIntegerParameter As Integer, x As Integer)
-        MyBase.Goo(y, x:=x, newIntegerParameter:=12345)
+        MyBase.Goo(y, 12345, x)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -258,14 +258,14 @@ End Class
 Class C
     Inherits B
     Public Overrides Sub Goo(y As String, newIntegerParameter As Integer, x As Integer)
-        MyBase.Goo(y, x:=x, newIntegerParameter:=12345)
+        MyBase.Goo(y, 12345, x)
     End Sub
 End Class
 
 Class D
     Inherits C
     Public Overrides Sub Goo(y As String, newIntegerParameter As Integer, x As Integer)
-        MyBase.Goo(y, x:=x, newIntegerParameter:=12345)
+        MyBase.Goo(y, 12345, x)
     End Sub
 End Class]]></Text>.NormalizedValue()
 

@@ -31,7 +31,7 @@ Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
 Class C
     Sub M()
         Dim s As MySub = Nothing
-        s(True, y:="Two", newIntegerParameter:=12345)
+        s(True, 12345, "Two")
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
@@ -61,7 +61,7 @@ Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
 Class C
     Sub M()
         Dim s As MySub = Nothing
-        s.Invoke(True, y:="Two", newIntegerParameter:=12345)
+        s.Invoke(True, 12345, "Two")
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
@@ -91,7 +91,7 @@ Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
 Class C
     Sub M()
         Dim s As MySub = Nothing
-        s.BeginInvoke(True, y:="Two", DelegateCallback:=Nothing, DelegateAsyncState:=Nothing, newIntegerParameter:=12345)
+        s.BeginInvoke(True, 12345, "Two", Nothing, Nothing)
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
@@ -285,7 +285,7 @@ Delegate Function MyFunc(z As Boolean, newIntegerParameter As Integer, y As Stri
 Class C
     Sub M()
         Dim f As MyFunc = Nothing
-        f(True, y:="Two", newIntegerParameter:=12345)(True, y:="Two", newIntegerParameter:=12345)(True, y:="Two", newIntegerParameter:=12345)(True, y:="Two", newIntegerParameter:=12345)
+        f(True, 12345, "Two")(True, 12345, "Two")(True, 12345, "Two")(True, 12345, "Two")
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
@@ -554,9 +554,9 @@ Class C
 
     Sub M()
         Dim e As MyEventEventHandler = Nothing
-        e(True, y:="Two", newIntegerParameter:=12345)
-        e.Invoke(True, y:="Two", newIntegerParameter:=12345)
-        e.BeginInvoke(True, y:="Two", DelegateCallback:=Nothing, DelegateAsyncState:=New Object(), newIntegerParameter:=12345)
+        e(True, 12345, "Two")
+        e.Invoke(True, 12345, "Two")
+        e.BeginInvoke(True, 12345, "Two", Nothing, New Object())
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
@@ -720,9 +720,9 @@ Class C
 
     Sub M()
         Dim e As MyDelegate = Nothing
-        e(True, y:="Two", newIntegerParameter:=12345)
-        e.Invoke(True, y:="Two", newIntegerParameter:=12345)
-        e.BeginInvoke(True, y:="Two", DelegateCallback:=Nothing, DelegateAsyncState:=New Object(), newIntegerParameter:=12345)
+        e(True, 12345, "Two")
+        e.Invoke(True, 12345, "Two")
+        e.BeginInvoke(True, 12345, "Two", Nothing, New Object())
     End Sub
 End Class
 ]]></Text>.NormalizedValue()

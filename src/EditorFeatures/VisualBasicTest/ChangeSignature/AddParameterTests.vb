@@ -68,22 +68,22 @@ Module Program
     Sub M(ByVal o As String, c As Boolean, newIntegerParameter As Integer, a As Integer, Optional y As String = "Zero")
         Dim t = "Test"
 
-        M(t, True, a:=1, y:="Four", newIntegerParameter:=12345)
-        t.M(True, a:=1, y:="Four", newIntegerParameter:=12345)
+        M(t, True, 12345, 1, "Four")
+        t.M(True, 12345, 1, "Four")
 
-        M(t, True, a:=1, newIntegerParameter:=12345)
-        M(t, True, a:=1, newIntegerParameter:=12345)
+        M(t, True, 12345, 1)
+        M(t, True, 12345, 1)
 
-        M(t, True, a:=1, y:="Four", newIntegerParameter:=12345)
-        M(t, c:=True, a:=1, newIntegerParameter:=12345)
+        M(t, True, 12345, 1, y:="Four")
+        M(t, c:=True, newIntegerParameter:=12345, a:=1)
 
-        M(t, True, a:=1, y:="Four", newIntegerParameter:=12345)
-        M(t, True, a:=1, newIntegerParameter:=12345)
+        M(t, True, 12345, 1, y:="Four")
+        M(t, True, 12345, 1)
 
-        M(t, True, a:=1, y:="Four", newIntegerParameter:=12345)
-        M(t, a:=1, y:="Four", newIntegerParameter:=12345, c:=True)
+        M(t, True, 12345, 1, y:="Four")
+        M(t, a:=1, newIntegerParameter:=12345, y:="Four", c:=True)
         M(t, y:="Four", newIntegerParameter:=12345, c:=True, a:=1)
-        M(y:="Four", newIntegerParameter:=12345, c:=True, a:=1, o:=t)
+        M(y:="Four", c:=True, newIntegerParameter:=12345, a:=1, o:=t)
     End Sub
 End Module
 
@@ -108,7 +108,7 @@ End Module
             Dim updatedCode = <Text><![CDATA[
 Module Program
     Sub M(newIntegerParameter As Integer)
-        M(newIntegerParameter:=12345)
+        M(12345)
     End Sub
 End Module
 
@@ -155,7 +155,7 @@ End Class]]></Text>.NormalizedValue()
             Dim updatedCode = <Text><![CDATA[
 Class C
     Sub M(y As String, newIntegerParameter As Integer, x As Integer)
-        M("hello", x:=3, newIntegerParameter:=12345)
+        M("hello", 12345, 3)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -178,7 +178,7 @@ End Class]]></Text>.NormalizedValue()
             Dim updatedCode = <Text><![CDATA[
 Class C
     Function M(y As String, newIntegerParameter As Integer, x As Integer) As Integer
-        Return M("outer", x:=M("inner", x:=4, newIntegerParameter:=12345), newIntegerParameter:=12345)
+        Return M("outer", 12345, M("inner", 12345, 4))
     End Function
 End Class]]></Text>.NormalizedValue()
 
@@ -215,17 +215,17 @@ Class D
     Inherits C
 
     Sub New()
-        MyBase.New("two", x:=1, newIntegerParameter:=12345)
+        MyBase.New("two", 12345, 1)
     End Sub
 End Class
 
 Class C
     Sub New()
-        Me.New("two", x:=1, newIntegerParameter:=12345)
+        Me.New("two", 12345, 1)
     End Sub
 
     Sub New(y As String, newIntegerParameter As Integer, x As Integer)
-        Dim t = New C("two", x:=1, newIntegerParameter:=12345)
+        Dim t = New C("two", 12345, 1)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -285,7 +285,7 @@ End Module]]></Text>.NormalizedValue()
             Dim updatedCode = <Text><![CDATA[
 Class C
     Shared Sub Test()
-        CExt.M(New C(), 2, x:=1, c:="five", b:="four", a:="three", newIntegerParameter:=12345)
+        CExt.M(New C(), 2, 12345, 1, "five", "four", "three")
     End Sub
 End Class
 
@@ -329,7 +329,7 @@ End Module]]></Text>.NormalizedValue()
 Class C
     Shared Sub Test()
         Dim c = New C()
-        c.M(2, x:=1, c:="five", b:="four", a:="three", newIntegerParameter:=12345)
+        c.M(2, 12345, 1, "five", "four", "three")
     End Sub
 End Class
 
@@ -359,7 +359,7 @@ End Class]]></Text>.NormalizedValue()
             Dim updatedCode = <Text><![CDATA[
 Class C
     Sub M(y As Integer, x As Integer, newIntegerParameter As Integer, ParamArray p As Integer())
-        M(y, x, newIntegerParameter:=12345, {1, 2, 3})
+        M(y, x, 12345, {1, 2, 3})
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -383,7 +383,7 @@ End Class]]></Text>.NormalizedValue()
             Dim updatedCode = <Text><![CDATA[
 Class C
     Sub M(y As Integer, x As Integer, newIntegerParameter As Integer, ParamArray p As Integer())
-        M(y, x, newIntegerParameter:=12345, 1, 2, 3)
+        M(y, x, 12345, 1, 2, 3)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -398,7 +398,7 @@ Class C
     Shared Sub Test()
         Dim c = New C()
         c.M(1, 2)
-        c.M(2, x:=1, p:={3, 4})
+        c.M(1, 2, {3, 4})
         c.M(1, 2, 3, 4)
         CExt.M(c, 1, 2)
         CExt.M(c, 1, 2, {3, 4})
@@ -421,12 +421,12 @@ End Module]]></Text>.NormalizedValue()
 Class C
     Shared Sub Test()
         Dim c = New C()
-        c.M(2, x:=1, newIntegerParameter:=12345)
-        c.M(2, x:=1, newIntegerParameter:=12345, p:={3, 4})
-        c.M(2, x:=1, newIntegerParameter:=12345, p:=3, 4)
-        CExt.M(c, 2, x:=1, newIntegerParameter:=12345)
-        CExt.M(c, 2, x:=1, newIntegerParameter:=12345, p:={3, 4})
-        CExt.M(c, 2, x:=1, newIntegerParameter:=12345, p:=3, 4)
+        c.M(2, 12345, 1)
+        c.M(2, 12345, 1, {3, 4})
+        c.M(2, 12345, 1, 3, 4)
+        CExt.M(c, 2, 12345, 1)
+        CExt.M(c, 2, 12345, 1, {3, 4})
+        CExt.M(c, 2, 12345, 1, 3, 4)
     End Sub
 End Class
 
@@ -474,8 +474,8 @@ Class C
 
     Sub Goo()
         Dim c = New C()
-        Dim x = c(2, index1:=1, newIntegerParameter:=12345)
-        c(4, index1:=3, newIntegerParameter:=12345) = x
+        Dim x = c(2, 12345, 1)
+        c(4, 12345, 3) = x
     End Sub
 End Class]]></Text>.NormalizedValue()
 

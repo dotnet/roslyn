@@ -184,7 +184,7 @@ class SomeClass
         byte bb, int a)
     {
         new SomeClass(2,
-            a: 1, bb: 34);
+            34, 1);
     }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
