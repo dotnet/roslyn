@@ -70,7 +70,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _lazyUsedAssemblyReferences
         End Function
 
-
         Private Sub AddUsedAssembly(dependency As AssemblySymbol, stack As ArrayBuilder(Of AssemblySymbol))
             If AddUsedAssembly(dependency) Then
                 stack.Push(dependency)
@@ -103,6 +102,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         AddUsedAssembly(dependency)
                     Next
                 Next
+
+                If _usedAssemblyReferencesFrozen OrElse Volatile.Read(_usedAssemblyReferencesFrozen) Then
+                    Return
+                End If
 
                 ' Assume that all assemblies used by the used assemblies are also used
                 ' This, for example, takes care of including facade assemblies that forward types around.
@@ -199,12 +202,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If DEBUG Then
             Dim wasFrozen As Boolean = _usedAssemblyReferencesFrozen
 #End If
-            Dim result As Boolean = _lazyUsedAssemblyReferences.Add(assembly)
+            Dim added As Boolean = _lazyUsedAssemblyReferences.Add(assembly)
 
 #If DEBUG Then
-            Debug.Assert(Not result OrElse Not wasFrozen)
+            Debug.Assert(Not added OrElse Not wasFrozen)
 #End If
-            Return result
+            Return added
         End Function
 
     End Class

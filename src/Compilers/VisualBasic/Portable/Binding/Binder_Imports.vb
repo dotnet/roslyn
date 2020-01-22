@@ -223,7 +223,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim diagBag = New BindingDiagnosticBag(diagnostics)
 #End If
 
-
                 Dim prefix As String = Nothing
                 Dim namespaceName As String = Nothing
                 Dim [namespace] As BoundExpression = Nothing

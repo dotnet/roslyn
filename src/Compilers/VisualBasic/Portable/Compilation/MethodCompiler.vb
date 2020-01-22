@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' It normally happens during actual compile, but also happens when getting emit diagnostics for 
         ' testing purposes.
         Private ReadOnly _doEmitPhase As Boolean
-        Private ReadOnly _doLoweringPhase As Boolean
+        Private ReadOnly _doLoweringPhase As Boolean ' To collect used assemblies we are doing lowering, but not emit
 
         ' MethodCompiler employs concurrency by following flattened fork/join pattern.
         '
@@ -874,7 +874,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim boundBody = method.GetBoundMethodBody(compilationState, diagnosticsThisMethod)
 
-                If Not diagnosticsThisMethod.HasAnyErrors AndAlso DoEmitPhase Then
+                If DoEmitPhase AndAlso Not diagnosticsThisMethod.HasAnyErrors Then
                     Dim emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
                                                          method,
                                                          methodOrdinal:=DebugId.UndefinedOrdinal,
@@ -949,7 +949,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             allowOmissionOfConditionalCalls:=_moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls,
                             isBodySynthesized:=True)
 
-                        If Not diagnosticsThisMethod.HasAnyErrors AndAlso DoEmitPhase Then
+                        If DoEmitPhase AndAlso Not diagnosticsThisMethod.HasAnyErrors Then
                             ' Synthesized methods have no ordinal stored in custom debug information
                             ' (only user-defined methods have ordinals).
                             emittedBody = GenerateMethodBody(_moduleBeingBuiltOpt,
@@ -997,7 +997,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub CompileSynthesizedMethods(compilationState As TypeCompilationState)
             Debug.Assert(_moduleBeingBuiltOpt IsNot Nothing)
 
-            If Not compilationState.HasSynthesizedMethods OrElse Not DoEmitPhase Then
+            If Not (DoEmitPhase AndAlso compilationState.HasSynthesizedMethods) Then
                 Return
             End If
 

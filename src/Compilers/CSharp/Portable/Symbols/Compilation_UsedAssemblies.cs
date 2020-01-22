@@ -139,6 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
+                    if (_usedAssemblyReferencesFrozen || Volatile.Read(ref _usedAssemblyReferencesFrozen))
+                    {
+                        return;
+                    }
+
                     // Assume that all assemblies used by the used assemblies are also used
                     // This, for example, takes care of including facade assemblies that forward types around.
                     if (_lazyUsedAssemblyReferences is object)
@@ -247,12 +252,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             bool wasFrozen = _usedAssemblyReferencesFrozen;
 #endif
-            bool result = _lazyUsedAssemblyReferences.Add(assembly);
+            bool added = _lazyUsedAssemblyReferences.Add(assembly);
 
 #if DEBUG
-            Debug.Assert(!result || !wasFrozen);
+            Debug.Assert(!added || !wasFrozen);
 #endif
-            return result;
+            return added;
         }
 
     }
