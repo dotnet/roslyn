@@ -956,7 +956,7 @@ namespace Microsoft.CodeAnalysis
             var newProject = oldProject.RemoveProjectReference(projectReference);
 
             ProjectDependencyGraph newDependencyGraph;
-            if (newProject.ContainsAnyReferenceToProject(projectId))
+            if (newProject.ContainsAnyReferenceToProject(projectReference.ProjectId))
             {
                 // The project contained multiple references to the project, and not all of them were removed. The
                 // dependency graph doesn't change.

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -487,6 +488,76 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(solution, "D", new string[] { "C" });
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestSameDependencyGraphAfterOneOfMultipleReferencesRemoved()
+        {
+            // We are going to create a solution with the references:
+            //
+            // A -> B -> C -> D
+            // B -> C
+            //
+            // This solution has multiple references from B->C. We will remove one reference from B->C and verify that
+            // the project dependency graph in the solution state did not change (reference equality).
+            //
+            // We then remove the second reference, and verify that the dependency graph does change.
+
+            var solution = CreateSolutionFromReferenceMap("A:B B:C,C C:D D");
+
+            VerifyDirectReferences(solution, "A", new string[] { "B" });
+            VerifyDirectReferences(solution, "B", new string[] { "C" });
+            VerifyDirectReferences(solution, "C", new string[] { "D" });
+            VerifyDirectReferences(solution, "D", new string[] { });
+
+            VerifyTransitiveReferences(solution, "A", new string[] { "B", "C", "D" });
+            VerifyTransitiveReferences(solution, "B", new string[] { "C", "D" });
+            VerifyTransitiveReferences(solution, "C", new string[] { "D" });
+            VerifyTransitiveReferences(solution, "D", new string[] { });
+
+            VerifyDirectReverseReferences(solution, "A", new string[] { });
+            VerifyDirectReverseReferences(solution, "B", new string[] { "A" });
+            VerifyDirectReverseReferences(solution, "C", new string[] { "B" });
+            VerifyDirectReverseReferences(solution, "D", new string[] { "C" });
+
+            VerifyReverseTransitiveReferences(solution, "A", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "B", new string[] { "A" });
+            VerifyReverseTransitiveReferences(solution, "C", new string[] { "A", "B" });
+            VerifyReverseTransitiveReferences(solution, "D", new string[] { "A", "B", "C" });
+
+            var dependencyGraph = solution.State.GetProjectDependencyGraph();
+            Assert.NotNull(dependencyGraph);
+
+            var b = solution.GetProjectsByName("B").Single();
+            var firstBToC = b.ProjectReferences.First(reference => reference.ProjectId.DebugName == "C");
+            solution = solution.RemoveProjectReference(b.Id, firstBToC);
+            Assert.Same(dependencyGraph, solution.State.GetProjectDependencyGraph());
+
+            b = solution.GetProjectsByName("B").Single();
+            var remainingBToC = b.ProjectReferences.First(reference => reference.ProjectId.DebugName == "C");
+            solution = solution.RemoveProjectReference(b.Id, remainingBToC);
+            Assert.NotNull(solution.State.GetProjectDependencyGraph());
+            Assert.NotSame(dependencyGraph, solution.State.GetProjectDependencyGraph());
+
+            VerifyDirectReferences(solution, "A", new string[] { "B" });
+            VerifyDirectReferences(solution, "B", new string[] { });
+            VerifyDirectReferences(solution, "C", new string[] { "D" });
+            VerifyDirectReferences(solution, "D", new string[] { });
+
+            VerifyTransitiveReferences(solution, "A", new string[] { "B" });
+            VerifyTransitiveReferences(solution, "B", new string[] { });
+            VerifyTransitiveReferences(solution, "C", new string[] { "D" });
+            VerifyTransitiveReferences(solution, "D", new string[] { });
+
+            VerifyDirectReverseReferences(solution, "A", new string[] { });
+            VerifyDirectReverseReferences(solution, "B", new string[] { "A" });
+            VerifyDirectReverseReferences(solution, "C", new string[] { });
+            VerifyDirectReverseReferences(solution, "D", new string[] { "C" });
+
+            VerifyReverseTransitiveReferences(solution, "A", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "B", new string[] { "A" });
+            VerifyReverseTransitiveReferences(solution, "C", new string[] { });
+            VerifyReverseTransitiveReferences(solution, "D", new string[] { "C" });
+        }
+
         private void VerifyDirectReverseReferences(Solution solution, string project, string[] expectedResults)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
@@ -562,9 +633,23 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         private static Solution AddProjectReferences(Solution solution, string projectName, IEnumerable<string> projectReferences)
         {
+            var referencesByTargetProject = new Dictionary<string, List<ProjectReference>>();
+            foreach (var targetProject in projectReferences)
+            {
+                var references = referencesByTargetProject.GetOrAdd(targetProject, _ => new List<ProjectReference>());
+                if (references.Count == 0)
+                {
+                    references.Add(new ProjectReference(solution.GetProjectsByName(targetProject).Single().Id));
+                }
+                else
+                {
+                    references.Add(new ProjectReference(solution.GetProjectsByName(targetProject).Single().Id, ImmutableArray.Create($"alias{references.Count}")));
+                }
+            }
+
             return solution.AddProjectReferences(
                 solution.GetProjectsByName(projectName).Single().Id,
-                projectReferences.Select(name => new ProjectReference(solution.GetProjectsByName(name).Single().Id)));
+                referencesByTargetProject.SelectMany(pair => pair.Value));
         }
 
         private Solution CreateSolution()
