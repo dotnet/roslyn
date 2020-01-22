@@ -11227,6 +11227,38 @@ public class A
             CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "OK", verify: Verification.Passes);
         }
 
+        [Fact, WorkItem(40768, "https://github.com/dotnet/roslyn/issues/40768")]
+        public void DoesNotEmitArrayDotEmptyForEmptyPointerParams()
+        {
+            var source = @"
+
+using System;
+
+public static class Program
+{
+   public static unsafe void Main()
+   {
+      Console.WriteLine(Test());
+   }
+    
+   public static unsafe int Test(params int*[] types)
+   {
+       return types.Length;
+   }
+}";
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0");
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  newarr     ""int*""
+  IL_0006:  call       ""int Program.Test(params int*[])""
+  IL_000b:  call       ""void System.Console.WriteLine(int)""
+  IL_0010:  ret
+}");
+        }
+
         #endregion
     }
 }
