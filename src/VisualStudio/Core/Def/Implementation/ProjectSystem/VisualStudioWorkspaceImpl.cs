@@ -1685,6 +1685,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <param name="projectId">The <see cref="ProjectId"/> of the project being referenced.</param>
         /// <param name="outputPath">The output path of the given project to remove the link to.</param>
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/37616",
+            Constraint = "Update ConvertedProjectReferences in place to avoid duplicate list allocations.")]
         private void ConvertProjectReferencesToMetadataReferences_NoLock(ProjectId projectId, string outputPath)
         {
             var modifiedSolution = this.CurrentSolution;
@@ -1713,7 +1716,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                         projectIdsChanged.Add(projectIdToRetarget);
 
-                        referenceInfo.ConvertedProjectReferences.Remove(convertedReference);
+                        referenceInfo.ConvertedProjectReferences.RemoveAt(i);
 
                         // We have converted one, but you could have more than one reference with different aliases
                         // that we need to convert, so we'll keep going. Make sure to decrement the index so we don't

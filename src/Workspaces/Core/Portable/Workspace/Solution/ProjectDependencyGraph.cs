@@ -199,7 +199,6 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Computes a new <see cref="_lazyReverseReferencesMap"/> for the removal of a project.
-        /// Must be called on a non-null map.
         /// </summary>
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseReferencesMapForRemovedProject(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingForwardReferencesMap,
@@ -470,6 +469,31 @@ namespace Microsoft.CodeAnalysis
                 {
                     // If projectId references project, it isn't through referencedProjectId so the change doesn't
                     // impact the dependency graph.
+                    //
+                    // Suppose we start with the following graph, and are removing the project reference A->B:
+                    //
+                    //   A -> B -> C
+                    //   A -> D
+                    //
+                    // This case is not hit for project C. The reverse transitive references for C contains B, which is
+                    // the target project of the removed reference. We can see that project C is impacted by this
+                    // removal, and after the removal, project A will no longer be in the reverse transitive references
+                    // of C.
+                    //
+                    // This case is hit for project D. The reverse transitive references for D does not contain B, which
+                    // means project D cannot be "downstream" of the impact of removing the reference A->B. We can see
+                    // that project A will still be in the reverse transitive references of D.
+                    //
+                    // This optimization does not catch all cases. For example, consider the following graph where we
+                    // are removing the project reference A->B:
+                    //
+                    //   A -> B -> D
+                    //   A -> D
+                    //
+                    // For this example, we do not hit this optimization because D contains project B in the set of
+                    // reverse transitive references. Without more complicated checks, we cannot rule out the
+                    // possibility that A may have been removed from the reverse transitive references of D by the
+                    // removal of the A->B reference.
                     continue;
                 }
 
@@ -682,16 +706,15 @@ namespace Microsoft.CodeAnalysis
         /// Gets the list of projects that directly or transitively depend on this project, if it has already been
         /// cached.
         /// </summary>
-        internal bool TryGetProjectsThatTransitivelyDependOnThisProject(ProjectId projectId, [NotNullWhen(true)] out IEnumerable<ProjectId>? projects)
+        internal ImmutableHashSet<ProjectId>? TryGetProjectsThatTransitivelyDependOnThisProject(ProjectId projectId)
         {
             if (projectId is null)
             {
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            var result = _reverseTransitiveReferencesMap.TryGetValue(projectId, out var reverseTransitiveReferences);
-            projects = reverseTransitiveReferences;
-            return result;
+            _reverseTransitiveReferencesMap.TryGetValue(projectId, out var projects);
+            return projects;
         }
 
         /// <summary>
