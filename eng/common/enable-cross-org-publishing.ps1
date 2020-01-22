@@ -2,7 +2,7 @@ param(
   [string] $token
 )
 
-. $PSScriptRoot\pipeline-logging-functions.ps1
+# Work around https://github.com/dotnet/arcade/issues/4660
 
-Write-PipelineSetVariable -Name 'VSS_NUGET_ACCESSTOKEN' -Value $token
-Write-PipelineSetVariable -Name 'VSS_NUGET_URI_PREFIXES' -Value 'https://dnceng.pkgs.visualstudio.com/;https://pkgs.dev.azure.com/dnceng/;https://devdiv.pkgs.visualstudio.com/;https://pkgs.dev.azure.com/devdiv/'
+Write-Host "##vso[task.setvariable variable=VSS_NUGET_ACCESSTOKEN]$token"
+Write-Host "##vso[task.setvariable variable=VSS_NUGET_URI_PREFIXES]https://dnceng.pkgs.visualstudio.com/;https://pkgs.dev.azure.com/dnceng/;https://devdiv.pkgs.visualstudio.com/;https://pkgs.dev.azure.com/devdiv/"
