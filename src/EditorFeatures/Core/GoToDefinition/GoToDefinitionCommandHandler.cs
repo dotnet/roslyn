@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         {
             var subjectBuffer = args.SubjectBuffer;
             var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
-            if (service != null)
+
+            // Prevent the remote workspace from handling go to definition commands
+            if (service != null && document.Project.Solution.Workspace.Kind != WorkspaceKind.AnyCodeRoslynWorkspace)
             {
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
                 if (caretPos.HasValue && TryExecuteCommand(document, caretPos.Value, service, context))
