@@ -31,9 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Options
         [Fact]
         public void ToStringForDefaultOption()
         {
+            // Verify ToString works gracefully for default option key.
             var optionKey = default(OptionKey);
             var toStringResult = optionKey.ToString();
             Assert.Equal("", toStringResult);
+
+            // Also verify GetHashCode does not throw.
+            _ = optionKey.GetHashCode();
         }
     }
 }

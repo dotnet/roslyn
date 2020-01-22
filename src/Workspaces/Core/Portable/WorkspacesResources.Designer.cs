@@ -1295,11 +1295,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Options did not come from Workspace.
+        ///   Looks up a localized string similar to Options did not come from specified Solution.
         /// </summary>
-        internal static string Options_did_not_come_from_Workspace {
+        internal static string Options_did_not_come_from_specified_Solution {
             get {
-                return ResourceManager.GetString("Options_did_not_come_from_Workspace", resourceCulture);
+                return ResourceManager.GetString("Options_did_not_come_from_specified_Solution", resourceCulture);
             }
         }
         

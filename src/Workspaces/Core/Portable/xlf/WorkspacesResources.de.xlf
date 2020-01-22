@@ -97,6 +97,11 @@
         <target state="translated">Einstellungen für neue Zeilen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Options_did_not_come_from_specified_Solution">
+        <source>Options did not come from specified Solution</source>
+        <target state="new">Options did not come from specified Solution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
         <target state="translated">Using-Direktiven organisieren</target>
@@ -1855,11 +1860,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
         <target state="translated">Der Anweisung "{0}" geschweifte Klammern hinzufügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">Optionen stammen nicht aus dem Arbeitsbereich.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">

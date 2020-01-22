@@ -50,9 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             CancellationToken cancellationToken)
         {
             // tuple literals
-            if (initializerExpression.IsKind(SyntaxKind.TupleExpression))
+            if (initializerExpression.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tuple))
             {
-                var tuple = (TupleExpressionSyntax)initializerExpression;
                 if (typeInDeclaration == null || !typeInDeclaration.IsTupleType)
                 {
                     return false;

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,13 +20,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
         public static async Task<T> GetValueAsync<T>(this IRemotableDataService service, Checksum checksum)
         {
             var syncService = (RemotableDataServiceFactory.Service)service;
-            var syncObject = await syncService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var syncObject = (await syncService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
 
             using var stream = SerializableBytes.CreateWritableStream();
-            using var writer = new ObjectWriter(stream);
-
-            // serialize asset to bits
-            await syncObject.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
+                await syncObject.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+            }
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);

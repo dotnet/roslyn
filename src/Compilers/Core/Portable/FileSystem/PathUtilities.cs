@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 
@@ -332,12 +333,14 @@ namespace Roslyn.Utilities
             return PathKind.Relative;
         }
 
+#nullable enable
+
         /// <summary>
         /// True if the path is an absolute path (rooted to drive or network share)
         /// </summary>
-        public static bool IsAbsolute(string path)
+        public static bool IsAbsolute([NotNullWhen(true)]string? path)
         {
-            if (string.IsNullOrEmpty(path))
+            if (RoslynString.IsNullOrEmpty(path))
             {
                 return false;
             }
@@ -360,6 +363,8 @@ namespace Roslyn.Utilities
                 IsDirectorySeparator(path[0]) &&
                 IsDirectorySeparator(path[1]);
         }
+
+#nullable restore
 
         /// <summary>
         /// Returns true if given path is absolute and starts with a drive specification ("C:\").

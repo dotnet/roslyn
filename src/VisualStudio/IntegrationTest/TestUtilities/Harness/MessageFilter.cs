@@ -8,9 +8,9 @@ using SERVERCALL = Microsoft.VisualStudio.OLE.Interop.SERVERCALL;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
 {
-    public class MessageFilter : IMessageFilter, IDisposable
+    public sealed class MessageFilter : IMessageFilter, IDisposable
     {
-        protected const uint CancelCall = ~0U;
+        private const uint CancelCall = ~0U;
 
         private readonly MessageFilterSafeHandle _messageFilterRegistration;
         private readonly TimeSpan _timeout;
@@ -28,12 +28,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             _messageFilterRegistration = MessageFilterSafeHandle.Register(this);
         }
 
-        public virtual uint HandleInComingCall(uint dwCallType, IntPtr htaskCaller, uint dwTickCount, INTERFACEINFO[] lpInterfaceInfo)
+        public uint HandleInComingCall(uint dwCallType, IntPtr htaskCaller, uint dwTickCount, INTERFACEINFO[] lpInterfaceInfo)
         {
             return (uint)SERVERCALL.SERVERCALL_ISHANDLED;
         }
 
-        public virtual uint RetryRejectedCall(IntPtr htaskCallee, uint dwTickCount, uint dwRejectType)
+        public uint RetryRejectedCall(IntPtr htaskCallee, uint dwTickCount, uint dwRejectType)
         {
             if ((SERVERCALL)dwRejectType != SERVERCALL.SERVERCALL_RETRYLATER
                 && (SERVERCALL)dwRejectType != SERVERCALL.SERVERCALL_REJECTED)
@@ -49,23 +49,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Harness
             return (uint)_retryDelay.TotalMilliseconds;
         }
 
-        public virtual uint MessagePending(IntPtr htaskCallee, uint dwTickCount, uint dwPendingType)
+        public uint MessagePending(IntPtr htaskCallee, uint dwTickCount, uint dwPendingType)
         {
             return (uint)PENDINGMSG.PENDINGMSG_WAITDEFPROCESS;
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _messageFilterRegistration.Dispose();
-            }
-        }
-
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            _messageFilterRegistration.Dispose();
         }
     }
 }

@@ -5,5 +5,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public static class TestWorkspaceName
     {
         public const string Name = "Test";
+        public const string NameWithSharedGlobalOptions = "TestWithSharedGlobalOptions";
     }
 }

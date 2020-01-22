@@ -875,5 +875,57 @@ public class C
     }
 }");
         }
+
+        [WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestConcatenationWithConstMember()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    const string Hello = ""Hello"";
+    const string World = ""World"";
+    const string Message = Hello + "" "" + [||]World;
+}");
+        }
+
+        [WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestConcatenationWithConstDeclaration()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    void M() {
+        const string Hello = ""Hello"";
+        const string World = ""World"";
+        const string Message = Hello + "" "" + [||]World;
+    }
+}");
+        }
+
+        [WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestConcatenationWithInlineString()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    void M() {
+        const string Hello = ""Hello"";
+        const string World = ""World"";
+        Console.WriteLine(Hello + "" "" + [||]World);
+    }
+}",
+@"
+class C
+{
+    void M() {
+        const string Hello = ""Hello"";
+        const string World = ""World"";
+        Console.WriteLine($""{Hello} {World}"");
+    }
+}");
+        }
     }
 }

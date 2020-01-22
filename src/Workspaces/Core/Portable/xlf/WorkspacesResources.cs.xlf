@@ -97,6 +97,11 @@
         <target state="translated">Předvolby nových řádků</target>
         <note />
       </trans-unit>
+      <trans-unit id="Options_did_not_come_from_specified_Solution">
+        <source>Options did not come from specified Solution</source>
+        <target state="new">Options did not come from specified Solution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
         <target state="translated">Uspořádat direktivy using</target>
@@ -1855,11 +1860,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
         <target state="translated">Přidat složené závorky do příkazu {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">Možnosti nepocházely z pracovního prostoru.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">

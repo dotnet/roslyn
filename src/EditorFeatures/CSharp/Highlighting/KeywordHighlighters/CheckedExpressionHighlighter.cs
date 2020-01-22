@@ -18,18 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         {
         }
 
-        protected override IEnumerable<TextSpan> GetHighlights(
-            CheckedExpressionSyntax checkedExpressionSyntax, CancellationToken cancellationToken)
-        {
-            switch (checkedExpressionSyntax.Kind())
-            {
-                case SyntaxKind.CheckedExpression:
-                case SyntaxKind.UncheckedExpression:
-                    yield return checkedExpressionSyntax.Keyword.Span;
-                    break;
-                default:
-                    yield break;
-            }
-        }
+        protected override void AddHighlights(CheckedExpressionSyntax checkedExpressionSyntax, List<TextSpan> highlights, CancellationToken cancellationToken)
+            => highlights.Add(checkedExpressionSyntax.Keyword.Span);
     }
 }

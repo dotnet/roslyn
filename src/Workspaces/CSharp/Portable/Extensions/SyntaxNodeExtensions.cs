@@ -418,6 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             switch (node.Kind())
             {
+                case SyntaxKind.CoalesceAssignmentExpression:
                 case SyntaxKind.AddAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
                 case SyntaxKind.MultiplyAssignmentExpression:
@@ -451,6 +452,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return node.Parent.IsAnyAssignExpression() &&
                 ((AssignmentExpressionSyntax)node.Parent).Right == node;
+        }
+
+        public static bool IsLeftSideOfCompoundAssignExpression(this SyntaxNode node)
+        {
+            return node != null &&
+                node.Parent.IsCompoundAssignExpression() &&
+                ((AssignmentExpressionSyntax)node.Parent).Left == node;
         }
 
         public static bool IsVariableDeclaratorValue(this SyntaxNode node)

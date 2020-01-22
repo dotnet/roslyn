@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         public async Task<Connection> ActivateAsync(CancellationToken cancellationToken)
         {
-            var client = await _workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 // there is no OOP. either user turned it off, or process got killed.
@@ -91,12 +91,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var hostGroup = new HostGroup(client.ClientId);
             var hubClient = new HubClient(ServiceHubClientName);
 
-            var stream = await ServiceHubRemoteHostClient.Connections.RequestServiceAsync(
+            var stream = await ServiceHubRemoteHostClient.RequestServiceAsync(
                 _workspace,
                 hubClient,
                 WellKnownServiceHubServices.LanguageServer,
                 hostGroup,
-                TimeSpan.FromMinutes(60),
                 cancellationToken).ConfigureAwait(false);
 
             return new Connection(stream, stream);
@@ -122,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 ((RemoteHostClientServiceFactory.RemoteHostClientService)_workspace.Services.GetService<IRemoteHostClientService>()).Enable();
 
                 // wait until remote host is available before let platform know that they can activate our LSP
-                var client = await _workspace.TryGetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
                 if (client == null)
                 {
                     // there is no OOP. either user turned it off, or process got killed.

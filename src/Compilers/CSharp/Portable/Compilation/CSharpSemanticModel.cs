@@ -4889,7 +4889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (declarationSyntax.Parent is TupleTypeSyntax tupleTypeSyntax)
             {
-                return (GetSymbolInfo(tupleTypeSyntax).Symbol.GetSymbol() as TupleTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(declarationSyntax)).GetPublicSymbol();
+                return (GetSymbolInfo(tupleTypeSyntax).Symbol.GetSymbol() as NamedTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(declarationSyntax)).GetPublicSymbol();
             }
 
             return null;
@@ -5084,13 +5084,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return context;
 
-            static NullableContext getFlag(bool? contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
+            static NullableContext getFlag(NullableContextState.State contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
                 contextState switch
                 {
-                    null when defaultEnableState => (inheritedFlag | enableFlag),
-                    null => inheritedFlag,
-                    true => enableFlag,
-                    false => NullableContext.Disabled
+                    NullableContextState.State.Enabled => enableFlag,
+                    NullableContextState.State.Disabled => NullableContext.Disabled,
+                    _ when defaultEnableState => (inheritedFlag | enableFlag),
+                    _ => inheritedFlag,
                 };
         }
 

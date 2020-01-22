@@ -555,54 +555,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public virtual bool IsTupleType => false;
 
         /// <summary>
-        /// Verify if the given type can be used to back a tuple type 
-        /// and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
-        /// </summary>
-        /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
-        /// <returns></returns>
-        public virtual bool IsTupleCompatible(out int tupleCardinality)
-        {
-            tupleCardinality = 0;
-            return false;
-        }
-
-        /// <summary>
-        /// Verify if the given type can be used to back a tuple type. 
-        /// </summary>
-        public bool IsTupleCompatible()
-        {
-            int countOfItems;
-            return IsTupleCompatible(out countOfItems);
-        }
-
-        /// <summary>
         /// Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 
         /// with the given cardinality. 
         /// </summary>
-        public bool IsTupleOrCompatibleWithTupleOfCardinality(int targetCardinality)
+        public bool IsTupleTypeOfCardinality(int targetCardinality)
         {
             if (IsTupleType)
             {
                 return TupleElementTypesWithAnnotations.Length == targetCardinality;
             }
 
-            int countOfItems;
-            return IsTupleCompatible(out countOfItems) && countOfItems == targetCardinality;
-        }
-
-        /// <summary>
-        /// If this is a tuple type symbol, returns the symbol for its underlying type.
-        /// Otherwise, returns null.
-        /// The type argument corresponding to the type of the extension field (VT[8].Rest),
-        /// which is at the 8th (one based) position is always a symbol for another tuple, 
-        /// rather than its underlying type.
-        /// </summary>
-        public virtual NamedTypeSymbol TupleUnderlyingType
-        {
-            get
-            {
-                return null;
-            }
+            return false;
         }
 
         /// <summary>

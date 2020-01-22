@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
@@ -16,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// If the diagnostic was suppressed by an attribute, then returns that attribute.
         /// Otherwise, returns null.
         /// </summary>
-        public AttributeData Attribute { get; }
+        public AttributeData? Attribute { get; }
 
-        internal SuppressionInfo(string id, AttributeData attribute)
+        internal SuppressionInfo(string id, AttributeData? attribute)
         {
             Id = id;
             Attribute = attribute;

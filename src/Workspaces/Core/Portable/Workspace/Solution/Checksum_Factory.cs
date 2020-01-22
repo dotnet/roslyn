@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis
         {
             using var pooledHash = s_incrementalHashPool.GetPooledObject();
             using var pooledBuffer = SharedPools.ByteArray.GetPooledObject();
-            stream.Seek(0, SeekOrigin.Begin);
 
             var hash = pooledHash.Object;
 
@@ -79,53 +78,70 @@ namespace Microsoft.CodeAnalysis
             //
             // hash algorithm used here should remain functionally correct even
             // after the truncation
-            return Checksum.From(bytes);
+            return From(bytes);
         }
 
         public static Checksum Create(WellKnownSynchronizationKind kind, IObjectWritable @object)
         {
             using var stream = SerializableBytes.CreateWritableStream();
-            using var objectWriter = new ObjectWriter(stream);
-            objectWriter.WriteInt32((int)kind);
-            @object.WriteTo(objectWriter);
 
+            using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+            {
+                objectWriter.WriteInt32((int)kind);
+                @object.WriteTo(objectWriter);
+            }
+
+            stream.Position = 0;
             return Create(stream);
         }
 
         public static Checksum Create(WellKnownSynchronizationKind kind, IEnumerable<Checksum> checksums)
         {
             using var stream = SerializableBytes.CreateWritableStream();
-            using var writer = new ObjectWriter(stream);
-            writer.WriteInt32((int)kind);
 
-            foreach (var checksum in checksums)
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                checksum.WriteTo(writer);
+                writer.WriteInt32((int)kind);
+
+                foreach (var checksum in checksums)
+                {
+                    checksum.WriteTo(writer);
+                }
             }
 
+            stream.Position = 0;
             return Create(stream);
         }
 
         public static Checksum Create(WellKnownSynchronizationKind kind, ImmutableArray<byte> bytes)
         {
             using var stream = SerializableBytes.CreateWritableStream();
-            using var writer = new ObjectWriter(stream);
-            writer.WriteInt32((int)kind);
 
-            for (var i = 0; i < bytes.Length; i++)
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                writer.WriteByte(bytes[i]);
+                writer.WriteInt32((int)kind);
+
+                for (var i = 0; i < bytes.Length; i++)
+                {
+                    writer.WriteByte(bytes[i]);
+                }
             }
 
+            stream.Position = 0;
             return Create(stream);
         }
 
         public static Checksum Create<T>(WellKnownSynchronizationKind kind, T value, ISerializerService serializer)
         {
             using var stream = SerializableBytes.CreateWritableStream();
-            using var objectWriter = new ObjectWriter(stream);
-            objectWriter.WriteInt32((int)kind);
-            serializer.Serialize(value, objectWriter, CancellationToken.None);
+
+            using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+            {
+                objectWriter.WriteInt32((int)kind);
+                serializer.Serialize(value, objectWriter, CancellationToken.None);
+            }
+
+            stream.Position = 0;
             return Create(stream);
         }
     }

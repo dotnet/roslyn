@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
@@ -8,7 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Execution;
@@ -19,9 +23,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public class SnapshotSerializationTestBase
     {
-        internal static Solution CreateFullSolution(HostServices hostServices = null)
+        internal static Solution CreateFullSolution(HostServices? hostServices = null)
         {
             var solution = new AdhocWorkspace(hostServices ?? Host.Mef.MefHostServices.DefaultHost).CurrentSolution;
+            var languages = ImmutableHashSet.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
+            var solutionOptions = solution.Workspace.Services.GetRequiredService<IOptionService>().GetSerializableOptionsSnapshot(languages);
+            solution = solution.WithOptions(solutionOptions);
+
             var csCode = "class A { }";
             var project1 = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
             var document1 = project1.AddDocument("Document1", SourceText.From(csCode));
@@ -30,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var project2 = document1.Project.Solution.AddProject("Project2", "Project2.dll", LanguageNames.VisualBasic);
             var document2 = project2.AddDocument("Document2", SourceText.From(vbCode));
 
-            project1 = document2.Project.Solution.GetProject(project1.Id).AddProjectReference(new ProjectReference(project2.Id, ImmutableArray.Create("test")));
+            project1 = document2.Project.Solution.GetRequiredProject(project1.Id).AddProjectReference(new ProjectReference(project2.Id, ImmutableArray.Create("test")));
             project1 = project1.AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
             project1 = project1.AddAnalyzerReference(new AnalyzerFileReference(typeof(object).Assembly.Location, new TestAnalyzerAssemblyLoader()));
 
@@ -130,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // re-create asset from object
             var syncService = (RemotableDataServiceFactory.Service)service;
-            var syncObject = await syncService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var syncObject = (await syncService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
 
             var recoveredValue = await service.GetValueAsync<T>(checksum).ConfigureAwait(false);
             var recreatedSyncObject = assetGetter(recoveredValue, kind, syncService.Serializer_TestOnly);
@@ -272,7 +280,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             Assert.NotNull(checksum);
             var service = (RemotableDataServiceFactory.Service)snapshotService;
-            var otherObject = await service.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var otherObject = (await service.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
 
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);
         }

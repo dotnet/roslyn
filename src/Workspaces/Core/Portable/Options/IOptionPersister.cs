@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
@@ -8,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal interface IOptionPersister
     {
-        bool TryFetch(OptionKey optionKey, out object value);
-        bool TryPersist(OptionKey optionKey, object value);
+        bool TryFetch(OptionKey optionKey, out object? value);
+        bool TryPersist(OptionKey optionKey, object? value);
     }
 }

@@ -726,7 +726,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private Solution CreateNotKeptAliveSolution()
         {
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), "NotKeptAlive");
-            workspace.Options = workspace.Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0)));
             return workspace.CurrentSolution;
         }
 
@@ -1444,7 +1445,8 @@ public class C : A {
             // set max file length to 1 bytes
             var maxLength = 1;
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), ServiceLayer.Host);
-            workspace.Options = workspace.Options.WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength)));
 
             using var root = new TempRoot();
             var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
@@ -1493,7 +1495,7 @@ public class C : A {
             var factory = dummyProject.LanguageServices.SyntaxTreeFactory;
 
             // create the origin tree
-            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// empty"), treeDiagnosticReportingOptions: null, CancellationToken.None);
+            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), analyzerConfigOptionsResult: null, CancellationToken.None);
 
             // create recoverable tree off the original tree
             var recoverableTree = factory.CreateRecoverableTree(
@@ -1767,6 +1769,57 @@ public class C : A {
             var finalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
 
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterUpdateRoot));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
+        public async Task TestAddingEditorConfigFileWithIsGeneratedCodeOption()
+        {
+            var solution = CreateSolution();
+            var projectId = ProjectId.CreateNewId();
+            var sourceDocumentId = DocumentId.CreateNewId(projectId);
+
+            solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp)
+                .WithProjectMetadataReferences(projectId, new[] { TestReferences.NetFx.v4_0_30319.mscorlib })
+                .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
+            var src = @"
+class C
+{
+    void M(C? c)
+    {
+        _ = c.ToString();   // warning CS8602: Dereference of a possibly null reference.
+    }
+}";
+            solution = solution.AddDocument(sourceDocumentId, "Test.cs", src, filePath: @"Z:\Test.cs");
+
+            var originalSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+            var originalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+
+            // warning CS8602: Dereference of a possibly null reference.
+            var diagnostics = originalCompilation.GetDiagnostics();
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Equal("CS8602", diagnostic.Id);
+
+            var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
+                    editorConfigDocumentId,
+                    ".editorconfig",
+                    filePath: @"Z:\.editorconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ngenerated_code = true"), VersionStamp.Default)))));
+
+            var newSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+            var newCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+
+            Assert.NotSame(originalSyntaxTree, newSyntaxTree);
+            Assert.NotSame(originalCompilation, newCompilation);
+
+            Assert.True(newCompilation.ContainsSyntaxTree(newSyntaxTree));
+
+            // warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+            diagnostics = newCompilation.GetDiagnostics();
+            diagnostic = Assert.Single(diagnostics);
+            Assert.Contains("CS8669", diagnostic.Id);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

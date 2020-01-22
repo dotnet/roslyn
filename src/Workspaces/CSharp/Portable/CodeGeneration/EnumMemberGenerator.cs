@@ -127,9 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                 }
                             }
                         }
-                        else if (lastExpression.Kind() == SyntaxKind.NumericLiteralExpression)
+                        else if (lastExpression.IsKind(SyntaxKind.NumericLiteralExpression, out LiteralExpressionSyntax numericLiteral))
                         {
-                            var numericLiteral = (LiteralExpressionSyntax)lastExpression;
                             var numericToken = numericLiteral.Token;
                             var numericText = numericToken.ToString();
 
