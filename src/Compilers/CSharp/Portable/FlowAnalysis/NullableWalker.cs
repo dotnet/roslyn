@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly SnapshotManager.Builder? _snapshotBuilderOpt;
 
-#nullable disable
+#nullable restore
 
         // https://github.com/dotnet/roslyn/issues/35043: remove this when all expression are supported
         private bool _disableNullabilityAnalysis;
@@ -445,20 +445,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
-            EnforceDoesNotReturn(methodMainNode.Syntax.GetLastToken().GetLocation());
+            EnforceDoesNotReturn(syntaxOpt: null);
             return pendingReturns;
         }
 
-        private void EnforceDoesNotReturn(Location location)
+#nullable enable
+        private void EnforceDoesNotReturn(SyntaxNode? syntaxOpt)
         {
             if (_symbol is MethodSymbol method &&
                 ((method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn) &&
                 this.IsReachable())
             {
-                // A method marked with [DoesNotReturn] should throw on all code paths.
-                ReportDiagnostic(ErrorCode.WRN_ShouldNotReturn, location);
+                // A method marked [DoesNotReturn] should not return.
+                ReportDiagnostic(ErrorCode.WRN_ShouldNotReturn, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation());
             }
         }
+#nullable restore
 
         internal static void Analyze(
             CSharpCompilation compilation,
@@ -1528,7 +1530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            EnforceDoesNotReturn(node.Syntax.Location);
+            EnforceDoesNotReturn(node.Syntax);
             return null;
 
             bool isUnconvertedBooleanExpression(BoundExpression expr)

@@ -1760,13 +1760,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
-        <source>A method marked with [DoesNotReturn] should throw on all code paths.</source>
-        <target state="new">A method marked with [DoesNotReturn] should throw on all code paths.</target>
+        <source>A method marked [DoesNotReturn] should not return.</source>
+        <target state="new">A method marked [DoesNotReturn] should not return.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn_Title">
-        <source>A method marked with [DoesNotReturn] should throw on all code paths.</source>
-        <target state="new">A method marked with [DoesNotReturn] should throw on all code paths.</target>
+        <source>A method marked [DoesNotReturn] should not return.</source>
+        <target state="new">A method marked [DoesNotReturn] should not return.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">

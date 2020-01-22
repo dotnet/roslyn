@@ -16117,7 +16117,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A method marked with [DoesNotReturn] should throw on all code paths..
+        ///   Looks up a localized string similar to A method marked [DoesNotReturn] should not return..
         /// </summary>
         internal static string WRN_ShouldNotReturn {
             get {
@@ -16126,7 +16126,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A method marked with [DoesNotReturn] should throw on all code paths..
+        ///   Looks up a localized string similar to A method marked [DoesNotReturn] should not return..
         /// </summary>
         internal static string WRN_ShouldNotReturn_Title {
             get {
