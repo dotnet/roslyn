@@ -280,8 +280,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Computes a new <see cref="_transitiveReferencesMap"/> for the removal of a project.
-        /// Must be called on a non-null map.
         /// </summary>
+        /// <seealso cref="ComputeNewReverseTransitiveReferencesMapForRemovedProject"/>
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewTransitiveReferencesMapForRemovedProject(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingTransitiveReferencesMap,
             ProjectId projectId)
@@ -435,6 +435,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Computes a new <see cref="_reverseTransitiveReferencesMap"/> for the removal of a project.
         /// </summary>
+        /// <seealso cref="ComputeNewTransitiveReferencesMapForRemovedProject"/>
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseTransitiveReferencesMapForRemovedProject(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseTransitiveReferencesMap,
             ProjectId projectId)
