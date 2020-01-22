@@ -13,24 +13,16 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
     internal abstract partial class AbstractSeparatedSyntaxListWrapper<
         TListSyntax,
         TListItemSyntax>
-        : AbstractSyntaxWrapper
+        : AbstractSeparatedListWrapper<TListSyntax, TListItemSyntax>
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {
-        //protected abstract string ListName { get; }
-        //protected abstract string ItemNamePlural { get; }
-        //protected abstract string ItemNameSingular { get; }
-
-        protected abstract string Unwrap_list { get; }
-        protected abstract string Wrap_long_list { get; }
 
         protected abstract string Unwrap_and_indent_all_items { get; }
-        protected abstract string Unwrap_all_items { get; }
-        protected abstract string Indent_all_items { get; }
+
         protected abstract string Align_wrapped_items { get; }
         protected abstract string Indent_wrapped_items { get; }
 
-        protected abstract string Wrap_every_item { get; }
 
         protected AbstractSeparatedSyntaxListWrapper(IIndentationService indentationService)
             : base(indentationService)

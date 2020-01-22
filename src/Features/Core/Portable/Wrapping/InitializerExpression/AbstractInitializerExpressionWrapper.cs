@@ -10,15 +10,15 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
     internal abstract partial class AbstractInitializerExpressionWrapper<
         TListSyntax,
         TListItemSyntax>
-        : AbstractSyntaxWrapper
+        : AbstractSeparatedListWrapper<TListSyntax, TListItemSyntax>
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {
-        protected string Indent_all_items => FeaturesResources.Indent_all_elements;
-        protected string Unwrap_all_items => FeaturesResources.Unwrap_all_elements;
-        protected string Unwrap_list => FeaturesResources.Unwrap_element_list;
-        protected string Wrap_every_item => FeaturesResources.Wrap_every_element;
-        protected string Wrap_long_list => FeaturesResources.Wrap_long_element_list;
+        protected override string Indent_all_items => FeaturesResources.Indent_all_elements;
+        protected override string Unwrap_all_items => FeaturesResources.Unwrap_all_elements;
+        protected override string Unwrap_list => FeaturesResources.Unwrap_element_list;
+        protected override string Wrap_every_item => FeaturesResources.Wrap_every_element;
+        protected override string Wrap_long_list => FeaturesResources.Wrap_long_element_list;
 
         protected AbstractInitializerExpressionWrapper(IIndentationService indentationService)
             : base(indentationService)
