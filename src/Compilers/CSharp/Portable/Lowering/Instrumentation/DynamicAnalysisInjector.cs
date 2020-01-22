@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsExcludedFromCodeCoverage(MethodSymbol method)
         {
-            Debug.Assert(method.MethodKind != MethodKind.LocalFunction && method.MethodKind != MethodKind.LambdaMethod && method.MethodKind != MethodKind.AnonymousFunction);
+            Debug.Assert(method.MethodKind != MethodKind.LocalFunction && method.MethodKind != MethodKind.AnonymousFunction);
 
             var containingType = method.ContainingType;
             while ((object)containingType != null)
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement AddDynamicAnalysis(BoundStatement original, BoundStatement rewritten)
         {
-            if (!original.WasCompilerGenerated && !_methodBodyFactory.IsNestedExcludeCodeCoverage)
+            if (!original.WasCompilerGenerated && !_methodBodyFactory.IsCodeCoverageDisabled)
             {
                 // Do not instrument implicit constructor initializers
                 if (!original.IsConstructorInitializer() || original.Syntax.Kind() != SyntaxKind.ConstructorDeclaration)

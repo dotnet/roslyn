@@ -276,20 +276,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var oldContainingSymbol = _factory.CurrentFunction;
-            var oldIsNestedExcludeCodeCoverage = _factory.IsNestedExcludeCodeCoverage;
+            var oldIsCodeCoverageDisabled = _factory.IsCodeCoverageDisabled;
             try
             {
                 _factory.CurrentFunction = localFunction;
-                if (!oldIsNestedExcludeCodeCoverage)
+                if (!oldIsCodeCoverageDisabled)
                 {
-                    _factory.IsNestedExcludeCodeCoverage = localFunction.IsDirectlyExcludedFromCodeCoverage;
+                    _factory.IsCodeCoverageDisabled = localFunction.IsDirectlyExcludedFromCodeCoverage;
                 }
                 return base.VisitLocalFunctionStatement(node);
             }
             finally
             {
                 _factory.CurrentFunction = oldContainingSymbol;
-                _factory.IsNestedExcludeCodeCoverage = oldIsNestedExcludeCodeCoverage;
+                _factory.IsCodeCoverageDisabled = oldIsCodeCoverageDisabled;
             }
         }
 
