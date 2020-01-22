@@ -4,19 +4,53 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
     internal class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker
     {
+        private static readonly ImmutableHashSet<string> s_emptyAliasedNames = ImmutableHashSet.Create<string>(StringComparer.Ordinal);
+
+        /// <summary>
+        /// This set contains the full names of types that have equivalent predefined names in the language.
+        /// </summary>
+        private static readonly ImmutableHashSet<string> s_predefinedTypeMetadataNames =
+            ImmutableHashSet.Create(
+                StringComparer.Ordinal,
+                nameof(Boolean),
+                nameof(SByte),
+                nameof(Byte),
+                nameof(Int16),
+                nameof(UInt16),
+                nameof(Int32),
+                nameof(UInt32),
+                nameof(Int64),
+                nameof(UInt64),
+                nameof(Single),
+                nameof(Double),
+                nameof(Decimal),
+                nameof(String),
+                nameof(Char),
+                nameof(Object));
+
         private readonly CSharpSimplifyTypeNamesDiagnosticAnalyzer _analyzer;
         private readonly SemanticModel _semanticModel;
         private readonly OptionSet _optionSet;
         private readonly CancellationToken _cancellationToken;
+
+        /// <summary>
+        /// Set of type and namespace names that have an alias associated with them.  i.e. if the
+        /// user has <c>using X = System.DateTime</c>, then <c>DateTime</c> will be in this set.
+        /// This is used so we can easily tell if we should try to simplify some identifier to an
+        /// alias when we encounter it.
+        /// </summary>
+        private readonly ImmutableHashSet<string> _aliasedNames;
 
         public List<Diagnostic> Diagnostics { get; } = new List<Diagnostic>();
 
@@ -27,6 +61,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             _semanticModel = semanticModel;
             _optionSet = optionSet;
             _cancellationToken = cancellationToken;
+
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            _aliasedNames = GetAliasedNames(root as CompilationUnitSyntax);
+        }
+
+        private static ImmutableHashSet<string> GetAliasedNames(CompilationUnitSyntax? compilationUnit)
+        {
+            var aliasedNames = s_emptyAliasedNames;
+            if (compilationUnit is null)
+                return aliasedNames;
+
+            foreach (var usingDirective in compilationUnit.Usings)
+            {
+                AddAliasedName(usingDirective);
+            }
+
+            foreach (var member in compilationUnit.Members)
+            {
+                if (member is NamespaceDeclarationSyntax namespaceDeclaration)
+                    AddAliasedNames(namespaceDeclaration);
+            }
+
+            return aliasedNames;
+
+            void AddAliasedName(UsingDirectiveSyntax usingDirective)
+            {
+                if (usingDirective.Alias is object)
+                {
+                    if (usingDirective.Name.GetRightmostName() is IdentifierNameSyntax identifierName)
+                    {
+                        var identifierAlias = identifierName.Identifier.ValueText;
+                        if (!RoslynString.IsNullOrEmpty(identifierAlias))
+                        {
+                            aliasedNames = aliasedNames.Add(identifierAlias);
+                        }
+                    }
+                }
+            }
+
+            void AddAliasedNames(NamespaceDeclarationSyntax namespaceDeclaration)
+            {
+                foreach (var usingDirective in namespaceDeclaration.Usings)
+                {
+                    AddAliasedName(usingDirective);
+                }
+
+                foreach (var member in namespaceDeclaration.Members)
+                {
+                    if (member is NamespaceDeclarationSyntax memberNamespace)
+                        AddAliasedNames(memberNamespace);
+                }
+            }
         }
 
         public override void VisitQualifiedName(QualifiedNameSyntax node)
@@ -71,8 +157,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             //
             // In other cases, don't bother looking at the right side of A.B or A::B. We will process those in
             // one of our other top level Visit methods (like VisitQualifiedName).
-            var canTrySimplify = node.Identifier.ValueText!.EndsWith("Attribute", StringComparison.Ordinal)
-                || !node.IsRightSideOfDotOrArrowOrColonColon();
+            var canTrySimplify = node.Identifier.ValueText!.EndsWith("Attribute", StringComparison.Ordinal);
+            if (!canTrySimplify && !node.IsRightSideOfDotOrArrowOrColonColon())
+            {
+                // The only possible simplifications to an unqualified identifier are replacement with an alias or
+                // replacement with a predefined type.
+                canTrySimplify = CanReplaceIdentifierWithAlias(node.Identifier.ValueText!)
+                    || CanReplaceIdentifierWithPredefinedType(node.Identifier.ValueText!);
+            }
 
             if (canTrySimplify && TrySimplify(node))
             {
@@ -82,6 +174,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
             // descend further.
             DefaultVisit(node);
+            return;
+
+            // Local functions
+            bool CanReplaceIdentifierWithAlias(string identifier)
+                => _aliasedNames.Contains(identifier);
+
+            static bool CanReplaceIdentifierWithPredefinedType(string identifier)
+                => s_predefinedTypeMetadataNames.Contains(identifier);
         }
 
         public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
