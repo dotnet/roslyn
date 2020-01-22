@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsReachable())
             {
                 // A method marked with [DoesNotReturn] should throw on all code paths.
-                ReportDiagnostic(ErrorCode.WRN_MethodShouldThrow, location);
+                ReportDiagnostic(ErrorCode.WRN_ShouldNotReturn, location);
             }
         }
 
@@ -1052,9 +1052,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Can we assign this state into this type without a warning?
+        /// Should we warn for assigning this state into this type?
         /// </summary>
-        private bool ShouldReportNullableAssignment(TypeWithAnnotations type, NullableFlowState state)
+        private static bool ShouldReportNullableAssignment(TypeWithAnnotations type, NullableFlowState state)
         {
             if (!type.HasType ||
                 type.Type.IsValueType)
@@ -1486,15 +1486,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (this.IsConditionalState)
                     {
                         var parameters = this.MethodParameters;
-                        if (!IsConstantFalse(expr))
+                        if (!parameters.IsEmpty)
                         {
-                            // don't check WhenTrue state on a 'return false;'
-                            checkConditionalParameterState(node.Syntax, parameters, sense: true);
-                        }
-                        if (!IsConstantTrue(expr))
-                        {
-                            // don't check WhenFalse state on a 'return true;'
-                            checkConditionalParameterState(node.Syntax, parameters, sense: false);
+                            if (!IsConstantFalse(expr))
+                            {
+                                // don't check WhenTrue state on a 'return false;'
+                                checkConditionalParameterState(node.Syntax, parameters, sense: true);
+                            }
+                            if (!IsConstantTrue(expr))
+                            {
+                                // don't check WhenFalse state on a 'return true;'
+                                checkConditionalParameterState(node.Syntax, parameters, sense: false);
+                            }
                         }
                         Unsplit();
                     }
@@ -1536,11 +1539,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void checkConditionalParameterState(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense)
             {
-                if (parameters.IsEmpty)
-                {
-                    return;
-                }
-
                 LocalState stateWhen = sense ? StateWhenTrue : StateWhenFalse;
                 foreach (var parameter in parameters)
                 {
@@ -8193,7 +8191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (nameForSlot(i) is string name)
                 {
                     builder.Append(name);
-                    var annotation = (state[i]) switch
+                    var annotation = state[i] switch
                     {
                         NullableFlowState.MaybeNull => "?",
                         NullableFlowState.MaybeDefault => "??",

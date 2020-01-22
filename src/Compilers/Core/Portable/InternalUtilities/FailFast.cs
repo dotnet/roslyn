@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis
 #endif
 
             Environment.FailFast(exception.ToString(), exception);
-            throw null!; // to satisfy [DoesNotReturn]
+            throw ExceptionUtilities.Unreachable; // to satisfy [DoesNotReturn]
         }
 
         /// <summary>

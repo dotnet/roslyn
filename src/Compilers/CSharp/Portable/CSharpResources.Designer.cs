@@ -14914,24 +14914,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A method marked with [DoesNotReturn] should throw on all code paths..
-        /// </summary>
-        internal static string WRN_MethodShouldThrow {
-            get {
-                return ResourceManager.GetString("WRN_MethodShouldThrow", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A method marked with [DoesNotReturn] should throw on all code paths..
-        /// </summary>
-        internal static string WRN_MethodShouldThrow_Title {
-            get {
-                return ResourceManager.GetString("WRN_MethodShouldThrow_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;#nullable&apos; annotations context..
         /// </summary>
         internal static string WRN_MissingNonNullTypesContextForAnnotation {
@@ -16131,6 +16113,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_SequentialOnPartialClass_Title {
             get {
                 return ResourceManager.GetString("WRN_SequentialOnPartialClass_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A method marked with [DoesNotReturn] should throw on all code paths..
+        /// </summary>
+        internal static string WRN_ShouldNotReturn {
+            get {
+                return ResourceManager.GetString("WRN_ShouldNotReturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A method marked with [DoesNotReturn] should throw on all code paths..
+        /// </summary>
+        internal static string WRN_ShouldNotReturn_Title {
+            get {
+                return ResourceManager.GetString("WRN_ShouldNotReturn_Title", resourceCulture);
             }
         }
         

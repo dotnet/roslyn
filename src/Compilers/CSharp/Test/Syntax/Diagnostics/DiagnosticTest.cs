@@ -306,7 +306,7 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                         case ErrorCode.WRN_NullReferenceInitializer:
                         case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
-                        case ErrorCode.WRN_MethodShouldThrow:
+                        case ErrorCode.WRN_ShouldNotReturn:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

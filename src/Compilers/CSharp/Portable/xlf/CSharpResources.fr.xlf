@@ -1439,16 +1439,6 @@
         <target state="translated">N'utilisez pas '_' pour faire référence au type dans une expression is-type.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MethodShouldThrow">
-        <source>A method marked with [DoesNotReturn] should throw on all code paths.</source>
-        <target state="new">A method marked with [DoesNotReturn] should throw on all code paths.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MethodShouldThrow_Title">
-        <source>A method marked with [DoesNotReturn] should throw on all code paths.</source>
-        <target state="new">A method marked with [DoesNotReturn] should throw on all code paths.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
         <target state="translated">L'annotation pour les types référence Nullable doit être utilisée uniquement dans le code au sein d'un contexte d'annotations '#nullable'.</target>
@@ -1767,6 +1757,16 @@
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter may not have a null value when exiting in some condition.</source>
         <target state="new">Parameter may not have a null value when exiting in some condition.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ShouldNotReturn">
+        <source>A method marked with [DoesNotReturn] should throw on all code paths.</source>
+        <target state="new">A method marked with [DoesNotReturn] should throw on all code paths.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ShouldNotReturn_Title">
+        <source>A method marked with [DoesNotReturn] should throw on all code paths.</source>
+        <target state="new">A method marked with [DoesNotReturn] should throw on all code paths.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
