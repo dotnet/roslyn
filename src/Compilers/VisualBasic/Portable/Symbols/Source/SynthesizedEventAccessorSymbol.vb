@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim parameter = New SynthesizedParameterSymbol(Me, parameterType, 0, False, "obj")
                     Dim parameterList = ImmutableArray.Create(Of ParameterSymbol)(parameter)
 
-                    DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicStoreArrayAndDiagnostics(_lazyParameters, parameterList, diagnostics, CompilationStage.Declare)
+                    DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicStoreArrayAndDiagnostics(_lazyParameters, parameterList, diagnostics)
 
                     diagnostics.Free()
                 End If
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     diagnostics.Add(useSiteInfo, Me.Locations(0))
 
-                    DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicStoreReferenceAndDiagnostics(_lazyReturnType, type, diagnostics, CompilationStage.Declare)
+                    DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicStoreReferenceAndDiagnostics(_lazyReturnType, type, diagnostics)
 
                     diagnostics.Free()
                 End If

@@ -8,6 +8,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
@@ -104,6 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' that record the imports are persisted.
         ''' </remarks>
         Private _lazyImportInfos As ConcurrentQueue(Of ImportInfo)
+        Private _lazyImportClauseDependencies As ConcurrentDictionary(Of (SyntaxTree As SyntaxTree, ImportsClausePosition As Integer), ImmutableArray(Of AssemblySymbol))
 
         ''' <summary>
         ''' Cache the CLS diagnostics for the whole compilation so they aren't computed repeatedly.
@@ -1603,6 +1605,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' Do less work in common case (one clause per statement).
                             If Not Me.IsImportDirectiveUsed(infoTree, clauseSpans(0).Start) Then
                                 diagnostics.Add(ERRID.HDN_UnusedImportStatement, infoTree.GetLocation(info.StatementSpan))
+                            Else
+                                AddImportsDependencies(diagnostics, infoTree, clauseSpans(0))
                             End If
                         Else
                             If unusedBuilder IsNot Nothing Then
@@ -1615,6 +1619,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         unusedBuilder = ArrayBuilder(Of TextSpan).GetInstance()
                                     End If
                                     unusedBuilder.Add(clauseSpan)
+                                Else
+                                    AddImportsDependencies(diagnostics, infoTree, clauseSpan)
                                 End If
                             Next
 
@@ -1637,6 +1643,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             CompleteTrees(filterTree)
+        End Sub
+
+        Private Sub AddImportsDependencies(diagnostics As BindingDiagnosticBag, infoTree As SyntaxTree, clauseSpan As TextSpan)
+            Dim dependencies As ImmutableArray(Of AssemblySymbol) = Nothing
+
+            If diagnostics.DependenciesBag IsNot Nothing AndAlso _lazyImportClauseDependencies IsNot Nothing AndAlso
+               _lazyImportClauseDependencies.TryGetValue((infoTree, clauseSpan.Start), dependencies) Then
+                diagnostics.AddDependencies(dependencies)
+            End If
         End Sub
 
         Friend Overrides Sub CompleteTrees(filterTree As SyntaxTree)
@@ -1687,6 +1702,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub SymbolDeclaredEvent(symbol As Symbol)
             If ShouldAddEvent(symbol) Then
                 EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
+            End If
+        End Sub
+
+        Friend Sub RecordImportsClauseDependencies(syntaxTree As SyntaxTree, importsClausePosition As Integer, dependencies As ImmutableArray(Of AssemblySymbol))
+            If Not dependencies.IsDefaultOrEmpty Then
+                LazyInitializer.EnsureInitialized(_lazyImportClauseDependencies).TryAdd((syntaxTree, importsClausePosition), dependencies)
             End If
         End Sub
 
@@ -1927,11 +1948,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Function GetUsedAssemblyReferences(Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of MetadataReference)
-            ' PROTOTYPE(UsedAssemblyReferences): Add implementation
-            Throw New System.NotImplementedException()
-        End Function
-
         ''' <summary>
         ''' Get all diagnostics for the entire compilation. This includes diagnostics from parsing, declarations, and
         ''' the bodies of methods. Getting all the diagnostics is potentially a length operations, as it requires parsing and
@@ -2059,7 +2075,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '       it is already implemented in method compiler
                 Dim methodBodyDiagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance(),
                                                                      If(builder.DependenciesBag IsNot Nothing, New ConcurrentSet(Of AssemblySymbol), Nothing))
-                GetDiagnosticsForAllMethodBodies(builder.HasAnyErrors(), methodBodyDiagnostics, stage, cancellationToken)
+                GetDiagnosticsForAllMethodBodies(builder.HasAnyErrors(), methodBodyDiagnostics, doLowering:=False, cancellationToken)
                 builder.AddRange(methodBodyDiagnostics)
                 methodBodyDiagnostics.DiagnosticBag.Free()
             End If
@@ -2124,7 +2140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Add method body declaring errors.
             If (stage = CompilationStage.Compile OrElse stage > CompilationStage.Compile AndAlso includeEarlierStages) Then
                 Dim methodBodyDiagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
-                GetDiagnosticsForMethodBodiesInTree(tree, filterSpanWithinTree, builder.HasAnyErrors(), methodBodyDiagnostics, stage, cancellationToken)
+                GetDiagnosticsForMethodBodiesInTree(tree, filterSpanWithinTree, builder.HasAnyErrors(), methodBodyDiagnostics, cancellationToken)
 
                 ' This diagnostics can include diagnostics for initializers that do not belong to the tree.
                 ' Let's filter them out.
@@ -2143,14 +2159,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Get diagnostics by compiling all method bodies.
-        Private Sub GetDiagnosticsForAllMethodBodies(hasDeclarationErrors As Boolean, diagnostics As BindingDiagnosticBag, stage As CompilationStage, cancellationToken As CancellationToken)
-            MethodCompiler.GetCompileDiagnostics(Me, SourceModule.GlobalNamespace, Nothing, Nothing, hasDeclarationErrors, diagnostics, stage >= CompilationStage.Emit, cancellationToken)
+        Private Sub GetDiagnosticsForAllMethodBodies(hasDeclarationErrors As Boolean, diagnostics As BindingDiagnosticBag, doLowering As Boolean, cancellationToken As CancellationToken)
+            MethodCompiler.GetCompileDiagnostics(Me, SourceModule.GlobalNamespace, Nothing, Nothing, hasDeclarationErrors, diagnostics, doLowering, cancellationToken)
             DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, Nothing, Nothing, diagnostics, cancellationToken)
             Me.ReportUnusedImports(Nothing, diagnostics, cancellationToken)
         End Sub
 
         ' Get diagnostics by compiling all method bodies in the given tree.
-        Private Sub GetDiagnosticsForMethodBodiesInTree(tree As SyntaxTree, filterSpanWithinTree As TextSpan?, hasDeclarationErrors As Boolean, diagnostics As BindingDiagnosticBag, stage As CompilationStage, cancellationToken As CancellationToken)
+        Private Sub GetDiagnosticsForMethodBodiesInTree(tree As SyntaxTree, filterSpanWithinTree As TextSpan?, hasDeclarationErrors As Boolean, diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken)
             Dim sourceMod = DirectCast(SourceModule, SourceModuleSymbol)
 
             MethodCompiler.GetCompileDiagnostics(Me,
@@ -2159,7 +2175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  filterSpanWithinTree,
                                                  hasDeclarationErrors,
                                                  diagnostics,
-                                                 stage >= CompilationStage.Emit,
+                                                 doLoweringPhase:=False,
                                                  cancellationToken)
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, Nothing, Nothing, diagnostics, cancellationToken, tree, filterSpanWithinTree)
@@ -2253,7 +2269,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             additionalTypes As ImmutableArray(Of NamedTypeSymbol),
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
-            Debug.Assert(Not IsSubmission OrElse HasCodeToEmit())
+            Debug.Assert(Not IsSubmission OrElse HasCodeToEmit() OrElse
+                         (emitOptions = EmitOptions.Default AndAlso debugEntryPoint Is Nothing AndAlso sourceLinkStream Is Nothing AndAlso
+                          embeddedTexts Is Nothing AndAlso manifestResources Is Nothing AndAlso testData Is Nothing))
 
             ' Get the runtime metadata version from the cor library. If this fails we have no reasonable value to give.
             Dim runtimeMetadataVersion = GetRuntimeMetadataVersion()

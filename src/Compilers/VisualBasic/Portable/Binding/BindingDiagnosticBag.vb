@@ -89,5 +89,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
+        Friend Sub AddAssembliesUsedByCrefTarget(symbol As Symbol)
+            If DependenciesBag Is Nothing Then
+                Return
+            End If
+
+            Dim ns = TryCast(symbol, NamespaceSymbol)
+
+            If ns IsNot Nothing Then
+                Debug.Assert(Not ns.IsGlobalNamespace)
+                AddAssembliesUsedByNamespaceReference(ns)
+            Else
+                AddDependencies(If(TryCast(symbol, TypeSymbol), symbol.ContainingType))
+            End If
+        End Sub
+
+        Friend Overloads Sub AddDependencies(symbol As Symbol)
+            If DependenciesBag Is Nothing OrElse symbol Is Nothing Then
+                Return
+            End If
+
+            AddDependencies(symbol.GetUseSiteInfo())
+        End Sub
+
+        Friend Sub AddAssembliesUsedByNamespaceReference(ns As NamespaceSymbol)
+            If DependenciesBag Is Nothing Then
+                Return
+            End If
+
+            AddAssembliesUsedByNamespaceReferenceImpl(ns)
+        End Sub
+
+        Private Sub AddAssembliesUsedByNamespaceReferenceImpl(ns As NamespaceSymbol)
+            ' Treat all assemblies contributing to this namespace symbol as used
+            If ns.Extent.Kind = NamespaceKind.Compilation Then
+                For Each constituent In ns.ConstituentNamespaces
+                    AddAssembliesUsedByNamespaceReferenceImpl(constituent)
+                Next
+            Else
+                Dim containingAssembly As AssemblySymbol = ns.ContainingAssembly
+
+                If containingAssembly IsNot Nothing AndAlso Not containingAssembly.IsMissing Then
+                    DependenciesBag.Add(containingAssembly)
+                End If
+            End If
+        End Sub
+
     End Class
 End Namespace

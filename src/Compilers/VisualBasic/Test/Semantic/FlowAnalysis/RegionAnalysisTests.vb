@@ -8822,7 +8822,8 @@ End Class
             Assert.Equal("Me, x, s", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40684: The test hook is blocked by this issue.
+        <WorkItem(40684, "https://github.com/dotnet/roslyn/issues/40684")>
         Public Sub WithStatement_Expression_LValue_4d()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
 <compilation>
@@ -8878,7 +8879,8 @@ End Class
             Assert.Equal("Me, x, s", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40684: The test hook is blocked by this issue.
+        <WorkItem(40684, "https://github.com/dotnet/roslyn/issues/40684")>
         Public Sub WithStatement_Expression_LValue_4e()
             Dim dataFlowResults = CompileAndAnalyzeDataFlow(
 <compilation>

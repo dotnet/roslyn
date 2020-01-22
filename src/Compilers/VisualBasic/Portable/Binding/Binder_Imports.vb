@@ -2,6 +2,7 @@
 
 Imports System.Collections.Generic
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -27,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Aliases As Dictionary(Of String, AliasAndImportsClausePosition)
         Public ReadOnly XmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition)
 
-        Public MustOverride Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer)
-        Public MustOverride Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer)
+        Public MustOverride Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
+        Public MustOverride Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
     End Class
 
     Partial Friend Class Binder
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Note that this binder should have been already been set up to only bind to things in the global namespace.
         Public Sub BindImportClause(importClauseSyntax As ImportsClauseSyntax,
                                           data As ImportData,
-                                          diagBag As BindingDiagnosticBag)
+                                          diagBag As DiagnosticBag)
             ImportsBinder.BindImportClause(importClauseSyntax, Me, data, diagBag)
         End Sub
 
@@ -51,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Shared Sub BindImportClause(importClauseSyntax As ImportsClauseSyntax,
                                                      binder As Binder,
                                                      data As ImportData,
-                                                     diagBag As BindingDiagnosticBag)
+                                                     diagBag As DiagnosticBag)
                 Select Case importClauseSyntax.Kind
                     Case SyntaxKind.SimpleImportsClause
 
@@ -74,7 +75,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub BindAliasImportsClause(aliasImportSyntax As SimpleImportsClauseSyntax,
                                                       binder As Binder,
                                                       data As ImportData,
-                                                      diagBag As BindingDiagnosticBag)
+                                                      diagnostics As DiagnosticBag)
+                Dim dependenciesBag = PooledHashSet(Of AssemblySymbol).GetInstance()
+                Dim diagBag = New BindingDiagnosticBag(diagnostics, dependenciesBag)
+
                 Dim aliasesName = aliasImportSyntax.Name
                 Dim aliasTarget As NamespaceOrTypeSymbol = binder.BindNamespaceOrTypeSyntax(aliasesName, diagBag)
 
@@ -118,6 +122,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Else
                                 diagBag.AddDependencies(useSiteInfo)
                             End If
+                        Else
+                            dependenciesBag.Clear()
                         End If
 
                         ' We create the alias symbol even when the target is erroneous, 
@@ -129,9 +135,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              aliasTarget,
                                                              If(binder.BindingLocation = BindingLocation.ProjectImportsDeclaration, NoLocation.Singleton, aliasIdentifier.GetLocation()))
 
-                        data.AddAlias(binder.GetSyntaxReference(aliasImportSyntax), aliasText, aliasSymbol, aliasImportSyntax.SpanStart)
+                        data.AddAlias(binder.GetSyntaxReference(aliasImportSyntax), aliasText, aliasSymbol, aliasImportSyntax.SpanStart, dependenciesBag)
                     End If
                 End If
+
+                dependenciesBag.Free()
             End Sub
 
             ''' <summary>
@@ -148,7 +156,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub BindMembersImportsClause(membersImportsSyntax As SimpleImportsClauseSyntax,
                                                         binder As Binder,
                                                         data As ImportData,
-                                                        diagBag As BindingDiagnosticBag)
+                                                        diagnostics As DiagnosticBag)
+                Dim dependenciesBag = PooledHashSet(Of AssemblySymbol).GetInstance()
+                Dim diagBag = New BindingDiagnosticBag(diagnostics, dependenciesBag)
+
                 Debug.Assert(membersImportsSyntax.Alias Is Nothing)
                 Dim importsName = membersImportsSyntax.Name
                 Dim importedSymbol As NamespaceOrTypeSymbol = binder.BindNamespaceOrTypeSyntax(importsName, diagBag)
@@ -193,16 +204,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         If importedSymbolIsValid Then
-                            data.AddMember(binder.GetSyntaxReference(importsName), importedSymbol, membersImportsSyntax.SpanStart)
+                            data.AddMember(binder.GetSyntaxReference(importsName), importedSymbol, membersImportsSyntax.SpanStart, dependenciesBag)
                         End If
                     End If
                 End If
+
+                dependenciesBag.Free()
             End Sub
 
             Private Shared Sub BindXmlNamespaceImportsClause(syntax As XmlNamespaceImportsClauseSyntax,
                                                              binder As Binder,
                                                              data As ImportData,
-                                                             diagBag As BindingDiagnosticBag)
+                                                             diagnostics As DiagnosticBag)
+#If DEBUG Then
+                Dim dependenciesBag = PooledHashSet(Of AssemblySymbol).GetInstance()
+                Dim diagBag = New BindingDiagnosticBag(diagnostics, dependenciesBag)
+#Else
+                Dim diagBag = New BindingDiagnosticBag(diagnostics)
+#End If
+
                 Dim prefix As String = Nothing
                 Dim namespaceName As String = Nothing
                 Dim [namespace] As BoundExpression = Nothing
@@ -218,6 +238,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         data.XmlNamespaces.Add(prefix, New XmlNamespaceAndImportsClausePosition(namespaceName, syntax.SpanStart))
                     End If
                 End If
+#If DEBUG Then
+                Debug.Assert(dependenciesBag.Count = 0)
+                dependenciesBag.Free()
+#End If
             End Sub
         End Class
     End Class

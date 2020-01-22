@@ -759,6 +759,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 results.Add(result);
             }
+            else
+            {
+                useSiteInfo.AddForSymbol(result.Member, addDiagnostics: false);
+            }
         }
 
         // If the normal form is invalid and the expanded form is valid then obviously we prefer
@@ -1202,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (MemberResolutionResult<TMember> result in results)
             {
-                useSiteInfo.AddForSymbol(result.Member, addDiagnostics: result.HasUseSiteDiagnosticToReport, addDependencies: result.IsApplicable);
+                useSiteInfo.AddForSymbol(result.Member, addDiagnostics: result.HasUseSiteDiagnosticToReport);
             }
         }
 

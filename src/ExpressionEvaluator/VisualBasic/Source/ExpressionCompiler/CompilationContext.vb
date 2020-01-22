@@ -787,14 +787,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
                     Else
                         If importsBuilder Is Nothing Then
                             importsBuilder = ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition).GetInstance()
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(typeSymbol, position))
+                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(typeSymbol, position, ImmutableArray(Of AssemblySymbol).Empty))
                     End If
 
                 ' Dev12 treats the current namespace the same as any other namespace (see ProcedureContext::LoadImportsAndDefaultNamespaceNormal).
@@ -824,7 +824,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position))
+                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position, ImmutableArray(Of AssemblySymbol).Empty))
                     Else
                         Dim aliasSymbol As New AliasSymbol(importBinder.Compilation, importBinder.ContainingNamespaceOrType, [alias], namespaceOrTypeSymbol, NoLocation.Singleton)
 
@@ -833,7 +833,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
                     End If
 
                 Case ImportTargetKind.NamespaceOrType ' Aliased namespace or type (native PDB only)
@@ -856,7 +856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     End If
 
                     ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                    aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+                    aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
 
                 Case ImportTargetKind.XmlNamespace
                     If xmlImports Is Nothing Then

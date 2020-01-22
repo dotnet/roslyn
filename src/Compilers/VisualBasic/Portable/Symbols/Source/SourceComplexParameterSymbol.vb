@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If _lazyDefaultValue Is ConstantValue.Unset Then
                     Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     If Interlocked.CompareExchange(_lazyDefaultValue, BindDefaultValue(inProgress, diagnostics), ConstantValue.Unset) Is ConstantValue.Unset Then
-                        DirectCast(ContainingModule, SourceModuleSymbol).AddDiagnostics(diagnostics, CompilationStage.Declare)
+                        DirectCast(ContainingModule, SourceModuleSymbol).AddDeclarationDiagnostics(diagnostics)
                     End If
                     diagnostics.Free()
                 End If

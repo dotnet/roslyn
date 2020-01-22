@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             stateMachine = stateMachine ?? asyncStateMachine;
                         }
 
-                        if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors && _emitMethodBodies)
+                        if (_emitMethodBodies && !diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                         {
                             emittedBody = GenerateMethodBody(
                                 _moduleBeingBuiltOpt,

@@ -351,8 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
                                                                 StateFlags.ReportedVarianceDiagnostics,
                                                                 0,
-                                                                If(diagnostics IsNot Nothing, New BindingDiagnosticBag(diagnostics), Nothing),
-                                                                CompilationStage.Declare)
+                                                                If(diagnostics IsNot Nothing, New BindingDiagnosticBag(diagnostics), Nothing))
 
             If diagnostics IsNot Nothing Then
                 diagnostics.Free()
@@ -1672,7 +1671,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If _lazyMembersAndInitializers Is Nothing Then
                 Dim diagBag = BindingDiagnosticBag.GetInstance()
                 Dim membersAndInitializers = BuildMembersAndInitializers(diagBag)
-                m_containingModule.AtomicStoreReferenceAndDiagnostics(_lazyMembersAndInitializers, membersAndInitializers, diagBag, CompilationStage.Declare)
+                m_containingModule.AtomicStoreReferenceAndDiagnostics(_lazyMembersAndInitializers, membersAndInitializers, diagBag)
                 Debug.Assert(_lazyMembersAndInitializers IsNot Nothing)
                 diagBag.Free()
 
@@ -2006,8 +2005,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         m_containingModule.AtomicStoreIntegerAndDiagnostics(_lazyStructureCycle,
                                                                             If(hasCycle, ThreeState.True, ThreeState.False),
                                                                             ThreeState.Unknown,
-                                                                            diagnostics,
-                                                                            CompilationStage.Declare)
+                                                                            diagnostics)
                         diagnostics.Free()
                     End If
                 End If
@@ -3464,7 +3462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' method/property symbol creation time. That's the reason why this check is delayed until here.
                     CheckForOverloadsErrors(diagnostics)
 
-                    m_containingModule.AtomicStoreReferenceAndDiagnostics(m_lazyExplicitInterfaceImplementationMap, implementationMap, diagnostics, CompilationStage.Declare)
+                    m_containingModule.AtomicStoreReferenceAndDiagnostics(m_lazyExplicitInterfaceImplementationMap, implementationMap, diagnostics)
                     diagnostics.Free()
                 End If
 

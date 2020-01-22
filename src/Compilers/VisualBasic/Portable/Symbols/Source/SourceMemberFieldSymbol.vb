@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     Dim varType = ComputeType(diagnostics)
                     Debug.Assert(varType IsNot Nothing)
-                    sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyType, varType, diagnostics, CompilationStage.Declare)
+                    sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyType, varType, diagnostics)
                     diagnostics.Free()
                 End If
 
@@ -306,10 +306,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If initializer IsNot Nothing Then
                         Dim diagnostics = BindingDiagnosticBag.GetInstance()
                         Dim constantTuple = ConstantValueUtils.EvaluateFieldConstant(Me, initializer, inProgress, diagnostics)
-                        sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
+                        sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics)
                         diagnostics.Free()
                     Else
-                        sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, EvaluatedConstant.None, Nothing, CompilationStage.Declare)
+                        sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, EvaluatedConstant.None, Nothing)
                     End If
                 End If
 

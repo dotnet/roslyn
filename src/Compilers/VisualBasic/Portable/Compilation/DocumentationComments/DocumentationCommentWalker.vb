@@ -180,6 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' based sorting we just choose the lexically smallest documentation id.
 
                             Dim smallestSymbolCommentId As String = Nothing
+                            Dim smallestSymbol As Symbol = Nothing
                             Dim errid As ERRID = ERRID.WRN_XMLDocCrefAttributeNotFound1
 
                             For Each symbol In result
@@ -192,15 +193,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                 If candidateId IsNot Nothing AndAlso (smallestSymbolCommentId Is Nothing OrElse String.CompareOrdinal(smallestSymbolCommentId, candidateId) > 0) Then
                                     smallestSymbolCommentId = candidateId
+                                    smallestSymbol = symbol
                                 End If
                             Next
 
                             If smallestSymbolCommentId Is Nothing Then
                                 ' some symbols were found, but none of them has id
                                 ProcessErrorLocations(crefAttr, errorLocations, Nothing, errid)
-                            ElseIf Me._writer IsNot Nothing Then
-                                ' Write [<id>]
-                                Me._writer.Write(smallestSymbolCommentId)
+                            Else
+                                If Me._writer IsNot Nothing Then
+                                    ' Write [<id>]
+                                    Me._writer.Write(smallestSymbolCommentId)
+                                End If
+
+                                _diagnostics.AddAssembliesUsedByCrefTarget(smallestSymbol.OriginalDefinition)
                             End If
                         End If
 

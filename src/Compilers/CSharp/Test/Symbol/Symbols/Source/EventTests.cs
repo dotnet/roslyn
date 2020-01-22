@@ -848,7 +848,7 @@ class C
         #endregion
 
         #region Error cases
-        [Fact(Skip = "PROTOTYPE(UsedAssemblyReferences): The test hook is blocked by https://github.com/dotnet/roslyn/issues/39979")]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39979
         [WorkItem(39979, "https://github.com/dotnet/roslyn/issues/39979")]
         public void VoidEvent()
         {

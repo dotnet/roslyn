@@ -928,6 +928,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return diagBag.Add(useSiteInfo, location)
         End Function
 
+        Public Sub AddTypesAssemblyAsDependency(namespaceOrType As NamespaceOrTypeSymbol, diagBag As BindingDiagnosticBag)
+            Dim container As AssemblySymbol = TryCast(namespaceOrType, NamedTypeSymbol)?.ContainingAssembly
+            If container IsNot Nothing AndAlso container <> Compilation.Assembly AndAlso container <> Compilation.Assembly.CorLibrary Then
+                diagBag.AddDependency(container)
+            End If
+        End Sub
+
         ''' <summary>
         ''' Issue an error or warning for a symbol if it is Obsolete. If there is not enough
         ''' information to report diagnostics, then store the symbols so that diagnostics

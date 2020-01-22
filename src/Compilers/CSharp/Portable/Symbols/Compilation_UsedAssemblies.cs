@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (reference.Properties.Kind == MetadataImageKind.Assembly)
                 {
-                    Symbol symbol = GetAssemblyOrModuleSymbol(reference);
+                    Symbol symbol = GetBoundReferenceManager().GetReferencedAssemblySymbol(reference);
                     if (symbol is object && usedAssemblies.Contains((AssemblySymbol)symbol) &&
                         setOfReferences.Add(reference) &&
                         mergedAssemblyReferencesMap.TryGetValue(reference, out ImmutableArray<MetadataReference> merged))
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool seenErrors = diagnostics.HasAnyErrors();
                 if (!seenErrors)
                 {
-                    diagnostics.Clear();
+                    diagnostics.DiagnosticBag.Clear();
                     // PROTOTYPE(UsedAssemblyReferences): Might want to suppress nullable analysis for this call.
                     // PROTOTYPE(UsedAssemblyReferences): Ensure we don't trigger any analyzers during the GetDiagnosticsForAllMethodBodies call.
                     GetDiagnosticsForAllMethodBodies(diagnostics, doLowering: true, cancellationToken);
@@ -139,7 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
+                    if (_usedAssemblyReferencesFrozen || Volatile.Read(ref _usedAssemblyReferencesFrozen))
+                    {
+                        return;
+                    }
+
                     // Assume that all assemblies used by the used assemblies are also used
+                    // This, for example, takes care of including facade assemblies that forward types around.
                     if (_lazyUsedAssemblyReferences is object)
                     {
                         lock (_lazyUsedAssemblyReferences)
@@ -222,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void AddUsedAssemblies(ICollection<AssemblySymbol>? assemblies)
         {
-            if (assemblies?.Count > 0)
+            if (!assemblies.IsNullOrEmpty())
             {
                 foreach (var candidate in assemblies)
                 {
@@ -246,12 +252,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             bool wasFrozen = _usedAssemblyReferencesFrozen;
 #endif
-            bool result = _lazyUsedAssemblyReferences.Add(assembly);
+            bool added = _lazyUsedAssemblyReferences.Add(assembly);
 
 #if DEBUG
-            Debug.Assert(!result || !wasFrozen);
+            Debug.Assert(!added || !wasFrozen);
 #endif
-            return result;
+            return added;
         }
 
     }

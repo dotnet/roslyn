@@ -430,6 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         If Me.ContainingMember IsNot accessingBinder.ContainingMember Then
                             ReportDiagnostic(diagnostics, node, ERRID.ERR_CannotLiftAnonymousType1, node.Name.Identifier.ValueText)
+                            hasErrors = True
                         End If
 
                         ' return bound anonymous type access

@@ -1557,6 +1557,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.Kind == SymbolKind.NamedType)
             {
                 CheckRuntimeSupportForSymbolAccess(where, receiverOpt: null, symbol, diagnostics);
+
+                if (suppressUseSiteDiagnostics && diagnostics.DependenciesBag is object)
+                {
+                    AssemblySymbol container = symbol.ContainingAssembly;
+                    if (container is object && container != Compilation.Assembly && container != Compilation.Assembly.CorLibrary)
+                    {
+                        diagnostics.AddDependency(container);
+                    }
+                }
             }
 
             return symbol;

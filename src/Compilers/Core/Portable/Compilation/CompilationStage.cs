@@ -13,6 +13,5 @@ namespace Microsoft.CodeAnalysis
         Parse,
         Declare,
         Compile,
-        Emit
     }
 }

@@ -2520,7 +2520,7 @@ public class P
                 "mscorlib: global,Y,Y,Z");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution1()
         {
             // c - a -> b
@@ -2542,7 +2542,7 @@ public class P
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_Aliases()
         {
             // c - a -> b with alias X
@@ -2569,7 +2569,7 @@ public class C : A
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_AliasesMerge()
         {
             // c - a -> "b, V1" resolved to "b, V3" with alias X
@@ -2623,7 +2623,7 @@ public class C : A
                 "B, Version=3.0.0.0: Y,X");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_WeakIdentities1()
         {
             // c - a -> "b,v1,PKT=null" 
@@ -2659,7 +2659,7 @@ public class C : A
                 "B, Version=1.0.0.0: <superseded>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_WeakIdentities2()
         {
             // c - a -> "b,v1,PKT=null"
@@ -2712,7 +2712,7 @@ public class C : A
             resolver.VerifyResolutionAttempts();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_ActualMissing()
         {
             // c - a -> d
@@ -2735,7 +2735,7 @@ public class C : A
         /// <summary>
         /// Ignore assemblies returned by the resolver that don't match the reference identity.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_MissingDueToResolutionMismatch()
         {
             // c - a -> b
@@ -2760,7 +2760,7 @@ public class C : A
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_Multiple()
         {
             // c - a -> d
@@ -2785,7 +2785,7 @@ public class C : A
                 "B -> D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_Modules()
         {
             // c - a - d
@@ -2864,7 +2864,7 @@ public class C : A
         /// <summary>
         /// Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         /// </summary>
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_BindingToExplicitReference_WorseVersion()
         {
             // c - a -> d -> "b,v2"
@@ -2930,7 +2930,7 @@ public class C : A
         /// <summary>
         /// Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         /// </summary>
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_BindingToExplicitReference_BetterVersion()
         {
             // c - a -> d -> "b,v2"
@@ -2989,7 +2989,7 @@ public class C : A
                 "E, Version=1.0.0.0");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_BindingToImplicitReference1()
         {
             // c - a -> d -> "b,v2"
@@ -3033,7 +3033,7 @@ public class C : A
                 "B, Version=1.0.0.0: <superseded>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_BindingToImplicitReference2()
         {
             // c - a -> d -> "b,v2"
@@ -3099,7 +3099,7 @@ public class C : A
                 "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_BindingToImplicitReference3()
         {
             // c - a -> d -> "b,v2"
@@ -3165,7 +3165,7 @@ public class C : A
                 "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_Supersession_FxUnification()
         {
             var options = TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
@@ -3208,7 +3208,7 @@ public class C : A
                 "System, Version=2.0.0.0: <superseded>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void MissingAssemblyResolution_Supersession_StrongNames()
         {
             var options = TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);

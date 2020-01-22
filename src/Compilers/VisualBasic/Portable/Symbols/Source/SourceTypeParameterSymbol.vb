@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     CheckConstraintTypeConstraints(constraints, diagnostics)
                     Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
-                    sourceModule.AddDiagnostics(diagnostics, CompilationStage.Declare)
+                    sourceModule.AddDeclarationDiagnostics(diagnostics)
                 End If
 
                 diagnosticsBuilder.Free()

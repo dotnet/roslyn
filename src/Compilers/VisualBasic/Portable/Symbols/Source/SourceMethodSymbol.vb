@@ -2168,8 +2168,7 @@ lReportErrorOnTwoTokens:
                 sourceModule.AtomicStoreArrayAndDiagnostics(
                         _lazyParameters,
                         params,
-                        diagBag,
-                        CompilationStage.Declare)
+                        diagBag)
 
                 diagBag.Free()
 
