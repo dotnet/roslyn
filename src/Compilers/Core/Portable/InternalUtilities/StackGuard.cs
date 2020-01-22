@@ -6,6 +6,10 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
+#if !COMPILERCORE
+using Microsoft.CodeAnalysis.ErrorReporting;
+#endif
 
 namespace Microsoft.CodeAnalysis
 {
@@ -46,7 +50,17 @@ namespace Microsoft.CodeAnalysis
 
         internal static TResult ExecuteOnNewExecutionStack<TResult>(Func<TResult> execute)
         {
-            var task = Task.Run(() => execute());
+            var task = Task.Run(() =>
+            {
+                try
+                {
+                    return execute();
+                }
+                catch (Exception e) when (FatalError.Report(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+            });
             // Wait on the task without inlining the task on this thread.
             Task.WhenAny(task).Wait();
             // Return result, propagating any exception.
