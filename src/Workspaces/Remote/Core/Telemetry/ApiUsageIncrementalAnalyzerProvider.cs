@@ -94,13 +94,25 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     }
                 }
 
-                var groupByAssembly = metadataSymbolUsed.GroupBy(s => s.ContainingAssembly);
-                var apiPerAssembly = groupByAssembly.Select(g => new
+                var groupByAssembly = metadataSymbolUsed.GroupBy(symbol => symbol.ContainingAssembly);
+                var apiPerAssembly = groupByAssembly.Select(assemblyGroup => new
                 {
                     // mark all string as PII (customer data)
-                    AssemblyName = new TelemetryPiiProperty(g.Key.Identity.Name),
-                    AssemblyVersion = g.Key.Identity.Version.ToString(),
-                    Symbols = g.Select(s => s.GetDocumentationCommentId()).Where(id => id != null).Select(id => new TelemetryPiiProperty(id))
+                    AssemblyName = new TelemetryPiiProperty(assemblyGroup.Key.Identity.Name),
+                    AssemblyVersion = assemblyGroup.Key.Identity.Version.ToString(),
+                    Namespaces = assemblyGroup.GroupBy(symbol => symbol.ContainingNamespace)
+                        .Select(namespaceGroup =>
+                        {
+                            var namespaceName = namespaceGroup.Key.ToString();
+
+                            return new
+                            {
+                                Namespace = new TelemetryPiiProperty(namespaceName),
+                                Symbols = namespaceGroup.Select(symbol => symbol.GetDocumentationCommentId())
+                                    .Where(id => id != null)
+                                    .Select(id => new TelemetryPiiProperty(id))
+                            };
+                        })
                 });
 
                 lock (_reported)
