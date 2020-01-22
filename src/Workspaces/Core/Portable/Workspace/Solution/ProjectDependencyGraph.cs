@@ -539,6 +539,7 @@ namespace Microsoft.CodeAnalysis
         internal ProjectDependencyGraph WithProjectReferenceRemoved(ProjectId projectId, ProjectId referencedProjectId)
         {
             Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+            Contract.ThrowIfFalse(_referencesMap[projectId].Contains(referencedProjectId));
 
             var projectIds = _projectIds;
             var referencesMap = _referencesMap.SetItem(projectId, _referencesMap[projectId].Remove(referencedProjectId));
