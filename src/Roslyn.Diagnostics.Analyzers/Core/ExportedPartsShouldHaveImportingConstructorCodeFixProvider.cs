@@ -108,7 +108,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 DeclarationModifiers.None,
                 baseConstructorArguments: null,
                 statements: Enumerable.Empty<SyntaxNode>());
-            importingConstructor = generator.AddAttributes(importingConstructor, generator.Attribute(generator.TypeExpression(importingConstructorAttributeSymbol)));
+            importingConstructor = generator.AddAttributes(importingConstructor, generator.Attribute(generator.TypeExpression(importingConstructorAttributeSymbol).WithAddImportsAnnotation()));
 
             var index = 0;
             var existingMembers = generator.GetMembers(declaration);
@@ -194,7 +194,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            var newDeclaration = generator.AddAttributes(declaration, generator.Attribute(generator.TypeExpression(importingConstructorAttributeSymbol)));
+            var newDeclaration = generator.AddAttributes(declaration, generator.Attribute(generator.TypeExpression(importingConstructorAttributeSymbol).WithAddImportsAnnotation()));
             return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
         }
     }
