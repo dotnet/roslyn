@@ -11,25 +11,20 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public class IntegrationTests : TestBase
     {
-        private static readonly string s_msbuildDirectory;
-        private static readonly string? s_msbuildExecutable;
+        private static readonly string? s_msbuildDirectory;
 
         static IntegrationTests()
         {
             s_msbuildDirectory = DesktopTestHelpers.GetMSBuildDirectory();
-            if (s_msbuildDirectory != null)
-            {
-                s_msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
-            }
         }
 
+        private readonly string _msbuildExecutable;
         private readonly TempDirectory _tempDirectory;
         private readonly List<Process> _existingServerList = new List<Process>();
         private readonly string _buildTaskDll;
@@ -41,6 +36,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 throw new InvalidOperationException("Could not locate MSBuild");
             }
 
+            _msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
             _tempDirectory = Temp.CreateDirectory();
             _existingServerList = Process.GetProcessesByName(Path.GetFileNameWithoutExtension("VBCSCompiler")).ToList();
             _buildTaskDll = typeof(ManagedCompiler).Assembly.Location;
@@ -409,10 +405,8 @@ End Class
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1445")]
         public void SimpleMSBuild()
         {
-            RoslynDebug.Assert(s_msbuildExecutable is object);
-
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
-            var result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
+            var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
 
             using (var resultFile = GetResultFile(_tempDirectory, @"bin\debug\helloproj.exe"))
             {
@@ -610,10 +604,8 @@ End Class
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
         public void ReportAnalyzerMSBuild()
         {
-            RoslynDebug.Assert(s_msbuildExecutable is object);
-
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
-            var result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
+            var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
                 new Dictionary<string, string>
                 { { "MyMSBuildToolsPath", Path.GetDirectoryName(typeof(IntegrationTests).Assembly.Location) } });
 
@@ -624,8 +616,6 @@ End Class
         [Fact(Skip = "failing msbuild")]
         public void SolutionWithPunctuation()
         {
-            RoslynDebug.Assert(s_msbuildExecutable is object);
-
             var testDir = _tempDirectory.CreateDirectory(@"SLN;!@(goo)'^1");
             var slnFile = testDir.CreateFile("Console;!@(goo)'^(Application1.sln").WriteAllText(
     @"
@@ -790,7 +780,7 @@ namespace Class____goo____Library1
 }
 ");
 
-            var result = RunCommandLineCompiler(s_msbuildExecutable, "/p:UseSharedCompilation=false", testDir.Path);
+            var result = RunCommandLineCompiler(_msbuildExecutable, "/p:UseSharedCompilation=false", testDir.Path);
             Assert.Equal(0, result.ExitCode);
             Assert.Equal("", result.Errors);
         }

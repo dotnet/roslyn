@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -174,7 +175,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// even if it contains the separators and white space only
         /// Split on the characters provided.
         /// </summary>
-        internal static bool IsParameterEmpty(string parameter, params char[] splitOn)
+        internal static bool IsParameterEmpty([NotNullWhen(false)] string? parameter, params char[] splitOn)
         {
             if (parameter != null)
             {
@@ -202,12 +203,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         (
             string switchName,
             ITaskItem[]? parameters,
-            string[] metadataNames,
+            string[]? metadataNames,
             bool[]? treatAsFlags       // May be null. In this case no metadata are treated as flags.
             )
         {
             Debug.Assert(treatAsFlags == null
-                         || (metadataNames.Length == treatAsFlags.Length),
+                         || (metadataNames?.Length == treatAsFlags.Length),
                          "metadataNames and treatAsFlags should have the same length.");
 
             if (parameters != null)
