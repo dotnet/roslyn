@@ -307,6 +307,18 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
+        public bool HasContentChanged(DocumentState oldState)
+        {
+            return oldState._treeSource != _treeSource
+                || HasTextChanged(oldState, ignoreUnchangeableDocument: false);
+        }
+
+        [Obsolete("Use TextDocumentState.HasTextChanged")]
+        public bool HasTextChanged(DocumentState oldState)
+        {
+            return HasTextChanged(oldState, ignoreUnchangeableDocument: false);
+        }
+
         public DocumentState UpdateParseOptions(ParseOptions options)
         {
             var originalSourceKind = this.SourceCodeKind;

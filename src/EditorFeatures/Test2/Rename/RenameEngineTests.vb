@@ -6188,51 +6188,6 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(963225, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/963225")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameShouldIgnoreUnchangeableDocument()
-            Using result = RenameEngineResult.Create(_outputHelper,
-                <Workspace>
-                    <Project Language="C#">
-                        <Document FilePath="A.cs">
-                            class [|$$A|]
-                            {
-                                void M()
-                                {
-                                    [|A|] a = new [|A|]();
-                                }
-                            }
-                        </Document>
-                        <Document FilePath="B.cs" CanApplyChange="false">
-                            class B
-                            {
-                                void M()
-                                {
-                                    {|stmt:A|} a;
-                                }
-                            }
-                        </Document>
-                    </Project>
-                </Workspace>, renameTo:="C")
-
-                ' Expect reference in unchangeable doc to be renamed as long as the new solution is not applied back to workspace
-                result.AssertLabeledSpansAre("stmt", "C", RelatedLocationType.UnresolvedConflict)
-
-                Assert.True(result.Workspace.TryApplyChanges(result.ConflictResolution.NewSolution))
-
-                ' Changes to unchangeable document will be excluded when applied back to namespace
-                For Each doc In result.Workspace.CurrentSolution.Projects.SelectMany(Function(p)
-                                                                                         Return p.Documents
-                                                                                     End Function)
-                    If doc.Name = "A.cs" Then
-                        Assert.True(doc.GetTextSynchronously(CancellationToken.None).ToString().Contains("C a = new C();"))
-                    ElseIf doc.Name = "B.cs" Then
-                        Assert.True(doc.GetTextSynchronously(CancellationToken.None).ToString().Contains("A a;"))
-                    End If
-                Next
-            End Using
-        End Sub
-
 #Region "Rename in strings/comments"
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>

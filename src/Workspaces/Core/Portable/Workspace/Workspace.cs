@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis
 
         internal bool TestHookPartialSolutionsDisabled { get; set; }
 
+        /// <summary>
+        /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
+        /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgressTracker)"/>. 
+        /// A document is unchangeable if <see cref="IDocumentOperationService.CanApplyChange"/> is false.
+        /// </summary>
         internal virtual bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; } = false;
 
         private Action<string>? _testMessageLogger;

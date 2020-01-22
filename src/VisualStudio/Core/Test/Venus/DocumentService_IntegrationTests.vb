@@ -181,17 +181,16 @@ class C { }
                 ' confirm apply changes are not supported
                 Assert.False(document.CanApplyChange())
 
+                Assert.Equal(ignoreUnchangeableDocuments, workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges)
+
                 ' see whether changes can be applied to the solution
                 If ignoreUnchangeableDocuments Then
-                    Assert.True(workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges)
                     Assert.True(workspace.TryApplyChanges(newDocument.Project.Solution))
 
                     ' Changes should not be made if Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges is true
                     Dim currentDocument = workspace.CurrentSolution.GetDocument(document.Id)
                     Assert.True(currentDocument.GetTextSynchronously(CancellationToken.None).ContentEquals(document.GetTextSynchronously(CancellationToken.None)))
                 Else
-                    Assert.False(workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges)
-
                     ' should throw if Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges is false
                     Assert.Throws(Of NotSupportedException)(Sub() workspace.TryApplyChanges(newDocument.Project.Solution))
                 End If

@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Get Changed Documents:
-        /// When onlyGetDocumentsWithTextChanges is true, only get documents with text changes;
+        /// When onlyGetDocumentsWithTextChanges is true, only get documents with text changes (we only check text source, not actual content);
         /// otherwise get documents with any changes i.e. DocumentState changes:
         /// <see cref="DocumentState.ParseOptions"/>, <see cref="DocumentState.SourceCodeKind"/>, <see cref="TextDocumentState.FilePath"/>
         /// </summary>

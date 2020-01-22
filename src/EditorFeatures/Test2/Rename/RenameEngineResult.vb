@@ -100,12 +100,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Get
         End Property
 
-        Friend ReadOnly Property Workspace As TestWorkspace
-            Get
-                Return _workspace
-            End Get
-        End Property
-
         Private Sub AssertUnlabeledSpansRenamedAndHaveNoConflicts()
             For Each documentWithSpans In _workspace.Documents
                 Dim oldSyntaxTree = _workspace.CurrentSolution.GetDocument(documentWithSpans.Id).GetSyntaxTreeAsync().Result

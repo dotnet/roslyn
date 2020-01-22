@@ -139,8 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
         protected async Task TestChangeNamespaceAsync(
             string initialMarkUp,
             string expectedSourceOriginal,
-            string expectedSourceReference = null,
-            bool applyChangeToWorkspace = false)
+            string expectedSourceReference = null)
         {
             var testOptions = new TestParameters();
             using (var workspace = CreateWorkspaceFromOptions(initialMarkUp, testOptions))
@@ -167,12 +166,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     var oldSolution = oldAndNewSolution.Item1;
                     var newSolution = oldAndNewSolution.Item2;
 
-                    if (applyChangeToWorkspace)
-                    {
-                        Assert.True(workspace.TryApplyChanges(newSolution));
-                        newSolution = workspace.CurrentSolution;
-                    }
-
                     var changedDocumentIds = SolutionUtilities.GetChangedDocuments(oldSolution, newSolution);
 
                     Assert.True(changedDocumentIds.Contains(originalDocumentId), "original document was not changed.");
@@ -180,25 +173,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     var modifiedOriginalDocument = newSolution.GetDocument(originalDocumentId);
                     var modifiedOringinalRoot = await modifiedOriginalDocument.GetSyntaxRootAsync();
 
-                    if (!applyChangeToWorkspace)
-                    {
-                        // One node/token will contain the warning we attached for change namespace action.
-                        Assert.Single(modifiedOringinalRoot.DescendantNodesAndTokensAndSelf().Where(n =>
+                    // One node/token will contain the warning we attached for change namespace action.
+                    Assert.Single(modifiedOringinalRoot.DescendantNodesAndTokensAndSelf().Where(n =>
+                        {
+                            IEnumerable<SyntaxAnnotation> annotations;
+                            if (n.IsNode)
                             {
-                                IEnumerable<SyntaxAnnotation> annotations;
-                                if (n.IsNode)
-                                {
-                                    annotations = n.AsNode().GetAnnotations(WarningAnnotation.Kind);
-                                }
-                                else
-                                {
-                                    annotations = n.AsToken().GetAnnotations(WarningAnnotation.Kind);
-                                }
+                                annotations = n.AsNode().GetAnnotations(WarningAnnotation.Kind);
+                            }
+                            else
+                            {
+                                annotations = n.AsToken().GetAnnotations(WarningAnnotation.Kind);
+                            }
 
-                                return annotations.Any(annotation =>
-                                    WarningAnnotation.GetDescription(annotation) == FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning);
-                            }));
-                    }
+                            return annotations.Any(annotation =>
+                                WarningAnnotation.GetDescription(annotation) == FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning);
+                        }));
 
                     var actualText = (await modifiedOriginalDocument.GetTextAsync()).ToString();
                     Assert.Equal(expectedSourceOriginal, actualText);

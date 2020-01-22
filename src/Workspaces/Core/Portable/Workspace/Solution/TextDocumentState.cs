@@ -291,6 +291,9 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion.Version;
         }
 
+        /// <summary>
+        /// Only checks if the source of the text has changed, no content check is done.
+        /// </summary>
         public bool HasTextChanged(TextDocumentState oldState, bool ignoreUnchangeableDocument)
         {
             if (ignoreUnchangeableDocument && !oldState.CanApplyChange())

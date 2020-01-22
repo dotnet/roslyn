@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// True if the text of the document change.
+        /// Only checks if the source of the text has changed, no content check is done.
         /// </summary>
         internal bool HasTextChanged(TextDocument otherTextDocument, bool ignoreUnchangeableDocument)
         {

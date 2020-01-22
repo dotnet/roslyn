@@ -466,64 +466,6 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(963225, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/963225")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-        public async Task ChangeNamespace_WithReferencesInUnchangeableDocument()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar.Baz";
-
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
-            var code =
-$@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
-namespace [||]{declaredNamespace}
-{{
-    class Class1 
-    {{ 
-    }}
-}}</Document>
-<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}"" CanApplyChange=""false""> 
-using Foo.Bar.Baz;
-
-namespace X
-{{
-    class RefClass
-    {{
-        private Class1 c1;
-    }}
-}}</Document>
-    </Project>
-</Workspace>";
-
-            var expectedSourceOriginal =
-@"namespace A.B.C
-{
-    class Class1
-    {
-    }
-}";
-            var expectedSourceReference =
-@"
-using A.B.C;
-
-namespace X
-{
-    class RefClass
-    {
-        private Class1 c1;
-    }
-}";
-            // Changes in unchangeable document is expected as long as the solution isn't applied back to workspace
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-
-            // Changes in unchangeable document should be excluded after being applied back to workspace
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, applyChangeToWorkspace: true);
-        }
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task ChangeNamespace_WithQualifiedReferencesInOtherDocument()
         {
@@ -544,7 +486,7 @@ namespace [||]{declaredNamespace}
         void M1(Interface1 c1);   
     }}
 }}</Document>
-<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}"" CanApplyChange=""false""> 
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
 namespace Foo
 {{
     using {declaredNamespace};
