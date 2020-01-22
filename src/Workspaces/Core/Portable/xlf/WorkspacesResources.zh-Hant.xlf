@@ -92,6 +92,16 @@
         <target state="translated">不支援移除分析器組態文件。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="new">Rename '{0}' to '{1}'</target>
+        <note>Description for renaming a type when renaming a file</note>
+      </trans-unit>
+      <trans-unit id="Renaming_0_may_result_in_naming_conflicts">
+        <source>Renaming '{0}' may result in naming conflicts</source>
+        <target state="new">Renaming '{0}' may result in naming conflicts</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
         <source>Solution does not contain specified reference</source>
         <target state="new">Solution does not contain specified reference</target>
@@ -176,6 +186,11 @@
         <source>The project already contains the specified reference.</source>
         <target state="new">The project already contains the specified reference.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="The_project_does_not_support_sync_namespace">
+        <source>The project does not support sync namespace</source>
+        <target state="new">The project does not support sync namespace</target>
+        <note>This is an error message generated to show that the project a document is in does not currently support the feature to sync namespaces</note>
       </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_reference">
         <source>The solution already contains the specified reference.</source>
