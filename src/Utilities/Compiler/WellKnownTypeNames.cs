@@ -460,6 +460,26 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreMvcHttpOptionsAttribute = "Microsoft.AspNetCore.Mvc.HttpOptionsAttribute";
         public const string MicrosoftAspNetCoreMvcRouteAttribute = "Microsoft.AspNetCore.Mvc.RouteAttribute";
         public const string SystemWebHttpApplication = "System.Web.HttpApplication";
+        public const string MicrosoftCodeAnalysisCompilation = "Microsoft.CodeAnalysis.Compilation";
+        public const string MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
         public const string SystemRuntimeInteropServicesOutAttribute = "System.Runtime.InteropServices.OutAttribute";
+        public const string MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzer = "Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer";
+        public const string MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute = "Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute";
+        public const string MicrosoftCodeAnalysisDiagnostic = "Microsoft.CodeAnalysis.Diagnostic";
+        public const string MicrosoftCodeAnalysisDiagnosticDescriptor = "Microsoft.CodeAnalysis.DiagnosticDescriptor";
+        public const string MicrosoftCodeAnalysisLocalizableString = "Microsoft.CodeAnalysis.LocalizableString";
+        public const string MicrosoftCodeAnalysisDiagnosticsAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.AnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsCompilationStartAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsCompilationEndAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsSemanticModelAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsSymbolAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsSyntaxNodeAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsSyntaxTreeAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsCodeBlockStartAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext`1";
+        public const string MicrosoftCodeAnalysisDiagnosticsCodeBlockAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsOperationBlockStartAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsOperationBlockAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsOperationAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext";
+        public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
     }
 }

@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                INamedTypeSymbol? diagnosticDescriptorType = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticDescriptorFullName);
+                INamedTypeSymbol? diagnosticDescriptorType = compilationContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticDescriptor);
                 if (diagnosticDescriptorType == null)
                 {
                     return;
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 title.Type != null &&
                 title.Type.SpecialType == SpecialType.System_String)
             {
-                Diagnostic diagnostic = Diagnostic.Create(UseLocalizableStringsInDescriptorRule, objectCreation.Syntax.GetLocation(), DiagnosticAnalyzerCorrectnessAnalyzer.LocalizableStringFullName);
+                Diagnostic diagnostic = Diagnostic.Create(UseLocalizableStringsInDescriptorRule, objectCreation.Syntax.GetLocation(), WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString);
                 operationAnalysisContext.ReportDiagnostic(diagnostic);
             }
         }
