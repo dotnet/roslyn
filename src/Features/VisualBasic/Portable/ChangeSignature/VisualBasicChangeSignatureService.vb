@@ -606,9 +606,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             Dim lastWhiteSpaceTrivia As SyntaxTrivia = Nothing
 
-            Dim lastDocumentationCommentTriviaSyntax = node.GetLeadingTrivia().
-            LastOrDefault(Function(t) t.HasStructure AndAlso t.GetStructure().IsKind(SyntaxKind.DocumentationCommentTrivia))
-            Dim documentationCommeStructuredTrivia As DocumentationCommentTriviaSyntax = DirectCast(lastDocumentationCommentTriviaSyntax.GetStructure(), DocumentationCommentTriviaSyntax)
+            Dim lastDocumentationCommentTriviaSyntax = node.GetLeadingTrivia() _
+                .LastOrDefault(Function(t) t.HasStructure AndAlso t.GetStructure().IsKind(SyntaxKind.DocumentationCommentTrivia))
 
             For Each trivia In node.GetLeadingTrivia()
                 If Not trivia.HasStructure Then
