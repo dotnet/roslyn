@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -21,31 +23,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             SyntaxKind.IdentifierName,
             SyntaxKind.GenericName)
 
-        Public Sub New()
-            MyBase.New(s_kindsOfInterest)
-        End Sub
+        Protected Overrides Sub AnalyzeSemanticModel(context As SemanticModelAnalysisContext)
+            Dim semanticModel = context.SemanticModel
+            Dim cancellationToken = context.CancellationToken
 
-        Protected Overrides Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
-            If context.Node.Ancestors(ascendOutOfTrivia:=False).Any(AddressOf IsNodeKindInteresting) Then
-                ' Already simplified an ancestor of this node.
-                Return
-            End If
+            Dim syntaxTree = semanticModel.SyntaxTree
+            Dim options = context.Options
+            Dim optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()
+            Dim root = syntaxTree.GetRoot(cancellationToken)
 
-            Dim descendIntoChildren As Func(Of SyntaxNode, Boolean) =
-                Function(n)
-                    Dim diagnostic As Diagnostic = Nothing
+            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, cancellationToken)
+            simplifier.Visit(root)
 
-                    If Not IsCandidate(n) OrElse
-                       Not TrySimplifyTypeNameExpression(context.SemanticModel, n, context.Options, diagnostic, context.CancellationToken) Then
-                        Return True
-                    End If
-
-                    context.ReportDiagnostic(diagnostic)
-                    Return False
-                End Function
-
-            For Each candidate In context.Node.DescendantNodesAndSelf(descendIntoChildren, descendIntoTrivia:=True)
-                context.CancellationToken.ThrowIfCancellationRequested()
+            For Each diagnostic In simplifier.Diagnostics
+                context.ReportDiagnostic(diagnostic)
             Next
         End Sub
 
@@ -55,14 +46,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
         Friend Overrides Function IsCandidate(node As SyntaxNode) As Boolean
             Return node IsNot Nothing AndAlso IsNodeKindInteresting(node)
-        End Function
-
-        Protected Overrides Function CanSimplifyTypeNameExpressionCore(
-                model As SemanticModel, node As SyntaxNode, optionSet As OptionSet,
-                ByRef issueSpan As TextSpan, ByRef diagnosticId As String, ByRef inDeclaration As Boolean,
-                cancellationToken As CancellationToken) As Boolean
-            Return CanSimplifyTypeNameExpression(
-                model, node, optionSet, issueSpan, diagnosticId, inDeclaration, cancellationToken)
         End Function
 
         Friend Overrides Function CanSimplifyTypeNameExpression(

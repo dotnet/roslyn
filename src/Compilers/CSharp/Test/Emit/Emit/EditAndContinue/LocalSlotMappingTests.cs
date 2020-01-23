@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -3824,7 +3826,7 @@ class C
 {
   // Code size       51 (0x33)
   .maxstack  4
-  .locals init (System.ValueTuple<int, (int, int)> V_0, //x
+  .locals init (System.ValueTuple<int, System.ValueTuple<int, int>> V_0, //x
                 [int] V_1,
                 int V_2)
  -IL_0000:  nop
@@ -3833,15 +3835,15 @@ class C
   IL_0004:  ldc.i4.2
   IL_0005:  ldc.i4.3
   IL_0006:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_000b:  call       ""System.ValueTuple<int, (int, int)>..ctor(int, (int, int))""
+  IL_000b:  call       ""System.ValueTuple<int, System.ValueTuple<int, int>>..ctor(int, System.ValueTuple<int, int>)""
  -IL_0010:  ldloc.0
-  IL_0011:  ldfld      ""int System.ValueTuple<int, (int, int)>.Item1""
+  IL_0011:  ldfld      ""int System.ValueTuple<int, System.ValueTuple<int, int>>.Item1""
   IL_0016:  ldloc.0
-  IL_0017:  ldfld      ""(int, int) System.ValueTuple<int, (int, int)>.Item2""
+  IL_0017:  ldfld      ""System.ValueTuple<int, int> System.ValueTuple<int, System.ValueTuple<int, int>>.Item2""
   IL_001c:  ldfld      ""int System.ValueTuple<int, int>.Item1""
   IL_0021:  add
   IL_0022:  ldloc.0
-  IL_0023:  ldfld      ""(int, int) System.ValueTuple<int, (int, int)>.Item2""
+  IL_0023:  ldfld      ""System.ValueTuple<int, int> System.ValueTuple<int, System.ValueTuple<int, int>>.Item2""
   IL_0028:  ldfld      ""int System.ValueTuple<int, int>.Item2""
   IL_002d:  add
   IL_002e:  stloc.2
@@ -4421,23 +4423,23 @@ class C
                 bool V_3, //y
                 double V_4, //z
                 [unchanged] V_5,
-                (int, (bool, double))[] V_6,
+                System.ValueTuple<int, System.ValueTuple<bool, double>>[] V_6,
                 int V_7,
                 System.ValueTuple<bool, double> V_8)
  -IL_0000:  nop
  -IL_0001:  nop
- -IL_0002:  call       ""(int, (bool, double))[] C.F()""
+ -IL_0002:  call       ""System.ValueTuple<int, System.ValueTuple<bool, double>>[] C.F()""
   IL_0007:  stloc.s    V_6
   IL_0009:  ldc.i4.0
   IL_000a:  stloc.s    V_7
  ~IL_000c:  br.s       IL_0045
  -IL_000e:  ldloc.s    V_6
   IL_0010:  ldloc.s    V_7
-  IL_0012:  ldelem     ""System.ValueTuple<int, (bool, double)>""
+  IL_0012:  ldelem     ""System.ValueTuple<int, System.ValueTuple<bool, double>>""
   IL_0017:  dup
-  IL_0018:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
+  IL_0018:  ldfld      ""System.ValueTuple<bool, double> System.ValueTuple<int, System.ValueTuple<bool, double>>.Item2""
   IL_001d:  stloc.s    V_8
-  IL_001f:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_001f:  ldfld      ""int System.ValueTuple<int, System.ValueTuple<bool, double>>.Item1""
   IL_0024:  stloc.2
   IL_0025:  ldloc.s    V_8
   IL_0027:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
@@ -4512,29 +4514,29 @@ class C
     {
       // Code size       88 (0x58)
       .maxstack  4
-      .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
-                    System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
-                    (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
+      .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<System.ValueTuple<int, int>>> V_0, //a
+                    System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>> V_1, //b
+                    System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>>[] V_2, //c
                     int[] V_3, //array
                     int& V_4, //d
                     int& V_5, //e
-                    C1<(int, dynamic)>.E***[,,] V_6, //x
+                    C1<System.ValueTuple<int, dynamic>>.E***[,,] V_6, //x
                     System.Collections.Generic.List<string> V_7) //f
       IL_0000:  nop
       IL_0001:  ldstr      ""a""
-      IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
-      IL_000b:  newobj     ""<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>>..ctor(string, System.Collections.Generic.List<(int, int)>)""
+      IL_0006:  newobj     ""System.Collections.Generic.List<System.ValueTuple<int, int>>..ctor()""
+      IL_000b:  newobj     ""<>f__AnonymousType0<string, System.Collections.Generic.List<System.ValueTuple<int, int>>>..ctor(string, System.Collections.Generic.List<System.ValueTuple<int, int>>)""
       IL_0010:  stloc.0
       IL_0011:  ldloca.s   V_1
       IL_0013:  ldc.i4.5
       IL_0014:  ldloc.0
-      IL_0015:  call       ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>..ctor(int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>)""
+      IL_0015:  call       ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>>..ctor(int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>)""
       IL_001a:  ldc.i4.1
-      IL_001b:  newarr     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>""
+      IL_001b:  newarr     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>>""
       IL_0020:  dup
       IL_0021:  ldc.i4.0
       IL_0022:  ldloc.1
-      IL_0023:  stelem     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>""
+      IL_0023:  stelem     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>>""
       IL_0028:  stloc.2
       IL_0029:  ldc.i4.3
       IL_002a:  newarr     ""int""
@@ -4570,29 +4572,29 @@ class C
 {
   // Code size       89 (0x59)
   .maxstack  4
-  .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
-                System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
-                (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
+  .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<System.ValueTuple<int, int>>> V_0, //a
+                System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>> V_1, //b
+                System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>>[] V_2, //c
                 int[] V_3, //array
                 int& V_4, //d
                 int& V_5, //e
-                C1<(int, dynamic)>.E***[,,] V_6, //x
+                C1<System.ValueTuple<int, dynamic>>.E***[,,] V_6, //x
                 System.Collections.Generic.List<string> V_7) //f
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
-  IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
-  IL_000b:  newobj     ""<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>>..ctor(string, System.Collections.Generic.List<(int, int)>)""
+  IL_0006:  newobj     ""System.Collections.Generic.List<System.ValueTuple<int, int>>..ctor()""
+  IL_000b:  newobj     ""<>f__AnonymousType0<string, System.Collections.Generic.List<System.ValueTuple<int, int>>>..ctor(string, System.Collections.Generic.List<System.ValueTuple<int, int>>)""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_1
   IL_0013:  ldc.i4.5
   IL_0014:  ldloc.0
-  IL_0015:  call       ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>..ctor(int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>)""
+  IL_0015:  call       ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>>..ctor(int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>)""
   IL_001a:  ldc.i4.1
-  IL_001b:  newarr     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>""
+  IL_001b:  newarr     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>>""
   IL_0020:  dup
   IL_0021:  ldc.i4.0
   IL_0022:  ldloc.1
-  IL_0023:  stelem     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>""
+  IL_0023:  stelem     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>>""
   IL_0028:  stloc.2
   IL_0029:  ldc.i4.3
   IL_002a:  newarr     ""int""
@@ -4634,29 +4636,29 @@ class C
 {
   // Code size       89 (0x59)
   .maxstack  4
-  .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
-                System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
-                (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
+  .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<System.ValueTuple<int, int>>> V_0, //a
+                System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>> V_1, //b
+                System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>>[] V_2, //c
                 int[] V_3, //array
                 int& V_4, //d
                 int& V_5, //e
-                C1<(int, dynamic)>.E***[,,] V_6, //x
+                C1<System.ValueTuple<int, dynamic>>.E***[,,] V_6, //x
                 System.Collections.Generic.List<string> V_7) //f
   IL_0000:  nop
   IL_0001:  ldstr      ""a""
-  IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
-  IL_000b:  newobj     ""<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>>..ctor(string, System.Collections.Generic.List<(int, int)>)""
+  IL_0006:  newobj     ""System.Collections.Generic.List<System.ValueTuple<int, int>>..ctor()""
+  IL_000b:  newobj     ""<>f__AnonymousType0<string, System.Collections.Generic.List<System.ValueTuple<int, int>>>..ctor(string, System.Collections.Generic.List<System.ValueTuple<int, int>>)""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_1
   IL_0013:  ldc.i4.5
   IL_0014:  ldloc.0
-  IL_0015:  call       ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>..ctor(int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>)""
+  IL_0015:  call       ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>>..ctor(int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>)""
   IL_001a:  ldc.i4.1
-  IL_001b:  newarr     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>""
+  IL_001b:  newarr     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>>""
   IL_0020:  dup
   IL_0021:  ldc.i4.0
   IL_0022:  ldloc.1
-  IL_0023:  stelem     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>""
+  IL_0023:  stelem     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<System.ValueTuple<int, int>> value>>""
   IL_0028:  stloc.2
   IL_0029:  ldc.i4.3
   IL_002a:  newarr     ""int""

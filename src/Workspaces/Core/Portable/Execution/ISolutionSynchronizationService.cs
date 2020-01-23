@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Threading;
@@ -37,16 +41,16 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// Create <see cref="PinnedRemotableDataScope"/> from <see cref="Solution"/>.
         /// </summary>
-        Task<PinnedRemotableDataScope> CreatePinnedRemotableDataScopeAsync(Solution solution, CancellationToken cancellationToken);
+        ValueTask<PinnedRemotableDataScope> CreatePinnedRemotableDataScopeAsync(Solution solution, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get <see cref="RemotableData"/> corresponding to given <see cref="Checksum"/>. 
         /// </summary>
-        RemotableData GetRemotableData(int scopeId, Checksum checksum, CancellationToken cancellationToken);
+        ValueTask<RemotableData?> GetRemotableDataAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get <see cref="RemotableData"/>s corresponding to given <see cref="Checksum"/>s. 
         /// </summary>
-        IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
+        ValueTask<IReadOnlyDictionary<Checksum, RemotableData>> GetRemotableDataAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
     }
 }

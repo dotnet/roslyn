@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
@@ -109,17 +111,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         End Function
 
         Protected Overrides Function CanAddImportForGetAwaiter(diagnosticId As String, syntaxFactsService As ISyntaxFactsService, node As SyntaxNode) As Boolean
-            Return diagnosticId = BC36610 And
+            Return diagnosticId = AddImportDiagnosticIds.BC36930 AndAlso
                 AncestorOrSelfIsAwaitExpression(syntaxFactsService, node)
         End Function
 
         Protected Overrides Function CanAddImportForQuery(diagnosticId As String, node As SyntaxNode) As Boolean
-            If diagnosticId <> AddImportDiagnosticIds.BC36593 Then
-                Return False
-            End If
-
-            Dim queryClause = node.GetAncestor(Of QueryExpressionSyntax)()
-            Return queryClause IsNot Nothing
+            Return diagnosticId = AddImportDiagnosticIds.BC36593 AndAlso
+                node.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing
         End Function
 
         Private Function IsOutermostQueryExpression(node As SyntaxNode) As Boolean

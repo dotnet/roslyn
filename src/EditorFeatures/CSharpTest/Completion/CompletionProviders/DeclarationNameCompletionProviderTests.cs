@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -1265,24 +1267,16 @@ class C
         public async Task DisabledByOption()
         {
             var workspace = WorkspaceFixture.GetWorkspace();
-            var originalOptions = WorkspaceFixture.GetWorkspace().Options;
-            try
-            {
-                workspace.Options = originalOptions.
-                    WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, false);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.
+                WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, false)));
 
-                var markup = @"
+            var markup = @"
 class Test
 {
     Test $$
 }
 ";
-                await VerifyNoItemsExistAsync(markup);
-            }
-            finally
-            {
-                workspace.Options = originalOptions;
-            }
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
@@ -1458,48 +1452,35 @@ public class Class1
         public async Task CustomNamingStyleInsideClass()
         {
             var workspace = WorkspaceFixture.GetWorkspace();
-            var originalOptions = workspace.Options;
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
+                NamesEndWithSuffixPreferences())));
 
-            try
-            {
-                workspace.Options = workspace.Options.WithChangedOption(
-                    new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
-                    NamesEndWithSuffixPreferences());
-
-                var markup = @"
+            var markup = @"
 class Configuration
 {
     Configuration $$
 }
 ";
-                await VerifyItemExistsAsync(markup, "ConfigurationField", glyph: (int)Glyph.FieldPublic,
-                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-                await VerifyItemExistsAsync(markup, "ConfigurationProperty", glyph: (int)Glyph.PropertyPublic,
-                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-                await VerifyItemExistsAsync(markup, "ConfigurationMethod", glyph: (int)Glyph.MethodPublic,
-                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-                await VerifyItemIsAbsentAsync(markup, "ConfigurationLocal");
-                await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction");
-            }
-            finally
-            {
-                workspace.Options = originalOptions;
-            }
+            await VerifyItemExistsAsync(markup, "ConfigurationField", glyph: (int)Glyph.FieldPublic,
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            await VerifyItemExistsAsync(markup, "ConfigurationProperty", glyph: (int)Glyph.PropertyPublic,
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            await VerifyItemExistsAsync(markup, "ConfigurationMethod", glyph: (int)Glyph.MethodPublic,
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationLocal");
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CustomNamingStyleInsideMethod()
         {
             var workspace = WorkspaceFixture.GetWorkspace();
-            var originalOptions = workspace.Options;
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
+                NamesEndWithSuffixPreferences())));
 
-            try
-            {
-                workspace.Options = workspace.Options.WithChangedOption(
-                    new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
-                    NamesEndWithSuffixPreferences());
-
-                var markup = @"
+            var markup = @"
 class Configuration
 {
     void M()
@@ -1508,18 +1489,13 @@ class Configuration
     }
 }
 ";
-                await VerifyItemExistsAsync(markup, "ConfigurationLocal", glyph: (int)Glyph.Local,
-                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-                await VerifyItemExistsAsync(markup, "ConfigurationLocalFunction", glyph: (int)Glyph.MethodPublic,
-                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-                await VerifyItemIsAbsentAsync(markup, "ConfigurationField");
-                await VerifyItemIsAbsentAsync(markup, "ConfigurationMethod");
-                await VerifyItemIsAbsentAsync(markup, "ConfigurationProperty");
-            }
-            finally
-            {
-                workspace.Options = originalOptions;
-            }
+            await VerifyItemExistsAsync(markup, "ConfigurationLocal", glyph: (int)Glyph.Local,
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            await VerifyItemExistsAsync(markup, "ConfigurationLocalFunction", glyph: (int)Glyph.MethodPublic,
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationField");
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationMethod");
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationProperty");
         }
 
         [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]

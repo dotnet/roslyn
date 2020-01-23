@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +13,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Roslyn.Utilities
 {
@@ -29,8 +34,8 @@ namespace Roslyn.Utilities
         /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
         public static ImmutableArray<string> FindAssemblySet(string filePath)
         {
-            Debug.Assert(filePath != null);
-            Debug.Assert(PathUtilities.IsAbsolute(filePath));
+            RoslynDebug.Assert(filePath != null);
+            RoslynDebug.Assert(PathUtilities.IsAbsolute(filePath));
 
             Queue<string> workList = new Queue<string>();
             HashSet<string> assemblySet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -137,9 +142,9 @@ namespace Roslyn.Utilities
         /// <exception cref="BadImageFormatException">If one of the files is not an assembly or is somehow corrupted.</exception>
         public static ImmutableArray<AssemblyIdentity> IdentifyMissingDependencies(string assemblyPath, IEnumerable<string> dependencyFilePaths)
         {
-            Debug.Assert(assemblyPath != null);
-            Debug.Assert(PathUtilities.IsAbsolute(assemblyPath));
-            Debug.Assert(dependencyFilePaths != null);
+            RoslynDebug.Assert(assemblyPath != null);
+            RoslynDebug.Assert(PathUtilities.IsAbsolute(assemblyPath));
+            RoslynDebug.Assert(dependencyFilePaths != null);
 
             HashSet<AssemblyIdentity> assemblyDefinitions = new HashSet<AssemblyIdentity>();
             foreach (var potentialDependency in dependencyFilePaths)

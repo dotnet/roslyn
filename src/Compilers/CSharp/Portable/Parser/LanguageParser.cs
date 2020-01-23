@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6480,7 +6482,7 @@ done:;
                         }
                         else
                         {
-                            return this.ParseLocalDeclarationStatement(parseAwaitKeyword());
+                            return this.ParseLocalDeclarationStatement(parseAwaitKeyword(MessageID.None));
                         }
                     }
                     else if (this.IsPossibleLabeledStatement())
@@ -6523,11 +6525,11 @@ done:;
                     this.PeekToken(1).Kind == SyntaxKind.UsingKeyword;
             }
 
-            SyntaxToken parseAwaitKeyword(MessageID? feature = null)
+            SyntaxToken parseAwaitKeyword(MessageID feature)
             {
                 Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
                 SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-                return feature.HasValue ? CheckFeatureAvailability(awaitToken, feature.GetValueOrDefault()) : awaitToken;
+                return feature != MessageID.None ? CheckFeatureAvailability(awaitToken, feature) : awaitToken;
             }
         }
 
@@ -8662,7 +8664,7 @@ tryAgain:
         enum Precedence : uint
         {
             Expression = 0, // Loosest possible precedence, used to accept all expressions
-            Assignment,
+            Assignment = Expression,
             Lambda = Assignment, // "The => operator has the same precedence as assignment (=) and is right-associative."
             Conditional,
             Coalescing,
@@ -8682,13 +8684,19 @@ tryAgain:
             Cast,
             PointerIndirection,
             AddressOf,
-            Primary_UNUSED, // Primaries are parsed in an ad-hoc manner.
+            Primary,
         }
 
         private static Precedence GetPrecedence(SyntaxKind op)
         {
             switch (op)
             {
+                case SyntaxKind.QueryExpression:
+                    return Precedence.Expression;
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                    return Precedence.Lambda;
                 case SyntaxKind.SimpleAssignmentExpression:
                 case SyntaxKind.AddAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
@@ -8703,6 +8711,7 @@ tryAgain:
                 case SyntaxKind.CoalesceAssignmentExpression:
                     return Precedence.Assignment;
                 case SyntaxKind.CoalesceExpression:
+                case SyntaxKind.ThrowExpression:
                     return Precedence.Coalescing;
                 case SyntaxKind.LogicalOrExpression:
                     return Precedence.ConditionalOr;
@@ -8763,6 +8772,41 @@ tryAgain:
                     return Precedence.Range;
                 case SyntaxKind.ConditionalExpression:
                     return Precedence.Expression;
+                case SyntaxKind.AliasQualifiedName:
+                case SyntaxKind.AnonymousObjectCreationExpression:
+                case SyntaxKind.ArgListExpression:
+                case SyntaxKind.ArrayCreationExpression:
+                case SyntaxKind.BaseExpression:
+                case SyntaxKind.CharacterLiteralExpression:
+                case SyntaxKind.ConditionalAccessExpression:
+                case SyntaxKind.DeclarationExpression:
+                case SyntaxKind.DefaultExpression:
+                case SyntaxKind.DefaultLiteralExpression:
+                case SyntaxKind.ElementAccessExpression:
+                case SyntaxKind.FalseLiteralExpression:
+                case SyntaxKind.GenericName:
+                case SyntaxKind.IdentifierName:
+                case SyntaxKind.ImplicitArrayCreationExpression:
+                case SyntaxKind.ImplicitStackAllocArrayCreationExpression:
+                case SyntaxKind.InterpolatedStringExpression:
+                case SyntaxKind.InvocationExpression:
+                case SyntaxKind.NullLiteralExpression:
+                case SyntaxKind.NumericLiteralExpression:
+                case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ParenthesizedExpression:
+                case SyntaxKind.PointerMemberAccessExpression:
+                case SyntaxKind.PostDecrementExpression:
+                case SyntaxKind.PostIncrementExpression:
+                case SyntaxKind.PredefinedType:
+                case SyntaxKind.RefExpression:
+                case SyntaxKind.SimpleMemberAccessExpression:
+                case SyntaxKind.StackAllocArrayCreationExpression:
+                case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.SuppressNullableWarningExpression:
+                case SyntaxKind.ThisExpression:
+                case SyntaxKind.TrueLiteralExpression:
+                case SyntaxKind.TupleExpression:
+                    return Precedence.Primary;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(op);
             }
@@ -8841,7 +8885,10 @@ tryAgain:
             StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
 
             var result = ParseSubExpressionCore(precedence);
-
+#if DEBUG
+            // Ensure every expression kind is handled in GetPrecedence
+            _ = GetPrecedence(result.Kind);
+#endif
             _recursionDepth--;
             return result;
         }
@@ -8965,8 +9012,6 @@ tryAgain:
 
                 var newPrecedence = GetPrecedence(opKind);
 
-                Debug.Assert(newPrecedence > 0);      // All binary operators must have precedence > 0!
-
                 // check for >> or >>=
                 bool doubleOp = false;
                 if (tk == SyntaxKind.GreaterThanToken
@@ -9001,8 +9046,29 @@ tryAgain:
                     break;
                 }
 
-                // Precedence is okay, so we'll "take" this operator.
+                // We'll "take" this operator, as precedence is tentatively OK.
                 var opToken = this.EatContextualToken(tk);
+
+                if (leftOperand.Kind == SyntaxKind.IsPatternExpression || IsStrict)
+                {
+                    var leftPrecedence = GetPrecedence(leftOperand.Kind);
+                    if (newPrecedence > leftPrecedence)
+                    {
+                        // Normally, a left operand with a looser precedence will consume all right operands that
+                        // have a tighter precedence.  For example, in the expression `a + b * c`, the `* c` part
+                        // will be consumed as part of the right operand of the addition.  However, there are a
+                        // few circumstances in which a tighter precedence is not consumed: that occurs when the
+                        // left hand operator does not have an expression as its right operand.  This occurs for
+                        // the is-type operator and the is-pattern operator.  Source text such as
+                        // `a is {} + b` should produce a syntax error, as parsing the `+` with an `is`
+                        // expression as its left operand would be a precedence inversion.  Similarly, it occurs
+                        // with an anonymous method expression or a lambda expression with a block body.  No
+                        // further parsing will find a way to fix things up, so we accept the operator but issue
+                        // an error.
+                        opToken = this.AddError(opToken, ErrorCode.ERR_UnexpectedToken, opToken.Text);
+                    }
+                }
+
                 if (doubleOp)
                 {
                     // combine tokens into a single token

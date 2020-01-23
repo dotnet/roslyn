@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -38,42 +40,39 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool forceIndexCreation,
             CancellationToken cancellationToken)
         {
+            async Task<(ImmutableArray<SerializableImportCompletionItem>, StatisticCounter)> GetItemsAsync()
+            {
+                var project = document.Project;
+
+                var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var result = await client.TryRunRemoteAsync<(IList<SerializableImportCompletionItem> items, StatisticCounter counter)>(
+                        WellKnownServiceHubServices.CodeAnalysisService,
+                        nameof(IRemoteExtensionMethodImportCompletionService.GetUnimportedExtensionMethodsAsync),
+                        project.Solution,
+                        new object[] { document.Id, position, SymbolKey.CreateString(receiverTypeSymbol), namespaceInScope.ToArray(), forceIndexCreation },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (result.HasValue)
+                    {
+                        return (result.Value.items.ToImmutableArray(), result.Value.counter);
+                    }
+                }
+
+                return await GetUnimportedExtensionMethodsInCurrentProcessAsync(document, position, receiverTypeSymbol, namespaceInScope, forceIndexCreation, cancellationToken).ConfigureAwait(false);
+            }
+
             var ticks = Environment.TickCount;
-            var project = document.Project;
 
-            // This service is only defined for C# and VB, but we'll be a bit paranoid.
-            var client = RemoteSupportedLanguages.IsSupported(project.Language)
-                ? await project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false)
-                : null;
-
-            var (serializableItems, counter) = client == null
-                ? await GetUnimportedExtensionMethodsInCurrentProcessAsync(document, position, receiverTypeSymbol, namespaceInScope, forceIndexCreation, cancellationToken).ConfigureAwait(false)
-                : await GetUnimportedExtensionMethodsInRemoteProcessAsync(client, document, position, receiverTypeSymbol, namespaceInScope, forceIndexCreation, cancellationToken).ConfigureAwait(false);
+            var (items, counter) = await GetItemsAsync().ConfigureAwait(false);
 
             counter.TotalTicks = Environment.TickCount - ticks;
-            counter.TotalExtensionMethodsProvided = serializableItems.Length;
+            counter.TotalExtensionMethodsProvided = items.Length;
             counter.Report();
 
-            return serializableItems;
-        }
-
-        public static async Task<(ImmutableArray<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsInRemoteProcessAsync(
-            RemoteHostClient client,
-            Document document,
-            int position,
-            ITypeSymbol receiverTypeSymbol,
-            ISet<string> namespaceInScope,
-            bool forceIndexCreation,
-            CancellationToken cancellationToken)
-        {
-            var project = document.Project;
-            var (serializableItems, counter) = await client.TryRunCodeAnalysisRemoteAsync<(IList<SerializableImportCompletionItem>, StatisticCounter)>(
-                project.Solution,
-                nameof(IRemoteExtensionMethodImportCompletionService.GetUnimportedExtensionMethodsAsync),
-                new object[] { document.Id, position, SymbolKey.CreateString(receiverTypeSymbol), namespaceInScope.ToArray(), forceIndexCreation },
-                cancellationToken).ConfigureAwait(false);
-
-            return (serializableItems.ToImmutableArray(), counter);
+            return items;
         }
 
         public static async Task<(ImmutableArray<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsInCurrentProcessAsync(

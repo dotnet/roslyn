@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -425,11 +428,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 await Verify(currentSolution, oopSolution3, expectRemoteSolutionToCurrent: true);
 
                 // move to new solution backward
-                var solutionInfo = await service.GetSolutionInfoAsync(await solution1.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
-                Assert.False(remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, solution1.WorkspaceVersion, out var _));
+                var (solutionInfo, options) = await service.GetSolutionInfoAndOptionsAsync(await solution1.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
+                Assert.False(remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, solution1.WorkspaceVersion, options, out var _));
 
                 // move to new solution forward
-                Assert.True(remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, ++version, out var newSolution));
+                Assert.True(remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, ++version, options, out var newSolution));
                 await Verify(solution1, newSolution, expectRemoteSolutionToCurrent: true);
             }
 
@@ -477,7 +480,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.IsAssignableFrom<RemoteWorkspace>(first.Workspace);
             var primaryWorkspace = first.Workspace;
             Assert.Equal(solutionChecksum, await first.State.GetChecksumAsync(CancellationToken.None));
-            Assert.True(object.ReferenceEquals(primaryWorkspace.PrimaryBranchId, first.BranchId));
+            Assert.Same(primaryWorkspace.PrimaryBranchId, first.BranchId);
 
             // get new solution
             var newSolution = newSolutionGetter(solution);
@@ -488,14 +491,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var second = await service.GetSolutionAsync(newSolutionChecksum, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await second.State.GetChecksumAsync(CancellationToken.None));
-            Assert.False(object.ReferenceEquals(primaryWorkspace.PrimaryBranchId, second.BranchId));
+            Assert.NotSame(primaryWorkspace.PrimaryBranchId, second.BranchId);
 
             // do same once updating primary workspace
             await ((ISolutionController)service).UpdatePrimaryWorkspaceAsync(newSolutionChecksum, solution.WorkspaceVersion + 1, CancellationToken.None);
             var third = await service.GetSolutionAsync(newSolutionChecksum, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));
-            Assert.True(object.ReferenceEquals(primaryWorkspace.PrimaryBranchId, third.BranchId));
+            Assert.Same(primaryWorkspace.PrimaryBranchId, third.BranchId);
         }
 
         private static async Task<SolutionService> GetSolutionServiceAsync(Solution solution, Dictionary<Checksum, object> map = null)
@@ -503,12 +506,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // make sure checksum is calculated
             await solution.State.GetChecksumAsync(CancellationToken.None);
 
-            map = map ?? new Dictionary<Checksum, object>();
+            map ??= new Dictionary<Checksum, object>();
             await solution.AppendAssetMapAsync(map, CancellationToken.None);
 
             var sessionId = 0;
             var storage = new AssetStorage();
-            var source = new TestAssetSource(storage, map);
+            _ = new SimpleAssetSource(storage, map);
             var remoteWorkspace = new RemoteWorkspace();
             var service = new SolutionService(new AssetService(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>()));
 

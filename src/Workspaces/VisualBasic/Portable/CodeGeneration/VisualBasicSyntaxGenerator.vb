@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -143,6 +145,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides Function Interpolation(syntaxNode As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.Interpolation(DirectCast(syntaxNode, ExpressionSyntax))
+        End Function
+
+        Friend Overrides Function InterpolationAlignmentClause(alignment As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.InterpolationAlignmentClause(
+                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                DirectCast(alignment, ExpressionSyntax))
+        End Function
+
+        Friend Overrides Function InterpolationFormatClause(format As String) As SyntaxNode
+            Return SyntaxFactory.InterpolationFormatClause(
+                SyntaxFactory.Token(SyntaxKind.ColonToken),
+                SyntaxFactory.InterpolatedStringTextToken(format, format))
         End Function
 
         Friend Overrides Function NumericLiteralToken(text As String, value As ULong) As SyntaxToken
@@ -2637,6 +2651,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     If IsChildOf(declaration, SyntaxKind.VariableDeclarator) Then
                         Return GetModifierTokens(declaration.Parent)
                     End If
+                Case SyntaxKind.LocalDeclarationStatement
+                    Return DirectCast(declaration, LocalDeclarationStatementSyntax).Modifiers
                 Case SyntaxKind.VariableDeclarator
                     If IsChildOfVariableDeclaration(declaration) Then
                         Return GetModifierTokens(declaration.Parent)

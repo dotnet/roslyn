@@ -265,7 +265,7 @@ Insérer un espace avant et après les opérateurs binaires ;</target>
       </trans-unit>
       <trans-unit id="311">
         <source>Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</source>
-        <target state="translated">Modifier les options de mise en forme pour le retour à la ligne ; Laisser un bloc sur une seule ligne ; Laisser les instructions et les déclarations de membre sur la même ligne</target>
+        <target state="translated">Changer les options de mise en forme pour l'enveloppement ; Laisser un bloc sur une seule ligne ; Laisser les instructions et les déclarations de membre sur la même ligne</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
       <trans-unit id="312">
@@ -316,7 +316,7 @@ Afficher les suggestions de nom ;</target>
       </trans-unit>
       <trans-unit id="110">
         <source>Wrapping</source>
-        <target state="translated">Retour à la ligne</target>
+        <target state="translated">Enveloppement</target>
         <note />
       </trans-unit>
       <trans-unit id="111">
@@ -361,7 +361,7 @@ Afficher les suggestions de nom ;</target>
       </trans-unit>
       <trans-unit id="314">
         <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
-        <target state="translated">Style d'affectation de noms;Styles de nom;Règle d'affectation de noms;Conventions d'affectation de noms</target>
+        <target state="translated">Style de nommage;Styles de nom;Règle de nommage;Conventions de nommage</target>
         <note>C# Naming Style options page keywords</note>
       </trans-unit>
       <trans-unit id="116">

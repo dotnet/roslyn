@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -21,6 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.DeclareAsNullable), Shared]
     internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        private const string IsConditionalOperatorEquivalenceKey = nameof(IsConditionalOperatorEquivalenceKey);
+        private const string IsOtherEquivalenceKey = nameof(IsOtherEquivalenceKey);
+
         [ImportingConstructor]
         public CSharpDeclareAsNullableCodeFixProvider()
         {
@@ -45,8 +50,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, diagnostic, c)),
+                c => FixAsync(context.Document, diagnostic, c),
+                GetEquivalenceKey(node)),
                 context.Diagnostics);
+        }
+
+        private string GetEquivalenceKey(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.ConditionalAccessExpression) ? IsConditionalOperatorEquivalenceKey : IsOtherEquivalenceKey;
         }
 
         protected override Task FixAllAsync(
@@ -66,6 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             return Task.CompletedTask;
         }
 
+        protected override bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic, CancellationToken cancellationToken)
+        {
+            var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+            return state.CodeActionEquivalenceKey == GetEquivalenceKey(node);
+        }
+
         private static void MakeDeclarationNullable(SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled)
         {
             var declarationTypeToFix = TryGetDeclarationTypeToFix(node);
@@ -78,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
         private static TypeSyntax TryGetDeclarationTypeToFix(SyntaxNode node)
         {
-            if (!node.IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.AsExpression))
+            if (!IsExpressionSupported(node))
             {
                 return null;
             }
@@ -190,12 +207,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
         }
 
+        private static bool IsExpressionSupported(SyntaxNode node)
+        {
+            return node.IsKind(
+                SyntaxKind.NullLiteralExpression,
+                SyntaxKind.AsExpression,
+                SyntaxKind.DefaultExpression,
+                SyntaxKind.DefaultLiteralExpression,
+                SyntaxKind.ConditionalExpression,
+                SyntaxKind.ConditionalAccessExpression);
+        }
+
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
                 : base(CSharpFeaturesResources.Declare_as_nullable,
                        createChangedDocument,
-                       CSharpFeaturesResources.Declare_as_nullable)
+                       equivalenceKey)
             {
             }
         }
