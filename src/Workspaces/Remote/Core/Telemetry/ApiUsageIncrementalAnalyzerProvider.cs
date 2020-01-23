@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     Namespaces = assemblyGroup.GroupBy(symbol => symbol.ContainingNamespace)
                         .Select(namespaceGroup =>
                         {
-                            var namespaceName = namespaceGroup.Key.ToString();
+                            var namespaceName = namespaceGroup.Key?.ToString() ?? string.Empty;
 
                             return new
                             {
