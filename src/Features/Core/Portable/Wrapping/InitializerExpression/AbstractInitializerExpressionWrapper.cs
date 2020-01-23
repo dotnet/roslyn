@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#nullable enable
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
         protected abstract TListSyntax TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
 
-        public override async Task<ICodeActionComputer> TryCreateComputerAsync(
+        public override async Task<ICodeActionComputer?> TryCreateComputerAsync(
             Document document, int position, SyntaxNode declaration, CancellationToken cancellationToken)
         {
             var listSyntax = TryGetApplicableList(declaration);
