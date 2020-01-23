@@ -37,7 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public readonly IEditorFormatMapService FormatMapService;
         public readonly IClassificationFormatMap ClassificationFormatMap;
 
-        private readonly IFindAllReferencesService _vsFindAllReferencesService;
         private readonly Workspace _workspace;
 
         private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
@@ -94,7 +93,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             FormatMapService = formatMapService;
             ClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
 
-            _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
             _customColumns = columns.ToImmutableArray();
         }
 
@@ -170,8 +168,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             this.AssertIsForeground();
 
+            var vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
             // Get the appropriate window for FAR results to go into.
-            var window = _vsFindAllReferencesService.StartSearch(title);
+            var window = vsFindAllReferencesService.StartSearch(title);
 
             // Keep track of the users preference for grouping by definition if we don't already know it.
             // We need this because we disable the Definition column when we're not showing references
