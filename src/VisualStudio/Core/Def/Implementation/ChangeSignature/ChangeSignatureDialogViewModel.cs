@@ -653,7 +653,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 InitialIndex = initialIndex.ToString();
             }
 
-            public override string ShortAutomationText => $"{Type} {Parameter}";
+            public override string ShortAutomationText => $"{Type} {Parameter.Name}";
 
             public override string CallSite => string.Empty;
 
