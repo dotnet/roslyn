@@ -11246,7 +11246,7 @@ public static class Program
        return types.Length;
    }
 }";
-            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0");
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.Fails);
             comp.VerifyIL("Program.Main", @"
 {
   // Code size       17 (0x11)
