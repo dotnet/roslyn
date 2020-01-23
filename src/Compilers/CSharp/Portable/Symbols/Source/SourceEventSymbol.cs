@@ -188,9 +188,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(wasCompletedThisThread);
             }
 
-#nullable disable // Can '_lazyCustomAttributesBag' be null? https://github.com/dotnet/roslyn/issues/39166
+            RoslynDebug.AssertNotNull(_lazyCustomAttributesBag);
             return _lazyCustomAttributesBag;
-#nullable enable
         }
 
         /// <summary>
@@ -296,9 +295,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
             {
                 // NullableAttribute should not be set explicitly.
-#nullable disable // Can 'arguments.AttributeSyntaxOpt' be null? https://github.com/dotnet/roslyn/issues/39166
+                RoslynDebug.AssertNotNull(arguments.AttributeSyntaxOpt);
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
-#nullable enable
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
@@ -306,9 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
-#nullable disable // Can 'arguments.AttributeSyntaxOpt' be null? https://github.com/dotnet/roslyn/issues/39166
+                RoslynDebug.AssertNotNull(arguments.AttributeSyntaxOpt);
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
-#nullable enable
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
             {

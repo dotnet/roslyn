@@ -261,9 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
-#nullable disable // Can 'newOwner as SubstitutedNamedTypeSymbol' be null? https://github.com/dotnet/roslyn/issues/39166
-            return newOwner.IsDefinition ? this : new SubstitutedEventSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
-#nullable enable
+            Debug.Assert(newOwner.IsDefinition || newOwner is SubstitutedNamedTypeSymbol);
+            return newOwner.IsDefinition ? this : new SubstitutedEventSymbol((newOwner as SubstitutedNamedTypeSymbol)!, this);
         }
 
         internal abstract bool MustCallMethodsDirectly { get; }
