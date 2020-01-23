@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private static string[] rolesCollectionForNameTextBox = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
                 AddParameterTextViewRole, AddParameterNameTextViewRole };
 
-        private static string[][] rolesCollecitons = new[] { rolesCollectionForTypeTextBox, rolesCollectionForNameTextBox };
+        private static string[][] rolesCollections = new[] { rolesCollectionForTypeTextBox, rolesCollectionForNameTextBox };
 
         public async Task<ChangeSignatureIntellisenseTextBoxesViewModel?> CreateViewModelsAsync(
             IContentTypeRegistryService contentTypeRegistryService,
@@ -32,14 +32,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             int insertPosition)
         {
             var viewModels = await intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModelsAsync(
-                document, contentTypeRegistryService.GetContentType(ContentTypeName), insertPosition, TextToInsert, CreateSpansMethod, rolesCollecitons).ConfigureAwait(false);
+                document, contentTypeRegistryService.GetContentType(ContentTypeName), insertPosition, TextToInsert, CreateSpansMethod, rolesCollections).ConfigureAwait(false);
 
             if (viewModels == null)
             {
                 return null;
             }
 
-            return new ChangeSignatureIntellisenseTextBoxesViewModel(viewModels[0], viewModels[1]);
+            // C# and VB have opposite orderings for name and type
+            if (document.Project.Language.Equals(LanguageNames.CSharp))
+            {
+                return new ChangeSignatureIntellisenseTextBoxesViewModel(viewModels[0], viewModels[1]);
+            }
+
+            return new ChangeSignatureIntellisenseTextBoxesViewModel(viewModels[1], viewModels[0]);
+
         }
 
         public abstract SymbolDisplayPart[] GeneratePreviewDisplayParts(

@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             if (result != null)
             {
-                if (!string.IsNullOrWhiteSpace(result.CallSiteValue))
+                if (string.IsNullOrWhiteSpace(result.CallSiteValue))
                 {
                     result = new AddedParameter(result.TypeName, result.ParameterName, ServicesVSResources.ChangeSignature_NewParameterIntroduceTODOVariable);
                 }
