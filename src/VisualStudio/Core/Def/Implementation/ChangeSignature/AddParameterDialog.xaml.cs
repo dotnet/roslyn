@@ -71,6 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
+            // TODO take these values from IntellisenseTextBoxViewModels not from controls.
+            // https://github.com/dotnet/roslyn/issues/41149
             ViewModel.TypeName = ((IntellisenseTextBox)TypeContentControl.Content).Text;
             ViewModel.ParameterName = ((IntellisenseTextBox)NameContentControl.Content).Text;
             ViewModel.CallSiteValue = CallSiteValueTextBox.Text;
@@ -109,10 +111,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         // Do nothing. This case is handled in parent control KeyDown events.
                     }
                     else if (e.Key == Key.Space &&
-                        (typeOrNameTextBox.ContainerName.Equals("NameContentControl") ||
-                        (typeOrNameTextBox.ContainerName.Equals("TypeContentControl") && _document.Project.Language.Equals(LanguageNames.CSharp))))
+                        typeOrNameTextBox.ContainerName.Equals("NameContentControl"))
                     {
-                        // Do nothing. We disallow spaces in the name field for both C# and VB, and in the type field for C#.
+                        // Do nothing. We disallow spaces in the name field for both C# and VB.
                         e.Handled = true;
                     }
                     else

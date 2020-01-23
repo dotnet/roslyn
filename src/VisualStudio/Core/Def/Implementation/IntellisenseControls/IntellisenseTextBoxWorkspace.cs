@@ -5,7 +5,6 @@
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls

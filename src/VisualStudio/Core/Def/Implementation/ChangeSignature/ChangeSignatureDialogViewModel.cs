@@ -59,27 +59,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             _notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
 
-            var initialIndex = 1;
+            // This index is displayed to users. That is why we start it from 1.
+            var initialDisplayIndex = 1;
 
             if (parameters.ThisParameter != null)
             {
-                _thisParameter = new ExistingParameterViewModel(this, parameters.ThisParameter, initialIndex++);
+                _thisParameter = new ExistingParameterViewModel(this, parameters.ThisParameter, initialDisplayIndex++);
                 _disabledParameters.Add(_thisParameter);
             }
 
             _declarationParts = symbol.ToDisplayParts(s_symbolDeclarationDisplayFormat);
 
-            _parametersWithoutDefaultValues = CreateParameterViewModels(parameters.ParametersWithoutDefaultValues, ref initialIndex);
-            _parametersWithDefaultValues = CreateParameterViewModels(parameters.RemainingEditableParameters, ref initialIndex);
+            _parametersWithoutDefaultValues = CreateParameterViewModels(parameters.ParametersWithoutDefaultValues, ref initialDisplayIndex);
+            _parametersWithDefaultValues = CreateParameterViewModels(parameters.RemainingEditableParameters, ref initialDisplayIndex);
 
             if (parameters.ParamsParameter != null)
             {
-                _paramsParameter = new ExistingParameterViewModel(this, parameters.ParamsParameter, initialIndex++);
+                _paramsParameter = new ExistingParameterViewModel(this, parameters.ParamsParameter, initialDisplayIndex++);
             }
 
             var selectedIndex = parameters.SelectedIndex;
+            // Currently, we do not support editing the ThisParameter. 
+            // Therefore, if there is such parameter, we should move the selectedIndex.
             if (parameters.ThisParameter != null && selectedIndex == 0)
             {
+                // If we have at least one paramter after the ThisParameter, select the first one after This.
+                // Otherwise, do not select anything.
                 if (parameters.ParametersWithoutDefaultValues.Length + parameters.RemainingEditableParameters.Length > 0)
                 {
                     this.SelectedIndex = 1;

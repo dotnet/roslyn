@@ -202,6 +202,11 @@
         <target state="translated">其他運算子中</target>
         <note />
       </trans-unit>
+      <trans-unit id="Index">
+        <source>Index</source>
+        <target state="new">Index</target>
+        <note>Index of parameter in original signature</note>
+      </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
         <target state="new">Inserting call site value '{0}'</target>
