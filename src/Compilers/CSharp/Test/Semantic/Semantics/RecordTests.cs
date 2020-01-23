@@ -212,5 +212,25 @@ data class C2(object get_P, object P);");
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C2", "get_P").WithLocation(3, 36)
             );
         }
+
+        [Fact]
+        public void RecordProperties_08()
+        {
+            var comp = CreateCompilation(@"
+data class C1(object O1)
+{
+    public object O1 { get; } = O1;
+    public object O2 { get; } = O1;
+}");
+            // PROTOTYPE: primary ctor parameters not currently in scope
+            comp.VerifyDiagnostics(
+                // (4,33): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C1.O1'
+                //     public object O1 { get; } = O1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "O1").WithArguments("C1.O1").WithLocation(4, 33),
+                // (5,33): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C1.O1'
+                //     public object O2 { get; } = O1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "O1").WithArguments("C1.O1").WithLocation(5, 33)
+            );
+        }
     }
 }
