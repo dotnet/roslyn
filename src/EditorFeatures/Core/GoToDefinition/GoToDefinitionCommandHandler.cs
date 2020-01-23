@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var subjectBuffer = args.SubjectBuffer;
             var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
 
-            // Prevent the remote workspace from handling go to definition commands
+            // In Live Share, typescript exports a gotodefinition service that returns no results and prevents the LSP client
+            // from handling the request.  So prevent the local service from handling goto def commands in the remote workspace.
+            // This can be removed once typescript implements LSP support for goto def.
             if (service != null && document.Project.Solution.Workspace.Kind != WorkspaceKind.AnyCodeRoslynWorkspace)
             {
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
