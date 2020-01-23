@@ -42,6 +42,23 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return content != null;
             }
 
+            /// <summary>
+            /// The editor is presenting 'Text' while telling the screen reader to use the 'Name' field.
+            /// Workaround this bug by overriding the string content to provide the proper data for the screen reader.
+            /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1020534/
+            /// </summary>
+            public override bool TryCreateStringContent(out string content)
+            {
+                if (TryGetValue(StandardTableKeyNames.Text, out var contentValue) && contentValue is string textContent)
+                {
+                    content = textContent;
+                    return true;
+                }
+
+                content = null;
+                return false;
+            }
+
             private object GetValue(string key)
             {
                 switch (key)
