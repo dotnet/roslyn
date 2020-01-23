@@ -1838,5 +1838,33 @@ End Class
                 Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
             End Using
         End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenamesCorrectlyWhenCaseChanges()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class [|$$Test1|]
+{
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Delete(New Span(caretPosition, 1))
+                textBuffer.Insert(caretPosition, "t")
+
+                session.Commit()
+                VerifyFileName(workspace, "test1")
+            End Using
+        End Sub
     End Class
 End Namespace

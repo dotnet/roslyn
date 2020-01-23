@@ -1187,9 +1187,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Must save the document first for things like Breakpoints to be preserved.
                 projectItemForDocument.Save();
 
-                var uniqueName = projectItemForDocument.Collection.GetUniqueName(
-                    Path.GetFileNameWithoutExtension(updatedInfo.Name),
-                    Path.GetExtension(updatedInfo.Name));
+                var uniqueName = projectItemForDocument.Collection
+                    .GetUniqueNameIgnoringProjectItem(
+                        projectItemForDocument,
+                        Path.GetFileNameWithoutExtension(updatedInfo.Name),
+                        Path.GetExtension(updatedInfo.Name));
 
                 // Get the current undoManager before any file renames/documentId changes happen
                 var undoManager = TryGetUndoManager();
