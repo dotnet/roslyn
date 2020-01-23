@@ -173,13 +173,17 @@ namespace Analyzer.Utilities
 
             static SymbolNamesOption.NameParts GetParts(string name)
             {
-                // We allow empty suffix as a way to override the default behavior
-                var split = name.Split(new[] { "->" }, StringSplitOptions.None);
+                var split = name.Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries);
 
                 // If we don't find exactly one '->', we assume that there is no given suffix.
-                return split.Length == 2
-                    ? new SymbolNamesOption.NameParts(split[0], split[1])
-                    : new SymbolNamesOption.NameParts(name);
+                if (split.Length != 2)
+                {
+                    return new SymbolNamesOption.NameParts(name);
+                }
+
+                // Replace the special empty suffix symbol '{}' by an empty string
+                var suffix = split[1] == "{}" ? string.Empty : split[1];
+                return new SymbolNamesOption.NameParts(split[0], suffix);
             }
         }
 
