@@ -101,11 +101,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
             }
 
-            if (symbol.Locations.FirstOrDefault().IsInMetadata)
-            {
-
-            }
-
             if (symbol is IMethodSymbol method)
             {
                 var containingType = method.ContainingType;
