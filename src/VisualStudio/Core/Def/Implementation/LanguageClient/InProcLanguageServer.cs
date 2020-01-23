@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
@@ -52,11 +55,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [JsonRpcMethod(Methods.InitializeName)]
         public Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
         {
+            // The VS LSP protocol package changed the type of 'tagSupport' from bool to an object.
+            // Our version of the LSP protocol package is older and assumes that the type is bool, so deserialization fails.
+            // Since we don't really read this field, just no-op the error until we can update our package references.
+            // https://github.com/dotnet/roslyn/issues/40829 tracks updating this.
+            var settings = new JsonSerializerSettings
+            {
+                Error = (sender, args) =>
+                {
+                    if (object.Equals(args.ErrorContext.Member, "tagSupport") && args.ErrorContext.OriginalObject.GetType() == typeof(PublishDiagnosticsSetting))
+                    {
+                        args.ErrorContext.Handled = true;
+                    }
+                }
+            };
+            var serializer = JsonSerializer.Create(settings);
+
             // InitializeParams only references ClientCapabilities, but the VS LSP client
             // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
             // to avoid losing them.
-            _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
-            return _protocol.InitializeAsync(_workspace.CurrentSolution, input.ToObject<InitializeParams>(), _clientCapabilities, cancellationToken);
+            _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>(serializer);
+            return _protocol.InitializeAsync(_workspace.CurrentSolution, input.ToObject<InitializeParams>(serializer), _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.InitializedName)]

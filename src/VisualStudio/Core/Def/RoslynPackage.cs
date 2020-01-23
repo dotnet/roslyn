@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Design;
@@ -42,7 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
     internal class RoslynPackage : AbstractPackage
     {
         private VisualStudioWorkspace _workspace;
-        private WorkspaceFailureOutputPane _outputPane;
         private IComponentModel _componentModel;
         private RuleSetEventHandler _ruleSetEventHandler;
         private IDisposable _solutionEventMonitor;
@@ -75,9 +76,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             _componentModel.GetExtensions<IOptionPersister>();
 
             RoslynTelemetrySetup.Initialize(this);
-
-            // set workspace output pane
-            _outputPane = new WorkspaceFailureOutputPane(_componentModel.GetService<IThreadingContext>(), this, _workspace);
 
             InitializeColors();
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -173,14 +175,14 @@ namespace Microsoft.CodeAnalysis.Syntax
                 case 1:
                     return _nodes[0].Value;
                 case 2:
-                    return InternalSyntax.SyntaxList.List(_nodes[0].Value, _nodes[1].Value);
+                    return InternalSyntax.SyntaxList.List(_nodes[0].Value!, _nodes[1].Value!);
                 case 3:
-                    return InternalSyntax.SyntaxList.List(_nodes[0].Value, _nodes[1].Value, _nodes[2].Value);
+                    return InternalSyntax.SyntaxList.List(_nodes[0].Value!, _nodes[1].Value!, _nodes[2].Value!);
                 default:
-                    var tmp = new ArrayElement<GreenNode?>[this.Count];
+                    var tmp = new ArrayElement<GreenNode>[this.Count];
                     for (int i = 0; i < this.Count; i++)
                     {
-                        tmp[i].Value = _nodes[i].Value;
+                        tmp[i].Value = _nodes[i].Value!;
                     }
 
                     return InternalSyntax.SyntaxList.List(tmp);

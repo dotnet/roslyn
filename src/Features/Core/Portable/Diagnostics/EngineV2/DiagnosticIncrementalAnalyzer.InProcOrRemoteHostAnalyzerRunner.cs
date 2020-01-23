@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var result = await session.Connection.InvokeAsync(
                     nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
                     new object[] { argument },
-                    (s, c) => ReadCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
+                    (stream, cancellationToken) => ReadCompilerAnalysisResultAsync(stream, analyzerMap, project, cancellationToken), cancellationToken).ConfigureAwait(false);
 
                 ReportAnalyzerExceptions(project, result.Exceptions);
 
@@ -160,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // handling of cancellation and exception
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-                using var reader = ObjectReader.TryGetReader(stream);
+                using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
 
                 // We only get a reader for data transmitted between live processes.
                 // This data should always be correct as we're never persisting the data between sessions.

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -108,18 +110,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             var projectDiagnostics = await GetProjectDiagnosticsAsync(project);
             diagnostics.AddRange(projectDiagnostics);
-            return diagnostics;
-        }
-
-        public async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Solution solution)
-        {
-            var diagnostics = new List<Diagnostic>();
-            foreach (var project in solution.Projects)
-            {
-                var projectDiagnostics = await GetAllDiagnosticsAsync(project);
-                diagnostics.AddRange(projectDiagnostics);
-            }
-
             return diagnostics;
         }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -301,8 +303,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project)
         {
-            // PERF: Don't query descriptors for compiler analyzer, always execute it.
-            if (DiagnosticAnalyzerInfoCache.IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
+            // PERF: Don't query descriptors for compiler analyzer or file content load analyzer, always execute them.
+            if (DiagnosticAnalyzerInfoCache.IsCompilerDiagnosticAnalyzer(project.Language, analyzer) ||
+                analyzer == FileContentLoadAnalyzer.Instance)
             {
                 return true;
             }
