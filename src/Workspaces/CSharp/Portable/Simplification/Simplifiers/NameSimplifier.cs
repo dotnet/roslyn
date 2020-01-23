@@ -17,6 +17,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 {
+    using Microsoft.CodeAnalysis.Rename.ConflictEngine;
+
     internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
     {
         public static readonly NameSimplifier Instance = new NameSimplifier();
