@@ -33,6 +33,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        protected bool AreContainingSymbolLocalsZeroed
+        {
+            get
+            {
+                if (ContainingSymbol is SourceMethodSymbol method)
+                {
+                    return method.AreLocalsZeroed;
+                }
+                else if (ContainingType is SourceNamedTypeSymbol type)
+                {
+                    return type.AreLocalsZeroed;
+                }
+                else
+                {
+                    // Sometimes a source method symbol can be contained in a non-source symbol.
+                    // For example in EE. We aren't concerned with respecting SkipLocalsInit in such cases.
+                    return true;
+                }
+            }
+        }
+
         internal void ReportAsyncParameterErrors(DiagnosticBag diagnostics, Location location)
         {
             foreach (var parameter in Parameters)

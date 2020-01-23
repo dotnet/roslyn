@@ -9414,6 +9414,158 @@ public class C
         }
 
         [Fact]
+        public void SkipLocalsInit_LocalFunctionAttribute()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    public void M()
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        void F()
+        {
+            int y = 1;
+            y = y + y + y;
+
+            void FF()
+            {
+                int x = 2;
+                x = x + x + x;
+            }
+
+            System.Action FL = () =>
+            {
+                int x = 3;
+                x = x + x + x;
+            };
+        }
+
+        System.Action L = () =>
+        {
+            int y = 4;
+            y = y + y + y;
+
+            void LF()
+            {
+                int x = 5;
+                x = x + x + x;
+            }
+
+            System.Action LL = () =>
+            {
+                int x = 6;
+                x = x + x + x;
+            };
+        };
+    }
+}
+";
+
+            var comp = CompileAndVerify(
+                source,
+                options: TestOptions.UnsafeReleaseDll,
+                parseOptions: TestOptions.RegularPreview,
+                verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.<M>g__F|0_0")); // F
+            Assert.False(comp.HasLocalsInit("C.<M>g__FF|0_2")); // FF
+            Assert.False(comp.HasLocalsInit("C.<>c.<M>b__0_3")); // FL
+            Assert.True(comp.HasLocalsInit("C.<>c.<M>b__0_1")); // L
+            Assert.True(comp.HasLocalsInit("C.<M>g__LF|0_4")); // LF
+            Assert.True(comp.HasLocalsInit("C.<>c.<M>b__0_5")); // LL
+        }
+
+        [Fact]
+        public void SkipLocalsInit_BaseMethodWrapper()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [SkipLocalsInit]
+    public virtual int M1(int i)
+    {
+        int x = i;
+        x = x + x + x + x;
+        return x;
+    }
+}
+
+public class D : C
+{
+    void M(int i)
+    {
+        new Action(() => base.M1(i)).Invoke();
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M1"));
+            Assert.Null(comp.HasLocalsInit("D.<>n__0")); // Base method wrapper for C.M1
+        }
+
+        [Fact]
+        public void SkipLocalsInit_BaseMethodWrapper_DifferentCompilation()
+        {
+            var source1 = @"
+using System.Runtime.CompilerServices;
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [SkipLocalsInit]
+    public virtual int M1(int i)
+    {
+        int x = i;
+        x = x + x + x + x;
+        return x;
+    }
+}
+";
+            var source2 = @"
+using System;
+
+public class D : C
+{
+    void M(int i)
+    {
+        new Action(() => base.M1(i)).Invoke();
+    }
+}
+";
+            var comp1 = CompileAndVerify(source1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            Assert.False(comp1.HasLocalsInit("C.M1"));
+
+            var reference = comp1.Compilation.ToMetadataReference();
+            var comp2 = CompileAndVerify(source2, references: new[] { reference }, verify: Verification.Passes);
+            Assert.Null(comp2.HasLocalsInit("D.<>n__0")); // Base method wrapper for C.M1
+        }
+
+        [Fact]
         public void SkipLocalsInitAttributeOnIteratorPropagatesToItsSynthesizedMethods()
         {
             var source = @"

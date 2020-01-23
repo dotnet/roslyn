@@ -181,8 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TopLevelMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
         }
 
-        public sealed override bool AreLocalsZeroed => TopLevelMethod.AreLocalsZeroed;
-
         IMethodSymbolInternal? ISynthesizedMethodBodyImplementationSymbol.Method => TopLevelMethod;
 
         // The lambda method body needs to be updated when the containing top-level method body is updated.
