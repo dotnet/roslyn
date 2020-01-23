@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
         <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
-        <target state="new">Compilation is required to accomplish the task but is not supported by project {0}.</target>
+        <target state="translated">Для выполнения задачи требуется компиляция, но она не поддерживается в проекте {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
         <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
-        <target state="new">Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</target>
+        <target state="translated">Конечный тип должен быть {0}, {1}, {2} или {3}, но указан {4}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
         <source>Error reading content of source file '{0}' -- '{1}'.</source>
-        <target state="new">Error reading content of source file '{0}' -- '{1}'.</target>
+        <target state="translated">Ошибка при чтении содержимого исходного файла "{0}" — "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
-        <target state="new">Options did not come from specified Solution</target>
+        <target state="translated">Параметры получены не из указанного решения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">
         <source>Project of ID {0} is required to accomplish the task but is not available from the solution</source>
-        <target state="new">Project of ID {0} is required to accomplish the task but is not available from the solution</target>
+        <target state="translated">Проект с ИД "{0}" необходим для выполнения задачи, но он недоступен из решения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -1339,7 +1339,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0">
         <source>Syntax tree is required to accomplish the task but is not supported by document {0}.</source>
-        <target state="new">Syntax tree is required to accomplish the task but is not supported by document {0}.</target>
+        <target state="translated">Для выполнения задачи требуется синтаксическое дерево, но оно не поддерживается в документе {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
@@ -1354,7 +1354,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Workspace_error">
         <source>Workspace error</source>
-        <target state="new">Workspace error</target>
+        <target state="translated">Ошибка рабочей области</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
