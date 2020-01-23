@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel.Design;
-using System.Composition;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation;

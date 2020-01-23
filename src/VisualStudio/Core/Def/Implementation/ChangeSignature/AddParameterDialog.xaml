@@ -1,5 +1,5 @@
 ﻿<vs:DialogWindow 
-    x:Uid="ParameterDetailsDialog"
+    x:Uid="AddParameterDialog"
     x:Name="dialog"
     x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature.AddParameterDialog"
     x:ClassModifier="internal"         

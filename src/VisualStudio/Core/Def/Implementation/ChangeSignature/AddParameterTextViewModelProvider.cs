@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
@@ -32,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             // 2. the space span
             // 3. The parameter name span.
             // 4. The rest of the document.
-            // Please note that for VB we should use another structure: start, name, " AS ", type, rest
+            // In case of VB, we revert spans: <3> AS <1>
             int index;
             if (roles.Contains(ChangeSignatureViewModelFactoryService.AddParameterTypeTextViewRole))
             {

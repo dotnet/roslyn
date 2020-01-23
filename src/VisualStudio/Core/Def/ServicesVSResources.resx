@@ -1415,4 +1415,8 @@ I agree to all of the foregoing:</value>
   <data name="Inserting_call_site_value_0" xml:space="preserve">
     <value>Inserting call site value '{0}'</value>
   </data>
+  <data name="Index" xml:space="preserve">
+    <value>Index</value>
+    <comment>Index of parameter in original signature</comment>
+  </data>
 </root>
