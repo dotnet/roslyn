@@ -167,7 +167,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
                 else
                 {
-                    var callingAssembly = Assembly.GetCallingAssembly();
                     var location = assembly.Location;
                     if (location != null)
                     {
