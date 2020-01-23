@@ -78,6 +78,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             SyntaxKind.SubNewStatement,
             SyntaxKind.ConstructorBlock)
 
+        Dim s_createNewParameterSyntaxDelegate As Func(Of AddedParameter, ParameterSyntax) = AddressOf CreateNewParameterSyntax
+        Dim s_createNewCrefParameterSyntaxDelegate As Func(Of AddedParameter, CrefSignaturePartSyntax) = AddressOf CreateNewCrefParameterSyntax
+
         <ImportingConstructor>
         Public Sub New()
         End Sub
@@ -281,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             If vbnode.IsKind(SyntaxKind.SubStatement) OrElse vbnode.IsKind(SyntaxKind.FunctionStatement) Then
                 Dim method = DirectCast(vbnode, MethodStatementSyntax)
-                Dim updatedParameters = PermuteDeclaration(method.ParameterList.Parameters, updatedSignature, Function(p) CreateNewParameterSyntax(p))
+                Dim updatedParameters = UpdateDeclaration(method.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
                 Return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -289,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim eventStatement = DirectCast(vbnode, EventStatementSyntax)
 
                 If eventStatement.ParameterList IsNot Nothing Then
-                    Dim updatedParameters = PermuteDeclaration(eventStatement.ParameterList.Parameters, updatedSignature, Function(p) CreateNewParameterSyntax(p))
+                    Dim updatedParameters = UpdateDeclaration(eventStatement.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
                     eventStatement = eventStatement.WithParameterList(eventStatement.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
                 End If
 
@@ -300,14 +303,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim eventBlock = DirectCast(vbnode, EventBlockSyntax)
 
                 If eventBlock.EventStatement.ParameterList IsNot Nothing Then
-                    Dim updatedParameters = PermuteDeclaration(eventBlock.EventStatement.ParameterList.Parameters, updatedSignature, Function(p) CreateNewParameterSyntax(p))
+                    Dim updatedParameters = UpdateDeclaration(eventBlock.EventStatement.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
                     Return eventBlock.WithEventStatement(eventBlock.EventStatement.WithParameterList(eventBlock.EventStatement.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation)))
                 End If
 
                 Dim raiseEventAccessor = eventBlock.Accessors.FirstOrDefault(Function(a) a.IsKind(SyntaxKind.RaiseEventAccessorBlock))
                 If raiseEventAccessor IsNot Nothing Then
                     If raiseEventAccessor.BlockStatement.ParameterList IsNot Nothing Then
-                        Dim updatedParameters = PermuteDeclaration(raiseEventAccessor.BlockStatement.ParameterList.Parameters, updatedSignature, Function(p) CreateNewParameterSyntax(p))
+                        Dim updatedParameters = UpdateDeclaration(raiseEventAccessor.BlockStatement.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
                         Dim updatedRaiseEventAccessor = raiseEventAccessor.WithAccessorStatement(raiseEventAccessor.AccessorStatement.WithParameterList(raiseEventAccessor.AccessorStatement.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation)))
                         eventBlock = eventBlock.WithAccessors(eventBlock.Accessors.Remove(raiseEventAccessor).Add(updatedRaiseEventAccessor))
                     End If
@@ -340,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             If vbnode.IsKind(SyntaxKind.SubNewStatement) Then
                 Dim constructor = DirectCast(vbnode, SubNewStatementSyntax)
-                Dim newParameters = PermuteDeclaration(constructor.ParameterList.Parameters, updatedSignature, Function(p) CreateNewParameterSyntax(p))
+                Dim newParameters = UpdateDeclaration(constructor.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
                 Return constructor.WithParameterList(constructor.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -368,7 +371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             If vbnode.IsKind(SyntaxKind.PropertyStatement) Then
                 Dim propertyStatement = DirectCast(vbnode, PropertyStatementSyntax)
-                Dim newParameters = PermuteDeclaration(propertyStatement.ParameterList.Parameters, updatedSignature, Function(p) CreateNewParameterSyntax(p))
+                Dim newParameters = UpdateDeclaration(propertyStatement.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
                 Return propertyStatement.WithParameterList(propertyStatement.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -380,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     Return crefReference
                 End If
 
-                Dim newParameters = PermuteDeclaration(crefReference.Signature.ArgumentTypes, updatedSignature, Function(p) CreateNewCrefParameterSyntax(p))
+                Dim newParameters = UpdateDeclaration(crefReference.Signature.ArgumentTypes, updatedSignature, s_createNewCrefParameterSyntaxDelegate)
                 Return crefReference.WithSignature(crefReference.Signature.WithArgumentTypes(newParameters))
             End If
 
@@ -393,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     Return vbnode
                 End If
 
-                Dim newParameters = PermuteDeclaration(lambda.SubOrFunctionHeader.ParameterList.Parameters, updatedSignature, Function(p) CreateNewParameterSyntax(p))
+                Dim newParameters = UpdateDeclaration(lambda.SubOrFunctionHeader.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
                 Dim newBegin = lambda.SubOrFunctionHeader.WithParameterList(lambda.SubOrFunctionHeader.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
                 Return lambda.WithSubOrFunctionHeader(newBegin)
             End If
@@ -407,7 +410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     Return vbnode
                 End If
 
-                Dim newParameters = PermuteDeclaration(lambda.SubOrFunctionHeader.ParameterList.Parameters, updatedSignature, Function(p) CreateNewParameterSyntax(p))
+                Dim newParameters = UpdateDeclaration(lambda.SubOrFunctionHeader.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
                 Dim newBegin = lambda.SubOrFunctionHeader.WithParameterList(lambda.SubOrFunctionHeader.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
                 Return lambda.WithSubOrFunctionHeader(newBegin)
             End If
@@ -415,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             If vbnode.IsKind(SyntaxKind.DelegateSubStatement) OrElse
                vbnode.IsKind(SyntaxKind.DelegateFunctionStatement) Then
                 Dim delegateStatement = DirectCast(vbnode, DelegateStatementSyntax)
-                Dim newParameters = PermuteDeclaration(delegateStatement.ParameterList.Parameters, updatedSignature, Function(p) CreateNewParameterSyntax(p))
+                Dim newParameters = UpdateDeclaration(delegateStatement.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
                 Return delegateStatement.WithParameterList(delegateStatement.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -507,24 +510,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return SyntaxFactory.SeparatedList(newArguments.Select(Function(a) CType(DirectCast(a, UnifiedArgumentSyntax), ArgumentSyntax)), GetSeparators(arguments, numSeparatorsToSkip))
         End Function
 
-        Private Function PermuteDeclaration(Of T As SyntaxNode)(
-                                                               parameterList As SeparatedSyntaxList(Of T),
-                                                               updatedSignature As SignatureChange,
-                                                               createNewParameterMethod As Func(Of AddedParameter, T)) As SeparatedSyntaxList(Of T)
-            Dim basePermuteDeclaration = PermuteDeclarationBase(parameterList, updatedSignature, createNewParameterMethod)
-            Return SyntaxFactory.SeparatedList(basePermuteDeclaration.parameters, basePermuteDeclaration.separators)
+        Private Function UpdateDeclaration(Of T As SyntaxNode)(
+                parameterList As SeparatedSyntaxList(Of T),
+                updatedSignature As SignatureChange,
+                createNewParameterMethod As Func(Of AddedParameter, T)) As SeparatedSyntaxList(Of T)
+            Dim updatedDeclaration = UpdateDeclarationBase(parameterList, updatedSignature, createNewParameterMethod)
+            Return SyntaxFactory.SeparatedList(updatedDeclaration.parameters, updatedDeclaration.separators)
         End Function
 
         Private Shared Function CreateNewParameterSyntax(addedParameter As AddedParameter) As ParameterSyntax
-            Return CreateNewParameterSyntax(addedParameter, skipType:=False)
-        End Function
-
-        Private Shared Function CreateNewParameterSyntax(addedParameter As AddedParameter, skipType As Boolean) As ParameterSyntax
             Return SyntaxFactory.Parameter(
                 attributeLists:=SyntaxFactory.List(Of AttributeListSyntax)(),
                 modifiers:=SyntaxFactory.TokenList(),
                 identifier:=SyntaxFactory.ModifiedIdentifier(addedParameter.ParameterName),
-                asClause:=SyntaxFactory.SimpleAsClause(If(skipType, Nothing, SyntaxFactory.ParseTypeName(addedParameter.TypeName).WithTrailingTrivia(SyntaxFactory.ElasticSpace))),
+                asClause:=SyntaxFactory.SimpleAsClause(SyntaxFactory.ParseTypeName(addedParameter.TypeName).WithTrailingTrivia(SyntaxFactory.ElasticSpace)),
                 [default]:=Nothing)
         End Function
 
@@ -667,7 +666,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     SyntaxFactory.List(extraNodeList.AsEnumerable()))
                 extraDocComments = extraDocComments.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia("''' ")).
                     WithTrailingTrivia(node.GetTrailingTrivia()).
-                    WithTrailingTrivia(SyntaxFactory.EndOfLine(document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp)),
+                    WithTrailingTrivia(SyntaxFactory.EndOfLine(document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.VisualBasic)),
                 lastWhiteSpaceTrivia)
 
                 Dim newTrivia = SyntaxFactory.Trivia(extraDocComments)

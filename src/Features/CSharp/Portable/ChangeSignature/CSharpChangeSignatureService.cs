@@ -291,31 +291,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             // Update declarations parameter lists
             if (updatedNode.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax method))
             {
-                var updatedParameters = PermuteDeclaration(method.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
+                var updatedParameters = UpdateDeclaration(method.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.LocalFunctionStatement, out LocalFunctionStatementSyntax localFunction))
             {
-                var updatedParameters = PermuteDeclaration(localFunction.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
+                var updatedParameters = UpdateDeclaration(localFunction.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return localFunction.WithParameterList(localFunction.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax constructor))
             {
-                var updatedParameters = PermuteDeclaration(constructor.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
+                var updatedParameters = UpdateDeclaration(constructor.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return constructor.WithParameterList(constructor.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.IndexerDeclaration, out IndexerDeclarationSyntax indexer))
             {
-                var updatedParameters = PermuteDeclaration(indexer.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
+                var updatedParameters = UpdateDeclaration(indexer.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return indexer.WithParameterList(indexer.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax delegateDeclaration))
             {
-                var updatedParameters = PermuteDeclaration(delegateDeclaration.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
+                var updatedParameters = UpdateDeclaration(delegateDeclaration.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return delegateDeclaration.WithParameterList(delegateDeclaration.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     return anonymousMethod;
                 }
 
-                var updatedParameters = PermuteDeclaration(anonymousMethod.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
+                var updatedParameters = UpdateDeclaration(anonymousMethod.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return anonymousMethod.WithParameterList(anonymousMethod.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 if (signaturePermutation.UpdatedConfiguration.ToListOfParameters().Any())
                 {
-                    var updatedParameters = PermuteDeclaration(SyntaxFactory.SeparatedList<ParameterSyntax>(new[] { lambda.Parameter }), signaturePermutation, CreateNewParameterSyntax);
+                    var updatedParameters = UpdateDeclaration(SyntaxFactory.SeparatedList<ParameterSyntax>(new[] { lambda.Parameter }), signaturePermutation, CreateNewParameterSyntax);
                     return SyntaxFactory.ParenthesizedLambdaExpression(
                         lambda.AsyncKeyword,
                         SyntaxFactory.ParameterList(updatedParameters),
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 Func<AddedParameter, ParameterSyntax> createNewParameterDelegate =
                     p => CreateNewParameterSyntax(p, !doNotSkipParameterType);
 
-                var updatedParameters = PermuteDeclaration(
+                var updatedParameters = UpdateDeclaration(
                     parenLambda.ParameterList.Parameters,
                     signaturePermutation,
                     createNewParameterDelegate);
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     return nameMemberCref;
                 }
 
-                var newParameters = PermuteDeclaration(nameMemberCref.Parameters.Parameters, signaturePermutation, CreateNewCrefParameterSyntax);
+                var newParameters = UpdateDeclaration(nameMemberCref.Parameters.Parameters, signaturePermutation, CreateNewCrefParameterSyntax);
 
                 var newCrefParameterList = nameMemberCref.Parameters.WithParameters(newParameters);
                 return nameMemberCref.WithParameters(newCrefParameterList);
@@ -524,13 +524,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         private static CrefParameterSyntax CreateNewCrefParameterSyntax(AddedParameter addedParameter)
             => SyntaxFactory.CrefParameter(type: SyntaxFactory.ParseTypeName(addedParameter.TypeName)).WithLeadingTrivia(SyntaxFactory.ElasticSpace);
 
-        private SeparatedSyntaxList<T> PermuteDeclaration<T>(
+        private SeparatedSyntaxList<T> UpdateDeclaration<T>(
             SeparatedSyntaxList<T> list,
             SignatureChange updatedSignature,
             Func<AddedParameter, T> createNewParameterMethod) where T : SyntaxNode
         {
-            var permuteDeclarationBase = base.PermuteDeclarationBase<T>(list, updatedSignature, createNewParameterMethod);
-            return SyntaxFactory.SeparatedList(permuteDeclarationBase.parameters, permuteDeclarationBase.separators);
+            var updatedDeclaration = base.UpdateDeclarationBase<T>(list, updatedSignature, createNewParameterMethod);
+            return SyntaxFactory.SeparatedList(updatedDeclaration.parameters, updatedDeclaration.separators);
         }
 
         protected override T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument)
