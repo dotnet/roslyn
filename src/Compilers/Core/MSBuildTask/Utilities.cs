@@ -157,22 +157,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return null;
             }
 
-            var codebase = assembly.CodeBase;
-            if (codebase != null)
+            if (assembly.CodeBase is { } codebase)
             {
                 var uri = new Uri(codebase);
-                if (uri.IsFile)
-                {
-                    return uri.LocalPath;
-                }
-                else
-                {
-                    var location = assembly.Location;
-                    if (location != null)
-                    {
-                        return location;
-                    }
-                }
+                return uri.IsFile ? uri.LocalPath : assembly.Location;
             }
 
             return null;
