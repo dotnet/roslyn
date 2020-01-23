@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Binder> binders,
             ImmutableArray<AttributeSyntax> attributesToBind,
             ImmutableArray<NamedTypeSymbol> boundAttributeTypes,
-            CSharpAttributeData[] attributesBuilder,
+            CSharpAttributeData?[] attributesBuilder,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(binders.Any());
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol boundAttributeType = boundAttributeTypes[i];
                 Binder binder = binders[i];
 
-                var attribute = (SourceAttributeData)attributesBuilder[i];
+                var attribute = (SourceAttributeData?)attributesBuilder[i];
                 if (attribute == null)
                 {
                     attributesBuilder[i] = binder.GetAttribute(attributeSyntax, boundAttributeType, diagnostics);
@@ -399,7 +399,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // TODO: should we create an entry even if there are binding errors?
             var fieldSymbol = namedArgumentNameSymbol as FieldSymbol;
-            IdentifierNameSyntax nameSyntax = namedArgument.NameEquals!.Name;
+            RoslynDebug.Assert(namedArgument.NameEquals is object);
+            IdentifierNameSyntax nameSyntax = namedArgument.NameEquals.Name;
             BoundExpression lvalue;
             if (fieldSymbol is object)
             {
@@ -428,7 +429,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Symbol BindNamedAttributeArgumentName(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, DiagnosticBag diagnostics, out bool wasError, out LookupResultKind resultKind)
         {
-            var identifierName = namedArgument.NameEquals!.Name;
+            RoslynDebug.Assert(namedArgument.NameEquals is object);
+            var identifierName = namedArgument.NameEquals.Name;
             var name = identifierName.Identifier.ValueText;
             LookupResult result = LookupResult.GetInstance();
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
@@ -491,11 +493,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (invalidNamedArgument)
             {
+                RoslynDebug.Assert(namedArgument.NameEquals is object);
                 return new ExtendedErrorTypeSymbol(attributeType,
                     namedArgumentNameSymbol,
                     LookupResultKind.NotAVariable,
                     diagnostics.Add(ErrorCode.ERR_BadNamedAttributeArgument,
-                        namedArgument.NameEquals!.Name.Location,
+                        namedArgument.NameEquals.Name.Location,
                         namedArgumentNameSymbol.Name));
             }
 
@@ -503,11 +506,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!namedArgumentType.IsValidAttributeParameterType(Compilation))
             {
+                RoslynDebug.Assert(namedArgument.NameEquals is object);
                 return new ExtendedErrorTypeSymbol(attributeType,
                     namedArgumentNameSymbol,
                     LookupResultKind.NotAVariable,
                     diagnostics.Add(ErrorCode.ERR_BadNamedAttributeArgumentType,
-                        namedArgument.NameEquals!.Name.Location,
+                        namedArgument.NameEquals.Name.Location,
                         namedArgumentNameSymbol.Name));
             }
 
@@ -1042,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Validate Statement 2) of the spec comment above.
 
-                ConstantValue constantValue = node.ConstantValue;
+                ConstantValue? constantValue = node.ConstantValue;
                 if (constantValue != null)
                 {
                     if (constantValue.IsBad)

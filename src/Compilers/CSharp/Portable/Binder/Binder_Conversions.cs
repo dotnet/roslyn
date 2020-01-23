@@ -75,10 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // identity tuple and switch conversions result in a converted expression
                 // to indicate that such conversions are no longer applicable.
                 source = BindToNaturalType(source, diagnostics);
+                RoslynDebug.Assert(source.Type is object);
 
                 // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
                 // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
-                if (!isCast && source.Type!.Equals(destination, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                if (!isCast && source.Type.Equals(destination, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     return source;
                 }

@@ -59,8 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var clause in clauses)
             {
                 var name = clause.Name.Identifier.ValueText;
+                RoslynDebug.Assert(name is object);
                 int ordinal;
-                if (names.TryGetValue(name!, out ordinal))
+                if (names.TryGetValue(name, out ordinal))
                 {
                     Debug.Assert(ordinal >= 0);
                     Debug.Assert(ordinal < n);
