@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return parameters.Count - 1;
         }
 
-        protected (IEnumerable<T> parameters, IEnumerable<SyntaxToken> separators) PermuteDeclarationBase<T>(
+        protected (IEnumerable<T> parameters, IEnumerable<SyntaxToken> separators) UpdateDeclarationBase<T>(
             SeparatedSyntaxList<T> list,
             SignatureChange updatedSignature,
             Func<AddedParameter, T> createNewParameterMethod) where T : SyntaxNode
