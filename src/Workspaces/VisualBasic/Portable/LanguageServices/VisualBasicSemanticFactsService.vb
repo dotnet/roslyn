@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsOnlyWrittenTo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsOnlyWrittenTo
-            Return TryCast(node, ExpressionSyntax).IsOnlyWrittenTo(semanticModel, cancellationToken)
+            Return TryCast(node, ExpressionSyntax).IsOnlyWrittenTo()
         End Function
 
         Public Function IsWrittenTo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsWrittenTo
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsInOutContext(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInOutContext
-            Return TryCast(node, ExpressionSyntax).IsInOutContext(semanticModel, cancellationToken)
+            Return TryCast(node, ExpressionSyntax).IsInOutContext()
         End Function
 
         Public Function IsInRefContext(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInRefContext
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsInInContext(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInInContext
-            Return TryCast(node, ExpressionSyntax).IsInInContext(semanticModel, cancellationToken)
+            Return TryCast(node, ExpressionSyntax).IsInInContext()
         End Function
 
         Public Function CanReplaceWithRValue(semanticModel As SemanticModel, expression As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.CanReplaceWithRValue

@@ -62,11 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// </summary>
                 public readonly Closure ContainingClosureOpt;
 
+#nullable enable
+
                 /// <summary>
-                /// Environments created in this scope to hold <see cref="DeclaredVariables"/>.
+                /// Environment created in this scope to hold <see cref="DeclaredVariables"/>.
+                /// At the moment, all variables declared in the same scope
+                /// always get assigned to the same environment.
                 /// </summary>
-                public readonly ArrayBuilder<ClosureEnvironment> DeclaredEnvironments
-                    = ArrayBuilder<ClosureEnvironment>.GetInstance();
+                public ClosureEnvironment? DeclaredEnvironment = null;
+
+#nullable restore
 
                 public Scope(Scope parent, BoundNode boundNode, Closure containingClosure)
                 {
@@ -96,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         closure.Free();
                     }
                     Closures.Free();
-                    DeclaredEnvironments.Free();
                 }
 
                 public override string ToString() => BoundNode.Syntax.GetText().ToString();

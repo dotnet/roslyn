@@ -2,11 +2,14 @@
 
 #nullable enable
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -30,16 +33,23 @@ namespace Microsoft.CodeAnalysis
 
         private async Task<DocumentStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.DocumentState_ComputeChecksumsAsync, FilePath, cancellationToken))
+            try
             {
-                var textAndVersionTask = GetTextAndVersionAsync(cancellationToken);
+                using (Logger.LogBlock(FunctionId.DocumentState_ComputeChecksumsAsync, FilePath, cancellationToken))
+                {
+                    var textAndVersionTask = GetTextAndVersionAsync(cancellationToken);
 
-                var serializer = solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
+                    var serializer = solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
 
-                var infoChecksum = serializer.CreateChecksum(Attributes, cancellationToken);
-                var textChecksum = serializer.CreateChecksum((await textAndVersionTask.ConfigureAwait(false)).Text, cancellationToken);
+                    var infoChecksum = serializer.CreateChecksum(Attributes, cancellationToken);
+                    var textChecksum = serializer.CreateChecksum((await textAndVersionTask.ConfigureAwait(false)).Text, cancellationToken);
 
-                return new DocumentStateChecksums(infoChecksum, textChecksum);
+                    return new DocumentStateChecksums(infoChecksum, textChecksum);
+                }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }
