@@ -1,13 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editing;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationArrayTypeSymbol : CodeGenerationTypeSymbol, IArrayTypeSymbol
     {
+        public CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank, NullableAnnotation nullableAnnotation)
+            : base(null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, nullableAnnotation)
+        {
+            this.ElementType = elementType;
+            this.Rank = rank;
+        }
+
         public ITypeSymbol ElementType { get; }
 
         public int Rank { get; }
@@ -36,16 +45,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank)
-            : base(null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None)
+        protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
         {
-            this.ElementType = elementType;
-            this.Rank = rank;
-        }
-
-        protected override CodeGenerationSymbol Clone()
-        {
-            return new CodeGenerationArrayTypeSymbol(this.ElementType, this.Rank);
+            return new CodeGenerationArrayTypeSymbol(this.ElementType, this.Rank, nullableAnnotation);
         }
 
         public override TypeKind TypeKind => TypeKind.Array;
@@ -57,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             visitor.VisitArrayType(this);
         }
 
+        [return: MaybeNull]
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitArrayType(this);
@@ -70,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public NullableAnnotation ElementNullableAnnotation => ElementType.GetNullability();
+        public NullableAnnotation ElementNullableAnnotation => ElementType.NullableAnnotation;
 
-        public bool Equals(IArrayTypeSymbol other)
+        public bool Equals(IArrayTypeSymbol? other)
         {
             return SymbolEquivalenceComparer.Instance.Equals(this, other);
         }

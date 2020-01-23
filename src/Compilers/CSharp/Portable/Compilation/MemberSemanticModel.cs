@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             crefSymbols = default;
             position = CheckAndAdjustPosition(position);
             expression = SyntaxFactory.GetStandaloneExpression(expression);
-            binder = GetEnclosingBinder(position);
+            binder = GetSpeculativeBinder(position, expression, bindingOption);
             var boundRoot = binder.BindExpression(expression, _ignoredDiagnostics);
             ImmutableDictionary<Symbol, Symbol> ignored = null;
             return (BoundExpression)NullableWalker.AnalyzeAndRewriteSpeculation(position, boundRoot, binder, GetSnapshotManager(), newSnapshots: out _, remappedSymbols: ref ignored);
@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_lazyRemappedSymbols.TryGetValue(originalSymbol, out Symbol remappedSymbol))
             {
-                Debug.Assert(remappedSymbol is object);
+                RoslynDebug.Assert(remappedSymbol is object);
                 return (T)remappedSymbol;
             }
 

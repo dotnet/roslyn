@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
+
             public override ImmutableArray<Symbol> GetMembers()
             {
                 return _members;
@@ -280,6 +283,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override bool IsSerializable
             {
                 get { return false; }
+            }
+
+            public sealed override bool AreLocalsZeroed
+            {
+                get { throw ExceptionUtilities.Unreachable; }
             }
 
             internal override bool HasDeclarativeSecurity

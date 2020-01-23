@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return type;
                 }
 
-                TypeWithAnnotations substituted = ((TypeMap)mapOrType).SubstituteTypeWithTupleUnification(this._underlyingParameter.TypeWithAnnotations);
+                TypeWithAnnotations substituted = ((TypeMap)mapOrType).SubstituteType(this._underlyingParameter.TypeWithAnnotations);
 
                 if (substituted.CustomModifiers.IsEmpty &&
                     this._underlyingParameter.TypeWithAnnotations.CustomModifiers.IsEmpty &&

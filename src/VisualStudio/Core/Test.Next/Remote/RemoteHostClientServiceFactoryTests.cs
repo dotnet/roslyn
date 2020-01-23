@@ -119,7 +119,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var exportProvider = TestHostServices.CreateMinimalExportProvider();
 
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1)));
 
             var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
@@ -157,7 +158,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var mock = new MockLogAndProgressService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None);
+            var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
             var result = await session.TryInvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), new object[] { "emptySource", Path.GetTempPath() }, CancellationToken.None);
 
             Assert.True(result);
@@ -185,7 +186,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             });
 
             // create session that stay alive until client alive (ex, SymbolSearchUpdateEngine)
-            var session = await client.TryCreateKeepAliveSessionAsync("Test", CancellationToken.None);
+            var session = await client.TryCreateKeepAliveSessionAsync("Test", callbackTarget: null, CancellationToken.None);
 
             // mimic unfortunate call that happens to be in the middle of communication.
             var task = session.TryInvokeAsync("TestMethodAsync", arguments: null, CancellationToken.None);
@@ -210,10 +211,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var completionTask = new TaskCompletionSource<bool>();
 
             var client1 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-            client1.StatusChanged += (s, connected) =>
+            client1.StatusChanged += (_, started) =>
             {
                 // mark done
-                completionTask.SetResult(connected);
+                completionTask.SetResult(started);
             };
 
             await service.RequestNewRemoteHostAsync(CancellationToken.None);
@@ -234,9 +235,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             IAsynchronousOperationListenerProvider listenerProvider = null)
         {
             workspace = workspace ?? new AdhocWorkspace(TestHostServices.CreateHostServices());
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                                                 .WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
-                                                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution);
+                                                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution)));
 
             var analyzerService = GetDiagnosticAnalyzerService(hostAnalyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
 

@@ -742,11 +742,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Awaited task returns.
+        ///   Looks up a localized string similar to Awaited task returns &apos;{0}&apos;.
         /// </summary>
-        internal static string Awaited_task_returns {
+        internal static string Awaited_task_returns_0 {
             get {
-                return ResourceManager.GetString("Awaited_task_returns", resourceCulture);
+                return ResourceManager.GetString("Awaited_task_returns_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Awaited task returns no value.
+        /// </summary>
+        internal static string Awaited_task_returns_no_value {
+            get {
+                return ResourceManager.GetString("Awaited_task_returns_no_value", resourceCulture);
             }
         }
         
@@ -966,29 +975,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Code Quality.
-        /// </summary>
-        internal static string Code_Quality {
-            get {
-                return ResourceManager.GetString("Code_Quality", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Collection initialization can be simplified.
         /// </summary>
         internal static string Collection_initialization_can_be_simplified {
             get {
                 return ResourceManager.GetString("Collection_initialization_can_be_simplified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Compiler.
-        /// </summary>
-        internal static string Compiler1 {
-            get {
-                return ResourceManager.GetString("Compiler1", resourceCulture);
             }
         }
         
@@ -1338,7 +1329,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The debug session can&apos;t continue until the content of the source file is restored..
+        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. Any changes made to this file while debugging won&apos;t be applied until its content matches the built source..
         /// </summary>
         internal static string DocumentIsOutOfSyncWithDebuggee {
             get {
@@ -2292,6 +2283,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Interpolation can be simplified.
+        /// </summary>
+        internal static string Interpolation_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Interpolation_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Introduce constant.
         /// </summary>
         internal static string Introduce_constant {
@@ -2567,6 +2567,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Make_local_function_static {
             get {
                 return ResourceManager.GetString("Make_local_function_static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make static.
+        /// </summary>
+        internal static string Make_member_static {
+            get {
+                return ResourceManager.GetString("Make_member_static", resourceCulture);
             }
         }
         
@@ -2946,15 +2955,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to no value..
-        /// </summary>
-        internal static string no_value {
-            get {
-                return ResourceManager.GetString("no_value", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Non-invoked method cannot be replaced with property..
         /// </summary>
         internal static string Non_invoked_method_cannot_be_replaced_with_property {
@@ -3051,6 +3051,25 @@ namespace Microsoft.CodeAnalysis {
         internal static string parameter {
             get {
                 return ResourceManager.GetString("parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; can be removed if it is not part of a shipped public API, its initial value is never used.
+        /// </summary>
+        internal static string Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used {
+            get {
+                return ResourceManager.GetString("Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_" +
+                        "value_is_never_used", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; can be removed, its initial value is never used.
+        /// </summary>
+        internal static string Parameter_0_can_be_removed_its_initial_value_is_never_used {
+            get {
+                return ResourceManager.GetString("Parameter_0_can_be_removed_its_initial_value_is_never_used", resourceCulture);
             }
         }
         
@@ -3453,25 +3472,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove unused parameter &apos;{0}&apos; if it is not part of a shipped public API, its initial value is never used.
-        /// </summary>
-        internal static string Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used {
-            get {
-                return ResourceManager.GetString("Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_v" +
-                        "alue_is_never_used", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove unused parameter &apos;{0}&apos;, its initial value is never used.
-        /// </summary>
-        internal static string Remove_unused_parameter_0_its_initial_value_is_never_used {
-            get {
-                return ResourceManager.GetString("Remove_unused_parameter_0_its_initial_value_is_never_used", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove unused private members.
         /// </summary>
         internal static string Remove_unused_private_members {
@@ -3711,6 +3711,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Simplify interpolation.
+        /// </summary>
+        internal static string Simplify_interpolation {
+            get {
+                return ResourceManager.GetString("Simplify_interpolation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Simplify Member Access.
         /// </summary>
         internal static string Simplify_Member_Access {
@@ -3788,15 +3797,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Structures {
             get {
                 return ResourceManager.GetString("Structures", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Style.
-        /// </summary>
-        internal static string Style {
-            get {
-                return ResourceManager.GetString("Style", resourceCulture);
             }
         }
         
@@ -4026,6 +4026,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unable_to_load_Analyzer_assembly_0_colon_1 {
             get {
                 return ResourceManager.GetString("Unable_to_load_Analyzer_assembly_0_colon_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to read source file &apos;{0}&apos; or the PDB built for the containing project. Any changes made to this file while debugging won&apos;t be applied until its content matches the built source..
+        /// </summary>
+        internal static string UnableToReadSourceFileOrPdb {
+            get {
+                return ResourceManager.GetString("UnableToReadSourceFileOrPdb", resourceCulture);
             }
         }
         

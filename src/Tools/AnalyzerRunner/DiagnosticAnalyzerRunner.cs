@@ -45,16 +45,40 @@ namespace AnalyzerRunner
             }
 
             var solution = workspace.CurrentSolution;
-            var stopwatch = Stopwatch.StartNew();
+
+            // Make sure AD0001 and AD0002 are reported as errors
+            foreach (var projectId in solution.ProjectIds)
+            {
+                var project = solution.GetProject(projectId)!;
+                if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                    continue;
+
+                var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions
+                    .SetItem("AD0001", ReportDiagnostic.Error)
+                    .SetItem("AD0002", ReportDiagnostic.Error);
+                var modifiedCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
+                solution = solution.WithProjectCompilationOptions(projectId, modifiedCompilationOptions);
+            }
+
+            var stopwatch = PerformanceTracker.StartNew();
 
             var analysisResult = await GetAnalysisResultAsync(solution, _analyzers, _options, cancellationToken).ConfigureAwait(false);
             var allDiagnostics = analysisResult.Where(pair => pair.Value != null).SelectMany(pair => pair.Value.GetAllDiagnostics()).ToImmutableArray();
 
-            Console.WriteLine($"Found {allDiagnostics.Length} diagnostics in {stopwatch.ElapsedMilliseconds}ms");
+            Console.WriteLine($"Found {allDiagnostics.Length} diagnostics in {stopwatch.GetSummary(preciseMemory: true)}");
             WriteTelemetry(analysisResult);
 
             if (_options.TestDocuments)
             {
+                // Make sure we have a compilation for each project
+                foreach (var project in solution.Projects)
+                {
+                    if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                        continue;
+
+                    _ = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                }
+
                 var projectPerformance = new Dictionary<ProjectId, double>();
                 var documentPerformance = new Dictionary<DocumentId, DocumentAnalyzerPerformance>();
                 foreach (var projectId in solution.ProjectIds)
@@ -74,7 +98,7 @@ namespace AnalyzerRunner
                         }
 
                         var currentDocumentPerformance = await TestDocumentPerformanceAsync(_analyzers, project, documentId, _options, cancellationToken).ConfigureAwait(false);
-                        Console.WriteLine($"{document.FilePath ?? document.Name}: {currentDocumentPerformance.EditsPerSecond:0.00}");
+                        Console.WriteLine($"{document.FilePath ?? document.Name}: {currentDocumentPerformance.EditsPerSecond:0.00} ({currentDocumentPerformance.AllocatedBytesPerEdit} bytes)");
                         documentPerformance.Add(documentId, currentDocumentPerformance);
                     }
 
@@ -94,7 +118,7 @@ namespace AnalyzerRunner
                     foreach (var pair in projectGroup.Take(5))
                     {
                         var document = solution.GetDocument(pair.Key);
-                        Console.WriteLine($"    {document.FilePath ?? document.Name}: {pair.Value.EditsPerSecond:0.00}");
+                        Console.WriteLine($"    {document.FilePath ?? document.Name}: {pair.Value.EditsPerSecond:0.00} ({pair.Value.AllocatedBytesPerEdit} bytes)");
                     }
                 }
 
@@ -132,25 +156,17 @@ namespace AnalyzerRunner
 
         private static async Task<DocumentAnalyzerPerformance> TestDocumentPerformanceAsync(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzers, Project project, DocumentId documentId, Options analyzerOptionsInternal, CancellationToken cancellationToken)
         {
-            // update the project compilation options
-            var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions
-                .Add("AD0001", ReportDiagnostic.Error)
-                .Add("AD0002", ReportDiagnostic.Error);
-            // Report exceptions during the analysis process as errors
-            var modifiedCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
-            var processedProject = project.WithCompilationOptions(modifiedCompilationOptions);
-
             if (!analyzers.TryGetValue(project.Language, out var languageAnalyzers))
             {
                 languageAnalyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
             }
 
-            var stopwatch = Stopwatch.StartNew();
+            Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            var stopwatch = PerformanceTracker.StartNew();
             for (int i = 0; i < analyzerOptionsInternal.TestDocumentIterations; i++)
             {
-                Compilation compilation = await processedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution);
+                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution);
                 CompilationWithAnalyzers compilationWithAnalyzers = compilation.WithAnalyzers(languageAnalyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
 
                 SyntaxTree tree = await project.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -158,7 +174,7 @@ namespace AnalyzerRunner
                 await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(compilation.GetSemanticModel(tree), null, cancellationToken).ConfigureAwait(false);
             }
 
-            return new DocumentAnalyzerPerformance(analyzerOptionsInternal.TestDocumentIterations / stopwatch.Elapsed.TotalSeconds);
+            return new DocumentAnalyzerPerformance(analyzerOptionsInternal.TestDocumentIterations / stopwatch.Elapsed.TotalSeconds, stopwatch.AllocatedBytes / Math.Max(1, analyzerOptionsInternal.TestDocumentIterations));
         }
 
         private static void WriteDiagnosticResults(ImmutableArray<Tuple<ProjectId, Diagnostic>> diagnostics, string fileName)
@@ -210,6 +226,12 @@ namespace AnalyzerRunner
                 {
                     yield break;
                 }
+            }
+
+            if (options.RefactoringNodes.Any())
+            {
+                // AnalyzerRunner is running for CodeRefactoringProvider testing. DiagnosticAnalyzer testing is disabled.
+                yield break;
             }
 
             var analyzerTypes = new HashSet<Type>();
@@ -346,20 +368,12 @@ namespace AnalyzerRunner
                 await Task.Yield();
             }
 
-            // update the project compilation options
-            var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions
-                .Add("AD0001", ReportDiagnostic.Error)
-                .Add("AD0002", ReportDiagnostic.Error);
-            // Report exceptions during the analysis process as errors
-            var modifiedCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
-            var processedProject = project.WithCompilationOptions(modifiedCompilationOptions);
-
             try
             {
-                Compilation compilation = await processedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var newCompilation = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(compilation.SyntaxTrees);
 
-                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution);
+                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution);
                 CompilationWithAnalyzers compilationWithAnalyzers = newCompilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
                 var analystResult = await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
                 return analystResult;
@@ -373,6 +387,11 @@ namespace AnalyzerRunner
 
         private static void WriteTelemetry(ImmutableDictionary<ProjectId, AnalysisResult> dictionary)
         {
+            if (dictionary.IsEmpty)
+            {
+                return;
+            }
+
             var telemetryInfoDictionary = new Dictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>();
             foreach (var analysisResult in dictionary.Values)
             {
@@ -439,15 +458,14 @@ namespace AnalyzerRunner
 
         private struct DocumentAnalyzerPerformance
         {
-            public DocumentAnalyzerPerformance(double editsPerSecond)
+            public DocumentAnalyzerPerformance(double editsPerSecond, long allocatedBytesPerEdit)
             {
                 EditsPerSecond = editsPerSecond;
+                AllocatedBytesPerEdit = allocatedBytesPerEdit;
             }
 
-            public double EditsPerSecond
-            {
-                get;
-            }
+            public double EditsPerSecond { get; }
+            public long AllocatedBytesPerEdit { get; }
         }
     }
 }

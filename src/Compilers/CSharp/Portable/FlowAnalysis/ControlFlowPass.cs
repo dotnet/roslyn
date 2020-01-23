@@ -199,6 +199,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.RemoveReturns();
             foreach (var pending in result)
             {
+                if (pending.Branch is null)
+                {
+                    continue;
+                }
+
                 switch (pending.Branch.Kind)
                 {
                     case BoundKind.GotoStatement:
@@ -387,11 +392,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _usingDeclarations.Clip(initialUsingCount);
             _currentBlock = parentBlock;
             return result;
-        }
-
-        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
-        {
-            return null;
         }
     }
 }

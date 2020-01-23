@@ -217,7 +217,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var workspace = WorkspaceFixture.GetWorkspace(markup, ExportProvider);
             var code = WorkspaceFixture.Code;
             var position = WorkspaceFixture.Position;
-            SetWorkspaceOptions(workspace);
+
+            workspace.SetOptions(WithChangedOptions(workspace.Options));
 
             return VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
@@ -231,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var workspace = WorkspaceFixture.GetWorkspace(markup, ExportProvider, workspaceKind: workspaceKind);
             var currentDocument = workspace.CurrentSolution.GetDocument(WorkspaceFixture.CurrentDocument.Id);
             var position = WorkspaceFixture.Position;
-            SetWorkspaceOptions(workspace);
+            currentDocument = WithChangedOptions(currentDocument);
 
             return await GetCompletionListAsync(GetCompletionService(currentDocument.Project), currentDocument, position, RoslynCompletion.CompletionTrigger.Invoke, options: workspace.Options).ConfigureAwait(false);
         }
@@ -427,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
         {
             var workspace = WorkspaceFixture.GetWorkspace();
-            SetWorkspaceOptions(workspace);
+            document = WithChangedOptions(document);
 
             var service = GetCompletionService(document.Project);
             var completionLlist = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
@@ -446,8 +447,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected virtual void SetWorkspaceOptions(TestWorkspace workspace)
+        protected virtual OptionSet WithChangedOptions(OptionSet options) => options;
+        private Document WithChangedOptions(Document document)
         {
+            var workspace = document.Project.Solution.Workspace;
+            var newOptions = WithChangedOptions(workspace.Options);
+            workspace.TryApplyChanges(document.Project.Solution.WithOptions(newOptions));
+            return workspace.CurrentSolution.GetDocument(document.Id);
+        }
+
+        private Document WithChangedOption(Document document, OptionKey optionKey, object value)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var newOptions = workspace.Options.WithChangedOption(optionKey, value);
+            workspace.TryApplyChanges(document.Project.Solution.WithOptions(newOptions));
+            return workspace.CurrentSolution.GetDocument(document.Id);
         }
 
         internal async Task VerifyCustomCommitWorkerAsync(
@@ -611,7 +625,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         <Document FilePath=""SourceDocument"">{1}</Document>
         <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
             <Document FilePath=""ReferencedDocument"">{3}</Document>
-            <MetadataReference>" + typeof(ValueTuple<>).Assembly.Location + @"</MetadataReference>
         </MetadataReferenceFromSource>
     </Project>
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(metadataReferenceCode));
@@ -632,10 +645,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 <Workspace>
     <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
         <Document FilePath=""SourceDocument"">{1}</Document>
-        <MetadataReference>" + typeof(ValueTuple<>).Assembly.Location + @"</MetadataReference>
         <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" Aliases=""{3}"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
             <Document FilePath=""ReferencedDocument"">{4}</Document>
-            <MetadataReference>" + typeof(ValueTuple<>).Assembly.Location + @"</MetadataReference>
         </MetadataReferenceFromSource>
     </Project>
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(aliases), SecurityElement.Escape(referencedCode));
@@ -722,7 +733,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").Id;
                 var document = solution.GetDocument(documentId);
 
-                testWorkspace.Options = testWorkspace.Options.WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers);
+                var optionKey = new OptionKey(CompletionOptions.HideAdvancedMembers, document.Project.Language);
+                document = WithChangedOption(document, optionKey, hideAdvancedMembers);
 
                 var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
 

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             public async Task<Checksum> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
             {
                 using (var stream = await ReadBlobColumnAsync(key, ChecksumColumnName, checksumOpt: null, cancellationToken).ConfigureAwait(false))
-                using (var reader = ObjectReader.TryGetReader(stream, cancellationToken))
+                using (var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken))
                 {
                     if (reader != null)
                     {
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             private bool ChecksumsMatch_MustRunInTransaction(SqlConnection connection, long rowId, Checksum checksum, CancellationToken cancellationToken)
             {
                 using var checksumStream = connection.ReadBlob_MustRunInTransaction(DataTableName, ChecksumColumnName, rowId);
-                using var reader = ObjectReader.TryGetReader(checksumStream, cancellationToken);
+                using var reader = ObjectReader.TryGetReader(checksumStream, leaveOpen: false, cancellationToken);
                 return reader != null && Checksum.ReadFrom(reader) == checksum;
             }
 

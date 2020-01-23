@@ -234,11 +234,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     do
                     {
-                        if (namedType.IsTupleType)
-                        {
-                            return IsOrClosedOverATypeFromAssemblies(namedType.TupleUnderlyingType, assemblies);
-                        }
-
                         var arguments = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
                         int count = arguments.Length;
 
@@ -529,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            if (!targetTypeSymbol.IsTupleCompatible())
+            if (!targetTypeSymbol.IsTupleType)
             {
                 targetTypeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(targetTypeSymbol, elementNames: default);
             }

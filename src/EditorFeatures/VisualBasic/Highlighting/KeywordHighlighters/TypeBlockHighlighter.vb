@@ -15,23 +15,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Public Sub New()
         End Sub
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Sub AddHighlights(node As SyntaxNode, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             Dim endBlockStatement = TryCast(node, EndBlockStatementSyntax)
             If endBlockStatement IsNot Nothing Then
                 If Not endBlockStatement.IsKind(SyntaxKind.EndClassStatement,
                                                 SyntaxKind.EndInterfaceStatement,
                                                 SyntaxKind.EndModuleStatement,
                                                 SyntaxKind.EndStructureStatement) Then
-                    Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                    Return
                 End If
             End If
 
             Dim typeBlock = node.GetAncestor(Of TypeBlockSyntax)()
             If typeBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
-
-            Dim highlights As New List(Of TextSpan)
 
             With typeBlock
                 With .BlockStatement
@@ -41,8 +39,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
                 highlights.Add(.EndBlockStatement.Span)
             End With
-
-            Return highlights
-        End Function
+        End Sub
     End Class
 End Namespace

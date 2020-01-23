@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis
 
         public void AddIdentifier(string identifier)
         {
-            Debug.Assert(identifier != null);
+            RoslynDebug.Assert(identifier != null);
 
             object value;
             if (!_map.TryGetValue(identifier, out value))
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool ContainsIdentifier(string identifier, bool caseSensitive)
         {
-            Debug.Assert(identifier != null);
+            RoslynDebug.Assert(identifier != null);
 
             if (caseSensitive)
             {

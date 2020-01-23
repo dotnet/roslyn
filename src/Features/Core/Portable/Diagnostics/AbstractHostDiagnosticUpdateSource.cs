@@ -37,15 +37,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticsUpdated?.Invoke(this, args);
         }
 
-        public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace? workspace, ProjectId? projectId)
+        public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, ProjectId? projectId)
         {
-            if (workspace != Workspace)
-            {
-                return;
-            }
-
             // check whether we are reporting project specific diagnostic or workspace wide diagnostic
-            var project = (projectId != null) ? workspace.CurrentSolution.GetProject(projectId) : null;
+            var project = (projectId != null) ? Workspace.CurrentSolution.GetProject(projectId) : null;
 
             // check whether project the diagnostic belong to still exist
             if (projectId != null && project == null)
@@ -55,7 +50,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            var diagnosticData = DiagnosticData.Create(workspace, diagnostic, project?.Id);
+            var diagnosticData = (project != null) ?
+                DiagnosticData.Create(diagnostic, project) :
+                DiagnosticData.Create(diagnostic, Workspace.Options);
+
             ReportAnalyzerDiagnostic(analyzer, diagnosticData, project);
         }
 

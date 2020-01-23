@@ -94,14 +94,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             try
             {
                 var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project).ToList();
+                var options = project.Solution.Options;
 
                 // PERF: get analyzers that are not suppressed and marked as open file only
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
-                // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
-                                        .Where(a => !AnalyzerService.IsAnalyzerSuppressed(a, project) &&
-                                                    !a.IsOpenFileOnly(project.Solution.Workspace));
+                                        .Where(a => !AnalyzerService.IsAnalyzerSuppressed(a, project) && !a.IsOpenFileOnly(options));
 
                 // get driver only with active analyzers.
                 var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
@@ -124,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var state = stateSet.GetOrCreateProjectState(project.Id);
 
-                    await state.SaveAsync(project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
+                    await state.SaveAsync(PersistentStorageService, project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
                     stateSet.ComputeCompilationEndAnalyzer(project, compilation);
                 }
 
@@ -156,7 +155,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
+                var documentHadDiagnostics = await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
+                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
         }
 
@@ -168,10 +168,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                _stateManager.OnDocumentReset(stateSets, document);
+                var documentHadDiagnostics = _stateManager.OnDocumentReset(stateSets, document);
+                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
 
             return Task.CompletedTask;
+        }
+
+        private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(Document document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics)
+        {
+            // if there was no diagnostic reported for this document OR Full solution analysis is enabled, nothing to clean up
+            if (!documentHadDiagnostics ||
+                FullAnalysisEnabled(document.Project, forceAnalyzerRun: false))
+            {
+                // this is Perf to reduce raising events unnecessarily.
+                return;
+            }
+
+            var removeDiagnosticsOnDocumentClose = document.Project.Solution.Options.GetOption(ServiceFeatureOnOffOptions.RemoveDocumentDiagnosticsOnDocumentClose, document.Project.Language);
+
+            if (!removeDiagnosticsOnDocumentClose)
+            {
+                return;
+            }
+
+            RaiseDiagnosticsRemovedForDocument(document.Id, stateSets);
         }
 
         public void RemoveDocument(DocumentId documentId)
@@ -191,17 +212,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                // remove all diagnostics for the document
-                AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
-                {
-                    foreach (var stateSet in stateSets)
-                    {
-                        RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Syntax, raiseEvents);
-                        RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Semantic, raiseEvents);
-                        RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.NonLocal, raiseEvents);
-                    }
-                });
+                RaiseDiagnosticsRemovedForDocument(documentId, stateSets);
             }
+        }
+
+        private void RaiseDiagnosticsRemovedForDocument(DocumentId documentId, IEnumerable<StateSet> stateSets)
+        {
+            // remove all diagnostics for the document
+            AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            {
+                foreach (var stateSet in stateSets)
+                {
+                    // clear all doucment diagnostics
+                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Syntax, raiseEvents);
+                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.Semantic, raiseEvents);
+                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet, AnalysisKind.NonLocal, raiseEvents);
+                }
+            });
         }
 
         public void RemoveProject(ProjectId projectId)
@@ -274,8 +301,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project)
         {
-            // PERF: Don't query descriptors for compiler analyzer, always execute it.
-            if (DiagnosticAnalyzerInfoCache.IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
+            // PERF: Don't query descriptors for compiler analyzer or file content load analyzer, always execute them.
+            if (DiagnosticAnalyzerInfoCache.IsCompilerDiagnosticAnalyzer(project.Language, analyzer) ||
+                analyzer == FileContentLoadAnalyzer.Instance)
             {
                 return true;
             }
@@ -296,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
             var descriptors = AnalyzerService.GetDiagnosticDescriptors(analyzer);
-            return descriptors.Any(d => d.GetEffectiveSeverity(project.CompilationOptions) != ReportDiagnostic.Hidden);
+            return descriptors.Any(d => d.GetEffectiveSeverity(project.CompilationOptions!) != ReportDiagnostic.Hidden);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
@@ -475,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client == null)
                 {
                     // no remote support
@@ -506,9 +534,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                await client.TryRunCodeAnalysisRemoteAsync(
+                _ = await client.TryRunRemoteAsync(
+                    WellKnownServiceHubServices.CodeAnalysisService,
                     nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                     new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(AnalyzerService), /* unit count */ 1 },
+                    solution: null,
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))

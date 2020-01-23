@@ -25,16 +25,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             /// </summary>
             private readonly ArrayBuilder<BasicBlockAnalysisData> _allocatedBasicBlockAnalysisDatas;
 
-            protected AnalysisData(
-                PooledDictionary<(ISymbol symbol, IOperation operation), bool> symbolWriteBuilder,
-                PooledHashSet<ISymbol> symbolsRead,
-                PooledHashSet<IMethodSymbol> lambdaOrLocalFunctionsBeingAnalyzed)
-            {
-                SymbolsWriteBuilder = symbolWriteBuilder;
-                SymbolsReadBuilder = symbolsRead;
-                LambdaOrLocalFunctionsBeingAnalyzed = lambdaOrLocalFunctionsBeingAnalyzed;
+            /// <summary>
+            /// Set of locals/parameters which are passed by reference to other method calls.
+            /// </summary>
+            private readonly PooledHashSet<ISymbol> _referenceTakenSymbolsBuilder;
 
+            protected AnalysisData()
+            {
                 _allocatedBasicBlockAnalysisDatas = ArrayBuilder<BasicBlockAnalysisData>.GetInstance();
+                _referenceTakenSymbolsBuilder = PooledHashSet<ISymbol>.GetInstance();
                 CurrentBlockAnalysisData = CreateBlockAnalysisData();
                 AdditionalConditionalBranchAnalysisData = CreateBlockAnalysisData();
             }
@@ -55,18 +54,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             ///        Value = 'true', because value assigned to 'x' here **may be** read on
             ///        some control flow path.
             /// </summary>
-            protected PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
+            protected abstract PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
 
             /// <summary>
             /// Set of locals/parameters that are read at least once.
             /// </summary>
-            protected PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
+            protected abstract PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
 
             /// <summary>
             /// Set of lambda/local functions whose invocations are currently being analyzed to prevent
             /// infinite recursion for analyzing code with recursive lambda/local function calls.
             /// </summary>
-            protected PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
+            protected abstract PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
 
             /// <summary>
             /// Current block analysis data used for analysis.
@@ -193,7 +192,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 SymbolsReadBuilder.Add(symbol);
             }
 
-            public void OnWriteReferenceFound(ISymbol symbol, IOperation operation, bool maybeWritten)
+            public void OnWriteReferenceFound(ISymbol symbol, IOperation operation, bool maybeWritten, bool isRef)
             {
                 var symbolAndWrite = (symbol, operation);
                 if (symbol.Kind == SymbolKind.Discard)
@@ -202,8 +201,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     return;
                 }
 
+                if (_referenceTakenSymbolsBuilder.Contains(symbol))
+                {
+                    // Skip tracking writes for reference taken symbols as the written value may be read from a different variable.
+                    return;
+                }
+
                 // Add a new write for the given symbol at the given operation.
                 CurrentBlockAnalysisData.OnWriteReferenceFound(symbol, operation, maybeWritten);
+
+                if (isRef)
+                {
+                    _referenceTakenSymbolsBuilder.Add(symbol);
+                }
 
                 // Only mark as unused write if we are processing it for the first time (not from back edge for loops)
                 if (!SymbolsWriteBuilder.ContainsKey(symbolAndWrite) &&
@@ -230,20 +240,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 CurrentBlockAnalysisData.SetAnalysisDataFrom(newBlockAnalysisData);
             }
 
-            public void Dispose()
-            {
-                DisposeAllocatedBasicBlockAnalysisData();
-                DisposeCoreData();
-            }
-
-            protected virtual void DisposeCoreData()
-            {
-                SymbolsWriteBuilder.Free();
-                SymbolsReadBuilder.Free();
-                LambdaOrLocalFunctionsBeingAnalyzed.Free();
-            }
-
-            protected void DisposeAllocatedBasicBlockAnalysisData()
+            public virtual void Dispose()
             {
                 foreach (var instance in _allocatedBasicBlockAnalysisDatas)
                 {
@@ -251,6 +248,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
 
                 _allocatedBasicBlockAnalysisDatas.Free();
+                _referenceTakenSymbolsBuilder.Free();
             }
         }
     }

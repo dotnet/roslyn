@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
         <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="new">A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</target>
+        <target state="translated">V kořenovém adresáři vašeho řešení se zjistil nový soubor. editorconfig. Chcete ho nastavit jako položku řešení?</target>
         <note />
       </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
@@ -72,6 +72,11 @@
         <target state="translated">Sestavení + živá analýza (balíček NuGet)</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
+        <source>C#/Visual Basic Language Server Client</source>
+        <target state="new">C#/Visual Basic Language Server Client</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Počítají se závislosti...</target>
@@ -99,17 +104,17 @@
       </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
-        <target state="new">Containing Member</target>
+        <target state="translated">Obsahující člen</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_type">
         <source>Containing Type</source>
-        <target state="new">Containing Type</target>
+        <target state="translated">Obsahující typ</target>
         <note />
       </trans-unit>
-      <trans-unit id="Current_Document">
-        <source>Current Document</source>
-        <target state="new">Current Document</target>
+      <trans-unit id="Current_document">
+        <source>Current document</source>
+        <target state="new">Current document</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -117,9 +122,9 @@
         <target state="translated">Element není platný.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Entire_Solution">
-        <source>Entire Solution</source>
-        <target state="new">Entire Solution</target>
+      <trans-unit id="Entire_solution">
+        <source>Entire solution</source>
+        <target state="new">Entire solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -166,6 +171,11 @@
         <source>Kind</source>
         <target state="translated">Druh</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Live_Share_CSharp_Visual_Basic_Language_Server_Client">
+        <source>Live Share C#/Visual Basic Language Server Client</source>
+        <target state="new">Live Share C#/Visual Basic Language Server Client</target>
+        <note>'Live Share' is a product name and does not need to be localized.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
@@ -349,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">Pravidla pojmenování</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -362,9 +372,9 @@
         <target state="translated">Neveřejné metody</target>
         <note />
       </trans-unit>
-      <trans-unit id="Open_Documents_and_Projects">
-        <source>Open Documents and Projects</source>
-        <target state="new">Open Documents and Projects</target>
+      <trans-unit id="Open_documents">
+        <source>Open documents</source>
+        <target state="new">Open documents</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
@@ -539,7 +549,7 @@
       </trans-unit>
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
-        <target state="new">Updating severity</target>
+        <target state="translated">Aktualizuje se závažnost.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
@@ -1850,7 +1860,7 @@ Další informace: {1}</target>
       </trans-unit>
       <trans-unit id="Remove_naming_rule">
         <source>Remove naming rule</source>
-        <target state="translated">Odebrat pravidlo pro pojmenování</target>
+        <target state="translated">Odebrat pravidlo pojmenování</target>
         <note />
       </trans-unit>
       <trans-unit id="VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread">

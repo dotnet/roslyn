@@ -3,6 +3,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -51,9 +52,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var project = CreateProject();
 
+            var projectWithUserConfiguredGeneratedCodeTrue = project.AddAnalyzerConfigDocument(".editorconfig",
+                SourceText.From(@"
+[*.{cs,vb}]
+generated_code = true
+"), filePath: @"z:\.editorconfig").Project;
+
+            var projectWithUserConfiguredGeneratedCodeFalse = project.AddAnalyzerConfigDocument(".editorconfig",
+                SourceText.From(@"
+[*.{cs,vb}]
+generated_code = false
+"), filePath: @"z:\.editorconfig").Project;
+
             foreach (var fileName in fileNames)
             {
-                var document = project.AddDocument(fileName, "");
+                TestCore(fileName, project, assertGenerated);
+
+                // Verify user configuration always overrides generated code heuristic.
+                if (fileName.EndsWith(".cs") || fileName.EndsWith(".vb"))
+                {
+                    TestCore(fileName, projectWithUserConfiguredGeneratedCodeTrue, assertGenerated: true);
+                    TestCore(fileName, projectWithUserConfiguredGeneratedCodeFalse, assertGenerated: false);
+                }
+            }
+
+            static void TestCore(string fileName, Project project, bool assertGenerated)
+            {
+                var document = project.AddDocument(fileName, "", filePath: $"z:\\{fileName}");
                 if (assertGenerated)
                 {
                     Assert.True(document.IsGeneratedCode(CancellationToken.None), string.Format("Expected file '{0}' to be interpreted as generated code", fileName));

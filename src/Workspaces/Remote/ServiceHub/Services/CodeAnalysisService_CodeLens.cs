@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -109,10 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task TrackCodeLensAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
-            {
-                await WorkspaceChangeTracker.TrackAsync(this, SolutionService.PrimaryWorkspace, documentId, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
+            return RunServiceAsync(() => WorkspaceChangeTracker.TrackAsync(EndPoint, SolutionService.PrimaryWorkspace, documentId, cancellationToken), cancellationToken);
         }
 
         /// <summary>
@@ -121,13 +119,13 @@ namespace Microsoft.CodeAnalysis.Remote
         /// better place for this is in ICodeLensContext but CodeLens OOP doesn't provide a way to call back to codelens OOP from
         /// VS so, this for now will be in Roslyn OOP
         /// </summary>
-        private class WorkspaceChangeTracker
+        private sealed class WorkspaceChangeTracker
         {
             private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(100);
 
             private readonly object _gate;
 
-            private readonly CodeAnalysisService _owner;
+            private readonly RemoteEndPoint _endPoint;
             private readonly Workspace _workspace;
             private readonly DocumentId _documentId;
             private readonly CancellationToken _cancellationToken;
@@ -136,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Remote
             private VersionStamp _lastVersion;
             private ResettableDelay _resettableDelay;
 
-            public static async Task TrackAsync(CodeAnalysisService owner, Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            public static async Task TrackAsync(RemoteEndPoint endPoint, Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 if (document == null)
@@ -146,11 +144,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // if anything under the project this file belong to changes, then invalidate the code lens so that it can refresh
                 var dependentVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-                new WorkspaceChangeTracker(owner, workspace, documentId, dependentVersion, cancellationToken);
+                new WorkspaceChangeTracker(endPoint, workspace, documentId, dependentVersion, cancellationToken);
             }
 
             private WorkspaceChangeTracker(
-                CodeAnalysisService owner,
+                RemoteEndPoint endPoint,
                 Workspace workspace,
                 DocumentId documentId,
                 VersionStamp dependentVersion,
@@ -159,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _gate = new object();
                 _eventSubscribed = false;
 
-                _owner = owner;
+                _endPoint = endPoint;
                 _workspace = workspace;
                 _documentId = documentId;
                 _cancellationToken = cancellationToken;
@@ -172,25 +170,25 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private void ConnectEvents(bool subscription)
             {
-                // this is only place lock is used.
-                // we have a lock here so that subscription and unsubscription of the two events
-                // are happening atomic, but that doesn't mean there is no possiblity of race here
-                // theoradically, there can be a race if connection got disconnected before we subscribe
+                // This is only place lock is used.
+                // We have a lock here so that subscription and unsubscription of the two events
+                // are atomic, but that doesn't mean there is no possibility of race here.
+                // Theoretically, there can be a race if connection got disconnected before we subscribe
                 // to OnRpcDisconnected but already in the subscription code path.
-                // but there is no easy way to solve the problem unless Rpc itself provide things like
+                // There is no easy way to solve the problem unless Rpc itself provide things like
                 // subscribe only if connection still alive or something
                 lock (_gate)
                 {
                     if (subscription)
                     {
-                        _owner.Disconnected += OnDisconnected;
+                        _endPoint.Disconnected += OnDisconnected;
                         _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
                         if (_cancellationToken.IsCancellationRequested)
                         {
                             // while, we are subscribing to this service, caller side closed this connection
                             // unsubscribe from the service
-                            _owner.Disconnected -= OnDisconnected;
+                            _endPoint.Disconnected -= OnDisconnected;
                             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
                             return;
                         }
@@ -201,14 +199,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         if (_eventSubscribed)
                         {
-                            _owner.Disconnected -= OnDisconnected;
+                            _endPoint.Disconnected -= OnDisconnected;
                             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
                         }
                     }
                 }
             }
 
-            private void OnDisconnected(object sender, EventArgs e)
+            private void OnDisconnected(JsonRpcDisconnectedEventArgs args)
             {
                 ConnectEvents(subscription: false);
             }
@@ -245,7 +243,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     // ignore any exception such as rpc already disposed (disconnected)
 
                     _lastVersion = newVersion;
-                    await _owner.InvokeAsync(nameof(IRemoteCodeLensDataPoint.Invalidate), CancellationToken.None).ConfigureAwait(false);
+
+                    await _endPoint.InvokeAsync(
+                        nameof(IRemoteCodeLensDataPoint.Invalidate),
+                        Array.Empty<object>(),
+                        CancellationToken.None).ConfigureAwait(false);
                 }
             }
         }

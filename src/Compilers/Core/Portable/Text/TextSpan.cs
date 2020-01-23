@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using Roslyn.Utilities;
 
@@ -218,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Determines if current instance of <see cref="TextSpan"/> is equal to another.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TextSpan && Equals((TextSpan)obj);
         }

@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.VisualStudio.Composition
 
@@ -19,11 +20,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Private Property IsExpandedCompletion As Boolean = True
 
-        Protected Overrides Sub SetWorkspaceOptions(workspace As TestWorkspace)
-            workspace.Options = workspace.Options _
+        Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
+            Return options _
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-        End Sub
+        End Function
 
         Protected Overrides Function GetExportCatalog() As ComposableCatalog
             Return MyBase.GetExportCatalog().WithPart(GetType(TestExperimentationService))

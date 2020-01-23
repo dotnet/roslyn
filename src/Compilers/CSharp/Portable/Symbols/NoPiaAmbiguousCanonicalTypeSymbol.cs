@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -23,11 +26,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public NoPiaAmbiguousCanonicalTypeSymbol(
             AssemblySymbol embeddingAssembly,
             NamedTypeSymbol firstCandidate,
-            NamedTypeSymbol secondCandidate)
+            NamedTypeSymbol secondCandidate,
+            TupleExtraData? tupleData = null)
+            : base(tupleData)
         {
             _embeddingAssembly = embeddingAssembly;
             _firstCandidate = firstCandidate;
             _secondCandidate = secondCandidate;
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            return new NoPiaAmbiguousCanonicalTypeSymbol(_embeddingAssembly, _firstCandidate, _secondCandidate, newData);
         }
 
         internal override bool MangleName
@@ -76,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
         {
             return ReferenceEquals(this, t2);
         }

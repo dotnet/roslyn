@@ -53,9 +53,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 code As XElement, expectedCode As XElement, updater As Action(Of TCodeElement),
                 Optional options As IDictionary(Of OptionKey, Object) = Nothing) As Task
             Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+                Dim workspace = state.Workspace
                 If options IsNot Nothing Then
                     For Each kvp In options
-                        state.Workspace.Options = state.Workspace.Options.WithChangedOption(kvp.Key, kvp.Value)
+                        workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                            .WithChangedOption(kvp.Key, kvp.Value)))
                     Next
                 End If
 

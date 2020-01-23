@@ -51,7 +51,8 @@ namespace IdeBenchmarks
 </Workspace>");
 
             // Ensure we always use the storage service, no matter what the size of the solution.
-            _workspace.Options = _workspace.Options.WithChangedOption(StorageOptions.SolutionSizeThreshold, -1);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(
+                _workspace.CurrentSolution.Options.WithChangedOption(StorageOptions.SolutionSizeThreshold, -1)));
 
             _storageService = new SQLitePersistentStorageService(
                 _workspace.Services.GetService<IOptionService>(),

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
@@ -28,18 +30,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public abstract TTypeSymbol GetTypeSymbolForSerializedType(string typeName);
 
         public abstract TLocalSymbol GetLocalVariable(
-            string name,
+            string? name,
             int slotIndex,
             LocalInfo<TTypeSymbol> info,
             ImmutableArray<bool> dynamicFlagsOpt,
-            ImmutableArray<string> tupleElementNamesOpt);
+            ImmutableArray<string?> tupleElementNamesOpt);
 
         public abstract TLocalSymbol GetLocalConstant(
             string name,
             TTypeSymbol type,
             ConstantValue value,
             ImmutableArray<bool> dynamicFlagsOpt,
-            ImmutableArray<string> tupleElementNamesOpt);
+            ImmutableArray<string?> tupleElementNamesOpt);
 
         /// <exception cref="BadImageFormatException"></exception>
         public abstract IAssemblySymbolInternal GetReferencedAssembly(AssemblyReferenceHandle handle);

@@ -1419,10 +1419,7 @@ End Class
 
             Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.goo() As Task</File>.ConvertTestSourceTag()
 
-            Dim doc = StringFromLines("", WorkspacesResources.Usage_colon, $"  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} goo()")
-
-            Await TestFromXmlAsync(markup,
-                 MainDescription(description), Usage(doc))
+            Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
 
         <WorkItem(7100, "https://github.com/dotnet/roslyn/issues/7100")>
@@ -1816,7 +1813,7 @@ End Class
                     </Project>
                 </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %><%= " " %><%= FeaturesResources.no_value %></File>.ConvertTestSourceTag()
+            Dim description = <File><%= FeaturesResources.Awaited_task_returns_no_value %></File>.ConvertTestSourceTag()
 
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
@@ -1839,7 +1836,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %> Structure System.Int32</File>.ConvertTestSourceTag()
+            Dim description = <File><%= String.Format(FeaturesResources.Awaited_task_returns_0, "Structure System.Int32") %></File>.ConvertTestSourceTag()
 
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
@@ -1861,7 +1858,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %><%= " " %><%= FeaturesResources.no_value %></File>.ConvertTestSourceTag()
+            Dim description = <File><%= FeaturesResources.Awaited_task_returns_no_value %></File>.ConvertTestSourceTag()
 
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
@@ -1898,7 +1895,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; <%= FeaturesResources.Awaited_task_returns %> Class System.Threading.Tasks.Task(Of TResult)</File>.ConvertTestSourceTag()
+            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; <%= String.Format(FeaturesResources.Awaited_task_returns_0, "Class System.Threading.Tasks.Task(Of TResult)") %></File>.ConvertTestSourceTag()
             Await TestFromXmlAsync(markup, MainDescription(description), TypeParameterMap(vbCrLf & $"TResult {FeaturesResources.is_} Integer"))
         End Function
 
@@ -1934,7 +1931,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %> Structure System.Int32</File>.ConvertTestSourceTag()
+            Dim description = <File><%= String.Format(FeaturesResources.Awaited_task_returns_0, "Structure System.Int32") %></File>.ConvertTestSourceTag()
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
 

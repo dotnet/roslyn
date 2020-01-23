@@ -10,9 +10,10 @@ using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Diagnostics;
 using System;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -45,28 +46,41 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<Solution> CreateSolutionAsync(Checksum newSolutionChecksum)
         {
-            var solution = _baseSolution;
-
-            var oldSolutionChecksums = await solution.State.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
-            var newSolutionChecksums = await _assetService.GetAssetAsync<SolutionStateChecksums>(newSolutionChecksum, _cancellationToken).ConfigureAwait(false);
-
-            if (oldSolutionChecksums.Info != newSolutionChecksums.Info)
+            try
             {
-                var newSolutionInfo = await _assetService.GetAssetAsync<SolutionInfo.SolutionAttributes>(newSolutionChecksums.Info, _cancellationToken).ConfigureAwait(false);
+                var solution = _baseSolution;
 
-                // if either id or file path has changed, then this is not update
-                Contract.ThrowIfFalse(solution.Id == newSolutionInfo.Id && solution.FilePath == newSolutionInfo.FilePath);
+                var oldSolutionChecksums = await solution.State.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
+                var newSolutionChecksums = await _assetService.GetAssetAsync<SolutionStateChecksums>(newSolutionChecksum, _cancellationToken).ConfigureAwait(false);
+
+                if (oldSolutionChecksums.Info != newSolutionChecksums.Info)
+                {
+                    var newSolutionInfo = await _assetService.GetAssetAsync<SolutionInfo.SolutionAttributes>(newSolutionChecksums.Info, _cancellationToken).ConfigureAwait(false);
+
+                    // if either id or file path has changed, then this is not update
+                    Contract.ThrowIfFalse(solution.Id == newSolutionInfo.Id && solution.FilePath == newSolutionInfo.FilePath);
+                }
+
+                if (oldSolutionChecksums.Options != newSolutionChecksums.Options)
+                {
+                    var newOptions = await _assetService.GetAssetAsync<SerializableOptionSet>(newSolutionChecksums.Options, _cancellationToken).ConfigureAwait(false);
+                    solution = solution.WithOptions(newOptions);
+                }
+
+                if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
+                {
+                    solution = await UpdateProjectsAsync(solution, oldSolutionChecksums.Projects, newSolutionChecksums.Projects).ConfigureAwait(false);
+                }
+
+                // make sure created solution has same checksum as given one
+                await ValidateChecksumAsync(newSolutionChecksum, solution).ConfigureAwait(false);
+
+                return solution;
             }
-
-            if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
             {
-                solution = await UpdateProjectsAsync(solution, oldSolutionChecksums.Projects, newSolutionChecksums.Projects).ConfigureAwait(false);
+                throw ExceptionUtilities.Unreachable;
             }
-
-            // make sure created solution has same checksum as given one
-            await ValidateChecksumAsync(newSolutionChecksum, solution).ConfigureAwait(false);
-
-            return solution;
         }
 
         private async Task<Solution> UpdateProjectsAsync(Solution solution, ChecksumCollection oldChecksums, ChecksumCollection newChecksums)
@@ -473,16 +487,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return map;
         }
 
-        private Project AddDocument(Project project, DocumentInfo documentInfo, bool additionalText)
-        {
-            if (additionalText)
-            {
-                return project.Solution.AddAdditionalDocument(documentInfo).GetProject(project.Id);
-            }
-
-            return project.Solution.AddDocument(documentInfo).GetProject(project.Id);
-        }
-
         private async Task ValidateChecksumAsync(Checksum checksumFromRequest, Solution incrementalSolutionBuilt)
         {
 #if DEBUG
@@ -498,9 +502,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async Task<Solution> CreateSolutionFromScratchAsync(Checksum checksum)
             {
-                var solutionInfo = await SolutionInfoCreator.CreateSolutionInfoAsync(_assetService, checksum, _cancellationToken).ConfigureAwait(false);
-                var workspace = new TemporaryWorkspace(solutionInfo);
-
+                var (solutionInfo, options) = await SolutionInfoCreator.CreateSolutionInfoAndOptionsAsync(_assetService, checksum, _cancellationToken).ConfigureAwait(false);
+                var workspace = new TemporaryWorkspace(solutionInfo, options);
                 return workspace.CurrentSolution;
             }
 #else
