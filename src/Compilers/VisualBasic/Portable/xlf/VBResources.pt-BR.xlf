@@ -1537,7 +1537,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
         <source>Failed to emit module '{0}': {1}</source>
-        <target state="new">Failed to emit module '{0}': {1}</target>
+        <target state="translated">Falha ao emitir o módulo '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
@@ -9141,12 +9141,12 @@
       </trans-unit>
       <trans-unit id="WRN_AttributeNotSupportedInVB">
         <source>'{0}' is not supported in VB.</source>
-        <target state="new">'{0}' is not supported in VB.</target>
+        <target state="translated">Não há suporte para '{0}' no VB.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributeNotSupportedInVB_Title">
         <source>Attribute is not supported in VB</source>
-        <target state="new">Attribute is not supported in VB</target>
+        <target state="translated">Não há suporte para o atributo no VB</target>
         <note />
       </trans-unit>
     </body>

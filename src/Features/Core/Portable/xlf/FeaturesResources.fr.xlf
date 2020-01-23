@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
-        <target state="new">Awaited task returns '{0}'</target>
+        <target state="translated">La tâche attendue retourne '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
         <source>Awaited task returns no value</source>
-        <target state="new">Awaited task returns no value</target>
+        <target state="translated">La tâche attendue ne retourne aucune valeur</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="needs-review-translation">Le contenu actuel du fichier source « {0} » ne correspond pas à la source générée. La session de débogage ne peut pas continuer tant que le contenu du fichier source n'est pas restauré.</target>
+        <target state="new">The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -224,22 +224,22 @@
       </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
-        <target state="new">Extract interface...</target>
+        <target state="translated">Extraire l'interface...</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_local_function">
         <source>Extract local function</source>
-        <target state="new">Extract local function</target>
+        <target state="translated">Extraire la fonction locale</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_method">
         <source>Extract method</source>
-        <target state="new">Extract method</target>
+        <target state="translated">Extraire une méthode</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_method_plus_local">
         <source>Extract method + local</source>
-        <target state="new">Extract method + local</target>
+        <target state="translated">Extraire la méthode + fonction locale</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
@@ -274,37 +274,37 @@
       </trans-unit>
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
-        <target state="new">'GetHashCode' implementation can be simplified</target>
+        <target state="translated">L'implémentation de 'GetHashCode' peut être simplifiée</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement all interfaces explicitly">
         <source>Implement all interfaces explicitly</source>
-        <target state="new">Implement all interfaces explicitly</target>
+        <target state="translated">Implémenter toutes les interfaces explicitement</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement explicitly">
         <source>Implement explicitly</source>
-        <target state="new">Implement explicitly</target>
+        <target state="translated">Implémenter explicitement</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
-        <target state="new">Implement '{0}' explicitly</target>
+        <target state="translated">Implémenter '{0}' explicitement</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
-        <target state="new">Implement '{0}' implicitly</target>
+        <target state="translated">Implémenter '{0}' implicitement</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
-        <target state="new">Implement all interfaces implicitly</target>
+        <target state="translated">Implémenter toutes les interfaces implicitement</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
-        <target state="new">Implement implicitly</target>
+        <target state="translated">Implémenter implicitement</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
-        <target state="new">Interpolation can be simplified</target>
+        <target state="translated">L'interpolation peut être simplifiée</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant">
@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Make_member_static">
         <source>Make static</source>
-        <target state="new">Make static</target>
+        <target state="translated">Rendre statique</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
@@ -534,7 +534,7 @@
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
         <source>Simplify interpolation</source>
-        <target state="new">Simplify interpolation</target>
+        <target state="translated">Simplifier l’interpolation</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -564,7 +564,7 @@
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
-        <target state="new">The selection contains a local function call without its declaration.</target>
+        <target state="translated">La sélection contient un appel de fonction locale sans sa déclaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="Use_System_HashCode">
         <source>Use 'System.HashCode'</source>
-        <target state="new">Use 'System.HashCode'</target>
+        <target state="translated">Utiliser 'System.HashCode'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -774,7 +774,7 @@
       </trans-unit>
       <trans-unit id="discard">
         <source>discard</source>
-        <target state="new">discard</target>
+        <target state="translated">ignorer</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
