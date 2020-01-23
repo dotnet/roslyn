@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation());
             }
 
-            protected string GetAfterOpenTokenIdentation()
+            private string GetAfterOpenTokenIdentation()
             {
                 var openToken = _listSyntax.GetFirstToken();
                 var afterOpenTokenOffset = OriginalSourceText.GetOffset(openToken.Span.End);
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 return indentString;
             }
 
-            protected string GetSingleIdentation()
+            private string GetSingleIdentation()
             {
                 // Insert a newline after the open token of the list.  Then ask the
                 // ISynchronousIndentationService where it thinks that the next line should be
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 return result.ToImmutableAndFree();
             }
 
-            protected SyntaxTrivia GetIndentationTrivia(WrappingStyle wrappingStyle)
+            private SyntaxTrivia GetIndentationTrivia(WrappingStyle wrappingStyle)
             {
                 return wrappingStyle == WrappingStyle.UnwrapFirst_AlignRest
                     ? _afterOpenTokenIndentationTrivia
