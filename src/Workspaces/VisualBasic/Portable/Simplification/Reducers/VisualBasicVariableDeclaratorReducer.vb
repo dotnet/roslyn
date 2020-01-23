@@ -30,12 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Dim replacementNode As SyntaxNode = Nothing
             Dim issueSpan As TextSpan
 
-            If Not node.TryReduceVariableDeclaratorWithoutType(
-                semanticModel,
-                replacementNode,
-                issueSpan,
-                optionSet,
-                cancellationToken) Then
+            If Not node.TryReduceVariableDeclaratorWithoutType(semanticModel, replacementNode, issueSpan) Then
                 Return node
             End If
 
