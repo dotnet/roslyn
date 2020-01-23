@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
         private bool _needsSpilling;
-        private Instrumenter _instrumenter;
         private readonly DiagnosticBag _diagnostics;
+        private Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
 
         private Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderReplacementMapDoNotUseDirectly;
@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _diagnostics = diagnostics;
 
             Debug.Assert(instrumenter != null);
+#if DEBUG
+            // Ensure that only expected kinds of instrumenters are in use
+            _ = RemoveDynamicAnalysisInjectors(instrumenter);
+#endif
+
             _instrumenter = instrumenter;
             _rootStatement = rootStatement;
         }
@@ -282,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CurrentFunction = localFunction;
                 if (localFunction.IsDirectlyExcludedFromCodeCoverage)
                 {
-                    _instrumenter = removeDynamicAnalysisInjectors(oldInstrumenter);
+                    _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
                 }
                 return base.VisitLocalFunctionStatement(node);
             }
@@ -291,24 +296,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CurrentFunction = oldContainingSymbol;
                 _instrumenter = oldInstrumenter;
             }
+        }
 
-            static Instrumenter removeDynamicAnalysisInjectors(Instrumenter instrumenter)
+        private static Instrumenter RemoveDynamicAnalysisInjectors(Instrumenter instrumenter)
+        {
+            switch (instrumenter)
             {
-                switch (instrumenter)
-                {
-                    case DynamicAnalysisInjector { Previous: var previous }:
-                        return removeDynamicAnalysisInjectors(previous);
-                    case DebugInfoInjector { Previous: var previous } injector:
-                        var newPrevious = removeDynamicAnalysisInjectors(previous);
-                        return (object)newPrevious != previous ? new DebugInfoInjector(newPrevious) : injector;
-                    case CompoundInstrumenter compound:
-                        // If we hit this it means a new kind of compound instrumenter is in use.
-                        // Either add a new case or add an abstraction that lets us
-                        // filter out the unwanted injectors in a more generalized way.
-                        throw ExceptionUtilities.UnexpectedValue(compound);
-                    default:
-                        return instrumenter;
-                }
+                case DynamicAnalysisInjector { Previous: var previous }:
+                    return RemoveDynamicAnalysisInjectors(previous);
+                case DebugInfoInjector { Previous: var previous } injector:
+                    var newPrevious = RemoveDynamicAnalysisInjectors(previous);
+                    return (object)newPrevious != previous ? new DebugInfoInjector(newPrevious) : injector;
+                case CompoundInstrumenter compound:
+                    // If we hit this it means a new kind of compound instrumenter is in use.
+                    // Either add a new case or add an abstraction that lets us
+                    // filter out the unwanted injectors in a more generalized way.
+                    throw ExceptionUtilities.UnexpectedValue(compound);
+                default:
+                    Debug.Assert((object)instrumenter == Instrumenter.NoOp);
+                    return instrumenter;
             }
         }
 
