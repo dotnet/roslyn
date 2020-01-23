@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #if DEBUG
 // See comment in DefiniteAssignment.
@@ -7468,8 +7470,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // Update method based on inferred receiver type: see https://github.com/dotnet/roslyn/issues/29605.
-                SetResultType(node, awaitableInfo.GetResult.ReturnTypeWithAnnotations.ToTypeWithState());
+                // It is possible for the awaiter type returned from GetAwaiter to not be a named type. e.g. it could be a type parameter.
+                // Proper handling of this is additional work which only benefits a very uncommon scenario,
+                // so we will just use the originally bound GetResult method in this case.
+                var reinferredGetResult = _visitResult.RValueType.Type is NamedTypeSymbol taskAwaiterType
+                    ? awaitableInfo.GetResult.OriginalDefinition.AsMember(taskAwaiterType)
+                    : awaitableInfo.GetResult;
+
+                SetResultType(node, reinferredGetResult.ReturnTypeWithAnnotations.ToTypeWithState());
             }
 
             return result;

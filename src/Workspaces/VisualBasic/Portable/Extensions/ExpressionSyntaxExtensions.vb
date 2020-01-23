@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -323,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsInOutContext(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+        Public Function IsInOutContext(expression As ExpressionSyntax) As Boolean
             ' NOTE(cyrusn): VB has no concept of an out context.  Even when a parameter has an
             ' '<Out>' attribute on it, it's still treated as ref by VB.  So we always return false
             ' here.
@@ -371,19 +373,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsInInContext(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+        Public Function IsInInContext(expression As ExpressionSyntax) As Boolean
             ' NOTE: VB does not support in parameters. Always return False here.
             Return False
         End Function
 
         <Extension()>
-        Public Function IsOnlyWrittenTo(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+        Public Function IsOnlyWrittenTo(expression As ExpressionSyntax) As Boolean
             If expression.IsRightSideOfDot() Then
                 expression = TryCast(expression.Parent, ExpressionSyntax)
             End If
 
             If expression IsNot Nothing Then
-                If expression.IsInOutContext(semanticModel, cancellationToken) Then
+                If expression.IsInOutContext() Then
                     Return True
                 End If
 
@@ -414,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsWrittenTo(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
-            If IsOnlyWrittenTo(expression, semanticModel, cancellationToken) Then
+            If IsOnlyWrittenTo(expression) Then
                 Return True
             End If
 
@@ -786,15 +788,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return semanticModel.Compilation.CreateArrayTypeSymbol(type, rank)
         End Function
 
-        <Extension()>
+        <Extension>
         Public Function TryReduceVariableDeclaratorWithoutType(
             variableDeclarator As VariableDeclaratorSyntax,
             semanticModel As SemanticModel,
-            <Out()> ByRef replacementNode As SyntaxNode,
-            <Out()> ByRef issueSpan As TextSpan,
-            optionSet As OptionSet,
-            cancellationToken As CancellationToken
-            ) As Boolean
+            <Out> ByRef replacementNode As SyntaxNode,
+            <Out> ByRef issueSpan As TextSpan) As Boolean
 
             replacementNode = Nothing
             issueSpan = Nothing
@@ -832,7 +831,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return False
                 End If
 
-                Dim initializerType As ITypeSymbol = Nothing
+                Dim initializerType As ITypeSymbol
 
                 If declaredSymbolType.IsArrayType() AndAlso variableDeclarator.Initializer.Value.Kind() = SyntaxKind.CollectionInitializer Then
                     ' Get type of the array literal in context without the target type
@@ -1256,7 +1255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                 issueSpan = name.Span
 
-                Return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken)
+                Return name.CanReplaceWithReducedNameInContext(replacementNode)
             Else
 
                 If Not name.IsRightSideOfDot() Then
@@ -1305,8 +1304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             End If
                         End If
 
-                        If name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken) Then
-
+                        If name.CanReplaceWithReducedNameInContext(replacementNode) Then
                             ' check if the alias name ends with an Attribute suffix that can be omitted.
                             Dim replacementNodeWithoutAttributeSuffix As ExpressionSyntax = Nothing
                             Dim issueSpanWithoutAttributeSuffix As TextSpan = Nothing
@@ -1370,7 +1368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                     replacementNode = SyntaxFactory.PredefinedType(token)
                                     issueSpan = name.Span
 
-                                    Dim canReplace = name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken)
+                                    Dim canReplace = name.CanReplaceWithReducedNameInContext(replacementNode)
                                     If canReplace Then
                                         replacementNode = replacementNode.WithAdditionalAnnotations(New SyntaxAnnotation(codeStyleOptionName))
                                     End If
@@ -1398,7 +1396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                             issueSpan = name.Span
 
-                            If name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken) Then
+                            If name.CanReplaceWithReducedNameInContext(replacementNode) Then
                                 Return True
                             End If
                         End If
@@ -1835,11 +1833,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken)
+            Return name.CanReplaceWithReducedNameInContext(replacementNode)
         End Function
 
         <Extension>
-        Private Function CanReplaceWithReducedNameInContext(name As NameSyntax, replacementNode As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+        Private Function CanReplaceWithReducedNameInContext(name As NameSyntax, replacementNode As ExpressionSyntax) As Boolean
 
             ' Special case.  if this new minimal name parses out to a predefined type, then we
             ' have to make sure that we're not in a using alias.   That's the one place where the
