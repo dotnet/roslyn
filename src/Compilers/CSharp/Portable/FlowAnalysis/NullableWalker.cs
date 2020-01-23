@@ -1479,8 +1479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TryGetReturnType(out TypeWithAnnotations returnType, out FlowAnalysisAnnotations returnAnnotations))
             {
                 if (node.RefKind == RefKind.None &&
-                    returnType.Type.SpecialType == SpecialType.System_Boolean &&
-                    isUnconvertedBooleanExpression(expr))
+                    returnType.Type.SpecialType == SpecialType.System_Boolean)
                 {
                     // visit the expression without unsplitting, then check parameters marked with flow analysis attributes
                     Visit(expr);
@@ -1533,12 +1532,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnforceDoesNotReturn(node.Syntax);
             return null;
 
-            bool isUnconvertedBooleanExpression(BoundExpression expr)
-            {
-                var (expression, _) = RemoveConversion(expr, includeExplicitConversions: true);
-                return expression.Type?.SpecialType == SpecialType.System_Boolean;
-            }
-
             void checkConditionalParameterState(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense)
             {
                 LocalState stateWhen = sense ? StateWhenTrue : StateWhenFalse;
@@ -1548,7 +1541,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Parameter '{name}' may not have a null value when exiting with '{sense}'.
                         ReportDiagnostic(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
-                        continue;
                     }
                 }
             }
