@@ -2164,6 +2164,149 @@ System.Int32";
         }
 
         [Fact]
+        public void PatternCombinatorSubsumptionAndCompleteness_01()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        M(1);
+        M(1L);
+        M(2);
+        M(2L);
+        M(3);
+        M(3L);
+    }
+    static void M(object o)
+    {
+        switch (o)
+        {
+            case 1 or long or 2: Console.Write(1); break;
+            case 1L or int or 2L: Console.Write(2); break;
+        }
+    }
+}";
+            var expectedOutput = @"111121";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""int""
+  IL_0006:  brfalse.s  IL_0017
+  IL_0008:  ldarg.0
+  IL_0009:  unbox.any  ""int""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  sub
+  IL_0012:  ldc.i4.1
+  IL_0013:  ble.un.s   IL_001f
+  IL_0015:  br.s       IL_0026
+  IL_0017:  ldarg.0
+  IL_0018:  isinst     ""long""
+  IL_001d:  brfalse.s  IL_002c
+  IL_001f:  ldc.i4.1
+  IL_0020:  call       ""void System.Console.Write(int)""
+  IL_0025:  ret
+  IL_0026:  ldc.i4.2
+  IL_0027:  call       ""void System.Console.Write(int)""
+  IL_002c:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternCombinatorSubsumptionAndCompleteness_02()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        M(1);
+        M(1L);
+        M(2);
+        M(2L);
+        M(3);
+        M(3L);
+    }
+    static void M(object o)
+    {
+        switch (o)
+        {
+            case (1 or not long) or 2: Console.Write(1); break;
+            case 1L or (not int or 2L): Console.Write(2); break;
+        }
+    }
+}";
+            var expectedOutput = @"121212";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""int""
+  IL_0006:  brtrue.s   IL_0010
+  IL_0008:  ldarg.0
+  IL_0009:  isinst     ""long""
+  IL_000e:  brtrue.s   IL_0017
+  IL_0010:  ldc.i4.1
+  IL_0011:  call       ""void System.Console.Write(int)""
+  IL_0016:  ret
+  IL_0017:  ldc.i4.2
+  IL_0018:  call       ""void System.Console.Write(int)""
+  IL_001d:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternCombinatorSubsumptionAndCompleteness_03()
+        {
+            var source = @"using System;
+class C
+{
+    static void M1(object o)
+    {
+        switch (o)
+        {
+            case 1 or not int or 2: Console.Write(1); break;
+            case 1L or 2L: Console.Write(2); break;
+        }
+    }
+    static void M2(object o)
+    {
+        _ = o switch
+        {
+            1 or not int or 2 => 1,
+            1L or 2L => 2,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case 1L or 2L: Console.Write(2); break;
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "1L or 2L").WithLocation(9, 18),
+                // (14,15): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                //         _ = o switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(14, 15),
+                // (17,13): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                //             1L or 2L => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "1L or 2L").WithLocation(17, 13)
+                );
+        }
+
+        [Fact]
         public void Relational_01()
         {
             var source = @"
