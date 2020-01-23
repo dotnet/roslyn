@@ -1326,6 +1326,11 @@
     <!--Check that the input is the same as the given constant value (other than null).-->
     <Field Name="Value" Type="ConstantValue" Null="disallow"/>
   </Node>
+  <Node Name="BoundDagRelationalTest" Base="BoundDagTest">
+    <!--Check that the input is related to (equal, not equal, less, less or equal, greater, greater or equal) the given constant value (other than null).-->
+    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
+    <Field Name="Value" Type="ConstantValue" Null="disallow"/>
+  </Node>
   <!-- As a decision, an evaluation is considered to always succeed. -->
   <AbstractNode Name="BoundDagEvaluation" Base="BoundDagTest">
   </AbstractNode>

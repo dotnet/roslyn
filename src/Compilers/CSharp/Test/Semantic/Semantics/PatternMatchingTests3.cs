@@ -2162,5 +2162,38 @@ System.Int32";
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void Relational_01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        M1(-100);
+        M1(0);
+        M1(100);
+    }
+    static void M1(int i)
+    {
+        System.Console.WriteLine(i switch
+        {
+            <0 => ""negative"",
+            0 => ""zero"",
+            >0 => ""positive"",
+        });
+    }
+}
+";
+            var expectedOutput =
+@"negative
+zero
+positive";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
