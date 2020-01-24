@@ -8,11 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
@@ -21,24 +17,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     {
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly ClassificationTypeMap _classificationTypeMap;
-        private readonly IContentTypeRegistryService _contentTypeRegistryService;
-        private readonly IntellisenseTextBoxViewModelFactory _intellisenseTextBoxViewModelFactory;
-        private readonly IntellisenseTextBoxFactory _intellisenseTextBoxFactory;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioChangeSignatureOptionsService(
             IClassificationFormatMapService classificationFormatMapService,
-            ClassificationTypeMap classificationTypeMap,
-            IContentTypeRegistryService contentTypeRegistryService,
-            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory,
-            IntellisenseTextBoxFactory intellisenseTextBoxFactory)
+            ClassificationTypeMap classificationTypeMap)
         {
             _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
             _classificationTypeMap = classificationTypeMap;
-            _contentTypeRegistryService = contentTypeRegistryService;
-            _intellisenseTextBoxViewModelFactory = intellisenseTextBoxViewModelFactory;
-            _intellisenseTextBoxFactory = intellisenseTextBoxFactory;
         }
 
         public ChangeSignatureOptionsResult? GetChangeSignatureOptions(
@@ -61,27 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             if (result.HasValue && result.Value)
             {
                 return new ChangeSignatureOptionsResult(new SignatureChange(parameters, viewModel.GetParameterConfiguration()), previewChanges: viewModel.PreviewChanges);
-            }
-
-            return null;
-        }
-
-        public AddedParameter? GetAddedParameter(Document document, int insertPosition)
-        {
-            var languageService = document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
-            var viewModelsCreationTask = languageService.CreateViewModelsAsync(
-                _contentTypeRegistryService, _intellisenseTextBoxViewModelFactory, document, insertPosition);
-
-            var dialog = new AddParameterDialog(viewModelsCreationTask, _intellisenseTextBoxFactory, document.Project.Solution.Workspace.Services.GetService<INotificationService>(), document);
-            var result = dialog.ShowModal();
-
-            if (result.HasValue && result.Value)
-            {
-                var viewModel = dialog.ViewModel;
-                return new AddedParameter(
-                        viewModel.TypeName,
-                        viewModel.ParameterName,
-                        viewModel.CallSiteValue);
             }
 
             return null;

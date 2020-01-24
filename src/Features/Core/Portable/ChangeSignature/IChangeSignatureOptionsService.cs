@@ -21,13 +21,5 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             int insertPosition,
             ISymbol symbol,
             ParameterConfiguration parameters);
-
-        /// <summary>
-        /// Gets an added parameter (e.g. from the user input) and adds it to the change signature parameters.
-        /// </summary>
-        /// <param name="document">the context document</param>
-        /// <param name="insertPosition">the position in the document with the signature of the method</param>
-        /// <returns></returns>
-        AddedParameter? GetAddedParameter(Document document, int insertPosition);
     }
 }

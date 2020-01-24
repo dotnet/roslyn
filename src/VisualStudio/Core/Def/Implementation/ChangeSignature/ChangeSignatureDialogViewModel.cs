@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         // This can be changed to ParameterViewModel if we will allow adding 'params' parameter.
         private readonly ExistingParameterViewModel _paramsParameter;
         private HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
-        public readonly int InsertPosition;
+        private readonly int _insertPosition;
 
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         /// <summary>
         /// The document where the symbol we are changing signature is defined.
         /// </summary>
-        public readonly Document Document;
+        private readonly Document _document;
 
         internal ChangeSignatureDialogViewModel(
             ParameterConfiguration parameters,
@@ -52,8 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             ClassificationTypeMap classificationTypeMap)
         {
             _originalParameterConfiguration = parameters;
-            Document = document;
-            InsertPosition = insertPosition;
+            _document = document;
+            _insertPosition = insertPosition;
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
 
@@ -99,6 +99,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 this.SelectedIndex = selectedIndex;
             }
         }
+
+        public AddParameterDialogViewModel CreateAddParameterDialogViewModel()
+            => new AddParameterDialogViewModel(_document, _insertPosition);
 
         List<ParameterViewModel> CreateParameterViewModels(ImmutableArray<Parameter> parameters, ref int initialIndex)
         {
@@ -350,7 +353,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         break;
 
                     case AddedParameterViewModel addedParameterViewModel:
-                        var languageService = Document.GetLanguageService<IChangeSignatureViewModelFactoryService>();
+                        var languageService = _document.GetLanguageService<IChangeSignatureViewModelFactoryService>();
                         displayParts.AddRange(languageService.GeneratePreviewDisplayParts(addedParameterViewModel));
                         break;
 
