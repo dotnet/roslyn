@@ -8,11 +8,12 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
-    internal class SimpleIntervalTree<T> : IntervalTree<T>
+    internal class SimpleIntervalTree<T, TIntrospector> : IntervalTree<T, TIntrospector>
+        where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        private readonly IIntervalIntrospector<T> _introspector;
+        private readonly TIntrospector _introspector;
 
-        public SimpleIntervalTree(IIntervalIntrospector<T> introspector, IEnumerable<T> values)
+        public SimpleIntervalTree(in TIntrospector introspector, IEnumerable<T> values)
         {
             _introspector = introspector;
 
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
-        protected IIntervalIntrospector<T> Introspector => _introspector;
+        protected ref readonly TIntrospector Introspector => ref _introspector;
 
         /// <summary>
         /// Warning.  Mutates the tree in place.
@@ -34,40 +35,40 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public void AddIntervalInPlace(T value)
         {
             var newNode = new Node(value);
-            this.root = Insert(root, newNode, Introspector);
+            this.root = Insert(root, newNode, in Introspector);
         }
 
         public ImmutableArray<T> GetIntervalsThatOverlapWith(int start, int length)
-            => GetIntervalsThatOverlapWith(start, length, _introspector);
+            => GetIntervalsThatOverlapWith(start, length, in _introspector);
 
         public ImmutableArray<T> GetIntervalsThatIntersectWith(int start, int length)
-            => GetIntervalsThatIntersectWith(start, length, _introspector);
+            => GetIntervalsThatIntersectWith(start, length, in _introspector);
 
         public ImmutableArray<T> GetIntervalsThatContain(int start, int length)
-            => GetIntervalsThatContain(start, length, _introspector);
+            => GetIntervalsThatContain(start, length, in _introspector);
 
         public void FillWithIntervalsThatOverlapWith(int start, int length, ArrayBuilder<T> builder)
-            => FillWithIntervalsThatOverlapWith(start, length, builder, _introspector);
+            => FillWithIntervalsThatOverlapWith(start, length, builder, in _introspector);
 
         public void FillWithIntervalsThatIntersectWith(int start, int length, ArrayBuilder<T> builder)
-            => FillWithIntervalsThatIntersectWith(start, length, builder, _introspector);
+            => FillWithIntervalsThatIntersectWith(start, length, builder, in _introspector);
 
         public void FillWithIntervalsThatContain(int start, int length, ArrayBuilder<T> builder)
-            => FillWithIntervalsThatContain(start, length, builder, _introspector);
+            => FillWithIntervalsThatContain(start, length, builder, in _introspector);
 
         public bool HasIntervalThatIntersectsWith(int position)
-            => HasIntervalThatIntersectsWith(position, _introspector);
+            => HasIntervalThatIntersectsWith(position, in _introspector);
 
         public bool HasIntervalThatOverlapsWith(int start, int length)
-            => HasIntervalThatOverlapsWith(start, length, _introspector);
+            => HasIntervalThatOverlapsWith(start, length, in _introspector);
 
         public bool HasIntervalThatIntersectsWith(int start, int length)
-            => HasIntervalThatIntersectsWith(start, length, _introspector);
+            => HasIntervalThatIntersectsWith(start, length, in _introspector);
 
         public bool HasIntervalThatContains(int start, int length)
-            => HasIntervalThatContains(start, length, _introspector);
+            => HasIntervalThatContains(start, length, in _introspector);
 
         protected int MaxEndValue(Node node)
-            => GetEnd(node.MaxEndNode.Value, _introspector);
+            => GetEnd(node.MaxEndNode.Value, in _introspector);
     }
 }

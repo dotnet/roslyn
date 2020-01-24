@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     /// </summary>
     internal partial class TagSpanIntervalTree<TTag> where TTag : ITag
     {
-        private readonly IntervalTree<TagNode> _tree;
+        private readonly IntervalTree<TagNode, IntervalIntrospector> _tree;
         private readonly ITextBuffer _textBuffer;
         private readonly SpanTrackingMode _spanTrackingMode;
 

@@ -17,13 +17,14 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     /// [start, end).  It allows you to efficiently find all intervals that intersect or overlap 
     /// a provided interval.
     /// </summary>
-    internal partial class IntervalTree<T> : IEnumerable<T>
+    internal partial class IntervalTree<T, TIntrospector> : IEnumerable<T>
+        where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        public static readonly IntervalTree<T> Empty = new IntervalTree<T>();
+        public static readonly IntervalTree<T, TIntrospector> Empty = new IntervalTree<T, TIntrospector>();
 
         protected Node root;
 
-        private delegate bool TestInterval(T value, int start, int length, IIntervalIntrospector<T> introspector);
+        private delegate bool TestInterval(T value, int start, int length, in TIntrospector introspector);
         private static readonly TestInterval s_intersectsWithTest = IntersectsWith;
         private static readonly TestInterval s_containsTest = Contains;
         private static readonly TestInterval s_overlapsWithTest = OverlapsWith;
@@ -35,20 +36,20 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
         }
 
-        public IntervalTree(IIntervalIntrospector<T> introspector, IEnumerable<T> values)
+        public IntervalTree(in TIntrospector introspector, IEnumerable<T> values)
         {
             foreach (var value in values)
             {
-                root = Insert(root, new Node(value), introspector);
+                root = Insert(root, new Node(value), in introspector);
             }
         }
 
-        protected static bool Contains(T value, int start, int length, IIntervalIntrospector<T> introspector)
+        protected static bool Contains(T value, int start, int length, in TIntrospector introspector)
         {
             var otherStart = start;
             var otherEnd = start + length;
 
-            var thisEnd = GetEnd(value, introspector);
+            var thisEnd = GetEnd(value, in introspector);
             var thisStart = introspector.GetStart(value);
 
             // make sure "Contains" test to be same as what TextSpan does
@@ -60,23 +61,23 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return thisStart <= otherStart && otherEnd <= thisEnd;
         }
 
-        private static bool IntersectsWith(T value, int start, int length, IIntervalIntrospector<T> introspector)
+        private static bool IntersectsWith(T value, int start, int length, in TIntrospector introspector)
         {
             var otherStart = start;
             var otherEnd = start + length;
 
-            var thisEnd = GetEnd(value, introspector);
+            var thisEnd = GetEnd(value, in introspector);
             var thisStart = introspector.GetStart(value);
 
             return otherStart <= thisEnd && otherEnd >= thisStart;
         }
 
-        private static bool OverlapsWith(T value, int start, int length, IIntervalIntrospector<T> introspector)
+        private static bool OverlapsWith(T value, int start, int length, in TIntrospector introspector)
         {
             var otherStart = start;
             var otherEnd = start + length;
 
-            var thisEnd = GetEnd(value, introspector);
+            var thisEnd = GetEnd(value, in introspector);
             var thisStart = introspector.GetStart(value);
 
             if (length == 0)
@@ -90,40 +91,40 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return overlapStart < overlapEnd;
         }
 
-        public ImmutableArray<T> GetIntervalsThatOverlapWith(int start, int length, IIntervalIntrospector<T> introspector)
-            => this.GetIntervalsThatMatch(start, length, s_overlapsWithTest, introspector);
+        public ImmutableArray<T> GetIntervalsThatOverlapWith(int start, int length, in TIntrospector introspector)
+            => this.GetIntervalsThatMatch(start, length, s_overlapsWithTest, in introspector);
 
-        public ImmutableArray<T> GetIntervalsThatIntersectWith(int start, int length, IIntervalIntrospector<T> introspector)
-            => this.GetIntervalsThatMatch(start, length, s_intersectsWithTest, introspector);
+        public ImmutableArray<T> GetIntervalsThatIntersectWith(int start, int length, in TIntrospector introspector)
+            => this.GetIntervalsThatMatch(start, length, s_intersectsWithTest, in introspector);
 
-        public ImmutableArray<T> GetIntervalsThatContain(int start, int length, IIntervalIntrospector<T> introspector)
-            => this.GetIntervalsThatMatch(start, length, s_containsTest, introspector);
+        public ImmutableArray<T> GetIntervalsThatContain(int start, int length, in TIntrospector introspector)
+            => this.GetIntervalsThatMatch(start, length, s_containsTest, in introspector);
 
-        public void FillWithIntervalsThatOverlapWith(int start, int length, ArrayBuilder<T> builder, IIntervalIntrospector<T> introspector)
-            => this.FillWithIntervalsThatMatch(start, length, s_overlapsWithTest, builder, introspector, stopAfterFirst: false);
+        public void FillWithIntervalsThatOverlapWith(int start, int length, ArrayBuilder<T> builder, in TIntrospector introspector)
+            => this.FillWithIntervalsThatMatch(start, length, s_overlapsWithTest, builder, in introspector, stopAfterFirst: false);
 
-        public void FillWithIntervalsThatIntersectWith(int start, int length, ArrayBuilder<T> builder, IIntervalIntrospector<T> introspector)
-            => this.FillWithIntervalsThatMatch(start, length, s_intersectsWithTest, builder, introspector, stopAfterFirst: false);
+        public void FillWithIntervalsThatIntersectWith(int start, int length, ArrayBuilder<T> builder, in TIntrospector introspector)
+            => this.FillWithIntervalsThatMatch(start, length, s_intersectsWithTest, builder, in introspector, stopAfterFirst: false);
 
-        public void FillWithIntervalsThatContain(int start, int length, ArrayBuilder<T> builder, IIntervalIntrospector<T> introspector)
-            => this.FillWithIntervalsThatMatch(start, length, s_containsTest, builder, introspector, stopAfterFirst: false);
+        public void FillWithIntervalsThatContain(int start, int length, ArrayBuilder<T> builder, in TIntrospector introspector)
+            => this.FillWithIntervalsThatMatch(start, length, s_containsTest, builder, in introspector, stopAfterFirst: false);
 
-        public bool HasIntervalThatIntersectsWith(int position, IIntervalIntrospector<T> introspector)
-            => HasIntervalThatIntersectsWith(position, 0, introspector);
+        public bool HasIntervalThatIntersectsWith(int position, in TIntrospector introspector)
+            => HasIntervalThatIntersectsWith(position, 0, in introspector);
 
-        public bool HasIntervalThatIntersectsWith(int start, int length, IIntervalIntrospector<T> introspector)
-            => Any(start, length, s_intersectsWithTest, introspector);
+        public bool HasIntervalThatIntersectsWith(int start, int length, in TIntrospector introspector)
+            => Any(start, length, s_intersectsWithTest, in introspector);
 
-        public bool HasIntervalThatOverlapsWith(int start, int length, IIntervalIntrospector<T> introspector)
-            => Any(start, length, s_overlapsWithTest, introspector);
+        public bool HasIntervalThatOverlapsWith(int start, int length, in TIntrospector introspector)
+            => Any(start, length, s_overlapsWithTest, in introspector);
 
-        public bool HasIntervalThatContains(int start, int length, IIntervalIntrospector<T> introspector)
-            => Any(start, length, s_containsTest, introspector);
+        public bool HasIntervalThatContains(int start, int length, in TIntrospector introspector)
+            => Any(start, length, s_containsTest, in introspector);
 
-        private bool Any(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
+        private bool Any(int start, int length, TestInterval testInterval, in TIntrospector introspector)
         {
             var builder = ArrayBuilder<T>.GetInstance();
-            FillWithIntervalsThatMatch(start, length, testInterval, builder, introspector, stopAfterFirst: true);
+            FillWithIntervalsThatMatch(start, length, testInterval, builder, in introspector, stopAfterFirst: true);
 
             var result = builder.Count > 0;
             builder.Free();
@@ -131,16 +132,16 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         }
 
         private ImmutableArray<T> GetIntervalsThatMatch(
-            int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
+            int start, int length, TestInterval testInterval, in TIntrospector introspector)
         {
             var result = ArrayBuilder<T>.GetInstance();
-            FillWithIntervalsThatMatch(start, length, testInterval, result, introspector, stopAfterFirst: false);
+            FillWithIntervalsThatMatch(start, length, testInterval, result, in introspector, stopAfterFirst: false);
             return result.ToImmutableAndFree();
         }
 
         private void FillWithIntervalsThatMatch(
             int start, int length, TestInterval testInterval,
-            ArrayBuilder<T> builder, IIntervalIntrospector<T> introspector,
+            ArrayBuilder<T> builder, in TIntrospector introspector,
             bool stopAfterFirst)
         {
             if (root == null)
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             FillWithIntervalsThatMatch(
                 start, length, testInterval,
-                builder, introspector,
+                builder, in introspector,
                 stopAfterFirst, candidates);
 
             s_stackPool.ClearAndFree(candidates);
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         private void FillWithIntervalsThatMatch(
             int start, int length, TestInterval testInterval,
-            ArrayBuilder<T> builder, IIntervalIntrospector<T> introspector,
+            ArrayBuilder<T> builder, in TIntrospector introspector,
             bool stopAfterFirst, Stack<(Node node, bool firstTime)> candidates)
         {
             var end = start + length;
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 {
                     // We're seeing this node for the second time (as we walk back up the left
                     // side of it).  Now see if it matches our test, and if so return it out.
-                    if (testInterval(currentNode.Value, start, length, introspector))
+                    if (testInterval(currentNode.Value, start, length, in introspector))
                     {
                         builder.Add(currentNode.Value);
 
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     if (introspector.GetStart(currentNode.Value) <= end)
                     {
                         var right = currentNode.Right;
-                        if (right != null && GetEnd(right.MaxEndNode.Value, introspector) >= start)
+                        if (right != null && GetEnd(right.MaxEndNode.Value, in introspector) >= start)
                         {
                             candidates.Push((right, firstTime: true));
                         }
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     // only if left's maxVal overlaps with interval's start, we should consider 
                     // left subtree
                     var left = currentNode.Left;
-                    if (left != null && GetEnd(left.MaxEndNode.Value, introspector) >= start)
+                    if (left != null && GetEnd(left.MaxEndNode.Value, in introspector) >= start)
                     {
                         candidates.Push((left, firstTime: true));
                     }
@@ -223,13 +224,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         public bool IsEmpty() => this.root == null;
 
-        protected static Node Insert(Node root, Node newNode, IIntervalIntrospector<T> introspector)
+        protected static Node Insert(Node root, Node newNode, in TIntrospector introspector)
         {
             var newNodeStart = introspector.GetStart(newNode.Value);
-            return Insert(root, newNode, newNodeStart, introspector);
+            return Insert(root, newNode, newNodeStart, in introspector);
         }
 
-        private static Node Insert(Node root, Node newNode, int newNodeStart, IIntervalIntrospector<T> introspector)
+        private static Node Insert(Node root, Node newNode, int newNodeStart, in TIntrospector introspector)
         {
             if (root == null)
             {
@@ -240,22 +241,22 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             if (newNodeStart < introspector.GetStart(root.Value))
             {
-                newLeft = Insert(root.Left, newNode, newNodeStart, introspector);
+                newLeft = Insert(root.Left, newNode, newNodeStart, in introspector);
                 newRight = root.Right;
             }
             else
             {
                 newLeft = root.Left;
-                newRight = Insert(root.Right, newNode, newNodeStart, introspector);
+                newRight = Insert(root.Right, newNode, newNodeStart, in introspector);
             }
 
-            root.SetLeftRight(newLeft, newRight, introspector);
+            root.SetLeftRight(newLeft, newRight, in introspector);
             var newRoot = root;
 
-            return Balance(newRoot, introspector);
+            return Balance(newRoot, in introspector);
         }
 
-        private static Node Balance(Node node, IIntervalIntrospector<T> introspector)
+        private static Node Balance(Node node, in TIntrospector introspector)
         {
             var balanceFactor = BalanceFactor(node);
             if (balanceFactor == -2)
@@ -263,12 +264,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 var rightBalance = BalanceFactor(node.Right);
                 if (rightBalance == -1)
                 {
-                    return node.LeftRotation(introspector);
+                    return node.LeftRotation(in introspector);
                 }
                 else
                 {
                     Debug.Assert(rightBalance == 1);
-                    return node.InnerRightOuterLeftRotation(introspector);
+                    return node.InnerRightOuterLeftRotation(in introspector);
                 }
             }
             else if (balanceFactor == 2)
@@ -276,12 +277,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 var leftBalance = BalanceFactor(node.Left);
                 if (leftBalance == 1)
                 {
-                    return node.RightRotation(introspector);
+                    return node.RightRotation(in introspector);
                 }
                 else
                 {
                     Debug.Assert(leftBalance == -1);
-                    return node.InnerLeftOuterRightRotation(introspector);
+                    return node.InnerLeftOuterRightRotation(in introspector);
                 }
             }
 
@@ -322,11 +323,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         IEnumerator IEnumerable.GetEnumerator()
             => this.GetEnumerator();
 
-        protected static int GetEnd(T value, IIntervalIntrospector<T> introspector)
+        protected static int GetEnd(T value, in TIntrospector introspector)
             => introspector.GetStart(value) + introspector.GetLength(value);
 
-        protected static int MaxEndValue(Node node, IIntervalIntrospector<T> arg)
-            => node == null ? 0 : GetEnd(node.MaxEndNode.Value, arg);
+        protected static int MaxEndValue(Node node, in TIntrospector introspector)
+            => node == null ? 0 : GetEnd(node.MaxEndNode.Value, in introspector);
 
         private static int Height(Node node)
             => node == null ? 0 : node.Height;

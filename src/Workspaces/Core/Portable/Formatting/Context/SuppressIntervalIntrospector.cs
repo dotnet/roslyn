@@ -6,16 +6,10 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal class SuppressIntervalIntrospector :
+    internal readonly struct SuppressIntervalIntrospector :
         IIntervalIntrospector<SuppressSpacingData>,
         IIntervalIntrospector<SuppressWrappingData>
     {
-        public static readonly SuppressIntervalIntrospector Instance = new SuppressIntervalIntrospector();
-
-        private SuppressIntervalIntrospector()
-        {
-        }
-
         int IIntervalIntrospector<SuppressSpacingData>.GetStart(SuppressSpacingData value)
         {
             return value.TextSpan.Start;

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public abstract IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules();
 
-        protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan> formattingSpans = null);
+        protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> formattingSpans = null);
 
         protected abstract AbstractFormattingResult Format(SyntaxNode node, OptionSet options, IEnumerable<AbstractFormattingRule> rules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken);
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // more expensive case
             var result = Format(node, options, rules, pair.Item1, pair.Item2, cancellationToken);
-            return CreateAggregatedFormattingResult(node, new List<AbstractFormattingResult>(1) { result }, SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, spanToFormat));
+            return CreateAggregatedFormattingResult(node, new List<AbstractFormattingResult>(1) { result }, SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), spanToFormat));
         }
 
         private IFormattingResult FormatIndividually(
