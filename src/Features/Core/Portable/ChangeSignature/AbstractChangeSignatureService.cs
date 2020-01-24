@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 symbol.IsExtensionMethod(), selectedIndex);
 
             return new ChangeSignatureAnalyzedSucceedContext(
-                document, insertPositionOpt.Value, symbol, parameterConfiguration);
+                declarationDocument ?? document, insertPositionOpt.Value, symbol, parameterConfiguration);
         }
 
         private async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedSucceedContext context, CancellationToken cancellationToken)

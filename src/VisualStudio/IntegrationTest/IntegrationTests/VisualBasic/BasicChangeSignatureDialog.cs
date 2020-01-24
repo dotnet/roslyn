@@ -249,5 +249,61 @@ Class C
     End Sub
 End Class", actualText);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public void VerifyAddParametersAcrossLanguages()
+        {
+            SetUpEditor(@"
+Class VBTest
+    Sub TestMethod()
+        Dim x As New CSharpClass
+        x.Method$$(0, ""str"", 3.0)
+    End Sub
+End Class");
+            var csharpProject = new ProjectUtils.Project("CSharpProject");
+            VisualStudio.SolutionExplorer.AddProject(csharpProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
+            VisualStudio.Editor.SetText(@"
+public class CSharpClass
+{
+    public int Method(int a, string b, double c)
+    {
+        return 1;
+    }
+}");
+            VisualStudio.SolutionExplorer.SaveAll();
+            var project = new ProjectUtils.Project(ProjectName);
+            var csharpProjectReference = new ProjectUtils.ProjectReference("CSharpProject");
+            VisualStudio.SolutionExplorer.AddProjectReference(project, csharpProjectReference);
+            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.vb");
+
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+
+            ChangeSignatureDialog.Invoke();
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.ClickAddButton();
+
+            AddParameterDialog.VerifyOpen();
+            AddParameterDialog.FillTypeField("string");
+            AddParameterDialog.FillNameField("d");
+            AddParameterDialog.FillCallSiteField(@"""str2""");
+            AddParameterDialog.ClickOK();
+            AddParameterDialog.VerifyClosed();
+
+            ChangeSignatureDialog.ClickOK();
+            ChangeSignatureDialog.VerifyClosed();
+            var actualText = VisualStudio.Editor.GetText();
+            Assert.Contains(@"x.Method(0, ""str"", 3.0, ""str2"")", actualText);
+            VisualStudio.SolutionExplorer.OpenFile(csharpProject, "Class1.cs");
+            actualText = VisualStudio.Editor.GetText();
+            var expectedText = @"
+public class CSharpClass
+{
+    public int Method(int a, string b, double c, string d)
+    {
+        return 1;
+    }
+}";
+            Assert.Contains(expectedText, actualText);
+        }
     }
 }

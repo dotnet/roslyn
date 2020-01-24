@@ -523,7 +523,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 attributeLists:=SyntaxFactory.List(Of AttributeListSyntax)(),
                 modifiers:=SyntaxFactory.TokenList(),
                 identifier:=SyntaxFactory.ModifiedIdentifier(addedParameter.ParameterName),
-                asClause:=SyntaxFactory.SimpleAsClause(SyntaxFactory.ParseTypeName(addedParameter.TypeName).WithTrailingTrivia(SyntaxFactory.ElasticSpace)),
+                asClause:=SyntaxFactory.SimpleAsClause(SyntaxFactory.ParseTypeName(addedParameter.TypeName).WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace)).WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace),
                 [default]:=Nothing)
         End Function
 

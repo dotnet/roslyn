@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
@@ -278,6 +279,63 @@ class C
 {
     public void Method(int a, string b) { }
 }", actualText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public void VerifyAddParametersAcrossLanguages()
+        {
+            SetUpEditor(@"
+using VBProject;
+
+class CSharpTest
+{
+    public void TestMethod()
+    {
+        VBClass x = new VBClass();
+        x.Method$$(0, ""str"", 3.0);
+    }
+}");
+            var vbProject = new ProjectUtils.Project("VBProject");
+            VisualStudio.SolutionExplorer.AddProject(vbProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
+            VisualStudio.Editor.SetText(@"
+Public Class VBClass
+    Public Function Method(a As Integer, b As String, c As Double) As Integer
+        Return 1
+    End Function
+End Class
+");
+            VisualStudio.SolutionExplorer.SaveAll();
+            var project = new ProjectUtils.Project(ProjectName);
+            var vbProjectReference = new ProjectUtils.ProjectReference("VBProject");
+            VisualStudio.SolutionExplorer.AddProjectReference(project, vbProjectReference);
+            VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
+
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+
+            ChangeSignatureDialog.Invoke();
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.ClickAddButton();
+
+            AddParameterDialog.VerifyOpen();
+            AddParameterDialog.FillTypeField("String");
+            AddParameterDialog.FillNameField("d");
+            AddParameterDialog.FillCallSiteField(@"""str2""");
+            AddParameterDialog.ClickOK();
+            AddParameterDialog.VerifyClosed();
+
+            ChangeSignatureDialog.ClickOK();
+            ChangeSignatureDialog.VerifyClosed();
+            var actualText = VisualStudio.Editor.GetText();
+            Assert.Contains(@"x.Method(0, ""str"", 3.0, ""str2"")", actualText);
+            VisualStudio.SolutionExplorer.OpenFile(vbProject, "Class1.vb");
+            actualText = VisualStudio.Editor.GetText();
+            var expectedText = @"
+Public Class VBClass
+    Public Function Method(a As Integer, b As String, c As Double, d As String) As Integer
+        Return 1
+    End Function
+End Class";
+            Assert.Contains(expectedText, actualText);
         }
     }
 }
