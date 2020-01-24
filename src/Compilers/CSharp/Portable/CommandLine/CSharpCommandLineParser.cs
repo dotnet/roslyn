@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var unquoted = RemoveQuotesAndSlashes(value);
 
-                        if (string.IsNullOrEmpty(unquoted))
+                        if (RoslynString.IsNullOrEmpty(unquoted))
                         {
                             AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
                         }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "d":
                         case "define":
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
                                 continue;
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "checksumalgorithm":
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
                                 continue;
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "instrument":
                             value = RemoveQuotesAndSlashes(value);
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
                             }
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "preferreduilang":
                             value = RemoveQuotesAndSlashes(value);
 
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
                                 continue;
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "out":
-                            if (string.IsNullOrWhiteSpace(value))
+                            if (RoslynString.IsNullOrWhiteSpace(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
                             }
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "refout":
                             value = RemoveQuotesAndSlashes(value);
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
                             }
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break; // force 'unrecognized option'
                             }
 
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.FTL_InvalidTarget);
                             }
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "moduleassemblyname":
                             value = value != null ? value.Unquote() : null;
 
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
                             }
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "platform":
                             value = RemoveQuotesAndSlashes(value);
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<string>", arg);
                             }
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 break; // force 'unrecognized option'
                             }
-                            else if (string.IsNullOrEmpty(value))
+                            else if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
                             }
@@ -581,13 +581,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "doc":
                             parseDocumentationComments = true;
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
                                 continue;
                             }
-                            string unquoted = RemoveQuotesAndSlashes(value);
-                            if (string.IsNullOrEmpty(unquoted))
+                            string? unquoted = RemoveQuotesAndSlashes(value);
+                            if (RoslynString.IsNullOrEmpty(unquoted))
                             {
                                 // CONSIDER: This diagnostic exactly matches dev11, but it would be simpler (and more consistent with /out)
                                 // if we just let the next case handle /doc:"".
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "sourcelink":
                             value = RemoveQuotesAndSlashes(value);
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
                             }
@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "langversion":
                             value = RemoveQuotesAndSlashes(value);
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "/langversion:");
                             }
@@ -1028,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ulong newBaseAddress;
                             if (string.IsNullOrEmpty(value) || !TryParseUInt64(value, out newBaseAddress))
                             {
-                                if (string.IsNullOrEmpty(value))
+                                if (RoslynString.IsNullOrEmpty(value))
                                 {
                                     AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
                                 }
@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "subsystemversion":
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "subsystemversion");
                                 continue;
@@ -1128,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             value = RemoveQuotesAndSlashes(value);
 
                             ushort newAlignment;
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
                             }
@@ -1148,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "pdb":
                             value = RemoveQuotesAndSlashes(value);
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
                             }
@@ -1186,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "errorlog":
                             unquoted = RemoveQuotesAndSlashes(value);
-                            if (string.IsNullOrEmpty(unquoted))
+                            if (RoslynString.IsNullOrEmpty(unquoted))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ErrorLogOptionFormat, RemoveQuotesAndSlashes(arg));
                             }
@@ -1202,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "appconfig":
                             unquoted = RemoveQuotesAndSlashes(value);
-                            if (string.IsNullOrEmpty(unquoted))
+                            if (RoslynString.IsNullOrEmpty(unquoted))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<text>", RemoveQuotesAndSlashes(arg));
                             }
@@ -1228,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "additionalfile":
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<file list>", name);
                                 continue;
@@ -1241,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "analyzerconfig":
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<file list>", name);
                                 continue;
@@ -1251,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "embed":
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 embedAllSourceFiles = true;
                                 continue;

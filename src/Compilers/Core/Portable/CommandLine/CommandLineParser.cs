@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             return !string.IsNullOrEmpty(arg) && (arg[0] == '/' || arg[0] == '-');
         }
 
-        internal static bool TryParseOption(string arg, [NotNullWhen(true)] out string? name, [NotNullWhen(true)] out string? value)
+        internal static bool TryParseOption(string arg, [NotNullWhen(true)] out string? name, out string? value)
         {
             if (!IsOption(arg))
             {
