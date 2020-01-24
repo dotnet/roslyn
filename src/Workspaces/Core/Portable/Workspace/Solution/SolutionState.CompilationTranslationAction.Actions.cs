@@ -88,25 +88,33 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal sealed class ProjectCompilationOptionsAction : SimpleCompilationTranslationAction<CompilationOptions>
+            internal sealed class ProjectCompilationOptionsAction : CompilationTranslationAction
             {
-                private static readonly Func<Compilation, CompilationOptions, CancellationToken, Task<Compilation>> s_action =
-                    (o, d, c) => Task.FromResult(o.WithOptions(d));
+                private readonly CompilationOptions _options;
 
-                public ProjectCompilationOptionsAction(CompilationOptions option)
-                    : base(option, s_action)
+                public ProjectCompilationOptionsAction(CompilationOptions options)
                 {
+                    _options = options;
+                }
+
+                public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                {
+                    return Task.FromResult(oldCompilation.WithOptions(_options));
                 }
             }
 
-            internal sealed class ProjectAssemblyNameAction : SimpleCompilationTranslationAction<string>
+            internal sealed class ProjectAssemblyNameAction : CompilationTranslationAction
             {
-                private static readonly Func<Compilation, string, CancellationToken, Task<Compilation>> s_action =
-                    (o, d, c) => Task.FromResult(o.WithAssemblyName(d));
+                private readonly string _assemblyName;
 
                 public ProjectAssemblyNameAction(string assemblyName)
-                    : base(assemblyName, s_action)
                 {
+                    _assemblyName = assemblyName;
+                }
+
+                public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                {
+                    return Task.FromResult(oldCompilation.WithAssemblyName(_assemblyName));
                 }
             }
 
