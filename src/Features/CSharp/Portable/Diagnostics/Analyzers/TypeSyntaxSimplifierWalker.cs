@@ -49,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? _ignoredSpans;
         private readonly CancellationToken _cancellationToken;
 
+        private List<Diagnostic>? _diagnostics;
+
         /// <summary>
         /// Set of type and namespace names that have an alias associated with them.  i.e. if the
         /// user has <c>using X = System.DateTime</c>, then <c>DateTime</c> will be in this set.
@@ -57,7 +59,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         /// </summary>
         private readonly ImmutableHashSet<string> _aliasedNames;
 
-        public List<Diagnostic> Diagnostics { get; } = new List<Diagnostic>();
+        public bool HasDiagnostics => _diagnostics?.Count > 0;
+
+        public List<Diagnostic> Diagnostics
+        {
+            get
+            {
+                if (_diagnostics is null)
+                    Interlocked.CompareExchange(ref _diagnostics, new List<Diagnostic>(), null);
+
+                return _diagnostics;
+            }
+        }
 
         public TypeSyntaxSimplifierWalker(CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SemanticModel semanticModel, OptionSet optionSet, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? ignoredSpans, CancellationToken cancellationToken)
             : base(SyntaxWalkerDepth.StructuredTrivia)

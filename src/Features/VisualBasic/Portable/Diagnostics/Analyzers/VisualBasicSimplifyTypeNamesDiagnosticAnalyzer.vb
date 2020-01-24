@@ -35,6 +35,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
             Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, ignoredSpans:=Nothing, cancellationToken)
             simplifier.Visit(context.CodeBlock)
+            If Not simplifier.HasDiagnostics Then
+                Return
+            End If
 
             For Each diagnostic In simplifier.Diagnostics
                 context.ReportDiagnostic(diagnostic)
@@ -52,6 +55,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
             Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, ignoredSpans:=codeBlockIntervalTree, cancellationToken)
             simplifier.Visit(root)
+            If Not simplifier.HasDiagnostics Then
+                Return
+            End If
 
             For Each diagnostic In simplifier.Diagnostics
                 context.ReportDiagnostic(diagnostic)

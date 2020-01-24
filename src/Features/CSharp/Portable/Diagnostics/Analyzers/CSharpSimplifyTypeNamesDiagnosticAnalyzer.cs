@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
             var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, ignoredSpans: null, cancellationToken);
             simplifier.Visit(context.CodeBlock);
+            if (!simplifier.HasDiagnostics)
+                return;
 
             foreach (var diagnostic in simplifier.Diagnostics)
             {
@@ -61,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
             var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, ignoredSpans: codeBlockIntervalTree, cancellationToken);
             simplifier.Visit(root);
+            if (!simplifier.HasDiagnostics)
+                return;
 
             foreach (var diagnostic in simplifier.Diagnostics)
             {

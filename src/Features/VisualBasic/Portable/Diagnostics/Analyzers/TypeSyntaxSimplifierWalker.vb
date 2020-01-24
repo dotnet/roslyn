@@ -40,6 +40,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         Private ReadOnly _ignoredSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
         Private ReadOnly _cancellationToken As CancellationToken
 
+        Private _diagnostics As List(Of Diagnostic)
+
         ''' <summary>
         ''' Set of type and namespace names that have an alias associated with them.  i.e. if the
         ''' user has <c>Imports X = System.DateTime</c>, then <c>DateTime</c> will be in this set.
@@ -48,7 +50,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         ''' </summary>
         Private ReadOnly _aliasedNames As ImmutableHashSet(Of String)
 
-        Public ReadOnly Property Diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
+        Public ReadOnly Property HasDiagnostics As Boolean
+            Get
+                Return _diagnostics IsNot Nothing AndAlso _diagnostics.Count > 0
+            End Get
+        End Property
+
+        Public ReadOnly Property Diagnostics As List(Of Diagnostic)
+            Get
+                If _diagnostics Is Nothing Then
+                    Interlocked.CompareExchange(_diagnostics, New List(Of Diagnostic)(), Nothing)
+                End If
+
+                Return _diagnostics
+            End Get
+        End Property
 
         Public Sub New(analyzer As VisualBasicSimplifyTypeNamesDiagnosticAnalyzer, semanticModel As SemanticModel, optionSet As OptionSet, ignoredSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector), cancellationToken As CancellationToken)
             MyBase.New(SyntaxWalkerDepth.StructuredTrivia)
