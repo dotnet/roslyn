@@ -462,7 +462,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression != null)
             {
                 // If necessary, add a conversion on the return expression.
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                var useSiteInfo =
+#if DEBUG
+                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
+#else
+                    CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+#endif 
                 var conversion = Compilation.Conversions.ClassifyConversionFromType(expression.Type, CurrentFunction.ReturnType, ref useSiteInfo);
                 Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());
                 Debug.Assert(conversion.Kind != ConversionKind.NoConversion);
@@ -1181,7 +1186,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return arg;
             }
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            var useSiteInfo =
+#if DEBUG
+                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
+#else
+                    CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+#endif 
             Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, ref useSiteInfo);
             Debug.Assert(c.Exists);
             Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());

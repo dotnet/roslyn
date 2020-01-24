@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 idisposableTypeSymbol = disposeMethod.ContainingType;
                 var conversions = new TypeConversions(_factory.CurrentFunction.ContainingAssembly.CorLibrary);
 
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
                 isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteInfo).IsImplicit;
                 _diagnostics.Add(forEachSyntax, useSiteInfo);
             }

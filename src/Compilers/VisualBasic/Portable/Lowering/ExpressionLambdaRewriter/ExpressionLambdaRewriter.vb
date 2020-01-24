@@ -821,7 +821,7 @@ lSelect:
             Dim group As BoundMethodGroup = Nothing
             Dim result = LookupResult.GetInstance()
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = _binder.GetNewCompoundUseSiteInfo(Me.Diagnostics)
             _binder.LookupMember(result,
                                  Me._expressionType,
                                  methodName,

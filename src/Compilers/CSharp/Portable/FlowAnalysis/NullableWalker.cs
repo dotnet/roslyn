@@ -4326,7 +4326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             UnboundLambda getUnboundLambda(BoundLambda expr, VariableState variableState)
             {
-                return expr.UnboundLambda.WithNullableState(expr.UnboundLambda.Data.Binder, variableState);
+                return expr.UnboundLambda.WithNullableState(variableState);
             }
         }
 
@@ -4347,7 +4347,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 diagnosticsBuilder,
                 nullabilityBuilder,
-                ref useSiteDiagnosticsBuilder);
+                ref useSiteDiagnosticsBuilder,
+                template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
             foreach (var pair in nullabilityBuilder)
             {
                 if (pair.UseSiteInfo.DiagnosticInfo is object)

@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                  ByRef instanceInitializers As ArrayBuilder(Of FieldOrPropertyInitializer),
                                  diagBag As BindingDiagnosticBag)
 
-            Debug.Assert(diagBag.DiagnosticBag IsNot Nothing)
+            Debug.Assert(diagBag.AccumulatesDiagnostics)
             ' Decode the flags.
 
             Dim validFlags = SourceMemberFlags.AllAccessibilityModifiers Or

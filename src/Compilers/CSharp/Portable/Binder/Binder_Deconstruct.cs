@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var single = variable.Single;
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     nestedConversion = this.Conversions.ClassifyConversionFromType(tupleOrDeconstructedTypes[i], single.Type, ref useSiteInfo);
                     diagnostics.Add(single.Syntax, useSiteInfo);
 

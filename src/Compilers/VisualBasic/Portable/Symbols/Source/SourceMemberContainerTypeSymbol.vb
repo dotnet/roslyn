@@ -2530,7 +2530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     ByRef instanceInitializers As ArrayBuilder(Of FieldOrPropertyInitializer),
                                     reportAsInvalid As Boolean)
 
-            Debug.Assert(diagBag.DiagnosticBag IsNot Nothing)
+            Debug.Assert(diagBag.AccumulatesDiagnostics)
             ' Partial methods are implemented by a postpass that matches up the declaration with the implementation.
             ' Here we treat them as independent methods.
 
@@ -2856,7 +2856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     ' Set up a binder.
                                     baseBinder = If(baseBinder, BinderBuilder.CreateBinderForType(m_containingModule, methodStatement.SyntaxTree, Me))
 
-                                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                                    Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, m_containingModule.ContainingAssembly)
                                     eventSym = SourceMemberMethodSymbol.FindEvent(Me.BaseTypeNoUseSiteDiagnostics, baseBinder, eventName, isThroughMyBase:=True, useSiteInfo:=useSiteInfo)
                                     diagBag.Add(handlesClause.EventMember, useSiteInfo)
                                 End If
@@ -3606,7 +3606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim opInfo As OverloadResolution.OperatorInfo = OverloadResolution.GetOperatorInfo(method.Name)
 
-            If Not OverloadResolution.ValidateOverloadedOperator(method, opInfo, diagnostics) Then
+            If Not OverloadResolution.ValidateOverloadedOperator(method, opInfo, diagnostics, ContainingAssembly) Then
                 ' Malformed operator, but still an operator.
                 Return True
             End If
@@ -3914,7 +3914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Interface1 and Interface2 have variable ambiguity. Report the warning in the correct location.
         ''' </summary>
         Private Sub ReportVarianceAmbiguityWarning(diagnostics As BindingDiagnosticBag, interface1 As NamedTypeSymbol, interface2 As NamedTypeSymbol)
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, ContainingAssembly)
             Dim hasVarianceAmbiguity As Boolean = VarianceAmbiguity.HasVarianceAmbiguity(Me, interface1, interface2, useSiteInfo)
 
             If hasVarianceAmbiguity OrElse Not useSiteInfo.Diagnostics.IsNullOrEmpty Then

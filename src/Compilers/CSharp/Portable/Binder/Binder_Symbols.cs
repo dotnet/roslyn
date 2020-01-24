@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool wasError;
                 var plainName = node.Identifier.ValueText;
                 var result = LookupResult.GetInstance();
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 this.LookupSymbolsWithFallback(result, plainName, 0, ref useSiteInfo, null, LookupOptions.NamespaceAliasesOnly);
                 diagnostics.Add(node, useSiteInfo);
 
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the tuple type with names is bound we must have the TupleElementNamesAttribute to emit
                 // it is typically there though, if we have ValueTuple at all
-                var bag = BindingDiagnosticBag.GetInstance();
+                var bag = BindingDiagnosticBag.GetInstance(diagnostics);
                 if (!Compilation.HasTupleNamesAttributes(bag, syntax.Location))
                 {
                     var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = LookupResult.GetInstance();
             LookupOptions options = GetSimpleNameLookupOptions(node, node.Identifier.IsVerbatimIdentifier());
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 
@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.IsTypeInContextWhichNeedsDynamicAttribute())
             {
-                var bag = BindingDiagnosticBag.GetInstance();
+                var bag = BindingDiagnosticBag.GetInstance(diagnostics);
                 if (!Compilation.HasDynamicEmitAttributes(bag, node.Location))
                 {
                     // CONSIDER:    Native compiler reports error CS1980 for each syntax node which binds to dynamic type, we do the same by reporting a diagnostic here.
@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var lookupResult = LookupResult.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsSimpleName(lookupResult, qualifierOpt, plainName, arity, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 

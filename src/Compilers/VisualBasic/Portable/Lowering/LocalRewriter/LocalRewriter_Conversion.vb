@@ -421,7 +421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf operandType.IsStringType Then
                     ' CType(string, T?) ---> new T?(CType(string, T))
                     Dim innerTargetType = resultType.GetNullableUnderlyingType
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                     Dim convKind = Conversions.ClassifyConversion(rewrittenOperand.Type, innerTargetType, useSiteInfo).Key
                     Debug.Assert(Conversions.ConversionExists(convKind))
                     _diagnostics.Add(node, useSiteInfo)
@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If HasValue(rewrittenOperand) Then
                         ' DirectCast(operand.GetValueOrDefault, operatorType)
                         Dim unwrappedOperand = NullableValueOrDefault(rewrittenOperand)
-                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                         Dim convKind = Conversions.ClassifyDirectCastConversion(unwrappedOperand.Type, resultType, useSiteInfo)
                         Debug.Assert(Conversions.ConversionExists(convKind))
                         _diagnostics.Add(node, useSiteInfo)
@@ -513,6 +513,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return FinishRewriteNullableConversion(node, resultType, result, operandHasValue, temps, inits)
         End Function
 
+        Private Function GetNewCompoundUseSiteInfo() As CompoundUseSiteInfo(Of AssemblySymbol)
+            Return New CompoundUseSiteInfo(Of AssemblySymbol)(_diagnostics, Me.Compilation.Assembly)
+        End Function
+
         Private Function FinishRewriteNullableConversion(
             node As BoundConversion,
             resultType As TypeSymbol,
@@ -527,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' apply unlifted conversion
             If Not operand.Type.IsSameTypeIgnoringAll(unwrappedResultType) Then
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                 Dim convKind = Conversions.ClassifyConversion(operand.Type, unwrappedResultType, useSiteInfo).Key
                 Debug.Assert(Conversions.ConversionExists(convKind))
                 Debug.Assert((convKind And ConversionKind.Tuple) = (node.ConversionKind And ConversionKind.Tuple))
@@ -596,7 +600,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If operandType.IsStringType Then
                 ' CType(string, T?) ---> new T?(CType(string, T))
                 Dim innerTargetType = resultType.GetNullableUnderlyingType
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                 Dim convKind = Conversions.ClassifyConversion(operandType, innerTargetType, useSiteInfo).Key
                 Debug.Assert(Conversions.ConversionExists(convKind))
                 _diagnostics.Add(node, useSiteInfo)
@@ -619,7 +623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' is not null-propagating
 
                 rewrittenOperand = NullableValue(rewrittenOperand)
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                 Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenOperand.Type, resultType, useSiteInfo)
                 Debug.Assert(Conversions.ConversionExists(convKind))
                 _diagnostics.Add(node, useSiteInfo)
@@ -646,7 +650,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If HasValue(rewrittenOperand) Then
                     ' DirectCast(operand.GetValueOrDefault, operatorType)
                     Dim unwrappedOperand = NullableValueOrDefault(rewrittenOperand)
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                     Dim convKind = Conversions.ClassifyDirectCastConversion(unwrappedOperand.Type, resultType, useSiteInfo)
                     Debug.Assert(Conversions.ConversionExists(convKind))
                     _diagnostics.Add(node, useSiteInfo)
@@ -660,7 +664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If resultType.IsNullableType Then
                 ' RefType --> T? , this is just an unboxing conversion.
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                 Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenOperand.Type, resultType, useSiteInfo)
                 Debug.Assert(Conversions.ConversionExists(convKind))
                 _diagnostics.Add(node, useSiteInfo)
@@ -885,7 +889,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not operand.Type.IsObjectType() Then
                     Dim objectType As TypeSymbol = memberSymbol.Parameters(0).Type
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                     operand = New BoundDirectCast(operand.Syntax,
                                                   operand,
                                                   Conversions.ClassifyDirectCastConversion(operand.Type, objectType, useSiteInfo),
@@ -960,7 +964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(operand.Type.IsReferenceType)
                         Debug.Assert(underlyingTypeTo.IsIntrinsicValueType())
 
-                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                         operand = New BoundDirectCast(operand.Syntax,
                                                       operand,
                                                       Conversions.ClassifyDirectCastConversion(operand.Type, typeFrom, useSiteInfo),

@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag = diagnosticBag;
         }
 
+        internal bool AccumulatesDiagnostics => DiagnosticBag is object;
+
         internal void AddRange<T>(ImmutableArray<T> diagnostics) where T : Diagnostic
         {
             DiagnosticBag?.AddRange(diagnostics);
@@ -69,6 +71,8 @@ namespace Microsoft.CodeAnalysis
             : this(usePool ? DiagnosticBag.GetInstance() : new DiagnosticBag(), usePool ? PooledHashSet<TAssemblySymbol>.GetInstance() : new HashSet<TAssemblySymbol>())
         { }
 
+        internal bool AccumulatesDependencies => DependenciesBag is object;
+
         internal void Free()
         {
             DiagnosticBag?.Free();
@@ -99,17 +103,19 @@ namespace Microsoft.CodeAnalysis
             DependenciesBag?.Clear();
         }
 
-        internal void AddRange(ImmutableBindingDiagnostic<TAssemblySymbol> other)
+        internal void AddRange(ImmutableBindingDiagnostic<TAssemblySymbol> other, bool allowMismatchInDependencyAccumulation = false)
         {
             AddRange(other.Diagnostics);
+            Debug.Assert(allowMismatchInDependencyAccumulation || other.Dependencies.IsDefaultOrEmpty || this.AccumulatesDependencies || !this.AccumulatesDiagnostics);
             AddDependencies(other.Dependencies);
         }
 
-        internal void AddRange(BindingDiagnosticBag<TAssemblySymbol>? other)
+        internal void AddRange(BindingDiagnosticBag<TAssemblySymbol>? other, bool allowMismatchInDependencyAccumulation = false)
         {
             if (other is object)
             {
                 AddRange(other.DiagnosticBag);
+                Debug.Assert(allowMismatchInDependencyAccumulation || !other.AccumulatesDependencies || this.AccumulatesDependencies);
                 AddDependencies(other.DependenciesBag);
             }
         }
@@ -174,8 +180,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal void AddDependencies(BindingDiagnosticBag<TAssemblySymbol> dependencies)
+        internal void AddDependencies(BindingDiagnosticBag<TAssemblySymbol> dependencies, bool allowMismatchInDependencyAccumulation = false)
         {
+            Debug.Assert(allowMismatchInDependencyAccumulation || !dependencies.AccumulatesDependencies || this.AccumulatesDependencies);
             AddDependencies(dependencies.DependenciesBag);
         }
 
@@ -190,7 +197,11 @@ namespace Microsoft.CodeAnalysis
 
         internal void AddDependencies(CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
         {
-            AddDependencies(useSiteInfo.Dependencies);
+            Debug.Assert(!useSiteInfo.AccumulatesDependencies || this.AccumulatesDependencies);
+            if (DependenciesBag is object)
+            {
+                AddDependencies(useSiteInfo.Dependencies);
+            }
         }
 
         internal bool Add(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
@@ -205,9 +216,9 @@ namespace Microsoft.CodeAnalysis
 
         internal bool AddDiagnostics(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
         {
-            if (!useSiteInfo.Diagnostics.IsNullOrEmpty())
+            if (DiagnosticBag is DiagnosticBag diagnosticBag)
             {
-                if (DiagnosticBag is DiagnosticBag diagnosticBag)
+                if (!useSiteInfo.Diagnostics.IsNullOrEmpty())
                 {
                     bool haveError = false;
                     foreach (var diagnosticInfo in useSiteInfo.Diagnostics)
@@ -223,14 +234,14 @@ namespace Microsoft.CodeAnalysis
                         return true;
                     }
                 }
-                else
+            }
+            else if (useSiteInfo.AccumulatesDiagnostics && !useSiteInfo.Diagnostics.IsNullOrEmpty())
+            {
+                foreach (var info in useSiteInfo.Diagnostics)
                 {
-                    foreach (var info in useSiteInfo.Diagnostics)
+                    if (info.Severity == DiagnosticSeverity.Error)
                     {
-                        if (info.Severity == DiagnosticSeverity.Error)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -240,6 +251,7 @@ namespace Microsoft.CodeAnalysis
 
         internal bool Add(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(!useSiteInfo.AccumulatesDependencies || this.AccumulatesDependencies);
             if (AddDiagnostics(location, useSiteInfo))
             {
                 return true;

@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim binder = node.Binder
 
             Dim lookup = LookupResult.GetInstance()
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
 
             binder.LookupMember(lookup, factoryType, factoryMethodName, 0, LookupOptions.MustNotBeInstance Or LookupOptions.MethodsOnly Or LookupOptions.AllMethodsOfAnyArity, useSiteInfo)
 

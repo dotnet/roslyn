@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim temporaries As ArrayBuilder(Of SynthesizedLocal) = Nothing
             Dim assignmentTarget = node.Operand
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
 
             Dim copyArrayUtilityMethod As MethodSymbol = Nothing
             If node.Preserve AndAlso TryGetWellknownMember(copyArrayUtilityMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Utils__CopyArray, node.Syntax) Then

@@ -162,18 +162,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' constraints are not checked when binding ConstraintTypes since ConstraintTypes
         ''' has not been set on I(Of T) at that point.
         ''' </summary>
-        Private Shared Sub CheckConstraintTypeConstraints(constraints As ImmutableArray(Of TypeParameterConstraint), diagnostics As BindingDiagnosticBag)
+        Private Sub CheckConstraintTypeConstraints(constraints As ImmutableArray(Of TypeParameterConstraint), diagnostics As BindingDiagnosticBag)
+            Dim containingAssembly As AssemblySymbol = Me.ContainingAssembly
+
             For Each constraint In constraints
                 Dim constraintType = constraint.TypeConstraint
                 If constraintType IsNot Nothing Then
                     Dim location = constraint.LocationOpt
                     Debug.Assert(location IsNot Nothing)
 
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, containingAssembly)
                     constraintType.AddUseSiteInfo(useSiteInfo)
 
                     If Not diagnostics.Add(location, useSiteInfo) Then
-                        constraintType.CheckAllConstraints(location, diagnostics)
+                        constraintType.CheckAllConstraints(location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, containingAssembly))
                     End If
                 End If
             Next

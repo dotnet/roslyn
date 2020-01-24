@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim typeParametersToFixArray As ImmutableArray(Of TypeParameterSymbol) = Nothing
             Dim fixWithArray As ImmutableArray(Of TypeSymbol) = Nothing
-            Dim reducedUseSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim reducedUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo.AssemblyBeingBuilt), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependecies)
 
             If hashSetOfTypeParametersToFix.Count > 0 Then
                 ' Try to infer type parameters from the supplied instanceType.
@@ -78,7 +78,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     fixTheseTypeParameters(typeParameter.Ordinal) = True
                 Next
 
-                Dim inferenceDiagnostic = BindingDiagnosticBag.GetInstance()
+                Dim inferenceDiagnostic = If(reducedUseSiteInfo.AccumulatesDependencies,
+                                             BindingDiagnosticBag.GetInstance(withDiagnostics:=False, withDependencies:=True),
+                                             BindingDiagnosticBag.Discarded)
 
                 Dim success As Boolean = TypeArgumentInference.Infer(possiblyExtensionMethod,
                                                arguments:=ImmutableArray.Create(Of BoundExpression)(
@@ -141,7 +143,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                        typeParametersToFixArray,
                                                                        fixWithArray,
                                                                        diagnosticsBuilder,
-                                                                       useSiteDiagnosticsBuilder)
+                                                                       useSiteDiagnosticsBuilder,
+                                                                       template:=New CompoundUseSiteInfo(Of AssemblySymbol)(reducedUseSiteInfo))
 
                     If Not success Then
                         diagnosticsBuilder.Free()
@@ -186,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 fixedTypeParameters = fixed.ToImmutableAndFree()
             End If
 
-            useSiteInfo.AddDependencies(reducedUseSiteInfo.Dependencies)
+            useSiteInfo.AddDependencies(reducedUseSiteInfo)
 
             Return New ReducedExtensionMethodSymbol(receiverType, possiblyExtensionMethod, fixedTypeParameters, proximity)
         End Function

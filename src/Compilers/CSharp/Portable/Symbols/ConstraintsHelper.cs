@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var bounds = typeParameter.ResolveBounds(corLibrary, inProgress, constraintTypes, inherited, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var bounds = typeParameter.ResolveBounds(corLibrary, inProgress, constraintTypes, inherited, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder,
+                                                     template: new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, currentCompilation.Assembly));
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -101,7 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool inherited,
             CSharpCompilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
-            ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
+            ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
+            CompoundUseSiteInfo<AssemblySymbol> template)
         {
             Debug.Assert(currentCompilation == null || typeParameter.IsFromCompilation(currentCompilation));
 
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constraintTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var interfacesBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
                 var conversions = new TypeConversions(corLibrary);
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(template);
 
                 // Resolve base types, determine the effective base class and
                 // interfaces, and filter out any constraint types that cause cycles.
@@ -464,7 +466,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var underlyingTuple in underlyingTupleTypeChain)
             {
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-                CheckTypeConstraints(underlyingTuple, conversions, includeNullability, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: nullabilityDiagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+                CheckTypeConstraints(underlyingTuple, conversions, includeNullability, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: nullabilityDiagnosticsBuilder,
+                                     ref useSiteDiagnosticsBuilder, template: new CompoundUseSiteInfo<AssemblySymbol>(diagnosticsOpt, currentCompilation.Assembly));
 
                 if (useSiteDiagnosticsBuilder != null)
                 {
@@ -524,7 +527,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = !typeSyntax.HasErrors && CheckTypeConstraints(type, conversions, includeNullability, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var result = !typeSyntax.HasErrors && CheckTypeConstraints(type, conversions, includeNullability, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: diagnosticsBuilder,
+                                                                       ref useSiteDiagnosticsBuilder, template: new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, currentCompilation.Assembly));
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -572,7 +576,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckTypeConstraints(type, conversions, includeNullability, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var result = CheckTypeConstraints(type, conversions, includeNullability, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: diagnosticsBuilder,
+                                              ref useSiteDiagnosticsBuilder, template: new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, currentCompilation.Assembly));
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -660,7 +665,8 @@ hasRelatedInterfaces:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder);
+            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
+                                                ref useSiteDiagnosticsBuilder, template: new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, currentCompilation.Assembly));
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -691,7 +697,8 @@ hasRelatedInterfaces:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder);
+            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
+                                                ref useSiteDiagnosticsBuilder, template: new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, currentCompilation.Assembly));
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -714,7 +721,8 @@ hasRelatedInterfaces:
             CSharpCompilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
-            ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
+            ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
+            CompoundUseSiteInfo<AssemblySymbol> template)
         {
             return CheckConstraints(
                 type,
@@ -726,7 +734,8 @@ hasRelatedInterfaces:
                 currentCompilation,
                 diagnosticsBuilder,
                 nullabilityDiagnosticsBuilderOpt,
-                ref useSiteDiagnosticsBuilder);
+                ref useSiteDiagnosticsBuilder,
+                template);
         }
 
         public static bool CheckMethodConstraints(
@@ -737,6 +746,7 @@ hasRelatedInterfaces:
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
+            CompoundUseSiteInfo<AssemblySymbol> template,
             BitVector skipParameters = default(BitVector))
         {
             return CheckConstraints(
@@ -750,6 +760,7 @@ hasRelatedInterfaces:
                 diagnosticsBuilder,
                 nullabilityDiagnosticsBuilderOpt,
                 ref useSiteDiagnosticsBuilder,
+                template,
                 skipParameters);
         }
 
@@ -780,6 +791,7 @@ hasRelatedInterfaces:
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
+            CompoundUseSiteInfo<AssemblySymbol> template,
             BitVector skipParameters = default(BitVector),
             HashSet<TypeParameterSymbol> ignoreTypeConstraintsDependentOnTypeParametersOpt = null)
         {
@@ -800,7 +812,8 @@ hasRelatedInterfaces:
                 var typeArgument = typeArguments[i];
                 var typeParameter = typeParameters[i];
 
-                if (!CheckConstraints(containingSymbol, conversions, includeNullability, substitution, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt, ref useSiteDiagnosticsBuilder,
+                if (!CheckConstraints(containingSymbol, conversions, includeNullability, substitution, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt,
+                                      ref useSiteDiagnosticsBuilder, template,
                                       ignoreTypeConstraintsDependentOnTypeParametersOpt))
                 {
                     succeeded = false;
@@ -822,6 +835,7 @@ hasRelatedInterfaces:
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
+            CompoundUseSiteInfo<AssemblySymbol> template,
             HashSet<TypeParameterSymbol> ignoreTypeConstraintsDependentOnTypeParametersOpt)
         {
             Debug.Assert(substitution != null);
@@ -913,7 +927,7 @@ hasRelatedInterfaces:
             // has constraint "U", not "int". We need to substitute the constraints from the
             // original definition of the type parameters using the map from the constructed symbol.
             var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(template);
             substitution.SubstituteConstraintTypesDistinctWithoutModifiers(typeParameter, typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteInfo), constraintTypes,
                                                                  ignoreTypeConstraintsDependentOnTypeParametersOpt);
 
@@ -982,12 +996,17 @@ hasRelatedInterfaces:
             TypeParameterSymbol typeParameter,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
         {
-            if (!useSiteInfo.HasErrors && !useSiteInfo.Dependencies.IsNullOrEmpty())
+            if (!(useSiteInfo.AccumulatesDiagnostics && useSiteInfo.HasErrors) && useSiteInfo.AccumulatesDependencies && !useSiteInfo.Dependencies.IsNullOrEmpty())
             {
                 ensureUseSiteDiagnosticsBuilder(ref useSiteDiagnosticsBuilder).Add(new TypeParameterDiagnosticInfo(typeParameter,
                                                                               useSiteInfo.Dependencies.Count == 1 ?
                                                                                   new UseSiteInfo<AssemblySymbol>(useSiteInfo.Dependencies.Single()) :
                                                                                   new UseSiteInfo<AssemblySymbol>(useSiteInfo.Dependencies.ToImmutableHashSet())));
+            }
+
+            if (!useSiteInfo.AccumulatesDiagnostics)
+            {
+                return false;
             }
 
             var useSiteDiagnostics = useSiteInfo.Diagnostics;

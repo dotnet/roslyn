@@ -1037,7 +1037,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(base.IsClassType() OrElse base.IsInterfaceType(), "Expected class or interface!!!")
 
             Dim illegalExposure As ArrayBuilder(Of AccessExposure) = Nothing
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, classOrInterface.ContainingAssembly)
 
             VerifyAccessExposure(classOrInterface, base, illegalExposure, useSiteInfo)
 
@@ -1112,7 +1112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagBag As BindingDiagnosticBag
         )
             Dim illegalExposure As ArrayBuilder(Of AccessExposure) = Nothing
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, member.ContainingAssembly)
 
             VerifyAccessExposure(member, TypeBehindParam, illegalExposure, useSiteInfo)
 
@@ -1159,7 +1159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional isDelegateFromImplements As Boolean = False
         )
             Dim illegalExposure As ArrayBuilder(Of AccessExposure) = Nothing
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, member.ContainingAssembly)
 
             VerifyAccessExposure(member, typeBehindMember, illegalExposure, useSiteInfo)
 

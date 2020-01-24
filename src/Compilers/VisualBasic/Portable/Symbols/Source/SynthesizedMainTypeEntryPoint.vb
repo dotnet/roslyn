@@ -50,13 +50,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim binder As Binder = BinderBuilder.CreateBinderForType(container.ContainingSourceModule, syntaxNode.SyntaxTree, container)
 
             Debug.Assert(binder.IsDefaultInstancePropertyAllowed)
-            Dim instance As BoundExpression = binder.TryDefaultInstanceProperty(New BoundTypeExpression(syntaxNode, container),
-                                                                                diagnosticsBagFor_ERR_CantReferToMyGroupInsideGroupType1:=Nothing)
+            Dim defaultInstancePropertyDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=False, withDependencies:=diagnostics.AccumulatesDependencies)
+            Dim instance As BoundExpression = binder.TryDefaultInstanceProperty(New BoundTypeExpression(syntaxNode, container), defaultInstancePropertyDiagnostics)
 
             If instance Is Nothing Then
                 ' Default instance is not available, create instance by invoking constructor.
                 instance = binder.BindObjectCreationExpression(syntaxNode, container, ImmutableArray(Of BoundExpression).Empty, diagnostics)
+            Else
+                diagnostics.AddDependencies(defaultInstancePropertyDiagnostics)
             End If
+
+            defaultInstancePropertyDiagnostics.Free()
 
             ' Call System.Windows.Forms.Application.Run(<instance>)
             Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing

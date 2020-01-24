@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expr.Kind == BoundKind.MethodGroup && valueKind != BindValueKind.RValueOrMethodGroup)
             {
                 var methodGroup = (BoundMethodGroup)expr;
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
                 diagnostics.Add(expr.Syntax, useSiteInfo);
                 Symbol otherSymbol = null;
@@ -270,6 +270,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupResultKind.NotAVariable;
 
             return ToBadExpression(expr, resultKind);
+        }
+
+        public CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo(BindingDiagnosticBag futureDestination)
+        {
+            return new CompoundUseSiteInfo<AssemblySymbol>(futureDestination, Compilation.Assembly);
         }
 
         internal static bool IsTypeOrValueExpression(BoundExpression expression)
@@ -981,7 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var accessThroughType = this.GetAccessThroughType(receiver);
                     bool failedThroughTypeCheck;
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     bool isAccessible = this.IsAccessible(setMethod, accessThroughType, out failedThroughTypeCheck, ref useSiteInfo);
                     diagnostics.Add(node, useSiteInfo);
 
@@ -1030,7 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var accessThroughType = this.GetAccessThroughType(receiver);
                     bool failedThroughTypeCheck;
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     bool isAccessible = this.IsAccessible(getMethod, accessThroughType, out failedThroughTypeCheck, ref useSiteInfo);
                     diagnostics.Add(node, useSiteInfo);
 

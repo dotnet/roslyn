@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly RangeVariableMap _rangeVariableMap;
 
             public QueryUnboundLambdaState(Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, LambdaBodyFactory bodyFactory)
-                : base(binder, unboundLambdaOpt: null)
+                : base(binder)
             {
                 _parameters = parameters;
                 _rangeVariableMap = rangeVariableMap;

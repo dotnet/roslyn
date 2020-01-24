@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Decode the modifiers.
             Dim modifiers As SourceMemberFlags = DecodeModifiers(node.SubOrFunctionHeader.Modifiers, asyncIterator, ERRID.ERR_InvalidLambdaModifier, Accessibility.Public, If(diagnostics.DiagnosticBag, New DiagnosticBag())).FoundFlags And asyncIterator
 
-            If (modifiers And asyncIterator) = asyncIterator AndAlso diagnostics.DiagnosticBag IsNot Nothing Then
+            If (modifiers And asyncIterator) = asyncIterator AndAlso diagnostics.AccumulatesDiagnostics Then
                 ReportModifierError(node.SubOrFunctionHeader.Modifiers, ERRID.ERR_InvalidAsyncIteratorModifiers, diagnostics.DiagnosticBag, InvalidAsyncIterator)
             End If
 
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Return New UnboundLambda(node, Me, modifiers, parameters, returnType, New UnboundLambda.UnboundLambdaBindingCache(), hasErrors)
+            Return New UnboundLambda(node, Me, modifiers, parameters, returnType, New UnboundLambda.UnboundLambdaBindingCache(diagnostics.AccumulatesDependencies), hasErrors)
         End Function
 
 
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(Me Is source.Binder)
 
             Dim maxRelaxationLevel As ConversionKind = ConversionKind.DelegateRelaxationLevelNone
-            Dim diagnostics = BindingDiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, source.WithDependencies)
             Dim targetReturnType As TypeSymbol
 
             If source.ReturnType IsNot Nothing Then
@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     delegateRelaxation = ConversionKind.DelegateRelaxationLevelNone
                 Else
                     Dim seenReturnWithAValue As Boolean = False
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                     delegateRelaxation = LambdaRelaxationVisitor.DetermineDelegateRelaxationLevel(lambdaSymbol, source.Flags = SourceMemberFlags.Iterator, block, seenReturnWithAValue, useSiteInfo)
 
                     diagnostics.Add(LambdaHeaderErrorNode(source), useSiteInfo)
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If delegateRelaxation <> ConversionKind.DelegateRelaxationLevelInvalid Then
                 ' Figure out conversion kind.
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 methodConversions = Conversions.ClassifyMethodConversionForLambdaOrAnonymousDelegate(target, lambdaSymbol, useSiteInfo)
 
                 If diagnostics.Add(LambdaHeaderErrorNode(source), useSiteInfo) Then
@@ -770,7 +770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function InferAnonymousDelegateForLambda(source As UnboundLambda) As KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))
             Debug.Assert(Me Is source.Binder)
 
-            Dim diagnostics = BindingDiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, source.WithDependencies)
 
             ' Using Void as return type, because BuildBoundLambdaParameters doesn't use it and it is as good as any other value.
             Dim targetSignature As New UnboundLambda.TargetSignature(ImmutableArray(Of ParameterSymbol).Empty, Compilation.GetSpecialType(SpecialType.System_Void), returnsByRef:=False)
@@ -898,7 +898,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))(LambdaSymbol.ReturnTypeIsUnknown, ImmutableBindingDiagnostic(Of AssemblySymbol).Empty)
             End If
 
-            Dim diagnostics = BindingDiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, source.WithDependencies)
 
             ' Clone parameters. 
             Dim parameters As ImmutableArray(Of BoundLambdaParameterSymbol) = BuildBoundLambdaParameters(source, targetParameters, diagnostics)

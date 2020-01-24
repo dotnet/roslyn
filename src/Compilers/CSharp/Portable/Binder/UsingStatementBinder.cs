@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool populateDisposableConversionOrDisposeMethod(bool fromExpression, out Conversion iDisposableConversion, out MethodSymbol disposeMethodOpt, out TypeSymbol awaitableTypeOpt)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
                 iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteInfo);
                 disposeMethodOpt = null;
                 awaitableTypeOpt = null;

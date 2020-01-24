@@ -1855,13 +1855,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Partial Class BoundAddressOfOperator
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, binder As Binder, methodGroup As BoundMethodGroup, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, binder As Binder, withDependencies As Boolean, methodGroup As BoundMethodGroup, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AddressOfOperator, syntax, Nothing, hasErrors OrElse methodGroup.NonNullAndHasErrors())
 
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(methodGroup IsNot Nothing, "Field 'methodGroup' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
+            Me._WithDependencies = withDependencies
             Me._MethodGroup = methodGroup
         End Sub
 
@@ -1870,6 +1871,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Property Binder As Binder
             Get
                 Return _Binder
+            End Get
+        End Property
+
+        Private ReadOnly _WithDependencies As Boolean
+        Public ReadOnly Property WithDependencies As Boolean
+            Get
+                Return _WithDependencies
             End Get
         End Property
 
@@ -1885,9 +1893,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitAddressOfOperator(Me)
         End Function
 
-        Public Function Update(binder As Binder, methodGroup As BoundMethodGroup) As BoundAddressOfOperator
-            If binder IsNot Me.Binder OrElse methodGroup IsNot Me.MethodGroup Then
-                Dim result = New BoundAddressOfOperator(Me.Syntax, binder, methodGroup, Me.HasErrors)
+        Public Function Update(binder As Binder, withDependencies As Boolean, methodGroup As BoundMethodGroup) As BoundAddressOfOperator
+            If binder IsNot Me.Binder OrElse withDependencies <> Me.WithDependencies OrElse methodGroup IsNot Me.MethodGroup Then
+                Dim result = New BoundAddressOfOperator(Me.Syntax, binder, withDependencies, methodGroup, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -12198,7 +12206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitAddressOfOperator(node As BoundAddressOfOperator) As BoundNode
             Dim methodGroup As BoundMethodGroup = DirectCast(Me.Visit(node.MethodGroup), BoundMethodGroup)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(node.Binder, methodGroup)
+            Return node.Update(node.Binder, node.WithDependencies, methodGroup)
         End Function
 
         Public Overrides Function VisitTernaryConditionalExpression(node As BoundTernaryConditionalExpression) As BoundNode
@@ -13357,6 +13365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitAddressOfOperator(node As BoundAddressOfOperator, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("addressOfOperator", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("binder", node.Binder, Nothing),
+                New TreeDumperNode("withDependencies", node.WithDependencies, Nothing),
                 New TreeDumperNode("methodGroup", Nothing, new TreeDumperNode() { Visit(node.MethodGroup, Nothing) }),
                 New TreeDumperNode("type", node.Type, Nothing)
             })

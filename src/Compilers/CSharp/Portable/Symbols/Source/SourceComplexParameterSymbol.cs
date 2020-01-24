@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = this.DeclaringCompilation;
             var constantValueDiscriminator = ConstantValue.GetDiscriminator(specialType);
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnosticsOpt, ContainingAssembly);
             if (constantValueDiscriminator == ConstantValueTypeDiscriminator.Bad)
             {
                 if (arg.Kind != TypedConstantKind.Array && arg.ValueInternal == null)
@@ -892,7 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void ValidateCallerLineNumberAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {
             CSharpCompilation compilation = this.DeclaringCompilation;
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
             if (!IsValidCallerInfoContext(node))
             {
@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void ValidateCallerFilePathAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {
             CSharpCompilation compilation = this.DeclaringCompilation;
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
             if (!IsValidCallerInfoContext(node))
             {
@@ -953,7 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void ValidateCallerMemberNameAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {
             CSharpCompilation compilation = this.DeclaringCompilation;
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
             if (!IsValidCallerInfoContext(node))
             {

@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Binder binder = BinderFactory.MakeCrefBinder(crefSyntax, memberDeclSyntax, _compilation.GetBinderFactory(memberDeclSyntax.SyntaxTree));
 
-                var crefDiagnostics = BindingDiagnosticBag.GetInstance();
+                var crefDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
                 attribute.Value = GetDocumentationCommentId(crefSyntax, binder, crefDiagnostics); // NOTE: mutation (element must be a copy)
                 RecordBindingDiagnostics(crefDiagnostics, sourceLocation); // Respects DocumentationMode.
                 crefDiagnostics.Free();
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(memberDeclSyntax != null,
                     "Why are we processing a documentation comment that is not attached to a member declaration?");
 
-                var nameDiagnostics = BindingDiagnosticBag.GetInstance();
+                var nameDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
                 Binder binder = MakeNameBinder(isParameter, isTypeParameterRef, _memberSymbol, _compilation);
                 DocumentationCommentCompiler.BindName(attrSyntax, binder, _memberSymbol, ref _documentedParameters, ref _documentedTypeParameters, nameDiagnostics);
                 RecordBindingDiagnostics(nameDiagnostics, sourceLocation); // Respects DocumentationMode.

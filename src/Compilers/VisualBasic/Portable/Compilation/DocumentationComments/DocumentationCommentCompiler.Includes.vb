@@ -618,8 +618,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case SyntaxKind.XmlCrefAttribute
                             Dim binder As binder = Me.GetOrCreateBinder(DocumentationCommentBinder.BinderType.Cref)
                             Dim reference As CrefReferenceSyntax = DirectCast(attr, XmlCrefAttributeSyntax).Reference
-                            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
-                            Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                            Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(_diagnostics)
+                            Dim diagnostics = BindingDiagnosticBag.GetInstance(_diagnostics)
                             Dim bindResult As ImmutableArray(Of Symbol) = binder.BindInsideCrefAttributeValue(reference, preserveAliases:=False,
                                                                                                               diagnosticBag:=diagnostics, useSiteInfo:=useSiteInfo)
                             _diagnostics.AddDependencies(diagnostics)
@@ -756,7 +756,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case SyntaxKind.XmlNameAttribute
                             Dim binder As binder = Me.GetOrCreateBinder(type)
                             Dim identifier As IdentifierNameSyntax = DirectCast(attr, XmlNameAttributeSyntax).Reference
-                            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                            Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(Me._diagnostics)
                             Dim bindResult As ImmutableArray(Of Symbol) = binder.BindXmlNameAttributeValue(identifier, useSiteInfo)
 
                             Me._diagnostics.AddDependencies(useSiteInfo)

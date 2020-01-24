@@ -1311,7 +1311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Include "Value" for InternalXmlHelper.Value if necessary.
                 Dim compilation = binder.Compilation
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependecies
                 If container.IsOrImplementsIEnumerableOfXElement(compilation, useSiteInfo) AndAlso useSiteInfo.Diagnostics.IsNullOrEmpty Then
                     nameSet.AddSymbol(Nothing, StringConstants.ValueProperty, 0)
                 End If

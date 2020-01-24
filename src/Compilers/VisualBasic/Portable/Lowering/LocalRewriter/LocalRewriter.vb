@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             recursionDepth As Integer
         )
             MyBase.New(recursionDepth)
-            Debug.Assert(diagnostics.DiagnosticBag IsNot Nothing)
+            Debug.Assert(diagnostics.AccumulatesDiagnostics)
 
             Me._topMethod = topMethod
             Me._currentMethodOrLambda = currentMethod

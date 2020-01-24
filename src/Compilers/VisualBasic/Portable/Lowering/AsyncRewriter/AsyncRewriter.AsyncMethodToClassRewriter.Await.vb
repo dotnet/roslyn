@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' STMT:   this.builder.AwaitUnsafeOnCompleted(Of TAwaiter,TSM)((ByRef) $awaiterTemp, (ByRef) Me)
                         '  or
                         ' STMT:   this.builder.AwaitOnCompleted(Of TAwaiter,TSM)((ByRef) $awaiterTemp, (ByRef) Me)
-                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(Me.F.Diagnostics, Me.CompilationState.Compilation.Assembly)
                         Dim useUnsafeOnCompleted As Boolean =
                             Conversions.IsWideningConversion(
                                 Conversions.ClassifyDirectCastConversion(

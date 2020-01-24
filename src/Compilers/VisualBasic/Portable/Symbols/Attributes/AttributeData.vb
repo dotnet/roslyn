@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
                 Dim firstArg As TypedConstant = Me.CommonConstructorArguments.FirstOrDefault()
                 Dim firstArgType = DirectCast(firstArg.TypeInternal, TypeSymbol)
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, compilation.Assembly)
                 If firstArgType IsNot Nothing AndAlso firstArgType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAction, compilation, useSiteInfo) Then
                     Return ValidateSecurityAction(firstArg, targetSymbol, nodeOpt, diagnostics, hasErrors)
                 End If

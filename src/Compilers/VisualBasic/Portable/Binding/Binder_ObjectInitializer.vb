@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     type = DirectCast(extendedErrorType.CandidateSymbols(0), TypeSymbol)
                     diagnostics = BindingDiagnosticBag.Discarded
                 Else
-                    Dim argumentDiagnostics = BindingDiagnosticBag.GetInstance()
+                    Dim argumentDiagnostics = BindingDiagnosticBag.Discarded
                     Dim boundArguments As ImmutableArray(Of BoundExpression) = Nothing
                     Dim argumentNames As ImmutableArray(Of String) = Nothing
                     Dim argumentNamesLocations As ImmutableArray(Of Location) = Nothing
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             For Each constructor In ctors
                                 If constructor.ParameterCount = 0 Then
                                     '  the first parameterless constructor will do the job
-                                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                                     If IsAccessible(constructor, useSiteInfo) Then
                                         ' if not accessible, just clear symbol information
                                         constructorSymbol = constructor
@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
 
                                 ' Check accessibility
-                                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                                 Dim isInAccessible As Boolean = (Me.CheckAccessibility(namedCoClass, useSiteInfo) <> AccessCheckResult.Accessible)
                                 diagnostics.Add(node, useSiteInfo)
 
@@ -348,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim constructorsGroup As BoundMethodGroup = Nothing
 
             If type IsNot Nothing AndAlso Not type.IsInterface Then
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 Dim constructors As ImmutableArray(Of MethodSymbol) = GetAccessibleConstructors(type, useSiteInfo)
 
                 diagnostics.Add(node, useSiteInfo)
@@ -386,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' We rely on the asserted condition when we are merging/changing result kinds below. 
                 Debug.Assert(constructorsGroup.ResultKind = LookupResultKind.Good OrElse constructorsGroup.ResultKind = LookupResultKind.Inaccessible)
 
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.MethodInvocationOverloadResolution(constructorsGroup,
                                                                                                                                    boundArguments,
                                                                                                                                    argumentNames,
@@ -635,7 +635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The temporary error messages should only be shown if binding the member access itself failed, or the bound
             ' member access is usable for the initialization (non shared, writable field or property).
             ' Otherwise more specific diagnostics will be shown .
-            Dim memberBindingDiagnostics = BindingDiagnosticBag.GetInstance
+            Dim memberBindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
             For Each fieldInitializer In memberInitializerSyntax.Initializers
                 ' NamedFieldInitializerSyntax is derived from FieldInitializerSyntax, which has this optional keyword as a member
@@ -752,7 +752,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim unusedExpression As BoundExpression = Nothing
             Dim unusedLValuePlaceholder As BoundLValuePlaceholder = Nothing
             Dim unusedRValuePlaceholder As BoundRValuePlaceholder = Nothing
-            Dim temporaryDiagnostics = BindingDiagnosticBag.GetInstance
+            Dim temporaryDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
             Dim matchesDesignPattern As Boolean = False
 
             ' From Dev10:
@@ -783,12 +783,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 matchesDesignPattern = True
 
             Else
-                Dim ienumerableUseSiteDiagnostics = BindingDiagnosticBag.GetInstance
+                Dim ienumerableUseSiteDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                 Dim ienumerable = GetSpecialType(SpecialType.System_Collections_IEnumerable,
                                                  objectCreationSyntax,
                                                  ienumerableUseSiteDiagnostics)
 
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 If IsOrInheritsFromOrImplementsInterface(collectionType, ienumerable, useSiteInfo) Then
                     diagnostics.AddRange(ienumerableUseSiteDiagnostics)
                     matchesDesignPattern = True
@@ -892,6 +892,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim methodGroup As BoundMethodGroup = CreateBoundMethodGroup(topLevelInitializer,
                                                                              result,
                                                                              LookupOptions.AllMethodsOfAnyArity,
+                                                                             diagnostics.AccumulatesDependencies,
                                                                              placeholder,
                                                                              Nothing,
                                                                              QualificationKind.QualifiedViaValue).MakeCompilerGenerated()

@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                New BoundMeReference(syntax, _topMethod.ContainingType)),
                                             staticLocalBackingFields.Value, isLValue:=True, type:=staticLocalBackingFields.Value.Type)
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
             Dim flagAsObject = New BoundDirectCast(syntax,
                                                    flag.MakeRValue(),
                                                    Conversions.ClassifyDirectCastConversion(flag.Type, objectType, useSiteInfo),

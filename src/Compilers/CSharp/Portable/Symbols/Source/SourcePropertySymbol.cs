@@ -1595,7 +1595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind;
             var typeSyntax = syntax.Type.SkipRef(out refKind);
             var type = binder.BindType(typeSyntax, diagnostics);
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
             if (syntax.ExplicitInterfaceSpecifier == null && !this.IsNoMoreVisibleThan(type, ref useSiteInfo))
             {
@@ -1619,7 +1619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var parameterSyntaxOpt = GetParameterListSyntax(syntax);
             var parameters = MakeParameters(binder, this, parameterSyntaxOpt, diagnostics, addRefReadOnlyModifier: IsVirtual || IsAbstract);
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
             foreach (ParameterSymbol param in parameters)
             {

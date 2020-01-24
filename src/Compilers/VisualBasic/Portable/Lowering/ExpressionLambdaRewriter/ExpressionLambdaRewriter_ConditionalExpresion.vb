@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' the type of the argument of 'conversion' in case 'parameter' is a nullable and the real 
                 ' conversion argument is not
                 Dim parameterType As TypeSymbol = parameter.Type
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = Me._binder.GetNewCompoundUseSiteInfo(Diagnostics)
                 Dim convKind As ConversionKind = Conversions.ClassifyPredefinedConversion(parameterType, conversion.Operand.Type, useSiteInfo)
                 Diagnostics.Add(conversion, useSiteInfo)
 
@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim realParameterType As TypeSymbol = parameter.Type
             Debug.Assert(TypeSymbol.Equals(expectedParameterType.GetNullableUnderlyingTypeOrSelf, realParameterType.GetNullableUnderlyingTypeOrSelf, TypeCompareKind.ConsiderEverything))
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = _binder.GetNewCompoundUseSiteInfo(Diagnostics)
             Dim innerConversion As ConversionKind = Conversions.ClassifyConversion(realParameterType, expectedParameterType, useSiteInfo).Key
             Diagnostics.Add(conversion, useSiteInfo)
 

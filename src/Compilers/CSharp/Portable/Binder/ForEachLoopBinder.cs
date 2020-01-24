@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We want to convert from inferredType in the array/string case and builder.ElementType in the enumerator case,
             // but it turns out that these are equivalent (when both are available).
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion elementConversion = this.Conversions.ClassifyConversionFromType(inferredType.Type, iterationVariableType.Type, ref useSiteInfo, forCast: true);
 
             if (!elementConversion.IsValid)
@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // is potentially disposable.
 
             TypeSymbol enumeratorType = builder.GetEnumeratorMethod.ReturnType;
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
             // For async foreach, we don't do the runtime check
             if ((!enumeratorType.IsSealed && !isAsync) ||
@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Not using LookupOptions.MustBeInvocableMember because we don't want the corresponding lookup error.
             // We filter out non-methods below.
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupMembersInType(
                 lookupResult,
                 patternType,
@@ -1033,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             // We create a dummy receiver of the invocation so MethodInvocationOverloadResolution knows it was invoked from an instance, not a type
             var dummyReceiver = new BoundImplicitReceiver(_syntax.Expression, patternType);
             this.OverloadResolution.MethodInvocationOverloadResolution(
@@ -1127,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // wouldn't have to mangle CurrentPropertyName.  However, Dev10 searches for the property and
                 // then extracts the accessor, so we should do the same (in case of accessors with non-standard
                 // names).
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 this.LookupMembersInType(
                     lookupResult,
                     enumeratorType,
@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     useSiteInfo: ref useSiteInfo);
 
                 diagnostics.Add(_syntax.Expression, useSiteInfo);
-                useSiteInfo = default;
+                useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
 
                 if (!lookupResult.IsSingleViable)
                 {
@@ -1215,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportEnumerableWarning(BindingDiagnosticBag diagnostics, TypeSymbol enumeratorType, Symbol patternMemberCandidate)
         {
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             if (this.IsAccessible(patternMemberCandidate, ref useSiteInfo))
             {
                 diagnostics.Add(ErrorCode.WRN_PatternBadSignature, _syntax.Expression.Location, enumeratorType, MessageID.IDS_Collection.Localize(), patternMemberCandidate);
@@ -1259,7 +1259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool foundMultiple)
         {
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             NamedTypeSymbol implementedIEnumerable = GetIEnumerableOfT(type, isAsync, Compilation, ref useSiteInfo, out foundMultiple);
 
             // Prefer generic to non-generic, unless it is inaccessible.
@@ -1366,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     lookupResult.Clear();
 
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     this.LookupMembersInType(
                         lookupResult,
                         patternType,

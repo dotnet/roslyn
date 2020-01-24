@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // "same" is the containing class, so it can't be a type parameter
                 Debug.Assert(!same.IsTypeParameter());
 
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
                 if (same.IsDerivedFrom(different, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes, useSiteInfo: ref useSiteInfo)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
                 {
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // the return type.
 
             var parameterType = this.GetParameterType(0);
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
             if (!parameterType.StrippedType().TupleUnderlyingTypeOrSelf().Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {

@@ -618,7 +618,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim eventContainerKind = singleHandleClause.EventContainer.Kind
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = typeBinder.GetNewCompoundUseSiteInfo(diagBag)
 
             If eventContainerKind = SyntaxKind.KeywordEventContainer Then
                 Select Case DirectCast(singleHandleClause.EventContainer, KeywordEventContainerSyntax).Keyword.Kind
@@ -652,7 +652,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                             resultKind)
 
                 diagBag.Add(singleHandleClause.EventContainer, useSiteInfo)
-                useSiteInfo = Nothing
+                useSiteInfo = New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo)
 
                 If witheventsProperty Is Nothing Then
                     Binder.ReportDiagnostic(diagBag, singleHandleClause.EventContainer, ERRID.ERR_NoWithEventsVarOnHandlesList)
@@ -811,7 +811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 
             ' AddressOf currentMethod
-            Dim syntheticAddressOf = New BoundAddressOfOperator(singleHandleClause, typeBinder, syntheticMethodGroup).MakeCompilerGenerated
+            Dim syntheticAddressOf = New BoundAddressOfOperator(singleHandleClause, typeBinder, diagBag.AccumulatesDependencies, syntheticMethodGroup).MakeCompilerGenerated
 
             ' 9.2.6  Event handling
             ' ... A handler method M is considered a valid event handler for an event E 
@@ -827,7 +827,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 'Method '{0}' cannot handle event '{1}' because they do not have a compatible signature.
                 Binder.ReportDiagnostic(diagBag, singleHandleClause.EventMember, ERRID.ERR_EventHandlerSignatureIncompatible2, Me.Name, eventName)
                 Return Nothing
-
+            Else
+                diagBag.AddDependencies(resolutionResult.Diagnostics.Dependencies)
             End If
 
             Dim delegateCreation = typeBinder.ReclassifyAddressOf(syntheticAddressOf, resolutionResult, eventSymbol.Type, diagBag, isForHandles:=True,

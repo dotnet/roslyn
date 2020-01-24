@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -51,6 +52,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function GetInstance() As BindingDiagnosticBag
             Return New BindingDiagnosticBag(usePool:=True)
+        End Function
+
+        Friend Shared Function GetInstance(withDiagnostics As Boolean, withDependencies As Boolean) As BindingDiagnosticBag
+            If withDependencies Then
+                If withDiagnostics Then
+                    Return GetInstance()
+                End If
+
+                Return New BindingDiagnosticBag(diagnosticBag:=Nothing, PooledHashSet(Of AssemblySymbol).GetInstance())
+
+            ElseIf withDiagnostics Then
+                Return New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+            Else
+                Return Discarded
+            End If
+        End Function
+
+        Friend Shared Function GetInstance(template As BindingDiagnosticBag) As BindingDiagnosticBag
+            Return GetInstance(withDiagnostics:=template.AccumulatesDiagnostics, withDependencies:=template.AccumulatesDependencies)
+        End Function
+
+        Friend Shared Function Create(withDiagnostics As Boolean, withDependencies As Boolean) As BindingDiagnosticBag
+            If withDependencies Then
+                If withDiagnostics Then
+                    Return New BindingDiagnosticBag()
+                End If
+
+                Return New BindingDiagnosticBag(diagnosticBag:=Nothing, New HashSet(Of AssemblySymbol)())
+
+            ElseIf withDiagnostics Then
+                Return New BindingDiagnosticBag(New DiagnosticBag())
+            Else
+                Return Discarded
+            End If
+        End Function
+
+        Friend Shared Function Create(template As BindingDiagnosticBag) As BindingDiagnosticBag
+            Return Create(withDiagnostics:=template.AccumulatesDiagnostics, withDependencies:=template.AccumulatesDependencies)
         End Function
 
         Friend ReadOnly Property IsEmpty As Boolean

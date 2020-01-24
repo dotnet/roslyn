@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Bind switch expression and set the switch governing type.
             var boundInputExpression = InputExpression;
-            diagnostics.AddRange(InputExpressionDiagnostics);
+            diagnostics.AddRange(InputExpressionDiagnostics, allowMismatchInDependencyAccumulation: true);
             ImmutableArray<BoundSwitchExpressionArm> switchArms = BindSwitchExpressionArms(node, originalBinder, diagnostics);
             TypeSymbol naturalType = InferResultType(switchArms, diagnostics);
             bool reportedNotExhaustive = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms, out BoundDecisionDag decisionDag, out LabelSymbol defaultLabel, diagnostics);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             seenTypes.Free();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteInfo);
             typesInOrder.Free();
 

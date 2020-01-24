@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If node.Type.IsInterfaceType() Then
                     Debug.Assert(result.Type.Equals(DirectCast(node.Type, NamedTypeSymbol).CoClassType))
 
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                     Dim conv As ConversionKind = Conversions.ClassifyDirectCastConversion(result.Type, node.Type, useSiteInfo)
                     Debug.Assert(Conversions.ConversionExists(conv))
                     _diagnostics.Add(result, useSiteInfo)
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim createInstance = factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Activator__CreateInstance)
             Dim rewrittenObjectCreation As BoundExpression
             If createInstance IsNot Nothing AndAlso Not createInstance.ReturnType.IsErrorType() Then
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                 Dim conversion = Conversions.ClassifyDirectCastConversion(createInstance.ReturnType, node.Type, useSiteInfo)
                 _diagnostics.Add(node, useSiteInfo)
                 rewrittenObjectCreation = New BoundDirectCast(node.Syntax, factory.Call(Nothing, createInstance, callGetTypeFromCLSID), conversion, node.Type)

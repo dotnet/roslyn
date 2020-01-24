@@ -1035,7 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
             ImmutableArray<Symbol> referencedSymbols = binder.BindXmlNameAttribute(syntax, ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo);
 

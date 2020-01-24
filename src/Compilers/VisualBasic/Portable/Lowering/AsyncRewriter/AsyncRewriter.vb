@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            Dim bag = BindingDiagnosticBag.GetInstance()
+            Dim bag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=Me.Diagnostics.AccumulatesDependencies)
 
             EnsureSpecialType(SpecialType.System_Object, bag)
             EnsureSpecialType(SpecialType.System_Void, bag)
@@ -540,7 +540,7 @@ lCaptureRValue:
             Dim group As BoundMethodGroup = Nothing
             Dim result = LookupResult.GetInstance()
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = Me._binder.GetNewCompoundUseSiteInfo(Me.Diagnostics)
             Me._binder.LookupMember(result, type, methodName, arity:=0, options:=_lookupOptions, useSiteInfo:=useSiteInfo)
             Me.Diagnostics.Add(Me.F.Syntax, useSiteInfo)
 
@@ -599,7 +599,7 @@ lCaptureRValue:
             Dim group As BoundPropertyGroup = Nothing
             Dim result = LookupResult.GetInstance()
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = Me._binder.GetNewCompoundUseSiteInfo(Me.Diagnostics)
             Me._binder.LookupMember(result, type, propertyName, arity:=0, options:=_lookupOptions, useSiteInfo:=useSiteInfo)
             Me.Diagnostics.Add(Me.F.Syntax, useSiteInfo)
 

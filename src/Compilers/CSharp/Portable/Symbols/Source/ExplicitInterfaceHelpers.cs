@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Make sure implemented member is accessible
             if ((object)implementedMember != null)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, implementingMember.ContainingAssembly);
 
                 if (!AccessCheck.IsSymbolAccessible(implementedMember, implementingMember.ContainingType, ref useSiteInfo, throughTypeOpt: null))
                 {

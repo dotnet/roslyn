@@ -290,11 +290,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function ValidateOverloadedOperator(
             method As MethodSymbol,
+            opInfo As OperatorInfo
+        ) As Boolean
+            Return ValidateOverloadedOperator(method, opInfo, diagnosticsOpt:=Nothing, assemblyBeingBuiltOpt:=Nothing)
+        End Function
+
+        Friend Shared Function ValidateOverloadedOperator(
+            method As MethodSymbol,
             opInfo As OperatorInfo,
-            Optional diagnosticsOpt As BindingDiagnosticBag = Nothing
+            diagnosticsOpt As BindingDiagnosticBag,
+            assemblyBeingBuiltOpt As AssemblySymbol
         ) As Boolean
             Debug.Assert(method.IsMethodKindBasedOnSyntax OrElse diagnosticsOpt Is Nothing)
             Debug.Assert(opInfo.ParamCount <> 0)
+            Debug.Assert(diagnosticsOpt Is Nothing OrElse assemblyBeingBuiltOpt IsNot Nothing)
 
             If method.ParameterCount <> opInfo.ParamCount Then
                 Return False
@@ -305,9 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim targetsContainingType As Boolean = False
             Dim targetMismatchError As ERRID
             Dim isConversion As Boolean = False
-            Dim useSiteInfo = If(diagnosticsOpt Is Nothing OrElse (diagnosticsOpt.DiagnosticBag Is Nothing AndAlso diagnosticsOpt.DependenciesBag Is Nothing),
-                                 CompoundUseSiteInfo(Of AssemblySymbol).Discarded,
-                                 Nothing)
+            Dim useSiteInfo = If(diagnosticsOpt IsNot Nothing, New CompoundUseSiteInfo(Of AssemblySymbol)(diagnosticsOpt, assemblyBeingBuiltOpt), CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
             If opInfo.IsUnary Then
                 Select Case opInfo.UnaryOperatorKind
@@ -2339,7 +2346,7 @@ Done:
             ' Ignore user defined conversions between types that already have intrinsic conversions.
             ' This could happen for generics after generic param substitution.
             If Not method.ContainingType.IsDefinition Then
-                Dim localUseSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim localUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo.AssemblyBeingBuilt), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependecies)
                 If Conversions.ConversionExists(Conversions.ClassifyPredefinedConversion(inputType, outputType, localUseSiteInfo)) OrElse
                    Not localUseSiteInfo.Diagnostics.IsNullOrEmpty Then
                     useSiteInfo.MergeAndClear(localUseSiteInfo)

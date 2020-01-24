@@ -6647,36 +6647,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class UnboundLambda : BoundExpression
     {
-        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data, bool hasErrors)
+        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data, Boolean withDependencies, bool hasErrors)
             : base(BoundKind.UnboundLambda, syntax, null, hasErrors)
         {
 
             Debug.Assert(data is object, "Field 'data' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Data = data;
+            this.WithDependencies = withDependencies;
         }
 
-        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data)
+        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data, Boolean withDependencies)
             : base(BoundKind.UnboundLambda, syntax, null)
         {
 
             Debug.Assert(data is object, "Field 'data' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Data = data;
+            this.WithDependencies = withDependencies;
         }
 
 
         public new TypeSymbol Type => base.Type!;
 
         public UnboundLambdaState Data { get; }
+
+        public Boolean WithDependencies { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnboundLambda(this);
 
-        public UnboundLambda Update(UnboundLambdaState data)
+        public UnboundLambda Update(UnboundLambdaState data, Boolean withDependencies)
         {
-            if (data != this.Data)
+            if (data != this.Data || withDependencies != this.WithDependencies)
             {
-                var result = new UnboundLambda(this.Syntax, data, this.HasErrors);
+                var result = new UnboundLambda(this.Syntax, data, withDependencies, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9987,7 +9991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitUnboundLambda(UnboundLambda node)
         {
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.Data);
+            return node.Update(node.Data, node.WithDependencies);
         }
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
@@ -12095,7 +12099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node;
             }
 
-            UnboundLambda updatedNode = node.Update(node.Data);
+            UnboundLambda updatedNode = node.Update(node.Data, node.WithDependencies);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -13882,6 +13886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitUnboundLambda(UnboundLambda node, object? arg) => new TreeDumperNode("unboundLambda", null, new TreeDumperNode[]
         {
             new TreeDumperNode("data", node.Data, null),
+            new TreeDumperNode("withDependencies", node.WithDependencies, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

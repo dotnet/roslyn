@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
             if ((object)baseType != null)
             {
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
                 if (t.DeclaringCompilation != this.DeclaringCompilation)
                 {
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.SetKnownToHaveNoDeclaredBaseCycles();
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
             NamedTypeSymbol current = declaredBase;
 
             do

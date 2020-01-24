@@ -374,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim constructedType = TupleTypeSymbol.Create(locationOpt, tupleUnderlyingType, elementLocations, elementNames, errorPositions)
             If shouldCheckConstraints Then
-                constructedType.CheckConstraints(syntax, elementLocations, diagnostics)
+                constructedType.CheckConstraints(syntax, elementLocations, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, compilation.Assembly))
             End If
 
             Return constructedType

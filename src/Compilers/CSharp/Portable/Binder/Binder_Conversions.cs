@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol destination,
             BindingDiagnosticBag diagnostics)
         {
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var conversion = Conversions.ClassifyConversionFromExpression(source, destination, ref useSiteInfo);
 
             diagnostics.Add(source.Syntax, useSiteInfo);
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics);
 
             TypeSymbol conversionParameterType = conversion.BestUserDefinedConversionAnalysis.Operator.GetParameterType(0);
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
             if (conversion.BestUserDefinedConversionAnalysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm &&
                 !TypeSymbol.Equals(conversion.BestUserDefinedConversionAnalysis.FromType, conversionParameterType, TypeCompareKind.ConsiderEverything2))
@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var containingType = this.ContainingType;
             if ((object)containingType != null)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 bool isAccessible = this.IsSymbolAccessibleConditional(memberSymbol.GetTypeOrReturnType().Type, containingType, ref useSiteInfo);
                 diagnostics.Add(node, useSiteInfo);
 
@@ -816,14 +816,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
             Debug.Assert(!isExtensionMethod ||
                 (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt.Type, ref useSiteInfo).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
 
-            useSiteInfo = default;
+            useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
 
             for (int i = 0; i < numParams; i++)
             {
@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             conversion = Conversions.GetMethodGroupConversion(boundMethodGroup, delegateType, ref useSiteInfo);
             diagnostics.Add(delegateMismatchLocation, useSiteInfo);
             if (!conversion.Exists)

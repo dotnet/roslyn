@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool ReportDelegateMethodGroupDiagnostics(Binder binder, BoundMethodGroup expr, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
         {
             var invokeMethodOpt = GetDelegateInvokeMethodIfAvailable(targetType);
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
             var resolution = ResolveDelegateMethodGroup(binder, expr, invokeMethodOpt, ref useSiteInfo);
             diagnostics.Add(expr.Syntax, useSiteInfo);
 
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             !resolution.IsEmpty &&
                             resolution.ResultKind == LookupResultKind.Viable)
                     {
-                        var overloadDiagnostics = BindingDiagnosticBag.GetInstance();
+                        var overloadDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
 
                         result.ReportDiagnostics(
                             binder: binder, location: expr.Syntax.Location, nodeOpt: expr.Syntax, diagnostics: overloadDiagnostics,

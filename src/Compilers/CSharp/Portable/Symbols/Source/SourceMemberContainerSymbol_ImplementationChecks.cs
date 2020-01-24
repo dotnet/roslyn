@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                    var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
                     bool isAccessible = AccessCheck.IsSymbolAccessible(hiddenMember, this, ref useSiteInfo);
                     diagnostics.Add(symbolLocation, useSiteInfo);
 
@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (overridingProperty.IsSealed)
                             {
                                 MethodSymbol ownOrInheritedGetMethod = overridingProperty.GetOwnOrInheritedGetMethod();
-                                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, overridingMember.ContainingAssembly);
                                 if (overridingProperty.GetMethod != ownOrInheritedGetMethod && !AccessCheck.IsSymbolAccessible(ownOrInheritedGetMethod, overridingType, ref useSiteInfo))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_NoGetToOverride, overridingMemberLocation, overridingProperty, overriddenProperty);

@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                           ByRef instanceInitializers As ArrayBuilder(Of FieldOrPropertyInitializer),
                                           ByRef nodeNameIsAlreadyDefined As Boolean) As DeclarationModifiers
 
-            Debug.Assert(diagBag.DiagnosticBag IsNot Nothing)
+            Debug.Assert(diagBag.AccumulatesDiagnostics)
             ' Check that the node's fully qualified name is not too long and that the type name is unique.
             CheckDeclarationNameAndTypeParameters(node, binder, diagBag, nodeNameIsAlreadyDefined)
 
@@ -1420,7 +1420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Sub ReportUseSiteInfoForBaseType(baseType As NamedTypeSymbol, declaredBase As NamedTypeSymbol, diagnostics As BindingDiagnosticBag)
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, ContainingAssembly)
 
             Dim current As NamedTypeSymbol = baseType
 
@@ -1471,7 +1471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Else
                     ' Error types were reported elsewhere.
                     If Not t.IsErrorType() Then
-                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, ContainingAssembly)
 
                         If t.DeclaringCompilation IsNot Me.DeclaringCompilation Then
                             t.AddUseSiteInfo(useSiteInfo)
@@ -1627,14 +1627,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim location = singleDeclaration.NameLocation
                     diagnostics = BindingDiagnosticBag.GetInstance()
 
-                    localBase.CheckAllConstraints(location, diagnostics)
+                    localBase.CheckAllConstraints(location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
 
                     If IsGenericType Then
                         ' Check that generic type does not derive from System.Attribute. 
                         ' This check must be done here instead of in ValidateClassBase to avoid infinite recursion when there are
                         ' cycles in the inheritance chain. In Dev10/11, the error was reported on the inherited statement, now it 
                         ' is reported on the class statement.
-                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly)
                         Dim isBaseType As Boolean = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Attribute).IsBaseTypeOf(localBase, useSiteInfo)
 
                         diagnostics.Add(location, useSiteInfo)
@@ -1679,7 +1679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim location = singleDeclaration.NameLocation
                     diagnostics = BindingDiagnosticBag.GetInstance()
                     For Each [interface] In localInterfaces
-                        [interface].CheckAllConstraints(location, diagnostics)
+                        [interface].CheckAllConstraints(location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
                     Next
                 End If
             End If

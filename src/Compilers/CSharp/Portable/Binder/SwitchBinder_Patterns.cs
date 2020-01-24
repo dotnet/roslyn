@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Bind switch expression and set the switch governing type.
             BoundExpression boundSwitchGoverningExpression = SwitchGoverningExpression;
-            diagnostics.AddRange(SwitchGoverningDiagnostics);
+            diagnostics.AddRange(SwitchGoverningDiagnostics, allowMismatchInDependencyAccumulation: true);
 
             ImmutableArray<BoundSwitchSection> switchSections = BindSwitchSections(originalBinder, diagnostics, out BoundSwitchLabel defaultLabel);
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);

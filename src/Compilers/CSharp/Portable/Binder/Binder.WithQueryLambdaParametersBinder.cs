@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 LookupResult lookupResult = LookupResult.GetInstance();
                 LookupOptions options = LookupOptions.MustBeInstance;
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 LookupMembersWithFallback(lookupResult, receiver.Type, name, 0, ref useSiteInfo, basesBeingResolved: null, options: options);
                 diagnostics.Add(node, useSiteInfo);
 

@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return MakeNullLiteral(node, objectType)
             Else
                 If Not rewrittenReceiver.Type.IsObjectType Then
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                     Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenReceiver.Type, objectType, useSiteInfo)
                     _diagnostics.Add(node, useSiteInfo)
                     rewrittenReceiver = New BoundDirectCast(node, rewrittenReceiver, convKind, objectType)
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim argument = rewrittenArguments(i)
                 argument = argument.MakeRValue
                 If Not argument.Type.IsObjectType Then
-                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                     Dim convKind = Conversions.ClassifyDirectCastConversion(argument.Type, objectType, useSiteInfo)
                     _diagnostics.Add(node, useSiteInfo)
                     argument = New BoundDirectCast(node, argument, convKind, objectType)
@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(arrayType.IsSZArray)
             Debug.Assert(objectType.IsObjectType)
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
 
             If Not rewrittenValue.Type.IsObjectType Then
                 Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenValue.Type, objectType, useSiteInfo)
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each argument In rewrittenArguments
                     argument = argument.MakeRValue
                     If Not argument.Type.IsObjectType Then
-                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Dim useSiteInfo = GetNewCompoundUseSiteInfo()
                         Dim convKind = Conversions.ClassifyDirectCastConversion(argument.Type, objectType, useSiteInfo)
                         _diagnostics.Add(argument, useSiteInfo)
                         argument = New BoundDirectCast(node, argument, convKind, objectType)
@@ -383,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 End If
 #If DEBUG Then
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(Me.Compilation.Assembly)
 #Else
                 Dim useSiteInfo = CompoundUseSiteInfo(Of AssemblySymbol).Discarded
 #End If

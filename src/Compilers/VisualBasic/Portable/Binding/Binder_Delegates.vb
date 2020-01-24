@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 hasErrors = True
             End If
 
-            Return New BoundAddressOfOperator(node, Me, group, hasErrors)
+            Return New BoundAddressOfOperator(node, Me, diagnostics.AccumulatesDependencies, group, hasErrors)
         End Function
 
         ''' <summary>
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As DelegateResolutionResult
             Debug.Assert(targetType IsNot Nothing)
 
-            Dim diagnostics = BindingDiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, addressOfExpression.WithDependencies)
             Dim result As OverloadResolution.OverloadResolutionResult = Nothing
             Dim fromMethod As MethodSymbol = Nothing
 
@@ -367,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As BindingDiagnosticBag
         ) As KeyValuePair(Of MethodSymbol, MethodConversionKind)
 
-            Dim argumentDiagnostics = BindingDiagnosticBag.GetInstance
+            Dim argumentDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
             Dim couldTryZeroArgumentRelaxation As Boolean = True
 
             Dim matchingMethod As KeyValuePair(Of MethodSymbol, MethodConversionKind) = ResolveMethodForDelegateInvokeFullOrRelaxed(
@@ -381,7 +381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' If there have been parameters and if there was no ambiguous match before, try zero argument relaxation.
             If matchingMethod.Key Is Nothing AndAlso couldTryZeroArgumentRelaxation Then
 
-                Dim zeroArgumentDiagnostics = BindingDiagnosticBag.GetInstance
+                Dim zeroArgumentDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                 Dim argumentMatchingMethod = matchingMethod
 
                 matchingMethod = ResolveMethodForDelegateInvokeFullOrRelaxed(
@@ -492,7 +492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(resolutionBinder.OptionStrict = VisualBasic.OptionStrict.Off)
 
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = addressOfExpression.Binder.GetNewCompoundUseSiteInfo(diagnostics)
             Dim resolutionResult = OverloadResolution.MethodInvocationOverloadResolution(
                 addressOfExpression.MethodGroup,
                 boundArguments,
@@ -632,7 +632,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' determine conversions based on return type
-            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim useSiteInfo = addressOfExpression.Binder.GetNewCompoundUseSiteInfo(diagnostics)
             Dim targetMethodSymbol = DirectCast(analysisResult.Candidate.UnderlyingSymbol, MethodSymbol)
 
             If Not ignoreMethodReturnType Then

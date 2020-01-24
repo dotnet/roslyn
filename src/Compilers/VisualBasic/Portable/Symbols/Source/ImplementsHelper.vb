@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     options = CType(options Or LookupOptions.EventsOnly, LookupOptions)
                 End If
 
-                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagBag)
                 binder.LookupMember(lookup, interfaceType, implementedMethodName, -1, options, useSiteInfo)
 
                 If lookup.IsAmbiguous Then

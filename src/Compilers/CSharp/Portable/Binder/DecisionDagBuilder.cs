@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!input.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
             {
                 TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
                 Conversion conversion = _conversions.ClassifyBuiltInConversion(inputType, type, ref useSiteInfo);
                 _diagnostics.Add(syntax, useSiteInfo);
                 if (input.Type.IsDynamic() ? type.SpecialType == SpecialType.System_Object : conversion.IsImplicit)
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundDagTypeTest t2:
                             {
-                                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
                                 bool? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteInfo);
                                 if (matches == false)
                                 {
