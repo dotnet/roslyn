@@ -22,11 +22,6 @@
         <target state="translated">C#-Formatierungsregeln</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_language_server_client">
-        <source>C# Language Server Client</source>
-        <target state="translated">Client des C#-Sprachservers</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
         <target state="translated">Verwerfen</target>
@@ -734,7 +729,7 @@
       </trans-unit>
       <trans-unit id="Prefer_block_body">
         <source>Prefer block body</source>
-        <target state="translated">Blocktext bevorzugen</target>
+        <target state="translated">Blocktextkörper bevorzugen</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_expression_body">

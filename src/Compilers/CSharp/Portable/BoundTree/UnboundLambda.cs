@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
 
         public BoundLambda(SyntaxNode syntax, UnboundLambda unboundLambda, BoundBlock body, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol delegateType, InferredLambdaReturnType inferredReturnType)
-            : this(syntax, unboundLambda, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, delegateType)
+            : this(syntax, unboundLambda.WithNoCache(), (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, delegateType)
         {
             InferredReturnType = inferredReturnType;
 
@@ -346,22 +348,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<bool> discardsOpt,
             bool isAsync,
             bool hasErrors = false)
-            : this(syntax, new PlainUnboundLambdaState(binder, names, discardsOpt, types, refKinds, isAsync), withDependencies, hasErrors || !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType))
+            : this(syntax, new PlainUnboundLambdaState(binder, names, discardsOpt, types, refKinds, isAsync, includeCache: true), withDependencies, hasErrors || !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType))
         {
             Debug.Assert(binder != null);
             Debug.Assert(syntax.IsAnonymousFunction());
             this.Data.SetUnboundLambda(this);
         }
 
-        private UnboundLambda(UnboundLambda other, NullableWalker.VariableState nullableState) :
-            this(other.Syntax, other.Data, other.WithDependencies, other.HasErrors)
+        private UnboundLambda(SyntaxNode syntax, UnboundLambdaState state, bool withDependencies, NullableWalker.VariableState nullableState, bool hasErrors) :
+            this(syntax, state, withDependencies, hasErrors)
         {
             this._nullableState = nullableState;
         }
 
         internal UnboundLambda WithNullableState(NullableWalker.VariableState nullableState)
         {
-            return new UnboundLambda(this, nullableState);
+            var data = Data.WithCaching(true);
+            var lambda = new UnboundLambda(Syntax, data, WithDependencies, nullableState, HasErrors);
+            data.SetUnboundLambda(lambda);
+            return lambda;
+        }
+
+        internal UnboundLambda WithNoCache()
+        {
+            var data = Data.WithCaching(false);
+            if ((object)data == Data)
+            {
+                return this;
+            }
+
+            var lambda = new UnboundLambda(Syntax, data, _nullableState, HasErrors);
+            data.SetUnboundLambda(lambda);
+            return lambda;
         }
 
         public MessageID MessageID { get { return Data.MessageID; } }
@@ -403,26 +421,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
             Constraint = "Avoid " + nameof(ConcurrentDictionary<NamedTypeSymbol, BoundLambda>) + " which has a large default size, but this cache is normally small.")]
-        private ImmutableDictionary<NamedTypeSymbol, BoundLambda> _bindingCache = ImmutableDictionary<NamedTypeSymbol, BoundLambda>.Empty.WithComparers(Symbols.SymbolEqualityComparer.ConsiderEverything);
+        private ImmutableDictionary<NamedTypeSymbol, BoundLambda> _bindingCache;
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
             Constraint = "Avoid " + nameof(ConcurrentDictionary<ReturnInferenceCacheKey, BoundLambda>) + " which has a large default size, but this cache is normally small.")]
-        private ImmutableDictionary<ReturnInferenceCacheKey, BoundLambda> _returnInferenceCache = ImmutableDictionary<ReturnInferenceCacheKey, BoundLambda>.Empty;
+        private ImmutableDictionary<ReturnInferenceCacheKey, BoundLambda> _returnInferenceCache;
 
         private BoundLambda _errorBinding;
 
-        public UnboundLambdaState(Binder binder)
+        public UnboundLambdaState(Binder binder, bool includeCache)
         {
             Debug.Assert(binder != null);
+
+            if (includeCache)
+            {
+                _bindingCache = ImmutableDictionary<NamedTypeSymbol, BoundLambda>.Empty.WithComparers(Symbols.SymbolEqualityComparer.ConsiderEverything);
+                _returnInferenceCache = ImmutableDictionary<ReturnInferenceCacheKey, BoundLambda>.Empty;
+            }
+
             this.Binder = binder;
         }
 
         public void SetUnboundLambda(UnboundLambda unbound)
         {
             Debug.Assert(unbound != null);
-            Debug.Assert(_unboundLambda == null);
+            Debug.Assert(_unboundLambda == null || (object)_unboundLambda == unbound);
             _unboundLambda = unbound;
+        }
+
+        protected abstract UnboundLambdaState WithCachingCore(bool includeCache);
+
+        internal UnboundLambdaState WithCaching(bool includeCache)
+        {
+            if ((_bindingCache == null) != includeCache)
+            {
+                return this;
+            }
+
+            var state = WithCachingCore(includeCache);
+            Debug.Assert((state._bindingCache == null) != includeCache);
+            return state;
         }
 
         public UnboundLambda UnboundLambda => _unboundLambda;
@@ -1088,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal class PlainUnboundLambdaState : UnboundLambdaState
+    internal sealed class PlainUnboundLambdaState : UnboundLambdaState
     {
         private readonly ImmutableArray<string> _parameterNames;
         private readonly ImmutableArray<bool> _parameterIsDiscardOpt;
@@ -1102,8 +1141,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<bool> parameterIsDiscardOpt,
             ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations,
             ImmutableArray<RefKind> parameterRefKinds,
-            bool isAsync)
-            : base(binder)
+            bool isAsync,
+            bool includeCache)
+            : base(binder, includeCache)
         {
             _parameterNames = parameterNames;
             _parameterIsDiscardOpt = parameterIsDiscardOpt;
@@ -1172,6 +1212,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(this.HasExplicitlyTypedParameterList);
             Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
             return _parameterTypesWithAnnotations[index];
+        }
+
+        protected override UnboundLambdaState WithCachingCore(bool includeCache)
+        {
+            return new PlainUnboundLambdaState(unboundLambda: null, Binder, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _isAsync, includeCache);
         }
 
         protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)

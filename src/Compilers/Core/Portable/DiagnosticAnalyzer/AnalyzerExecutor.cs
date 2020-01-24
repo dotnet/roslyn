@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -56,7 +58,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
         private readonly CancellationToken _cancellationToken;
 
+        private Func<IOperation, ControlFlowGraph> _lazyGetControlFlowGraph;
+
         private ConcurrentDictionary<IOperation, ControlFlowGraph> _lazyControlFlowGraphMap;
+
+        private Func<IOperation, ControlFlowGraph> GetControlFlowGraph
+            => _lazyGetControlFlowGraph ??= GetControlFlowGraphImpl;
 
         /// <summary>
         /// Creates <see cref="AnalyzerExecutor"/> to execute analyzer actions with given arguments
@@ -1886,7 +1893,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return TimeSpan.FromTicks(executionTime.Value);
         }
 
-        private ControlFlowGraph GetControlFlowGraph(IOperation operation)
+        private ControlFlowGraph GetControlFlowGraphImpl(IOperation operation)
         {
             Debug.Assert(operation != null);
             Debug.Assert(operation.Parent == null);

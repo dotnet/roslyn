@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -4871,7 +4873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (declarationSyntax.Parent is TupleTypeSyntax tupleTypeSyntax)
             {
-                return (GetSymbolInfo(tupleTypeSyntax).Symbol.GetSymbol() as TupleTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(declarationSyntax)).GetPublicSymbol();
+                return (GetSymbolInfo(tupleTypeSyntax).Symbol.GetSymbol() as NamedTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(declarationSyntax)).GetPublicSymbol();
             }
 
             return null;
@@ -5066,13 +5068,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return context;
 
-            static NullableContext getFlag(bool? contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
+            static NullableContext getFlag(NullableContextState.State contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
                 contextState switch
                 {
-                    null when defaultEnableState => (inheritedFlag | enableFlag),
-                    null => inheritedFlag,
-                    true => enableFlag,
-                    false => NullableContext.Disabled
+                    NullableContextState.State.Enabled => enableFlag,
+                    NullableContextState.State.Disabled => NullableContext.Disabled,
+                    _ when defaultEnableState => (inheritedFlag | enableFlag),
+                    _ => inheritedFlag,
                 };
         }
 

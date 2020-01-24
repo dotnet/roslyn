@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -8482,7 +8484,8 @@ public class Test
             Assert.Equal(true, semanticInfo.ConstantValue);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsDebug))]
+        [WorkItem(40352, "https://github.com/dotnet/roslyn/issues/40352")]
         public void SwitchExpression_Constant02()
         {
             string sourceCode = @"
@@ -8509,9 +8512,11 @@ public class Test
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.Nullability.FlowState);
+            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.ConvertedNullability.FlowState);
+            Assert.Equal("System.String?", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String?", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
@@ -8525,7 +8530,8 @@ public class Test
             Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsDebug))]
+        [WorkItem(40352, "https://github.com/dotnet/roslyn/issues/40352")]
         public void SwitchExpression_NotConstant()
         {
             string sourceCode = @"
@@ -8551,9 +8557,11 @@ public class Test
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.Nullability.FlowState);
+            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.ConvertedNullability.FlowState);
+            Assert.Equal("System.String?", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String?", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 

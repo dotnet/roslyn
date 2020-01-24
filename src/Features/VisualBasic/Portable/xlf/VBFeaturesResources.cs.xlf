@@ -447,7 +447,7 @@ CType(Object As Expression, Object As Type) As Type</target>
       </trans-unit>
       <trans-unit id="Used_to_declare_a_delegate_A_delegate_is_a_reference_type_that_refers_to_a_shared_method_of_a_type_or_to_an_instance_method_of_an_object_Any_procedure_that_is_convertible_or_that_has_matching_parameter_types_and_return_type_may_be_used_to_create_an_instance_of_this_delegate_class">
         <source>Used to declare a delegate. A delegate is a reference type that refers to a shared method of a type or to an instance method of an object. Any procedure that is convertible, or that has matching parameter types and return type may be used to create an instance of this delegate class.</source>
-        <target state="translated">Používá se pro deklaraci delegáta. Delegát je odkazový typ, který odkazuje na sdílenou metodu typu nebo na metodu instance objektu. Každá procedura, která je převoditelná nebo která má shodné typy parametrů a návratový typ, se může použít pro vytvoření instance této třídy delegáta.</target>
+        <target state="translated">Používá se pro deklaraci delegáta. Delegát je odkazový typ, který odkazuje na sdílenou metodu typu nebo na instanční metodu objektu. Každá procedura, která je převoditelná nebo která má shodné typy parametrů a návratový typ, se může použít pro vytvoření instance této třídy delegáta.</target>
         <note />
       </trans-unit>
       <trans-unit id="Declares_and_allocates_storage_space_for_one_or_more_variables_Dim_var_bracket_As_bracket_New_bracket_dataType_bracket_boundList_bracket_bracket_bracket_initializer_bracket_bracket_var2_bracket">
@@ -1347,7 +1347,7 @@ Return -or- Return &lt;výraz&gt;</target>
       <trans-unit id="When_set_to_On_restricts_implicit_data_type_conversions_to_only_widening_conversions_Option_Strict_On_Off">
         <source>When set to On, restricts implicit data type conversions to only widening conversions.
 Option Strict {On | Off}</source>
-        <target state="translated">Pokud je tato možnost zapnutá (On), omezí implicitní převody typů dat jenom na rozšiřující převody.
+        <target state="translated">Pokud je tato možnost zapnutá (On), omezí implicitní převody typů dat jenom na rozšiřující konverze.
 Option Strict {On | Off}</target>
         <note />
       </trans-unit>
@@ -1509,7 +1509,7 @@ Sub(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">Generovat rozšiřující převod v {0}</target>
+        <target state="translated">Generovat rozšiřující konverzi v {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">

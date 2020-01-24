@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeRefactoringService = codeRefactoringService ?? throw new ArgumentNullException(nameof(codeRefactoringService));
         }
 
-        public async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Solution solution, Uri documentUri, LSP.Range selection, bool keepThreadContext, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Solution solution, Uri documentUri, LSP.Range selection, CancellationToken cancellationToken)
         {
             var document = solution.GetDocumentFromURI(documentUri);
             if (document == null)
@@ -34,11 +36,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return ImmutableArray<CodeAction>.Empty;
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(keepThreadContext);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
-            var codeFixCollections = await _codeFixService.GetFixesAsync(document, textSpan, true, cancellationToken).ConfigureAwait(keepThreadContext);
-            var codeRefactorings = await _codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken).ConfigureAwait(keepThreadContext);
+            var codeFixCollections = await _codeFixService.GetFixesAsync(document, textSpan, true, cancellationToken).ConfigureAwait(false);
+            var codeRefactorings = await _codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
             var codeActions = codeFixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).Concat(
                                 codeRefactorings.SelectMany(r => r.CodeActions.Select(ca => ca.action)));

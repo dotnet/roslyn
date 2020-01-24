@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -52,27 +54,31 @@ namespace Microsoft.CodeAnalysis.AddImport
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
-            if (RemoteSupportedLanguages.IsSupported(document.Project.Language))
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
             {
-                var callbackTarget = new RemoteSymbolSearchService(symbolSearchService, cancellationToken);
-                var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<AddImportFixData>>(
-                    callbackTarget,
+                var callbackTarget = new RemoteSymbolSearchService(symbolSearchService);
+
+                var result = await client.TryRunRemoteAsync<IList<AddImportFixData>>(
+                    WellKnownServiceHubServices.CodeAnalysisService,
                     nameof(IRemoteAddImportFeatureService.GetFixesAsync),
+                    document.Project.Solution,
                     new object[]
                     {
-                    document.Id,
-                    span,
-                    diagnosticId,
-                    maxResults,
-                    placeSystemNamespaceFirst,
-                    searchReferenceAssemblies,
-                    packageSources
+                        document.Id,
+                        span,
+                        diagnosticId,
+                        maxResults,
+                        placeSystemNamespaceFirst,
+                        searchReferenceAssemblies,
+                        packageSources
                     },
+                    callbackTarget,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result != null)
+                if (result.HasValue)
                 {
-                    return result.ToImmutableArray();
+                    return result.Value.ToImmutableArray();
                 }
             }
 

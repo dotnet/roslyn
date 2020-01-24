@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -535,13 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
                 ReportUnsafeIfNotAllowed(node, diagnostics);
 
-                // Checking BinderFlags.GenericConstraintsClause to prevent cycles in binding
-                if (Flags.HasFlag(BinderFlags.GenericConstraintsClause) && elementType.TypeKind == TypeKind.TypeParameter)
-                {
-                    // Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
-                    Error(diagnostics, ErrorCode.ERR_BadConstraintType, node);
-                }
-                else if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
+                if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
                 {
                     CheckManagedAddr(Compilation, elementType.Type, node.Location, diagnostics);
                 }
@@ -667,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-            return TupleTypeSymbol.Create(syntax.Location,
+            return NamedTypeSymbol.CreateTuple(syntax.Location,
                                           typesArray,
                                           locationsArray,
                                           elementNames == null ?
@@ -706,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool CheckTupleMemberName(string name, int index, SyntaxNodeOrToken syntax, BindingDiagnosticBag diagnostics, PooledHashSet<string> uniqueFieldNames)
         {
-            int reserved = TupleTypeSymbol.IsElementNameReserved(name);
+            int reserved = NamedTypeSymbol.IsTupleElementNameReserved(name);
             if (reserved == 0)
             {
                 Error(diagnostics, ErrorCode.ERR_TupleReservedElementNameAnyPosition, syntax, name);
@@ -1282,10 +1278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ShouldCheckConstraints && ConstraintsHelper.RequiresChecking(type))
             {
                 bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-                type.CheckConstraintsForNonTuple(this.Conversions, includeNullability, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
+                type.CheckConstraintsForNamedType(this.Conversions, includeNullability, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
-
-            type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);
 
             return type;
         }

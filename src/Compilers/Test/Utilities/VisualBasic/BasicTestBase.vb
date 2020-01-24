@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
@@ -430,7 +432,7 @@ Public MustInherit Class BasicTestBase
         Return attributes.Select(Function(a) a.AttributeClass.Name)
     End Function
 
-    Friend Overrides Function VisualizeRealIL(peModule As IModuleSymbol, methodData As CompilationTestData.MethodData, markers As IReadOnlyDictionary(Of Integer, String)) As String
+    Friend Overrides Function VisualizeRealIL(peModule As IModuleSymbol, methodData As CompilationTestData.MethodData, markers As IReadOnlyDictionary(Of Integer, String), areLocalsZeroed As Boolean) As String
         Throw New NotImplementedException()
     End Function
 

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Text
@@ -1326,11 +1328,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsLeftSideOfAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAssignment
-            Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignStatement
+            Return TryCast(node, ExpressionSyntax).IsLeftSideOfSimpleAssignmentStatement
         End Function
 
         Public Function IsLeftSideOfAnyAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAnyAssignment
-            Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignStatement
+            Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignmentStatement
+        End Function
+
+        Public Function IsLeftSideOfCompoundAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfCompoundAssignment
+            Return TryCast(node, ExpressionSyntax).IsLeftSideOfCompoundAssignmentStatement
         End Function
 
         Public Function GetRightHandSideOfAssignment(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightHandSideOfAssignment
@@ -1513,7 +1519,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Sub AddFirstMissingCloseBrace(root As SyntaxNode, contextNode As SyntaxNode, ByRef newRoot As SyntaxNode, ByRef newContextNode As SyntaxNode) Implements ISyntaxFactsService.AddFirstMissingCloseBrace
+        Public Sub AddFirstMissingCloseBrace(Of TContextNode As SyntaxNode)(
+                root As SyntaxNode, contextNode As TContextNode,
+                ByRef newRoot As SyntaxNode, ByRef newContextNode As TContextNode) Implements ISyntaxFactsService.AddFirstMissingCloseBrace
             ' Nothing to be done.  VB doesn't have close braces
             newRoot = root
             newContextNode = contextNode
