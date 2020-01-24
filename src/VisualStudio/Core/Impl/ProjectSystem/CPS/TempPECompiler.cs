@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -37,13 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 throw new ArgumentException(nameof(outputFileName), "Must specify an output file name.");
             }
 
-            var project = _workspace.CurrentSolution.GetProject(context.Id);
+            var project = _workspace.CurrentSolution.GetRequiredProject(context.Id);
 
             // Remove all files except the ones we care about
             var documents = project.Documents;
             foreach (var document in documents)
             {
-                if (!filesToInclude.Contains(document.FilePath))
+                if (document.FilePath != null && !filesToInclude.Contains(document.FilePath))
                 {
                     project = project.RemoveDocument(document.Id);
                 }
@@ -51,8 +54,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
+
             // We need to inherit most of the projects options, mainly for VB (RootNamespace, GlobalImports etc.), but we need to override about some specific things surrounding the output
-            var options = project.CompilationOptions
+            var options = project.CompilationOptions!
                     // copied from the old TempPE compiler used by legacy, for parity.
                     // See: https://github.com/dotnet/roslyn/blob/fab7134296816fc80019c60b0f5bef7400cf23ea/src/VisualStudio/CSharp/Impl/ProjectSystemShim/TempPECompilerService.cs#L58
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
@@ -65,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     // Turn off any warnings as errors just in case
                     .WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
                     .WithReportSuppressedDiagnostics(false)
-                    .WithSpecificDiagnosticOptions(null)
+                    .WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty)
                     // Turn off any signing and strong naming
                     .WithDelaySign(false)
                     .WithCryptoKeyFile(null)
@@ -77,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 // AssemblyName should be set to the filename of the output file because multiple TempPE DLLs can be created for the same project
                 .WithAssemblyName(Path.GetFileName(outputFileName));
 
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
