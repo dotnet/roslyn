@@ -115,6 +115,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add Explicit Cast.
+        /// </summary>
+        internal static string Add_Explicit_Cast {
+            get {
+                return ResourceManager.GetString("Add_Explicit_Cast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add missing usings.
         /// </summary>
         internal static string Add_missing_usings {

@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
             public const string CodeActionsAddConstructorParametersFromMembers = "CodeActions.AddConstructorParametersFromMembers";
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
+            public const string CodeActionsAddExplicitCast = "CodeActions.AddExplicitCast";
             public const string CodeActionsAddFileBanner = "CodeActions.AddFileBanner";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";

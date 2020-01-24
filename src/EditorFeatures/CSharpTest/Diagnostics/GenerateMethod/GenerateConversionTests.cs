@@ -355,5 +355,33 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestFooBar()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C { }
+class D : C { }
+
+class Program
+{
+    static void M(C c)
+    {
+        D d = [|c|];
+    }
+}",
+@"
+class C { }
+class D : C { }
+
+class Program
+{
+    static void M(C c)
+    {
+        D d = (D)c;
+    }
+}");
+        }
     }
 }

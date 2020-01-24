@@ -673,4 +673,7 @@
     <value>Reverse 'for' statement</value>
     <comment>{Locked="for"} "for" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Add_Explicit_Cast" xml:space="preserve">
+    <value>Add Explicit Cast</value>
+  </data>
 </root>
