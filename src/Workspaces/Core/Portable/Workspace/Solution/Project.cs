@@ -599,6 +599,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Project RemoveDocument(DocumentId documentId)
         {
+            // NOTE: the method isn't checking if documentId belongs to the project. This probably should be done, but may be a compat change.
+            // https://github.com/dotnet/roslyn/issues/41211 tracks this investigation.
             return this.Solution.RemoveDocument(documentId).GetProject(this.Id)!;
         }
 
