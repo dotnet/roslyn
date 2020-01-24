@@ -1743,6 +1743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
 
         ERR_BadRecordDeclaration = 8770,
+        ERR_DuplicateRecordConstructor = 8771,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

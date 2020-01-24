@@ -60,7 +60,11 @@ data class C(int x, string y)
     {
     }
 }");
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,13): error CS8762: There cannot be a primary constructor and a member constructor with the same parameter types.
+                // data class C(int x, string y)
+                Diagnostic(ErrorCode.ERR_DuplicateRecordConstructor, "(int x, string y)").WithLocation(2, 13)
+            );
             var c = comp.GlobalNamespace.GetTypeMember("C");
             var ctor = c.GetMethod(".ctor");
             Assert.Equal(2, ctor.ParameterCount);
@@ -109,6 +113,56 @@ data class C(int x, string y)
                     Assert.Equal(SpecialType.System_Int32, p2.Type.SpecialType);
                 }
             }
+        }
+
+        [Fact]
+        public void GeneratedProperties()
+        {
+            var comp = CreateCompilation("data class C(int x, int y);");
+            comp.VerifyDiagnostics();
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+
+            var x = (SourceOrRecordPropertySymbol)c.GetProperty("x");
+            Assert.NotNull(x.GetMethod);
+            Assert.Equal(MethodKind.PropertyGet, x.GetMethod.MethodKind);
+            Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
+            Assert.True(x.IsReadOnly);
+            Assert.Equal(Accessibility.Public, x.DeclaredAccessibility);
+            Assert.False(x.IsVirtual);
+            Assert.False(x.IsStatic);
+            Assert.Equal(c, x.ContainingType);
+            Assert.Equal(c, x.ContainingSymbol);
+
+            var backing = x.BackingField;
+            Assert.Equal(x, backing.AssociatedSymbol);
+            Assert.Equal(c, backing.ContainingSymbol);
+            Assert.Equal(c, backing.ContainingType);
+
+            var getAccessor = x.GetMethod;
+            Assert.Equal(x, getAccessor.AssociatedSymbol);
+            Assert.Equal(c, getAccessor.ContainingSymbol);
+            Assert.Equal(c, getAccessor.ContainingType);
+
+            var y = (SourceOrRecordPropertySymbol)c.GetProperty("y");
+            Assert.NotNull(y.GetMethod);
+            Assert.Equal(MethodKind.PropertyGet, y.GetMethod.MethodKind);
+            Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);
+            Assert.True(y.IsReadOnly);
+            Assert.Equal(Accessibility.Public, y.DeclaredAccessibility);
+            Assert.False(x.IsVirtual);
+            Assert.False(x.IsStatic);
+            Assert.Equal(c, y.ContainingType);
+            Assert.Equal(c, y.ContainingSymbol);
+
+            backing = y.BackingField;
+            Assert.Equal(y, backing.AssociatedSymbol);
+            Assert.Equal(c, backing.ContainingSymbol);
+            Assert.Equal(c, backing.ContainingType);
+
+            getAccessor = y.GetMethod;
+            Assert.Equal(y, getAccessor.AssociatedSymbol);
+            Assert.Equal(c, getAccessor.ContainingSymbol);
+            Assert.Equal(c, getAccessor.ContainingType);
         }
     }
 }
