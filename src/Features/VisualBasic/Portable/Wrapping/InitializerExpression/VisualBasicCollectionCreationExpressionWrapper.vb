@@ -22,6 +22,7 @@ Friend Class VisualBasicCollectionCreationExpressionWrapper
                   TryCast(node, ObjectCollectionInitializerSyntax)?.Initializer)
     End Function
 
+    ' Return false because VB doesn't have an option to toggle if a initializer's opening brace is on the same or next line.
     Protected Overrides Function TryGetNewLinesForBracesInObjectCollectionArrayInitializersOption(options As DocumentOptionSet) As Boolean
         Return False
     End Function
