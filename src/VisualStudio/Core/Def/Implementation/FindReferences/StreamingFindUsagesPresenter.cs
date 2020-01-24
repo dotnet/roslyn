@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService,
             IEnumerable<ITableColumnDefinition> columns)
-            : base(threadingContext)
+            : base(threadingContext, assertIsForeground: false)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;

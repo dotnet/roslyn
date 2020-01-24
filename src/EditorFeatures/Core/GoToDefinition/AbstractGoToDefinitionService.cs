@@ -18,10 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     // GoToDefinition
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {
-        /// <summary>
-        /// Presenter used for <see cref="TryGoToDefinition(Document, int, CancellationToken)"/>
-        /// Import lazily as this requires the UI thread.
-        /// </summary>
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         protected AbstractGoToDefinitionService(Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
