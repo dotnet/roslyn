@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
                    IsDecrementAfter(variable, after);
         }
 
-        private bool IsIncrementInitializer(VariableDeclaratorSyntax variable, out ExpressionSyntax? start)
+        private bool IsIncrementInitializer(VariableDeclaratorSyntax variable, [NotNullWhen(true)] out ExpressionSyntax? start)
         {
             start = variable.Initializer?.Value;
             return start != null;
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 
         private bool IsIncrementCondition(
             VariableDeclaratorSyntax variable, BinaryExpressionSyntax condition,
-            out bool equals, out ExpressionSyntax? end)
+            out bool equals, [NotNullWhen(true)] out ExpressionSyntax? end)
         {
             // i < ...   i <= ...
             if (condition.Kind() == SyntaxKind.LessThanExpression ||
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 
         private bool IsDecrementCondition(
             VariableDeclaratorSyntax variable, BinaryExpressionSyntax condition,
-            out ExpressionSyntax? start)
+            [NotNullWhen(true)] out ExpressionSyntax? start)
         {
             // i >= ...
             if (condition.Kind() == SyntaxKind.GreaterThanOrEqualExpression)
