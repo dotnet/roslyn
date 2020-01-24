@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis
             return CommonWithCryptoKeyContainer(cryptoKeyContainer);
         }
 
-        public CompilationOptions WithCryptoKeyFile(string cryptoKeyFile)
+        public CompilationOptions WithCryptoKeyFile(string? cryptoKeyFile)
         {
             return CommonWithCryptoKeyFile(cryptoKeyFile);
         }
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithMainTypeName(string? mainTypeName);
         protected abstract CompilationOptions CommonWithScriptClassName(string scriptClassName);
         protected abstract CompilationOptions CommonWithCryptoKeyContainer(string? cryptoKeyContainer);
-        protected abstract CompilationOptions CommonWithCryptoKeyFile(string cryptoKeyFile);
+        protected abstract CompilationOptions CommonWithCryptoKeyFile(string? cryptoKeyFile);
         protected abstract CompilationOptions CommonWithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey);
         protected abstract CompilationOptions CommonWithDelaySign(bool? delaySign);
         protected abstract CompilationOptions CommonWithCheckOverflow(bool checkOverflow);
