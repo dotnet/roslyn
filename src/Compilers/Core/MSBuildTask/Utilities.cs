@@ -152,41 +152,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal static string TryGetAssemblyPath(Assembly assembly)
         {
-            if ((bool?)typeof(Assembly).GetTypeInfo()
-                .GetDeclaredProperty("GlobalAssemblyCache")
-                ?.GetMethod.Invoke(assembly, parameters: null) == true)
+            if (assembly.GlobalAssemblyCache)
             {
                 return null;
             }
 
-            var codebase = (string)typeof(Assembly)
-                .GetTypeInfo()
-                .GetDeclaredProperty("CodeBase")
-                ?.GetMethod.Invoke(assembly, parameters: null);
-
-            if (codebase != null)
+            if (assembly.CodeBase is { } codebase)
             {
                 var uri = new Uri(codebase);
-                if (uri.IsFile)
-                {
-                    return uri.LocalPath;
-                }
-                else
-                {
-                    var callingAssembly = (Assembly)typeof(Assembly)
-                        .GetTypeInfo()
-                        .GetDeclaredMethod("GetCallingAssembly")
-                        ?.Invoke(null, null);
-
-                    var location = (string)typeof(Assembly).GetTypeInfo()
-                        .GetDeclaredProperty("Location")
-                        ?.GetMethod.Invoke(assembly, parameters: null);
-
-                    if (location != null)
-                    {
-                        return location;
-                    }
-                }
+                return uri.IsFile ? uri.LocalPath : assembly.Location;
             }
 
             return null;
