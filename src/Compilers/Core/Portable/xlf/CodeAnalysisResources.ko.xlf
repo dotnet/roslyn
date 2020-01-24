@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
-        <target state="new">Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</target>
+        <target state="translated">디버깅 중에는 어셈블리 참조의 버전 변경이 허용되지 않습니다. '{0}'이(가) 버전을 '{1}'(으)로 변경했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
@@ -46,7 +46,7 @@
       </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
-        <target state="new">Module has invalid attributes.</target>
+        <target state="translated">모듈에 잘못된 특성이 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
@@ -121,7 +121,7 @@
       </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
         <source>Unable to determine specific cause of the failure.</source>
-        <target state="new">Unable to determine specific cause of the failure.</target>
+        <target state="translated">오류의 특정 원인을 확인할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">

@@ -14030,7 +14030,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A possible null value may not be assigned to a target marked with the [DisallowNull] attribute.
+        ///   Looks up a localized string similar to A possible null value may not be used for a type marked with [NotNull] or [DisallowNull].
         /// </summary>
         internal static string WRN_DisallowNullAttributeForbidsMaybeNullAssignment {
             get {
@@ -14039,7 +14039,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A possible null value may not be assigned to a target marked with the [DisallowNull] attribute.
+        ///   Looks up a localized string similar to A possible null value may not be used for a type marked with [NotNull] or [DisallowNull].
         /// </summary>
         internal static string WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title {
             get {
@@ -15863,6 +15863,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; may not have a null value when exiting with &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_ParameterConditionallyDisallowsNull {
+            get {
+                return ResourceManager.GetString("WRN_ParameterConditionallyDisallowsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter may not have a null value when exiting in some condition..
+        /// </summary>
+        internal static string WRN_ParameterConditionallyDisallowsNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_ParameterConditionallyDisallowsNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; does not implement the &apos;{1}&apos; pattern. &apos;{2}&apos; has the wrong signature..
         /// </summary>
         internal static string WRN_PatternBadSignature {
@@ -16104,6 +16122,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_SequentialOnPartialClass_Title {
             get {
                 return ResourceManager.GetString("WRN_SequentialOnPartialClass_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A method marked [DoesNotReturn] should not return..
+        /// </summary>
+        internal static string WRN_ShouldNotReturn {
+            get {
+                return ResourceManager.GetString("WRN_ShouldNotReturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A method marked [DoesNotReturn] should not return..
+        /// </summary>
+        internal static string WRN_ShouldNotReturn_Title {
+            get {
+                return ResourceManager.GetString("WRN_ShouldNotReturn_Title", resourceCulture);
             }
         }
         

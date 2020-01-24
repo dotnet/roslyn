@@ -709,12 +709,6 @@ Do you want to continue?</value>
   <data name="Implement_interface_with_Dispose_pattern" xml:space="preserve">
     <value>Implement interface with Dispose pattern</value>
   </data>
-  <data name="Compiler1" xml:space="preserve">
-    <value>Compiler</value>
-  </data>
-  <data name="Style" xml:space="preserve">
-    <value>Style</value>
-  </data>
   <data name="Suppress_0" xml:space="preserve">
     <value>Suppress {0}</value>
   </data>
@@ -1414,9 +1408,6 @@ This version used in: {2}</value>
   </data>
   <data name="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked" xml:space="preserve">
     <value>Private property '{0}' can be converted to a method as its get accessor is never invoked.</value>
-  </data>
-  <data name="Code_Quality" xml:space="preserve">
-    <value>Code Quality</value>
   </data>
   <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
     <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
