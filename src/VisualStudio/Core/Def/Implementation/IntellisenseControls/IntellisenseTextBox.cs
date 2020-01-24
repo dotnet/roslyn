@@ -118,7 +118,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         }
 
         /// <summary>
-        /// Gets the text in the control
+        /// Shuts down any active Intellisense session.
+        /// </summary>
+        public void ShutDownIntellisenseSessions()
+        {
+            if (this._textViewHost.TextView.Properties.TryGetProperty(typeof(ICompletionBroker), out ICompletionBroker completionBroker))
+            {
+                completionBroker.DismissAllSessions(this._textViewHost.TextView);
+            }
+        }
+
+        /// <summary>
+        /// Gets the text in the control.
         /// </summary>
         public string Text
         {

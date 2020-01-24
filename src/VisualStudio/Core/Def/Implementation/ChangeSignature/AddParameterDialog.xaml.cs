@@ -74,12 +74,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void TypeOrNameContentControl_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            UIElement? elementWithFocus = Keyboard.FocusedElement as UIElement;
-
+            var elementWithFocus = Keyboard.FocusedElement as UIElement;
             if (elementWithFocus is IWpfTextView)
             {
-                IntellisenseTextBox typeOrNameTextBox = elementWithFocus.GetParentOfType<IntellisenseTextBox>();
-
+                var typeOrNameTextBox = elementWithFocus.GetParentOfType<IntellisenseTextBox>();
                 if (typeOrNameTextBox != null)
                 {
                     if (e.Key == Key.Escape && !typeOrNameTextBox.HasActiveIntellisenseSession)
@@ -104,6 +102,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     {
                         // Let the editor control handle the keystrokes
                         e.Handled = typeOrNameTextBox.HandleKeyDown();
+                    }
+                }
+            }
+        }
+
+        private void TypeOrNameContentControl_KeyUp(object sender, KeyEventArgs e)
+        {
+            var elementWithFocus = Keyboard.FocusedElement as UIElement;
+            if (elementWithFocus is IWpfTextView)
+            {
+                // We disable Intellisense in the name field in either of the following scenarios:
+                //     1. The type field is empty.
+                //     2. We're in a VB project, since VB doesn't give name suggestions.
+                var typeOrNameTextBox = elementWithFocus.GetParentOfType<IntellisenseTextBox>();
+                if (typeOrNameTextBox != null && typeOrNameTextBox.ContainerName.Equals("NameContentControl"))
+                {
+                    var nameBeforeType = string.IsNullOrWhiteSpace(((IntellisenseTextBox)TypeContentControl.Content).Text);
+                    if (nameBeforeType || _document.Project.Language.Equals(LanguageNames.VisualBasic))
+                    {
+                        typeOrNameTextBox.ShutDownIntellisenseSessions();
                     }
                 }
             }
