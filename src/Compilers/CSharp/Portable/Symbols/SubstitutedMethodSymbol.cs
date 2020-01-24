@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
 
+        private int _hashCode; // computed on demand
+
         internal SubstitutedMethodSymbol(NamedTypeSymbol containingSymbol, MethodSymbol originalDefinition)
             : this(containingSymbol, containingSymbol.TypeSubstitution, originalDefinition, constructedFrom: null)
         {
@@ -355,6 +357,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        private int ComputeHashCode()
+        {
+            int code = this.OriginalDefinition.GetHashCode();
+
+            // If the containing type of the of the original definition is the same as our containing type
+            // it's possible that we will compare equal to the original definition under certain conditions 
+            // (e.g, ignoring nullability) and want to retain the same hashcode. As such only make
+            // the containing type part of the hashcode when we know equality isn't possible
+            var containingHashCode = _containingType.GetHashCode();
+            if (containingHashCode != this.OriginalDefinition.ContainingType.GetHashCode())
+            {
+                code = Hash.Combine(containingHashCode, code);
+            }
+
+            // Unconstructed method may contain alpha-renamed type parameters while	
+            // may still be considered equal, we do not want to give different hashcode to such types.	
+            //	
+            // Example:	
+            //   Having original method A<U>.Goo<V>() we create two _unconstructed_ methods	
+            //    A<int>.Goo<V'>	
+            //    A<int>.Goo<V">     	
+            //  Note that V' and V" are type parameters substituted via alpha-renaming of original V	
+            //  These are different objects, but represent the same "type parameter at index 1"	
+            //	
+            //  In short - we are not interested in the type arguments of unconstructed methods.	
+            if ((object)ConstructedFrom != (object)this)
+            {
+                foreach (var arg in this.TypeArgumentsWithAnnotations)
+                {
+                    code = Hash.Combine(arg.Type, code);
+                }
+            }
+
+            return code;
+        }
+
         public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             MethodSymbol other = obj as MethodSymbol;
@@ -395,11 +433,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int GetHashCode()
         {
-            // Substituted methods can still be considered equal to other method symbols when 
-            // the substituted type is considered equal (e.g. when ignoring nullability).
-            // We defer the hashcode to the original definition so it will match in those scenarios. 
-            // See https://github.com/dotnet/roslyn/issues/38195
-            return this.OriginalDefinition.GetHashCode();
+            int code = _hashCode;
+
+            if (code == 0)
+            {
+                code = ComputeHashCode();
+
+                // 0 means that hashcode is not initialized. 
+                // in a case we really get 0 for the hashcode, tweak it by +1
+                if (code == 0)
+                {
+                    code++;
+                }
+
+                _hashCode = code;
+            }
+
+            return code;
         }
     }
 }

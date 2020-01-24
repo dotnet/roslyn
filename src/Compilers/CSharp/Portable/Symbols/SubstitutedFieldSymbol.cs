@@ -112,11 +112,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int GetHashCode()
         {
-            // Substituted fields can still be considered equal to other field symbols when 
-            // the substituted type is considered equal (e.g. when ignoring nullability).
-            // We defer the hashcode to the original definition so it will match in those scenarios. 
-            // See https://github.com/dotnet/roslyn/issues/38195
-            return this.OriginalDefinition.GetHashCode();
+            var code = this.OriginalDefinition.GetHashCode();
+
+            // If the containing type of the of the original definition is the same as our containing type
+            // it's possible that we will compare equal to the original definition under certain conditions 
+            // (e.g, ignoring nullability) and want to retain the same hashcode. As such only make
+            // the containing type part of the hashcode when we know equality isn't possible
+            var containingHashCode = _containingType.GetHashCode();
+            if (containingHashCode != this.OriginalDefinition.ContainingType.GetHashCode())
+            {
+                code = Hash.Combine(containingHashCode, code);
+            }
+
+            return code;
         }
     }
 }

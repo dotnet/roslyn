@@ -463,5 +463,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return base.Equals(other, compareKind);
         }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }
