@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Host.Mef
@@ -13,10 +16,14 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     {
         private readonly MefWorkspaceServices _workspaceServices;
         private readonly string _language;
-        private readonly ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> _services;
+        private readonly ImmutableArray<Lazy<ILanguageService?, LanguageServiceMetadata>> _services;
 
-        private ImmutableDictionary<Type, Lazy<ILanguageService, LanguageServiceMetadata>> _serviceMap
-            = ImmutableDictionary<Type, Lazy<ILanguageService, LanguageServiceMetadata>>.Empty;
+        /// <summary>
+        /// The <see cref="ILanguageService"/> is itself marked nullable as we support a specific workspace overriding a language service with null. The entire Lazy
+        /// may be null if no entry could be found at all.
+        /// </summary>
+        private ImmutableDictionary<Type, Lazy<ILanguageService?, LanguageServiceMetadata>?> _serviceMap
+            = ImmutableDictionary<Type, Lazy<ILanguageService?, LanguageServiceMetadata>?>.Empty;
 
         public MefLanguageServices(
             MefWorkspaceServices workspaceServices,
@@ -27,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
             var hostServices = workspaceServices.HostExportProvider;
 
-            _services = hostServices.GetExports<ILanguageService, LanguageServiceMetadata>()
+            _services = hostServices.GetExports<ILanguageService?, LanguageServiceMetadata>()
                     .Concat(hostServices.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>()
-                                        .Select(lz => new Lazy<ILanguageService, LanguageServiceMetadata>(() => lz.Value.CreateLanguageService(this), lz.Metadata)))
+                                        .Select(lz => new Lazy<ILanguageService?, LanguageServiceMetadata>(() => lz.Value.CreateLanguageService(this), lz.Metadata)))
                     .Where(lz => lz.Metadata.Language == language).ToImmutableArray();
         }
 
@@ -42,9 +49,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             get { return _services.Length > 0; }
         }
 
+        [return: MaybeNull]
         public override TLanguageService GetService<TLanguageService>()
         {
-            if (TryGetService(typeof(TLanguageService), out var service))
+            if (TryGetServiceFactory(typeof(TLanguageService), out var service))
             {
                 return (TLanguageService)service.Value;
             }
@@ -54,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
         }
 
-        internal bool TryGetService(Type serviceType, out Lazy<ILanguageService, LanguageServiceMetadata> service)
+        internal bool TryGetServiceFactory(Type serviceType, [NotNullWhen(returnValue: true)] out Lazy<ILanguageService?, LanguageServiceMetadata>? service)
         {
             if (!_serviceMap.TryGetValue(serviceType, out service))
             {
@@ -66,12 +74,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 });
             }
 
-            return service != default(Lazy<ILanguageService, LanguageServiceMetadata>);
+            return service != null;
         }
 
-        private Lazy<ILanguageService, LanguageServiceMetadata> PickLanguageService(IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> services)
+        private Lazy<ILanguageService?, LanguageServiceMetadata>? PickLanguageService(IEnumerable<Lazy<ILanguageService?, LanguageServiceMetadata>> services)
         {
-
             // workspace specific kind is best
             if (TryGetServiceByLayer(_workspaceServices.Workspace.Kind, services, out var service))
             {
@@ -103,10 +110,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             // no service
-            return default;
+            return null;
         }
 
-        private static bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> services, out Lazy<ILanguageService, LanguageServiceMetadata> service)
+        private static bool TryGetServiceByLayer(string? layer, IEnumerable<Lazy<ILanguageService?, LanguageServiceMetadata>> services, out Lazy<ILanguageService?, LanguageServiceMetadata> service)
         {
             service = services.SingleOrDefault(lz => lz.Metadata.Layer == layer);
             return service != default(Lazy<ILanguageService, LanguageServiceMetadata>);
