@@ -1280,19 +1280,61 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance that no longer includes the specified document.
         /// </summary>
-        public SolutionState RemoveDocument(DocumentId documentId)
+        public SolutionState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            CheckContainsDocument(documentId);
+            return RemoveDocumentsFromMultipleProjects(documentIds,
+                (projectState, documentId) => { CheckContainsDocument(documentId); return projectState.GetDocumentState(documentId)!; },
+                (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationTranslationAction.RemoveDocumentsAction(documentStates)));
+        }
 
-            var oldProject = this.GetProjectState(documentId.ProjectId)!;
-            var oldDocument = oldProject.GetDocumentState(documentId);
-            var newProject = oldProject.RemoveDocument(documentId);
-            var removedDocumentStates = SpecializedCollections.SingletonEnumerable(oldProject.GetDocumentState(documentId)!);
+        private SolutionState RemoveDocumentsFromMultipleProjects<T>(
+            ImmutableArray<DocumentId> documentIds,
+            Func<ProjectState, DocumentId, T> getExistingTextDocumentState,
+            Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, CompilationTranslationAction? translationAction)> removeDocumentsFromProjectState)
+            where T : TextDocumentState
+        {
+            if (documentIds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(documentIds));
+            }
 
-            return this.ForkProject(
-                newProject,
-                new CompilationTranslationAction.RemoveDocumentAction(oldDocument),
-                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStates));
+            if (documentIds.IsEmpty)
+            {
+                return this;
+            }
+
+            // The documents might be contributing to multiple different projects; split them by project and then we'll process
+            // project-at-a-time.
+            var documentIdsByProjectId = documentIds.ToLookup(id => id.ProjectId);
+
+            var newSolutionState = this;
+
+            foreach (var documentIdsInProject in documentIdsByProjectId)
+            {
+                var oldProject = this.GetProjectState(documentIdsInProject.Key);
+
+                if (oldProject == null)
+                {
+                    throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentIdsInProject.Key));
+                }
+
+                var removedDocumentStatesBuilder = ArrayBuilder<T>.GetInstance();
+
+                foreach (var documentId in documentIdsInProject)
+                {
+                    removedDocumentStatesBuilder.Add(getExistingTextDocumentState(oldProject, documentId));
+                }
+
+                var removedDocumentStatesForProject = removedDocumentStatesBuilder.ToImmutableAndFree();
+
+                var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProject, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
+
+                newSolutionState = newSolutionState.ForkProject(newProjectState,
+                    compilationTranslationAction,
+                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStatesForProject));
+            }
+
+            return newSolutionState;
         }
 
         /// <summary>

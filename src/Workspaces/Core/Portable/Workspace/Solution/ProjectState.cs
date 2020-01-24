@@ -784,14 +784,12 @@ namespace Microsoft.CodeAnalysis
                 analyzerConfigSet: newAnalyzerConfigSet);
         }
 
-        public ProjectState RemoveDocument(DocumentId documentId)
+        public ProjectState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            Debug.Assert(this.DocumentStates.ContainsKey(documentId));
-
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                documentIds: _documentIds.Remove(documentId),
-                documentStates: _documentStates.Remove(documentId));
+                documentIds: _documentIds.RemoveRange(documentIds),
+                documentStates: _documentStates.RemoveRange(documentIds));
         }
 
         public ProjectState RemoveAdditionalDocument(DocumentId documentId)
