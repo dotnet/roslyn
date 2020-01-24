@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     // GoToDefinition
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {
+        /// <summary>
+        /// Used to present go to definition results in <see cref="TryGoToDefinition(Document, int, CancellationToken)"/>
+        /// This is lazily created as the LSP server only calls <see cref="FindDefinitionsAsync(Document, int, CancellationToken)"/>
+        /// and therefore never needs to construct the presenter.
+        /// </summary>
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         protected AbstractGoToDefinitionService(Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
