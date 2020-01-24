@@ -2,13 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 // #define LOG
 
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -75,9 +83,9 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         public bool OpenFileOnly(OptionSet options)
         {
             var preferTypeKeywordInDeclarationOption = options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName())!.Notification;
             var preferTypeKeywordInMemberAccessOption = options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName())!.Notification;
 
             return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
                      preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
@@ -93,14 +101,17 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         private void AnalyzeCompilation(CompilationStartAnalysisContext context)
         {
-            context.RegisterSemanticModelAction(AnalyzeSemanticModel);
+            var analyzer = new AnalyzerImpl(this);
+            context.RegisterCodeBlockAction(analyzer.AnalyzeCodeBlock);
+            context.RegisterSemanticModelAction(analyzer.AnalyzeSemanticModel);
         }
 
-        protected abstract void AnalyzeSemanticModel(SemanticModelAnalysisContext context);
+        protected abstract void AnalyzeCodeBlock(CodeBlockAnalysisContext context);
+        protected abstract void AnalyzeSemanticModel(SemanticModelAnalysisContext context, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree);
 
         protected abstract string GetLanguageName();
 
-        public bool TrySimplify(SemanticModel model, SyntaxNode node, out Diagnostic diagnostic, OptionSet optionSet, CancellationToken cancellationToken)
+        public bool TrySimplify(SemanticModel model, SyntaxNode node, [NotNullWhen(true)] out Diagnostic? diagnostic, OptionSet optionSet, CancellationToken cancellationToken)
         {
             if (!CanSimplifyTypeNameExpression(
                     model, node, optionSet,
@@ -144,7 +155,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                         : CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
                     descriptor = s_descriptorPreferBuiltinOrFrameworkType;
 
-                    var optionValue = optionSet.GetOption(option, model.Language);
+                    var optionValue = optionSet.GetOption(option, model.Language)!;
                     severity = optionValue.Notification.Severity;
                     break;
                 default:
@@ -183,5 +194,55 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+        private class AnalyzerImpl
+        {
+            private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> _analyzer;
+            private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)> _codeBlockIntervals = new ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)>();
+
+            public AnalyzerImpl(SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> analyzer)
+            {
+                _analyzer = analyzer;
+            }
+
+            public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
+            {
+                if (_analyzer.IsIgnoredCodeBlock(ref context))
+                    return;
+
+                var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.CodeBlock.SyntaxTree, _ => (new StrongBox<bool>(false), SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), Array.Empty<TextSpan>())));
+                if (completed.Value)
+                    return;
+
+                RoslynDebug.AssertNotNull(intervalTree);
+                lock (completed)
+                {
+                    if (completed.Value)
+                        return;
+
+                    if (intervalTree.HasIntervalThatOverlapsWith(context.CodeBlock.FullSpan.Start, context.CodeBlock.FullSpan.End))
+                        return;
+
+                    intervalTree.AddIntervalInPlace(context.CodeBlock.FullSpan);
+                }
+
+                _analyzer.AnalyzeCodeBlock(context);
+            }
+
+            public void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
+            {
+                var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.SemanticModel.SyntaxTree, syntaxTree => (new StrongBox<bool>(true), null));
+                if (!completed.Value)
+                {
+                    lock (completed)
+                    {
+                        // Prevent future code block callbacks from analyzing more spans within this tree
+                        completed.Value = true;
+                    }
+                }
+
+                _analyzer.AnalyzeSemanticModel(context, intervalTree);
+            }
+        }
     }
 }

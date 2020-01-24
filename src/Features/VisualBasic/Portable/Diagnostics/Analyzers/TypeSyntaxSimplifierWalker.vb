@@ -5,6 +5,8 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.Collections
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
@@ -35,6 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         Private ReadOnly _analyzer As VisualBasicSimplifyTypeNamesDiagnosticAnalyzer
         Private ReadOnly _semanticModel As SemanticModel
         Private ReadOnly _optionSet As OptionSet
+        Private ReadOnly _ignoredSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
         Private ReadOnly _cancellationToken As CancellationToken
 
         ''' <summary>
@@ -47,12 +50,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
         Public ReadOnly Property Diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
 
-        Public Sub New(analyzer As VisualBasicSimplifyTypeNamesDiagnosticAnalyzer, semanticModel As SemanticModel, optionSet As OptionSet, cancellationToken As CancellationToken)
+        Public Sub New(analyzer As VisualBasicSimplifyTypeNamesDiagnosticAnalyzer, semanticModel As SemanticModel, optionSet As OptionSet, ignoredSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector), cancellationToken As CancellationToken)
             MyBase.New(SyntaxWalkerDepth.StructuredTrivia)
 
             _analyzer = analyzer
             _semanticModel = semanticModel
             _optionSet = optionSet
+            _ignoredSpans = ignoredSpans
             _cancellationToken = cancellationToken
 
             Dim root = semanticModel.SyntaxTree.GetRoot(cancellationToken)
@@ -95,6 +99,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         End Sub
 
         Public Overrides Sub VisitQualifiedName(node As QualifiedNameSyntax)
+            If _ignoredSpans IsNot Nothing AndAlso _ignoredSpans.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length) Then
+                Return
+            End If
+
             If node.IsKind(SyntaxKind.QualifiedName) AndAlso TrySimplify(node) Then
                 Return
             End If
@@ -103,6 +111,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         End Sub
 
         Public Overrides Sub VisitMemberAccessExpression(node As MemberAccessExpressionSyntax)
+            If _ignoredSpans IsNot Nothing AndAlso _ignoredSpans.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length) Then
+                Return
+            End If
+
             If node.IsKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso TrySimplify(node) Then
                 Return
             End If
@@ -111,6 +123,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         End Sub
 
         Public Overrides Sub VisitIdentifierName(node As IdentifierNameSyntax)
+            If _ignoredSpans IsNot Nothing AndAlso _ignoredSpans.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length) Then
+                Return
+            End If
+
             ' Always try to simplify identifiers with an 'Attribute' suffix.
             '
             ' In other cases, don't bother looking at the right side of A.B or A!B. We will process those in
@@ -139,6 +155,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         End Function
 
         Public Overrides Sub VisitGenericName(node As GenericNameSyntax)
+            If _ignoredSpans IsNot Nothing AndAlso _ignoredSpans.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length) Then
+                Return
+            End If
+
             If node.IsKind(SyntaxKind.GenericName) AndAlso TrySimplify(node) Then
                 Return
             End If

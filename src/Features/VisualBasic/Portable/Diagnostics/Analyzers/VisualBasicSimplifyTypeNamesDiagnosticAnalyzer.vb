@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
@@ -24,7 +25,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             SyntaxKind.IdentifierName,
             SyntaxKind.GenericName)
 
-        Protected Overrides Sub AnalyzeSemanticModel(context As SemanticModelAnalysisContext)
+        Protected Overrides Sub AnalyzeCodeBlock(context As CodeBlockAnalysisContext)
+            Dim semanticModel = context.SemanticModel
+            Dim cancellationToken = context.CancellationToken
+
+            Dim syntaxTree = semanticModel.SyntaxTree
+            Dim options = context.Options
+            Dim optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()
+
+            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, ignoredSpans:=Nothing, cancellationToken)
+            simplifier.Visit(context.CodeBlock)
+
+            For Each diagnostic In simplifier.Diagnostics
+                context.ReportDiagnostic(diagnostic)
+            Next
+        End Sub
+
+        Protected Overrides Sub AnalyzeSemanticModel(context As SemanticModelAnalysisContext, codeBlockIntervalTree As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector))
             Dim semanticModel = context.SemanticModel
             Dim cancellationToken = context.CancellationToken
 
@@ -33,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Dim optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()
             Dim root = syntaxTree.GetRoot(cancellationToken)
 
-            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, cancellationToken)
+            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, ignoredSpans:=codeBlockIntervalTree, cancellationToken)
             simplifier.Visit(root)
 
             For Each diagnostic In simplifier.Diagnostics
