@@ -49,14 +49,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     identifier.Parent.GetLocation());
             }
 
-            if (addRefReadOnlyModifier && refKind == RefKind.In)
+            ImmutableArray<CustomModifier> inModifiers = ParameterHelpers.CreateInModifiers(refKind, addRefReadOnlyModifier, context, declarationDiagnostics, syntax);
+
+            if (!inModifiers.IsDefaultOrEmpty)
             {
                 return new SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
                     owner,
                     ordinal,
                     parameterType,
                     refKind,
-                    ParameterHelpers.CreateInModifiers(context, declarationDiagnostics, syntax),
+                    inModifiers,
                     name,
                     locations,
                     syntax.GetReference(),

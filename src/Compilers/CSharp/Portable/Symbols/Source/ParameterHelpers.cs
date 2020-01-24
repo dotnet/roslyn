@@ -78,10 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
                                         DiagnosticBag diagnostics) =>
                 {
-
-                    var customModifiers = addRefReadOnlyModifier && refKind == RefKind.In ?
-                        CreateInModifiers(binder, diagnostics, syntax) :
-                        ImmutableArray<CustomModifier>.Empty;
+                    ImmutableArray<CustomModifier> customModifiers = CreateInModifiers(refKind, addRefReadOnlyModifier, binder, diagnostics, syntax);
 
                     if (parameterType.IsVoidType())
                     {
@@ -689,10 +686,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return refKind;
         }
 
-        internal static ImmutableArray<CustomModifier> CreateInModifiers(Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static ImmutableArray<CustomModifier> CreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
         {
-            var modifierType = binder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax);
-            return ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
+            if (addRefReadOnlyModifier && refKind == RefKind.In)
+            {
+                var modifierType = binder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax);
+                return ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
+            }
+            else
+            {
+                return ImmutableArray<CustomModifier>.Empty;
+            }
         }
     }
 }
