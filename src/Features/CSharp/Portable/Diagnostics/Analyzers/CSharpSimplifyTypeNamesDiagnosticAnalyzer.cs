@@ -31,6 +31,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxKind.QualifiedCref);
 
+        protected override bool IsIgnoredCodeBlock(ref CodeBlockAnalysisContext context)
+        {
+            return context.CodeBlock.IsKind(
+                SyntaxKind.CompilationUnit,
+                SyntaxKind.ClassDeclaration,
+                SyntaxKind.StructDeclaration,
+                SyntaxKind.InterfaceDeclaration,
+                SyntaxKind.DelegateDeclaration,
+                SyntaxKind.EnumDeclaration);
+        }
+
         protected override void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
         {
             var semanticModel = context.SemanticModel;

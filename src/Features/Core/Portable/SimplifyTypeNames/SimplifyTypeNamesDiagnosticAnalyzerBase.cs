@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             context.RegisterSemanticModelAction(analyzer.AnalyzeSemanticModel);
         }
 
+        protected abstract bool IsIgnoredCodeBlock(ref CodeBlockAnalysisContext context);
         protected abstract void AnalyzeCodeBlock(CodeBlockAnalysisContext context);
         protected abstract void AnalyzeSemanticModel(SemanticModelAnalysisContext context, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree);
 

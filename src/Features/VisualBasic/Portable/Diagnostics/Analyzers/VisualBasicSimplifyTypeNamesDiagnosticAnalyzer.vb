@@ -25,6 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             SyntaxKind.IdentifierName,
             SyntaxKind.GenericName)
 
+        Protected Overrides Function IsIgnoredCodeBlock(ByRef context As CodeBlockAnalysisContext) As Boolean
+            Return context.CodeBlock.IsKind(SyntaxKind.CompilationUnit, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock) OrElse
+                context.CodeBlock.IsKind(SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock, SyntaxKind.EnumBlock) OrElse
+                context.CodeBlock.IsKind(SyntaxKind.DelegateFunctionStatement)
+        End Function
+
         Protected Overrides Sub AnalyzeCodeBlock(context As CodeBlockAnalysisContext)
             Dim semanticModel = context.SemanticModel
             Dim cancellationToken = context.CancellationToken
