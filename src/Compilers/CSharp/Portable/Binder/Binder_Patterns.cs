@@ -1178,11 +1178,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
+            double x;
             BoundExpression value = BindExpressionForPattern(inputType, node.Expression, hasErrors, diagnostics, out var constantValueOpt, out _);
+            if (double.IsNaN(constantValueOpt.DoubleValue))
+            {
+                diagnostics.Add(ErrorCode.ERR_RelationalPatternWithNaN, node.Expression.Location);
+                hasErrors = true;
+            }
 
-            // PROTOTYPE(ngafter): TODO: check that the operator exists for that type (e.g. error for string < "")
             BinaryOperatorKind kind = TokenKindToBinaryOperatorKind(node.OperatorToken.Kind());
+            kind |= BinaryOperatorType(node, value.Type, diagnostics, ref hasErrors);
             return new BoundRelationalPattern(node, kind, value, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
+        }
+
+        private BinaryOperatorKind BinaryOperatorType(RelationalPatternSyntax node, TypeSymbol inputType, DiagnosticBag diagnostics, ref bool hasErrors)
+        {
+            switch (inputType.SpecialType)
+            {
+                case SpecialType.System_Single:
+                    return BinaryOperatorKind.Float;
+                case SpecialType.System_Double:
+                    return BinaryOperatorKind.Double;
+                case SpecialType.System_Char:
+                    return BinaryOperatorKind.Char;
+                case SpecialType.System_SByte: // operands are converted to int
+                case SpecialType.System_Byte: // operands are converted to int
+                case SpecialType.System_Int16: // operands are converted to int
+                case SpecialType.System_UInt16: // operands are converted to int
+                case SpecialType.System_Int32:
+                    return BinaryOperatorKind.Int;
+                case SpecialType.System_UInt32:
+                    return BinaryOperatorKind.UInt;
+                case SpecialType.System_Int64:
+                    return BinaryOperatorKind.Long;
+                case SpecialType.System_UInt64:
+                    return BinaryOperatorKind.ULong;
+                // PROTOTYPE(ngafter): what about decimal?
+                default:
+                    diagnostics.Add(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, node.Location, inputType.ToDisplayString());
+                    hasErrors = true;
+                    return 0;
+
+            }
         }
 
         private BinaryOperatorKind TokenKindToBinaryOperatorKind(SyntaxKind kind) => kind switch

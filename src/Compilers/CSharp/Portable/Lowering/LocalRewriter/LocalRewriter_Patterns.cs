@@ -266,9 +266,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!input.Type.IsNullableType());
                         return MakeEqual(_localRewriter.MakeLiteral(d.Syntax, d.Value, input.Type), input);
 
+                    case BoundDagRelationalTest d:
+                        Debug.Assert(!input.Type.IsNullableType());
+                        Debug.Assert(input.Type.TypeKind == TypeKind.Struct);
+                        return MakeRelational(input, d.OperatorKind, _localRewriter.MakeLiteral(d.Syntax, d.Value, input.Type));
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(test);
                 }
+            }
+
+            private BoundExpression MakeRelational(BoundExpression input, BinaryOperatorKind operatorKind, BoundExpression literal)
+            {
+                TypeSymbol comparisonType = input.Type;
+                if (operatorKind.OperandTypes() == BinaryOperatorKind.Int && input.Type.SpecialType != SpecialType.System_Int32)
+                {
+                    // Promote operands to int before comparison for byte, sbyte, short, ushort
+                    Debug.Assert(input.Type.SpecialType switch
+                    {
+                        SpecialType.System_Byte => true,
+                        SpecialType.System_SByte => true,
+                        SpecialType.System_Int16 => true,
+                        SpecialType.System_UInt16 => true,
+                        _ => false
+                    });
+                    comparisonType = _factory.SpecialType(SpecialType.System_Int32);
+                    input = _factory.Convert(comparisonType, input);
+                    literal = _factory.Literal(literal.ConstantValue.Int32Value);
+                }
+
+                return _factory.Binary(operatorKind, comparisonType, input, literal);
             }
 
             private BoundExpression MakeEqual(BoundExpression loweredLiteral, BoundExpression input)

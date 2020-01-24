@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundTypePattern type:
                     return MakeTestsAndBindingsForTypePattern(input, type, bindings);
                 case BoundRelationalPattern rel:
-                    return MakeTestsAndBindingsForRelationalPattern(input, rel, bindings);
+                    return MakeTestsAndBindingsForRelationalPattern(input, rel);
                 case BoundNegatedPattern neg:
                     return MakeTestsAndBindingsForNegatedPattern(input, neg, bindings);
                 case BoundBinaryPattern bin:
@@ -540,10 +540,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return bin.Disjunction ? Tests.OrSequence.Create(builder) : Tests.AndSequence.Create(builder);
         }
 
-        private Tests MakeTestsAndBindingsForRelationalPattern(BoundDagTemp input, BoundRelationalPattern rel, ArrayBuilder<BoundPatternBinding> bindings)
+        private Tests MakeTestsAndBindingsForRelationalPattern(BoundDagTemp input, BoundRelationalPattern rel)
         {
-            this._diagnostics.Add(ErrorCode.ERR_FeatureIsUnimplemented, rel.Syntax.Location, MessageID.IDS_FeatureRelationalPattern.Localize());
-            return Tests.True.Instance;
+            var tests = ArrayBuilder<Tests>.GetInstance(2);
+            var convertedInput = MakeConvertToType(input, rel.Syntax, rel.Value.Type, tests);
+            tests.Add(new Tests.One(new BoundDagRelationalTest(rel.Syntax, rel.Relation, rel.ConstantValue, convertedInput)));
+            return Tests.AndSequence.Create(tests);
         }
 
         private TypeSymbol ErrorType(string name = "")

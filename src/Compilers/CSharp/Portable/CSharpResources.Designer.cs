@@ -9385,6 +9385,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Relational patterns may not be used for a floating-point NaN..
+        /// </summary>
+        internal static string ERR_RelationalPatternWithNaN {
+            get {
+                return ResourceManager.GetString("ERR_RelationalPatternWithNaN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The assembly name &apos;{0}&apos; is reserved and cannot be used as a reference in an interactive session.
         /// </summary>
         internal static string ERR_ReservedAssemblyName {
@@ -10596,6 +10605,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_UnsupportedTransparentIdentifierAccess {
             get {
                 return ResourceManager.GetString("ERR_UnsupportedTransparentIdentifierAccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Relational patterns may not be used for a value of type &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_UnsupportedTypeForRelationalPattern {
+            get {
+                return ResourceManager.GetString("ERR_UnsupportedTypeForRelationalPattern", resourceCulture);
             }
         }
         

@@ -406,6 +406,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
                                     gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable);
                                     break;
+                                case BoundDagRelationalTest t:
+                                    if (inputSlot > 0)
+                                    {
+                                        learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
+                                    }
+                                    gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
+                                    gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable);
+                                    break;
                                 default:
                                     throw ExceptionUtilities.UnexpectedValue(test.Kind);
                             }

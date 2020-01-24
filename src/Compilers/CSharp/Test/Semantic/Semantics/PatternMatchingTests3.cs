@@ -2312,31 +2312,194 @@ class C
             var source = @"
 class C
 {
-    static void Main()
+    static void M1(string s)
     {
-        M1(-100);
-        M1(0);
-        M1(100);
-    }
-    static void M1(int i)
-    {
-        System.Console.WriteLine(i switch
+        System.Console.WriteLine(s switch
         {
-            <0 => ""negative"",
-            0 => ""zero"",
-            >0 => ""positive"",
+            <""0"" => ""negative"",
+            ""0"" => ""zero"",
+            >null => ""positive"",
         });
     }
 }
 ";
-            var expectedOutput =
-@"negative
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (8,13): error CS8781: Relational patterns may not be used for a value of type 'string'.
+                //             <"0" => "negative",
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, @"<""0""").WithArguments("string").WithLocation(8, 13),
+                // (10,13): error CS8781: Relational patterns may not be used for a value of type 'string'.
+                //             >null => "positive",
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, ">null").WithArguments("string").WithLocation(10, 13)
+                );
+        }
+
+        [Fact]
+        public void Relational_02()
+        {
+            foreach (string typeName in new[] { "sbyte", "short", "int" })
+            {
+                var source = @$"
+class C
+{{
+    static void Main()
+    {{
+        M1(-100);
+        M1(0);
+        M1(100);
+    }}
+    static void M1({typeName} i)
+    {{
+        System.Console.WriteLine(i switch
+        {{
+            <0 => ""negative"",
+            0 => ""zero"",
+            >0 => ""positive"",
+        }});
+    }}
+}}
+";
+                var expectedOutput =
+    @"negative
 zero
 positive";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+                // PROTOTYPE(ngafter): these should be considered exhaustive
+                compilation.VerifyDiagnostics(
+                    // (12,36): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                    //         System.Console.WriteLine(i switch
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(12, 36)
+                    );
+                var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
+        }
+
+        [Fact]
+        public void Relational_03()
+        {
+            foreach (string typeName in new[] { "byte", "sbyte", "short", "ushort", "int" })
+            {
+                var source = @$"
+class C
+{{
+    static void Main()
+    {{
+        M1(0);
+        M1(12);
+        M1(50);
+        M1(100);
+    }}
+    static void M1({typeName} i)
+    {{
+        System.Console.WriteLine(i switch
+        {{
+            <50 => ""less"",
+            50 => ""same"",
+            >50 => ""more"",
+        }});
+    }}
+}}
+";
+                var expectedOutput =
+    @"less
+less
+same
+more";
+                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+                // PROTOTYPE(ngafter): these should be considered exhaustive
+                compilation.VerifyDiagnostics(
+                    // (13,36): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                    //         System.Console.WriteLine(i switch
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(13, 36)
+                    );
+                var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
+        }
+
+        [Fact]
+        public void Relational_04()
+        {
+            var source = @"
+class C
+{
+    static void M1(object o, decimal d)
+    {
+        _ = o is < 12m;
+        _ = d is < 0;
+        _ = o is < 10;
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics(
+                // (6,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
+                //         _ = o is < 12m;
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 12m").WithArguments("decimal").WithLocation(6, 18),
+                // (7,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
+                //         _ = d is < 0;
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 0").WithArguments("decimal").WithLocation(7, 18)
                 );
-            var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Relational_05()
+        {
+            foreach (string typeName in new[] { "byte", "sbyte", "short", "ushort", "int" })
+            {
+                var source = string.Format(@"
+class C
+{{
+    static void Main()
+    {{
+        M1(({0})0);
+        M1(({0})12);
+        M1(({0})50);
+        M1(({0})100);
+        M1(12m);
+    }}
+    static void M1(object i)
+    {{
+        System.Console.WriteLine(i switch
+        {{
+            < ({0})50 => ""less"",
+            ({0})50 => ""same"",
+            > ({0})50 => ""more"",
+            _ => ""incomparable"",
+        }});
+    }}
+}}
+", typeName);
+                var expectedOutput =
+    @"less
+less
+same
+more
+incomparable";
+                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+                // PROTOTYPE(ngafter): these should be considered exhaustive
+                compilation.VerifyDiagnostics(
+                    );
+                var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
+        }
+
+        [Fact]
+        public void Relational_06()
+        {
+            var source = @"
+class C
+{
+    bool M1(object o) => o is < (0.0d / 0.0d);
+    bool M2(object o) => o is < (0.0f / 0.0f);
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (4,33): error CS8782: Relational patterns may not be used for a floating-point NaN.
+                //     bool M1(object o) => o is < (0.0d / 0.0d);
+                Diagnostic(ErrorCode.ERR_RelationalPatternWithNaN, "(0.0d / 0.0d)").WithLocation(4, 33),
+                // (5,33): error CS8782: Relational patterns may not be used for a floating-point NaN.
+                //     bool M2(object o) => o is < (0.0f / 0.0f);
+                Diagnostic(ErrorCode.ERR_RelationalPatternWithNaN, "(0.0f / 0.0f)").WithLocation(5, 33));
         }
     }
 }
