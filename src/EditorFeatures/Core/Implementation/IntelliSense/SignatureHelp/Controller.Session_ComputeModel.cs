@@ -215,9 +215,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                     return (bestProvider, bestItems);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    return (null, null);
                 }
             }
 
