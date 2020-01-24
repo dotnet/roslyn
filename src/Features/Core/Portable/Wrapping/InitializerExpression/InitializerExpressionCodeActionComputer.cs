@@ -14,7 +14,10 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 {
     internal abstract partial class AbstractInitializerExpressionWrapper<TListSyntax, TListItemSyntax>
     {
-        private class InitializerExpressionCodeActionComputer : AbstractSeparatedListCodeComputer<AbstractInitializerExpressionWrapper<TListSyntax, TListItemSyntax>>
+        /// <summary>
+        /// Class responsible for actually computing the entire set of code actions to offer the user.
+        /// </summary>
+        private sealed class InitializerExpressionCodeActionComputer : AbstractSeparatedListCodeComputer<AbstractInitializerExpressionWrapper<TListSyntax, TListItemSyntax>>
         {
             private readonly SyntaxTrivia _braceIndentationTrivia;
             private readonly bool _doMoveOpenBraceToNewLine;
@@ -38,14 +41,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 return GetSmartIndentationAfter(previousToken);
             }
 
-            protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
+            protected sealed override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
             {
                 var result = ArrayBuilder<WrappingGroup>.GetInstance();
                 await AddWrappingGroups(result).ConfigureAwait(false);
                 return result.ToImmutableAndFree();
             }
 
-            protected override ImmutableArray<Edit> GetWrapEachEdits(
+            protected sealed override ImmutableArray<Edit> GetWrapEachEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 return result.ToImmutableAndFree();
             }
 
-            protected override ImmutableArray<Edit> GetUnwrapAllEdits(WrappingStyle wrappingStyle)
+            protected sealed override ImmutableArray<Edit> GetUnwrapAllEdits(WrappingStyle wrappingStyle)
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
@@ -75,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 return result.ToImmutableAndFree();
             }
 
-            protected override ImmutableArray<Edit> GetWrapLongLinesEdits(
+            protected sealed override ImmutableArray<Edit> GetWrapLongLinesEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
                 var result = ArrayBuilder<Edit>.GetInstance();

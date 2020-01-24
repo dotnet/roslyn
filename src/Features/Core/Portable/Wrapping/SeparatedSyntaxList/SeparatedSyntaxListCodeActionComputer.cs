@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         /// <summary>
         /// Class responsible for actually computing the entire set of code actions to offer the user.
         /// </summary>
-        private class SeparatedSyntaxListCodeActionComputer : AbstractSeparatedListCodeComputer<AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>>
+        private sealed class SeparatedSyntaxListCodeActionComputer : AbstractSeparatedListCodeComputer<AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax>>
         {
             public SeparatedSyntaxListCodeActionComputer(
                 AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax> service,
@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             {
             }
 
-            protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
+            protected sealed override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
             {
                 var result = ArrayBuilder<WrappingGroup>.GetInstance();
                 await AddWrappingGroups(result).ConfigureAwait(false);
                 return result.ToImmutableAndFree();
             }
 
-            protected override async Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
+            protected sealed override async Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
             {
                 var edits = GetUnwrapAllEdits(wrappingStyle);
                 var title = wrappingStyle == WrappingStyle.WrapFirst_IndentRest
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
             }
 
-            protected override string GetNestedCodeActionTitle(WrappingStyle wrappingStyle)
+            protected sealed override string GetNestedCodeActionTitle(WrappingStyle wrappingStyle)
                 => wrappingStyle switch
                 {
                     WrappingStyle.WrapFirst_IndentRest => Wrapper.Indent_all_items,
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     _ => throw ExceptionUtilities.UnexpectedValue(wrappingStyle),
                 };
 
-            protected override async Task<WrappingGroup> GetWrapEveryGroupAsync()
+            protected sealed override async Task<WrappingGroup> GetWrapEveryGroupAsync()
             {
                 var parentTitle = Wrapper.Wrap_every_item;
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
             }
 
-            protected override async Task<WrappingGroup> GetUnwrapGroupAsync()
+            protected sealed override async Task<WrappingGroup> GetUnwrapGroupAsync()
             {
                 var unwrapActions = ArrayBuilder<WrapItemsAction>.GetInstance();
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutableAndFree());
             }
 
-            protected override async Task<WrappingGroup> GetWrapLongGroupAsync()
+            protected sealed override async Task<WrappingGroup> GetWrapLongGroupAsync()
             {
                 var parentTitle = Wrapper.Wrap_long_list;
                 var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
             }
 
-            protected override ImmutableArray<Edit> GetWrapEachEdits(
+            protected sealed override ImmutableArray<Edit> GetWrapEachEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 return result.ToImmutableAndFree();
             }
 
-            protected override ImmutableArray<Edit> GetWrapLongLinesEdits(
+            protected sealed override ImmutableArray<Edit> GetWrapLongLinesEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
                 var result = ArrayBuilder<Edit>.GetInstance();

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
     using Microsoft.CodeAnalysis.Indentation;
 
     /// <summary>
-    /// Base type for all wrappers that involve wrapping a comma-separated list of items.
+    /// Base type for all wrappers that involve wrapping a comma-separated list of arguments or parameters.
     /// </summary>
     internal abstract partial class AbstractSeparatedSyntaxListWrapper<
         TListSyntax,
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         protected abstract TListSyntax TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
         protected abstract bool PositionIsApplicable(
-            SyntaxNode? root, int position, SyntaxNode declaration, TListSyntax listSyntax);
+            SyntaxNode root, int position, SyntaxNode declaration, TListSyntax listSyntax);
 
         public override async Task<ICodeActionComputer?> TryCreateComputerAsync(
             Document document, int position, SyntaxNode declaration, CancellationToken cancellationToken)

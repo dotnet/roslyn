@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {
-        protected override string Indent_all_items => FeaturesResources.Indent_all_elements;
-        protected override string Unwrap_all_items => FeaturesResources.Unwrap_all_elements;
-        protected override string Unwrap_list => FeaturesResources.Unwrap_element_list;
-        protected override string Wrap_every_item => FeaturesResources.Wrap_every_element;
-        protected override string Wrap_long_list => FeaturesResources.Wrap_long_element_list;
+        protected sealed override string Indent_all_items => FeaturesResources.Indent_all_elements;
+        protected sealed override string Unwrap_all_items => FeaturesResources.Unwrap_all_elements;
+        protected sealed override string Unwrap_list => FeaturesResources.Unwrap_element_list;
+        protected sealed override string Wrap_every_item => FeaturesResources.Wrap_every_element;
+        protected sealed override string Wrap_long_list => FeaturesResources.Wrap_long_element_list;
 
         protected AbstractInitializerExpressionWrapper(IIndentationService indentationService)
             : base(indentationService)
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
         protected abstract TListSyntax TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
 
-        public override async Task<ICodeActionComputer?> TryCreateComputerAsync(
+        public sealed override async Task<ICodeActionComputer?> TryCreateComputerAsync(
             Document document, int position, SyntaxNode declaration, CancellationToken cancellationToken)
         {
             var listSyntax = TryGetApplicableList(declaration);

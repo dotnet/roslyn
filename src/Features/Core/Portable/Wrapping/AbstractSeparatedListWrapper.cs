@@ -5,6 +5,9 @@ using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.Wrapping
 {
+    /// <summary>
+    /// Base type for all wrappers that involve wrapping a comma-separated list of items.
+    /// </summary>
     internal abstract partial class AbstractSeparatedListWrapper<
         TListSyntax,
         TListItemSyntax>
