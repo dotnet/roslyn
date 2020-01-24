@@ -3,7 +3,7 @@
 ## General information
 * [Compiler and language feature status](https://github.com/dotnet/roslyn/blob/master/docs/Language%20Feature%20Status.md)
 * [Log of breaking changes](https://github.com/dotnet/roslyn/blob/master/docs/compilers/CSharp/Compiler%20Breaking%20Changes%20-%20post%20VS2017.md)
-* [NuGet packages](https://github.com/dotnet/roslyn/wiki/NuGet-packages)
+* [NuGet packages](https://github.com/dotnet/roslyn/blob/master/docs/wiki/NuGet-packages)
 * [C# language version history](https://github.com/dotnet/csharplang/blob/master/Language-Version-History.md)
 
 ## Visual Studio 2017 Version 15.7

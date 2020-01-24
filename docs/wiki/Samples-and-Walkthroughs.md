@@ -1,7 +1,7 @@
 # Samples
 
 The samples below are available in the Git sources, under the [Samples folder](https://github.com/dotnet/roslyn-sdk/tree/master/samples/) in the `roslyn-sdk` repository: 
-* **APISampleUnitTests** - A collection of unit tests that show how various APIs can be used. Many of these methods are referenced in the [FAQ](https://github.com/dotnet/roslyn/wiki/FAQ). 
+* **APISampleUnitTests** - A collection of unit tests that show how various APIs can be used. Many of these methods are referenced in the [FAQ](https://github.com/dotnet/roslyn/blob/master/docs/wiki/FAQ). 
 * **AsyncPackage** - A set of diagnostics and code fixes that help you use the await/async keywords correctly. 
 * **ConsoleClassifier** - A simple console application that prints colored source code to the console. 
 * **ConvertToAutoProperty** - A code refactoring to change a simple property with a trivial getter and setter into an auto property. 
@@ -13,11 +13,11 @@ You can also explore the [source repository](https://github.com/dotnet/roslyn/tr
 * The [Diagnostics folder in the sources](https://github.com/dotnet/roslyn/tree/master/src/Diagnostics) has many examples of real-world Diagnostics (mostly re-implemented FxCop rules) and Code Fixes. Just drill down to the leaf-node code files in the CSharp or VisualBasic subfolders.
 
 # Walkthroughs
-Before working through the walkthroughs below, you should first familiarize yourself with the [Roslyn Overview](https://github.com/dotnet/roslyn/wiki/Roslyn-Overview), which sets up some of the key concepts.
+Before working through the walkthroughs below, you should first familiarize yourself with the [Roslyn Overview](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Roslyn-Overview), which sets up some of the key concepts.
 
 ## Getting Started
-* Getting Started - Syntax Analysis ([VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-VB-Syntax-Analysis) | [C#](https://github.com/dotnet/roslyn/wiki/Getting-Started-C%23-Syntax-Analysis))
-* Getting Started - Semantic Analysis ([VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-VB-Semantic-Analysis) | [C#](https://github.com/dotnet/roslyn/wiki/Getting-Started-C%23-Semantic-Analysis))
-* Getting Started - Syntax Transformation ([VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-VB-Syntax-Transformation) | [C#](https://github.com/dotnet/roslyn/wiki/Getting-Started-C%23-Syntax-Transformation))
-* Getting Started - Writing Custom Analyzers and Code Fixes ([C# & VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-Writing-a-Custom-Analyzer-&-Code-Fix))
+* Getting Started - Syntax Analysis ([VB](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-VB-Syntax-Analysis) | [C#](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-C%23-Syntax-Analysis))
+* Getting Started - Semantic Analysis ([VB](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-VB-Semantic-Analysis) | [C#](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-C%23-Semantic-Analysis))
+* Getting Started - Syntax Transformation ([VB](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-VB-Syntax-Transformation) | [C#](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-C%23-Syntax-Transformation))
+* Getting Started - Writing Custom Analyzers and Code Fixes ([C# & VB](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-Writing-a-Custom-Analyzer-&-Code-Fix))
 
