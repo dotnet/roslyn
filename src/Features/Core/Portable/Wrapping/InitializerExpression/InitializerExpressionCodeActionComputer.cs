@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 {
@@ -130,6 +131,48 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
 
                 return result.ToImmutableAndFree();
+            }
+
+            protected sealed override string GetNestedCodeActionTitle(WrappingStyle wrappingStyle)
+                => wrappingStyle switch
+                {
+                    WrappingStyle.WrapFirst_IndentRest => Wrapper.Indent_all_items,
+                    _ => throw ExceptionUtilities.UnexpectedValue(wrappingStyle),
+                };
+
+            protected sealed override async Task<WrappingGroup> GetWrapEveryGroupAsync()
+            {
+                var parentTitle = Wrapper.Wrap_every_item;
+
+                var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+
+                codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
+                    parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
+
+                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
+            }
+
+            protected sealed override async Task<WrappingGroup> GetUnwrapGroupAsync()
+            {
+                var unwrapActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+
+                var parentTitle = Wrapper.Unwrap_list;
+                unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
+
+                // The 'unwrap' title strings are unique and do not collide with any other code
+                // actions we're computing.  So they can be inlined if possible.
+                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutableAndFree());
+            }
+
+            protected sealed override async Task<WrappingGroup> GetWrapLongGroupAsync()
+            {
+                var parentTitle = Wrapper.Wrap_long_list;
+                var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+
+                codeActions.Add(await GetWrapLongLineCodeActionAsync(
+                    parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
+
+                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
             }
         }
     }

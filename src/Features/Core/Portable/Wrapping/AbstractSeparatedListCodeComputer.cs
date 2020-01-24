@@ -89,12 +89,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     : Edit.DeleteBetween(_listSyntax.GetFirstToken(), _listItems[0]));
             }
 
-            protected virtual string GetNestedCodeActionTitle(WrappingStyle wrappingStyle)
-                => wrappingStyle switch
-                {
-                    WrappingStyle.WrapFirst_IndentRest => Wrapper.Indent_all_items,
-                    _ => throw ExceptionUtilities.UnexpectedValue(wrappingStyle),
-                };
+            protected abstract string GetNestedCodeActionTitle(WrappingStyle wrappingStyle);
 
             protected async Task AddWrappingGroups(ArrayBuilder<WrappingGroup> result)
             {
@@ -105,17 +100,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             #region unwrap group
 
-            protected virtual async Task<WrappingGroup> GetUnwrapGroupAsync()
-            {
-                var unwrapActions = ArrayBuilder<WrapItemsAction>.GetInstance();
-
-                var parentTitle = Wrapper.Unwrap_list;
-                unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
-
-                // The 'unwrap' title strings are unique and do not collide with any other code
-                // actions we're computing.  So they can be inlined if possible.
-                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutableAndFree());
-            }
+            protected abstract Task<WrappingGroup> GetUnwrapGroupAsync();
 
             protected virtual async Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
             {
@@ -145,16 +130,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             #region wrap long line
 
-            protected virtual async Task<WrappingGroup> GetWrapLongGroupAsync()
-            {
-                var parentTitle = Wrapper.Wrap_long_list;
-                var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
-
-                codeActions.Add(await GetWrapLongLineCodeActionAsync(
-                    parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
-
-                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
-            }
+            protected abstract Task<WrappingGroup> GetWrapLongGroupAsync();
 
             protected async Task<WrapItemsAction> GetWrapLongLineCodeActionAsync(
                 string parentTitle, WrappingStyle wrappingStyle)
@@ -173,19 +149,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             #endregion
 
             #region Wrap every
-            protected virtual async Task<WrappingGroup> GetWrapEveryGroupAsync()
-            {
-                var parentTitle = Wrapper.Wrap_every_item;
-
-                var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
-
-                codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
-                    parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
-
-                // See comment in GetWrapLongTopLevelCodeActionAsync for explanation of why we're
-                // not inlinable.
-                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
-            }
+            protected abstract Task<WrappingGroup> GetWrapEveryGroupAsync();
 
             protected async Task<WrapItemsAction> GetWrapEveryNestedCodeActionAsync(
                 string parentTitle, WrappingStyle wrappingStyle)
