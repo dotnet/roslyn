@@ -3,10 +3,14 @@
 #nullable enable
 
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
@@ -24,30 +28,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 AddParameterTextViewRole, AddParameterNameTextViewRole };
 
         private static string[][] rolesCollections = new[] { rolesCollectionForTypeTextBox, rolesCollectionForNameTextBox };
+        private readonly IntellisenseTextBoxViewModelFactory _intellisenseTextBoxViewModelFactory;
+        private readonly IContentTypeRegistryService _contentTypeRegistryService;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IClassificationFormatMap _classificationFormatMap;
+        private readonly IVsEditorAdaptersFactoryService _editorAdapterFactory;
 
-        public async Task<ChangeSignatureIntellisenseTextBoxesViewModel?> CreateViewModelsAsync(
-            IContentTypeRegistryService contentTypeRegistryService,
+        public ChangeSignatureViewModelFactoryService(
             IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory,
-            Document document,
-            int insertPosition)
+            IContentTypeRegistryService contentTypeRegistryService,
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IClassificationFormatMapService classificationFormatMapService,
+            IVsEditorAdaptersFactoryService editorAdapterFactory)
         {
-            var viewModels = await intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModelsAsync(
-                document, contentTypeRegistryService.GetContentType(ContentTypeName), insertPosition, TextToInsert, CreateSpansMethod, rolesCollections).ConfigureAwait(false);
+            _intellisenseTextBoxViewModelFactory = intellisenseTextBoxViewModelFactory;
+            _contentTypeRegistryService = contentTypeRegistryService;
+            _editorOperationsFactoryService = editorOperationsFactoryService;
 
-            if (viewModels == null)
-            {
-                return null;
-            }
+            // Set the font used in the editor
+            // The editor will automatically choose the font, color for the text
+            // depending on the current language. Override the font information
+            // to have uniform look and feel in the parallel watch window
+            _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap(IntellisenseTextBox.AppearanceCategory);
 
-            // C# and VB have opposite orderings for name and type
-            if (document.Project.Language.Equals(LanguageNames.CSharp))
-            {
-                return new ChangeSignatureIntellisenseTextBoxesViewModel(viewModels[0], viewModels[1]);
-            }
-
-            return new ChangeSignatureIntellisenseTextBoxesViewModel(viewModels[1], viewModels[0]);
-
+            _editorAdapterFactory = editorAdapterFactory;
         }
+
+        public async Task CreateAndSetViewModelsAsync(
+            Document document,
+            int insertPosition,
+            ContentControl typeNameContentControl,
+            ContentControl parameterNameContentControl)
+        {
+            var viewModels = await _intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModelsAsync(
+                document, _contentTypeRegistryService.GetContentType(ContentTypeName), insertPosition, TextToInsert, CreateSpansMethod, rolesCollections).ConfigureAwait(false);
+
+            if (viewModels != null)
+            {
+                // C# and VB have opposite orderings for name and type
+                if (document.Project.Language.Equals(LanguageNames.CSharp))
+                {
+                    CreateAndSetContentCreate(viewModels[0], typeNameContentControl);
+                    CreateAndSetContentCreate(viewModels[1], parameterNameContentControl);
+                }
+                else
+                {
+                    CreateAndSetContentCreate(viewModels[1], typeNameContentControl);
+                    CreateAndSetContentCreate(viewModels[0], parameterNameContentControl);
+                }
+            }
+
+            void CreateAndSetContentCreate(IntellisenseTextBoxViewModel intellisenseTextBoxViewModel, ContentControl contentControl)
+            {
+                contentControl.Content = new IntellisenseTextBox(
+                    _editorOperationsFactoryService,
+                    _classificationFormatMap,
+                    _editorAdapterFactory,
+                    intellisenseTextBoxViewModel,
+                    contentControl);
+            }
+        }
+
+
 
         public abstract SymbolDisplayPart[] GeneratePreviewDisplayParts(
             ChangeSignatureDialogViewModel.AddedParameterViewModel addedParameterViewModel);

@@ -131,17 +131,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void Add_Click(object sender, RoutedEventArgs e)
         {
-            var changeSignatureOptionsService = _viewModel.Document.Project.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
-            var result = changeSignatureOptionsService.GetAddedParameter(_viewModel.Document, _viewModel.InsertPosition);
+            var addParameterViewModel = _viewModel.CreateAddParameterDialogViewModel();
+            var dialog = new AddParameterDialog(addParameterViewModel);
+            var result = dialog.ShowModal();
 
-            if (result != null)
+            if (result.HasValue && result.Value)
             {
-                if (string.IsNullOrWhiteSpace(result.CallSiteValue))
-                {
-                    result = new AddedParameter(result.TypeName, result.ParameterName, ServicesVSResources.ChangeSignature_NewParameterIntroduceTODOVariable);
-                }
+                var addedParameter = new AddedParameter(
+                    addParameterViewModel.TypeName,
+                    addParameterViewModel.ParameterName,
+                    string.IsNullOrWhiteSpace(addParameterViewModel.CallSiteValue)
+                    ? ServicesVSResources.ChangeSignature_NewParameterIntroduceTODOVariable
+                    : addParameterViewModel.CallSiteValue);
 
-                _viewModel.AddParameter(result);
+                _viewModel.AddParameter(addedParameter);
             }
 
             SetFocusToSelectedRow();

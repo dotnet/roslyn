@@ -2,14 +2,12 @@
 
 #nullable enable
 
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
@@ -19,9 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     /// </summary>
     internal partial class AddParameterDialog : DialogWindow
     {
-        public readonly AddParameterDialogViewModel ViewModel;
-        private readonly Task<ChangeSignatureIntellisenseTextBoxesViewModel?> _createIntellisenseTextBoxViewModelsTask;
-        private readonly IntellisenseTextBoxFactory _intellisenseTextBoxFactory;
+        private readonly AddParameterDialogViewModel _viewModel;
         private readonly Document _document;
 
         public string OK { get { return ServicesVSResources.OK; } }
@@ -35,49 +31,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public string AddParameterDialogTitle { get { return ServicesVSResources.Add_Parameter; } }
 
-        public AddParameterDialog(
-            Task<ChangeSignatureIntellisenseTextBoxesViewModel?> createViewModelsTask,
-            IntellisenseTextBoxFactory intellisenseTextBoxFactory,
-            INotificationService? notificationService,
-            Document document)
+        public AddParameterDialog(AddParameterDialogViewModel viewModel)
         {
             // The current implementation supports Add only.
             // The dialog should be initialized the other way if called for Edit.
-            ViewModel = new AddParameterDialogViewModel(notificationService);
-            _createIntellisenseTextBoxViewModelsTask = createViewModelsTask;
-            _intellisenseTextBoxFactory = intellisenseTextBoxFactory;
-
-            _document = document;
+            _viewModel = viewModel;
+            _document = viewModel.Document;
             this.Loaded += AddParameterDialog_Loaded;
-            DataContext = ViewModel;
+            DataContext = _viewModel;
 
             InitializeComponent();
         }
 
         private void AddParameterDialog_Loaded(object sender, RoutedEventArgs e)
         {
-            var viewModels = _createIntellisenseTextBoxViewModelsTask.Result;
-
-            if (viewModels != null)
-            {
-                var languageService = _document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
-                this.TypeContentControl.Content = _intellisenseTextBoxFactory.Create(
-                    viewModels.Value.TypeIntellisenseTextBoxViewModel, TypeContentControl);
-
-                this.NameContentControl.Content = _intellisenseTextBoxFactory.Create(
-                    viewModels.Value.NameIntellisenseTextBoxViewModel, NameContentControl);
-            }
+            var changeSignatureViewModelFactoryService = _document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
+            changeSignatureViewModelFactoryService.CreateAndSetViewModelsAsync(
+                    _document,
+                    _viewModel.InsertPosition,
+                    this.TypeContentControl,
+                    this.NameContentControl).Wait();
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
             // TODO take these values from IntellisenseTextBoxViewModels not from controls.
             // https://github.com/dotnet/roslyn/issues/41149
-            ViewModel.TypeName = ((IntellisenseTextBox)TypeContentControl.Content).Text;
-            ViewModel.ParameterName = ((IntellisenseTextBox)NameContentControl.Content).Text;
-            ViewModel.CallSiteValue = CallSiteValueTextBox.Text;
+            _viewModel.TypeName = ((IntellisenseTextBox)TypeContentControl.Content).Text;
+            _viewModel.ParameterName = ((IntellisenseTextBox)NameContentControl.Content).Text;
+            _viewModel.CallSiteValue = CallSiteValueTextBox.Text;
 
-            if (ViewModel.TrySubmit(_document))
+            if (_viewModel.TrySubmit(_document))
             {
                 DialogResult = true;
             }

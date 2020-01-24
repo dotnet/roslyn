@@ -5,13 +5,28 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Classification
+Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
     <ExportLanguageService(GetType(IChangeSignatureViewModelFactoryService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicChangeSignatureViewModelFactoryService
         Inherits ChangeSignatureViewModelFactoryService
+
+        <ImportingConstructor>
+        Public Sub New(
+            intellisenseTextBoxViewModelFactory As IntellisenseTextBoxViewModelFactory,
+            contentTypeRegistryService As IContentTypeRegistryService,
+            editorOperationsFactoryService As IEditorOperationsFactoryService,
+            classificationFormatMapService As IClassificationFormatMapService,
+            editorAdapterFactory As IVsEditorAdaptersFactoryService)
+            MyBase.New(intellisenseTextBoxViewModelFactory, contentTypeRegistryService, editorOperationsFactoryService, classificationFormatMapService, editorAdapterFactory)
+        End Sub
 
         Protected Overrides Function CreateSpansMethod(textSnapshot As ITextSnapshot, insertPosition As Integer) As ITrackingSpan()
             ' + 4 to support inserted ', [~'

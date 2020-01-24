@@ -14,9 +14,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     {
         private readonly INotificationService? _notificationService;
 
-        public AddParameterDialogViewModel(INotificationService? notificationService)
+        public readonly Document Document;
+        public readonly int InsertPosition;
+
+        public AddParameterDialogViewModel(Document document, int insertPosition)
         {
-            _notificationService = notificationService;
+            _notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+            Document = document;
+            InsertPosition = insertPosition;
             ParameterName = string.Empty;
             CallSiteValue = string.Empty;
             TypeName = string.Empty;

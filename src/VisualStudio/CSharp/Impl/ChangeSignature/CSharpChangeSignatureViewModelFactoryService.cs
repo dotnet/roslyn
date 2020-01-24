@@ -1,12 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
+using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using static Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature.ChangeSignatureDialogViewModel;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
@@ -14,6 +20,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
     [ExportLanguageService(typeof(IChangeSignatureViewModelFactoryService), LanguageNames.CSharp), Shared]
     internal class CSharpChangeSignatureViewModelFactoryService : ChangeSignatureViewModelFactoryService
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpChangeSignatureViewModelFactoryService(
+            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory,
+            IContentTypeRegistryService contentTypeRegistryService,
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IClassificationFormatMapService classificationFormatMapService,
+            IVsEditorAdaptersFactoryService editorAdapterFactory)
+            : base(intellisenseTextBoxViewModelFactory, contentTypeRegistryService, editorOperationsFactoryService, classificationFormatMapService, editorAdapterFactory)
+        {
+        }
+
         // Adjust the context point to ensure that the right information is in scope.
         // For example, we may need to move the point to the end of the last statement in a method body
         // in order to be able to access all local variables.

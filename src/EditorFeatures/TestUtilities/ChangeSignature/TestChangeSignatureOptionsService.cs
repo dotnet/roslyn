@@ -21,10 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
         }
 
-        AddedParameter? IChangeSignatureOptionsService.GetAddedParameter(Document document, int insertPosition)
-        {
-            throw new System.NotImplementedException();
-        }
 
         ChangeSignatureOptionsResult IChangeSignatureOptionsService.GetChangeSignatureOptions(
             Document document,
