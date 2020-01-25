@@ -43,7 +43,7 @@ Now, let’s create a new project by clicking on File –> New Project. You can 
 
 As you can see in the above image, the visualizer tool window displays the syntax tree at the top and a property grid at the bottom. The property grid displays the properties of the item that is currently selected in the tree, including the .NET ‘Type’ and the ‘Kind’ (SyntaxKind) of the item.
 
-Syntax trees comprise three types of items – nodes, tokens, and trivia. You can read more about these types in the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Roslyn%20Overvi.md). Items of each type are represented using a different color. Click on the button titled ‘Legend’ for an overview of the colors used.
+Syntax trees comprise three types of items – nodes, tokens, and trivia. You can read more about these types in the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Roslyn-Overview.md). Items of each type are represented using a different color. Click on the button titled ‘Legend’ for an overview of the colors used.
 
 *Figure 5 Legend*
 
