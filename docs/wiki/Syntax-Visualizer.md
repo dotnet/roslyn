@@ -16,7 +16,7 @@ Let’s begin by getting a box set up with [Visual Studio 2015](https://github.c
 
 The Syntax Visualizer is installed as part of the [.NET Compiler Platform SDK](https://visualstudiogallery.msdn.microsoft.com/2ddb7240-5249-4c8c-969e-5d05823bcb89).
 
-To understand the concepts presented in this document better, I would strongly recommend reading the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Roslyn%20Overview). This document provides a very good overview of the .NET Compiler Platform (“Roslyn”.md) APIs including syntax trees, nodes, tokens, and trivia.
+To understand the concepts presented in this document better, I would strongly recommend reading the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Roslyn-Overview.md). This document provides a very good overview of the .NET Compiler Platform (“Roslyn”) APIs including syntax trees, nodes, tokens, and trivia.
 
 ## Syntax Visualizer
 Once installed, the Syntax Visualizer enables inspection of the syntax tree for any C# or VB code file that is open inside the Visual Studio IDE. The visualizer can be launched by clicking on View –> Other Windows –> Roslyn Syntax Visualizer.
