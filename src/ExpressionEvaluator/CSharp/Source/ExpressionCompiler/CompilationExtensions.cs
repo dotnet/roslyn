@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var builder = ArrayBuilder<string?>.GetInstance();
             var names = CSharpCompilation.TupleNamesEncoder.TryGetNames(type, builder) && compilation.HasTupleNamesAttributes(BindingDiagnosticBag.Discarded, Location.None) ?
-                new ReadOnlyCollection<string>(builder.ToArray()) :
+                new ReadOnlyCollection<string?>(builder.ToArray()) :
                 null;
             builder.Free();
             return names;

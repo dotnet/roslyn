@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (((modifiers & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe) && !symbol.CompilationAllowsUnsafe())
             {
-                Debug.Assert(errorLocation != null);
+                RoslynDebug.Assert(errorLocation != null);
                 diagnostics.Add(ErrorCode.ERR_IllegalUnsafe, errorLocation);
             }
         }

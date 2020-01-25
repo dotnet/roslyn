@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamespaceSymbol? target;
             if (!_binder.Compilation.GetExternAliasTarget(_aliasName.ValueText, out target))
             {
-                diagnostics.Add(ErrorCode.ERR_BadExternAlias, _aliasName.GetLocation(), _aliasName.ValueText);
+                diagnostics.Add(ErrorCode.ERR_BadExternAlias, _aliasName.GetLocation(), _aliasName.ValueText!);
             }
 
             RoslynDebug.Assert(target is object);

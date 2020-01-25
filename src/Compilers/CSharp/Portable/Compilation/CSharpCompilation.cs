@@ -1276,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ConcurrentDictionary<string?, NamespaceSymbol>? _externAliasTargets;
 
-        internal bool GetExternAliasTarget(string? aliasName, out NamespaceSymbol? @namespace)
+        internal bool GetExternAliasTarget(string? aliasName, out NamespaceSymbol @namespace)
         {
             if (_externAliasTargets == null)
             {
@@ -1562,6 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol? FindEntryPoint(CancellationToken cancellationToken, out ImmutableBindingDiagnostic<AssemblySymbol> sealedDiagnostics)
         {
             var diagnostics = BindingDiagnosticBag.GetInstance();
+            RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
             var entryPointCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
 
             try
@@ -1625,6 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // These diagnostics (warning only) are added to the compilation only if
                 // there were not any main methods found.
                 var noMainFoundDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                RoslynDebug.Assert(noMainFoundDiagnostics.DiagnosticBag is object);
 
                 bool checkValid(MethodSymbol candidate, bool isCandidate, BindingDiagnosticBag specificDiagnostics)
                 {
@@ -2125,11 +2127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportUnusedImports(filterTree, new BindingDiagnosticBag(diagnostics), cancellationToken);
         }
 
-        internal void ReportUnusedImports(SyntaxTree filterTree, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
+        internal void ReportUnusedImports(SyntaxTree? filterTree, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             if (_lazyImportInfos != null && (filterTree is null || ReportUnusedImportsInTree(filterTree)))
             {
-                PooledHashSet<NamespaceSymbol> externAliasesToCheck = null;
+                PooledHashSet<NamespaceSymbol>? externAliasesToCheck = null;
 
                 if (diagnostics.DependenciesBag is object)
                 {
@@ -2154,6 +2156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (diagnostics.DependenciesBag is object)
                         {
+                            RoslynDebug.Assert(externAliasesToCheck is object);
                             ImmutableArray<AssemblySymbol> dependencies = pair.Value;
 
                             if (!dependencies.IsDefaultOrEmpty)
@@ -2164,7 +2167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // Record targets of used extern aliases
                                 var node = info.Tree.GetRoot().FindToken(info.Span.Start, findInsideTrivia: false).
-                                               Parent.FirstAncestorOrSelf<ExternAliasDirectiveSyntax>();
+                                               Parent!.FirstAncestorOrSelf<ExternAliasDirectiveSyntax>();
 
                                 if (node is object && GetExternAliasTarget(node.Identifier.ValueText, out NamespaceSymbol target))
                                 {
@@ -2177,10 +2180,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (externAliasesToCheck is object)
                 {
+                    RoslynDebug.Assert(diagnostics.DependenciesBag is object);
+
                     // PROTOTYPE(UsedAssemblyReferences): Perhaps we should do this check after we have built the transitive closure
                     //                                    in GetCompleteSetOfUsedAssemblies.completeTheSetOfUsedAssemblies. However,
                     //                                    this level of accuracy is probably not worth the complexity this would add.
                     var bindingDiagnostics = new BindingDiagnosticBag(diagnosticBag: null, PooledHashSet<AssemblySymbol>.GetInstance());
+                    RoslynDebug.Assert(bindingDiagnostics.DependenciesBag is object);
 
                     foreach (var aliasedNamespace in externAliasesToCheck)
                     {
@@ -2254,7 +2260,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void RecordImportDependencies(UsingDirectiveSyntax syntax, ImmutableArray<AssemblySymbol> dependencies)
         {
-            _lazyImportInfos!.TryUpdate(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), dependencies, default);
+            RoslynDebug.Assert(_lazyImportInfos is object);
+            _lazyImportInfos.TryUpdate(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), dependencies, default);
         }
 
         private struct ImportInfo : IEquatable<ImportInfo>
@@ -2494,6 +2501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var methodBodyDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(),
                                                                      builder.DependenciesBag is object ? new ConcurrentSet<AssemblySymbol>() : null);
+                RoslynDebug.Assert(methodBodyDiagnostics.DiagnosticBag is object);
                 GetDiagnosticsForAllMethodBodies(methodBodyDiagnostics, doLowering: false, cancellationToken);
                 builder.AddRange(methodBodyDiagnostics);
                 methodBodyDiagnostics.DiagnosticBag.Free();
@@ -2522,9 +2530,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         // IL or emit an assembly.
         private void GetDiagnosticsForAllMethodBodies(BindingDiagnosticBag diagnostics, bool doLowering, CancellationToken cancellationToken)
         {
+            RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
             MethodCompiler.CompileMethodBodies(
                 compilation: this,
-                moduleBeingBuiltOpt: doLowering ? (PEModuleBuilder)CreateModuleBuilder(
+                moduleBeingBuiltOpt: doLowering ? (PEModuleBuilder?)CreateModuleBuilder(
                                                                        emitOptions: EmitOptions.Default,
                                                                        debugEntryPoint: null,
                                                                        manifestResources: null,
