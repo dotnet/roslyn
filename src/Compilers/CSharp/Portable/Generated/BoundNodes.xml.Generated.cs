@@ -739,9 +739,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTypeExpression : BoundExpression
     {
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol? type, bool hasErrors = false)
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.TypeExpression, syntax, type, hasErrors || boundContainingTypeOpt.HasErrors() || boundDimensionsOpt.HasErrors())
         {
+
+            Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
             this.AliasOpt = aliasOpt;
             this.BoundContainingTypeOpt = boundContainingTypeOpt;
             this.BoundDimensionsOpt = boundDimensionsOpt;
@@ -755,11 +758,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<BoundExpression> BoundDimensionsOpt { get; }
 
+        public new TypeSymbol Type => base.Type!;
+
         public TypeWithAnnotations TypeWithAnnotations { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTypeExpression(this);
 
-        public BoundTypeExpression Update(AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol? type)
+        public BoundTypeExpression Update(AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol type)
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(aliasOpt, this.AliasOpt) || boundContainingTypeOpt != this.BoundContainingTypeOpt || boundDimensionsOpt != this.BoundDimensionsOpt || typeWithAnnotations != this.TypeWithAnnotations || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -7031,10 +7036,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDeclarationPattern : BoundPattern
     {
-        public BoundDeclarationPattern(SyntaxNode syntax, Symbol? variable, BoundExpression? variableAccess, BoundTypeExpression? declaredType, bool isVar, TypeSymbol inputType, bool hasErrors = false)
+        public BoundDeclarationPattern(SyntaxNode syntax, Symbol? variable, BoundExpression? variableAccess, BoundTypeExpression declaredType, bool isVar, TypeSymbol inputType, bool hasErrors = false)
             : base(BoundKind.DeclarationPattern, syntax, inputType, hasErrors || variableAccess.HasErrors() || declaredType.HasErrors())
         {
 
+            Debug.Assert(declaredType is object, "Field 'declaredType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             Debug.Assert(inputType is object, "Field 'inputType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Variable = variable;
@@ -7048,13 +7054,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression? VariableAccess { get; }
 
-        public BoundTypeExpression? DeclaredType { get; }
+        public BoundTypeExpression DeclaredType { get; }
 
         public bool IsVar { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDeclarationPattern(this);
 
-        public BoundDeclarationPattern Update(Symbol? variable, BoundExpression? variableAccess, BoundTypeExpression? declaredType, bool isVar, TypeSymbol inputType)
+        public BoundDeclarationPattern Update(Symbol? variable, BoundExpression? variableAccess, BoundTypeExpression declaredType, bool isVar, TypeSymbol inputType)
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variable, this.Variable) || variableAccess != this.VariableAccess || declaredType != this.DeclaredType || isVar != this.IsVar || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
@@ -10268,7 +10274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node)
         {
             BoundExpression? variableAccess = (BoundExpression?)this.Visit(node.VariableAccess);
-            BoundTypeExpression? declaredType = (BoundTypeExpression?)this.Visit(node.DeclaredType);
+            BoundTypeExpression declaredType = (BoundTypeExpression)this.Visit(node.DeclaredType);
             TypeSymbol inputType = this.VisitType(node.InputType);
             return node.Update(node.Variable, variableAccess, declaredType, node.IsVar, inputType);
         }
@@ -12459,7 +12465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol? variable = GetUpdatedSymbol(node, node.Variable);
             TypeSymbol inputType = GetUpdatedSymbol(node, node.InputType);
             BoundExpression? variableAccess = (BoundExpression?)this.Visit(node.VariableAccess);
-            BoundTypeExpression? declaredType = (BoundTypeExpression?)this.Visit(node.DeclaredType);
+            BoundTypeExpression declaredType = (BoundTypeExpression)this.Visit(node.DeclaredType);
             return node.Update(variable, variableAccess, declaredType, node.IsVar, inputType);
         }
 
