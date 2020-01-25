@@ -197,5 +197,139 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }"
 );
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestListWrappingIntializerExpression()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        var test = new List<int> [||]{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new List<int>
+        {
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+        };
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new List<int>
+        {
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+        };
+     }
+}"
+);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestWrappedListIntializerExpression()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        var test = new List<int>
+        [||]{
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+        };
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new List<int> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new List<int>
+        {
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+        };
+     }
+}"
+);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestObjectWrappingIntializerExpression()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        var test = new List<A> [||]{ new A { B = 1, C = 1 }, new A { B = 2, C = 2 }, new A { B = 3, C = 3 } };
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new List<A>
+        {
+            new A { B = 1, C = 1 },
+            new A { B = 2, C = 2 },
+            new A { B = 3, C = 3 }
+        };
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new List<A>
+        {
+            new A { B = 1, C = 1 }, new A { B = 2, C = 2 }, new A { B = 3, C = 3 }
+        };
+     }
+}"
+);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestWrappedObjectIntializerExpression()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        var test = new List<A>
+        [||]{
+            new A { B = 1, C = 1 },
+            new A { B = 2, C = 2 },
+            new A { B = 3, C = 3 }
+        };
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new List<A> { new A { B = 1, C = 1 }, new A { B = 2, C = 2 }, new A { B = 3, C = 3 } };
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new List<A>
+        {
+            new A { B = 1, C = 1 }, new A { B = 2, C = 2 }, new A { B = 3, C = 3 }
+        };
+     }
+}"
+);
+        }
     }
 }

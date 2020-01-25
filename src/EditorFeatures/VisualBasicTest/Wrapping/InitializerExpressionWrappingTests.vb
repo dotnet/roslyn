@@ -163,5 +163,111 @@ End Class", "Class C
      End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestListIntializerExpressionRefactorings() As Task
+            Await TestAllWrappingCasesAsync("Class C
+    Public Sub Bar()
+        Dim test As New List(Of Integer) From [||]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+     End Sub
+End Class", "Class C
+    Public Sub Bar()
+        Dim test As New List(Of Integer) From {
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+        }
+     End Sub
+End Class", "Class C
+    Public Sub Bar()
+        Dim test As New List(Of Integer) From {
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+        }
+     End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestWrappedListIntializerExpressionRefactorings() As Task
+            Await TestAllWrappingCasesAsync("Class C
+    Public Sub Bar()
+        Dim test As New List(Of Integer) From [||]{
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+        }
+     End Sub
+End Class", "Class C
+    Public Sub Bar()
+        Dim test As New List(Of Integer) From {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+     End Sub
+End Class", "Class C
+    Public Sub Bar()
+        Dim test As New List(Of Integer) From {
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+        }
+     End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestObjectIntializerExpressionRefactorings() As Task
+            Await TestAllWrappingCasesAsync("Class C
+    Public Sub Bar()
+        Dim test As New List(Of A) From [||]{New A() With {.B = 0, .C = 1}, New A() With {.B = 0, .C = 1}, New A() With {.B = 0, .C = 1}}
+     End Sub
+End Class", "Class C
+    Public Sub Bar()
+        Dim test As New List(Of A) From {
+            New A() With {.B = 0, .C = 1},
+            New A() With {.B = 0, .C = 1},
+            New A() With {.B = 0, .C = 1}
+        }
+     End Sub
+End Class", "Class C
+    Public Sub Bar()
+        Dim test As New List(Of A) From {
+            New A() With {.B = 0, .C = 1}, New A() With {.B = 0, .C = 1}, New A() With {.B = 0, .C = 1}
+        }
+     End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestWrappedObjectIntializerExpressionRefactorings() As Task
+            Await TestAllWrappingCasesAsync("Class C
+    Public Sub Bar()
+        Dim test As New List(Of A) From [||]{
+            New A() With {.B = 0, .C = 1},
+            New A() With {.B = 0, .C = 1},
+            New A() With {.B = 0, .C = 1}
+        }
+     End Sub
+End Class", "Class C
+    Public Sub Bar()
+        Dim test As New List(Of A) From {New A() With {.B = 0, .C = 1}, New A() With {.B = 0, .C = 1}, New A() With {.B = 0, .C = 1}}
+     End Sub
+End Class", "Class C
+    Public Sub Bar()
+        Dim test As New List(Of A) From {
+            New A() With {.B = 0, .C = 1}, New A() With {.B = 0, .C = 1}, New A() With {.B = 0, .C = 1}
+        }
+     End Sub
+End Class")
+        End Function
     End Class
 End Namespace

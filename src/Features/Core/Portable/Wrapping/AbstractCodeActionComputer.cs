@@ -90,6 +90,11 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             protected string GetSmartIndentationAfter(SyntaxNodeOrToken nodeOrToken)
             {
+                return GetIndentationAfter(nodeOrToken, FormattingOptions.IndentStyle.Smart);
+            }
+
+            protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions.IndentStyle indentStyle)
+            {
                 var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), NewLine));
                 newSourceText = newSourceText.WithChanges(
                     new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + NewLine.Length, newSourceText.Length), ""));
@@ -99,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(nodeOrToken.Span.End).LineNumber;
                 var desiredIndentation = indentationService.GetIndentation(
                     newDocument, originalLineNumber + 1,
-                    FormattingOptions.IndentStyle.Smart,
+                    indentStyle,
                     CancellationToken);
 
                 var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);

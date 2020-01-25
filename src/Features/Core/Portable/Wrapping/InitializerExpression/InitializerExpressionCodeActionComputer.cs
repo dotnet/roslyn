@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             private string GetBraceTokenIndentation()
             {
                 var previousToken = _listSyntax.GetFirstToken().GetPreviousToken();
-                return GetSmartIndentationAfter(previousToken);
+                return GetIndentationAfter(previousToken, Formatting.FormattingOptions.IndentStyle.Block);
             }
 
             protected sealed override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
