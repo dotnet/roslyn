@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         where TListItemSyntax : SyntaxNode
     {
 
+        // These refactor offerings are unique to argument or parameter lists
         protected abstract string Unwrap_and_indent_all_items { get; }
-
         protected abstract string Align_wrapped_items { get; }
         protected abstract string Indent_wrapped_items { get; }
 
