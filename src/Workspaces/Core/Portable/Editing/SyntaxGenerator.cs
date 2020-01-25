@@ -1282,6 +1282,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list) where TElement : SyntaxNode;
 
+        internal abstract SeparatedSyntaxList<TElement> SeparatedList<TElement>(IEnumerable<TElement> nodes, IEnumerable<SyntaxToken> separators) where TElement : SyntaxNode;
+
         internal static SyntaxTokenList Merge(SyntaxTokenList original, SyntaxTokenList newList)
         {
             // return tokens from newList, but use original tokens of kind matches
@@ -2265,6 +2267,29 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an tuple expression.
         /// </summary>
         public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
+
+        /// <summary>
+        /// Parses an expression from string
+        /// </summary>
+        internal abstract SyntaxNode ParseExpression(string stringToParse);
+
+        internal abstract SyntaxToken CommaTokenWithElasticSpace();
+
+        internal abstract SyntaxTrivia Trivia(SyntaxNode node);
+
+        internal abstract SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString);
+
+        internal abstract bool IsNamedArgument(SyntaxNode syntaxNode);
+
+        internal abstract bool IsWhitespaceTrivia(SyntaxTrivia trivia);
+
+        internal abstract bool IsDocumentationCommentTriviaSyntax(SyntaxNode node);
+
+        internal abstract bool IsParameterNameXmlElementSyntax(SyntaxNode node);
+
+        internal abstract SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
+
+        internal abstract SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content);
 
         #endregion
 

@@ -40,6 +40,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.SeparatedList(Of TElement)(list)
         End Function
 
+        Friend Overrides Function SeparatedList(Of TElement As SyntaxNode)(nodes As IEnumerable(Of TElement), separators As IEnumerable(Of SyntaxToken)) As SeparatedSyntaxList(Of TElement)
+            Return SyntaxFactory.SeparatedList(nodes, separators)
+        End Function
+
+        Friend Overrides Function Trivia(node As SyntaxNode) As SyntaxTrivia
+            Dim structuredTrivia = TryCast(node, StructuredTriviaSyntax)
+            If structuredTrivia IsNot Nothing Then
+                Return SyntaxFactory.Trivia(structuredTrivia)
+            End If
+
+            Return Nothing
+        End Function
+
+        Friend Overrides Function DocumentationCommentTrivia(nodes As IEnumerable(Of SyntaxNode), trailingTrivia As SyntaxTriviaList, lastWhitespaceTrivia As SyntaxTrivia, endOfLineString As String) As SyntaxNode
+            Dim node = SyntaxFactory.DocumentationCommentTrivia(SyntaxFactory.List(nodes))
+            Return node.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia("''' ")).
+                    WithTrailingTrivia(node.GetTrailingTrivia()).
+                    WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLineString), lastWhitespaceTrivia)
+        End Function
+
+        Friend Overrides Function IsNamedArgument(syntaxNode As SyntaxNode) As Boolean
+            Dim argument = TryCast(syntaxNode, ArgumentSyntax)
+            If argument IsNot Nothing Then
+                Return argument.IsNamed
+            Else
+                Return False
+            End If
+        End Function
+
+        Friend Overrides Function IsWhitespaceTrivia(trivia As SyntaxTrivia) As Boolean
+            Return trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+        End Function
+
+        Friend Overrides Function IsDocumentationCommentTriviaSyntax(node As SyntaxNode) As Boolean
+            Return node.IsKind(SyntaxKind.DocumentationCommentTrivia)
+        End Function
+
+        Friend Overrides Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean
+            Dim xmlElement = TryCast(node, XmlElementSyntax)
+            If xmlElement IsNot Nothing Then
+                Return xmlElement.StartTag.Name.ToString() = DocumentationCommentXmlNames.ParameterElementName
+            End If
+
+            Return False
+        End Function
+
+        Friend Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxNode()
+            Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
+            If documentationCommentTrivia IsNot Nothing Then
+                Return documentationCommentTrivia.Content.ToArray()
+            End If
+
+            Return Nothing
+        End Function
+
+        Friend Overrides Function DocumentationCommentTriviaWithUpdatedContent(trivia As SyntaxTrivia, content As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
+            If documentationCommentTrivia IsNot Nothing Then
+                Return SyntaxFactory.DocumentationCommentTrivia(SyntaxFactory.List(content))
+            End If
+
+            Return Nothing
+        End Function
+
 #Region "Expressions and Statements"
 
         Public Overrides Function AddEventHandler([event] As SyntaxNode, handler As SyntaxNode) As SyntaxNode
@@ -398,37 +462,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function TypeExpression(specialType As SpecialType) As SyntaxNode
             Select Case specialType
-                Case specialType.System_Boolean
+                Case SpecialType.System_Boolean
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BooleanKeyword))
-                Case specialType.System_Byte
+                Case SpecialType.System_Byte
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ByteKeyword))
-                Case specialType.System_Char
+                Case SpecialType.System_Char
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.CharKeyword))
-                Case specialType.System_Decimal
+                Case SpecialType.System_Decimal
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DecimalKeyword))
-                Case specialType.System_Double
+                Case SpecialType.System_Double
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword))
-                Case specialType.System_Int16
+                Case SpecialType.System_Int16
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ShortKeyword))
-                Case specialType.System_Int32
+                Case SpecialType.System_Int32
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntegerKeyword))
-                Case specialType.System_Int64
+                Case SpecialType.System_Int64
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.LongKeyword))
-                Case specialType.System_Object
+                Case SpecialType.System_Object
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))
-                Case specialType.System_SByte
+                Case SpecialType.System_SByte
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.SByteKeyword))
-                Case specialType.System_Single
+                Case SpecialType.System_Single
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.SingleKeyword))
-                Case specialType.System_String
+                Case SpecialType.System_String
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))
-                Case specialType.System_UInt16
+                Case SpecialType.System_UInt16
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UShortKeyword))
-                Case specialType.System_UInt32
+                Case SpecialType.System_UInt32
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UIntegerKeyword))
-                Case specialType.System_UInt64
+                Case SpecialType.System_UInt64
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ULongKeyword))
-                Case specialType.System_DateTime
+                Case SpecialType.System_DateTime
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DateKeyword))
                 Case Else
                     Throw New NotSupportedException("Unsupported SpecialType")
@@ -698,6 +762,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return expression
         End Function
 
+        Friend Overrides Function ParseExpression(stringToParse As String) As SyntaxNode
+            Return SyntaxFactory.ParseExpression(stringToParse)
+        End Function
+
+        Friend Overrides Function CommaTokenWithElasticSpace() As SyntaxToken
+            Return SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace)
+        End Function
+
 #End Region
 
 #Region "Declarations"
@@ -927,7 +999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If initializer IsNot Nothing Then
                 tokens = tokens.Add(SyntaxFactory.Token(SyntaxKind.OptionalKeyword))
             End If
-            If refKind <> refKind.None Then
+            If refKind <> RefKind.None Then
                 tokens = tokens.Add(SyntaxFactory.Token(SyntaxKind.ByRefKeyword))
             End If
             Return tokens
@@ -2754,7 +2826,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function WithAccessibility(declaration As SyntaxNode, accessibility As Accessibility) As SyntaxNode
             If Not CanHaveAccessibility(declaration) AndAlso
-               accessibility <> accessibility.NotApplicable Then
+               accessibility <> Accessibility.NotApplicable Then
                 Return declaration
             End If
 
@@ -2779,7 +2851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim newTokens = GetModifierList(accessibility, mods, GetDeclarationKind(declaration), isDefault)
             'GetDeclarationKind returns None for Field if the count is > 1
             'To handle multiple declarations on a field if the Accessibility is NotApplicable, we need to add the Dim
-            If declaration.Kind = SyntaxKind.FieldDeclaration AndAlso accessibility = accessibility.NotApplicable AndAlso newTokens.Count = 0 Then
+            If declaration.Kind = SyntaxKind.FieldDeclaration AndAlso accessibility = Accessibility.NotApplicable AndAlso newTokens.Count = 0 Then
                 ' Add the Dim
                 newTokens = newTokens.Add(SyntaxFactory.Token(SyntaxKind.DimKeyword))
             End If
@@ -2858,19 +2930,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Select Case (accessibility)
-                Case accessibility.Internal
+                Case Accessibility.Internal
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
-                Case accessibility.Public
+                Case Accessibility.Public
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                Case accessibility.Private
+                Case Accessibility.Private
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
-                Case accessibility.Protected
+                Case Accessibility.Protected
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
-                Case accessibility.ProtectedOrInternal
+                Case Accessibility.ProtectedOrInternal
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword)).Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
-                Case accessibility.ProtectedAndInternal
+                Case Accessibility.ProtectedAndInternal
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)).Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
-                Case accessibility.NotApplicable
+                Case Accessibility.NotApplicable
                 Case Else
                     Throw New NotSupportedException(String.Format("Accessibility '{0}' not supported.", accessibility))
             End Select
@@ -2940,7 +3012,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Sub GetAccessibilityAndModifiers(modifierTokens As SyntaxTokenList, ByRef accessibility As Accessibility, ByRef modifiers As DeclarationModifiers, ByRef isDefault As Boolean)
-            accessibility = accessibility.NotApplicable
+            accessibility = Accessibility.NotApplicable
             modifiers = DeclarationModifiers.None
             isDefault = False
 
@@ -2949,26 +3021,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Case SyntaxKind.DefaultKeyword
                         isDefault = True
                     Case SyntaxKind.PublicKeyword
-                        accessibility = accessibility.Public
+                        accessibility = Accessibility.Public
                     Case SyntaxKind.PrivateKeyword
-                        If accessibility = accessibility.Protected Then
-                            accessibility = accessibility.ProtectedAndFriend
+                        If accessibility = Accessibility.Protected Then
+                            accessibility = Accessibility.ProtectedAndFriend
                         Else
-                            accessibility = accessibility.Private
+                            accessibility = Accessibility.Private
                         End If
                     Case SyntaxKind.FriendKeyword
-                        If accessibility = accessibility.Protected Then
-                            accessibility = accessibility.ProtectedOrFriend
+                        If accessibility = Accessibility.Protected Then
+                            accessibility = Accessibility.ProtectedOrFriend
                         Else
-                            accessibility = accessibility.Friend
+                            accessibility = Accessibility.Friend
                         End If
                     Case SyntaxKind.ProtectedKeyword
-                        If accessibility = accessibility.Friend Then
-                            accessibility = accessibility.ProtectedOrFriend
-                        ElseIf accessibility = accessibility.Private Then
-                            accessibility = accessibility.ProtectedAndFriend
+                        If accessibility = Accessibility.Friend Then
+                            accessibility = Accessibility.ProtectedOrFriend
+                        ElseIf accessibility = Accessibility.Private Then
+                            accessibility = Accessibility.ProtectedAndFriend
                         Else
-                            accessibility = accessibility.Protected
+                            accessibility = Accessibility.Protected
                         End If
                     Case SyntaxKind.MustInheritKeyword, SyntaxKind.MustOverrideKeyword
                         modifiers = modifiers Or DeclarationModifiers.Abstract

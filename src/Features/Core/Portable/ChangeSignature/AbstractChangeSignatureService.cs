@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Formatting;
@@ -49,6 +50,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             CancellationToken cancellationToken);
 
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
+
+        protected abstract string LanguageName { get; }
 
         protected abstract T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode;
 
@@ -704,7 +707,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 if (i >= arguments.SeparatorCount)
                 {
-                    separators.Add(CreateSeparatorSyntaxToken());
+                    separators.Add(Generator.CommaTokenWithElasticSpace());
                 }
                 else
                 {
@@ -715,6 +718,155 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return separators;
         }
 
-        protected abstract SyntaxToken CreateSeparatorSyntaxToken();
+        protected abstract SyntaxGenerator Generator { get; }
+
+        protected SeparatedSyntaxList<SyntaxNode> AddNewArgumentsToList(
+          SeparatedSyntaxList<SyntaxNode> newArguments,
+          SignatureChange signaturePermutation,
+          bool isReducedExtensionMethod)
+        {
+            List<SyntaxNode> fullList = new List<SyntaxNode>();
+            List<SyntaxToken> separators = new List<SyntaxToken>();
+
+            var updatedParameters = signaturePermutation.UpdatedConfiguration.ToListOfParameters();
+
+            int indexInExistingList = 0;
+
+            bool seenNameEquals = false;
+
+            for (int i = 0; i < updatedParameters.Count; i++)
+            {
+                // Skip this parameter in list of arguments for extension method calls but not for reduced ones.
+                if (updatedParameters[i] != signaturePermutation.UpdatedConfiguration.ThisParameter
+                    || !isReducedExtensionMethod)
+                {
+                    if (updatedParameters[i] is AddedParameter addedParameter)
+                    {
+                        fullList.Add(
+                            Generator.Argument(
+                                name: seenNameEquals ? addedParameter.Name : default,
+                                refKind: RefKind.None,
+                                expression: Generator.ParseExpression(addedParameter.CallSiteValue)));
+                        separators.Add(Generator.CommaTokenWithElasticSpace());
+                    }
+                    else
+                    {
+                        if (indexInExistingList < newArguments.Count)
+                        {
+                            if (Generator.IsNamedArgument(newArguments[indexInExistingList]))
+                            {
+                                seenNameEquals = true;
+                            }
+
+                            if (indexInExistingList < newArguments.SeparatorCount)
+                            {
+                                separators.Add(newArguments.GetSeparator(indexInExistingList));
+                            }
+
+                            fullList.Add(newArguments[indexInExistingList++]);
+                        }
+                    }
+                }
+            }
+
+            // Add the rest of existing parameters, e.g. from the params argument.
+            while (indexInExistingList < newArguments.Count)
+            {
+                if (indexInExistingList < newArguments.SeparatorCount)
+                {
+                    separators.Add(newArguments.GetSeparator(indexInExistingList));
+                }
+
+                fullList.Add(newArguments[indexInExistingList++]);
+            }
+
+            if (fullList.Count == separators.Count && separators.Count != 0)
+            {
+                separators.Remove(separators.Last());
+            }
+
+            return Generator.SeparatedList(fullList, separators);
+        }
+
+        protected List<SyntaxTrivia> GetPermutedTrivia(Document document, SyntaxNode node, List<SyntaxNode> permutedParamNodes)
+        {
+            var updatedLeadingTrivia = new List<SyntaxTrivia>();
+            var index = 0;
+            SyntaxTrivia lastWhiteSpaceTrivia = default;
+
+            var lastDocumentationCommentTriviaSyntax = node.GetLeadingTrivia()
+                .LastOrDefault(t => t.HasStructure && Generator.IsDocumentationCommentTriviaSyntax(t.GetStructure()));
+
+            foreach (var trivia in node.GetLeadingTrivia())
+            {
+                if (!trivia.HasStructure)
+                {
+                    if (Generator.IsWhitespaceTrivia(trivia))
+                    {
+                        lastWhiteSpaceTrivia = trivia;
+                    }
+
+                    updatedLeadingTrivia.Add(trivia);
+                    continue;
+                }
+
+                var structuredTrivia = trivia.GetStructure();
+                if (!(Generator.IsDocumentationCommentTriviaSyntax(structuredTrivia)))
+                {
+                    updatedLeadingTrivia.Add(trivia);
+                    continue;
+                }
+
+                var updatedNodeList = new List<SyntaxNode>();
+                var structuredContent = Generator.GetContentFromDocumentationCommentTriviaSyntax(trivia);
+                for (var i = 0; i < structuredContent.Length; i++)
+                {
+                    var content = structuredContent[i];
+                    if (!Generator.IsParameterNameXmlElementSyntax(content))
+                    {
+                        updatedNodeList.Add(content);
+                        continue;
+                    }
+
+                    // Found a param tag, so insert the next one from the reordered list
+                    if (index < permutedParamNodes.Count)
+                    {
+                        updatedNodeList.Add(permutedParamNodes[index].WithLeadingTrivia(content.GetLeadingTrivia()).WithTrailingTrivia(content.GetTrailingTrivia()));
+                        index++;
+                    }
+                    else
+                    {
+                        // Inspecting a param element that we are deleting but not replacing.
+                    }
+                }
+
+                var newDocComments = Generator.DocumentationCommentTriviaWithUpdatedContent(trivia, updatedNodeList.AsEnumerable());
+                newDocComments = newDocComments.WithLeadingTrivia(structuredTrivia.GetLeadingTrivia()).WithTrailingTrivia(structuredTrivia.GetTrailingTrivia());
+                var newTrivia = Generator.Trivia(newDocComments);
+                updatedLeadingTrivia.Add(newTrivia);
+            }
+
+            var extraNodeList = new List<SyntaxNode>();
+            while (index < permutedParamNodes.Count)
+            {
+                extraNodeList.Add(permutedParamNodes[index]);
+                index++;
+            }
+
+            if (extraNodeList.Any())
+            {
+                var extraDocComments = Generator.DocumentationCommentTrivia(
+                    extraNodeList.AsEnumerable(),
+                    node.GetTrailingTrivia(),
+                    lastWhiteSpaceTrivia,
+                    document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, LanguageName));
+
+                var newTrivia = Generator.Trivia(extraDocComments);
+
+                updatedLeadingTrivia.Add(newTrivia);
+            }
+
+            return updatedLeadingTrivia;
+        }
     }
 }

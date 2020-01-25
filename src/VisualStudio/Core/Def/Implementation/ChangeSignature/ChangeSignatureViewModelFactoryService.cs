@@ -89,8 +89,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
         }
 
-
-
         public abstract SymbolDisplayPart[] GeneratePreviewDisplayParts(
             ChangeSignatureDialogViewModel.AddedParameterViewModel addedParameterViewModel);
 

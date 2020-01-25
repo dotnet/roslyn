@@ -10,14 +10,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
@@ -25,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
     [ExportLanguageService(typeof(AbstractChangeSignatureService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureService
     {
+        protected override SyntaxGenerator Generator => CSharpSyntaxGenerator.Instance;
+
         private static readonly ImmutableArray<SyntaxKind> _declarationKinds = ImmutableArray.Create(
             SyntaxKind.MethodDeclaration,
             SyntaxKind.ConstructorDeclaration,
@@ -168,6 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             return null;
         }
+
+        protected override string LanguageName => LanguageNames.CSharp;
 
         private SyntaxNode GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)
         {
@@ -440,73 +445,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return null;
         }
 
-        private SeparatedSyntaxList<ArgumentSyntax> AddNewArgumentsToList(
-            SeparatedSyntaxList<ArgumentSyntax> newArguments,
-            SignatureChange signaturePermutation,
-            bool isReducedExtensionMethod)
-        {
-            List<ArgumentSyntax> fullList = new List<ArgumentSyntax>();
-            List<SyntaxToken> separators = new List<SyntaxToken>();
-
-            var updatedParameters = signaturePermutation.UpdatedConfiguration.ToListOfParameters();
-
-            int indexInExistingList = 0;
-
-            bool seenNameEquals = false;
-
-            for (int i = 0; i < updatedParameters.Count; i++)
-            {
-                // Skip this parameter in list of arguments for extension method calls but not for reduced ones.
-                if (updatedParameters[i] != signaturePermutation.UpdatedConfiguration.ThisParameter
-                    || !isReducedExtensionMethod)
-                {
-                    if (updatedParameters[i] is AddedParameter addedParameter)
-                    {
-                        fullList.Add(SyntaxFactory.Argument(
-                            seenNameEquals ? SyntaxFactory.NameColon(addedParameter.Name) : default,
-                            refKindKeyword: default,
-                            expression: SyntaxFactory.ParseExpression(addedParameter.CallSiteValue)));
-                        separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
-                    }
-                    else
-                    {
-                        if (indexInExistingList < newArguments.Count)
-                        {
-                            if (newArguments[indexInExistingList].NameColon != null)
-                            {
-                                seenNameEquals = true;
-                            }
-
-                            if (indexInExistingList < newArguments.SeparatorCount)
-                            {
-                                separators.Add(newArguments.GetSeparator(indexInExistingList));
-                            }
-
-                            fullList.Add(newArguments[indexInExistingList++]);
-                        }
-                    }
-                }
-            }
-
-            // Add the rest of existing parameters, e.g. from the params argument.
-            while (indexInExistingList < newArguments.Count)
-            {
-                if (indexInExistingList < newArguments.SeparatorCount)
-                {
-                    separators.Add(newArguments.GetSeparator(indexInExistingList));
-                }
-
-                fullList.Add(newArguments[indexInExistingList++]);
-            }
-
-            if (fullList.Count == separators.Count && separators.Count != 0)
-            {
-                separators.Remove(separators.Last());
-            }
-
-            return SyntaxFactory.SeparatedList(fullList, separators);
-        }
-
         private static ParameterSyntax CreateNewParameterSyntax(AddedParameter addedParameter)
             => CreateNewParameterSyntax(addedParameter, skipParameterType: false);
 
@@ -631,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return GetPermutedTrivia(document, node, permutedParamNodes);
         }
 
-        private List<XmlElementSyntax> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
+        private List<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
         {
             // Only reorder if count and order match originally.
             var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
@@ -669,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // Everything lines up, so permute them.
-            var permutedParams = new List<XmlElementSyntax>();
+            var permutedParams = new List<SyntaxNode>();
             foreach (var parameter in reorderedParameters)
             {
                 if (dictionary.TryGetValue(parameter.Name, out var permutedParam))
@@ -687,102 +625,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             return permutedParams;
-        }
-
-        private List<SyntaxTrivia> GetPermutedTrivia(Document document, CSharpSyntaxNode node, List<XmlElementSyntax> permutedParamNodes)
-        {
-            var updatedLeadingTrivia = new List<SyntaxTrivia>();
-            var index = 0;
-            SyntaxTrivia lastWhiteSpaceTrivia = default;
-
-            var lastDocumentationCommentTriviaSyntax = node.GetLeadingTrivia()
-                .LastOrDefault(t => t.HasStructure && t.GetStructure() is DocumentationCommentTriviaSyntax);
-
-            foreach (var trivia in node.GetLeadingTrivia())
-            {
-                if (!trivia.HasStructure)
-                {
-                    if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-                    {
-                        lastWhiteSpaceTrivia = trivia;
-                    }
-
-                    updatedLeadingTrivia.Add(trivia);
-                    continue;
-                }
-
-                if (!(trivia.GetStructure() is DocumentationCommentTriviaSyntax structuredTrivia))
-                {
-                    updatedLeadingTrivia.Add(trivia);
-                    continue;
-                }
-
-                var updatedNodeList = new List<XmlNodeSyntax>();
-                var structuredContent = structuredTrivia.Content.ToList();
-                for (var i = 0; i < structuredContent.Count; i++)
-                {
-                    var content = structuredContent[i];
-                    if (!content.IsKind(SyntaxKind.XmlElement))
-                    {
-                        updatedNodeList.Add(content);
-                        continue;
-                    }
-
-                    var xmlElement = content as XmlElementSyntax;
-                    if (xmlElement.StartTag.Name.ToString() != DocumentationCommentXmlNames.ParameterElementName)
-                    {
-                        updatedNodeList.Add(content);
-                        continue;
-                    }
-
-                    // Found a param tag, so insert the next one from the reordered list
-                    if (index < permutedParamNodes.Count)
-                    {
-                        updatedNodeList.Add(permutedParamNodes[index].WithLeadingTrivia(content.GetLeadingTrivia()).WithTrailingTrivia(content.GetTrailingTrivia()));
-                        index++;
-                    }
-                    else
-                    {
-                        // Inspecting a param element that we are deleting but not replacing.
-                    }
-                }
-
-                var newDocComments = SyntaxFactory.DocumentationCommentTrivia(
-                    structuredTrivia.Kind(),
-                    SyntaxFactory.List(updatedNodeList.AsEnumerable()),
-                    structuredTrivia.EndOfComment);
-                newDocComments = newDocComments.WithLeadingTrivia(structuredTrivia.GetLeadingTrivia()).WithTrailingTrivia(structuredTrivia.GetTrailingTrivia());
-                var newTrivia = SyntaxFactory.Trivia(newDocComments);
-
-                updatedLeadingTrivia.Add(newTrivia);
-            }
-
-            var extraNodeList = new List<XmlNodeSyntax>();
-            while (index < permutedParamNodes.Count)
-            {
-                extraNodeList.Add(permutedParamNodes[index]);
-                index++;
-            }
-
-            if (extraNodeList.Any())
-            {
-                var extraDocComments = SyntaxFactory.DocumentationCommentTrivia(
-                    SyntaxKind.MultiLineDocumentationCommentTrivia,
-                    SyntaxFactory.List(extraNodeList.AsEnumerable()),
-                    SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken));
-                extraDocComments = extraDocComments
-                    .WithLeadingTrivia(SyntaxFactory.DocumentationCommentExterior("/// "))
-                    .WithTrailingTrivia(node.GetTrailingTrivia())
-                    .WithTrailingTrivia(
-                    SyntaxFactory.EndOfLine(document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp)),
-                    lastWhiteSpaceTrivia);
-
-                var newTrivia = SyntaxFactory.Trivia(extraDocComments);
-
-                updatedLeadingTrivia.Add(newTrivia);
-            }
-
-            return updatedLeadingTrivia;
         }
 
         public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
@@ -826,8 +668,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
             => SpecializedCollections.SingletonEnumerable<AbstractFormattingRule>(new ChangeSignatureFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
-
-        protected override SyntaxToken CreateSeparatorSyntaxToken()
-            => SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace);
     }
 }

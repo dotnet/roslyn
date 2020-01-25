@@ -5,12 +5,13 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ChangeSignature
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
@@ -425,66 +426,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return vbnode
         End Function
 
-        Private Function AddNewArgumentsToList(
-            newArguments As SeparatedSyntaxList(Of ArgumentSyntax),
-            signaturePermutation As SignatureChange,
-            isReducedExtensionMethod As Boolean) As SeparatedSyntaxList(Of ArgumentSyntax)
-
-            Dim fullList = New List(Of ArgumentSyntax)
-            Dim separators = New List(Of SyntaxToken)
-
-            Dim updatedParameters = signaturePermutation.UpdatedConfiguration.ToListOfParameters()
-            Dim indexInExistingList As Integer = 0
-            Dim seenNameEquals As Boolean = False
-
-            For i As Integer = 0 To updatedParameters.Count - 1
-                If updatedParameters(i) IsNot signaturePermutation.UpdatedConfiguration.ThisParameter Or Not isReducedExtensionMethod Then
-                    If TypeOf updatedParameters(i) Is AddedParameter Then
-                        Dim addedParameter = CType(updatedParameters(i), AddedParameter)
-                        If addedParameter.CallSiteValue <> Nothing Then
-                            If seenNameEquals Then
-                                fullList.Add(SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(addedParameter.Name)),
-                                                                          SyntaxFactory.ParseExpression(addedParameter.CallSiteValue)))
-                            Else
-                                fullList.Add(SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression(addedParameter.CallSiteValue)))
-                            End If
-                            separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace))
-                        End If
-                    Else
-                        If indexInExistingList < newArguments.Count Then
-
-                            If newArguments(indexInExistingList).IsNamed Then
-                                seenNameEquals = True
-                            End If
-
-                            If indexInExistingList < newArguments.SeparatorCount Then
-                                separators.Add(newArguments.GetSeparator(indexInExistingList))
-                            End If
-
-                            fullList.Add(newArguments(indexInExistingList))
-                            indexInExistingList += 1
-                        End If
-                    End If
-                End If
-            Next
-
-            While indexInExistingList < newArguments.Count
-
-                If indexInExistingList < newArguments.SeparatorCount Then
-                    separators.Add(newArguments.GetSeparator(indexInExistingList))
-                End If
-
-                fullList.Add(newArguments(indexInExistingList))
-                indexInExistingList += 1
-            End While
-
-            If fullList.Count = separators.Count AndAlso separators.Count <> 0 Then
-                separators.Remove(separators.Last())
-            End If
-
-            Return SyntaxFactory.SeparatedList(fullList, separators)
-        End Function
-
         Private Function PermuteArgumentList(
             arguments As SeparatedSyntaxList(Of ArgumentSyntax),
             permutedSignature As SignatureChange,
@@ -541,7 +482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 .OfType(Of XmlElementSyntax)() _
                 .Where(Function(e) e.StartTag.Name.ToString() = DocumentationCommentXmlNames.ParameterElementName)
 
-            Dim permutedParamNodes = VerifyAndPermuteParamNodes(paramNodes, declarationSymbol, updatedSignature)
+            Dim permutedParamNodes As List(Of SyntaxNode) = VerifyAndPermuteParamNodes(paramNodes, declarationSymbol, updatedSignature)
             If permutedParamNodes Is Nothing Then
                 ' Something is wrong with the <param> tags, so don't change anything.
                 Return Nothing
@@ -550,7 +491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return GetPermutedTrivia(document, node, permutedParamNodes)
         End Function
 
-        Private Function VerifyAndPermuteParamNodes(paramNodes As IEnumerable(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As List(Of XmlElementSyntax)
+        Private Function VerifyAndPermuteParamNodes(paramNodes As IEnumerable(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As List(Of SyntaxNode)
             ' Only reorder if count and order match originally.
 
             Dim originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters()
@@ -583,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Next
 
             ' Everything lines up, so permute them.
-            Dim permutedParams = New List(Of XmlElementSyntax)()
+            Dim permutedParams = New List(Of SyntaxNode)()
             For Each parameter In reorderedParameters
                 Dim permutedParam As XmlElementSyntax = Nothing
                 If dictionary.TryGetValue(parameter.Name, permutedParam) Then
@@ -598,82 +539,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Next
 
             Return permutedParams
-        End Function
-
-        Private Function GetPermutedTrivia(document As Document, node As VisualBasicSyntaxNode, permutedParamNodes As List(Of XmlElementSyntax)) As List(Of SyntaxTrivia)
-            Dim updatedLeadingTrivia = New List(Of SyntaxTrivia)()
-            Dim index = 0
-
-            Dim lastWhiteSpaceTrivia As SyntaxTrivia = Nothing
-
-            Dim lastDocumentationCommentTriviaSyntax = node.GetLeadingTrivia() _
-                .LastOrDefault(Function(t) t.HasStructure AndAlso t.GetStructure().IsKind(SyntaxKind.DocumentationCommentTrivia))
-
-            For Each trivia In node.GetLeadingTrivia()
-                If Not trivia.HasStructure Then
-                    If trivia.IsKind(SyntaxKind.WhitespaceTrivia) Then
-                        lastWhiteSpaceTrivia = trivia
-                    End If
-
-                    updatedLeadingTrivia.Add(trivia)
-                    Continue For
-                End If
-
-                Dim structuredTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
-                If structuredTrivia Is Nothing Then
-                    updatedLeadingTrivia.Add(trivia)
-                    Continue For
-                End If
-
-                Dim updatedNodeList = New List(Of XmlNodeSyntax)()
-                For Each content In structuredTrivia.Content
-                    If Not content.IsKind(SyntaxKind.XmlElement) Then
-                        updatedNodeList.Add(content)
-                        Continue For
-                    End If
-
-                    Dim xmlElement = DirectCast(content, XmlElementSyntax)
-                    If xmlElement.StartTag.Name.ToString() <> DocumentationCommentXmlNames.ParameterElementName Then
-                        updatedNodeList.Add(content)
-                        Continue For
-                    End If
-
-                    ' Found a param tag, so insert the next one from the reordered list.
-                    If index < permutedParamNodes.Count Then
-                        updatedNodeList.Add(permutedParamNodes(index).WithLeadingTrivia(content.GetLeadingTrivia()).WithTrailingTrivia(content.GetTrailingTrivia()))
-                        index += 1
-                    Else
-                        ' Inspecting a param element that we are deleting but not replacing.
-                    End If
-                Next
-
-                Dim newDocComments = SyntaxFactory.DocumentationCommentTrivia(SyntaxFactory.List(updatedNodeList.AsEnumerable()))
-                newDocComments = newDocComments.WithLeadingTrivia(structuredTrivia.GetLeadingTrivia()).WithTrailingTrivia(structuredTrivia.GetTrailingTrivia())
-                Dim newTrivia = SyntaxFactory.Trivia(newDocComments)
-
-                updatedLeadingTrivia.Add(newTrivia)
-            Next
-
-            Dim extraNodeList = New List(Of XmlNodeSyntax)()
-            While (index < permutedParamNodes.Count)
-                extraNodeList.Add(permutedParamNodes(index))
-                index += 1
-            End While
-
-            If extraNodeList.Any() Then
-                Dim extraDocComments = SyntaxFactory.DocumentationCommentTrivia(
-                    SyntaxFactory.List(extraNodeList.AsEnumerable()))
-                extraDocComments = extraDocComments.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia("''' ")).
-                    WithTrailingTrivia(node.GetTrailingTrivia()).
-                    WithTrailingTrivia(SyntaxFactory.EndOfLine(document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.VisualBasic)),
-                lastWhiteSpaceTrivia)
-
-                Dim newTrivia = SyntaxFactory.Trivia(extraDocComments)
-
-                updatedLeadingTrivia.Add(newTrivia)
-            End If
-
-            Return updatedLeadingTrivia
         End Function
 
         Public Overrides Async Function DetermineCascadedSymbolsFromDelegateInvoke(
@@ -735,13 +600,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return SpecializedCollections.SingletonEnumerable(Of AbstractFormattingRule)(New ChangeSignatureFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
 
-        Protected Overrides Function CreateSeparatorSyntaxToken() As SyntaxToken
-            Return SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace)
-        End Function
-
         Protected Overrides Function TransferLeadingWhitespaceTrivia(Of T As SyntaxNode)(newArgument As T, oldArgument As SyntaxNode) As T
             Return newArgument
         End Function
+
+        Protected Overrides ReadOnly Property Generator As SyntaxGenerator
+            Get
+                Return VisualBasicSyntaxGenerator.Instance
+            End Get
+        End Property
+
+
+        Protected Overrides ReadOnly Property LanguageName As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
     End Class
 End Namespace
