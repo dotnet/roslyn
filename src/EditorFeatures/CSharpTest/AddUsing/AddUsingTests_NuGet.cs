@@ -277,39 +277,6 @@ class C
             installerServiceMock.Verify();
         }
 
-        [WorkItem(40857, "https://github.com/dotnet/roslyn/issues/40857")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public async Task TestNuGetFailureDoesNotImpactCodeFix()
-        {
-            var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Strict);
-            installerServiceMock.Setup(i => i.IsEnabled(It.IsAny<ProjectId>())).Returns(true);
-            installerServiceMock.Setup(i => i.GetPackageSources()).Throws(new Exception("Test Exception"));
-
-            var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
-            packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
-            packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
-                .Returns(CreateSearchResult(null));
-
-            await TestInRegularAndScriptAsync(
-@"class Class
-{
-    [|IDictionary|] Method()
-    {
-        Goo();
-    }
-}",
-@"using System.Collections;
-
-class Class
-{
-    IDictionary Method()
-    {
-        Goo();
-    }
-}", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
-        }
-
         private Task<IList<PackageWithTypeResult>> CreateSearchResult(
             string packageName, string typeName, ImmutableArray<string> containingNamespaceNames)
         {

@@ -56,19 +56,9 @@ namespace Microsoft.CodeAnalysis.AddImport
                 : null;
 
             var installerService = GetPackageInstallerService(document);
-            ImmutableArray<PackageSource> packageSources;
-            try
-            {
-                // Ensure any issues with getting access to package sources will not break the Code Fix for local imports
-                // https://github.com/dotnet/roslyn/issues/40857
-                packageSources = searchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
-                    ? installerService.GetPackageSources()
-                    : ImmutableArray<PackageSource>.Empty;
-            }
-            catch
-            {
-                packageSources = ImmutableArray<PackageSource>.Empty;
-            }
+            var packageSources = searchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
+                ? installerService.GetPackageSources()
+                : ImmutableArray<PackageSource>.Empty;
 
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
                 document, span, diagnostics, MaxResults, symbolSearchService, searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
