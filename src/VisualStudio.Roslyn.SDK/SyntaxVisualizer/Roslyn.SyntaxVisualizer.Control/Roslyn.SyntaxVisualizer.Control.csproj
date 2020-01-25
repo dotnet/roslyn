@@ -1,6 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <!-- workaround for https://github.com/NuGet/Home/issues/5894 -->
-  <Import Project="$(ArtifactsObjDir)$(AssemblyName)\*.props" Condition="'$(MSBuildProjectExtension)' == '.tmp_proj'" />
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -45,6 +43,4 @@
     <Resource Include="SyntaxGraph.ico" />
   </ItemGroup>
 
-  <!-- workaround for https://github.com/NuGet/Home/issues/5894 -->
-  <Import Project="$(ArtifactsObjDir)$(AssemblyName)\*.targets" Condition="'$(MSBuildProjectExtension)' == '.tmp_proj'" />
 </Project>
