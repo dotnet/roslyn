@@ -377,5 +377,53 @@ End Class", "Public Class C
     }
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestArgumentIntializerExpressionRefactorings() As Task
+            Await TestAllWrappingCasesAsync("Public Sub F
+    Dim result = FakeFunction(New List(Of Integer) From [||]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+End Sub", "Public Sub F
+    Dim result = FakeFunction(New List(Of Integer) From {
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+    })
+End Sub", "Public Sub F
+    Dim result = FakeFunction(New List(Of Integer) From {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+    })
+End Sub")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestWrappedArgumentIntializerExpressionRefactorings() As Task
+            Await TestAllWrappingCasesAsync("Public Sub F
+    Dim result = FakeFunction(New List(Of Integer) From [||]{
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+    })
+End Sub", "Public Sub F
+    Dim result = FakeFunction(New List(Of Integer) From {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+End Sub", "Public Sub F
+    Dim result = FakeFunction(New List(Of Integer) From {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+    })
+End Sub")
+        End Function
     End Class
 End Namespace

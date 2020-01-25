@@ -467,5 +467,67 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }"
 );
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestArgumentIntializerExpressionRefactorings()
+        {
+            await TestAllWrappingCasesAsync(
+@"public void F() {
+    var result = fakefunction(new List<int> [||]{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+}",
+@"public void F() {
+    var result = fakefunction(new List<int>
+    {
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+    });
+}",
+@"public void F() {
+    var result = fakefunction(new List<int>
+    {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+    });
+}"
+);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestWrappedArgumentIntializerExpressionRefactorings()
+        {
+            await TestAllWrappingCasesAsync(
+@"public void F() {
+    var result = fakefunction(new List<int>
+    [||]{
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+    });
+}",
+@"public void F() {
+    var result = fakefunction(new List<int> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+}",
+@"public void F() {
+    var result = fakefunction(new List<int>
+    {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+    });
+}"
+);
+        }
     }
 }
