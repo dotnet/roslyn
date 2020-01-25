@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -273,8 +275,7 @@ namespace Microsoft.CodeAnalysis
 
         private class SymbolKeyReader : Reader<string>
         {
-            private static readonly ObjectPool<SymbolKeyReader> s_readerPool =
-                new ObjectPool<SymbolKeyReader>(() => new SymbolKeyReader());
+            private static readonly ObjectPool<SymbolKeyReader> s_readerPool = SharedPools.Default<SymbolKeyReader>();
 
             private readonly Dictionary<int, SymbolKeyResolution> _idToResult = new Dictionary<int, SymbolKeyResolution>();
             private readonly Func<SymbolKeyResolution> _readSymbolKey;
@@ -287,7 +288,7 @@ namespace Microsoft.CodeAnalysis
             private readonly List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
             private bool _resolveLocations;
 
-            private SymbolKeyReader()
+            public SymbolKeyReader()
             {
                 _readSymbolKey = ReadSymbolKey;
                 _readLocation = ReadLocation;

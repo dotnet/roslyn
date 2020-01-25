@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -146,6 +148,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
                Document document, AnalysisKind kind, CancellationToken cancellationToken)
             {
+                var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
+                if (loadDiagnostic != null)
+                {
+                    return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
+                }
+
                 // given service must be DiagnosticAnalyzerService
                 var diagnosticService = (DiagnosticAnalyzerService)_service._analyzerService;
 
@@ -158,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var analyzer in analyzers)
                 {
                     builder.AddRange(await diagnosticService.ComputeDiagnosticsAsync(
-                        compilationWithAnalyzers, document, analyzer, kind, spanOpt: null, logAggregator: null, cancellationToken).ConfigureAwait(false));
+                        compilationWithAnalyzers, document, analyzer, kind, span: null, logAggregator: null, cancellationToken).ConfigureAwait(false));
                 }
 
                 return builder.ToImmutableAndFree();

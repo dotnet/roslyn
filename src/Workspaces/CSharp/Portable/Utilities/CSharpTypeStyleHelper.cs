@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Linq;
@@ -50,8 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
     internal abstract partial class CSharpTypeStyleHelper
     {
-        protected abstract bool IsStylePreferred(
-            SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken);
+        protected abstract bool IsStylePreferred(in State state);
 
         public virtual TypeStyleResult AnalyzeTypeName(
             TypeSyntax typeName, SemanticModel semanticModel,
@@ -65,9 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return default;
             }
 
-            var state = State.Generate(
+            var state = new State(
                 declaration, semanticModel, optionSet, cancellationToken);
-            var isStylePreferred = this.IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
+            var isStylePreferred = this.IsStylePreferred(in state);
             var severity = state.GetDiagnosticSeverityPreference();
 
             return new TypeStyleResult(

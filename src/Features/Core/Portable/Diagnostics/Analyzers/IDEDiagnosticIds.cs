@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Formatting;
 
@@ -115,6 +117,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseSystemHashCode = "IDE0070";
 
+        public const string SimplifyInterpolationId = "IDE0071";
+
         public const string PopulateSwitchExpressionDiagnosticId = "IDE0072";
 
         // Analyzer error Ids
@@ -126,5 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string NamingRuleId = "IDE1006";
         public const string UnboundIdentifierId = "IDE1007";
         public const string UnboundConstructorId = "IDE1008";
+
+        // Reserved for workspace error ids IDE1100-IDE1200 (see WorkspaceDiagnosticDescriptors)
     }
 }

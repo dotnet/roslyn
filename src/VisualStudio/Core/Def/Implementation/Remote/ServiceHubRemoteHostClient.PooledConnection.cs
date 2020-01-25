@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +11,7 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
+    internal sealed partial class ServiceHubRemoteHostClient
     {
         private partial class ConnectionManager
         {
@@ -26,30 +28,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     _connection = connection;
                 }
 
-                public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken) =>
-                    _connection.InvokeAsync(targetName, arguments, cancellationToken);
+                public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+                    => _connection.InvokeAsync(targetName, arguments, cancellationToken);
 
-                public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken) =>
-                    _connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
+                public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+                    => _connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
 
-                public override Task InvokeAsync(
-                    string targetName, IReadOnlyList<object> arguments,
-                    Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken) =>
-                    _connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+                public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> directStreamReader, CancellationToken cancellationToken)
+                    => _connection.InvokeAsync(targetName, arguments, directStreamReader, cancellationToken);
 
-                public override Task<T> InvokeAsync<T>(
-                    string targetName, IReadOnlyList<object> arguments,
-                    Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken) =>
-                    _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
-
-                protected override void Dispose(bool disposing)
+                protected override void DisposeImpl()
                 {
-                    if (disposing)
-                    {
-                        _connectionManager.Free(_serviceName, _connection);
-                    }
-
-                    base.Dispose(disposing);
+                    _connectionManager.Free(_serviceName, _connection);
+                    base.DisposeImpl();
                 }
             }
         }
