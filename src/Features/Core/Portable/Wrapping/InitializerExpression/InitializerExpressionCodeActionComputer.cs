@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 => wrappingStyle switch
                 {
                     WrappingStyle.WrapFirst_IndentRest => Wrapper.Indent_all_items,
+                    WrappingStyle.UnwrapFirst_IndentRest => Wrapper.Unwrap_all_items,
                     _ => throw ExceptionUtilities.UnexpectedValue(wrappingStyle),
                 };
 
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             protected sealed override async Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
             {
                 var edits = GetUnwrapAllEdits(wrappingStyle);
-                var title = Wrapper.Unwrap_all_items;
+                var title = GetNestedCodeActionTitle(wrappingStyle);
 
                 return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
             }
