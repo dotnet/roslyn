@@ -35,7 +35,7 @@
   <!-- PROTOTYPE(UsedAssemblyReferences): Remove this entry and adjusted code generator to handle 
                                           ImmutableBindingDiagnostic specially, the same way as ImmutableArray.
   -->
-  <ValueType Name="ImmutableBindingDiagnostic&lt;AssemblySymbol&gt;"/>
+  <ValueType Name="ImmutableBindingDiagnostic"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
