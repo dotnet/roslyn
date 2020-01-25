@@ -269,5 +269,65 @@ End Class", "Class C
      End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestReturnIntializerExpressionRefactorings() As Task
+            Await TestAllWrappingCasesAsync("Class C
+    Public Sub Bar()
+        Return New List(Of Integer) From [||]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+     End Sub
+End Class", "Class C
+    Public Sub Bar()
+        Return New List(Of Integer) From {
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+        }
+     End Sub
+End Class", "Class C
+    Public Sub Bar()
+        Return New List(Of Integer) From {
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+        }
+     End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestWrappedReturnIntializerExpressionRefactorings() As Task
+            Await TestAllWrappingCasesAsync("Class C
+    Public Sub Bar()
+        Return New List(Of Integer) From [||]{
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+        }
+     End Sub
+End Class", "Class C
+    Public Sub Bar()
+        Return New List(Of Integer) From {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+     End Sub
+End Class", "Class C
+    Public Sub Bar()
+        Return New List(Of Integer) From {
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+        }
+     End Sub
+End Class")
+        End Function
     End Class
 End Namespace
