@@ -92,7 +92,7 @@ Here is the docking layout that I normally use for the visualizer tool window an
 ![fig10.png](images/fig10.png)
 
 # Inspecting Semantics
-The Syntax Visualizer also allows you to do some rudimentary inspection of symbols and semantic information. Let’s look at some examples. You can read more about APIs for performing semantic analysis in the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Roslyn%20Overvi.md).
+The Syntax Visualizer also allows you to do some rudimentary inspection of symbols and semantic information. Let’s look at some examples. You can read more about APIs for performing semantic analysis in the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Roslyn-Overview.md).
 
 In the C# file above, type `double x = 1 + 1;` inside Main().
 
