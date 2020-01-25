@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
     {
         protected sealed override string Indent_all_items => FeaturesResources.Indent_all_elements;
         protected sealed override string Unwrap_all_items => FeaturesResources.Unwrap_all_elements;
-        protected sealed override string Unwrap_list => FeaturesResources.Unwrap_element_list;
-        protected sealed override string Wrap_every_item => FeaturesResources.Wrap_every_element;
-        protected sealed override string Wrap_long_list => FeaturesResources.Wrap_long_element_list;
+        protected sealed override string Unwrap_list => FeaturesResources.Unwrap_initializer;
+        protected sealed override string Wrap_every_item => FeaturesResources.Wrap_initializer;
+        protected sealed override string Wrap_long_list => FeaturesResources.Wrap_long_initializer;
 
         protected AbstractInitializerExpressionWrapper(IIndentationService indentationService)
             : base(indentationService)

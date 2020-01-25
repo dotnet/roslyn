@@ -622,14 +622,14 @@
         <target state="translated">Annulla il ritorno a capo per la catena di chiamate</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unwrap_element_list">
-        <source>Unwrap element list</source>
-        <target state="new">Unwrap element list</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Annulla il ritorno a capo per l'espressione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_initializer">
+        <source>Unwrap initializer</source>
+        <target state="new">Unwrap initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
@@ -752,11 +752,6 @@
         <target state="translated">Imposta il ritorno a capo a ogni argomento</target>
         <note />
       </trans-unit>
-      <trans-unit id="Wrap_every_element">
-        <source>Wrap every element</source>
-        <target state="new">Wrap every element</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Wrap_every_parameter">
         <source>Wrap every parameter</source>
         <target state="translated">Imposta il ritorno a capo a ogni parametro</target>
@@ -765,6 +760,11 @@
       <trans-unit id="Wrap_expression">
         <source>Wrap expression</source>
         <target state="translated">Imposta il ritorno a capo all'espressione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_initializer">
+        <source>Wrap initializer</source>
+        <target state="new">Wrap initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
@@ -777,9 +777,9 @@
         <target state="translated">Imposta il ritorno a capo alla catena di chiamate lunga</target>
         <note />
       </trans-unit>
-      <trans-unit id="Wrap_long_element_list">
-        <source>Wrap long element list</source>
-        <target state="new">Wrap long element list</target>
+      <trans-unit id="Wrap_long_initializer">
+        <source>Wrap long initializer</source>
+        <target state="new">Wrap long initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">

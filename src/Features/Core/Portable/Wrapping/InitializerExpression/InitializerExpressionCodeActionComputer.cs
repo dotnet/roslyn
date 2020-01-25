@@ -164,6 +164,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutableAndFree());
             }
 
+            protected sealed override async Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
+            {
+                var edits = GetUnwrapAllEdits(wrappingStyle);
+                var title = Wrapper.Unwrap_all_items;
+
+                return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
+            }
+
             protected sealed override async Task<WrappingGroup> GetWrapLongGroupAsync()
             {
                 var parentTitle = Wrapper.Wrap_long_list;

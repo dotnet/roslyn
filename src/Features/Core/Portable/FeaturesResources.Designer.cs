@@ -4174,20 +4174,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unwrap element list.
-        /// </summary>
-        internal static string Unwrap_element_list {
-            get {
-                return ResourceManager.GetString("Unwrap_element_list", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Unwrap expression.
         /// </summary>
         internal static string Unwrap_expression {
             get {
                 return ResourceManager.GetString("Unwrap_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap initializer.
+        /// </summary>
+        internal static string Unwrap_initializer {
+            get {
+                return ResourceManager.GetString("Unwrap_initializer", resourceCulture);
             }
         }
         
@@ -4934,15 +4934,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Wrap every element.
-        /// </summary>
-        internal static string Wrap_every_element {
-            get {
-                return ResourceManager.GetString("Wrap_every_element", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Wrap every parameter.
         /// </summary>
         internal static string Wrap_every_parameter {
@@ -4957,6 +4948,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Wrap_expression {
             get {
                 return ResourceManager.GetString("Wrap_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap initializer.
+        /// </summary>
+        internal static string Wrap_initializer {
+            get {
+                return ResourceManager.GetString("Wrap_initializer", resourceCulture);
             }
         }
         
@@ -4979,11 +4979,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Wrap long element list.
+        ///   Looks up a localized string similar to Wrap long initializer.
         /// </summary>
-        internal static string Wrap_long_element_list {
+        internal static string Wrap_long_initializer {
             get {
-                return ResourceManager.GetString("Wrap_long_element_list", resourceCulture);
+                return ResourceManager.GetString("Wrap_long_initializer", resourceCulture);
             }
         }
         

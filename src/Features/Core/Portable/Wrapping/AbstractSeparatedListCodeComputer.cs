@@ -102,13 +102,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             protected abstract Task<WrappingGroup> GetUnwrapGroupAsync();
 
-            protected virtual async Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
-            {
-                var edits = GetUnwrapAllEdits(wrappingStyle);
-                var title = Wrapper.Unwrap_all_items;
-
-                return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
-            }
+            protected abstract Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle);
 
             protected virtual ImmutableArray<Edit> GetUnwrapAllEdits(WrappingStyle wrappingStyle)
             {

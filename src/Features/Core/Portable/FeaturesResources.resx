@@ -1750,14 +1750,14 @@ This version used in: {2}</value>
   <data name="Make_member_static" xml:space="preserve">
     <value>Make static</value>
   </data>
-  <data name="Unwrap_element_list" xml:space="preserve">
-    <value>Unwrap element list</value>
+  <data name="Unwrap_initializer" xml:space="preserve">
+    <value>Unwrap initializer</value>
   </data>
-  <data name="Wrap_every_element" xml:space="preserve">
-    <value>Wrap every element</value>
+  <data name="Wrap_initializer" xml:space="preserve">
+    <value>Wrap initializer</value>
   </data>
-  <data name="Wrap_long_element_list" xml:space="preserve">
-    <value>Wrap long element list</value>
+  <data name="Wrap_long_initializer" xml:space="preserve">
+    <value>Wrap long initializer</value>
   </data>
   <data name="Indent_all_elements" xml:space="preserve">
     <value>Indent all elements</value>
