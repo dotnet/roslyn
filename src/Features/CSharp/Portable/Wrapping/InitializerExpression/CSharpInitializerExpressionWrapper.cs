@@ -15,18 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.InitializerExpression
         }
 
         protected override SeparatedSyntaxList<ExpressionSyntax> GetListItems(InitializerExpressionSyntax listSyntax)
-        {
-            return listSyntax.Expressions;
-        }
+            => listSyntax.Expressions;
 
         protected override InitializerExpressionSyntax TryGetApplicableList(SyntaxNode node)
-        {
-            return node as InitializerExpressionSyntax;
-        }
+            => node as InitializerExpressionSyntax;
 
         protected override bool TryGetNewLinesForBracesInObjectCollectionArrayInitializersOption(DocumentOptionSet options)
-        {
-            return options.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers);
-        }
+            => options.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers);
     }
 }
