@@ -405,5 +405,67 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }"
 );
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestClassPropertyIntializerExpressionRefactorings()
+        {
+            await TestAllWrappingCasesAsync(
+@"public class C {
+    public List<int> B => new List<int> [||]{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+}",
+@"public class C {
+    public List<int> B => new List<int>
+    {
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+    };
+}",
+@"public class C {
+    public List<int> B => new List<int>
+    {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+    };
+}"
+);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestWrappedClassPropertyIntializerExpressionRefactorings()
+        {
+            await TestAllWrappingCasesAsync(
+@"public class C {
+    public List<int> B => new List<int>
+    [||]{
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+    };
+}",
+@"public class C {
+    public List<int> B => new List<int> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+}",
+@"public class C {
+    public List<int> B => new List<int>
+    {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+    };
+}"
+);
+        }
     }
 }

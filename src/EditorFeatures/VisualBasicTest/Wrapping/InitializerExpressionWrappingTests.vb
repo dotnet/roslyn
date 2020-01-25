@@ -329,5 +329,53 @@ End Class", "Class C
      End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestClassPropertyIntializerExpressionRefactorings() As Task
+            Await TestAllWrappingCasesAsync("Public Class C
+    Public Property B As New List(Of Integer) From [||]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+End Class", "Public Class C
+    Public Property B As New List(Of Integer) From {
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+    }
+End Class", "Public Class C
+    Public Property B As New List(Of Integer) From {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+    }
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestWrappedClassPropertyIntializerExpressionRefactorings() As Task
+            Await TestAllWrappingCasesAsync("Public Class C
+    Public Property B As New List(Of Integer) From [||]{
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+    }
+End Class", "Public Class C
+    Public Property B As New List(Of Integer) From {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+End Class", "Public Class C
+    Public Property B As New List(Of Integer) From {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+    }
+End Class")
+        End Function
     End Class
 End Namespace
