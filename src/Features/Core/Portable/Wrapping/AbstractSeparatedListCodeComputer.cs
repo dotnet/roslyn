@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             #endregion
 
             #region Wrap every
+
             protected abstract Task<WrappingGroup> GetWrapEveryGroupAsync();
 
             protected async Task<WrapItemsAction> GetWrapEveryNestedCodeActionAsync(
