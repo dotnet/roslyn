@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -30,12 +29,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly IDiagnosticService _diagnosticService;
         private readonly JsonRpc _jsonRpc;
         private readonly LanguageServerProtocol _protocol;
-        private readonly Workspace _workspace;
+        private readonly CodeAnalysis.Workspace _workspace;
 
-        private VSClientCapabilities? _clientCapabilities;
+        private VSClientCapabilities _clientCapabilities;
 
         public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol,
-            Workspace workspace, IDiagnosticService diagnosticService)
+            CodeAnalysis.Workspace workspace, IDiagnosticService diagnosticService)
         {
             _protocol = protocol;
             _workspace = workspace;
@@ -45,6 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _diagnosticService = diagnosticService;
             _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
+
+            _clientCapabilities = new VSClientCapabilities();
         }
 
         /// <summary>
@@ -90,14 +91,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.TextDocumentDefinitionName)]
-        public Task<object> GetTextDocumentDefinitionAsync(JToken input, CancellationToken cancellationToken)
+        public Task<SumType<Location, Location[]>?> GetTextDocumentDefinitionAsync(JToken input, CancellationToken cancellationToken)
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
             return _protocol.GoToDefinitionAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionName)]
-        public Task<object> GetTextDocumentCompletionAsync(JToken input, CancellationToken cancellationToken)
+        public Task<SumType<CompletionItem[], CompletionList>?> GetTextDocumentCompletionAsync(JToken input, CancellationToken cancellationToken)
         {
             var completionParams = input.ToObject<CompletionParams>();
             return _protocol.GetCompletionsAsync(_workspace.CurrentSolution, completionParams, _clientCapabilities, cancellationToken);
@@ -139,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.TextDocumentImplementationName)]
-        public Task<object> GetTextDocumentImplementationsAsync(JToken input, CancellationToken cancellationToken)
+        public Task<SumType<Location, Location[]>?> GetTextDocumentImplementationsAsync(JToken input, CancellationToken cancellationToken)
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
             return _protocol.FindImplementationsAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken);
@@ -184,7 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     }
 
                     // Only publish document diagnostics for the languages this provider supports.
-                    if (document.Project.Language != LanguageNames.CSharp && document.Project.Language != LanguageNames.VisualBasic)
+                    if (document.Project.Language != CodeAnalysis.LanguageNames.CSharp && document.Project.Language != CodeAnalysis.LanguageNames.VisualBasic)
                     {
                         return;
                     }
@@ -200,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        private async Task<LanguageServer.Protocol.Diagnostic[]> GetDiagnosticsAsync(Solution solution, Document document, CancellationToken cancellationToken)
+        private async Task<LanguageServer.Protocol.Diagnostic[]> GetDiagnosticsAsync(CodeAnalysis.Solution solution, CodeAnalysis.Document document, CancellationToken cancellationToken)
         {
             var diagnostics = _diagnosticService.GetDiagnostics(solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -48,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 Capabilities = new VSServerCapabilities()
                 {
-                    WorkspaceStreamingSymbolProvider = true
+                    DisableGoToWorkspaceSymbols = true,
+                    WorkspaceSymbolProvider = true,
                 }
             });
         }
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
-        public void Shutdown(CancellationToken cancellationToken)
+        public void Shutdown(CancellationToken _)
         {
             // our language server shutdown when VS shutdown
             // we have this so that we don't get log file every time VS shutdown
@@ -73,8 +76,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // we have this so that we don't get log file every time VS shutdown
         }
 
-        [JsonRpcMethod(VSSymbolMethods.WorkspaceBeginSymbolName)]
-        public Task<VSBeginSymbolParams> BeginWorkspaceSymbolAsync(string query, int searchId, CancellationToken cancellationToken)
+        [JsonRpcMethod(Methods.WorkspaceSymbolName, UseSingleObjectParameterDeserialization = true)]
+        public Task<SymbolInformation[]> WorkspaceSymbolAsync(WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
@@ -83,36 +86,52 @@ namespace Microsoft.CodeAnalysis.Remote
                     // for now, we use whatever solution we have currently. in future, we will add an ability to sync VS's current solution
                     // on demand from OOP side
                     // https://github.com/dotnet/roslyn/issues/37424
-                    await SearchAsync(SolutionService.PrimaryWorkspace.CurrentSolution, query, searchId, cancellationToken).ConfigureAwait(false);
-                    return new VSBeginSymbolParams();
+                    var results = await SearchAsync(SolutionService.PrimaryWorkspace.CurrentSolution, args, cancellationToken).ConfigureAwait(false);
+                    return results;
                 }
             }, cancellationToken);
         }
 
-        private async Task SearchAsync(Solution solution, string query, int searchId, CancellationToken cancellationToken)
+        private async Task<SymbolInformation[]> SearchAsync(Solution solution, WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
-            var tasks = solution.Projects.Select(p => SearchProjectAsync(p, cancellationToken)).ToArray();
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-            return;
-
-            async Task SearchProjectAsync(Project project, CancellationToken cancellationToken)
+            // When progress reporting is supported, report incrementally per project and return an empty result at the end.
+            // Otherwise aggregate and return the results for all projects at the end.
+            if (args.Progress != null)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var results = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                    project,
-                    ImmutableArray<Document>.Empty,
-                    query,
-                    s_supportedKinds,
-                    cancellationToken).ConfigureAwait(false);
-
-                var convertedResults = await ConvertAsync(results, cancellationToken).ConfigureAwait(false);
-
-                await EndPoint.InvokeAsync(
-                    VSSymbolMethods.WorkspacePublishSymbolName,
-                    new object[] { new VSPublishSymbolParams() { SearchId = searchId, Symbols = convertedResults } },
-                    cancellationToken).ConfigureAwait(false);
+                var tasks = solution.Projects.Select(p => SearchProjectAndReportSymbolsAsync(p, args, cancellationToken)).ToArray();
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+                return Array.Empty<SymbolInformation>();
             }
+            else
+            {
+                var tasks = solution.Projects.Select(p => SearchProjectAsync(p, args.Query, cancellationToken)).ToArray();
+                var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+                return results.SelectMany(a => a).ToArray();
+            }
+        }
+
+        private static async Task<SymbolInformation[]> SearchProjectAsync(Project project, string query, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var results = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
+                project,
+                ImmutableArray<Document>.Empty,
+                query,
+                s_supportedKinds,
+                cancellationToken).ConfigureAwait(false);
+
+            return await ConvertAsync(results, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Search the project and report the results back using <see cref="IProgress{T}"/>
+        /// <see cref="IProgress{T}.Report(T)"/> implementation for symbol search is threadsafe.
+        /// </summary>
+        private static async Task SearchProjectAndReportSymbolsAsync(Project project, WorkspaceSymbolParams args, CancellationToken cancellationToken)
+        {
+            var convertedResults = await SearchProjectAsync(project, args.Query, cancellationToken).ConfigureAwait(false);
+            args.Progress.Report(convertedResults);
         }
 
         private static async Task<VSSymbolInformation[]> ConvertAsync(
