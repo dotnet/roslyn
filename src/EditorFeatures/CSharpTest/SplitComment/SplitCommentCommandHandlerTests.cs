@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis.Editor.CSharp.SplitComment;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -37,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
             IndentStyle indentStyle = IndentStyle.Smart)
         {
             using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
-            workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+            var workspaceOptions = workspace.Options.WithChangedOption(new OptionKey(SmartIndent, LanguageNames.CSharp), indentStyle);
+            bool workspaceChanges = workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspaceOptions));
+            Assert.True(workspaceChanges);
 
             var document = workspace.Documents.Single();
             var view = document.GetTextView();

@@ -5,6 +5,8 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
 Imports Microsoft.CodeAnalysis.Formatting.FormattingOptions
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -29,7 +31,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitComment
                                Optional indentStyle As IndentStyle = IndentStyle.Smart)
 
             Using workspace = TestWorkspace.CreateVisualBasic(inputMarkup)
-                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.VisualBasic, indentStyle)
+                Dim workspaceOptions = workspace.Options.WithChangedOption(New OptionKey(FormattingOptions.SmartIndent, LanguageNames.VisualBasic), indentStyle)
+                Dim workspaceChanges = workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspaceOptions))
+                Assert.True(workspaceChanges)
 
                 Dim document = workspace.Documents.Single()
                 Dim view = document.GetTextView()
