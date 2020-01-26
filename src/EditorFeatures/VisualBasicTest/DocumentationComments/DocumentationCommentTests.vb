@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -763,25 +765,25 @@ End Class
         End Sub
 
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/39967"), Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestPressingEnter_Indentation5_UseTabs()
             Const code = "
 Class C
-    ''' <summary>
+	''' <summary>
 	'''     hello world$$
-    ''' </summary>
-    Sub M()
-    End Sub
+	''' </summary>
+	Sub M()
+	End Sub
 End Class
 "
             Const expected = "
 Class C
-    ''' <summary>
+	''' <summary>
 	'''     hello world
 	'''     $$
-    ''' </summary>
-    Sub M()
-    End Sub
+	''' </summary>
+	Sub M()
+	End Sub
 End Class
 "
             VerifyPressingEnter(code, expected, useTabs:=True)
@@ -1083,25 +1085,25 @@ End Class
         End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/39967"), Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestOpenLineAbove4_Tabs()
             Const code = "
 Class C
 		  ''' <summary>
-    ''' $$stuff
-    ''' </summary>
-    Sub M()
-    End Sub
+	''' $$stuff
+	''' </summary>
+	Sub M()
+	End Sub
 End Class
 "
             Const expected = "
 Class C
 		  ''' <summary>
 		  ''' $$
-    ''' stuff
-    ''' </summary>
-    Sub M()
-    End Sub
+	''' stuff
+	''' </summary>
+	Sub M()
+	End Sub
 End Class
 "
             VerifyOpenLineAbove(code, expected, useTabs:=True)
@@ -1173,25 +1175,25 @@ End Class
         End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/39967"), Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestOpenLineBelow4_Tabs()
             Const code = "
 Class C
-    ''' <summary>
+	''' <summary>
 		  ''' $$stuff
-    ''' </summary>
-    Sub M()
-    End Sub
+	''' </summary>
+	Sub M()
+	End Sub
 End Class
 "
             Const expected = "
 Class C
-    ''' <summary>
+	''' <summary>
 		  ''' stuff
 		  ''' $$
-    ''' </summary>
-    Sub M()
-    End Sub
+	''' </summary>
+	Sub M()
+	End Sub
 End Class
 "
             VerifyOpenLineBelow(code, expected, useTabs:=True)

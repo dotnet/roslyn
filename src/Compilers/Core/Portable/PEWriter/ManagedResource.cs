@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -25,9 +27,9 @@ namespace Microsoft.Cci
         /// <paramref name="streamProvider"/> streamProvider callers will dispose result after use.
         /// <paramref name="streamProvider"/> and <paramref name="fileReference"/> are mutually exclusive.
         /// </summary>
-        internal ManagedResource(string name, bool isPublic, Func<Stream> streamProvider, IFileReference fileReference, uint offset)
+        internal ManagedResource(string name, bool isPublic, Func<Stream>? streamProvider, IFileReference? fileReference, uint offset)
         {
-            Debug.Assert(streamProvider == null ^ fileReference == null);
+            RoslynDebug.Assert(streamProvider == null ^ fileReference == null);
 
             _streamProvider = streamProvider;
             _name = name;

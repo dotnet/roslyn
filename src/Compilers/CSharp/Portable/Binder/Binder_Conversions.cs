@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (source is BoundTupleLiteral sourceTuple)
                 {
-                    TupleTypeSymbol.ReportNamesMismatchesIfAny(destination, sourceTuple, diagnostics);
+                    NamedTypeSymbol.ReportTupleNamesMismatchesIfAny(destination, sourceTuple, diagnostics);
                 }
 
                 // identity tuple and switch conversions result in a converted expression
@@ -435,20 +437,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol targetType = (NamedTypeSymbol)destinationWithoutNullable;
             if (targetType.IsTupleType)
             {
-                var destTupleType = (TupleTypeSymbol)targetType;
-
-                TupleTypeSymbol.ReportNamesMismatchesIfAny(targetType, sourceTuple, diagnostics);
+                NamedTypeSymbol.ReportTupleNamesMismatchesIfAny(targetType, sourceTuple, diagnostics);
 
                 // do not lose the original element names and locations in the literal if different from names in the target
                 //
                 // the tuple has changed the type of elements due to target-typing, 
                 // but element names has not changed and locations of their declarations 
                 // should not be confused with element locations on the target type.
-                var sourceType = sourceTuple.Type as TupleTypeSymbol;
 
-                if ((object)sourceType != null)
+                if (sourceTuple.Type is NamedTypeSymbol { IsTupleType: true } sourceType)
                 {
-                    targetType = sourceType.WithUnderlyingType(destTupleType.UnderlyingNamedType);
+                    targetType = targetType.WithTupleDataFrom(sourceType);
                 }
                 else
                 {
@@ -460,16 +459,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locationBuilder.Add(argument.NameColon?.Name.Location);
                     }
 
-                    targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt,
-                                                                tupleSyntax.Location,
-                                                                locationBuilder.ToImmutableAndFree());
+                    targetType = targetType.WithElementNames(sourceTuple.ArgumentNamesOpt,
+                        locationBuilder.ToImmutableAndFree(),
+                        errorPositions: default,
+                        ImmutableArray.Create(tupleSyntax.Location));
                 }
             }
 
             var arguments = sourceTuple.Arguments;
             var convertedArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
 
-            var targetElementTypes = targetType.GetElementTypesOfTupleOrCompatible();
+            var targetElementTypes = targetType.TupleElementTypesWithAnnotations;
             Debug.Assert(targetElementTypes.Length == arguments.Length, "converting a tuple literal to incompatible type?");
             var underlyingConversions = conversionWithoutNullable.UnderlyingConversions;
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -315,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         public static bool IsStaticallyDeclared(SyntaxToken token)
         {
-            var parentNode = token.Parent;
+            SyntaxNode? parentNode = token.Parent;
 
             if (parentNode.IsKind(SyntaxKind.EnumMemberDeclaration))
             {
@@ -328,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 // The parent of a VariableDeclarator is a VariableDeclarationSyntax node.
                 // It's parent will be the declaration syntax node.
-                parentNode = parentNode.Parent.Parent;
+                parentNode = parentNode!.Parent!.Parent;
 
                 // Check if this is a field constant declaration 
                 if (parentNode.GetModifiers().Any(SyntaxKind.ConstKeyword))
@@ -346,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private static string? GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
-            => identifier.Parent.Kind() switch
+            => identifier.Parent!.Kind() switch
             {
                 SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
                 SyntaxKind.EnumDeclaration => ClassificationTypeNames.EnumName,

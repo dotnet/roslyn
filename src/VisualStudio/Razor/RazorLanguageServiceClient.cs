@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
+    // Used in https://github.com/aspnet/AspNetCore-Tooling/tree/master/src/Razor/src/Microsoft.VisualStudio.LanguageServices.Razor/OOPTagHelperResolver.cs
     internal sealed class RazorLanguageServiceClient
     {
         private readonly RemoteHostClient _client;
@@ -49,22 +52,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
             public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
-                return _inner.InvokeAsync(targetName, arguments, cancellationToken);
+                return _inner.Connection.InvokeAsync(targetName, arguments, cancellationToken);
             }
 
             public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
-                return _inner.InvokeAsync<T>(targetName, arguments, cancellationToken);
-            }
-
-            public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-            {
-                return _inner.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
-            }
-
-            public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-            {
-                return _inner.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+                return _inner.Connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
             }
 
             public void Dispose()

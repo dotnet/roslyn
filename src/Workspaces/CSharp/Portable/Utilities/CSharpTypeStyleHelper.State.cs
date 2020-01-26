@@ -1,7 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
@@ -14,59 +14,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal partial class CSharpTypeStyleHelper
     {
-        protected class State
+        protected readonly struct State
         {
-            private readonly Dictionary<UseVarPreference, ReportDiagnostic> _styleToSeverityMap;
+            public readonly UseVarPreference TypeStylePreference;
 
-            public UseVarPreference TypeStylePreference { get; private set; }
-            public bool IsInIntrinsicTypeContext { get; private set; }
-            public bool IsTypeApparentInContext { get; private set; }
-            public bool IsInVariableDeclarationContext { get; }
+            private readonly ReportDiagnostic _forBuiltInTypes;
+            private readonly ReportDiagnostic _whenTypeIsApparent;
+            private readonly ReportDiagnostic _elsewhere;
 
-            private State(bool isVariableDeclarationContext)
-            {
-                this.IsInVariableDeclarationContext = isVariableDeclarationContext;
-                _styleToSeverityMap = new Dictionary<UseVarPreference, ReportDiagnostic>();
-            }
+            public readonly bool IsInIntrinsicTypeContext;
+            public readonly bool IsTypeApparentInContext;
 
-            public static State Generate(
+            public State(
                 SyntaxNode declaration, SemanticModel semanticModel,
                 OptionSet optionSet, CancellationToken cancellationToken)
             {
-                var isVariableDeclarationContext = declaration.IsKind(SyntaxKind.VariableDeclaration);
-                var state = new State(isVariableDeclarationContext);
-                state.Initialize(declaration, semanticModel, optionSet, cancellationToken);
-                return state;
-            }
+                TypeStylePreference = default;
+                IsInIntrinsicTypeContext = default;
+                IsTypeApparentInContext = default;
 
-            public ReportDiagnostic GetDiagnosticSeverityPreference()
-            {
-                if (IsInIntrinsicTypeContext)
-                {
-                    return _styleToSeverityMap[UseVarPreference.ForBuiltInTypes];
-                }
-                else if (IsTypeApparentInContext)
-                {
-                    return _styleToSeverityMap[UseVarPreference.WhenTypeIsApparent];
-                }
-                else
-                {
-                    return _styleToSeverityMap[UseVarPreference.Elsewhere];
-                }
-            }
+                var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes);
+                var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
+                var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.VarElsewhere);
 
-            private void Initialize(SyntaxNode declaration, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
-            {
-                this.TypeStylePreference = GetCurrentTypeStylePreferences(optionSet);
+                _forBuiltInTypes = styleForIntrinsicTypes.Notification.Severity;
+                _whenTypeIsApparent = styleForApparent.Notification.Severity;
+                _elsewhere = styleForElsewhere.Notification.Severity;
+
+                var stylePreferences = UseVarPreference.None;
+
+                if (styleForIntrinsicTypes.Value)
+                    stylePreferences |= UseVarPreference.ForBuiltInTypes;
+
+                if (styleForApparent.Value)
+                    stylePreferences |= UseVarPreference.WhenTypeIsApparent;
+
+                if (styleForElsewhere.Value)
+                    stylePreferences |= UseVarPreference.Elsewhere;
+
+                this.TypeStylePreference = stylePreferences;
 
                 IsTypeApparentInContext =
-                        IsInVariableDeclarationContext
+                        declaration.IsKind(SyntaxKind.VariableDeclaration)
                      && IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStylePreference, cancellationToken);
 
                 IsInIntrinsicTypeContext =
                         IsPredefinedTypeInDeclaration(declaration, semanticModel)
                      || IsInferredPredefinedType(declaration, semanticModel);
             }
+
+            public ReportDiagnostic GetDiagnosticSeverityPreference()
+                => IsInIntrinsicTypeContext ? _forBuiltInTypes :
+                   IsTypeApparentInContext ? _whenTypeIsApparent : _elsewhere;
 
             /// <summary>
             /// Returns true if type information could be gleaned by simply looking at the given statement.
@@ -155,36 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     DeclarationExpressionSyntax declExpr => declExpr.Type,
                     _ => null,
                 };
-
-            private UseVarPreference GetCurrentTypeStylePreferences(OptionSet optionSet)
-            {
-                var stylePreferences = UseVarPreference.None;
-
-                var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes);
-                var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
-                var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.VarElsewhere);
-
-                _styleToSeverityMap.Add(UseVarPreference.ForBuiltInTypes, styleForIntrinsicTypes.Notification.Severity);
-                _styleToSeverityMap.Add(UseVarPreference.WhenTypeIsApparent, styleForApparent.Notification.Severity);
-                _styleToSeverityMap.Add(UseVarPreference.Elsewhere, styleForElsewhere.Notification.Severity);
-
-                if (styleForIntrinsicTypes.Value)
-                {
-                    stylePreferences |= UseVarPreference.ForBuiltInTypes;
-                }
-
-                if (styleForApparent.Value)
-                {
-                    stylePreferences |= UseVarPreference.WhenTypeIsApparent;
-                }
-
-                if (styleForElsewhere.Value)
-                {
-                    stylePreferences |= UseVarPreference.Elsewhere;
-                }
-
-                return stylePreferences;
-            }
         }
     }
 }

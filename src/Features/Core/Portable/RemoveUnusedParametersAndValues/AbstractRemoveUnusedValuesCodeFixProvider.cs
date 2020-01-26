@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -100,12 +102,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             SyntaxEditor editor,
             ISyntaxFactsService syntaxFacts);
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics[0];
             if (!AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.TryGetUnusedValuePreference(diagnostic, out var preference))
             {
-                return Task.CompletedTask;
+                return;
             }
 
             var isRemovableAssignment = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostic);
@@ -126,10 +128,26 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         {
                             // Do not offer a fix to replace unused foreach iteration variable with discard.
                             // User should probably replace it with a for loop based on the collection length.
-                            return Task.CompletedTask;
+                            return;
                         }
 
                         title = FeaturesResources.Use_discard_underscore;
+
+                        // Check if this is compound assignment which is not parented by an expression statement,
+                        // for example "return x += M();" OR "=> x ??= new C();"
+                        // If so, we will be replacing this compound assignment with the underlying binary operation.
+                        // For the above examples, it will be "return x + M();" AND "=> x ?? new C();" respectively.
+                        // For these cases, we want to show the title as "Remove redundant assignment" instead of "Use discard _".
+
+                        var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
+                        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+                        var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
+                        if (syntaxFacts.IsLeftSideOfCompoundAssignment(node) &&
+                            !syntaxFacts.IsExpressionStatement(node.Parent))
+                        {
+                            title = FeaturesResources.Remove_redundant_assignment;
+                        }
+
                         break;
 
                     case UnusedValuePreference.UnusedLocalVariable:
@@ -137,7 +155,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         break;
 
                     default:
-                        return Task.CompletedTask;
+                        return;
                 }
             }
 
@@ -148,7 +166,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     equivalenceKey: GetEquivalenceKey(preference, isRemovableAssignment)),
                 diagnostic);
 
-            return Task.CompletedTask;
+            return;
         }
 
         private static bool IsForEachIterationVariableDiagnostic(Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
@@ -422,7 +440,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             nodesToRemove.Add(variableDeclarator);
 
                             // Local declaration statement containing the declarator might be a candidate for removal if all its variables get marked for removal.
-                            candidateDeclarationStatementsForRemoval.Add(variableDeclarator.GetAncestor<TLocalDeclarationStatementSyntax>());
+                            var candidate = GetCandidateLocalDeclarationForRemoval(variableDeclarator);
+                            if (candidate != null)
+                            {
+                                candidateDeclarationStatementsForRemoval.Add(candidate);
+                            }
                         }
                         else
                         {
@@ -633,6 +655,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             bool ShouldRemoveStatement(TLocalDeclarationStatementSyntax localDeclarationStatement, out SeparatedSyntaxList<SyntaxNode> variables)
             {
                 Debug.Assert(removeAssignments);
+                Debug.Assert(localDeclarationStatement != null);
 
                 // We should remove the entire local declaration statement if all its variables are marked for removal.
                 variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
@@ -647,6 +670,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 return true;
             }
         }
+
+        protected abstract TLocalDeclarationStatementSyntax GetCandidateLocalDeclarationForRemoval(TVariableDeclaratorSyntax declarator);
 
         private async Task<SyntaxNode> PostProcessDocumentAsync(
             Document document,

@@ -1344,16 +1344,20 @@ I agree to all of the foregoing:</value>
   <data name="Background_analysis_scope_colon" xml:space="preserve">
     <value>Background analysis scope:</value>
   </data>
-  <data name="Current_Document" xml:space="preserve">
-    <value>Current Document</value>
+  <data name="Current_document" xml:space="preserve">
+    <value>Current document</value>
   </data>
-  <data name="Open_Documents_and_Projects" xml:space="preserve">
-    <value>Open Documents and Projects</value>
+  <data name="Open_documents" xml:space="preserve">
+    <value>Open documents</value>
   </data>
-  <data name="Entire_Solution" xml:space="preserve">
-    <value>Entire Solution</value>
+  <data name="Entire_solution" xml:space="preserve">
+    <value>Entire solution</value>
   </data>
   <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
     <value>C#/Visual Basic Language Server Client</value>
+  </data>
+  <data name="Live_Share_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
+    <value>Live Share C#/Visual Basic Language Server Client</value>
+    <comment>'Live Share' is a product name and does not need to be localized.</comment>
   </data>
 </root>

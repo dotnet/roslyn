@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -210,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // there could be multiple (n) tokens to the left if first n-1 are Empty -> iterate over all of them
             while (tokenToLeft != default)
             {
-                var leftNode = tokenToLeft.Parent;
+                SyntaxNode? leftNode = tokenToLeft.Parent!;
                 do
                 {
                     // Consider either a Node that is:
@@ -236,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             if (tokenToRightOrIn != default)
             {
-                var rightNode = tokenToRightOrIn.Parent;
+                SyntaxNode? rightNode = tokenToRightOrIn.Parent!;
                 do
                 {
                     // Consider either a Node that is:
@@ -272,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private void AddRelevantNodesForSelection<TSyntaxNode>(ISyntaxFactsService syntaxFacts, SyntaxNode root, TextSpan selectionTrimmed, ArrayBuilder<TSyntaxNode> relevantNodesBuilder, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            var selectionNode = root.FindNode(selectionTrimmed, getInnermostNodeForTie: true);
+            SyntaxNode? selectionNode = root.FindNode(selectionTrimmed, getInnermostNodeForTie: true);
             var prevNode = selectionNode;
             do
             {
@@ -462,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var token = root.FindTokenOnRightOfPosition(position, true);
 
             // traverse upwards and add all parents if of correct type
-            var ancestor = token.Parent;
+            SyntaxNode? ancestor = token.Parent;
             while (ancestor != null)
             {
                 if (ancestor is TSyntaxNode correctTypeNode)

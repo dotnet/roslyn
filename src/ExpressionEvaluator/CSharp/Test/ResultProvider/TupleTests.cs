@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -296,102 +298,6 @@ class C
                     EvalResult("Item1", "0x000f", "short", "o._17.Rest.Rest.Item1"),
                     EvalResult("Item2", "0x0010", "short", "o._17.Rest.Rest.Item2"),
                     EvalResult("Item3", "0x0011", "short", "o._17.Rest.Rest.Item3"));
-            }
-        }
-
-        /// <summary>
-        /// If tuple fields are missing, fall back to the default
-        /// display for Value (that is, display the type), and
-        /// drop missing fields from the expansion.
-        /// </summary>
-        [Fact]
-        public void MissingFields()
-        {
-            var source =
-@"namespace System
-{
-    public struct ValueTuple<T1, T2>
-    {
-        public T1 Item1;
-        // No Item2.
-        public ValueTuple(T1 _1, T2 _2)
-        {
-            Item1 = _1;
-        }
-    }
-    public struct ValueTuple<T1, T2, T3>
-    {
-        // No Item*.
-        public ValueTuple(T1 _1, T2 _2, T3 _3)
-        {
-        }
-    }
-    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>
-    {
-        // No Item1;
-        public T2 Item2;
-        public T3 Item3;
-        public T4 Item4;
-        public T5 Item5;
-        public T6 Item6;
-        public T7 Item7;
-        public T8 Rest;
-        public ValueTuple(T1 _1, T2 _2, T3 _3, T4 _4, T5 _5, T6 _6, T7 _7, T8 _8)
-        {
-            Item2 = _2;
-            Item3 = _3;
-            Item4 = _4;
-            Item5 = _5;
-            Item6 = _6;
-            Item7 = _7;
-            Rest = _8;
-        }
-    }
-}
-namespace System.Runtime.CompilerServices
-{
-    public class TupleElementNamesAttribute : Attribute
-    {
-        public TupleElementNamesAttribute(string[] names)
-        {
-        }
-    }
-}
-class C
-{
-    (int A, int B) F = (1, 2);
-    (int, int, int C) G = (1, 2, 3);
-    (int, int B, int, int D, int, int F, int, int H, int) H = (1, 2, 3, 4, 5, 6, 7, 8, 9);
-}";
-            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
-            using (runtime.Load())
-            {
-                var type = runtime.GetType("C");
-                var value = type.Instantiate();
-                var evalResult = FormatResult("o", value);
-                Verify(evalResult,
-                    EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
-                var children = GetChildren(evalResult);
-                Verify(children,
-                    EvalResult("F", "{(int, int)}", "(int A, int B)", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
-                    EvalResult("G", "{(int, int, int)}", "(int, int, int C)", "o.G", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite), // expandable, but with no children
-                    EvalResult("H", "{(int, int, int, int, int, int, int, int, int)}", "(int, int B, int, int D, int, int F, int, int H, int)", "o.H", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
-                var moreChildren = GetChildren(children[0]);
-                Verify(moreChildren,
-                    EvalResult("A", "1", "int", "o.F.Item1"),
-                    EvalResult("Raw View", "{(int, int)}", "(int A, int B)", "o.F, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
-                moreChildren = GetChildren(children[1]);
-                Verify(moreChildren);
-                moreChildren = GetChildren(children[2]);
-                Verify(moreChildren,
-                    EvalResult("B", "2", "int", "o.H.Item2"),
-                    EvalResult("Item3", "3", "int", "o.H.Item3"),
-                    EvalResult("D", "4", "int", "o.H.Item4"),
-                    EvalResult("Item5", "5", "int", "o.H.Item5"),
-                    EvalResult("F", "6", "int", "o.H.Item6"),
-                    EvalResult("Item7", "7", "int", "o.H.Item7"),
-                    EvalResult("H", "8", "int", "o.H.Rest.Item1"),
-                    EvalResult("Raw View", "{(int, int, int, int, int, int, int, int, int)}", "(int, int B, int, int D, int, int F, int, int H, int)", "o.H, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             }
         }
 
