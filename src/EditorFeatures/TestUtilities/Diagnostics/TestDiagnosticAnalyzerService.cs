@@ -14,14 +14,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal sealed class TestDiagnosticAnalyzerService : DiagnosticAnalyzerService
     {
-        private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
-
         internal TestDiagnosticAnalyzerService(
             string language,
             DiagnosticAnalyzer analyzer,
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
-            : this(CreateHostAnalyzerManager(language, analyzer), hostDiagnosticUpdateSource, onAnalyzerException)
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
+            : this(CreateHostAnalyzerManager(language, analyzer), hostDiagnosticUpdateSource)
         {
         }
 
@@ -29,48 +26,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string language,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
             IAsynchronousOperationListener listener = null)
-            : this(CreateHostAnalyzerManager(language, analyzers), hostDiagnosticUpdateSource, onAnalyzerException, listener: listener)
+            : this(CreateHostAnalyzerManager(language, analyzers), hostDiagnosticUpdateSource, listener: listener)
         {
         }
 
         internal TestDiagnosticAnalyzerService(
             ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
             IDiagnosticUpdateSourceRegistrationService registrationService = null)
-            : this(CreateHostAnalyzerManager(analyzersMap), hostDiagnosticUpdateSource, onAnalyzerException, registrationService)
+            : this(CreateHostAnalyzerManager(analyzersMap), hostDiagnosticUpdateSource, registrationService)
         {
         }
 
         internal TestDiagnosticAnalyzerService(
             ImmutableArray<AnalyzerReference> hostAnalyzerReferences,
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
-            : this(CreateHostAnalyzerManager(hostAnalyzerReferences), hostDiagnosticUpdateSource, onAnalyzerException)
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
+            : this(CreateHostAnalyzerManager(hostAnalyzerReferences), hostDiagnosticUpdateSource)
         {
         }
 
         private TestDiagnosticAnalyzerService(
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             IDiagnosticUpdateSourceRegistrationService registrationService = null,
             IAsynchronousOperationListener listener = null)
             : base(analyzerInfoCache, hostDiagnosticUpdateSource, registrationService ?? new MockDiagnosticUpdateSourceRegistrationService(), listener)
         {
-            _onAnalyzerException = onAnalyzerException;
         }
 
         internal TestDiagnosticAnalyzerService(
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            PrimaryWorkspace primaryWorkspace,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
+            PrimaryWorkspace primaryWorkspace)
            : base(new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty),
                   hostAnalyzerAssemblyLoader: null, hostDiagnosticUpdateSource, primaryWorkspace, new MockDiagnosticUpdateSourceRegistrationService())
         {
-            _onAnalyzerException = onAnalyzerException;
         }
 
         private static DiagnosticAnalyzerInfoCache CreateHostAnalyzerManager(string language, DiagnosticAnalyzer analyzer)

@@ -32,11 +32,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
             }
 
-            return GetOrCreateIncrementalAnalyzer(workspace);
-        }
-
-        private DiagnosticIncrementalAnalyzer GetOrCreateIncrementalAnalyzer(Workspace workspace)
-        {
             return _map.GetValue(workspace, _createIncrementalAnalyzer);
         }
 

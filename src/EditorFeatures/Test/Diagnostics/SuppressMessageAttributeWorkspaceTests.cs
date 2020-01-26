@@ -8,13 +8,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     [UseExportProvider]
     public class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttributeTests
     {
-        protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = true, string rootNamespace = null)
+        protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, string rootNamespace = null)
         {
             using var workspace = CreateWorkspaceFromFile(source, language, rootNamespace);
             var documentId = workspace.Documents[0].Id;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             foreach (var analyzer in analyzers)
             {
                 actualDiagnostics.AddRange(
-                    await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, span, onAnalyzerException));
+                    await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, span));
             }
 
             actualDiagnostics.Verify(expectedDiagnostics);
@@ -54,6 +55,37 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 // NOTE: We will still compare squiggled text for the diagnostics, which is also a sufficient test.
                 return false;
             }
+        }
+
+        [Fact]
+        public async Task AnalyzerExceptionDiagnosticsWithDifferentContext()
+        {
+            var diagnostic = Diagnostic("AD0001", null);
+
+            // expect 3 different diagnostics with 3 different contexts.
+            await VerifyCSharpAsync(@"
+public class C
+{
+}
+public class C1
+{
+}
+public class C2
+{
+}
+",
+                new[] { new ThrowExceptionForEachNamedTypeAnalyzer() },
+                diagnostics: new[] { diagnostic, diagnostic, diagnostic });
+        }
+
+        [Fact]
+        public async Task AnalyzerExceptionFromSupportedDiagnosticsCall()
+        {
+            var diagnostic = Diagnostic("AD0001", null);
+
+            await VerifyCSharpAsync("public class C { }",
+                new[] { new ThrowExceptionFromSupportedDiagnostics() },
+                diagnostics: new[] { diagnostic });
         }
     }
 }

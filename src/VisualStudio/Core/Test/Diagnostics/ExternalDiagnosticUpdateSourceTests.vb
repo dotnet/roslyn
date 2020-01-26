@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -61,13 +62,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestExternalDiagnostics_SupportedId()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
-                Dim service = New TestDiagnosticAnalyzerService()
+                Dim analyzer = New AnalyzerForErrorLogTest()
+
+                Dim analyzerReference = New TestAnalyzerReferenceByLanguage(
+                    ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)).Empty.Add(LanguageNames.CSharp, ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)))
+
+                Dim service = New TestDiagnosticAnalyzerService(analyzers:=ImmutableArray.Create(Of AnalyzerReference)(analyzerReference))
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
 
                 Dim project = workspace.CurrentSolution.Projects.First()
                 source.OnSolutionBuildStarted()
 
-                Assert.True(source.IsSupportedDiagnosticId(project.Id, "CS1002"))
+                Assert.True(source.IsSupportedDiagnosticId(project.Id, "ID1"))
                 Assert.False(source.IsSupportedDiagnosticId(project.Id, "CA1002"))
             End Using
         End Sub
@@ -121,7 +127,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim diagnostic = GetDiagnosticData(project.Id)
 
-                Dim service = New TestDiagnosticAnalyzerService(ImmutableArray(Of DiagnosticData).Empty)
+                Dim service = New TestDiagnosticAnalyzerService()
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
                 AddHandler source.BuildProgressChanged, Sub(o, progress)
                                                             If progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Done Then
@@ -295,7 +301,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim projectId1 = workspace.CurrentSolution.ProjectIds(0)
                 Dim projectId2 = workspace.CurrentSolution.ProjectIds(1)
 
-                Dim service = New TestDiagnosticAnalyzerService(ImmutableArray(Of DiagnosticData).Empty)
+                Dim service = New TestDiagnosticAnalyzerService()
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
 
                 source.AddNewErrors(projectId1, GetDiagnosticData(projectId1))
@@ -428,12 +434,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Implements IDiagnosticAnalyzerService, IDiagnosticUpdateSource
 
             Private ReadOnly _data As ImmutableArray(Of DiagnosticData)
+            Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache
 
-            Public Sub New()
-            End Sub
-
-            Public Sub New(data As ImmutableArray(Of DiagnosticData))
-                Me._data = data
+            Public Sub New(Optional data As ImmutableArray(Of DiagnosticData) = Nothing,
+                           Optional analyzers As ImmutableArray(Of AnalyzerReference) = Nothing)
+                _data = data.NullToEmpty
+                _analyzerInfoCache = New DiagnosticAnalyzerInfoCache(analyzers.NullToEmpty)
             End Sub
 
             Public ReadOnly Property SupportGetDiagnostics As Boolean Implements IDiagnosticUpdateSource.SupportGetDiagnostics
@@ -444,7 +450,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public ReadOnly Property AnalyzerInfoCache As DiagnosticAnalyzerInfoCache Implements IDiagnosticAnalyzerService.AnalyzerInfoCache
                 Get
-                    Throw New NotImplementedException()
+                    Return _analyzerInfoCache
                 End Get
             End Property
 

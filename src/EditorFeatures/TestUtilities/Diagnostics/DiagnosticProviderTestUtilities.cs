@@ -16,10 +16,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticAnalyzer workspaceAnalyzerOpt,
             Document document,
             TextSpan span,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
             bool includeSuppressedDiagnostics = false)
         {
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, workspaceAnalyzerOpt, onAnalyzerException, includeSuppressedDiagnostics);
+            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, workspaceAnalyzerOpt, includeSuppressedDiagnostics);
             return await testDriver.GetAllDiagnosticsAsync(document, span);
         }
 
@@ -27,20 +26,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticAnalyzer workspaceAnalyzerOpt,
             Document document,
             TextSpan span,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
             bool includeSuppressedDiagnostics = false)
         {
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, workspaceAnalyzerOpt, onAnalyzerException, includeSuppressedDiagnostics);
+            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, workspaceAnalyzerOpt, includeSuppressedDiagnostics);
             return await testDriver.GetDocumentDiagnosticsAsync(document, span);
         }
 
         public static async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(
             DiagnosticAnalyzer workspaceAnalyzerOpt,
             Project project,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
             bool includeSuppressedDiagnostics = false)
         {
-            var testDriver = new TestDiagnosticAnalyzerDriver(project, workspaceAnalyzerOpt, onAnalyzerException, includeSuppressedDiagnostics);
+            var testDriver = new TestDiagnosticAnalyzerDriver(project, workspaceAnalyzerOpt, includeSuppressedDiagnostics);
             return await testDriver.GetProjectDiagnosticsAsync(project);
         }
     }
