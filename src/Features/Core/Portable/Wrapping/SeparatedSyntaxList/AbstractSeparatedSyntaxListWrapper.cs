@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!PositionIsApplicable(root, position, declaration, listSyntax))
+
+            if (root == null || !PositionIsApplicable(root, position, declaration, listSyntax))
             {
                 return null;
             }
