@@ -150,7 +150,25 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
-                result.AddRange(base.GetWrapEachEdits(wrappingStyle, indentationTrivia));
+                AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
+
+                var itemsAndSeparators = _listItems.GetWithSeparators();
+
+                for (var i = 0; i < itemsAndSeparators.Count; i += 2)
+                {
+                    var item = itemsAndSeparators[i].AsNode();
+                    if (i < itemsAndSeparators.Count - 1)
+                    {
+                        // intermediary item
+                        var comma = itemsAndSeparators[i + 1].AsToken();
+                        result.Add(Edit.DeleteBetween(item, comma));
+
+                        // Always wrap between this comma and the next item.
+                        result.Add(Edit.UpdateBetween(
+                            comma, NewLineTrivia, indentationTrivia, itemsAndSeparators[i + 2]));
+                    }
+                }
+
                 // last item.  Delete whatever is between it and the close token of the list.
                 result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
 
@@ -204,6 +222,11 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 }
 
                 return result.ToImmutableAndFree();
+            }
+
+            protected override ImmutableArray<Edit> GetUnwrapAllEdits(WrappingStyle wrappingStyle)
+            {
+                return GetSeparatedListEdits(wrappingStyle).ToImmutableAndFree();
             }
         }
     }

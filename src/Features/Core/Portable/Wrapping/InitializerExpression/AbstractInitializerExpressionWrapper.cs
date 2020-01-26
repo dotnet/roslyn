@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 #nullable enable
 
 using System.Threading;
@@ -26,8 +28,11 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
         {
         }
 
-        protected abstract TListSyntax TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
+
+        protected abstract TListSyntax TryGetApplicableList(SyntaxNode node);
+
+        protected abstract bool TryGetNewLinesForBracesInObjectCollectionArrayInitializersOption(DocumentOptionSet options);
 
         public sealed override async Task<ICodeActionComputer?> TryCreateComputerAsync(
             Document document, int position, SyntaxNode declaration, CancellationToken cancellationToken)
@@ -60,7 +65,5 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             return new InitializerExpressionCodeActionComputer(
                 this, document, sourceText, options, listSyntax, listItems, TryGetNewLinesForBracesInObjectCollectionArrayInitializersOption(options), cancellationToken);
         }
-
-        protected abstract bool TryGetNewLinesForBracesInObjectCollectionArrayInitializersOption(DocumentOptionSet options);
     }
 }

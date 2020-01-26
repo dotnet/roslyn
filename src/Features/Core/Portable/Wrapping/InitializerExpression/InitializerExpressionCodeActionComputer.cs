@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -39,6 +41,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             private string GetBraceTokenIndentation()
             {
                 var previousToken = _listSyntax.GetFirstToken().GetPreviousToken();
+
+                // Block indentation is the only style that correctly indents across all initializer expressions
                 return GetIndentationAfter(previousToken, Formatting.FormattingOptions.IndentStyle.Block);
             }
 
@@ -59,7 +63,25 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                     result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
                 }
 
-                result.AddRange(base.GetWrapEachEdits(wrappingStyle, indentationTrivia));
+                AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
+
+                var itemsAndSeparators = _listItems.GetWithSeparators();
+
+                for (var i = 0; i < itemsAndSeparators.Count; i += 2)
+                {
+                    var item = itemsAndSeparators[i].AsNode();
+                    if (i < itemsAndSeparators.Count - 1)
+                    {
+                        // intermediary item
+                        var comma = itemsAndSeparators[i + 1].AsToken();
+                        result.Add(Edit.DeleteBetween(item, comma));
+
+                        // Always wrap between this comma and the next item.
+                        result.Add(Edit.UpdateBetween(
+                            comma, NewLineTrivia, indentationTrivia, itemsAndSeparators[i + 2]));
+                    }
+                }
+
                 result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
 
                 return result.ToImmutableAndFree();
@@ -74,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                     result.Add(Edit.DeleteBetween(_listSyntax.GetFirstToken().GetPreviousToken(), _listSyntax.GetFirstToken()));
                 }
 
-                result.AddRange(base.GetUnwrapAllEdits(wrappingStyle));
+                result.AddRange(GetSeparatedListEdits(wrappingStyle));
 
                 return result.ToImmutableAndFree();
             }

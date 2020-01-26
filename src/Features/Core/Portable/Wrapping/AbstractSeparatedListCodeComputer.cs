@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 #nullable enable
 
 using System.Collections.Immutable;
@@ -104,7 +106,10 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             protected abstract Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle);
 
-            protected virtual ImmutableArray<Edit> GetUnwrapAllEdits(WrappingStyle wrappingStyle)
+            protected abstract ImmutableArray<Edit> GetUnwrapAllEdits(WrappingStyle wrappingStyle);
+
+            // This computes edits for the content of the list excluding the opening token
+            protected ArrayBuilder<Edit> GetSeparatedListEdits(WrappingStyle wrappingStyle)
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
@@ -117,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 }
 
                 result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
-                return result.ToImmutableAndFree();
+                return result;
             }
 
             #endregion
@@ -156,32 +161,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
             }
 
-            protected virtual ImmutableArray<Edit> GetWrapEachEdits(
-                WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
-            {
-                var result = ArrayBuilder<Edit>.GetInstance();
-
-                AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
-
-                var itemsAndSeparators = _listItems.GetWithSeparators();
-
-                for (var i = 0; i < itemsAndSeparators.Count; i += 2)
-                {
-                    var item = itemsAndSeparators[i].AsNode();
-                    if (i < itemsAndSeparators.Count - 1)
-                    {
-                        // intermediary item
-                        var comma = itemsAndSeparators[i + 1].AsToken();
-                        result.Add(Edit.DeleteBetween(item, comma));
-
-                        // Always wrap between this comma and the next item.
-                        result.Add(Edit.UpdateBetween(
-                            comma, NewLineTrivia, indentationTrivia, itemsAndSeparators[i + 2]));
-                    }
-                }
-
-                return result.ToImmutableAndFree();
-            }
+            protected abstract ImmutableArray<Edit> GetWrapEachEdits(WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia);
 
             private SyntaxTrivia GetIndentationTrivia(WrappingStyle wrappingStyle)
             {
