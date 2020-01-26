@@ -108,10 +108,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 packageSources = _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
                     .SelectAsArray(r => new PackageSource(r.Key, r.Value));
             }
-            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException || ex is ArgumentException)
+            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
             {
                 // These exceptions can happen when the nuget.config file is broken.
-                FatalError.ReportWithoutCrash(ex);
+                packageSources = ImmutableArray<PackageSource>.Empty;
+            }
+            catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
+            {
+                // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
+                // https://github.com/dotnet/roslyn/issues/40857
                 packageSources = ImmutableArray<PackageSource>.Empty;
             }
 
