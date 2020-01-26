@@ -29,28 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        public override CommandState GetCommandState(ReturnKeyCommandArgs args)
-        {
-            return CommandState.Unspecified;
-        }
-
-        public override bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
-        {
-            return ExecuteCommandWorker(args);
-        }
-
         protected override bool LineContainsComment(ITextSnapshotLine line, int caretPosition)
         {
             var snapshot = line.Snapshot;
-            for (int i = line.Start; i < caretPosition; i++)
-            {
-                if (snapshot[i] == '/' && snapshot[i + 1] == '/')
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return snapshot.GetText().Contains(CommentSplitter.CommentCharacter);
         }
 
         protected override int? SplitComment(

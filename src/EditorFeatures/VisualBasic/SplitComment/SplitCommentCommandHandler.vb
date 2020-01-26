@@ -27,21 +27,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
             _editorOperationsFactoryService = editorOperationsFactoryService
         End Sub
 
-        Public Overrides Function ExecuteCommand(args As ReturnKeyCommandArgs, executionContext As CommandExecutionContext) As Boolean
-            Return ExecuteCommandWorker(args)
-        End Function
-
-        Public Overrides Function GetCommandState(args As ReturnKeyCommandArgs) As CommandState
-            Return CommandState.Unspecified
-        End Function
-
         Protected Overrides Function LineContainsComment(line As ITextSnapshotLine, caretPosition As Integer) As Boolean
             Dim snapshot = line.Snapshot
-            For i As Integer = line.Start To caretPosition Step 1
-                If snapshot(i) = "'"c Then
-                    Return True
-                End If
-            Next
+            snapshot.GetText.Contains(CommentSplitter.CommentCharacter)
 
             Return False
         End Function

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 {
-    public class SplitCommentOptions
+    internal class SplitCommentOptions
     {
         public static PerLanguageOption<bool> Enabled =
            new PerLanguageOption<bool>(nameof(SplitCommentOptions), nameof(Enabled), defaultValue: true,

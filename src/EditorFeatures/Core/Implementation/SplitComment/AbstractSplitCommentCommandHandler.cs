@@ -19,13 +19,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
         protected ITextUndoHistoryRegistry _undoHistoryRegistry;
         protected IEditorOperationsFactoryService _editorOperationsFactoryService;
 
-        public abstract bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext executionContext);
-        public abstract CommandState GetCommandState(ReturnKeyCommandArgs args);
-
         protected abstract bool LineContainsComment(ITextSnapshotLine line, int caretPosition);
         protected abstract int? SplitComment(Document document, DocumentOptionSet options, int position, CancellationToken cancellationToken);
 
         public string DisplayName => EditorFeaturesResources.Split_comment;
+
+        public CommandState GetCommandState(ReturnKeyCommandArgs args)
+        {
+            return CommandState.Unspecified;
+        }
+
+        public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
+        {
+            return ExecuteCommandWorker(args);
+        }
 
         public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
         {
@@ -52,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             return false;
         }
 
-        protected bool SplitComment(ITextView textView, ITextBuffer subjectBuffer, SnapshotPoint caret)
+        private bool SplitComment(ITextView textView, ITextBuffer subjectBuffer, SnapshotPoint caret)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
