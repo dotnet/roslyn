@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 for (var index = result.Count - 1; index >= 0; index--)
                 {
-                    if (char.IsDigit(result[index][0], 0))
+                    if (char.IsDigit(result[index][0], index: 0))
                     {
                         // the first character of a name shouldn't be a digit
                         result.RemoveAt(index);
