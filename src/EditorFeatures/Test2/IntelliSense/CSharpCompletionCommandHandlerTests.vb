@@ -5996,6 +5996,35 @@ namespace NS
             End Using
         End Function
 
+        <WorkItem(39519, "https://github.com/dotnet/roslyn/issues/39519")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSuggestedNamesDontStartWithDigit() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+namespace NS
+{
+    class C
+    {
+        public void Foo(Foo123Bar $$)
+        {
+        }
+    }
+
+    public class Foo123Bar
+    {
+    } 
+}
+]]></Document>)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, True)))
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("foo123Bar", "foo123", "foo", "bar")
+                Await state.AssertCompletionItemsDoNotContainAny("123")
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
