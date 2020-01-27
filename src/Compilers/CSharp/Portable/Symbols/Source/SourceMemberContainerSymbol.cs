@@ -1442,12 +1442,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
-                var baseType = BaseTypeNoUseSiteDiagnostics;
-                var interfaces = InterfacesNoUseSiteDiagnostics();
-                if (baseType?.NeedsNullableAttribute() == true ||
-                    interfaces.Any(t => t.NeedsNullableAttribute()))
+
+                if (hasBaseTypeOrInterface(t => t.ContainsNativeInteger()))
+                {
+                    compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
+                }
+
+                if (hasBaseTypeOrInterface(t => t.NeedsNullableAttribute()))
                 {
                     compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                }
+
+                bool hasBaseTypeOrInterface(Func<NamedTypeSymbol, bool> predicate)
+                {
+                    var baseType = BaseTypeNoUseSiteDiagnostics;
+                    return ((object)baseType != null && predicate(baseType)) ||
+                        InterfacesNoUseSiteDiagnostics().Any(predicate);
                 }
             }
         }
@@ -3387,6 +3397,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (baseType.ContainsDynamic())
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(baseType, customModifiersCount: 0));
+                }
+
+                if (baseType.ContainsNativeInteger())
+                {
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, baseType));
                 }
 
                 if (baseType.ContainsTupleNames())

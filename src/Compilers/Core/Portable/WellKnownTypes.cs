@@ -309,6 +309,7 @@ namespace Microsoft.CodeAnalysis
         System_InvalidOperationException,
         System_Runtime_CompilerServices_SwitchExpressionException,
         System_Collections_Generic_IEqualityComparer_T,
+        System_Runtime_CompilerServices_NativeIntegerAttribute,
 
         NextAvailable,
 
@@ -611,6 +612,7 @@ namespace Microsoft.CodeAnalysis
             "System.InvalidOperationException",
             "System.Runtime.CompilerServices.SwitchExpressionException",
             "System.Collections.Generic.IEqualityComparer`1",
+            "System.Runtime.CompilerServices.NativeIntegerAttribute",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

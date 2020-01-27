@@ -1009,26 +1009,46 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, description).Handle;
         }
 
-        private static readonly ImmutableArray<bool> s_simpleDynamicTransforms = ImmutableArray.Create(true);
+        private static readonly ImmutableArray<bool> s_simpleTransformFlags = ImmutableArray.Create(true);
 
-        internal bool HasDynamicAttribute(EntityHandle token, out ImmutableArray<bool> dynamicTransforms)
+        internal bool HasDynamicAttribute(EntityHandle token, out ImmutableArray<bool> transformFlags)
         {
             AttributeInfo info = FindTargetAttribute(token, AttributeDescription.DynamicAttribute);
             Debug.Assert(!info.HasValue || info.SignatureIndex == 0 || info.SignatureIndex == 1);
 
             if (!info.HasValue)
             {
-                dynamicTransforms = default(ImmutableArray<bool>);
+                transformFlags = default;
                 return false;
             }
 
             if (info.SignatureIndex == 0)
             {
-                dynamicTransforms = s_simpleDynamicTransforms;
+                transformFlags = s_simpleTransformFlags;
                 return true;
             }
 
-            return TryExtractBoolArrayValueFromAttribute(info.Handle, out dynamicTransforms);
+            return TryExtractBoolArrayValueFromAttribute(info.Handle, out transformFlags);
+        }
+
+        internal bool HasNativeIntegerAttribute(EntityHandle token, out ImmutableArray<bool> transformFlags)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NativeIntegerAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0 || info.SignatureIndex == 1);
+
+            if (!info.HasValue)
+            {
+                transformFlags = default;
+                return false;
+            }
+
+            if (info.SignatureIndex == 0)
+            {
+                transformFlags = s_simpleTransformFlags;
+                return true;
+            }
+
+            return TryExtractBoolArrayValueFromAttribute(info.Handle, out transformFlags);
         }
 
         internal bool HasTupleElementNamesAttribute(EntityHandle token, out ImmutableArray<string> tupleElementNames)

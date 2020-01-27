@@ -902,6 +902,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly Func<TypeSymbol, object?, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
 
+        internal static bool ContainsNativeInteger(this TypeSymbol type)
+        {
+            var result = type.VisitType((type, unused1, unused2) => (type as NamedTypeSymbol)?.IsNativeInt == true, (object?)null, canDigThroughNullable: true);
+            return result is object;
+        }
+
         /// <summary>
         /// Return true if the type contains any tuples.
         /// </summary>
@@ -1630,16 +1636,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (type.Type.ContainsTupleNames())
                 {
-                    SynthesizedAttributeData? attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
-                    if (attr != null)
-                    {
-                        builder.Add(attr);
-                    }
+                    addIfNotNull(builder, compilation.SynthesizeTupleNamesAttribute(type.Type));
                 }
-
+                if (type.Type.ContainsNativeInteger())
+                {
+                    addIfNotNull(builder, moduleBuilder.SynthesizeNativeIntegerAttribute(declaringSymbol, type.Type));
+                }
                 if (compilation.ShouldEmitNullableAttributes(declaringSymbol))
                 {
-                    SynthesizedAttributeData? attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
+                    addIfNotNull(builder, moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type));
+                }
+
+                static void addIfNotNull(ArrayBuilder<Cci.ICustomAttribute> builder, SynthesizedAttributeData? attr)
+                {
                     if (attr != null)
                     {
                         builder.Add(attr);

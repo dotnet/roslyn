@@ -505,6 +505,9 @@ namespace Microsoft.CodeAnalysis
         System_Threading_CancellationTokenSource__Token,
         System_Threading_CancellationTokenSource__Dispose,
 
+        System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
+        System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

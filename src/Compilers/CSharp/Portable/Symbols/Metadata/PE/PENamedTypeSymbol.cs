@@ -471,6 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     var moduleSymbol = ContainingPEModule;
                     TypeSymbol decodedType = DynamicTypeDecoder.TransformType(baseType, 0, _handle, moduleSymbol);
+                    decodedType = NativeIntegerTypeDecoder.TransformType(decodedType, _handle, moduleSymbol);
                     decodedType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType, _handle, moduleSymbol);
                     baseType = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(decodedType), _handle, moduleSymbol, accessSymbol: this, nullableContext: this).Type;
                 }
@@ -531,6 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
 
                         typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceImpl, moduleSymbol);
+                        typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, interfaceImpl, moduleSymbol);
                         typeSymbol = NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(typeSymbol), interfaceImpl, moduleSymbol, accessSymbol: this, nullableContext: this).Type;
 
                         var namedTypeSymbol = typeSymbol as NamedTypeSymbol ?? new UnsupportedMetadataTypeSymbol(); // interface list contains a bad type

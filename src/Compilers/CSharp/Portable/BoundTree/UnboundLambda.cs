@@ -566,6 +566,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (returnType.HasType)
             {
+                if (returnType.Type.ContainsNativeInteger())
+                {
+                    compilation.EnsureNativeIntegerAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
+                }
+
                 if (compilation.ShouldEmitNullableAttributes(lambdaSymbol) &&
                     returnType.NeedsNullableAttribute())
                 {

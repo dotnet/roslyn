@@ -802,19 +802,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!haveChanges)
-            {
-                allTypeArguments.Free();
-                result = this;
-            }
-            else
-            {
-                TypeMap substitution = new TypeMap(this.OriginalDefinition.GetAllTypeParameters(),
-                                                   allTypeArguments.ToImmutableAndFree());
-
-                result = substitution.SubstituteNamedType(this.OriginalDefinition).WithTupleDataFrom(this);
-            }
-
+            result = haveChanges ? this.WithTypeArguments(allTypeArguments.ToImmutable()) : this;
+            allTypeArguments.Free();
             return true;
         }
 
@@ -840,16 +829,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            TypeSymbol result = this;
-            if (haveChanges)
-            {
-                var definition = this.OriginalDefinition;
-                TypeMap substitution = new TypeMap(definition.GetAllTypeParameters(), allTypeArguments.ToImmutable());
-                result = substitution.SubstituteNamedType(definition).WithTupleDataFrom(this);
-            }
-
+            NamedTypeSymbol result = haveChanges ? this.WithTypeArguments(allTypeArguments.ToImmutable()) : this;
             allTypeArguments.Free();
             return result;
+        }
+
+        internal NamedTypeSymbol WithTypeArguments(ImmutableArray<TypeWithAnnotations> allTypeArguments)
+        {
+            var definition = this.OriginalDefinition;
+            TypeMap substitution = new TypeMap(definition.GetAllTypeParameters(), allTypeArguments);
+            return substitution.SubstituteNamedType(definition).WithTupleDataFrom(this);
         }
 
         internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
@@ -865,16 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             bool haveChanges = MergeEquivalentTypeArguments(this, (NamedTypeSymbol)other, variance, allTypeParameters, allTypeArguments);
 
-            NamedTypeSymbol result;
-            if (haveChanges)
-            {
-                TypeMap substitution = new TypeMap(allTypeParameters.ToImmutable(), allTypeArguments.ToImmutable());
-                result = substitution.SubstituteNamedType(this.OriginalDefinition);
-            }
-            else
-            {
-                result = this;
-            }
+            NamedTypeSymbol result = haveChanges ? this.WithTypeArguments(allTypeArguments.ToImmutable()) : this;
 
             allTypeArguments.Free();
             allTypeParameters.Free();

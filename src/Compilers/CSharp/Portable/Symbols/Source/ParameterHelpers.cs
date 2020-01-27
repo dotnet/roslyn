@@ -155,10 +155,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var parameter in parameters)
                 {
+                    var type = parameter.TypeWithAnnotations;
+                    if (!type.HasType)
+                    {
+                        continue;
+                    }
+                    if (type.Type.ContainsNativeInteger())
+                    {
+                        compilation.EnsureNativeIntegerAttributeExists(diagnostics, getLocation(parameter), modifyCompilation);
+                    }
                     if (parameter.TypeWithAnnotations.NeedsNullableAttribute())
                     {
-                        compilation.EnsureNullableAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
+                        compilation.EnsureNullableAttributeExists(diagnostics, getLocation(parameter), modifyCompilation);
                     }
+                    static Location getLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
                 }
             }
         }
