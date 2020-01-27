@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -18,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 {
     internal partial class ColorSchemeApplier
     {
-        // Now that we are updating the theme's default color for classifications instead of updating the applied classification color, we need to 
+        // Now that we are updating the theme's default color for classifications instead of updating the applied classification color, we need to
         // update the classifications whose applied color matches the theme's color. These need to be reverted to the default color so that when we
         // change theme colors it will be reflected in the editor.
         private sealed class ForegroundColorDefaulter : ForegroundThreadAffinitizedObject
