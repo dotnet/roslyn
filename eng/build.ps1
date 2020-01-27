@@ -428,6 +428,10 @@ function TestUsingOptimizedRunner() {
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }
+
+    if ($testVsi) {
+      Copy-Item -Path (Join-Path $TempDir "servicehub\logs") -Destination (Join-Path $LogDir "servicehub") -Recurse
+    }
   }
 }
 
@@ -622,7 +626,9 @@ try {
   }
   catch
   {
-    echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
+    if ($ci) {
+      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
+    }
     throw $_
   }
 
@@ -642,7 +648,9 @@ try {
   }
   catch
   {
-    echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
+    if ($ci) {
+      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
+    }
     throw $_
   }
 
