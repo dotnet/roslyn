@@ -303,11 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
                 _cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-                var locations = _workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges
-                                ? inlineRenameLocations.Locations.Where(l => l.Document.CanApplyChange())
-                                : inlineRenameLocations.Locations;
-
-                RaiseSessionSpansUpdated(locations.ToImmutableArray());
+                RaiseSessionSpansUpdated(inlineRenameLocations.Locations.ToImmutableArray());
 
                 return inlineRenameLocations;
             });
@@ -417,6 +413,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             AssertIsForeground();
             SetReferenceLocations(locations);
+
+            // If workspace would ignore changes to unchangeable documents, we filter out references in 
+            // them only to avoid displaying them in UI, i.e. everything else in inline rename is still
+            // oblivious to unchangeable document.
+            // https://github.com/dotnet/roslyn/issues/41242
+            if (_workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges)
+            {
+                locations = locations.WhereAsArray(l => l.Document.CanApplyChange());
+            }
+
             ReferenceLocationsChanged?.Invoke(this, locations);
         }
 
