@@ -138,7 +138,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     }
                 }
 
-                return suppressionsDoc.WithSyntaxRoot(suppressionsRoot);
+                var result = suppressionsDoc.WithSyntaxRoot(suppressionsRoot);
+                var final = await CleanupDocumentAsync(result, cancellationToken).ConfigureAwait(false);
+                return final;
             }
 
             private static async Task<IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>> CreateDiagnosticsBySymbolAsync(AbstractSuppressionCodeFixProvider fixer, IEnumerable<KeyValuePair<Document, ImmutableArray<Diagnostic>>> diagnosticsByDocument, CancellationToken cancellationToken)
