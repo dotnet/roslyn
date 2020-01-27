@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -85,16 +88,46 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         protected override bool IsEndOfFileToken(SyntaxToken token)
             => token.Kind() == SyntaxKind.EndOfFileToken;
 
-        protected override SyntaxNode AddGlobalSuppressMessageAttribute(SyntaxNode newRoot, ISymbol targetSymbol, Diagnostic diagnostic, Workspace workspace, CancellationToken cancellationToken)
+        protected override SyntaxNode AddGlobalSuppressMessageAttribute(
+            SyntaxNode newRoot,
+            ISymbol targetSymbol,
+            Diagnostic diagnostic,
+            Workspace workspace,
+            Compilation compilation,
+            IAddImportsService addImportsService,
+            CancellationToken cancellationToken)
         {
             var compilationRoot = (CompilationUnitSyntax)newRoot;
             var isFirst = !compilationRoot.AttributeLists.Any();
-            var leadingTriviaForAttributeList = isFirst && !compilationRoot.HasLeadingTrivia ?
-                SyntaxFactory.TriviaList(SyntaxFactory.Comment(GlobalSuppressionsFileHeaderComment)) :
-                default;
-            var attributeList = CreateAttributeList(targetSymbol, diagnostic, isAssemblyAttribute: true, leadingTrivia: leadingTriviaForAttributeList, needsLeadingEndOfLine: !isFirst);
-            attributeList = (AttributeListSyntax)Formatter.Format(attributeList, workspace, cancellationToken: cancellationToken);
-            return compilationRoot.AddAttributeLists(attributeList);
+
+            var fullAttributeName = (QualifiedNameSyntax)SyntaxFactory.ParseName(SuppressMessageAttributeName);
+            var usingDirective = SyntaxFactory.UsingDirective(fullAttributeName.Left);
+
+            var hasUsingDirective = addImportsService.HasExistingImport(compilation, compilationRoot, contextLocation: null, usingDirective);
+            if (!hasUsingDirective && isFirst)
+            {
+                compilationRoot = Format(compilationRoot.AddUsings(usingDirective));
+                hasUsingDirective = true;
+            }
+
+            compilationRoot = compilationRoot.AddAttributeLists(
+                Format(CreateAttributeList(
+                    targetSymbol,
+                    diagnostic,
+                    isAssemblyAttribute: true,
+                    leadingTrivia: default,
+                    needsLeadingEndOfLine: true,
+                    hasUsingDirective ? (NameSyntax)fullAttributeName.Right : fullAttributeName)));
+
+            if (isFirst && !newRoot.HasLeadingTrivia)
+                compilationRoot = compilationRoot.WithLeadingTrivia(SyntaxFactory.Comment(GlobalSuppressionsFileHeaderComment));
+
+            return compilationRoot;
+
+            T Format<T>(T node) where T : SyntaxNode
+            {
+                return (T)Formatter.Format(node, workspace, cancellationToken: cancellationToken);
+            }
         }
 
         protected override SyntaxNode AddLocalSuppressMessageAttribute(SyntaxNode targetNode, ISymbol targetSymbol, Diagnostic diagnostic)
@@ -124,9 +157,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             Diagnostic diagnostic,
             bool isAssemblyAttribute,
             SyntaxTriviaList leadingTrivia,
-            bool needsLeadingEndOfLine)
+            bool needsLeadingEndOfLine,
+            NameSyntax attributeName = null)
         {
-            var attributeName = SyntaxFactory.ParseName(SuppressMessageAttributeName).WithAdditionalAnnotations(Simplifier.Annotation);
+            attributeName ??= SyntaxFactory.ParseName(SuppressMessageAttributeName).WithAdditionalAnnotations(Simplifier.Annotation);
             var attributeArguments = CreateAttributeArguments(targetSymbol, diagnostic, isAssemblyAttribute);
 
             var attributes = new SeparatedSyntaxList<AttributeSyntax>()

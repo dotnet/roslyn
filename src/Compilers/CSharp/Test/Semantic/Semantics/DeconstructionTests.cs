@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -3714,6 +3716,9 @@ class C
                 // (6,36): error CS0103: The name 'x1' does not exist in the current context
                 //         foreach (var (x1, x2) in M(x1)) { }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 36),
+                // (6,34): error CS1579: foreach statement cannot operate on variables of type '(int, int)' because '(int, int)' does not contain a public instance definition for 'GetEnumerator'
+                //         foreach (var (x1, x2) in M(x1)) { }
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "M(x1)").WithArguments("(int, int)", "GetEnumerator").WithLocation(6, 34),
                 // (6,23): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
                 //         foreach (var (x1, x2) in M(x1)) { }
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 23),

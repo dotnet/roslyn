@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -813,8 +815,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static readonly SymbolDisplayFormat s_debuggerDisplayFormat =
-            SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
-                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+            SymbolDisplayFormat.TestFormat
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+                    | SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier)
+                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
         internal virtual string GetDebuggerDisplay()
         {
@@ -1236,9 +1240,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case SymbolKind.Field:
-                    if (compilation.ShouldEmitNullableAttributes(this))
+                    var field = (FieldSymbol)this;
+                    if (field is TupleElementFieldSymbol tupleElement)
                     {
-                        builder.AddValue(((FieldSymbol)this).TypeWithAnnotations);
+                        field = tupleElement.TupleUnderlyingField;
+                    }
+
+                    if (compilation.ShouldEmitNullableAttributes(field))
+                    {
+                        builder.AddValue(field.TypeWithAnnotations);
                     }
                     break;
                 case SymbolKind.Method:

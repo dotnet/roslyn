@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -111,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsOnlyWrittenTo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsOnlyWrittenTo
-            Return TryCast(node, ExpressionSyntax).IsOnlyWrittenTo(semanticModel, cancellationToken)
+            Return TryCast(node, ExpressionSyntax).IsOnlyWrittenTo()
         End Function
 
         Public Function IsWrittenTo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsWrittenTo
@@ -119,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsInOutContext(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInOutContext
-            Return TryCast(node, ExpressionSyntax).IsInOutContext(semanticModel, cancellationToken)
+            Return TryCast(node, ExpressionSyntax).IsInOutContext()
         End Function
 
         Public Function IsInRefContext(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInRefContext
@@ -127,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsInInContext(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInInContext
-            Return TryCast(node, ExpressionSyntax).IsInInContext(semanticModel, cancellationToken)
+            Return TryCast(node, ExpressionSyntax).IsInInContext()
         End Function
 
         Public Function CanReplaceWithRValue(semanticModel As SemanticModel, expression As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.CanReplaceWithRValue
@@ -145,16 +147,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, token As SyntaxToken, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFactsService.GetDeclaredSymbol
             Dim location = token.GetLocation()
 
-            Dim q = From node In token.GetAncestors(Of SyntaxNode)()
-                    Where Not TypeOf node Is AggregationRangeVariableSyntax AndAlso
-                          Not TypeOf node Is CollectionRangeVariableSyntax AndAlso
-                          Not TypeOf node Is ExpressionRangeVariableSyntax AndAlso
-                          Not TypeOf node Is InferredFieldInitializerSyntax
-                    Let symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken)
-                    Where symbol IsNot Nothing AndAlso symbol.Locations.Contains(location)
-                    Select symbol
+            For Each ancestor In token.GetAncestors(Of SyntaxNode)()
+                If Not TypeOf ancestor Is AggregationRangeVariableSyntax AndAlso
+                   Not TypeOf ancestor Is CollectionRangeVariableSyntax AndAlso
+                   Not TypeOf ancestor Is ExpressionRangeVariableSyntax AndAlso
+                   Not TypeOf ancestor Is InferredFieldInitializerSyntax Then
 
-            Return q.FirstOrDefault()
+                    Dim symbol = semanticModel.GetDeclaredSymbol(ancestor)
+
+                    If symbol IsNot Nothing Then
+                        If symbol.Locations.Contains(location) Then
+                            Return symbol
+                        End If
+
+                        ' We found some symbol, but it defined something else. We're not going to have a higher node defining _another_ symbol with this token, so we can stop now.
+                        Return Nothing
+                    End If
+
+                    ' If we hit an executable statement syntax and didn't find anything yet, we can just stop now -- anything higher would be a member declaration which won't be defined by something inside a statement.
+                    If SyntaxFactsService.IsExecutableStatement(ancestor) Then
+                        Return Nothing
+                    End If
+                End If
+            Next
+
+            Return Nothing
         End Function
 
         Public Function LastEnumValueHasInitializer(namedTypeSymbol As INamedTypeSymbol) As Boolean Implements ISemanticFactsService.LastEnumValueHasInitializer
@@ -298,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Select(Function(n) semanticModel.GetDeclaredSymbol(n, cancellationToken))
             End If
 
-            Return {semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken)}
+            Return SpecializedCollections.SingletonEnumerable(semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken))
         End Function
 
         Public Function FindParameterForArgument(semanticModel As SemanticModel, argumentNode As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFactsService.FindParameterForArgument

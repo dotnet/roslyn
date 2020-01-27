@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1605,6 +1607,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UndecoratedCancellationTokenParameter = 8425,
         ERR_MultipleEnumeratorCancellationAttributes = 8426,
         ERR_VarianceInterfaceNesting = 8427,
+        ERR_ImplicitIndexIndexerWithName = 8428,
+        ERR_ImplicitRangeIndexerWithName = 8429,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -1641,7 +1645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullReferenceReturn = 8603,
         WRN_NullReferenceArgument = 8604,
         WRN_UnboxPossibleNull = 8605,
-        WRN_NullReferenceIterationVariable = 8606,
+        // WRN_NullReferenceIterationVariable = 8606 (unavailable, may be used in warning suppressions in early C# 8.0 code)
         WRN_DisallowNullAttributeForbidsMaybeNullAssignment = 8607,
         WRN_NullabilityMismatchInTypeOnOverride = 8608,
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
@@ -1736,6 +1740,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 8.0
 
         ERR_InternalError = 8751,
+
+        ERR_ExternEventInitializer = 8760,
+        ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
+        WRN_ParameterConditionallyDisallowsNull = 8762,
+        WRN_ShouldNotReturn = 8763,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

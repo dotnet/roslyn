@@ -340,6 +340,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to &apos;default&apos; and operand of type &apos;{1}&apos; because it is a type parameter that is not known to be a reference type.
+        /// </summary>
+        internal static string ERR_AmbigBinaryOpsOnUnconstrainedDefault {
+            get {
+                return ResourceManager.GetString("ERR_AmbigBinaryOpsOnUnconstrainedDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The call is ambiguous between the following methods or properties: &apos;{0}&apos; and &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_AmbigCall {
@@ -637,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A readonly field cannot be assigned to (except in a constructor or a variable initializer).
+        ///   Looks up a localized string similar to A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer)).
         /// </summary>
         internal static string ERR_AssgReadonly {
             get {
@@ -4795,6 +4804,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: extern event cannot have initializer.
+        /// </summary>
+        internal static string ERR_ExternEventInitializer {
+            get {
+                return ResourceManager.GetString("ERR_ExternEventInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; cannot be extern and declare a body.
         /// </summary>
         internal static string ERR_ExternHasBody {
@@ -5587,6 +5605,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invocation of implicit Index Indexer cannot name the argument..
+        /// </summary>
+        internal static string ERR_ImplicitIndexIndexerWithName {
+            get {
+                return ResourceManager.GetString("ERR_ImplicitIndexIndexerWithName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No best type found for implicitly-typed array.
         /// </summary>
         internal static string ERR_ImplicitlyTypedArrayNoBestType {
@@ -5655,6 +5682,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ImplicitlyTypedVariableWithNoInitializer {
             get {
                 return ResourceManager.GetString("ERR_ImplicitlyTypedVariableWithNoInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invocation of implicit Range Indexer cannot name the argument..
+        /// </summary>
+        internal static string ERR_ImplicitRangeIndexerWithName {
+            get {
+                return ResourceManager.GetString("ERR_ImplicitRangeIndexerWithName", resourceCulture);
             }
         }
         
@@ -6973,7 +7009,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to emit module &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Failed to emit module &apos;{0}&apos;: {1}.
         /// </summary>
         internal static string ERR_ModuleEmitFailure {
             get {
@@ -7414,7 +7450,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos; or implement a suitable &apos;Dispose&apos; method..
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;..
         /// </summary>
         internal static string ERR_NoConvToIDisp {
             get {
@@ -7423,7 +7459,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos; or implement a suitable &apos;Dispose&apos; method. Did you mean &apos;await using&apos; rather than &apos;using&apos;?.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;. Did you mean &apos;await using&apos; rather than &apos;using&apos;?.
         /// </summary>
         internal static string ERR_NoConvToIDispWrongAsync {
             get {
@@ -13994,7 +14030,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A possible null value may not be assigned to a target marked with the [DisallowNull] attribute.
+        ///   Looks up a localized string similar to A possible null value may not be used for a type marked with [NotNull] or [DisallowNull].
         /// </summary>
         internal static string WRN_DisallowNullAttributeForbidsMaybeNullAssignment {
             get {
@@ -14003,7 +14039,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A possible null value may not be assigned to a target marked with the [DisallowNull] attribute.
+        ///   Looks up a localized string similar to A possible null value may not be used for a type marked with [NotNull] or [DisallowNull].
         /// </summary>
         internal static string WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title {
             get {
@@ -15773,24 +15809,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Possible null reference assignment to iteration variable.
-        /// </summary>
-        internal static string WRN_NullReferenceIterationVariable {
-            get {
-                return ResourceManager.GetString("WRN_NullReferenceIterationVariable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Possible null reference assignment to iteration variable.
-        /// </summary>
-        internal static string WRN_NullReferenceIterationVariable_Title {
-            get {
-                return ResourceManager.GetString("WRN_NullReferenceIterationVariable_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Dereference of a possibly null reference..
         /// </summary>
         internal static string WRN_NullReferenceReceiver {
@@ -15841,6 +15859,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_ObsoleteOverridingNonObsolete_Title {
             get {
                 return ResourceManager.GetString("WRN_ObsoleteOverridingNonObsolete_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; may not have a null value when exiting with &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_ParameterConditionallyDisallowsNull {
+            get {
+                return ResourceManager.GetString("WRN_ParameterConditionallyDisallowsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter may not have a null value when exiting in some condition..
+        /// </summary>
+        internal static string WRN_ParameterConditionallyDisallowsNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_ParameterConditionallyDisallowsNull_Title", resourceCulture);
             }
         }
         
@@ -16086,6 +16122,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_SequentialOnPartialClass_Title {
             get {
                 return ResourceManager.GetString("WRN_SequentialOnPartialClass_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A method marked [DoesNotReturn] should not return..
+        /// </summary>
+        internal static string WRN_ShouldNotReturn {
+            get {
+                return ResourceManager.GetString("WRN_ShouldNotReturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A method marked [DoesNotReturn] should not return..
+        /// </summary>
+        internal static string WRN_ShouldNotReturn_Title {
+            get {
+                return ResourceManager.GetString("WRN_ShouldNotReturn_Title", resourceCulture);
             }
         }
         

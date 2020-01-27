@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -23,6 +27,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
@@ -33,16 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         // All the characters that might potentially trigger formatting when typed
         private readonly char[] _supportedChars = ";{}#nte:)".ToCharArray();
 
-#nullable enable
-
-        private readonly IIndentationManagerService? _indentationManagerService;
-
-#nullable restore
+        private readonly IIndentationManagerService _indentationManagerService;
 
         [ImportingConstructor]
-        public CSharpEditorFormattingService([Import(IIndentationManagerService.MefContractName, AllowDefault = true)] object indentationManagerService)
+        public CSharpEditorFormattingService(IIndentationManagerService indentationManagerService)
         {
-            _indentationManagerService = IIndentationManagerService.FromDefaultImport(indentationManagerService);
+            _indentationManagerService = indentationManagerService;
         }
 
         public bool SupportsFormatDocument => true;
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var span = textSpan ?? new TextSpan(0, root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, span);
 
@@ -134,12 +135,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position, SyntaxToken tokenBeforeCaret)
         {
             var workspace = document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
             return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRules(tokenBeforeCaret)).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
-        Task<IList<TextChange>> IEditorFormattingService.GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<IList<TextChange>>();
+        Task<IList<TextChange>?> IEditorFormattingService.GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
+            => SpecializedTasks.Null<IList<TextChange>>();
 
         private static async Task<bool> TokenShouldNotFormatOnTypeCharAsync(
             SyntaxToken token, CancellationToken cancellationToken)
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             // mess with it if it's inside a line.
             if (token.IsKind(SyntaxKind.OpenBraceToken))
             {
-                var text = await token.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await token.SyntaxTree!.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (!token.IsFirstTokenOnLine(text))
                 {
                     return true;
@@ -174,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return false;
         }
 
-        public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken)
+        public async Task<IList<TextChange>?> GetFormattingChangesAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken)
         {
             // first, find the token user just typed.
             var token = await GetTokenBeforeTheCaretAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         private static async Task<SyntaxToken> GetTokenBeforeTheCaretAsync(Document document, int caretPosition, CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             var position = Math.Max(0, caretPosition - 1);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -281,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         private async Task<IList<TextChange>> FormatTokenAsync(Document document, OptionSet options, SyntaxToken token, IEnumerable<AbstractFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var formatter = CreateSmartTokenFormatter(options, formattingRules, root);
             var changes = await formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).ConfigureAwait(false);
             return changes;
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return SpecializedCollections.EmptyList<TextChange>();
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var formatter = new CSharpSmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)root);
 

@@ -12,6 +12,11 @@
         <target state="translated">Für diese Option muss ein Sprachenname angegeben werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="translated">Das Ändern der Version eines Assemblyverweises ist während des Debuggens nicht zulässig: "{0}" hat die Version in "{1}" geändert.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
@@ -37,6 +42,11 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">Der Parameter "{0}" muss ein Symbol aus dieser Zusammenstellung oder eine referenzierte Assembly sein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="translated">Das Modul weist ungültige Attribute auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
@@ -107,6 +117,11 @@
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">Wenn Nullable-Anmerkungen für Tupelelemente angegeben werden, muss die Anzahl von Anmerkungen der Kardinalität des Tupels entsprechen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="translated">Die spezifische Fehlerursache kann nicht ermittelt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">

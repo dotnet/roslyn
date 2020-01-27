@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -2843,8 +2845,9 @@ return;
             {
                 using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option);
 
-                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
-                    .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs);
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
+                    .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
                 var subjectDocument = workspace.Documents.Single();
 
                 var projectedDocument =
@@ -2892,8 +2895,9 @@ return;
             {
                 using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
 
-                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
-                    .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs);
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
+                    .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
                 TestIndentation(workspace, indentationLine, expectedIndentation);
             }
         }
@@ -2923,8 +2927,9 @@ return;
             {
                 using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
 
-                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
-                    .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs);
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
+                    .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
                 var wpfTextView = workspace.Documents.First().GetTextView();
                 var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;
                 TestIndentation(workspace, line, expectedIndentation);

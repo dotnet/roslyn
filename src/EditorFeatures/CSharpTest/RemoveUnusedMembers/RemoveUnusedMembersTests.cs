@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -2084,22 +2086,36 @@ $@"class C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
-        [InlineData("ShouldSerialize")]
-        [InlineData("Reset")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [WorkItem(30887, "https://github.com/dotnet/roslyn/issues/30887")]
-        public async Task ShouldSerializeOrResetPropertyMethod(string prefix)
+        public async Task ShouldSerializePropertyMethod()
         {
             await TestDiagnosticMissingAsync(
-$@"class C
-{{
-    private bool [|{prefix}Data|]()
-    {{
+@"class C
+{
+    private bool [|ShouldSerializeData|]()
+    {
         return true;
-    }}
+    }
 
-    public int Data {{ get; private set; }}
-}}");
+    public int Data { get; private set; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(38491, "https://github.com/dotnet/roslyn/issues/38491")]
+        public async Task ResetPropertyMethod()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    private void [|ResetData|]()
+    {
+        return;
+    }
+
+    public int Data { get; private set; }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]

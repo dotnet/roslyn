@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -25,29 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             /// Mapping from a method like 'MyType.Get(int)' to the Length/Count property for
             /// 'MyType' as well as the optional 'MyType.Get(System.Index)' member if it exists.
             /// </summary>
-            private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo;
+            private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo =
+                new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
 
             public InfoCache(Compilation compilation)
             {
                 IndexType = compilation.GetTypeByMetadataName("System.Index");
-
-                _methodToMemberInfo = new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
-
-                // Always allow using System.Index indexers with System.String.  The compiler has
-                // hard-coded knowledge on how to use this type, even if there is no this[Index]
-                // indexer declared on it directly.
-                //
-                // Ensure that we can actually get the 'string' type. We may fail if there is no
-                // proper mscorlib reference (for example, while a project is loading).
-                var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                if (!stringType.IsErrorType())
-                {
-                    var indexer = GetIndexer(stringType,
-                        compilation.GetSpecialType(SpecialType.System_Int32),
-                        compilation.GetSpecialType(SpecialType.System_Char));
-
-                    _methodToMemberInfo[indexer.GetMethod] = ComputeMemberInfo(indexer.GetMethod, requireIndexMember: false);
-                }
             }
 
             public bool TryGetMemberInfo(IMethodSymbol methodSymbol, out MemberInfo memberInfo)
@@ -56,13 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
                 if (IsIntIndexingMethod(methodSymbol))
                 {
-                    memberInfo = _methodToMemberInfo.GetOrAdd(methodSymbol, m => ComputeMemberInfo(m, requireIndexMember: true));
+                    memberInfo = _methodToMemberInfo.GetOrAdd(methodSymbol, m => ComputeMemberInfo(m));
                 }
 
                 return memberInfo.LengthLikeProperty != null;
             }
 
-            private MemberInfo ComputeMemberInfo(IMethodSymbol method, bool requireIndexMember)
+            private MemberInfo ComputeMemberInfo(IMethodSymbol method)
             {
                 Debug.Assert(IsIntIndexingMethod(method));
 
@@ -75,23 +60,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     return default;
                 }
 
-                if (!requireIndexMember)
-                {
-                    return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
-                }
-
                 if (method.MethodKind == MethodKind.PropertyGet)
                 {
                     // this is the getter for an indexer.  i.e. the user is calling something
-                    // like s[...].  We need to see if there's an indexer that takes a System.Index
-                    // value.
-                    var indexer = GetIndexer(containingType, IndexType, method.ReturnType);
-                    if (indexer != null)
-                    {
-                        // Type had a matching indexer.  We can convert calls to the int-indexer to
-                        // calls to this System.Index-indexer.
-                        return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
-                    }
+                    // like s[...].
+                    //
+                    // These can always be converted to use a System.Index.  Either because the
+                    // type itself has a System.Index-based indexer, or because the language just
+                    // allows types to implicitly seem like they support this through:
+                    //
+                    // https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#implicit-index-support
+                    return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
                 }
                 else
                 {

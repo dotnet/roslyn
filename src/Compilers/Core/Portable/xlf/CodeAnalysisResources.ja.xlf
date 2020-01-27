@@ -12,6 +12,11 @@
         <target state="translated">このオプションの言語名を指定する必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="translated">デバッグ中にアセンブリ参照のバージョンを変更することはできません: '{0}' のバージョンが '{1}' に変更されました。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
@@ -37,6 +42,11 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">パラメーター '{0}' は、このコンパイルまたはいくつかの参照アセンブリのシンボルにする必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="translated">モジュールに無効な属性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
@@ -107,6 +117,11 @@
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">タプル要素の Null 許容の注釈を指定する場合、注釈の数はタプルの基数と一致する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="translated">エラーの具体的な原因を特定できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">

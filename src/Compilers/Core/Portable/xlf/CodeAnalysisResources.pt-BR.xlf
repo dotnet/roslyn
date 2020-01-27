@@ -12,6 +12,11 @@
         <target state="translated">Um nome de idioma deve ser especificado para esta opção.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="translated">Não é permitido alterar a versão de uma referência de assembly durante a depuração: a versão de '{0}' foi alterada para '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
@@ -37,6 +42,11 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">O parâmetro '{0}' deve ser um símbolo desta compilação ou um assembly referenciado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="translated">O módulo tem atributos inválidos.</target>
         <note />
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
@@ -107,6 +117,11 @@
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">Se as anotações anuláveis de elementos de tupla forem especificadas, o número de anotações deverá corresponder à cardinalidade da tupla.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="translated">Não é possível determinar a causa específica da falha.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">

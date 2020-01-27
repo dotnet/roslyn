@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -3552,8 +3554,8 @@ public class Program
         }
 
         private static readonly SymbolDisplayFormat _displayFormat = SymbolDisplayFormat.TestFormat.
-            WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes).
-            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+            WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes).
+            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
         private static void VerifyBytes(TypeWithAnnotations type, byte[] expectedPreviously, byte[] expectedNow, string expectedDisplay)
         {
