@@ -51,18 +51,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly object _analysesGuard = new object();
 
         /// <summary>
-        /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
-        /// 
-        /// The capability of a module to apply edits may change during edit session if the user attaches debugger to 
-        /// an additional process that doesn't support EnC (or detaches from such process). The diagnostic reflects 
-        /// the state of the module when queried for the first time. Before we actually apply an edit to the module 
-        /// we need to query again instead of just reusing the diagnostic.
-        /// </summary>
-        private readonly Dictionary<Guid, ImmutableArray<LocationlessDiagnostic>> _moduleDiagnostics
-             = new Dictionary<Guid, ImmutableArray<LocationlessDiagnostic>>();
-        private readonly object _moduleDiagnosticsGuard = new object();
-
-        /// <summary>
         /// A <see cref="DocumentId"/> is added whenever <see cref="EditAndContinueDiagnosticAnalyzer"/> reports 
         /// rude edits or module diagnostics. At the end of the session we ask the diagnostic analyzer to reanalyze 
         /// the documents to clean up the diagnostics.
@@ -89,42 +77,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _cancellationSource.Dispose();
         }
 
-        internal void ModuleInstanceLoadedOrUnloaded(Guid mvid)
+        /// <summary>
+        /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
+        /// </summary>
+        public ImmutableArray<Diagnostic> GetModuleDiagnostics(Guid mvid, string projectDisplayName)
         {
-            // invalidate diagnostic cache for the module:
-            lock (_moduleDiagnosticsGuard)
+            if (DebuggingSession.DebugeeModuleMetadataProvider.IsEditAndContinueAvailable(mvid, out var errorCode, out var localizedMessage))
             {
-                _moduleDiagnostics.Remove(mvid);
-            }
-        }
-
-        public ImmutableArray<LocationlessDiagnostic> GetModuleDiagnostics(Guid mvid, string projectDisplayName)
-        {
-            ImmutableArray<LocationlessDiagnostic> result;
-            lock (_moduleDiagnosticsGuard)
-            {
-                if (_moduleDiagnostics.TryGetValue(mvid, out result))
-                {
-                    return result;
-                }
+                return ImmutableArray<Diagnostic>.Empty;
             }
 
-            var newResult = ImmutableArray<LocationlessDiagnostic>.Empty;
-            if (!DebuggingSession.DebugeeModuleMetadataProvider.IsEditAndContinueAvailable(mvid, out var errorCode, out var localizedMessage))
-            {
-                var descriptor = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(errorCode);
-                newResult = ImmutableArray.Create(new LocationlessDiagnostic(descriptor, new[] { projectDisplayName, localizedMessage }));
-            }
-
-            lock (_moduleDiagnosticsGuard)
-            {
-                if (!_moduleDiagnostics.TryGetValue(mvid, out result))
-                {
-                    _moduleDiagnostics.Add(mvid, result = newResult);
-                }
-            }
-
-            return result;
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(errorCode);
+            return ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { projectDisplayName, localizedMessage }));
         }
 
         private async Task<ActiveStatementsMap> GetBaseActiveStatementsAsync(CancellationToken cancellationToken)
@@ -680,11 +644,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal ImmutableArray<LocationlessDiagnostic> GetDebugeeStateDiagnostics()
-        {
-            return ImmutableArray<LocationlessDiagnostic>.Empty;
-        }
-
         public async Task<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
             try
@@ -750,25 +709,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics.Add((project.Id, documentDiagnostics));
                     }
 
-                    var projectSummary = await GetProjectAnalysisSymmaryAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
-
-                    if (projectSummary != ProjectAnalysisSummary.ValidChanges)
-                    {
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, ImmutableArray<string>.Empty);
-
-                        if (projectSummary == ProjectAnalysisSummary.CompilationErrors || projectSummary == ProjectAnalysisSummary.RudeEdits)
-                        {
-                            isBlocked = true;
-                        }
-
-                        continue;
-                    }
-
+                    // The capability of a module to apply edits may change during edit session if the user attaches debugger to 
+                    // an additional process that doesn't support EnC (or detaches from such process). Before we apply edits 
+                    // we need to check with the debugger.
                     var moduleDiagnostics = GetModuleDiagnostics(mvid, project.Name);
                     if (!moduleDiagnostics.IsEmpty)
                     {
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, moduleDiagnostics.SelectAsArray(d => d.Descriptor.Id));
+                        diagnostics.Add((project.Id, moduleDiagnostics));
                         isBlocked = true;
+                    }
+
+                    var projectSummary = await GetProjectAnalysisSymmaryAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
+                    if (projectSummary == ProjectAnalysisSummary.CompilationErrors || projectSummary == ProjectAnalysisSummary.RudeEdits)
+                    {
+                        isBlocked = true;
+                    }
+
+                    if (!moduleDiagnostics.IsEmpty || projectSummary != ProjectAnalysisSummary.ValidChanges)
+                    {
+                        Telemetry.LogProjectAnalysisSummary(projectSummary, moduleDiagnostics.SelectAsArray(d => d.Descriptor.Id));
                         continue;
                     }
 

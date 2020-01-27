@@ -3203,8 +3203,8 @@ class C
         [Fact]
         public void TestConcurrentAnalyzerActions()
         {
-            var first = new AnalyzerActions();
-            var second = new AnalyzerActions();
+            var first = AnalyzerActions.Empty;
+            var second = AnalyzerActions.Empty;
             first.EnableConcurrentExecution();
 
             Assert.True(first.Concurrent);
