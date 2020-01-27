@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
@@ -18,21 +21,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
     [Order(After = PredefinedDocumentOptionsProviderNames.EditorConfig)]
     internal sealed class InferredIndentationDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
-        private readonly IIndentationManagerService? _indentationManagerService;
+        private readonly IIndentationManagerService _indentationManagerService;
 
         [ImportingConstructor]
-        public InferredIndentationDocumentOptionsProviderFactory([Import(IIndentationManagerService.MefContractName, AllowDefault = true)] object indentationManagerService)
+        public InferredIndentationDocumentOptionsProviderFactory(IIndentationManagerService indentationManagerService)
         {
-            _indentationManagerService = IIndentationManagerService.FromDefaultImport(indentationManagerService);
+            _indentationManagerService = indentationManagerService;
         }
 
         public IDocumentOptionsProvider? TryCreate(Workspace workspace)
         {
-            if (_indentationManagerService == null)
-            {
-                return null;
-            }
-
             return new DocumentOptionsProvider(_indentationManagerService);
         }
 

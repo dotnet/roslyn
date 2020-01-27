@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -7,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
@@ -15,14 +18,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static async Task<DocumentOptionSet> GetDocumentOptionsWithInferredIndentationAsync(
             this Document document,
             bool explicitFormat,
-            IIndentationManagerService? indentationManagerService,
+            IIndentationManagerService indentationManagerService,
             CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
 
-            if (snapshot != null && indentationManagerService != null)
+            if (snapshot != null)
             {
                 indentationManagerService.GetIndentation(snapshot.TextBuffer, explicitFormat, out bool convertTabsToSpaces, out int tabSize, out int indentSize);
 

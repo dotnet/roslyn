@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -298,6 +300,22 @@ namespace Roslyn.Test.Utilities
             }
 
             return result.ToString();
+        }
+
+        public static unsafe MethodBodyBlock GetMethodBodyBlock(this ImmutableArray<byte> ilArray)
+        {
+            fixed (byte* ilPtr = ilArray.AsSpan())
+            {
+                int offset = 0;
+                // skip padding:
+                while (offset < ilArray.Length && ilArray[offset] == 0)
+                {
+                    offset++;
+                }
+
+                var reader = new BlobReader(ilPtr + offset, ilArray.Length - offset);
+                return MethodBodyBlock.Create(reader);
+            }
         }
 
         public static Dictionary<int, string> GetSequencePointMarkers(string pdbXml, string source = null)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -6,7 +8,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
@@ -155,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Return true if the given <paramref name="analyzer"/> is suppressed for the given project.
+        /// NOTE: This API is intended to be used only for performance optimization.
         /// </summary>
         public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
         {
@@ -172,14 +174,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            // don't capture project
-            var projectId = project.Id;
-
-            // Skip telemetry logging for supported diagnostics, as that can cause an infinite loop.
-            void onAnalyzerException(Exception ex, DiagnosticAnalyzer a, Diagnostic diagnostic) =>
-                    AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(a, diagnostic, _hostDiagnosticUpdateSource, projectId);
-
-            return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException);
+            // NOTE: Previously we used to return "CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(options)"
+            //       on this code path, which returns true if analyzer is suppressed through compilation options.
+            //       However, this check is no longer correct as analyzers can be enabled/disabled for individual
+            //       documents through .editorconfig files. So we pessimistically assume analyzer is not suppressed
+            //       and let the core analyzer driver in the compiler layer handle skipping redundant analysis callbacks.
+            return false;
         }
 
         /// <summary>

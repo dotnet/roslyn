@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -18,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public readonly Service Service;
             private readonly int _processId;
             private readonly SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
+            private readonly bool _joinOutputWritingThreadsOnDisposal;
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private InteractiveHost _host;              // nulled on dispose
@@ -31,10 +34,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                 Debug.Assert(process != null);
                 Debug.Assert(service != null);
 
+                Process = process;
+                Service = service;
+
                 _host = host;
-                this.Process = process;
+                _joinOutputWritingThreadsOnDisposal = host._joinOutputWritingThreadsOnDisposal;
                 _processId = processId;
-                this.Service = service;
                 _processExitHandlerStatus = ProcessExitHandlerStatus.Uninitialized;
 
                 // TODO (tomat): consider using single-thread async readers
@@ -140,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 InitiateTermination(Process, _processId);
 
-                if (_host._joinOutputWritingThreadsOnDisposal)
+                if (_joinOutputWritingThreadsOnDisposal)
                 {
                     try
                     {

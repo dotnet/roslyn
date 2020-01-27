@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -12,6 +14,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -78,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, IList<string> newNames)
+        public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, ImmutableArray<string> newNames)
         {
             if (method.TypeParameters.Select(t => t.Name).SequenceEqual(newNames))
             {
@@ -111,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IMethodSymbol RenameParameters(
-            this IMethodSymbol method, IList<string> parameterNames)
+            this IMethodSymbol method, ImmutableArray<string> parameterNames)
         {
             var parameterList = method.Parameters;
             if (parameterList.Select(p => p.Name).SequenceEqual(parameterNames))
@@ -136,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ImmutableArray<ITypeParameterSymbol> RenameTypeParameters(
             ImmutableArray<ITypeParameterSymbol> typeParameters,
-            IList<string> newNames,
+            ImmutableArray<string> newNames,
             ITypeGenerator typeGenerator)
         {
             // We generate the type parameter in two passes.  The first creates the new type
@@ -181,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // The method's type parameters may conflict with the type parameters in the type
             // we're generating into.  In that case, rename them.
             var parameterNames = NameGenerator.EnsureUniqueness(
-                method.Parameters.Select(p => p.Name).ToList(), isCaseSensitive: syntaxFacts.IsCaseSensitive);
+                method.Parameters.SelectAsArray(p => p.Name), isCaseSensitive: syntaxFacts.IsCaseSensitive);
 
             var outerTypeParameterNames =
                 containingType.GetAllTypeParameters()
@@ -193,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 syntaxFacts.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
 
             var newTypeParameterNames = NameGenerator.EnsureUniqueness(
-                method.TypeParameters.Select(tp => tp.Name).ToList(),
+                method.TypeParameters.SelectAsArray(tp => tp.Name),
                 n => !unusableNames.Contains(n));
 
             var updatedMethod = method.RenameTypeParameters(newTypeParameterNames);

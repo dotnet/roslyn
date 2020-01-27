@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -45,10 +47,7 @@ Friend Class NewClass
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1817952719
-        hashCode = (hashCode * -1521134295 + A.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + B.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (A, B).GetHashCode()
     End Function
 End Class
 "
@@ -158,10 +157,7 @@ Friend Class NewClass
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1817952719
-        hashCode = (hashCode * -1521134295 + A.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + B.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (A, B).GetHashCode()
     End Function
 End Class
 "
@@ -203,10 +199,7 @@ Friend Class NewClass
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1817952719
-        hashCode = (hashCode * -1521134295 + A.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + B.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (A, B).GetHashCode()
     End Function
 End Class
 "
@@ -258,10 +251,7 @@ Friend Class NewClass
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1817952719
-        hashCode = (hashCode * -1521134295 + A.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + B.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (A, B).GetHashCode()
     End Function
 End Class
 "
@@ -307,10 +297,7 @@ Friend Class NewClass
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1817952719
-        hashCode = (hashCode * -1521134295 + A.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + B.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (A, B).GetHashCode()
     End Function
 End Class
 "
@@ -356,10 +343,7 @@ Friend Class NewClass
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1817952719
-        hashCode = (hashCode * -1521134295 + A.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + B.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (A, B).GetHashCode()
     End Function
 End Class
 "
@@ -411,10 +395,7 @@ Friend Class NewClass
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1817952719
-        hashCode = (hashCode * -1521134295 + A.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + B.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (A, B).GetHashCode()
     End Function
 End Class
 "
@@ -469,10 +450,7 @@ Friend Class NewClass
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1817952719
-        hashCode = (hashCode * -1521134295 + A.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + EqualityComparer(Of Object).Default.GetHashCode(B)).GetHashCode()
-        Return hashCode
+        Return (A, B).GetHashCode()
     End Function
 End Class
 "
@@ -514,10 +492,7 @@ Friend Class NewClass
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1817952719
-        hashCode = (hashCode * -1521134295 + A.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + B.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (A, B).GetHashCode()
     End Function
 End Class
 "
@@ -559,10 +534,7 @@ Friend Class NewClass
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1817952719
-        hashCode = (hashCode * -1521134295 + A.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + B.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (A, B).GetHashCode()
     End Function
 End Class
 "
@@ -606,10 +578,7 @@ Friend Class NewClass(Of X As Structure, Y As {Class, New})
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1817952719
-        hashCode = (hashCode * -1521134295 + EqualityComparer(Of List(Of X)).Default.GetHashCode(A)).GetHashCode()
-        hashCode = (hashCode * -1521134295 + EqualityComparer(Of Y()).Default.GetHashCode(B)).GetHashCode()
-        Return hashCode
+        Return (A, B).GetHashCode()
     End Function
 End Class
 "
@@ -704,10 +673,7 @@ Friend Class NewClass1
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1817952719
-        hashCode = (hashCode * -1521134295 + A.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + B.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (A, B).GetHashCode()
     End Function
 End Class
 "
@@ -747,10 +713,7 @@ Friend Class NewClass
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1868285576
-        hashCode = (hashCode * -1521134295 + Me.A.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + Me.A.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (Me.A, Me.A).GetHashCode()
     End Function
 End Class
 "

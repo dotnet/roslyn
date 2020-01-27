@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -221,22 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var typeConstraintSyntax = (TypeConstraintSyntax)syntax;
                             var typeSyntax = typeConstraintSyntax.Type;
-                            var typeSyntaxKind = typeSyntax.Kind();
-
-                            // For pointer types, don't report this error. It is already reported during binding typeSyntax below.
-                            switch (typeSyntaxKind)
-                            {
-                                case SyntaxKind.PredefinedType:
-                                case SyntaxKind.PointerType:
-                                case SyntaxKind.NullableType:
-                                    break;
-                                default:
-                                    if (!SyntaxFacts.IsName(typeSyntax.Kind()))
-                                    {
-                                        diagnostics.Add(ErrorCode.ERR_BadConstraintType, typeSyntax.GetLocation());
-                                    }
-                                    break;
-                            }
 
                             var type = BindTypeOrConstraintKeyword(typeSyntax, diagnostics, out ConstraintContextualKeyword keyword);
 
@@ -402,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeWithAnnotations> constraintTypes,
             DiagnosticBag diagnostics)
         {
-            if (!IsValidConstraintType(syntax, type, diagnostics))
+            if (!isValidConstraintType(syntax, type, diagnostics))
             {
                 return false;
             }
@@ -460,89 +446,88 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
-        }
 
-        /// <summary>
-        /// Returns true if the type is a valid constraint type.
-        /// Otherwise returns false and generates a diagnostic.
-        /// </summary>
-        private static bool IsValidConstraintType(TypeConstraintSyntax syntax, TypeWithAnnotations typeWithAnnotations, DiagnosticBag diagnostics)
-        {
-            TypeSymbol type = typeWithAnnotations.Type;
-
-            switch (type.SpecialType)
+            // Returns true if the type is a valid constraint type.
+            // Otherwise returns false and generates a diagnostic.
+            static bool isValidConstraintType(TypeConstraintSyntax syntax, TypeWithAnnotations typeWithAnnotations, DiagnosticBag diagnostics)
             {
-                case SpecialType.System_Enum:
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureEnumGenericTypeConstraint, diagnostics);
-                    break;
+                TypeSymbol type = typeWithAnnotations.Type;
 
-                case SpecialType.System_Delegate:
-                case SpecialType.System_MulticastDelegate:
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureDelegateGenericTypeConstraint, diagnostics);
-                    break;
+                switch (type.SpecialType)
+                {
+                    case SpecialType.System_Enum:
+                        CheckFeatureAvailability(syntax, MessageID.IDS_FeatureEnumGenericTypeConstraint, diagnostics);
+                        break;
 
-                case SpecialType.System_Object:
-                case SpecialType.System_ValueType:
-                case SpecialType.System_Array:
-                    // "Constraint cannot be special class '{0}'"
-                    Error(diagnostics, ErrorCode.ERR_SpecialTypeAsBound, syntax, type);
-                    return false;
-            }
+                    case SpecialType.System_Delegate:
+                    case SpecialType.System_MulticastDelegate:
+                        CheckFeatureAvailability(syntax, MessageID.IDS_FeatureDelegateGenericTypeConstraint, diagnostics);
+                        break;
 
-            switch (type.TypeKind)
-            {
-                case TypeKind.Error:
-                case TypeKind.TypeParameter:
-                    return true;
-
-                case TypeKind.Interface:
-                    break;
-
-                case TypeKind.Dynamic:
-                    // "Constraint cannot be the dynamic type"
-                    Error(diagnostics, ErrorCode.ERR_DynamicTypeAsBound, syntax);
-                    return false;
-
-                case TypeKind.Class:
-                    if (type.IsSealed)
-                    {
-                        goto case TypeKind.Struct;
-                    }
-                    else if (type.IsStatic)
-                    {
-                        // "'{0}': static classes cannot be used as constraints"
-                        Error(diagnostics, ErrorCode.ERR_ConstraintIsStaticClass, syntax, type);
+                    case SpecialType.System_Object:
+                    case SpecialType.System_ValueType:
+                    case SpecialType.System_Array:
+                        // "Constraint cannot be special class '{0}'"
+                        Error(diagnostics, ErrorCode.ERR_SpecialTypeAsBound, syntax, type);
                         return false;
-                    }
-                    break;
+                }
 
-                case TypeKind.Delegate:
-                case TypeKind.Enum:
-                case TypeKind.Struct:
-                    // "'{0}' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter."
-                    Error(diagnostics, ErrorCode.ERR_BadBoundType, syntax, type);
+                switch (type.TypeKind)
+                {
+                    case TypeKind.Error:
+                    case TypeKind.TypeParameter:
+                        return true;
+
+                    case TypeKind.Interface:
+                        break;
+
+                    case TypeKind.Dynamic:
+                        // "Constraint cannot be the dynamic type"
+                        Error(diagnostics, ErrorCode.ERR_DynamicTypeAsBound, syntax);
+                        return false;
+
+                    case TypeKind.Class:
+                        if (type.IsSealed)
+                        {
+                            goto case TypeKind.Struct;
+                        }
+                        else if (type.IsStatic)
+                        {
+                            // "'{0}': static classes cannot be used as constraints"
+                            Error(diagnostics, ErrorCode.ERR_ConstraintIsStaticClass, syntax, type);
+                            return false;
+                        }
+                        break;
+
+                    case TypeKind.Delegate:
+                    case TypeKind.Enum:
+                    case TypeKind.Struct:
+                        // "'{0}' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter."
+                        Error(diagnostics, ErrorCode.ERR_BadBoundType, syntax, type);
+                        return false;
+
+                    case TypeKind.Array:
+                    case TypeKind.Pointer:
+                        // "Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter."
+                        Error(diagnostics, ErrorCode.ERR_BadConstraintType, syntax.GetLocation());
+                        return false;
+
+                    case TypeKind.Submission:
+                    // script class is synthesized, never used as a constraint
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
+                }
+
+                if (type.ContainsDynamic())
+                {
+                    // "Constraint cannot be a dynamic type '{0}'"
+                    Error(diagnostics, ErrorCode.ERR_ConstructedDynamicTypeAsBound, syntax, type);
                     return false;
+                }
 
-                case TypeKind.Array:
-                case TypeKind.Pointer:
-                    // CS0706 already reported by parser.
-                    return false;
-
-                case TypeKind.Submission:
-                // script class is synthesized, never used as a constraint
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
+                return true;
             }
-
-            if (type.ContainsDynamic())
-            {
-                // "Constraint cannot be a dynamic type '{0}'"
-                Error(diagnostics, ErrorCode.ERR_ConstructedDynamicTypeAsBound, syntax, type);
-                return false;
-            }
-
-            return true;
         }
     }
 }

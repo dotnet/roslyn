@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <param name="cancellationToken">A cancellation token.</param>
         public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
-            return semanticModel.GetSymbolInfo(token.Parent, cancellationToken);
+            return semanticModel.GetSymbolInfo(token.Parent!, cancellationToken);
         }
 
         public static TSymbol? GetEnclosingSymbol<TSymbol>(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (typeInfo.Type != null)
             {
-                return typeInfo.GetTypeWithFlowNullability()!;
+                return typeInfo.Type;
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
@@ -172,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                aliasSymbol = semanticModel.GetAliasInfo(token.Parent, cancellationToken);
+                aliasSymbol = semanticModel.GetAliasInfo(token.Parent!, cancellationToken);
                 var bindableParent = syntaxFacts.GetBindableParent(token);
                 var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
                 type = typeInfo.Type;
@@ -270,10 +272,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (child.IsNode)
                 {
-                    var childNode = child.AsNode();
+                    var childNode = child.AsNode()!;
                     if (ShouldDescendInto(childNode, descendInto))
                     {
-                        GetAllDeclaredSymbols(semanticModel, child.AsNode(), symbols, cancellationToken, descendInto);
+                        GetAllDeclaredSymbols(semanticModel, childNode, symbols, cancellationToken, descendInto);
                     }
                 }
             }

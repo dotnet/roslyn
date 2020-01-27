@@ -61,11 +61,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; items in cache.
+        /// </summary>
+        internal static string _0_items_in_cache {
+            get {
+                return ResourceManager.GetString("_0_items_in_cache", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Chosen version: &apos;{0}&apos;.
+        /// </summary>
+        internal static string Chosen_version_0 {
+            get {
+                return ResourceManager.GetString("Chosen_version_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Complete statement on ;.
         /// </summary>
         internal static string Complete_statement_on_semicolon {
             get {
                 return ResourceManager.GetString("Complete_statement_on_semicolon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find by name: &apos;{0}&apos;.
+        /// </summary>
+        internal static string Could_not_find_by_name_0 {
+            get {
+                return ResourceManager.GetString("Could_not_find_by_name_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Decompilation log.
+        /// </summary>
+        internal static string Decompilation_log {
+            get {
+                return ResourceManager.GetString("Decompilation_log", resourceCulture);
             }
         }
         
@@ -79,11 +115,83 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Found &apos;{0}&apos; assemblies for &apos;{1}&apos;:.
+        /// </summary>
+        internal static string Found_0_assemblies_for_1 {
+            get {
+                return ResourceManager.GetString("Found_0_assemblies_for_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Found exact match: &apos;{0}&apos;.
+        /// </summary>
+        internal static string Found_exact_match_0 {
+            get {
+                return ResourceManager.GetString("Found_exact_match_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Found higher version match: &apos;{0}&apos;.
+        /// </summary>
+        internal static string Found_higher_version_match_0 {
+            get {
+                return ResourceManager.GetString("Found_higher_version_match_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Found single assembly: &apos;{0}&apos;.
+        /// </summary>
+        internal static string Found_single_assembly_0 {
+            get {
+                return ResourceManager.GetString("Found_single_assembly_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Load from: &apos;{0}&apos;.
+        /// </summary>
+        internal static string Load_from_0 {
+            get {
+                return ResourceManager.GetString("Load_from_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Module not found!.
+        /// </summary>
+        internal static string Module_not_found {
+            get {
+                return ResourceManager.GetString("Module_not_found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to      (Press TAB to insert).
         /// </summary>
         internal static string Press_TAB_to_insert {
             get {
                 return ResourceManager.GetString("Press_TAB_to_insert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resolve: &apos;{0}&apos;.
+        /// </summary>
+        internal static string Resolve_0 {
+            get {
+                return ResourceManager.GetString("Resolve_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resolve module: &apos;{0}&apos; of &apos;{1}&apos;.
+        /// </summary>
+        internal static string Resolve_module_0_of_1 {
+            get {
+                return ResourceManager.GetString("Resolve_module_0_of_1", resourceCulture);
             }
         }
         
@@ -102,6 +210,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         internal static string Split_string {
             get {
                 return ResourceManager.GetString("Split_string", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WARN: Version mismatch. Expected: &apos;{0}&apos;, Got: &apos;{1}&apos;.
+        /// </summary>
+        internal static string WARN_Version_mismatch_Expected_0_Got_1 {
+            get {
+                return ResourceManager.GetString("WARN_Version_mismatch_Expected_0_Got_1", resourceCulture);
             }
         }
     }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
@@ -2992,9 +2994,7 @@ End Class</Code>.Value
 
             Dim description =
 $"<{VBFeaturesResources.Awaitable}> Function C.Goo() As Task
-Doc Comment!
-{WorkspacesResources.Usage_colon}
-  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Goo()"
+Doc Comment!"
 
             Await VerifyItemWithMscorlib45Async(code, "Goo", description, LanguageNames.VisualBasic)
         End Function
@@ -8115,6 +8115,72 @@ End Namespace
             Await VerifyItemExistsAsync(source, "Substring")
             Await VerifyItemExistsAsync(source, "A")
             Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter1() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub Test()
+        M(y:=Sub(x)
+                 x.$$
+          End Sub)
+    End Sub
+
+    Sub M(Optional x As Integer = 0, Optional y As Action(Of String) = Nothing)
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Length")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter2() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub Test()
+        M(z:=Sub(x)
+                 x.$$
+          End Sub)
+    End Sub
+
+    Sub M(x As Integer, y As Integer, z As Action(Of String))
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Length")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameterWithDifferentCasing() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub Test()
+        M(Z:=Sub(x)
+                 x.$$
+          End Sub)
+    End Sub
+
+    Sub M(x As Integer, y As Integer, z As Action(Of String))
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Length")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
