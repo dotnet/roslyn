@@ -8976,7 +8976,7 @@ public class C
 
         #region SkipLocalsInitAttribute
 
-        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src)
+        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpParseOptions parseOptions = null)
         {
             const string skipLocalsInitDef = @"
 namespace System.Runtime.CompilerServices
@@ -8986,7 +8986,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-            var comp = CreateCompilation(new[] { src, skipLocalsInitDef }, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(new[] { src, skipLocalsInitDef }, options: TestOptions.UnsafeReleaseDll, parseOptions: parseOptions);
             return CompileAndVerify(comp, verify: Verification.Fails);
         }
 
@@ -9414,80 +9414,395 @@ public class C
         }
 
         [Fact]
-        public void SkipLocalsInit_LocalFunctionAttribute()
+        public void SkipLocalsInit_LocalFunctionAttribute_01()
         {
             var source = @"
-namespace System.Runtime.CompilerServices
-{
-    public class SkipLocalsInitAttribute : System.Attribute
-    {
-    }
-}
+using System.Runtime.CompilerServices;
+using System;
 
 public class C
 {
     public void M()
     {
-        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
-        void F()
+        int w = 1;
+        w = w + w + w;
+
+        void localNoAttribute()
         {
-            int y = 1;
-            y = y + y + y;
+            int x = 1;
+            x = x + x + x;
 
-            void FF()
+            Action lambda = () =>
             {
-                int x = 2;
-                x = x + x + x;
-            }
+                int y = 1;
+                y = y + y + y;
 
-            System.Action FL = () =>
-            {
-                int x = 3;
-                x = x + x + x;
+                [SkipLocalsInitAttribute]
+                void localWithAttribute()
+                {
+                    int z = 1;
+                    z = z + z + z;
+                }
             };
         }
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            Assert.True(verifier.HasLocalsInit("C.M"));
+            Assert.True(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_0")); // localNoAttribute
+            Assert.True(verifier.HasLocalsInit("C.<>c.<M>b__0_1")); // lambda
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_2")); // localWithAttribute
+        }
 
-        System.Action L = () =>
+        [Fact]
+        public void SkipLocalsInit_LocalFunctionAttribute_02()
         {
-            int y = 4;
-            y = y + y + y;
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
 
-            void LF()
+public class C
+{
+    public void M()
+    {
+        int w = 1;
+        w = w + w + w;
+
+        void localNoAttribute()
+        {
+            int x = 1;
+            x = x + x + x;
+
+            [SkipLocalsInitAttribute]
+            void localWithAttribute()
             {
-                int x = 5;
-                x = x + x + x;
+                int y = 1;
+                y = y + y + y;
+
+                Action lambda = () =>
+                {
+                    int z = 1;
+                    z = z + z + z;
+                };
             }
+        }
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            Assert.True(verifier.HasLocalsInit("C.M"));
+            Assert.True(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_0")); // localNoAttribute
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_1")); // localWithAttribute
+            Assert.False(verifier.HasLocalsInit("C.<>c.<M>b__0_2")); // lambda
+        }
 
-            System.Action LL = () =>
+        [Fact]
+        public void SkipLocalsInit_LocalFunctionAttribute_03()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+public class C
+{
+    public void M()
+    {
+        int w = 1;
+        w = w + w + w;
+
+        [SkipLocalsInitAttribute]
+        void localWithAttribute()
+        {
+            int x = 1;
+            x = x + x + x;
+
+            void localNoAttribute()
             {
-                int x = 6;
-                x = x + x + x;
-            };
+                int y = 1;
+                y = y + y + y;
+
+                Action lambda = () =>
+                {
+                    int z = 1;
+                    z = z + z + z;
+                };
+            }
+        }
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            Assert.True(verifier.HasLocalsInit("C.M"));
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_0")); // localWithAttribute
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_1")); // localNoAttribute
+            Assert.False(verifier.HasLocalsInit("C.<>c.<M>b__0_2")); // lambda
+        }
+
+        [Fact]
+        public void SkipLocalsInit_LocalFunctionAttribute_04()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+public class C
+{
+    public void M()
+    {
+        int w = 1;
+        w = w + w + w;
+
+        Action lambda = () =>
+        {
+            int x = 1;
+            x = x + x + x;
+
+            void localNoAttribute()
+            {
+                int y = 1;
+                y = y + y + y;
+
+                [SkipLocalsInitAttribute]
+                void localWithAttribute()
+                {
+                    int z = 1;
+                    z = z + z + z;
+                }
+            }
         };
     }
 }
 ";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            Assert.True(verifier.HasLocalsInit("C.M"));
+            Assert.True(verifier.HasLocalsInit("C.<>c.<M>b__0_0")); // lambda
+            Assert.True(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_1")); // localNoAttribute
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_2")); // localWithAttribute
+        }
 
-            var comp = CompileAndVerify(
-                source,
-                options: TestOptions.UnsafeReleaseDll,
-                parseOptions: TestOptions.RegularPreview,
-                verify: Verification.Fails);
+        [Fact]
+        public void SkipLocalsInit_LocalFunctionAttribute_05()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
 
-            Assert.False(comp.HasLocalsInit("C.<M>g__F|0_0")); // F
-            Assert.False(comp.HasLocalsInit("C.<M>g__FF|0_2")); // FF
-            Assert.False(comp.HasLocalsInit("C.<>c.<M>b__0_3")); // FL
-            Assert.True(comp.HasLocalsInit("C.<>c.<M>b__0_1")); // L
-            Assert.True(comp.HasLocalsInit("C.<M>g__LF|0_4")); // LF
-            Assert.True(comp.HasLocalsInit("C.<>c.<M>b__0_5")); // LL
+public class C
+{
+    public void M()
+    {
+        int w = 1;
+        w = w + w + w;
+
+        Action lambda = () =>
+        {
+            int x = 1;
+            x = x + x + x;
+
+            [SkipLocalsInitAttribute]
+            void localWithAttribute()
+            {
+                int y = 1;
+                y = y + y + y;
+
+                void localNoAttribute()
+                {
+                    int z = 1;
+                    z = z + z + z;
+                }
+            }
+        };
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            Assert.True(verifier.HasLocalsInit("C.M"));
+            Assert.True(verifier.HasLocalsInit("C.<>c.<M>b__0_0")); // lambda
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_1")); // localWithAttribute
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_2")); // localNoAttribute
+        }
+
+        [Fact]
+        public void SkipLocalsInit_LocalFunctionAttribute_06()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+public class C
+{
+    public void M()
+    {
+        int w = 1;
+        w = w + w + w;
+
+        [SkipLocalsInitAttribute]
+        void localWithAttribute()
+        {
+            int x = 1;
+            x = x + x + x;
+
+            Action lambda = () =>
+            {
+                int y = 1;
+                y = y + y + y;
+
+                void localNoAttribute()
+                {
+                    int z = 1;
+                    z = z + z + z;
+                }
+            };
+        }
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.RegularPreview);
+            Assert.True(verifier.HasLocalsInit("C.M"));
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_0")); // localWithAttribute
+            Assert.False(verifier.HasLocalsInit("C.<>c.<M>b__0_1")); // lambda
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_2")); // localNoAttribute
+        }
+
+        [Fact]
+        public void SkipLocalsInit_PropertyAccessor_ContainsLocalFunction()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+public class C
+{
+    [SkipLocalsInit]
+    int PropWithAttribute
+    {
+        get
+        {
+            int w = 1;
+            w = w + w + w + w;
+
+            void local1()
+            {
+                int x = 1;
+                x = x + x + x + x;
+            }
+
+            return 0;
+        }
+    }
+
+    int PropNoAttribute
+    {
+        get
+        {
+            int w = 1;
+            w = w + w + w + w;
+
+            void local1()
+            {
+                int x = 1;
+                x = x + x + x + x;
+            }
+
+            return 0;
+        }
+    }
+}
+";
+
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source);
+            Assert.False(verifier.HasLocalsInit("C.PropWithAttribute.get"));
+            Assert.False(verifier.HasLocalsInit("C.<get_PropWithAttribute>g__local1|1_0"));
+            Assert.True(verifier.HasLocalsInit("C.PropNoAttribute.get"));
+            Assert.True(verifier.HasLocalsInit("C.<get_PropNoAttribute>g__local1|3_0"));
+        }
+
+        [Fact]
+        public void SkipLocalsInit_EventAccessor_ContainsLocalFunction()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+public class C
+{
+    [SkipLocalsInit]
+    event Action EventWithAttribute
+    {
+        add
+        {
+            int w = 1;
+            w = w + w + w + w;
+
+            void local1()
+            {
+                int x = 1;
+                x = x + x + x + x;
+            }
+        }
+        remove { }
+    }
+
+    event Action EventNoAttribute
+    {
+        add
+        {
+            int w = 1;
+            w = w + w + w + w;
+
+            void local1()
+            {
+                int x = 1;
+                x = x + x + x + x;
+            }
+        }
+        remove { }
+    }
+}
+";
+
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source);
+            Assert.False(verifier.HasLocalsInit("C.EventWithAttribute.add"));
+            Assert.False(verifier.HasLocalsInit("C.<add_EventWithAttribute>g__local1|1_0"));
+            Assert.True(verifier.HasLocalsInit("C.EventNoAttribute.add"));
+            Assert.True(verifier.HasLocalsInit("C.<add_EventNoAttribute>g__local1|4_0"));
+        }
+
+        [Fact]
+        public void SkipLocalsInit_Module_ContainsLocalFunction()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+[module: SkipLocalsInit]
+
+public class C
+{
+    void M()
+    {
+        var w = 1;
+        w = w + w + w;
+
+        void local()
+        {
+            var x = 1;
+            x = x + x + x;
+        }
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source);
+            Assert.False(verifier.HasLocalsInit("C.M"));
+            Assert.False(verifier.HasLocalsInit("C.<M>g__local|0_0"));
         }
 
         [Fact]
         public void SkipLocalsInit_BaseMethodWrapper()
         {
             var source = @"
-using System;
 using System.Runtime.CompilerServices;
+using System;
 
 namespace System.Runtime.CompilerServices
 {
@@ -10939,6 +11254,45 @@ class C
 }";
             var verifier = CompileAndVerifyWithSkipLocalsInit(src);
             Assert.False(verifier.HasLocalsInit("C..ctor"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitFieldInitializer()
+        {
+            var src = @"
+using System.Runtime.CompilerServices;
+
+[SkipLocalsInit]
+class ClassWithAttributeWithLocal
+{
+    int i = M(out string s);
+
+    static int M(out string s) { s = """"; return 42; }
+}
+
+class ClassNoAttributeWithLocal
+{
+    int i = M(out string s);
+
+    static int M(out string s) { s = """"; return 42; }
+}
+
+[SkipLocalsInit]
+class ClassWithAttributeNoLocal
+{
+    int i = 123;
+}
+
+class ClassNoAttributeNoLocal
+{
+    int i = 123;
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(src);
+            Assert.False(verifier.HasLocalsInit("ClassWithAttributeWithLocal..ctor"));
+            Assert.True(verifier.HasLocalsInit("ClassNoAttributeWithLocal..ctor"));
+            Assert.Null(verifier.HasLocalsInit("ClassWithAttributeNoLocal..ctor"));
+            Assert.Null(verifier.HasLocalsInit("ClassNoAttributeNoLocal..ctor"));
         }
 
         [Fact]
