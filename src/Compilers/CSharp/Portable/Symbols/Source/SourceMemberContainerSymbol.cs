@@ -2950,6 +2950,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     members.Add(property.BackingField);
                 }
             }
+
+            var objEquals = new SynthesizedRecordObjEquals(this);
+            if (!memberSignatures.Contains(objEquals))
+            {
+                // PROTOTYPE: Don't add if the overridden method is sealed
+                members.Add(objEquals);
+            }
+
+            var hashCode = new SynthesizedRecordGetHashCode(this);
+            if (!memberSignatures.Contains(hashCode))
+            {
+                // PROTOTYPE: Don't add if the overridden method is sealed
+                members.Add(hashCode);
+            }
+
+            var thisEquals = new SynthesizedRecordEquals(this);
+            if (!memberSignatures.Contains(thisEquals))
+            {
+                members.Add(thisEquals);
+            }
         }
 
         private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers, DiagnosticBag diagnostics)

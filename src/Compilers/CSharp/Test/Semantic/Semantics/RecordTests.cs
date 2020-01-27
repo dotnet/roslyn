@@ -232,5 +232,138 @@ data class C1(object O1)
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "O1").WithArguments("C1.O1").WithLocation(5, 33)
             );
         }
+
+        [Fact]
+        public void RecordEquals_01()
+        {
+            CompileAndVerify(@"
+using System;
+data class C(int X, int Y)
+{
+    public static void Main()
+    {
+        object c = new C(0, 0);
+        Console.WriteLine(c.Equals(c));
+    }
+    public bool Equals(C c) => throw null;
+    public override bool Equals(object o) => false;
+}", expectedOutput: "False");
+        }
+
+        [Fact]
+        public void RecordEquals_02()
+        {
+            CompileAndVerify(@"
+using System;
+data class C(int X, int Y)
+{
+    public static void Main()
+    {
+        object c = new C(1, 1);
+        var c2 = new C(1, 1);
+        Console.WriteLine(c.Equals(c));
+        Console.WriteLine(c.Equals(c2));
+    }
+}", expectedOutput: @"True
+True");
+        }
+
+        [Fact]
+        public void RecordEquals_03()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+data class C(int X, int Y)
+{
+    public static void Main()
+    {
+        object c = new C(0, 0);
+        var c2 = new C(0, 0);
+        var c3 = new C(1, 1);
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c.Equals(c3));
+    }
+    public bool Equals(C c) => X == c.X && Y == c.Y;
+}", expectedOutput: @"True
+False");
+            verifier.VerifyIL("C.Equals(object)", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""C""
+  IL_0007:  call       ""bool C.Equals(C)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("C.Equals(C)", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int C.X.get""
+  IL_0006:  ldarg.1
+  IL_0007:  callvirt   ""int C.X.get""
+  IL_000c:  bne.un.s   IL_001d
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""int C.Y.get""
+  IL_0014:  ldarg.1
+  IL_0015:  callvirt   ""int C.Y.get""
+  IL_001a:  ceq
+  IL_001c:  ret
+  IL_001d:  ldc.i4.0
+  IL_001e:  ret
+}");
+        }
+
+        [Fact]
+        public void RecordEquals_04()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+data class C(int X, int Y)
+{
+    public static void Main()
+    {
+        object c = new C(0, 0);
+        var c2 = new C(0, 0);
+        var c3 = new C(1, 1);
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c.Equals(c3));
+    }
+}", expectedOutput: @"True
+False");
+            verifier.VerifyIL("C.Equals(object)", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""C""
+  IL_0007:  call       ""bool C.Equals(C)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("C.Equals(C)", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  3
+  IL_0000:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0005:  ldarg.0
+  IL_0006:  ldfld      ""int C.<X>k__BackingField""
+  IL_000b:  ldarg.1
+  IL_000c:  ldfld      ""int C.<X>k__BackingField""
+  IL_0011:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0016:  brfalse.s  IL_002f
+  IL_0018:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001d:  ldarg.0
+  IL_001e:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0023:  ldarg.1
+  IL_0024:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0029:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_002e:  ret
+  IL_002f:  ldc.i4.0
+  IL_0030:  ret
+}");
+        }
     }
 }
