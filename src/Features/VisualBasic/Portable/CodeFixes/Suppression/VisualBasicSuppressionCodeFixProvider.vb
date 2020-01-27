@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
@@ -142,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Dim compilationRoot = DirectCast(newRoot, CompilationUnitSyntax)
             Dim isFirst = Not compilationRoot.Attributes.Any()
 
-            Dim attributeName = DirectCast(VisualBasicSyntaxGenerator.Instance.TypeExpression(suppressMessageAttribute, addImport:=True), NameSyntax)
+            Dim attributeName = DirectCast(suppressMessageAttribute.GenerateTypeSyntax(), NameSyntax).WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
             Dim attributeList = CreateAttributeList(targetSymbol, attributeName, diagnostic, isAssemblyAttribute:=True)
 
             Dim attributeStatement = SyntaxFactory.AttributesStatement(New SyntaxList(Of AttributeListSyntax)().Add(attributeList))
@@ -172,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
                 diagnostic As Diagnostic) As SyntaxNode
             Dim memberNode = DirectCast(targetNode, StatementSyntax)
 
-            Dim attributeName = DirectCast(VisualBasicSyntaxGenerator.Instance.TypeExpression(suppressMessageAttribute, addImport:=False), NameSyntax)
+            Dim attributeName = DirectCast(suppressMessageAttribute.GenerateTypeSyntax(), NameSyntax)
             Dim attributeList = CreateAttributeList(targetSymbol, attributeName, diagnostic, isAssemblyAttribute:=False)
             Dim leadingTrivia = memberNode.GetLeadingTrivia()
             memberNode = memberNode.WithoutLeadingTrivia()

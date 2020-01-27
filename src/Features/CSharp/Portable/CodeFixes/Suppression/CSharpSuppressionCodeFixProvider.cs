@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
@@ -101,8 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             var compilationRoot = (CompilationUnitSyntax)newRoot;
             var isFirst = !compilationRoot.AttributeLists.Any();
 
-            var attributeName = (NameSyntax)CSharpSyntaxGenerator.Instance.TypeExpression(
-                suppressMessageAttribute, addImport: true);
+            var attributeName = suppressMessageAttribute.GenerateNameSyntax()
+                                                        .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation);
 
             compilationRoot = compilationRoot.AddAttributeLists(
                 CreateAttributeList(
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
                 needsLeadingEndOfLine = true;
             }
 
-            var attributeName = (NameSyntax)CSharpSyntaxGenerator.Instance.TypeExpression(suppressMessageAttribute, addImport: false);
+            var attributeName = suppressMessageAttribute.GenerateNameSyntax();
             var attributeList = CreateAttributeList(
                 targetSymbol, attributeName, diagnostic, isAssemblyAttribute: false, leadingTrivia: leadingTriviaForAttributeList, needsLeadingEndOfLine: needsLeadingEndOfLine);
             return memberNode.AddAttributeLists(attributeList);
