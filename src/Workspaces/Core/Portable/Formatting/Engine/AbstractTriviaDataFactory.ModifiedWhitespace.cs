@@ -7,6 +7,10 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#endif
+
 namespace Microsoft.CodeAnalysis.Formatting
 {
     internal abstract partial class AbstractTriviaDataFactory
