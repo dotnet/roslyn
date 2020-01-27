@@ -59,9 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 for (var index = result.Count - 1; index >= 0; index--)
                 {
+                    // Every words-struct in result corresponds to one name that will be generated.
+                    // The first string inside the words-struct is the start of the name.
+                    // Names shouldn't start with a digit, so results with a digit as the first character of the first word are removed.
                     if (char.IsDigit(result[index][0], index: 0))
                     {
-                        // the first character of a name shouldn't be a digit
                         result.RemoveAt(index);
                     }
                 }
