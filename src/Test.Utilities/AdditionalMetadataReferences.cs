@@ -36,6 +36,9 @@ namespace Test.Utilities
         public static ReferenceAssemblies DefaultWithWinForms { get; } = Default
             .AddAssemblies(ImmutableArray.Create("System.Windows.Forms"));
 
+        public static ReferenceAssemblies DefaultWithoutCodeAnalysis { get; } = ReferenceAssemblies.Default
+            .AddAssemblies(ImmutableArray.Create("System.Xml.Data"));
+
         public static MetadataReference SystemCollectionsImmutableReference { get; } = MetadataReference.CreateFromFile(typeof(ImmutableHashSet<>).Assembly.Location);
         public static MetadataReference SystemComponentModelCompositionReference { get; } = MetadataReference.CreateFromFile(typeof(System.ComponentModel.Composition.ExportAttribute).Assembly.Location);
         public static MetadataReference SystemCompositionReference { get; } = MetadataReference.CreateFromFile(typeof(System.Composition.ExportAttribute).Assembly.Location);
