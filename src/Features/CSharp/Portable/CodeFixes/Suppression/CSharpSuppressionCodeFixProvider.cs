@@ -104,13 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             var attributeName = (NameSyntax)CSharpSyntaxGenerator.Instance.TypeExpression(
                 suppressMessageAttribute, addImport: true);
 
-            //var hasUsingDirective = addImportsService.HasExistingImport(compilation, compilationRoot, contextLocation: null, usingDirective);
-            //if (!hasUsingDirective && isFirst)
-            //{
-            //    compilationRoot = Format(compilationRoot.AddUsings(usingDirective));
-            //    hasUsingDirective = true;
-            //}
-
             compilationRoot = compilationRoot.AddAttributeLists(
                 CreateAttributeList(
                     targetSymbol,
@@ -124,11 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
                 compilationRoot = compilationRoot.WithLeadingTrivia(SyntaxFactory.Comment(GlobalSuppressionsFileHeaderComment));
 
             return compilationRoot;
-
-            //T Format<T>(T node) where T : SyntaxNode
-            //{
-            //    return (T)Formatter.Format(node, workspace, cancellationToken: cancellationToken);
-            //}
         }
 
         protected override SyntaxNode AddLocalSuppressMessageAttribute(
