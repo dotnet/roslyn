@@ -1142,6 +1142,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reverse &apos;for&apos; statement.
+        /// </summary>
+        internal static string Reverse_for_statement {
+            get {
+                return ResourceManager.GetString("Reverse_for_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to select clause.
         /// </summary>
         internal static string select_clause {

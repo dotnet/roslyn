@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -197,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             crefSymbols = default;
             position = CheckAndAdjustPosition(position);
             expression = SyntaxFactory.GetStandaloneExpression(expression);
-            binder = GetEnclosingBinder(position);
+            binder = GetSpeculativeBinder(position, expression, bindingOption);
             var boundRoot = binder.BindExpression(expression, BindingDiagnosticBag.Discarded);
             ImmutableDictionary<Symbol, Symbol> ignored = null;
             return (BoundExpression)NullableWalker.AnalyzeAndRewriteSpeculation(position, boundRoot, binder, GetSnapshotManager(), newSnapshots: out _, remappedSymbols: ref ignored);
@@ -695,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_lazyRemappedSymbols.TryGetValue(originalSymbol, out Symbol remappedSymbol))
             {
-                Debug.Assert(remappedSymbol is object);
+                RoslynDebug.Assert(remappedSymbol is object);
                 return (T)remappedSymbol;
             }
 

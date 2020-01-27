@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -1134,8 +1136,7 @@ namespace System.Runtime.CompilerServices
             UsesIsNullableVisitor.GetUses(builder, symbol);
 
             var format = SymbolDisplayFormat.TestFormat
-                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
-                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier)
                 .RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeName);
 
             var symbols = builder.SelectAsArray(s => s.ToDisplayString(format));
@@ -1571,9 +1572,9 @@ namespace System.Runtime.CompilerServices
 
         #region IL Validation
 
-        internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
+        internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
         {
-            return VisualizeRealIL((PEModuleSymbol)peModule.GetSymbol(), methodData, markers);
+            return VisualizeRealIL((PEModuleSymbol)peModule.GetSymbol(), methodData, markers, areLocalsZeroed);
         }
 
         /// <summary>
@@ -1586,7 +1587,7 @@ namespace System.Runtime.CompilerServices
         /// - winmd
         /// - global methods
         /// </remarks>
-        internal unsafe static string VisualizeRealIL(PEModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
+        internal unsafe static string VisualizeRealIL(PEModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
         {
             var typeName = GetContainingTypeMetadataName(methodData.Method);
             // TODO (tomat): global methods (typeName == null)
@@ -1627,7 +1628,7 @@ namespace System.Runtime.CompilerServices
 
             var visualizer = new Visualizer(new MetadataDecoder(peModule, peMethod));
 
-            visualizer.DumpMethod(sb, maxStack, ilBytes, localDefinitions, ehHandlerRegions, markers);
+            visualizer.DumpMethod(sb, maxStack, ilBytes, localDefinitions, ehHandlerRegions, markers, areLocalsZeroed);
 
             return sb.ToString();
         }

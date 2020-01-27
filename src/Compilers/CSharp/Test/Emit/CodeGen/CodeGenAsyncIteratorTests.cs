@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Reflection.Metadata;
@@ -1879,7 +1881,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "1 END DISPOSAL DONE");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39970
+        [Fact]
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         [WorkItem(39970, "https://github.com/dotnet/roslyn/issues/39970")]
         public void AsyncIterator_WithoutAwait_WithoutAsync()

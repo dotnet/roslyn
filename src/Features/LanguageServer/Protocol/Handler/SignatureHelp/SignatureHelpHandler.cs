@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<LSP.SignatureHelp> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false)
+            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
             if (document == null)
@@ -36,14 +38,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return new LSP.SignatureHelp();
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var providers = _allProviders.Where(p => p.Metadata.Language == document.Project.Language);
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
 
             foreach (var provider in providers)
             {
-                var items = await provider.Value.GetItemsAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(keepThreadContext);
+                var items = await provider.Value.GetItemsAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
 
                 if (items != null)
                 {

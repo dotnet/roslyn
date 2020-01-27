@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -6260,7 +6262,7 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.PropertyDeclaration);
                     {
@@ -6268,7 +6270,7 @@ class C
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "A");
                         N(SyntaxKind.AccessorList);
                         {
                             N(SyntaxKind.OpenBraceToken);
@@ -6284,17 +6286,21 @@ class C
                                         N(SyntaxKind.SimpleMemberAccessExpression);
                                         {
                                             N(SyntaxKind.ThisExpression);
-                                            N(SyntaxKind.ThisKeyword);
+                                            {
+                                                N(SyntaxKind.ThisKeyword);
+                                            }
                                             N(SyntaxKind.DotToken);
-                                            N(SyntaxKind.IdentifierName);
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
                                         }
-                                        N(SyntaxKind.SemicolonToken);
+                                        M(SyntaxKind.SemicolonToken);
                                     }
-                                    N(SyntaxKind.CloseBraceToken);
+                                    M(SyntaxKind.CloseBraceToken);
                                 }
                             }
-                            N(SyntaxKind.CloseBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
                         }
                     }
                     N(SyntaxKind.FieldDeclaration);
@@ -6308,7 +6314,7 @@ class C
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "B");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -6317,6 +6323,7 @@ class C
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]

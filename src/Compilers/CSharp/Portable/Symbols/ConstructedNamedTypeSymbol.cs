@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -31,6 +34,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return this; }
         }
+
+        public override sealed bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 
     /// <summary>
@@ -41,17 +54,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeWithAnnotations> _typeArgumentsWithAnnotations;
         private readonly NamedTypeSymbol _constructedFrom;
 
-        internal ConstructedNamedTypeSymbol(NamedTypeSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, bool unbound = false)
+        internal ConstructedNamedTypeSymbol(NamedTypeSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, bool unbound = false, TupleExtraData tupleData = null)
             : base(newContainer: constructedFrom.ContainingSymbol,
                    map: new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArgumentsWithAnnotations),
                    originalDefinition: constructedFrom.OriginalDefinition,
-                   constructedFrom: constructedFrom, unbound: unbound)
+                   constructedFrom: constructedFrom, unbound: unbound, tupleData: tupleData)
         {
             _typeArgumentsWithAnnotations = typeArgumentsWithAnnotations;
             _constructedFrom = constructedFrom;
 
             Debug.Assert(constructedFrom.Arity == typeArgumentsWithAnnotations.Length);
             Debug.Assert(constructedFrom.Arity != 0);
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            return new ConstructedNamedTypeSymbol(_constructedFrom, _typeArgumentsWithAnnotations, IsUnboundGenericType, tupleData: newData);
         }
 
         public override NamedTypeSymbol ConstructedFrom
@@ -105,6 +123,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        public override sealed bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
         }
     }
 }

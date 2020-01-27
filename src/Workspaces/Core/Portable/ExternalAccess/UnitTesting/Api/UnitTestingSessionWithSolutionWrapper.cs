@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,10 +18,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             => UnderlyingObject = underlyingObject;
 
         public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => UnderlyingObject?.InvokeAsync(targetName, arguments, cancellationToken) ?? Task.CompletedTask;
+            => UnderlyingObject?.Connection.InvokeAsync(targetName, arguments, cancellationToken) ?? Task.CompletedTask;
 
         public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => UnderlyingObject?.InvokeAsync<T>(targetName, arguments, cancellationToken);
+            => UnderlyingObject?.Connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
 
         public void Dispose()
             => UnderlyingObject?.Dispose();

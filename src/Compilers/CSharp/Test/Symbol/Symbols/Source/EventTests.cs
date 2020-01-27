@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -2457,6 +2459,24 @@ namespace ConsoleApplication3
                 //             base.MyEvent += Goo; // error
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent += Goo").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(20, 13)
                 );
+        }
+
+        [Fact, WorkItem(40092, "https://github.com/dotnet/roslyn/issues/40092")]
+        public void ExternEventInitializer()
+        {
+            var text = @"
+delegate void D();
+
+class Test
+{
+#pragma warning disable 414 // The field '{0}' is assigned but its value is never used
+    public extern event D e = null; // 1
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (7,27): error CS8760: 'Test.e': extern event cannot have initializer
+                //     public extern event D e = null; // 1
+                Diagnostic(ErrorCode.ERR_ExternEventInitializer, "e").WithArguments("Test.e").WithLocation(7, 27));
         }
 
         #endregion

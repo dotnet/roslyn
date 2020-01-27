@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -31,9 +34,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly SelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
 
+            protected readonly OptionSet Options;
             protected readonly bool LocalFunction;
 
-            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, bool localFunction = false)
+            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, OptionSet options = null, bool localFunction = false)
             {
                 Contract.ThrowIfFalse(insertionPoint.SemanticDocument == analyzerResult.SemanticDocument);
 
@@ -43,6 +47,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 SelectionResult = selectionResult;
                 AnalyzerResult = analyzerResult;
 
+                Options = options;
                 LocalFunction = localFunction;
 
                 MethodNameAnnotation = new SyntaxAnnotation();
@@ -58,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
-            protected abstract SyntaxToken CreateMethodName(bool localFunction);
+            protected abstract SyntaxToken CreateMethodName();
             protected abstract bool LastStatementOrHasReturnStatementInReturnableConstruct();
 
             protected abstract TNodeUnderContainer GetFirstStatementOrInitializerSelectedAtCallSite();
@@ -91,7 +96,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     destination = InsertionPoint.With(callSiteDocument).GetContext();
                     var localMethod = codeGenerationService.CreateMethodDeclaration(
                         method: result.Data,
-                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, parseOptions: destination?.SyntaxTree.Options));
+                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: this.Options, parseOptions: destination?.SyntaxTree.Options));
                     newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, cancellationToken: cancellationToken);
                 }
                 else
@@ -102,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     destination = previousMemberNode.Parent ?? previousMemberNode;
                     newContainer = codeGenerationService.AddMethod(
                         destination, result.Data,
-                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true),
+                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true, options: this.Options),
                         cancellationToken);
                 }
 

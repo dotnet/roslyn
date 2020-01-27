@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -232,6 +234,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         securityData.SetPathForPermissionSetAttributeFixup(arguments.Index, resolvedPathForFixup, arguments.AttributesCount);
                     }
                 }
+            }
+        }
+
+        internal void DecodeSkipLocalsInitAttribute<T>(CSharpCompilation compilation, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+            where T : WellKnownAttributeData, ISkipLocalsInitAttributeTarget, new()
+        {
+            arguments.GetOrCreateData<T>().HasSkipLocalsInitAttribute = true;
+            if (!compilation.Options.AllowUnsafe)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_IllegalUnsafe, arguments.AttributeSyntaxOpt.Location);
             }
         }
 
@@ -665,6 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return true;
         }
+
     }
 
     internal static class AttributeDataExtensions

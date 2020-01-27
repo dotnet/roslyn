@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -5945,9 +5947,9 @@ namespace System
 }
 ";
             CreateCompilation(text).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify(
-                // (6,41): error CS0553: 'ValueTuple<T1, T2>.explicit operator ValueType((T1, T2))': user-defined conversions to or from a base class are not allowed
-                //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
-                Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("System.ValueTuple<T1, T2>.explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
+                    // (6,41): error CS0553: '(T1, T2).explicit operator ValueType((T1, T2))': user-defined conversions to or from a base class are not allowed
+                    //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
+                    Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("(T1, T2).explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
         }
 
         [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
@@ -7237,7 +7239,7 @@ public class RubyTime
             Assert.Null(symbol2);
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39975
+        [Fact]
         [WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void CheckedUnaryIntrinsicSymbols()
         {
@@ -7457,7 +7459,7 @@ class Module1
             Assert.Equal(n, nodes.Length);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))] // The used assemblies test hook is blocked by https://github.com/dotnet/roslyn/issues/39975
+        [ConditionalFact(typeof(NoIOperationValidation))]
         [WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void BinaryIntrinsicSymbols2()
         {

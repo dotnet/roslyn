@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyType == null)
             {
-                var type = _containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.GetFieldType(fieldsBeingBound));
+                var type = _containingType.TypeSubstitution.SubstituteType(OriginalDefinition.GetFieldType(fieldsBeingBound));
                 Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
             }
 
@@ -52,6 +54,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _underlyingField;
+            }
+        }
+
+        public override bool IsImplicitlyDeclared
+        {
+            get
+            {
+                if (this.ContainingType.IsTupleType && this.IsDefaultTupleElement)
+                {
+                    // To improve backwards compatibility with earlier implementation of tuples,
+                    // we pretend that default tuple element fields are implicitly declared, despite having locations
+                    return true;
+                }
+
+                return base.IsImplicitlyDeclared;
             }
         }
 

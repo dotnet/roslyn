@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -3024,7 +3026,7 @@ public class C
 {
   // Code size       70 (0x46)
   .maxstack  2
-  .locals init ((int, (bool, double))[] V_0,
+  .locals init (System.ValueTuple<int, System.ValueTuple<bool, double>>[] V_0,
                 int V_1,
                 int V_2, //c
                 bool V_3, //d
@@ -3035,7 +3037,7 @@ public class C
   // sequence point: foreach
   IL_0001:  nop
   // sequence point: F()
-  IL_0002:  call       ""(int, (bool, double))[] C.F()""
+  IL_0002:  call       ""System.ValueTuple<int, System.ValueTuple<bool, double>>[] C.F()""
   IL_0007:  stloc.0
   IL_0008:  ldc.i4.0
   IL_0009:  stloc.1
@@ -3044,11 +3046,11 @@ public class C
   // sequence point: var (c, (d, e))
   IL_000c:  ldloc.0
   IL_000d:  ldloc.1
-  IL_000e:  ldelem     ""System.ValueTuple<int, (bool, double)>""
+  IL_000e:  ldelem     ""System.ValueTuple<int, System.ValueTuple<bool, double>>""
   IL_0013:  dup
-  IL_0014:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
+  IL_0014:  ldfld      ""System.ValueTuple<bool, double> System.ValueTuple<int, System.ValueTuple<bool, double>>.Item2""
   IL_0019:  stloc.s    V_5
-  IL_001b:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_001b:  ldfld      ""int System.ValueTuple<int, System.ValueTuple<bool, double>>.Item1""
   IL_0020:  stloc.2
   IL_0021:  ldloc.s    V_5
   IL_0023:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
@@ -9330,7 +9332,7 @@ public class C
                 System.ValueTuple<object, object> V_5,
                 int V_6)
   IL_0000:  nop
-  IL_0001:  call       ""(object, object) C.G()""
+  IL_0001:  call       ""System.ValueTuple<object, object> C.G()""
   IL_0006:  stloc.s    V_5
   IL_0008:  ldloc.s    V_5
   IL_000a:  stloc.0
@@ -9478,7 +9480,7 @@ public class C
   // sequence point: {
   IL_0000:  nop
   // sequence point: (x, y) = F();
-  IL_0001:  call       ""(int, int) C.F()""
+  IL_0001:  call       ""System.ValueTuple<int, int> C.F()""
   IL_0006:  dup
   IL_0007:  ldfld      ""int System.ValueTuple<int, int>.Item1""
   IL_000c:  stloc.0

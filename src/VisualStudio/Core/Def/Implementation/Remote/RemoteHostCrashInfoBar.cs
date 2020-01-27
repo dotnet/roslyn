@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -52,15 +54,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }, closeAfterAction: true));
             }
 
+            var errorReportingService = workspace.Services.GetRequiredService<IErrorReportingService>();
+
             if (exception != null)
             {
-                var errorReportingService = workspace.Services.GetService<IErrorReportingService>();
                 infoBarUIs.Add(
                     new InfoBarUI(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.HyperLink, () =>
                         errorReportingService.ShowDetailedErrorInfo(exception), closeAfterAction: true));
             }
 
-            workspace.Services.GetService<IErrorReportingService>().ShowGlobalErrorInfo(
+            errorReportingService.ShowGlobalErrorInfo(
                 ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio,
                 infoBarUIs.ToArray());
         }
