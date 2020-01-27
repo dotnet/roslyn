@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -11,15 +15,26 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
-    internal partial class InvocationExpressionSignatureHelpProvider
+    internal partial class InvocationExpressionSignatureHelpProviderBase
     {
-        private (IList<SignatureHelpItem>, int?) GetMethodGroupItemsAndSelection(
+        internal virtual Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
+            ImmutableArray<IMethodSymbol> accessibleMethods,
             Document document,
+            InvocationExpressionSyntax invocationExpression,
+            SemanticModel semanticModel,
+            SymbolInfo currentSymbol,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(
+                (accessibleMethods.SelectAsArray(m => ConvertMethodGroupMethod(document, m, invocationExpression.SpanStart, semanticModel, cancellationToken)),
+                 TryGetSelectedIndex(accessibleMethods, currentSymbol)));
+        }
+
+        private ImmutableArray<IMethodSymbol> GetAccessibleMethods(
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
             ISymbol within,
             IEnumerable<IMethodSymbol> methodGroup,
-            SymbolInfo currentSymbol,
             CancellationToken cancellationToken)
         {
             ITypeSymbol throughType = null;
@@ -58,15 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var accessibleMethods = methodGroup.Where(m => m.IsAccessibleWithin(within, throughType: throughType)).ToImmutableArrayOrEmpty();
             if (accessibleMethods.Length == 0)
             {
-                return default;
+                return accessibleMethods;
             }
 
             var methodSet = accessibleMethods.ToSet();
-            accessibleMethods = accessibleMethods.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToImmutableArrayOrEmpty();
-
-            return (accessibleMethods.Select(m =>
-                ConvertMethodGroupMethod(document, m, invocationExpression.SpanStart, semanticModel, cancellationToken)).ToList(),
-                TryGetSelectedIndex(accessibleMethods, currentSymbol));
+            return accessibleMethods.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToImmutableArrayOrEmpty();
         }
 
         private bool IsHiddenByOtherMethod(IMethodSymbol method, ISet<IMethodSymbol> methodSet)

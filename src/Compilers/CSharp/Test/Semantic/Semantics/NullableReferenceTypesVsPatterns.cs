@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,6 +15,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         private CSharpCompilation CreateNullableCompilation(string source)
         {
             return CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+        }
+
+        [Fact]
+        public void VarPatternInfersNullableType()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+public class C
+{
+    public string Field = null!;
+    void M1()
+    {
+        if (this is { Field: var s })
+        {
+            s.ToString();
+            s = null;
+        }
+    }
+
+    void M2()
+    {
+        if (this is (var s) _)
+        {
+            s.ToString();
+            s = null;
+        }
+    }
+    void Deconstruct(out string s) => throw null!;
+}
+");
+
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -257,6 +290,7 @@ class C
         {
             x.ToString(); // warn 1
             c /*T:object?*/ .ToString(); // warn 2
+            c = null;
         }
         else
         {
@@ -326,6 +360,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
         public void ConditionalBranching_IsVarDeclarationPattern_AlreadyTestedAsNonNull()
         {
             CSharpCompilation c = CreateNullableCompilation(@"
@@ -338,7 +373,7 @@ class C
             if (x is var c)
             {
                 c /*T:object!*/ .ToString();
-                c = null; // 1
+                c = null;
             }
         }
     }
@@ -349,20 +384,14 @@ class C
             if (x is var c)
             {
                 c /*T:object!*/ .ToString();
-                c = null; // 2
+                c = null;
             }
         }
     }
 }
 ");
             c.VerifyTypes();
-            c.VerifyDiagnostics(
-                // (11,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //                 c = null; // 1
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 21),
-                // (22,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //                 c = null; // 2
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(22, 21));
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1404,6 +1433,7 @@ public class C
         }
 
         [Fact, WorkItem(33499, "https://github.com/dotnet/roslyn/issues/33499")]
+        [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
         public void PatternVariablesAreNotOblivious_33499()
         {
             var source = @"
@@ -1419,7 +1449,8 @@ class Test
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         s = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 13));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 13)
+                );
         }
 
         [Fact]

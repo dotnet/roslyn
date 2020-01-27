@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -91,18 +93,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _ = Task.Run(() => debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(documentId, debuggingSession.CancellationToken));
             }
         }
-
-        /// <summary>
-        /// Invoked whenever a module instance is loaded to a process being debugged.
-        /// </summary>
-        public void OnManagedModuleInstanceLoaded(Guid mvid)
-            => _editSession?.ModuleInstanceLoadedOrUnloaded(mvid);
-
-        /// <summary>
-        /// Invoked whenever a module instance is unloaded from a process being debugged.
-        /// </summary>
-        public void OnManagedModuleInstanceUnloaded(Guid mvid)
-            => _editSession?.ModuleInstanceLoadedOrUnloaded(mvid);
 
         public void StartDebuggingSession()
         {
@@ -237,33 +227,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // is about to be updated, so that it can start initializing it for EnC update, reducing the amount of time applying
                     // the change blocks the UI when the user "continues".
                     debuggingSession.PrepareModuleForUpdate(mvid);
-
-                    // Check if EnC is allowed for all loaded modules corresponding to the project.
-                    var moduleDiagnostics = editSession.GetModuleDiagnostics(mvid, project.Name);
-
-                    if (!moduleDiagnostics.IsEmpty)
-                    {
-                        // track the document, so that we can refresh or clean diagnostics at the end of edit session:
-                        editSession.TrackDocumentWithReportedDiagnostics(document.Id);
-
-                        var newSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                        Contract.ThrowIfNull(newSyntaxTree);
-
-                        var changedSpans = await GetChangedSpansAsync(oldDocument, newSyntaxTree, cancellationToken).ConfigureAwait(false);
-
-                        var diagnosticsBuilder = ArrayBuilder<Diagnostic>.GetInstance();
-                        foreach (var span in changedSpans)
-                        {
-                            var location = Location.Create(newSyntaxTree, span);
-
-                            foreach (var diagnostic in moduleDiagnostics)
-                            {
-                                diagnosticsBuilder.Add(diagnostic.ToDiagnostic(location));
-                            }
-                        }
-
-                        return diagnosticsBuilder.ToImmutableAndFree();
-                    }
                 }
 
                 if (analysis.RudeEditErrors.IsEmpty)
