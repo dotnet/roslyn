@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 #pragma warning disable CS3001 // Some types from Roslyn are not CLS-Compliant
@@ -179,6 +180,20 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         }
 
         /// <summary>
+        /// Computes <see cref="CodeAnalysisMetricData"/> for the given <paramref name="compilation"/>.
+        /// </summary>
+        [Obsolete("Use ComputeAsync(CodeMetricsAnalysisContext) instead.")]
+        public static Task<CodeAnalysisMetricData> ComputeAsync(Compilation compilation, CancellationToken cancellationToken)
+        {
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
+
+            return ComputeAsync(compilation.Assembly, new CodeMetricsAnalysisContext(compilation, cancellationToken));
+        }
+
+        /// <summary>
         /// Computes <see cref="CodeAnalysisMetricData"/> for the given <paramref name="context"/>.
         /// </summary>
         public static Task<CodeAnalysisMetricData> ComputeAsync(CodeMetricsAnalysisContext context)
@@ -189,6 +204,25 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
 
             return ComputeAsync(context.Compilation.Assembly, context);
+        }
+
+        /// <summary>
+        /// Computes <see cref="CodeAnalysisMetricData"/> for the given <paramref name="symbol"/> from the given <paramref name="compilation"/>.
+        /// </summary>
+        [Obsolete("Use ComputeAsync(ISymbol, CodeMetricsAnalysisContext) instead.")]
+        public static Task<CodeAnalysisMetricData> ComputeAsync(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
+        {
+            if (symbol == null)
+            {
+                throw new ArgumentNullException(nameof(symbol));
+            }
+
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
+
+            return ComputeAsync(symbol, new CodeMetricsAnalysisContext(compilation, cancellationToken));
         }
 
         /// <summary>
