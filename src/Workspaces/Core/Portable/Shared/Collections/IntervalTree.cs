@@ -9,16 +9,16 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     internal static class IntervalTree
     {
-        public static IntervalTree<T, TIntrospector> Create<T, TIntrospector>(in TIntrospector introspector, params T[] values)
+        public static IntervalTree<T> Create<T, TIntrospector>(in TIntrospector introspector, params T[] values)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
             return Create(in introspector, (IEnumerable<T>)values);
         }
 
-        public static IntervalTree<T, TIntrospector> Create<T, TIntrospector>(in TIntrospector introspector, IEnumerable<T> values = null)
+        public static IntervalTree<T> Create<T, TIntrospector>(in TIntrospector introspector, IEnumerable<T> values = null)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
-            return new IntervalTree<T, TIntrospector>(in introspector, values ?? SpecializedCollections.EmptyEnumerable<T>());
+            return IntervalTree<T>.Create(in introspector, values ?? SpecializedCollections.EmptyEnumerable<T>());
         }
     }
 }

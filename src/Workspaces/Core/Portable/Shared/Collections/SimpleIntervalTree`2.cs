@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
-    internal class SimpleIntervalTree<T, TIntrospector> : IntervalTree<T, TIntrospector>
+    internal class SimpleIntervalTree<T, TIntrospector> : IntervalTree<T>
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         private readonly TIntrospector _introspector;

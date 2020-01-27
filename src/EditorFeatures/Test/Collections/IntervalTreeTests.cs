@@ -277,15 +277,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        private IntervalTree<int, Int32Introspector> CreateIntTree(params int[] values)
+        private IntervalTree<int> CreateIntTree(params int[] values)
         {
-            return new IntervalTree<int, Int32Introspector>(new Int32Introspector(), values);
+            return IntervalTree<int>.Create(new Int32Introspector(), values);
         }
 
         [Fact]
         public void TestSortedEnumerable1()
         {
-            var tree = new IntervalTree<int, Int32Introspector>(new Int32Introspector(), new[] { 0, 0, 0 });
+            var tree = IntervalTree<int>.Create(new Int32Introspector(), new[] { 0, 0, 0 });
 
             Assert.Equal(CreateIntTree(0, 0, 0), new[] { 0, 0, 0 });
             Assert.Equal(CreateIntTree(0, 0, 1), new[] { 0, 0, 1 });
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
         [Fact]
         public void TestSortedEnumerable2()
         {
-            var tree = new IntervalTree<int, Int32Introspector>(new Int32Introspector(), new[] { 1, 0 });
+            var tree = IntervalTree<int>.Create(new Int32Introspector(), new[] { 1, 0 });
 
             Assert.Equal(tree, new[] { 0, 1 });
         }

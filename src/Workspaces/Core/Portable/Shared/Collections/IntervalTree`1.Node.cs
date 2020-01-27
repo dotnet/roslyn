@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
-    internal partial class IntervalTree<T, TIntrospector>
+    internal partial class IntervalTree<T>
     {
         protected class Node
         {
@@ -26,14 +26,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 this.MaxEndNode = this;
             }
 
-            internal Node(in TIntrospector introspector, T value, Node left, Node right)
-            {
-                this.Value = value;
-
-                SetLeftRight(left, right, in introspector);
-            }
-
-            internal void SetLeftRight(Node left, Node right, in TIntrospector introspector)
+            internal void SetLeftRight<TIntrospector>(Node left, Node right, in TIntrospector introspector)
+                where TIntrospector : struct, IIntervalIntrospector<T>
             {
                 this.Left = left;
                 this.Right = right;
@@ -72,7 +66,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             //   3   c        a   b   c   d
             //  / \
             // a   b
-            internal Node RightRotation(in TIntrospector introspector)
+            internal Node RightRotation<TIntrospector>(in TIntrospector introspector)
+                where TIntrospector : struct, IIntervalIntrospector<T>
             {
                 var oldLeft = this.Left;
                 this.SetLeftRight(this.Left.Right, this.Right, in introspector);
@@ -89,7 +84,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             //   b   3        a   b   c   d
             //      / \
             //     c   d
-            internal Node LeftRotation(in TIntrospector introspector)
+            internal Node LeftRotation<TIntrospector>(in TIntrospector introspector)
+                where TIntrospector : struct, IIntervalIntrospector<T>
             {
                 var oldRight = this.Right;
                 this.SetLeftRight(this.Left, this.Right.Left, in introspector);
@@ -105,7 +101,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             //   3   d        b   2        a   b   c   d
             //  / \              / \
             // b   c            c   d
-            internal Node InnerRightOuterLeftRotation(in TIntrospector introspector)
+            internal Node InnerRightOuterLeftRotation<TIntrospector>(in TIntrospector introspector)
+                where TIntrospector : struct, IIntervalIntrospector<T>
             {
                 var newTop = this.Right.Left;
                 var oldRight = this.Right;
@@ -125,7 +122,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             // a   3          2   c        a   b   c   d
             //    / \        / \
             //   b   c      a   b
-            internal Node InnerLeftOuterRightRotation(in TIntrospector introspector)
+            internal Node InnerLeftOuterRightRotation<TIntrospector>(in TIntrospector introspector)
+                where TIntrospector : struct, IIntervalIntrospector<T>
             {
                 var newTop = this.Left.Right;
                 var oldLeft = this.Left;
