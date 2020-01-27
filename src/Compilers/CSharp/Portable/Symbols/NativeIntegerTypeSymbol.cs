@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol
     {
-        internal NativeIntegerTypeSymbol(NamedTypeSymbol underlying) : base(underlying)
+        internal NativeIntegerTypeSymbol(NamedTypeSymbol underlying) : base(underlying, tupleData: null)
         {
             Debug.Assert(!underlying.IsNativeInt);
             Debug.Assert(underlying.SpecialType == SpecialType.System_IntPtr || underlying.SpecialType == SpecialType.System_UIntPtr);
@@ -59,6 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit() => throw ExceptionUtilities.Unreachable;
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null) => _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData) => throw ExceptionUtilities.Unreachable;
+
+        public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
 
         internal override bool IsNativeInt => true;
 

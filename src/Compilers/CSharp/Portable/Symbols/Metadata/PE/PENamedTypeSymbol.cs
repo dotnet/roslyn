@@ -2318,19 +2318,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
                 => throw ExceptionUtilities.Unreachable;
 
-            // PROTOTYPE: Temporary approach for AsNativeInt().
-            private PENamedTypeSymbolNonGeneric(PENamedTypeSymbolNonGeneric other, bool isNativeInt) :
-                base(other)
-            {
-                Debug.Assert(isNativeInt != other.IsNativeInt);
-
-                _underlying = other;
-                IsNativeInt = isNativeInt;
-
-                Debug.Assert(this.Equals(other));
-                Debug.Assert(other.Equals(this));
-            }
-
             public override int Arity
             {
                 get

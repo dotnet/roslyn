@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Roslyn.Utilities;
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly string _namespaceName;
             private readonly ModuleSymbol _containingModule;
             private readonly bool _isNativeInt;
-            private DiagnosticInfo _lazyErrorInfo;
+            private DiagnosticInfo? _lazyErrorInfo;
             private NamespaceSymbol? _lazyContainingNamespace;
 
             /// <summary>
@@ -135,31 +137,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private int _lazyTypeId;
 
             public TopLevel(ModuleSymbol module, string @namespace, string name, int arity, bool mangleName)
-                : this(module, @namespace, name, arity, mangleName, errorInfo: null, isNativeInt: false, containingNamespace: null, typeId: -1)
+                : this(module, @namespace, name, arity, mangleName, errorInfo: null, isNativeInt: false, containingNamespace: null, typeId: -1, tupleData: null)
             {
             }
 
-            public TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, DiagnosticInfo errorInfo = null)
+            public TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, DiagnosticInfo? errorInfo = null)
                 : this(module, ref fullName, -1, errorInfo)
             {
             }
 
-            public TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, SpecialType specialType, DiagnosticInfo errorInfo = null)
+            public TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, SpecialType specialType, DiagnosticInfo? errorInfo = null)
                 : this(module, ref fullName, (int)specialType, errorInfo)
             {
             }
 
-            public TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, WellKnownType wellKnownType, DiagnosticInfo errorInfo = null)
+            public TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, WellKnownType wellKnownType, DiagnosticInfo? errorInfo = null)
                 : this(module, ref fullName, (int)wellKnownType, errorInfo)
             {
             }
 
-            private TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, int typeId, DiagnosticInfo errorInfo)
+            private TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, int typeId, DiagnosticInfo? errorInfo)
                 : this(module, ref fullName, fullName.ForcedArity == -1 || fullName.ForcedArity == fullName.InferredArity, errorInfo, typeId)
             {
             }
 
-            private TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, bool mangleName, DiagnosticInfo errorInfo, int typeId)
+            private TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, bool mangleName, DiagnosticInfo? errorInfo, int typeId)
                 : this(module, fullName.NamespaceName,
                        mangleName ? fullName.UnmangledTypeName : fullName.TypeName,
                        mangleName ? fullName.InferredArity : fullName.ForcedArity,
@@ -167,16 +169,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        isNativeInt: false,
                        errorInfo,
                        containingNamespace: null,
-                       typeId)
+                       typeId,
+                       tupleData: null)
             {
             }
 
-            private TopLevel(ModuleSymbol module, string @namespace, string name, int arity, bool mangleName, bool isNativeInt, DiagnosticInfo errorInfo, NamespaceSymbol containingNamespace, int typeId)
-                : base(name, arity, mangleName)
+            private TopLevel(ModuleSymbol module, string @namespace, string name, int arity, bool mangleName, bool isNativeInt, DiagnosticInfo? errorInfo, NamespaceSymbol? containingNamespace, int typeId, TupleExtraData? tupleData)
+                : base(name, arity, mangleName, tupleData)
             {
-                Debug.Assert((object)module != null);
-                Debug.Assert(@namespace != null);
-                Debug.Assert(typeId == -1 || typeId == (int)SpecialType.None || arity == 0 || mangleName);
+                RoslynDebug.Assert((object)module != null);
+                RoslynDebug.Assert(@namespace != null);
+                RoslynDebug.Assert(typeId == -1 || typeId == (int)SpecialType.None || arity == 0 || mangleName);
 
                 _namespaceName = @namespace;
                 _containingModule = module;
@@ -188,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
             {
-                return new TopLevel(_containingModule, _namespaceName, Name, Arity, MangleName, newData);
+                return new TopLevel(_containingModule, _namespaceName, name, arity, mangleName, _isNativeInt, _lazyErrorInfo, _lazyContainingNamespace, _lazyTypeId, newData);
             }
 
             /// <summary>
@@ -329,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var other = asNativeInt == _isNativeInt ?
                     this :
-                    new TopLevel(_containingModule, _namespaceName, name, arity, mangleName, isNativeInt: asNativeInt, _lazyErrorInfo, _lazyContainingNamespace, _lazyTypeId);
+                    new TopLevel(_containingModule, _namespaceName, name, arity, mangleName, isNativeInt: asNativeInt, _lazyErrorInfo, _lazyContainingNamespace, _lazyTypeId, TupleData);
 
                 Debug.Assert(other.Equals(this));
                 Debug.Assert(other.SpecialType == this.SpecialType);
