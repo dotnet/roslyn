@@ -7,61 +7,20 @@ using System.Diagnostics;
 
 namespace Roslyn.Utilities
 {
-    internal struct SharedStopwatch
+    internal readonly struct SharedStopwatch
     {
         private static readonly Stopwatch s_stopwatch = Stopwatch.StartNew();
 
-        private TimeSpan _accumulated;
-        private TimeSpan _started;
+        private readonly TimeSpan _started;
 
-        public readonly TimeSpan Elapsed
+        private SharedStopwatch(TimeSpan started)
         {
-            get
-            {
-                if (IsRunning)
-                    return _accumulated + s_stopwatch.Elapsed - _started;
-
-                return _accumulated;
-            }
+            _started = started;
         }
 
-        public readonly long ElapsedMilliseconds => (long)Elapsed.TotalMilliseconds;
-        public readonly bool IsRunning => _started != TimeSpan.Zero;
+        public TimeSpan Elapsed => s_stopwatch.Elapsed - _started;
 
         public static SharedStopwatch StartNew()
-        {
-            var result = new SharedStopwatch();
-            result.Start();
-            return result;
-        }
-
-        public void Reset()
-        {
-            Stop();
-            _accumulated = TimeSpan.Zero;
-        }
-
-        public void Restart()
-        {
-            Reset();
-            Start();
-        }
-
-        public void Start()
-        {
-            if (!IsRunning)
-            {
-                _started = s_stopwatch.Elapsed;
-            }
-        }
-
-        public void Stop()
-        {
-            if (IsRunning)
-            {
-                _accumulated += s_stopwatch.Elapsed - _started;
-                _started = TimeSpan.Zero;
-            }
-        }
+            => new SharedStopwatch(s_stopwatch.Elapsed);
     }
 }
