@@ -431,7 +431,7 @@ d.cs
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NullBaseDirectoryWithAdditionalFiles()
         {
             var parser = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config", "c:/test.cs" }, baseDirectory: null, SdkDirectory);
@@ -445,7 +445,7 @@ d.cs
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NullBaseDirectoryWithAdditionalFiles_Wildcard()
         {
             var parser = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:*", "c:/test.cs" }, baseDirectory: null, SdkDirectory);
