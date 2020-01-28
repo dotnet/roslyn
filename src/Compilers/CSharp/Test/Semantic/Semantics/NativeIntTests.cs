@@ -1454,48 +1454,188 @@ $@"class Program
         // PROTOTYPE: Test unary operator- with `static IntPtr operator-(IntPtr)` defined on System.IntPtr. (Should be ignored for `nint`.)
         public static IEnumerable<object[]> UnaryOperatorsData()
         {
-            static void getArgs(ArrayBuilder<object[]> builder, string op, string opType, string expectedSymbol = null, DiagnosticDescription diagnostic = null)
+            static string getComplement(uint value)
             {
+                object result = (IntPtr.Size == 4) ?
+                    (object)~value :
+                    (object)~(ulong)value;
+                return result.ToString();
+            }
+
+            static void getArgs(ArrayBuilder<object[]> builder, string op, string opType, string expectedSymbol = null, string operand = null, string expectedResult = null, string expectedIL = "", DiagnosticDescription diagnostic = null)
+            {
+                operand ??= "default";
                 if (expectedSymbol == null && diagnostic == null)
                 {
                     diagnostic = Diagnostic(ErrorCode.ERR_BadUnaryOp, $"{op}operand").WithArguments(op, opType);
                 }
-                builder.Add(new object[] { op, opType, expectedSymbol, diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>() });
+                builder.Add(new object[] { op, opType, opType, expectedSymbol, operand, expectedResult, expectedIL, diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>() });
             }
 
             var builder = new ArrayBuilder<object[]>();
 
-            getArgs(builder, "+", "nint", "nint nint.op_UnaryPlus(nint value)");
-            getArgs(builder, "+", "nuint", "nuint nuint.op_UnaryPlus(nuint value)");
+            getArgs(builder, "+", "nint", "nint nint.op_UnaryPlus(nint value)", "3", "3",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            getArgs(builder, " + ", "nuint", "nuint nuint.op_UnaryPlus(nuint value)", "3", "3",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
             getArgs(builder, "+", "System.IntPtr");
             getArgs(builder, "+", "System.UIntPtr");
-            getArgs(builder, "-", "nint", "nint nint.op_UnaryNegation(nint value)");
-            getArgs(builder, "-", "nuint", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_BadUnaryOp.
+            getArgs(builder, "-", "nint", "nint nint.op_UnaryNegation(nint value)", "3", "-3",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  neg
+  IL_0002:  ret
+}");
+            getArgs(builder, "-", "nuint", null, null, null, null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_BadUnaryOp.
             getArgs(builder, "-", "System.IntPtr");
             getArgs(builder, "-", "System.UIntPtr");
             getArgs(builder, "!", "nint");
             getArgs(builder, "!", "nuint");
             getArgs(builder, "!", "System.IntPtr");
             getArgs(builder, "!", "System.UIntPtr");
-            getArgs(builder, "~", "nint", "nint nint.op_OnesComplement(nint value)");
-            getArgs(builder, "~", "nuint", "nuint nuint.op_OnesComplement(nuint value)");
+            getArgs(builder, "~", "nint", "nint nint.op_OnesComplement(nint value)", "3", "-4",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  not
+  IL_0002:  ret
+}");
+            getArgs(builder, "~", "nuint", "nuint nuint.op_OnesComplement(nuint value)", "3", getComplement(3),
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  not
+  IL_0002:  ret
+}");
             getArgs(builder, "~", "System.IntPtr");
             getArgs(builder, "~", "System.UIntPtr");
 
-            getArgs(builder, "+", "nint?", "nint nint.op_UnaryPlus(nint value)");
-            getArgs(builder, "+", "nuint?", "nuint nuint.op_UnaryPlus(nuint value)");
+            getArgs(builder, "+", "nint?", "nint nint.op_UnaryPlus(nint value)", "3", "3",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nint?..ctor(nint)""
+  IL_0021:  ret
+}");
+            getArgs(builder, "+", "nuint?", "nuint nuint.op_UnaryPlus(nuint value)", "3", "3",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nuint?..ctor(nuint)""
+  IL_0021:  ret
+}");
             getArgs(builder, "+", "System.IntPtr?");
             getArgs(builder, "+", "System.UIntPtr?");
-            getArgs(builder, "-", "nint?", "nint nint.op_UnaryNegation(nint value)");
-            getArgs(builder, "-", "nuint?", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint?")); // PROTOTYPE: Should report ERR_BadUnaryOp.
+            getArgs(builder, "-", "nint?", "nint nint.op_UnaryNegation(nint value)", "3", "-3",
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  neg
+  IL_001d:  newobj     ""nint?..ctor(nint)""
+  IL_0022:  ret
+}");
+            getArgs(builder, "-", "nuint?", null, null, null, null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint?")); // PROTOTYPE: Should report ERR_BadUnaryOp.
             getArgs(builder, "-", "System.IntPtr?");
             getArgs(builder, "-", "System.UIntPtr?");
             getArgs(builder, "!", "nint?");
             getArgs(builder, "!", "nuint?");
             getArgs(builder, "!", "System.IntPtr?");
             getArgs(builder, "!", "System.UIntPtr?");
-            getArgs(builder, "~", "nint?", "nint nint.op_OnesComplement(nint value)");
-            getArgs(builder, "~", "nuint?", "nuint nuint.op_OnesComplement(nuint value)");
+            getArgs(builder, "~", "nint?", "nint nint.op_OnesComplement(nint value)", "3", "-4",
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  not
+  IL_001d:  newobj     ""nint?..ctor(nint)""
+  IL_0022:  ret
+}");
+            getArgs(builder, "~", "nuint?", "nuint nuint.op_OnesComplement(nuint value)", "3", getComplement(3),
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001c:  not
+  IL_001d:  newobj     ""nuint?..ctor(nuint)""
+  IL_0022:  ret
+}");
             getArgs(builder, "~", "System.IntPtr?");
             getArgs(builder, "~", "System.UIntPtr?");
 
@@ -1504,17 +1644,21 @@ $@"class Program
 
         [Theory]
         [MemberData(nameof(UnaryOperatorsData))]
-        public void UnaryOperators(string op, string opType, string expectedSymbol, DiagnosticDescription[] expectedDiagnostics)
+        public void UnaryOperators(string op, string opType, string resultType, string expectedSymbol, string operand, string expectedResult, string expectedIL, DiagnosticDescription[] expectedDiagnostics)
         {
             string source =
 $@"class Program
 {{
-    static object Evaluate({opType} operand)
+    static {resultType} Evaluate({opType} operand)
     {{
         return {op}operand;
     }}
+    static void Main()
+    {{
+        System.Console.WriteLine(Evaluate({operand}));
+    }}
 }}";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var tree = comp.SyntaxTrees[0];
@@ -1525,7 +1669,8 @@ $@"class Program
 
             if (expectedDiagnostics.Length == 0)
             {
-                CompileAndVerify(comp);
+                var verifier = CompileAndVerify(comp, expectedOutput: expectedResult);
+                verifier.VerifyIL("Program.Evaluate", expectedIL);
             }
         }
 
