@@ -182,7 +182,8 @@ namespace Analyzer.Utilities
                 }
 
                 // Replace the special empty suffix symbol '{}' by an empty string
-                var suffix = split[1] == "{}" ? string.Empty : split[1];
+                var trimmedSuffix = split[1].Trim();
+                var suffix = trimmedSuffix == "{}" ? string.Empty : trimmedSuffix;
                 return new SymbolNamesOption.NameParts(split[0], suffix);
             }
         }
