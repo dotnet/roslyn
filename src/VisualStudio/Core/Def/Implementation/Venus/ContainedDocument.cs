@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private readonly IComponentModel _componentModel;
         private readonly Workspace _workspace;
-        private readonly ITextDifferencingSelectorService _differenceSelectorService;
+        private readonly ITextDifferencingService _diffService;
         private readonly HostType _hostType;
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly AbstractFormattingRule _vbHelperFormattingRule;
@@ -112,7 +112,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             DataBuffer = dataBuffer;
             BufferCoordinator = bufferCoordinator;
 
-            _differenceSelectorService = componentModel.GetService<ITextDifferencingSelectorService>();
+            var differenceSelectorService = componentModel.GetService<ITextDifferencingSelectorService>();
+            var contentTypeService = _workspace.Services.GetLanguageServices(project.Language).GetService<IContentTypeLanguageService>();
+
+            _diffService = differenceSelectorService.GetTextDifferencingService(contentTypeService.GetDefaultContentType()) ??
+                differenceSelectorService.DefaultTextDifferencingService;
+
             _snapshotTracker = new ReiteratedVersionSnapshotTracker(SubjectBuffer);
             _vbHelperFormattingRule = vbHelperFormattingRule;
 
@@ -216,14 +221,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             IEnumerable<int> affectedVisibleSpanIndices = null;
             var editorVisibleSpansInOriginal = SharedPools.Default<List<TextSpan>>().AllocateAndClear();
-            var diffService = GetTextDifferencingService();
 
             try
             {
                 var originalDocument = _workspace.CurrentSolution.GetDocument(this.Id);
 
                 editorVisibleSpansInOriginal.AddRange(GetEditorVisibleSpans());
-                var newChanges = FilterTextChanges(diffService, originalText, editorVisibleSpansInOriginal, changes).ToList();
+                var newChanges = FilterTextChanges(_diffService, originalText, editorVisibleSpansInOriginal, changes).ToList();
                 if (newChanges.Count == 0)
                 {
                     // no change to apply
@@ -279,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     }
 
                     // make sure we are not replacing whitespace around start and at the end of visible span
-                    if (WhitespaceOnEdges(originalText, visibleTextSpan, change))
+                    if (WhitespaceOnEdges(visibleTextSpan, change))
                     {
                         continue;
                     }
@@ -307,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private bool WhitespaceOnEdges(SourceText text, TextSpan visibleTextSpan, TextChange change)
+        private static bool WhitespaceOnEdges(TextSpan visibleTextSpan, TextChange change)
         {
             if (!string.IsNullOrWhiteSpace(change.NewText))
             {
@@ -582,14 +586,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             throw ExceptionUtilities.Unreachable;
         }
 
-        private ITextDifferencingService GetTextDifferencingService()
-        {
-            var diffService = _differenceSelectorService.GetTextDifferencingService(
-                _workspace.Services.GetLanguageServices(_project.Language).GetService<IContentTypeLanguageService>().GetDefaultContentType());
-
-            return diffService ?? _differenceSelectorService.DefaultTextDifferencingService;
-        }
-
         private static IHierarchicalDifferenceCollection DiffStrings(ITextDifferencingService diffService, string leftTextWithReplacement, string rightTextWithReplacement)
         {
             return diffService.DiffStrings(leftTextWithReplacement, rightTextWithReplacement, s_venusEditOptions.DifferenceOptions);
@@ -768,8 +764,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                                         .WithChangedOption(FormattingOptions.TabSize, root.Language, editorOptions.GetTabSize())
                                         .WithChangedOption(FormattingOptions.IndentationSize, root.Language, editorOptions.GetIndentSize());
 
-            var diffService = GetTextDifferencingService();
-
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 
             var spans = pooledObject.Object;
@@ -782,7 +776,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 var rule = GetBaseIndentationRule(root, originalText, spans, spanIndex);
 
                 var visibleSpan = spans[spanIndex];
-                AdjustIndentationForSpan(diffService, document, edit, visibleSpan, rule, options);
+                AdjustIndentationForSpan(_diffService, document, edit, visibleSpan, rule, options);
             }
 
             edit.Apply();
@@ -866,7 +860,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return new BaseIndentationFormattingRule(root, span, indentation, _vbHelperFormattingRule);
         }
 
-        private void GetVisibleAndTextSpan(SourceText text, List<TextSpan> spans, int spanIndex, out TextSpan visibleSpan, out TextSpan visibleTextSpan)
+        private static void GetVisibleAndTextSpan(SourceText text, List<TextSpan> spans, int spanIndex, out TextSpan visibleSpan, out TextSpan visibleTextSpan)
         {
             visibleSpan = spans[spanIndex];
 
@@ -1068,7 +1062,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return false;
         }
 
-        private bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag, bool checkAt = true)
+        private static bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag, bool checkAt = true)
         {
             if (ch != tag[tag.Length - 1] || position < tag.Length)
             {
@@ -1080,7 +1074,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return string.Equals(razorTag, tag, StringComparison.OrdinalIgnoreCase) && (!checkAt || snapshot[start - 1] == RazorExplicit);
         }
 
-        private bool CheckCode(ITextSnapshot snapshot, int position, string tag)
+        private static bool CheckCode(ITextSnapshot snapshot, int position, string tag)
         {
             var i = position - 1;
             if (i < 0)
@@ -1102,7 +1096,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return CheckCode(snapshot, position, ch, tag);
         }
 
-        private bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag1, string tag2)
+        private static bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag1, string tag2)
         {
             if (!CheckCode(snapshot, position, ch, tag2, checkAt: false))
             {
