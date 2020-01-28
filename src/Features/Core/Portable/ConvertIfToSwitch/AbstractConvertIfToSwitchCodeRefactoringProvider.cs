@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             context.RegisterRefactoring(
                 new MyCodeAction(GetTitle(forSwitchExpression: false),
-                    c => UpdateDocumentAsync(document, target, ifStatement, sections, convertToSwitchExpression: false, c)),
+                    c => UpdateDocumentAsync(document, target, ifStatement, sections, convertToSwitchExpression: false, c).AsNullable()),
                 ifStatement.Span);
 
             if (analyzer.Supports(Feature.SwitchExpression) &&
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 context.RegisterRefactoring(
                     new MyCodeAction(GetTitle(forSwitchExpression: true),
-                        c => UpdateDocumentAsync(document, target, ifStatement, sections, convertToSwitchExpression: true, c)),
+                        c => UpdateDocumentAsync(document, target, ifStatement, sections, convertToSwitchExpression: true, c).AsNullable()),
                     ifStatement.Span);
             }
         }
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document?>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

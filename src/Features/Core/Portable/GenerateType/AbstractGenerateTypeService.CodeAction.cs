@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
 
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var generateTypeOptionsService = _document.Project.Solution.Workspace.Services.GetService<IGenerateTypeOptionsService>();
+                var generateTypeOptionsService = _document.Project.Solution.Workspace.Services.GetRequiredService<IGenerateTypeOptionsService>();
                 var notificationService = _document.Project.Solution.Workspace.Services.GetService<INotificationService>();
                 var projectManagementService = _document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
                 var syntaxFactsService = _document.GetLanguageService<ISyntaxFactsService>();
@@ -180,9 +182,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return false;
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
-                IEnumerable<CodeActionOperation> operations = null;
+                IEnumerable<CodeActionOperation>? operations = null;
 
                 if (options is GenerateTypeOptionsResult generateTypeOptions && !generateTypeOptions.IsCancelled)
                 {

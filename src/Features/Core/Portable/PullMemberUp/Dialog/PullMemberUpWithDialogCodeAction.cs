@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -37,11 +39,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var pullMemberUpOptionService = _service ?? _document.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
+                var pullMemberUpOptionService = _service ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IPullMemberUpOptionsService>();
                 return pullMemberUpOptionService.GetPullMemberUpOptions(_document, _selectedMember);
             }
 
-            protected async override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            protected async override Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
                 if (options is PullMembersUpOptions pullMemberUpOptions)
                 {

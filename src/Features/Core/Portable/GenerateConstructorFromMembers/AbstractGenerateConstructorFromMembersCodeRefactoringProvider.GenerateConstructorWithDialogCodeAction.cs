@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
@@ -47,14 +50,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 var workspace = _document.Project.Solution.Workspace;
-                var service = _service._pickMembersService_forTesting ?? workspace.Services.GetService<IPickMembersService>();
+                var service = _service._pickMembersService_forTesting ?? workspace.Services.GetRequiredService<IPickMembersService>();
 
                 return service.PickMembers(
                     FeaturesResources.Pick_members_to_be_used_as_constructor_parameters,
                     _viableMembers, _pickMembersOptions);
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+            protected override async Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(
                 object options, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 if (state == null)
                 {
-                    return default;
+                    return null;
                 }
 
                 // There was an existing constructor that matched what the user wants to create.
@@ -96,7 +99,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     var constructorReference = state.MatchingConstructor.DeclaringSyntaxReferences[0];
                     var constructorSyntax = await constructorReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
                     var constructorTree = constructorSyntax.SyntaxTree;
-                    var constructorDocument = _document.Project.Solution.GetDocument(constructorTree);
+                    var constructorDocument = _document.Project.Solution.GetRequiredDocument(constructorTree);
                     return ImmutableArray.Create<CodeActionOperation>(new DocumentNavigationOperation(
                         constructorDocument.Id, constructorSyntax.SpanStart));
                 }
@@ -110,13 +113,13 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 }
             }
 
-            protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            protected override async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
                 var solution = await base.GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
 
                 if (_addNullCheckOptionValue.HasValue)
                 {
-                    solution = solution.WithOptions(solution.Options.WithChangedOption(
+                    solution = solution?.WithOptions(solution.Options.WithChangedOption(
                         GenerateConstructorFromMembersOptions.AddNullChecks,
                         _document.Project.Language,
                         _addNullCheckOptionValue.Value));

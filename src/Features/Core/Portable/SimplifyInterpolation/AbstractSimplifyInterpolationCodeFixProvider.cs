@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document?>> createChangedDocument)
                 : base(FeaturesResources.Simplify_interpolation, createChangedDocument, FeaturesResources.Simplify_interpolation)
             {
             }

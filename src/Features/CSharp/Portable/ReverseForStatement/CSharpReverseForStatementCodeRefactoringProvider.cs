@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
                 }
 
                 context.RegisterRefactoring(new MyCodeAction(
-                    c => ReverseForStatementAsync(document, forStatement, c)));
+                    c => ReverseForStatementAsync(document, forStatement, c).AsNullable()));
             }
         }
 
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document?>> createChangedDocument)
                 : base(CSharpFeaturesResources.Reverse_for_statement, createChangedDocument)
             {
             }

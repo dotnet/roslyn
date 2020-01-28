@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                         FeaturesResources.Add_missing_cases,
                         c => FixAsync(document, diagnostic,
                             addCases: true, addDefaultCase: false,
-                            cancellationToken: c)),
+                            cancellationToken: c).AsNullable()),
                     context.Diagnostics);
             }
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                         FeaturesResources.Add_default_case,
                         c => FixAsync(document, diagnostic,
                             addCases: false, addDefaultCase: true,
-                            cancellationToken: c)),
+                            cancellationToken: c).AsNullable()),
                     context.Diagnostics);
             }
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                         FeaturesResources.Add_both,
                         c => FixAsync(document, diagnostic,
                             addCases: true, addDefaultCase: true,
-                            cancellationToken: c)),
+                            cancellationToken: c).AsNullable()),
                     context.Diagnostics);
             }
 
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document?>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

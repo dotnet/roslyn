@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 _moveToNamespaceAnalysisResult.Namespaces);
         }
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>?> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
             // We won't get an empty target namespace from VS, but still should handle it w/o crashing.
             if (options is MoveToNamespaceOptionsResult moveToNamespaceOptions &&

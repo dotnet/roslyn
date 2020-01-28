@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                             document,
                             localFunction,
                             captures,
-                            c)),
+                            c).AsNullable()),
                         diagnostic);
 
                     return Task.CompletedTask;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document?>> createChangedDocument)
                 : base(CSharpFeaturesResources.Pass_in_captured_variables_as_arguments, createChangedDocument, CSharpFeaturesResources.Pass_in_captured_variables_as_arguments)
             {
             }
