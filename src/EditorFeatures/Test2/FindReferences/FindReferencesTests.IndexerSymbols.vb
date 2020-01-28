@@ -143,5 +143,60 @@ End Module
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_Indexer_Conditional(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class A
+{
+   private string[] arr = new T[100];
+
+   public string {|Definition:$$this|}[int i]
+   {
+      get { return arr[i]; }
+      set { arr[i] = value; }
+   }
+}
+class B
+{
+    private A a;
+    void M2()
+    {
+         var s = a?[||][0];
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_Indexer_CRef(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class A
+{
+   private string[] arr = new T[100];
+   
+   /// &lt;see cref="[||]this[int]"/&gt;
+   public string {|Definition:$$this|}[int i]
+   {
+      get { return arr[i]; }
+      set { arr[i] = value; }
+   }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace
