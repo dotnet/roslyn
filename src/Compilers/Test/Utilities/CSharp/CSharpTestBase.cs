@@ -788,7 +788,7 @@ namespace System.Runtime.CompilerServices
 
         internal CompilationVerifier CompileAndVerifyFieldMarshal(CSharpTestSource source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true) =>
             CompileAndVerifyFieldMarshalCommon(
-                CreateCompilationWithMscorlib40(source),
+                CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview),
                 getExpectedBlob,
                 isField);
 
