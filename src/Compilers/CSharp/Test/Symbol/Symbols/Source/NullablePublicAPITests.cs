@@ -1136,7 +1136,7 @@ class C
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics();
-            comp.VerifyAnalyzerDiagnostics(new[] { new NullabilityPrinter() }, null, null, true,
+            comp.VerifyAnalyzerDiagnostics(new[] { new NullabilityPrinter() }, null, null,
                 Diagnostic("CA9998_NullabilityPrinter", "o = null").WithArguments("o", "Annotated").WithLocation(6, 17),
                 Diagnostic("CA9998_NullabilityPrinter", "o1 = o").WithArguments("o1", "Annotated").WithLocation(7, 13),
                 Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated", "MaybeNull").WithLocation(7, 18),
