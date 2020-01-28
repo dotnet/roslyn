@@ -2,7 +2,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
-using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Roslyn.Diagnostics.Analyzers.DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer,
@@ -345,7 +344,7 @@ public class C
 "
                     },
                 },
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithoutCodeAnalysis,
+                ReferenceAssemblies = ReferenceAssemblies.Default,
             }.RunAsync();
 
             await new VerifyVB.Test
@@ -366,7 +365,7 @@ End Class
 "
                     },
                 },
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithoutCodeAnalysis,
+                ReferenceAssemblies = ReferenceAssemblies.Default,
             }.RunAsync();
         }
 
