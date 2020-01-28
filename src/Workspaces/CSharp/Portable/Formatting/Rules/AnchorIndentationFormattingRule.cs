@@ -5,7 +5,12 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
 using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -67,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case AccessorDeclarationSyntax accessorDeclNode:
                     AddAnchorIndentationOperation(list, accessorDeclNode);
                     return;
-                case CSharpSyntaxNode switchExpressionArm when switchExpressionArm.IsKind(SyntaxKindEx.SwitchExpressionArm):
+                case CSharpSyntaxNode switchExpressionArm when switchExpressionArm.IsKind(SyntaxKind.SwitchExpressionArm):
                     // The expression in a switch expression arm should be anchored to the beginning of the arm
                     // ```
                     // e switch

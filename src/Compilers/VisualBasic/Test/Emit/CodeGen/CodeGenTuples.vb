@@ -22672,6 +22672,117 @@ End Class
 
         End Sub
 
+        <Fact>
+        <WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")>
+        <WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")>
+        Public Sub CustomFields_01()
+            Dim source0 = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Shared F1 As Integer = 123
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return F1.ToString()
+        End Function
+    End Structure
+End Namespace
+"
+
+            Dim source1 = "
+class Program
+    public Shared Sub Main()
+        System.Console.WriteLine((1,2).ToString())
+    End Sub
+End Class
+"
+
+            Dim source2 = "
+class Program
+    public Shared Sub Main()
+        System.Console.WriteLine(System.ValueTuple(Of Integer, Integer).F1)
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="123")
+
+            Dim comp1Ref = {comp1.ToMetadataReference()}
+            Dim comp1ImageRef = {comp1.EmitToImageReference()}
+
+            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp4, expectedOutput:="123")
+
+            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp5, expectedOutput:="123")
+
+            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1ImageRef)
+            CompileAndVerify(comp6, expectedOutput:="123")
+        End Sub
+
+        <Fact>
+        <WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")>
+        <WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")>
+        Public Sub CustomFields_02()
+            Dim source0 = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Dim F1 As Integer
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+            me.F1 = 123
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return F1.ToString()
+        End Function
+    End Structure
+End Namespace
+"
+
+            Dim source1 = "
+class Program
+    public Shared Sub Main()
+        System.Console.WriteLine((1,2).ToString())
+    End Sub
+End Class
+"
+
+            Dim source2 = "
+class Program
+    public Shared Sub Main()
+        System.Console.WriteLine((1,2).F1)
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="123")
+
+            Dim comp1Ref = {comp1.ToMetadataReference()}
+            Dim comp1ImageRef = {comp1.EmitToImageReference()}
+
+            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp4, expectedOutput:="123")
+
+            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp5, expectedOutput:="123")
+
+            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1ImageRef)
+            CompileAndVerify(comp6, expectedOutput:="123")
+        End Sub
+
     End Class
 
 End Namespace

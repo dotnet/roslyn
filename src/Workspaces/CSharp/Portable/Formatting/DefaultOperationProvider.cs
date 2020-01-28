@@ -5,7 +5,9 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
-#if !CODE_STYLE
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
 using Microsoft.CodeAnalysis.Options;
 #endif
 
