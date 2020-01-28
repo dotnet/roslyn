@@ -591,8 +591,7 @@ class Program
         public void EmitAttribute_LocalFunctionReturnType()
         {
             var source =
-@"using System;
-class Program
+@"class Program
 {
     static object M()
     {
@@ -616,8 +615,7 @@ class Program
         public void EmitAttribute_LocalFunctionParameters()
         {
             var source =
-@"using System;
-class Program
+@"class Program
 {
     static void M()
     {
@@ -634,6 +632,29 @@ class Program
                     var method = module.ContainingAssembly.GetTypeByMetadataName("Program").GetMethod("<M>g__L|0_0");
                     AssertNativeIntegerAttribute(method.Parameters[0].GetAttributes());
                 });
+        }
+
+        [Fact]
+        public void EmitAttribute_LocalFunctionConstraints()
+        {
+            var source =
+@"interface I<T>
+{
+}
+class Program
+{
+    static void M()
+    {
+        void L<T>() where T : I<nint> { }
+        L<I<nint>>();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var assembly = module.ContainingAssembly;
+                Assert.NotNull(assembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NativeIntegerAttribute"));
+            });
         }
 
         [Fact]

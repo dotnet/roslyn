@@ -16,23 +16,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     {
         internal static TypeSymbol TransformType(TypeSymbol type, EntityHandle handle, PEModuleSymbol containingModule)
         {
-            if (containingModule.Module.HasNativeIntegerAttribute(handle, out var transformFlags))
+            return containingModule.Module.HasNativeIntegerAttribute(handle, out var transformFlags) ?
+                TransformType(type, transformFlags) :
+                type;
+        }
+
+        private static TypeSymbol TransformType(TypeSymbol type, ImmutableArray<bool> transformFlags)
+        {
+            var decoder = new NativeIntegerTypeDecoder(transformFlags);
+            try
             {
-                var decoder = new NativeIntegerTypeDecoder(transformFlags);
-                try
+                var result = decoder.TransformType(type);
+                if (decoder._index == transformFlags.Length)
                 {
-                    var result = decoder.TransformType(type);
-                    if (decoder._index == transformFlags.Length)
-                    {
-                        return result;
-                    }
+                    return result;
                 }
-                catch (ArgumentException)
-                {
-                }
+            }
+            catch (ArgumentException)
+            {
             }
             return type;
         }
+
 
         private readonly ImmutableArray<bool> _transformFlags;
         private int _index;

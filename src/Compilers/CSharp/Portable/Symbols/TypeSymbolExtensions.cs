@@ -908,6 +908,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result is object;
         }
 
+        internal static bool ContainsNativeInteger(this TypeWithAnnotations type)
+        {
+            return type.Type?.ContainsNativeInteger() == true;
+        }
+
         /// <summary>
         /// Return true if the type contains any tuples.
         /// </summary>

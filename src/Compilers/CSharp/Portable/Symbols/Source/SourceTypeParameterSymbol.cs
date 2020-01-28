@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void EnsureAttributesFromConstraints(DiagnosticBag diagnostics)
         {
-            if (ConstraintTypesNoUseSiteDiagnostics.Any(t => t.Type?.ContainsNativeInteger() == true))
+            if (ConstraintTypesNoUseSiteDiagnostics.Any(t => t.ContainsNativeInteger()))
             {
                 DeclaringCompilation.EnsureNativeIntegerAttributeExists(diagnostics, getLocation(), ModifyCompilationForAttributeEmbedding());
             }

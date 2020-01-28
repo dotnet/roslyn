@@ -265,7 +265,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     moduleBuilder.EnsureIsUnmanagedAttributeExists();
                 }
 
-                if (hasReturnTypeOrParameter(localFunction, t => t.Type?.ContainsNativeInteger() == true))
+                if (hasReturnTypeOrParameter(localFunction, t => t.ContainsNativeInteger()) ||
+                    typeParameters.Any(t => t.ConstraintTypesNoUseSiteDiagnostics.Any(t => t.ContainsNativeInteger())))
                 {
                     moduleBuilder.EnsureNativeIntegerAttributeExists();
                 }
