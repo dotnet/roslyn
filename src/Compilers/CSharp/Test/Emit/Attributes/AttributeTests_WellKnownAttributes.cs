@@ -11355,11 +11355,14 @@ class C
     }};
 }}
 
-// Ensure verification fails in every run of the theory for simplicity
-[SkipLocalsInit]
-class D {{ }}
+namespace System.Runtime.CompilerServices
+{{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {{
+    }}
+}}
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(src);
+            var verifier = CompileAndVerify(src, options: TestOptions.UnsafeReleaseDll, verify: Verification.Skipped);
             Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<>c.<.ctor>b__0_0")); // action
             Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<.ctor>g__local|0_1")); // local
         }
@@ -11398,11 +11401,14 @@ class C
     }};
 }}
 
-// Ensure verification fails in every run of the theory for simplicity
-[SkipLocalsInit]
-class D {{ }}
+namespace System.Runtime.CompilerServices
+{{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {{
+    }}
+}}
 ";
-            var verifier = CompileAndVerifyWithSkipLocalsInit(src);
+            var verifier = CompileAndVerify(src, options: TestOptions.UnsafeReleaseDll, verify: Verification.Skipped);
             Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<>c.<.ctor>b__0_0")); // lambda
             Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<.ctor>g__local|0_1")); // local
         }
