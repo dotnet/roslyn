@@ -23,10 +23,7 @@ namespace Microsoft.CodeAnalysis
 
             var newReferencesMap = ComputeNewReferencesMapForAdditionalProjectReferences(_referencesMap, projectId, referencedProjectIds);
 
-            var newReverseReferencesMap =
-                _lazyReverseReferencesMap != null
-                    ? ComputeNewReverseReferencesMapForAdditionalProjectReferences(_lazyReverseReferencesMap, projectId, referencedProjectIds)
-                    : null;
+            var newReverseReferencesMap = ComputeNewReverseReferencesMapForAdditionalProjectReferences(_lazyReverseReferencesMap, projectId, referencedProjectIds);
 
             var newTransitiveReferencesMap = ComputeNewTransitiveReferencesMapForAdditionalProjectReferences(_transitiveReferencesMap, projectId, referencedProjectIds);
 
@@ -64,13 +61,15 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Computes a new <see cref="_lazyReverseReferencesMap"/> for the addition of additional project references.
-        /// Must be called on a non-null map.
         /// </summary>
-        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseReferencesMapForAdditionalProjectReferences(
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseReferencesMap,
+        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForAdditionalProjectReferences(
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
             ProjectId projectId,
             IReadOnlyList<ProjectId> referencedProjectIds)
         {
+            if (existingReverseReferencesMap is null)
+                return null;
+
             var builder = existingReverseReferencesMap.ToBuilder();
 
             foreach (var referencedProject in referencedProjectIds)

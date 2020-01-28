@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis
 
             // Incrementally update the graph
             var referencesMap = _referencesMap.SetItem(projectId, _referencesMap[projectId].Remove(referencedProjectId));
-            var reverseReferencesMap = _lazyReverseReferencesMap is object
-                ? ComputeNewReverseReferencesMapForRemovedProjectReference(_lazyReverseReferencesMap, projectId, referencedProjectId)
-                : null;
+            var reverseReferencesMap = ComputeNewReverseReferencesMapForRemovedProjectReference(_lazyReverseReferencesMap, projectId, referencedProjectId);
             var transitiveReferencesMap = ComputeNewTransitiveReferencesMapForRemovedProjectReference(_transitiveReferencesMap, projectId, referencedProjectId);
             var reverseTransitiveReferencesMap = ComputeNewReverseTransitiveReferencesMapForRemovedProjectReference(_reverseTransitiveReferencesMap, projectId, referencedProjectId);
 
@@ -36,11 +34,14 @@ namespace Microsoft.CodeAnalysis
                 dependencySets: default);
         }
 
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseReferencesMapForRemovedProjectReference(
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseReferencesMap,
+        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForRemovedProjectReference(
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
             ProjectId projectId,
             ProjectId referencedProjectId)
         {
+            if (existingReverseReferencesMap is null)
+                return null;
+
             if (existingReverseReferencesMap.TryGetValue(referencedProjectId, out var referencingProjects))
             {
                 return existingReverseReferencesMap.SetItem(referencedProjectId, referencingProjects.Remove(projectId));

@@ -23,12 +23,10 @@ namespace Microsoft.CodeAnalysis
 
             // The direct reverse references map is updated by removing the key for the project getting removed, and
             // also updating any direct references to the removed project.
-            var reverseReferencesMap = _lazyReverseReferencesMap is object
-                ? ComputeNewReverseReferencesMapForRemovedProject(
-                    existingForwardReferencesMap: _referencesMap,
-                    existingReverseReferencesMap: _lazyReverseReferencesMap,
-                    projectId)
-                : null;
+            var reverseReferencesMap = ComputeNewReverseReferencesMapForRemovedProject(
+                existingForwardReferencesMap: _referencesMap,
+                existingReverseReferencesMap: _lazyReverseReferencesMap,
+                projectId);
             var transitiveReferencesMap = ComputeNewTransitiveReferencesMapForRemovedProject(_transitiveReferencesMap, projectId);
             var reverseTransitiveReferencesMap = ComputeNewReverseTransitiveReferencesMapForRemovedProject(_reverseTransitiveReferencesMap, projectId);
             return new ProjectDependencyGraph(
@@ -84,11 +82,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Computes a new <see cref="_lazyReverseReferencesMap"/> for the removal of a project.
         /// </summary>
-        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseReferencesMapForRemovedProject(
+        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForRemovedProject(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingForwardReferencesMap,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseReferencesMap,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
             ProjectId projectId)
         {
+            if (existingReverseReferencesMap is null)
+            {
+                // The map was never calculated for the previous graph, so there is nothing to update.
+                return null;
+            }
+
             var builder = existingReverseReferencesMap.ToBuilder();
 
             // Iterate over each project referenced by 'projectId', which is now being removed. Update the reverse
