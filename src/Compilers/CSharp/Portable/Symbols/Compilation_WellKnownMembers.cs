@@ -935,15 +935,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case TypeKind.Array:
                     case TypeKind.Pointer:
+                    case TypeKind.TypeParameter:
+                    case TypeKind.Dynamic:
                         builder.Add(false);
                         break;
 
-                    default:
+                    case TypeKind.Class:
+                    case TypeKind.Struct:
+                    case TypeKind.Interface:
+                    case TypeKind.Delegate:
+                    case TypeKind.Enum:
+                    case TypeKind.Error:
                         // For nested named types, a single false is encoded for the entire type name, followed by flags for all of the type arguments.
                         if (!isNestedNamedType)
                         {
-                            builder.Add((type as NamedTypeSymbol)?.IsNativeInt == true);
+                            builder.Add(((NamedTypeSymbol)type).IsNativeInt);
                         }
+                        break;
+
+                    default:
+                        Debug.Assert(false);
                         break;
                 }
 

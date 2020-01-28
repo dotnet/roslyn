@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return type;
         }
 
-
         private readonly ImmutableArray<bool> _transformFlags;
         private int _index;
 
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 NamedTypeSymbol namedType => TransformNamedType(namedType),
                 ArrayTypeSymbol arrayType => TransformArrayType(arrayType),
                 PointerTypeSymbol pointerType => TransformPointerType(pointerType),
-                _ => throw ExceptionUtilities.UnexpectedValue(type)
+                _ => type,
             };
         }
 

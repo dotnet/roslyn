@@ -671,6 +671,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureNativeIntegerAttributeExists(diagnostics, ReturnTypeSyntax.Location, modifyCompilation: true);
             }
 
+            ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 ReturnTypeWithAnnotations.NeedsNullableAttribute())
             {

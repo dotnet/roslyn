@@ -356,6 +356,35 @@ public class A : I<(nint, nuint[])>
         }
 
         [Fact]
+        public void EmitAttribute_AllTypes()
+        {
+            var source =
+@"public enum E { }
+public class C<T>
+{
+    public delegate void D<T>();
+    public enum F { }
+    public struct S<U> { }
+    public interface I<U> { }
+    public C<T>.S<nint> F1;
+    public C<nuint>.I<T> F2;
+    public C<E>.D<nint> F3;
+    public C<nuint>.D<dynamic> F4;
+    public C<nint>.F F5;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var expected =
+@"C<T>
+    [NativeInteger({ False, False, True })] C<T>.S<System.IntPtr> F1
+    [NativeInteger({ False, True, False })] C<System.UIntPtr>.I<T> F2
+    [NativeInteger({ False, False, True })] C<E>.D<System.IntPtr> F3
+    [NativeInteger({ False, True, False })] C<System.UIntPtr>.D<dynamic> F4
+    [NativeInteger({ False, True })] C<System.IntPtr>.F F5
+";
+            AssertNativeIntegerAttributes(comp, expected);
+        }
+
+        [Fact]
         public void EmitAttribute_Fields()
         {
             var source =

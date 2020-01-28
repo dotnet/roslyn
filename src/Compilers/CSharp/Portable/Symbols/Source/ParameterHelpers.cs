@@ -137,7 +137,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (parameter.RefKind == RefKind.In)
                 {
-                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
+                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                }
+            }
+        }
+
+        internal static void EnsureNativeIntegerAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
+        {
+            // These parameters might not come from a compilation (example: lambdas evaluated in EE).
+            // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
+            if (compilation == null)
+            {
+                return;
+            }
+
+            foreach (var parameter in parameters)
+            {
+                if (parameter.TypeWithAnnotations.ContainsNativeInteger())
+                {
+                    compilation.EnsureNativeIntegerAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
                 }
             }
         }
@@ -155,23 +173,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var parameter in parameters)
                 {
-                    var type = parameter.TypeWithAnnotations;
-                    if (!type.HasType)
-                    {
-                        continue;
-                    }
-                    if (type.Type.ContainsNativeInteger())
-                    {
-                        compilation.EnsureNativeIntegerAttributeExists(diagnostics, getLocation(parameter), modifyCompilation);
-                    }
                     if (parameter.TypeWithAnnotations.NeedsNullableAttribute())
                     {
-                        compilation.EnsureNullableAttributeExists(diagnostics, getLocation(parameter), modifyCompilation);
+                        compilation.EnsureNullableAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
                     }
-                    static Location getLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
                 }
             }
         }
+
+        private static Location GetParameterLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
 
         private static void CheckParameterModifiers(
             ParameterSyntax parameter, DiagnosticBag diagnostics)
