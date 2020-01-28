@@ -127,8 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ordinal++,
                     p.RefKind,
                     p.Name,
-                    attributes: inheritAttributes ? p.GetAttributes() : default,
-                    hasEnumeratorCancellationAttribute: inheritAttributes && p.IsSourceParameterWithEnumeratorCancellationAttribute()));
+                    p.RefCustomModifiers,
+                    inheritAttributes ? p as SourceComplexParameterSymbol : null));
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
