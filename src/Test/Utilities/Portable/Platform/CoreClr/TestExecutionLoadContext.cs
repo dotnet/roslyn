@@ -40,7 +40,8 @@ namespace Roslyn.Test.Utilities.CoreClr
             var comparison = StringComparison.OrdinalIgnoreCase;
             if (assemblyName.Name.StartsWith("System.", comparison) ||
                 assemblyName.Name.StartsWith("Microsoft.", comparison) ||
-                comparer.Equals(assemblyName.Name, "mscorlib"))
+                comparer.Equals(assemblyName.Name, "mscorlib") ||
+                comparer.Equals(assemblyName.Name, "netstandard"))
             {
                 return null;
             }
