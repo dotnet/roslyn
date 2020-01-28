@@ -2143,7 +2143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
-            Debug.Assert(TypeOf arguments.Diagnostics Is BindingDiagnosticBag)
+            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
             ' If we start caching information about GuidAttribute here, implementation of HasGuidAttribute function should be changed accordingly.
             ' If we start caching information about ClassInterfaceAttribute here, implementation of HasClassInterfaceAttribute function should be changed accordingly.
@@ -2151,7 +2151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' If we start caching information about ComVisibleAttribute here, implementation of GetComVisibleState function should be changed accordingly.
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
-                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+                diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             Dim decoded As Boolean = False
@@ -2159,12 +2159,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Select Case Me.TypeKind
                 Case TypeKind.Class
                     If attrData.IsTargetAttribute(Me, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
-                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction), Me.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction), Me.Locations(0))
                         decoded = True
 
                     ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.VisualBasicComClassAttribute) Then
                         If Me.IsGenericType Then
-                            arguments.Diagnostics.Add(ERRID.ERR_ComClassOnGeneric, Me.Locations(0))
+                            diagnostics.Add(ERRID.ERR_ComClassOnGeneric, Me.Locations(0))
                         Else
                             Interlocked.CompareExchange(_comClassData, New ComClassData(attrData), Nothing)
                         End If
@@ -2176,7 +2176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Dim eventName = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
 
                             If eventName IsNot Nothing AndAlso eventName.Length > 0 AndAlso Not FindDefaultEvent(eventName) Then
-                                arguments.Diagnostics.Add(ERRID.ERR_DefaultEventNotFound1, arguments.AttributeSyntaxOpt.GetLocation(), eventName)
+                                diagnostics.Add(ERRID.ERR_DefaultEventNotFound1, arguments.AttributeSyntaxOpt.GetLocation(), eventName)
                             End If
                         End If
 
@@ -2212,7 +2212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.VisualBasicComClassAttribute) Then
                         ' Can't apply ComClassAttribute to a Module
-                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidAttributeUsage2, AttributeDescription.VisualBasicComClassAttribute.Name, Me.Name), Me.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidAttributeUsage2, AttributeDescription.VisualBasicComClassAttribute.Name, Me.Name), Me.Locations(0))
                         decoded = True
                     End If
             End Select
@@ -2226,7 +2226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim defaultProperty = DefaultPropertyName
                     If Not String.IsNullOrEmpty(defaultProperty) AndAlso
                         Not IdentifierComparison.Equals(defaultProperty, attributeValue) Then
-                        arguments.Diagnostics.Add(ERRID.ERR_ConflictDefaultPropertyAttribute, Locations(0), Me)
+                        diagnostics.Add(ERRID.ERR_ConflictDefaultPropertyAttribute, Locations(0), Me)
                     End If
 
                 ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SerializableAttribute) Then
@@ -2244,7 +2244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         arguments, Me.DefaultMarshallingCharSet, defaultAutoLayoutSize, MessageProvider.Instance)
 
                     If Me.IsGenericType Then
-                        arguments.Diagnostics.Add(ERRID.ERR_StructLayoutAttributeNotAllowed, arguments.AttributeSyntaxOpt.GetLocation(), Me)
+                        diagnostics.Add(ERRID.ERR_StructLayoutAttributeNotAllowed, arguments.AttributeSyntaxOpt.GetLocation(), Me)
                     End If
 
                 ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
@@ -2254,13 +2254,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     attrData.DecodeSecurityAttribute(Of CommonTypeWellKnownAttributeData)(Me, Me.DeclaringCompilation, arguments)
 
                 ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ClassInterfaceAttribute) Then
-                    attrData.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
+                    attrData.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, diagnostics)
 
                 ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.InterfaceTypeAttribute) Then
-                    attrData.DecodeInterfaceTypeAttribute(arguments.AttributeSyntaxOpt, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
+                    attrData.DecodeInterfaceTypeAttribute(arguments.AttributeSyntaxOpt, diagnostics)
 
                 ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.GuidAttribute) Then
-                    attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
+                    attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics)
 
                 ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.WindowsRuntimeImportAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasWindowsRuntimeImportAttribute = True
@@ -2275,7 +2275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.RequiredAttributeAttribute) Then
                     Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
-                    arguments.Diagnostics.Add(ERRID.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.GetLocation(), Me)
+                    diagnostics.Add(ERRID.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.GetLocation(), Me)
                 End If
             End If
 

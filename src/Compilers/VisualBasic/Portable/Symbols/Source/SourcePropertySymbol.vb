@@ -553,9 +553,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
 
             Dim attrData = arguments.Attribute
+            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
-                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+                diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             If arguments.SymbolPart = AttributeLocation.Return Then
@@ -566,7 +567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If _getMethod Is Nothing AndAlso _setMethod IsNot Nothing AndAlso
                     (Not isMarshalAs OrElse Not SynthesizedParameterSymbol.IsMarshalAsAttributeApplicable(_setMethod)) Then
 
-                    arguments.Diagnostics.Add(ERRID.WRN_ReturnTypeAttributeOnWriteOnlyProperty, arguments.AttributeSyntaxOpt.GetLocation())
+                    diagnostics.Add(ERRID.WRN_ReturnTypeAttributeOnWriteOnlyProperty, arguments.AttributeSyntaxOpt.GetLocation())
                     Return
                 End If
 
@@ -587,7 +588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' if neither getter or setter is marked by DebuggerHidden Dev11 reports a warning
                     If Not (_getMethod IsNot Nothing AndAlso DirectCast(_getMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute OrElse
                             _setMethod IsNot Nothing AndAlso DirectCast(_setMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute) Then
-                        arguments.Diagnostics.Add(ERRID.WRN_DebuggerHiddenIgnoredOnProperties, arguments.AttributeSyntaxOpt.GetLocation())
+                        diagnostics.Add(ERRID.WRN_DebuggerHiddenIgnoredOnProperties, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
                     Return
                 End If

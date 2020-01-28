@@ -2182,9 +2182,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     RoslynDebug.Assert(diagnostics.DependenciesBag is object);
 
-                    // PROTOTYPE(UsedAssemblyReferences): Perhaps we should do this check after we have built the transitive closure
-                    //                                    in GetCompleteSetOfUsedAssemblies.completeTheSetOfUsedAssemblies. However,
-                    //                                    this level of accuracy is probably not worth the complexity this would add.
+                    // We could do this check after we have built the transitive closure
+                    // in GetCompleteSetOfUsedAssemblies.completeTheSetOfUsedAssemblies. However,
+                    // the level of accuracy is probably not worth the complexity this would add.
                     var bindingDiagnostics = new BindingDiagnosticBag(diagnosticBag: null, PooledHashSet<AssemblySymbol>.GetInstance());
                     RoslynDebug.Assert(bindingDiagnostics.DependenciesBag is object);
 

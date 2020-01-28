@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
             {
                 // NullableAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+                ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
 
             base.DecodeWellKnownAttribute(ref arguments);

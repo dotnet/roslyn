@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                useSiteInfo.AddForSymbol(result.Member, addDiagnostics: false);
+                result.Member.AddUseSiteInfo(ref useSiteInfo, addDiagnostics: false);
             }
         }
 
@@ -1209,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (MemberResolutionResult<TMember> result in results)
             {
-                useSiteInfo.AddForSymbol(result.Member, addDiagnostics: result.HasUseSiteDiagnosticToReport);
+                result.Member.AddUseSiteInfo(ref useSiteInfo, addDiagnostics: result.HasUseSiteDiagnosticToReport);
             }
         }
 

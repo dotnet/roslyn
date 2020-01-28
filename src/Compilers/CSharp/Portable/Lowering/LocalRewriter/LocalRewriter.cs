@@ -846,6 +846,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo()
+        {
+            return new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
+        }
+
 #if DEBUG
         /// <summary>
         /// Note: do not use a static/singleton instance of this type, as it holds state.

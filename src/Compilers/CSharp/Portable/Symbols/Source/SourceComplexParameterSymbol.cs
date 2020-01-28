@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
-            Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultParameterValueAttribute))
             {
@@ -607,13 +607,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (HasDefaultArgumentSyntax)
                 {
                     // error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
-                    arguments.Diagnostics.Add(ErrorCode.ERR_DefaultValueUsedWithAttributes, arguments.AttributeSyntaxOpt.Name.Location);
+                    diagnostics.Add(ErrorCode.ERR_DefaultValueUsedWithAttributes, arguments.AttributeSyntaxOpt.Name.Location);
                 }
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ParamArrayAttribute))
             {
                 // error CS0674: Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitParamArray, arguments.AttributeSyntaxOpt.Name.Location);
+                diagnostics.Add(ErrorCode.ERR_ExplicitParamArray, arguments.AttributeSyntaxOpt.Name.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.InAttribute))
             {
@@ -637,44 +637,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CallerLineNumberAttribute))
             {
-                ValidateCallerLineNumberAttribute(arguments.AttributeSyntaxOpt, ((BindingDiagnosticBag)arguments.Diagnostics));
+                ValidateCallerLineNumberAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CallerFilePathAttribute))
             {
-                ValidateCallerFilePathAttribute(arguments.AttributeSyntaxOpt, ((BindingDiagnosticBag)arguments.Diagnostics));
+                ValidateCallerFilePathAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CallerMemberNameAttribute))
             {
-                ValidateCallerMemberNameAttribute(arguments.AttributeSyntaxOpt, ((BindingDiagnosticBag)arguments.Diagnostics));
+                ValidateCallerMemberNameAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
                 // DynamicAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+                diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
             {
                 // IsReadOnlyAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+                diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
             {
                 // IsUnmanagedAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
+                diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
             {
                 // IsByRefLikeAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
+                diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
+                diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
             {
                 // NullableAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+                diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute))
             {

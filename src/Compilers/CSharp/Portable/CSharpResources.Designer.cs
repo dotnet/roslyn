@@ -2509,15 +2509,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to By-reference return type &apos;ref {0}&apos; is not supported..
-        /// </summary>
-        internal static string ERR_ByRefReturnUnsupported {
-            get {
-                return ResourceManager.GetString("ERR_ByRefReturnUnsupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;await&apos; cannot be used in an expression containing the type &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_ByRefTypeAndAwait {

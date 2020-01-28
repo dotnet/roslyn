@@ -1246,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void ReportExplicitUseOfNullabilityAttribute(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, AttributeDescription attributeDescription)
         {
             // Attribute should not be set explicitly.
-            arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, attributeDescription.FullName);
+            ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, attributeDescription.FullName);
         }
 
         internal virtual byte? GetNullableContextValue()

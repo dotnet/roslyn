@@ -294,22 +294,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 if ((object)synthesizedImplementation != null || TypeSymbol.Equals(implementingMember.ContainingType, this, TypeCompareKind.ConsiderEverything2))
                                 {
                                     UseSiteInfo<AssemblySymbol> useSiteInfo = interfaceMember.GetUseSiteInfo();
-                                    // CAVEAT: don't report ERR_ByRefReturnUnsupported since by-ref return types are 
-                                    // specifically allowed for the purposes of interface implementation (for C++ interop).
-                                    // However, if there's a reference to the interface member in source, then we do want
-                                    // to produce a use site error.
-                                    if (useSiteInfo.DiagnosticInfo?.Code != (int)ErrorCode.ERR_ByRefReturnUnsupported) // PROTOTYPE(UsedAssemblyReferences): Remove ErrorCode.ERR_ByRefReturnUnsupported, it doesn't look like it is ever reported 
-                                    {
-                                        // Don't report a use site error with a location in another compilation.  For example,
-                                        // if the error is that a base type in another assembly implemented an interface member
-                                        // on our behalf and the use site error is that the current assembly does not reference
-                                        // some required assembly, then we want to report the error in the current assembly -
-                                        // not in the implementing assembly.
-                                        Location location = implementingMember.IsFromCompilation(this.DeclaringCompilation)
-                                            ? implementingMember.Locations[0]
-                                            : this.Locations[0];
-                                        diagnostics.Add(useSiteInfo, location);
-                                    }
+                                    // Don't report a use site error with a location in another compilation.  For example,
+                                    // if the error is that a base type in another assembly implemented an interface member
+                                    // on our behalf and the use site error is that the current assembly does not reference
+                                    // some required assembly, then we want to report the error in the current assembly -
+                                    // not in the implementing assembly.
+                                    Location location = implementingMember.IsFromCompilation(this.DeclaringCompilation)
+                                        ? implementingMember.Locations[0]
+                                        : this.Locations[0];
+                                    diagnostics.Add(useSiteInfo, location);
                                 }
                             }
                         }

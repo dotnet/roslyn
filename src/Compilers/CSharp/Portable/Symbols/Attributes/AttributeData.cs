@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             arguments.GetOrCreateData<T>().HasSkipLocalsInitAttribute = true;
             if (!compilation.Options.AllowUnsafe)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_IllegalUnsafe, arguments.AttributeSyntaxOpt.Location);
+                ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_IllegalUnsafe, arguments.AttributeSyntaxOpt.Location);
             }
         }
 

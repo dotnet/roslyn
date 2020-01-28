@@ -1235,13 +1235,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsValueType && type.TypeKind != TypeKind.TypeParameter;
         }
 
-        internal static void AddUseSiteInfo(
-            this TypeSymbol type,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            useSiteInfo.AddForSymbol(type);
-        }
-
         /// <summary>
         /// Return all of the type parameters in this type and enclosing types,
         /// from outer-most to inner-most type.

@@ -3495,7 +3495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty)
                         diagnostics.AddDependencies(useSiteInfo)
                         targetType = innerKeyBinder.GetSpecialTypeForBinaryOperator(joinCondition, outerKey.Type, innerKey.Type, intrinsicOperatorType,
-                                                                                (operatorKind And BinaryOperatorKind.Lifted) <> 0, diagnostics)
+                                                                                    (operatorKind And BinaryOperatorKind.Lifted) <> 0, diagnostics)
                     Else
                         ' Use dominant type.
                         Dim inferenceCollection = New TypeInferenceCollection()

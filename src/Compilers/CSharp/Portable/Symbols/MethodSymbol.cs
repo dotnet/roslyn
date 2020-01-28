@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
-                return (object)info != null && (info.Code == (int)ErrorCode.ERR_BindToBogus || info.Code == (int)ErrorCode.ERR_ByRefReturnUnsupported);
+                return (object)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
             }
         }
 

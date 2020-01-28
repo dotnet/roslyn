@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -297,15 +299,18 @@ namespace Microsoft.CodeAnalysis
 
     internal readonly struct ImmutableBindingDiagnostic<TAssemblySymbol> where TAssemblySymbol : class, IAssemblySymbolInternal
     {
-        public readonly ImmutableArray<Diagnostic> Diagnostics;
-        public readonly ImmutableArray<TAssemblySymbol> Dependencies;
+        private readonly ImmutableArray<Diagnostic> _diagnostics;
+        private readonly ImmutableArray<TAssemblySymbol> _dependencies;
+
+        public ImmutableArray<Diagnostic> Diagnostics => _diagnostics.NullToEmpty();
+        public ImmutableArray<TAssemblySymbol> Dependencies => _dependencies.NullToEmpty();
 
         public static ImmutableBindingDiagnostic<TAssemblySymbol> Empty => new ImmutableBindingDiagnostic<TAssemblySymbol>(default, default);
 
         public ImmutableBindingDiagnostic(ImmutableArray<Diagnostic> diagnostics, ImmutableArray<TAssemblySymbol> dependencies)
         {
-            Diagnostics = diagnostics.NullToEmpty();
-            Dependencies = dependencies.NullToEmpty();
+            _diagnostics = diagnostics.NullToEmpty();
+            _dependencies = dependencies.NullToEmpty();
         }
 
         public ImmutableBindingDiagnostic<TAssemblySymbol> NullToEmpty() => new ImmutableBindingDiagnostic<TAssemblySymbol>(Diagnostics, Dependencies);
