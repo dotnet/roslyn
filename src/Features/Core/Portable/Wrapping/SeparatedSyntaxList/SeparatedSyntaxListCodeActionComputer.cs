@@ -36,14 +36,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 return result.ToImmutableAndFree();
             }
 
-            protected sealed override async Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
+            protected sealed override Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
             {
                 var edits = GetUnwrapAllEdits(wrappingStyle);
                 var title = wrappingStyle == WrappingStyle.WrapFirst_IndentRest
                     ? Wrapper.Unwrap_and_indent_all_items
                     : Wrapper.Unwrap_all_items;
 
-                return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
+                return TryCreateCodeActionAsync(edits, parentTitle, title);
             }
 
             protected sealed override string GetNestedCodeActionTitle(WrappingStyle wrappingStyle)
