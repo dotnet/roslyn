@@ -21,17 +21,13 @@ namespace Roslyn.Test.Utilities.CoreClr
 {
     internal sealed class TestExecutionLoadContext : AssemblyLoadContext
     {
-        private readonly static Dictionary<string, Assembly> s_loadedPlatformAssemblies = new Dictionary<string, Assembly>(StringComparer.Ordinal);
-
-        private readonly Dictionary<string, ModuleData> _dependencies;
+        private readonly ImmutableDictionary<string, ModuleData> _dependencies;
 
         public TestExecutionLoadContext(IList<ModuleData> dependencies)
         {
-            _dependencies = new Dictionary<string, ModuleData>(dependencies.Count, StringComparer.Ordinal);
-            foreach (var dep in dependencies)
-            {
-                _dependencies.Add(dep.FullName, dep);
-            }
+            _dependencies = dependencies
+                .Select(x => new KeyValuePair<string, ModuleData>(x.FullName, x))
+                .ToImmutableDictionary(StringComparer.Ordinal);
         }
 
         protected override Assembly Load(AssemblyName assemblyName)
