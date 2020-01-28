@@ -94,52 +94,6 @@ namespace Roslyn.Test.Utilities.CoreClr
             return (exitCode, output);
         }
 
-        private static ImmutableDictionary<string, string> GetPlatformAssemblyPaths()
-        {
-            var assemblyNames = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
-
-            // AppContext.GetData returns a string containing a separated list
-            // of paths to the Trusted Platform Assemblies for this program. The TPA is the
-            // set of assemblies we will always load from this location, regardless
-            // of whether or not a load from another location is requested.
-            var platformAssemblies = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")).Split(Path.PathSeparator);
-            foreach (var assemblyPath in platformAssemblies)
-            {
-                if (!String.IsNullOrEmpty(assemblyPath) && TryGetAssemblyName(assemblyPath, out string assemblyName))
-                {
-                    assemblyNames.Add(assemblyName, assemblyPath);
-                }
-            }
-
-            return assemblyNames.ToImmutable();
-        }
-
-        private static bool TryGetAssemblyName(string filePath, out string name)
-        {
-            try
-            {
-                using (var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                using (var peReader = new PEReader(fileStream))
-                {
-                    if (peReader.HasMetadata)
-                    {
-                        var mdReader = peReader.GetMetadataReader();
-                        if (mdReader.IsAssembly)
-                        {
-                            var assemblyDef = mdReader.GetAssemblyDefinition();
-                            name = mdReader.GetString(assemblyDef.Name);
-
-                            return true;
-                        }
-                    }
-                }
-            }
-            catch (BadImageFormatException) { } // Fall through
-
-            name = null;
-            return false;
-        }
-
         public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName, IEnumerable<ModuleDataId> searchModules)
         {
             try
