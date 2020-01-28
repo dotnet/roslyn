@@ -1809,7 +1809,7 @@ namespace Microsoft.CodeAnalysis
             return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
         }
 
-        private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId projectId, ProjectDependencyGraph dependencyGraph)
+        private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
         {
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, CompilationTracker>();
             IEnumerable<ProjectId>? dependencies = null;
@@ -1829,13 +1829,13 @@ namespace Microsoft.CodeAnalysis
             // Returns true if 'tracker' can be reused for project 'id'
             bool CanReuse(ProjectId id)
             {
-                if (id == projectId)
+                if (id == changedProjectId)
                     return true;
 
                 // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
                 // If the information is not available, do not compute it.
                 var forwardDependencies = dependencyGraph.TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
-                if (forwardDependencies is object && !forwardDependencies.Contains(projectId))
+                if (forwardDependencies is object && !forwardDependencies.Contains(changedProjectId))
                 {
                     return true;
                 }
@@ -1843,7 +1843,7 @@ namespace Microsoft.CodeAnalysis
                 // Compute the set of all projects that depend on 'projectId'. This information answers the same
                 // question as the previous check, but involves at most one transitive computation within the
                 // dependency graph.
-                dependencies ??= dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
+                dependencies ??= dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(changedProjectId);
                 return !dependencies.Contains(id);
             }
         }
