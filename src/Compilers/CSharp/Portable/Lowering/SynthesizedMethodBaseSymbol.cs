@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -173,6 +176,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // skip locals init where applicable, even if the synthesized method does not inherit attributes.
         // Note that this doesn't affect BaseMethodWrapperSymbol for example because the implementation has no locals.
         public sealed override bool AreLocalsZeroed => !(BaseMethod is SourceMethodSymbol sourceMethod) || sourceMethod.AreLocalsZeroed;
+
+        internal override bool RequiresSecurityObject => InheritsBaseMethodAttributes && BaseMethod.RequiresSecurityObject;
+
+        internal override bool HasDeclarativeSecurity => InheritsBaseMethodAttributes && BaseMethod.HasDeclarativeSecurity;
+
+        // PROTOTYPE: There are no tests for this because I can't find tests for members.
+        internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => InheritsBaseMethodAttributes
+                ? BaseMethod.GetSecurityInformation()
+                : SpecializedCollections.EmptyEnumerable<SecurityAttribute>();
 
 #nullable restore
 

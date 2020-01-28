@@ -5610,6 +5610,62 @@ class A
             CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, expectedOutput: "");
         }
 
+        [Fact]
+        public void TestDynamicSecurityMethodAttribute_LocalFunction()
+        {
+            var source = @"
+using System;
+using System.Security;
+
+namespace System.Security
+{
+  // DynamicSecurityMethodAttribute:
+  //  Indicates that calling the target method requires space for a security
+  //  object to be allocated on the callers stack. This attribute is only ever
+  //  set on certain security methods defined within mscorlib.
+  [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false )]
+  sealed internal class DynamicSecurityMethodAttribute : System.Attribute
+  {
+  }
+}
+
+class A
+{
+  public static void Main()
+  {
+    SecurityMethod();
+
+     [DynamicSecurityMethodAttribute]
+     static void SecurityMethod() { }
+  }
+}
+";
+
+            void metadataValidator(ModuleSymbol module)
+            {
+                NamedTypeSymbol typeA = module.GlobalNamespace.GetTypeMember("A");
+                MethodSymbol method = typeA.GetMember<MethodSymbol>("<Main>g__SecurityMethod|0_0");
+
+                Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(method.GetAttributes()));
+                Assert.True(method.RequiresSecurityObject);
+            };
+
+            var verifier = CompileAndVerify(
+                source,
+                symbolValidator: metadataValidator,
+                expectedOutput: "",
+                parseOptions: TestOptions.RegularPreview,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var compilation = verifier.Compilation;
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var localFunctionSyntax = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var localFunctionSymbol = model.GetDeclaredSymbol(localFunctionSyntax).GetSymbol<LocalFunctionSymbol>();
+            Assert.True(localFunctionSymbol.RequiresSecurityObject);
+        }
+
         #endregion
 
         #region ObsoleteAttribute
