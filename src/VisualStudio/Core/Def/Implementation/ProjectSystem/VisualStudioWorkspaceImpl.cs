@@ -1697,6 +1697,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var referenceInfo = GetReferenceInfo_NoLock(projectIdToRetarget);
 
+                // Update ConvertedProjectReferences in place to avoid duplicate list allocations
                 for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Count; i++)
                 {
                     var convertedReference = referenceInfo.ConvertedProjectReferences[i];

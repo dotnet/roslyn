@@ -1821,31 +1821,31 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                builder.Add(id, CanReuse() ? tracker : tracker.Fork(tracker.ProjectState));
-
-                // Returns true if 'tracker' can be reused for project 'id'
-                bool CanReuse()
-                {
-                    if (id == projectId)
-                        return true;
-
-                    // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
-                    // If the information is not available, do not compute it.
-                    var forwardDependencies = dependencyGraph.TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
-                    if (forwardDependencies is object && !forwardDependencies.Contains(projectId))
-                    {
-                        return true;
-                    }
-
-                    // Compute the set of all projects that depend on 'projectId'. This information answers the same
-                    // question as the previous check, but involves at most one transitive computation within the
-                    // dependency graph.
-                    dependencies ??= dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
-                    return !dependencies.Contains(id);
-                }
+                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(tracker.ProjectState));
             }
 
             return builder.ToImmutable();
+
+            // Returns true if 'tracker' can be reused for project 'id'
+            bool CanReuse(ProjectId id)
+            {
+                if (id == projectId)
+                    return true;
+
+                // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
+                // If the information is not available, do not compute it.
+                var forwardDependencies = dependencyGraph.TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
+                if (forwardDependencies is object && !forwardDependencies.Contains(projectId))
+                {
+                    return true;
+                }
+
+                // Compute the set of all projects that depend on 'projectId'. This information answers the same
+                // question as the previous check, but involves at most one transitive computation within the
+                // dependency graph.
+                dependencies ??= dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
+                return !dependencies.Contains(id);
+            }
         }
 
         /// <summary>
