@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>$(RoslynNetCoreTargetFramework)</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
 

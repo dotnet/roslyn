@@ -24,7 +24,7 @@
     <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
 
     <_DependsOn Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_DependsOn>
-    <_DependsOn Condition="'$(TargetFramework)' == '$(RoslynNetCoreTargetFramework)'">InitializeCoreClrCompilerArtifacts</_DependsOn>
+    <_DependsOn Condition="'$(TargetFramework)' == 'netcoreapp3.1'">InitializeCoreClrCompilerArtifacts</_DependsOn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,18 +38,18 @@
                       Targets="Publish"
                       ReferenceOutputAssembly="false"
                       SkipGetTargetFrameworkProperties="true"
-                      Condition="'$(TargetFramework)' == '$(RoslynNetCoreTargetFramework)'"
-                      SetTargetFramework="TargetFramework=$(RoslynNetCoreTargetFramework)" />
+                      Condition="'$(TargetFramework)' == 'netcoreapp3.1'"
+                      SetTargetFramework="TargetFramework=netcoreapp3.1" />
   </ItemGroup>
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
     <ItemGroup>
       <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
       <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
-      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/$(RoslynNetCoreTargetFramework)"/>
-      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/$(RoslynNetCoreTargetFramework)"/>
-      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/$(RoslynNetCoreTargetFramework)/bincore"/>
-      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/$(RoslynNetCoreTargetFramework)/bincore/runtimes"/>
+      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/netcoreapp3.1"/>
+      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/netcoreapp3.1"/>
+      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcoreapp3.1/bincore"/>
+      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcoreapp3.1/bincore/runtimes"/>
      
       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="build" />
      
@@ -58,5 +58,5 @@
   </Target>
 
   <Import Project="DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />
-  <Import Project="CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == '$(RoslynNetCoreTargetFramework)'" />
+  <Import Project="CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
 </Project>

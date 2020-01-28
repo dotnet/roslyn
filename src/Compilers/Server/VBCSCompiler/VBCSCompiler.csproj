@@ -16,8 +16,8 @@
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != '$(RoslynNetCoreTargetFramework)'" />
-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == '$(RoslynNetCoreTargetFramework)'" />
+    <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'netcoreapp3.1'" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />
