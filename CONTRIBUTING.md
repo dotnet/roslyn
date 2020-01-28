@@ -31,7 +31,7 @@ The Roslyn project is a member of the [.NET Foundation](https://github.com/orgs/
 
 ### CSharp
 
-- **DO** use the coding style outlined in the [.NET Foundation Coding Guidelines](https://github.com/dotnet/corefx/blob/master/Documentation/coding-guidelines/coding-style.md)
+- **DO** use the coding style outlined in the [.NET Runtime Coding Guidelines](https://github.com/dotnet/runtime/blob/master/docs/coding-guidelines/coding-style.md)
 - **DO** use plain code to validate parameters at public boundaries. Do not use Contracts or magic helpers.
 
 ```csharp
