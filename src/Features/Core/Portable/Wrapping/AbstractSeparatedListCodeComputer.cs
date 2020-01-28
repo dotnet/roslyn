@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 var edits = GetWrapLongLinesEdits(wrappingStyle, indentationTrivia);
                 var title = GetNestedCodeActionTitle(wrappingStyle);
 
-                return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
+                return TryCreateCodeActionAsync(edits, parentTitle, title);
             }
 
             protected abstract ImmutableArray<Edit> GetWrapLongLinesEdits(
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             protected abstract Task<WrappingGroup> GetWrapEveryGroupAsync();
 
-            protected async Task<WrapItemsAction> GetWrapEveryNestedCodeActionAsync(
+            protected Task<WrapItemsAction> GetWrapEveryNestedCodeActionAsync(
                 string parentTitle, WrappingStyle wrappingStyle)
             {
                 var indentationTrivia = GetIndentationTrivia(wrappingStyle);
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 var edits = GetWrapEachEdits(wrappingStyle, indentationTrivia);
                 var title = GetNestedCodeActionTitle(wrappingStyle);
 
-                return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
+                return TryCreateCodeActionAsync(edits, parentTitle, title);
             }
 
             protected abstract ImmutableArray<Edit> GetWrapEachEdits(WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia);

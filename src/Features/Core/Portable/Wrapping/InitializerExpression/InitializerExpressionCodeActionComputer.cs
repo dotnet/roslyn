@@ -187,12 +187,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutableAndFree());
             }
 
-            protected sealed override async Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
+            protected sealed override Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
             {
                 var edits = GetUnwrapAllEdits(wrappingStyle);
                 var title = GetNestedCodeActionTitle(wrappingStyle);
 
-                return await TryCreateCodeActionAsync(edits, parentTitle, title).ConfigureAwait(false);
+                return TryCreateCodeActionAsync(edits, parentTitle, title);
             }
 
             protected sealed override async Task<WrappingGroup> GetWrapLongGroupAsync()
