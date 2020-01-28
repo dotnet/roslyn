@@ -25,10 +25,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             SyntaxKind.IdentifierName,
             SyntaxKind.GenericName)
 
-        Protected Overrides Function IsIgnoredCodeBlock(ByRef context As CodeBlockAnalysisContext) As Boolean
-            Return context.CodeBlock.IsKind(SyntaxKind.CompilationUnit, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock) OrElse
-                context.CodeBlock.IsKind(SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock, SyntaxKind.EnumBlock) OrElse
-                context.CodeBlock.IsKind(SyntaxKind.DelegateFunctionStatement)
+        Protected Overrides Function IsIgnoredCodeBlock(codeBlock As SyntaxNode) As Boolean
+            ' Avoid analysis of compilation units and types in AnalyzeCodeBlock. These nodes appear in code block
+            ' callbacks when they include attributes, but analysis of the node at this level would block more efficient
+            ' analysis of descendant members.
+            Return codeBlock.IsKind(SyntaxKind.CompilationUnit, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock) OrElse
+                codeBlock.IsKind(SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock, SyntaxKind.EnumBlock) OrElse
+                codeBlock.IsKind(SyntaxKind.DelegateFunctionStatement)
         End Function
 
         Protected Overrides Sub AnalyzeCodeBlock(context As CodeBlockAnalysisContext)

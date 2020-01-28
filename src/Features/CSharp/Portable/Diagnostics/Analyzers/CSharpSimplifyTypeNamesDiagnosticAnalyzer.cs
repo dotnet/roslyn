@@ -31,9 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxKind.QualifiedCref);
 
-        protected override bool IsIgnoredCodeBlock(ref CodeBlockAnalysisContext context)
+        protected override bool IsIgnoredCodeBlock(SyntaxNode codeBlock)
         {
-            return context.CodeBlock.IsKind(
+            // Avoid analysis of compilation units and types in AnalyzeCodeBlock. These nodes appear in code block
+            // callbacks when they include attributes, but analysis of the node at this level would block more efficient
+            // analysis of descendant members.
+            return codeBlock.IsKind(
                 SyntaxKind.CompilationUnit,
                 SyntaxKind.ClassDeclaration,
                 SyntaxKind.StructDeclaration,

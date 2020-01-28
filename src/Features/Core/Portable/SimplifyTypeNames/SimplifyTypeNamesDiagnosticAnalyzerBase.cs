@@ -106,7 +106,15 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             context.RegisterSemanticModelAction(analyzer.AnalyzeSemanticModel);
         }
 
-        protected abstract bool IsIgnoredCodeBlock(ref CodeBlockAnalysisContext context);
+        /// <summary>
+        /// Determine if a code block is eligible for analysis by <see cref="AnalyzeCodeBlock"/>.
+        /// </summary>
+        /// <param name="codeBlock">The syntax node provided via <see cref="CodeBlockAnalysisContext.CodeBlock"/>.</param>
+        /// <returns><see langword="true"/> if the code block should be analyzed by <see cref="AnalyzeCodeBlock"/>;
+        /// otherwise, <see langword="false"/> to skip analysis of the block. If a block is skipped, one or more child
+        /// blocks may be analyzed by <see cref="AnalyzeCodeBlock"/>, and any remaining spans can be analyzed by
+        /// <see cref="AnalyzeSemanticModel"/>.</returns>
+        protected abstract bool IsIgnoredCodeBlock(SyntaxNode codeBlock);
         protected abstract void AnalyzeCodeBlock(CodeBlockAnalysisContext context);
         protected abstract void AnalyzeSemanticModel(SemanticModelAnalysisContext context, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree);
 
@@ -232,7 +240,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {
-                if (_analyzer.IsIgnoredCodeBlock(ref context))
+                if (_analyzer.IsIgnoredCodeBlock(context.CodeBlock))
                     return;
 
                 var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.CodeBlock.SyntaxTree, _ => (new StrongBox<bool>(false), SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), Array.Empty<TextSpan>())));
