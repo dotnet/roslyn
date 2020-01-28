@@ -308,7 +308,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return RemoveDynamicAnalysisInjectors(previous);
                 case DebugInfoInjector { Previous: var previous } injector:
                     var newPrevious = RemoveDynamicAnalysisInjectors(previous);
-                    return (object)newPrevious != previous ? new DebugInfoInjector(newPrevious) : injector;
+                    if ((object)newPrevious == Instrumenter.NoOp)
+                    {
+                        return DebugInfoInjector.Singleton;
+                    }
+                    else if ((object)newPrevious != previous)
+                    {
+                        return new DebugInfoInjector(previous);
+                    }
+                    else
+                    {
+                        return injector;
+                    }
                 case CompoundInstrumenter compound:
                     // If we hit this it means a new kind of compound instrumenter is in use.
                     // Either add a new case or add an abstraction that lets us
