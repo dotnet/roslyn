@@ -16,12 +16,18 @@ namespace Microsoft.CodeAnalysis
             // Project ID set and direct forward references are trivially updated by removing the key corresponding to
             // the project getting removed.
             var projectIds = _projectIds.Remove(projectId);
-            var referencesMap = ComputeNewReferencesMapForRemovedProject(_lazyReverseReferencesMap, _referencesMap, projectId);
+            var referencesMap = ComputeNewReferencesMapForRemovedProject(
+                referencesMap: _referencesMap,
+                existingReverseReferencesMap: _lazyReverseReferencesMap,
+                projectId);
 
             // The direct reverse references map is updated by removing the key for the project getting removed, and
             // also updating any direct references to the removed project.
             var reverseReferencesMap = _lazyReverseReferencesMap is object
-                ? ComputeNewReverseReferencesMapForRemovedProject(_referencesMap, _lazyReverseReferencesMap, projectId)
+                ? ComputeNewReverseReferencesMapForRemovedProject(
+                    existingForwardReferencesMap: _referencesMap,
+                    existingReverseReferencesMap: _lazyReverseReferencesMap,
+                    projectId)
                 : null;
             var transitiveReferencesMap = ComputeNewTransitiveReferencesMapForRemovedProject(_transitiveReferencesMap, projectId);
             var reverseTransitiveReferencesMap = ComputeNewReverseTransitiveReferencesMapForRemovedProject(_reverseTransitiveReferencesMap, projectId);
@@ -38,15 +44,15 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Computes a new <see cref="_referencesMap"/> for the removal of a project.
         /// </summary>
+        /// <param name="referencesMap">The <see cref="_referencesMap"/> prior to the removal.</param>
         /// <param name="existingReverseReferencesMap">The <see cref="_lazyReverseReferencesMap"/> prior to the removal.
         /// This map serves as a hint to the removal process; i.e. it is assumed correct if it contains data, but may be
         /// omitted without impacting correctness.</param>
-        /// <param name="referencesMap">The <see cref="_referencesMap"/> prior to the removal.</param>
         /// <param name="projectId">The ID of the project which is being removed.</param>
         /// <returns>The <see cref="_referencesMap"/> for the project dependency graph once the project is removed.</returns>
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReferencesMapForRemovedProject(
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> referencesMap,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
             ProjectId projectId)
         {
             var builder = referencesMap.ToBuilder();
