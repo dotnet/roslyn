@@ -211,6 +211,63 @@ using System.Runtime.CompilerServices;
         }
 
         [Fact]
+        public void InvalidMetadata()
+        {
+            var source0 =
+@".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(bool[] b) cil managed { ret }
+}
+.class public A<T, U>
+{
+}
+.class public B
+{
+  .method public static void F1(class A<native int, native uint> a)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 00 01 01 00 00 ) 
+    ret
+  }
+  .method public static void F2(class A<native int, native uint> a)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+    ret
+  }
+  .method public static void F3(class A<native int, native uint> a)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 04 00 00 00 00 00 01 01 00 00 ) 
+    ret
+  }
+}";
+            var ref0 = CompileIL(source0);
+            var source1 =
+@"class Program
+{
+    static void F(A<nint, nuint> a)
+    {
+        B.F1(a);
+        B.F2(a);
+        B.F3(a);
+    }
+}";
+
+            var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics(
+                // (3,21): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static void F(A<nint, nuint> a)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(3, 21),
+                // (3,27): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static void F(A<nint, nuint> a)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(3, 27));
+
+            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void EmitAttribute_BaseClass()
         {
             var source =

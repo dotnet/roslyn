@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -11,44 +12,61 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
-    internal static class NativeIntegerTypeDecoder
+    internal struct NativeIntegerTypeDecoder
     {
         internal static TypeSymbol TransformType(TypeSymbol type, EntityHandle handle, PEModuleSymbol containingModule)
         {
-            if (containingModule.Module.HasNativeIntegerAttribute(handle, out var transformFlags))
+            try
             {
-                var state = (transformFlags, 0);
-                // PROTOTYPE: Test too few and too many bools.
-                return TransformType(type, ref state);
+                if (containingModule.Module.HasNativeIntegerAttribute(handle, out var transformFlags))
+                {
+                    var decoder = new NativeIntegerTypeDecoder(transformFlags);
+                    var result = decoder.TransformType(type);
+                    if (decoder._index == transformFlags.Length)
+                    {
+                        return result;
+                    }
+                }
             }
-
+            catch (ArgumentException)
+            {
+            }
             return type;
         }
 
-        private static TypeWithAnnotations TransformTypeWithAnnotations(TypeWithAnnotations type, ref (ImmutableArray<bool>, int) arg)
+        private readonly ImmutableArray<bool> _transformFlags;
+        private int _index;
+
+        private NativeIntegerTypeDecoder(ImmutableArray<bool> transformFlags)
         {
-            return type.WithTypeAndModifiers(TransformType(type.Type, ref arg), type.CustomModifiers);
+            _transformFlags = transformFlags;
+            _index = 0;
         }
 
-        private static TypeSymbol TransformType(TypeSymbol type, ref (ImmutableArray<bool>, int) arg)
+        private TypeWithAnnotations TransformTypeWithAnnotations(TypeWithAnnotations type)
+        {
+            return type.WithTypeAndModifiers(TransformType(type.Type), type.CustomModifiers);
+        }
+
+        private TypeSymbol TransformType(TypeSymbol type)
         {
             return type switch
             {
-                NamedTypeSymbol namedType => TransformNamedType(namedType, ref arg),
-                ArrayTypeSymbol arrayType => TransformArrayType(arrayType, ref arg),
-                PointerTypeSymbol pointerType => TransformPointerType(pointerType, ref arg),
+                NamedTypeSymbol namedType => TransformNamedType(namedType),
+                ArrayTypeSymbol arrayType => TransformArrayType(arrayType),
+                PointerTypeSymbol pointerType => TransformPointerType(pointerType),
                 _ => throw ExceptionUtilities.UnexpectedValue(type)
             };
         }
 
-        private static NamedTypeSymbol TransformNamedType(NamedTypeSymbol type, ref (ImmutableArray<bool>, int) arg)
+        private NamedTypeSymbol TransformNamedType(NamedTypeSymbol type)
         {
+            int index = Increment();
+
             if (!type.IsGenericType)
             {
-                return arg.Item1[arg.Item2++] ? type.AsNativeInt(true) : type;
+                return _transformFlags[index] ? type.AsNativeInt(true) : type;
             }
-
-            arg.Item2++;
 
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             type.GetAllTypeArgumentsNoUseSiteDiagnostics(allTypeArguments);
@@ -57,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             for (int i = 0; i < allTypeArguments.Count; i++)
             {
                 TypeWithAnnotations oldTypeArgument = allTypeArguments[i];
-                TypeWithAnnotations newTypeArgument = TransformTypeWithAnnotations(oldTypeArgument, ref arg);
+                TypeWithAnnotations newTypeArgument = TransformTypeWithAnnotations(oldTypeArgument);
                 if (!oldTypeArgument.IsSameAs(newTypeArgument))
                 {
                     allTypeArguments[i] = newTypeArgument;
@@ -70,16 +88,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return result;
         }
 
-        private static ArrayTypeSymbol TransformArrayType(ArrayTypeSymbol type, ref (ImmutableArray<bool>, int) arg)
+        private ArrayTypeSymbol TransformArrayType(ArrayTypeSymbol type)
         {
-            arg.Item2++;
-            return type.WithElementType(TransformTypeWithAnnotations(type.ElementTypeWithAnnotations, ref arg));
+            Increment();
+            return type.WithElementType(TransformTypeWithAnnotations(type.ElementTypeWithAnnotations));
         }
 
-        private static PointerTypeSymbol TransformPointerType(PointerTypeSymbol type, ref (ImmutableArray<bool>, int) arg)
+        private PointerTypeSymbol TransformPointerType(PointerTypeSymbol type)
         {
-            arg.Item2++;
-            return type.WithPointedAtType(TransformTypeWithAnnotations(type.PointedAtTypeWithAnnotations, ref arg));
+            Increment();
+            return type.WithPointedAtType(TransformTypeWithAnnotations(type.PointedAtTypeWithAnnotations));
+        }
+
+        private int Increment()
+        {
+            if (_index < _transformFlags.Length)
+            {
+                return _index++;
+            }
+            throw new ArgumentException();
         }
     }
 }
