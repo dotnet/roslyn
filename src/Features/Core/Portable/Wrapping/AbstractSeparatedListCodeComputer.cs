@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             protected abstract Task<WrappingGroup> GetWrapLongGroupAsync();
 
-            protected async Task<WrapItemsAction> GetWrapLongLineCodeActionAsync(
+            protected Task<WrapItemsAction> GetWrapLongLineCodeActionAsync(
                 string parentTitle, WrappingStyle wrappingStyle)
             {
                 var indentationTrivia = GetIndentationTrivia(wrappingStyle);
