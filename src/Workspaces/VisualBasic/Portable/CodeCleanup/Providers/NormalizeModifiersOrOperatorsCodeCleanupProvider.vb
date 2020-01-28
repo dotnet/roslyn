@@ -62,13 +62,13 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     {SyntaxKind.LessThanEqualsToken, New List(Of SyntaxKind) From {SyntaxKind.EqualsToken, SyntaxKind.LessThanToken}}
                 }
 
-            Private ReadOnly _spans As SimpleIntervalTree(Of TextSpan)
+            Private ReadOnly _spans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
             Private ReadOnly _cancellationToken As CancellationToken
 
             Public Sub New(spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken)
                 MyBase.New(visitIntoStructuredTrivia:=True)
 
-                _spans = New SimpleIntervalTree(Of TextSpan)(TextSpanIntervalIntrospector.Instance, spans)
+                _spans = New SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)(New TextSpanIntervalIntrospector(), spans)
                 _cancellationToken = cancellationToken
             End Sub
 
