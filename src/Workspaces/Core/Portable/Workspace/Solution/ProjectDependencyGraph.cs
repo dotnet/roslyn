@@ -242,21 +242,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the list of projects that directly or transitively depend on this project, if it has already been
-        /// cached.
-        /// </summary>
-        internal ImmutableHashSet<ProjectId>? TryGetProjectsThatTransitivelyDependOnThisProject(ProjectId projectId)
-        {
-            if (projectId is null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            _reverseTransitiveReferencesMap.TryGetValue(projectId, out var projects);
-            return projects;
-        }
-
-        /// <summary>
         /// Gets the list of projects that directly or transitively depend on this project.
         /// </summary>
         public IEnumerable<ProjectId> GetProjectsThatTransitivelyDependOnThisProject(ProjectId projectId)
@@ -425,6 +410,34 @@ namespace Microsoft.CodeAnalysis
                 {
                     ComputedDependencySet(other, result);
                 }
+            }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly ProjectDependencyGraph _instance;
+
+            public TestAccessor(ProjectDependencyGraph instance)
+            {
+                _instance = instance;
+            }
+
+            /// <summary>
+            /// Gets the list of projects that directly or transitively depend on this project, if it has already been
+            /// cached.
+            /// </summary>
+            public ImmutableHashSet<ProjectId>? TryGetProjectsThatTransitivelyDependOnThisProject(ProjectId projectId)
+            {
+                if (projectId is null)
+                {
+                    throw new ArgumentNullException(nameof(projectId));
+                }
+
+                _instance._reverseTransitiveReferencesMap.TryGetValue(projectId, out var projects);
+                return projects;
             }
         }
     }

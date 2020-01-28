@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             // Before any other operations, verify that TryGetProjectsThatTransitivelyDependOnThisProject returns a
             // non-null set. Specifically, it returns the _same_ set that was computed prior to the project reference
             // removal.
-            Assert.Same(expected, solution.State.GetProjectDependencyGraph().TryGetProjectsThatTransitivelyDependOnThisProject(d.Id));
+            Assert.Same(expected, solution.State.GetProjectDependencyGraph().GetTestAccessor().TryGetProjectsThatTransitivelyDependOnThisProject(d.Id));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             // Before any other operations, verify that TryGetProjectsThatTransitivelyDependOnThisProject returns a
             // non-null set. Specifically, it returns the _same_ set that was computed prior to the project reference
             // removal.
-            Assert.Same(expected, solution.State.GetProjectDependencyGraph().TryGetProjectsThatTransitivelyDependOnThisProject(e.Id));
+            Assert.Same(expected, solution.State.GetProjectDependencyGraph().GetTestAccessor().TryGetProjectsThatTransitivelyDependOnThisProject(e.Id));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
             // Before any other operations, verify that TryGetProjectsThatTransitivelyDependOnThisProject returns a
             // null set.
-            Assert.Null(solution.State.GetProjectDependencyGraph().TryGetProjectsThatTransitivelyDependOnThisProject(c.Id));
+            Assert.Null(solution.State.GetProjectDependencyGraph().GetTestAccessor().TryGetProjectsThatTransitivelyDependOnThisProject(c.Id));
             VerifyReverseTransitiveReferences(solution, "C", new string[] { "B" });
         }
 
