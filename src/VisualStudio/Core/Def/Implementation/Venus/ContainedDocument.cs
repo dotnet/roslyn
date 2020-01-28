@@ -216,13 +216,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             IEnumerable<int> affectedVisibleSpanIndices = null;
             var editorVisibleSpansInOriginal = SharedPools.Default<List<TextSpan>>().AllocateAndClear();
+            var diffService = GetTextDifferencingService();
 
             try
             {
                 var originalDocument = _workspace.CurrentSolution.GetDocument(this.Id);
 
                 editorVisibleSpansInOriginal.AddRange(GetEditorVisibleSpans());
-                var newChanges = FilterTextChanges(originalText, editorVisibleSpansInOriginal, changes).ToList();
+                var newChanges = FilterTextChanges(diffService, originalText, editorVisibleSpansInOriginal, changes).ToList();
                 if (newChanges.Count == 0)
                 {
                     // no change to apply
@@ -239,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private IEnumerable<TextChange> FilterTextChanges(SourceText originalText, List<TextSpan> editorVisibleSpansInOriginal, IReadOnlyList<TextChange> changes)
+        private static IEnumerable<TextChange> FilterTextChanges(ITextDifferencingService diffService, SourceText originalText, List<TextSpan> editorVisibleSpansInOriginal, IReadOnlyList<TextChange> changes)
         {
             // no visible spans or changes
             if (editorVisibleSpansInOriginal.Count == 0 || changes.Count == 0)
@@ -290,7 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     }
 
                     // now it is complex case where things are intersecting each other
-                    var subChanges = GetSubTextChanges(originalText, change, visibleSpan).ToList();
+                    var subChanges = GetSubTextChanges(diffService, originalText, change, visibleSpan).ToList();
                     if (subChanges.Count > 0)
                     {
                         if (subChanges.Count == 1 && subChanges[0] == change)
@@ -326,7 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return false;
         }
 
-        private IEnumerable<TextChange> GetSubTextChanges(SourceText originalText, TextChange changeInOriginalText, TextSpan visibleSpanInOriginalText)
+        private static IEnumerable<TextChange> GetSubTextChanges(ITextDifferencingService diffService, SourceText originalText, TextChange changeInOriginalText, TextSpan visibleSpanInOriginalText)
         {
             using var changes = SharedPools.Default<List<TextChange>>().GetPooledObject();
 
@@ -339,10 +340,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return changes.Object.ToList();
             }
 
-            return GetSubTextChanges(originalText, visibleSpanInOriginalText, leftText, rightText, offsetInOriginalText);
+            return GetSubTextChanges(diffService, originalText, visibleSpanInOriginalText, leftText, rightText, offsetInOriginalText);
         }
 
-        private bool TryGetSubTextChanges(
+        private static bool TryGetSubTextChanges(
             SourceText originalText, TextSpan visibleSpanInOriginalText, string leftText, string rightText, int offsetInOriginalText, List<TextChange> changes)
         {
             // these are expensive. but hopefully we don't hit this as much except the boundary cases.
@@ -376,7 +377,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return false;
         }
 
-        private IEnumerable<TextChange> GetSubTextChanges(
+        private static IEnumerable<TextChange> GetSubTextChanges(ITextDifferencingService diffService,
             SourceText originalText, TextSpan visibleSpanInOriginalText, string leftText, string rightText, int offsetInOriginalText)
         {
             // these are expensive. but hopefully we don't hit this as much except the boundary cases.
@@ -387,7 +388,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var rightReplacementMap = rightPool.Object;
             GetTextWithReplacements(leftText, rightText, leftReplacementMap, rightReplacementMap, out var leftTextWithReplacement, out var rightTextWithReplacement);
 
-            var diffResult = DiffStrings(leftTextWithReplacement, rightTextWithReplacement);
+            var diffResult = DiffStrings(diffService, leftTextWithReplacement, rightTextWithReplacement);
 
             foreach (var difference in diffResult)
             {
@@ -402,12 +403,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private bool TryGetWhitespaceOnlyChanges(string leftText, string rightText, List<TextSpan> spansInLeftText, List<TextSpan> spansInRightText)
+        private static bool TryGetWhitespaceOnlyChanges(string leftText, string rightText, List<TextSpan> spansInLeftText, List<TextSpan> spansInRightText)
         {
             return TryGetWhitespaceGroup(leftText, spansInLeftText) && TryGetWhitespaceGroup(rightText, spansInRightText) && spansInLeftText.Count == spansInRightText.Count;
         }
 
-        private bool TryGetWhitespaceGroup(string text, List<TextSpan> groups)
+        private static bool TryGetWhitespaceGroup(string text, List<TextSpan> groups)
         {
             if (text.Length == 0)
             {
@@ -461,7 +462,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return true;
         }
 
-        private bool TextAt(string text, int index, char ch1, char ch2 = default)
+        private static bool TextAt(string text, int index, char ch1, char ch2 = default)
         {
             if (index < 0 || text.Length <= index)
             {
@@ -482,7 +483,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return false;
         }
 
-        private bool TryGetSubTextChange(
+        private static bool TryGetSubTextChange(
             SourceText originalText, TextSpan visibleSpanInOriginalText,
             string rightText, TextSpan spanInOriginalText, TextSpan spanInRightText, out TextChange textChange)
         {
@@ -581,16 +582,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             throw ExceptionUtilities.Unreachable;
         }
 
-        private IHierarchicalDifferenceCollection DiffStrings(string leftTextWithReplacement, string rightTextWithReplacement)
+        private ITextDifferencingService GetTextDifferencingService()
         {
             var diffService = _differenceSelectorService.GetTextDifferencingService(
                 _workspace.Services.GetLanguageServices(_project.Language).GetService<IContentTypeLanguageService>().GetDefaultContentType());
 
-            diffService ??= _differenceSelectorService.DefaultTextDifferencingService;
+            return diffService ?? _differenceSelectorService.DefaultTextDifferencingService;
+        }
+
+        private static IHierarchicalDifferenceCollection DiffStrings(ITextDifferencingService diffService, string leftTextWithReplacement, string rightTextWithReplacement)
+        {
             return diffService.DiffStrings(leftTextWithReplacement, rightTextWithReplacement, s_venusEditOptions.DifferenceOptions);
         }
 
-        private void GetTextWithReplacements(
+        private static void GetTextWithReplacements(
             string leftText, string rightText,
             List<ValueTuple<int, int>> leftReplacementMap, List<ValueTuple<int, int>> rightReplacementMap,
             out string leftTextWithReplacement, out string rightTextWithReplacement)
@@ -622,7 +627,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private string GetTextWithReplacementMap(string text, string returnReplacement, string newLineReplacement, List<ValueTuple<int, int>> replacementMap)
+        private static string GetTextWithReplacementMap(string text, string returnReplacement, string newLineReplacement, List<ValueTuple<int, int>> replacementMap)
         {
             var delta = 0;
             var returnLength = returnReplacement.Length;
@@ -653,7 +658,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return StringBuilderPool.ReturnAndFree(sb);
         }
 
-        private Span AdjustSpan(Span span, List<ValueTuple<int, int>> replacementMap)
+        private static Span AdjustSpan(Span span, List<ValueTuple<int, int>> replacementMap)
         {
             var start = span.Start;
             var end = span.End;
@@ -763,6 +768,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                                         .WithChangedOption(FormattingOptions.TabSize, root.Language, editorOptions.GetTabSize())
                                         .WithChangedOption(FormattingOptions.IndentationSize, root.Language, editorOptions.GetIndentSize());
 
+            var diffService = GetTextDifferencingService();
+
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 
             var spans = pooledObject.Object;
@@ -775,13 +782,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 var rule = GetBaseIndentationRule(root, originalText, spans, spanIndex);
 
                 var visibleSpan = spans[spanIndex];
-                AdjustIndentationForSpan(document, edit, visibleSpan, rule, options);
+                AdjustIndentationForSpan(diffService, document, edit, visibleSpan, rule, options);
             }
 
             edit.Apply();
         }
 
-        private void AdjustIndentationForSpan(
+        private static void AdjustIndentationForSpan(ITextDifferencingService diffService,
             Document document, ITextEdit edit, TextSpan visibleSpan, AbstractFormattingRule baseIndentationRule, OptionSet options)
         {
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
@@ -803,7 +810,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 workspace, options, formattingRules, CancellationToken.None);
 
             visibleSpans.Add(visibleSpan);
-            var newChanges = FilterTextChanges(document.GetTextSynchronously(CancellationToken.None), visibleSpans, changes.ToReadOnlyCollection()).Where(t => visibleSpan.Contains(t.Span));
+            var newChanges = FilterTextChanges(diffService, document.GetTextSynchronously(CancellationToken.None), visibleSpans, changes.ToReadOnlyCollection()).Where(t => visibleSpan.Contains(t.Span));
 
             foreach (var change in newChanges)
             {
@@ -901,7 +908,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return additionalIndentation;
         }
 
-        private TextSpan GetVisibleTextSpan(SourceText text, TextSpan visibleSpan, bool uptoFirstAndLastLine = false)
+        private static TextSpan GetVisibleTextSpan(SourceText text, TextSpan visibleSpan, bool uptoFirstAndLastLine = false)
         {
             var start = visibleSpan.Start;
             for (; start < visibleSpan.End; start++)
