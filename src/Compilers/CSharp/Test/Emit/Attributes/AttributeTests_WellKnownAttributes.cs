@@ -11354,9 +11354,56 @@ class C
         }}
     }};
 }}
+
+// Ensure verification fails in every run of the theory for simplicity
+[SkipLocalsInit]
+class D {{ }}
 ";
             var verifier = CompileAndVerifyWithSkipLocalsInit(src);
             Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<>c.<.ctor>b__0_0")); // action
+            Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<.ctor>g__local|0_1")); // local
+        }
+
+        [Theory]
+        [InlineData("", "", "", true)]
+        [InlineData("", "[SkipLocalsInit]", "", true)]
+        [InlineData("", "", "[SkipLocalsInit]", true)]
+        [InlineData("[SkipLocalsInit]", "", "", false)]
+        [InlineData("[SkipLocalsInit]", "", "[SkipLocalsInit]", false)]
+        [InlineData("[module: SkipLocalsInit]", "", "", false)]
+        [InlineData("[module: SkipLocalsInit]", "", "[SkipLocalsInit]", false)]
+        public void SkipLocalsInitLambdaPropertyInitializer(string outerAttribute, string ctorAttribute, string propAttribute, bool hasLocalsInit)
+        {
+            var src = $@"
+using System.Runtime.CompilerServices;
+using System;
+
+{outerAttribute}
+class C
+{{
+    {ctorAttribute}
+    C() {{ }}
+
+    {propAttribute}
+    Action Prop {{ get; }} = () =>
+    {{
+        int w = 1;
+        w = w + w + w;
+
+        void local()
+        {{
+            int x = 1;
+            x = x + x + x;
+        }}
+    }};
+}}
+
+// Ensure verification fails in every run of the theory for simplicity
+[SkipLocalsInit]
+class D {{ }}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(src);
+            Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<>c.<.ctor>b__0_0")); // lambda
             Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<.ctor>g__local|0_1")); // local
         }
 
