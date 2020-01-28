@@ -106,6 +106,35 @@ class B
             Assert.Empty(results);
         }
 
+
+        [WpfFact, WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")]
+        public async Task TestFindAllReferencesAsync_ConditionalIndexer()
+        {
+            var markup =
+@"class A<T>
+{
+   private T[] arr = new T[100];
+
+   public T {|caret:|}{|reference:this|}[int i]
+   {
+      {|reference:get|} { return arr[i]; }
+      {|reference:set|} { arr[i] = value; }
+   }
+}
+class B
+{
+    private A<string> a;
+    void M2()
+    {
+         var t = a?{|reference:|}[0];
+    }
+}";
+            var (solution, locations) = CreateTestSolution(markup);
+
+            var results = await RunFindAllReferencesAsync(solution, locations["caret"].First(), true);
+            AssertLocationsEqual(locations["reference"], results);
+        }
+
         private static async Task<LSP.Location[]> RunFindAllReferencesAsync(Solution solution, LSP.Location caret, bool includeDeclaration)
         {
             var request = new LSP.ReferenceParams()
