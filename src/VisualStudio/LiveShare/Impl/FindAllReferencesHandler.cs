@@ -15,16 +15,18 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Adornments;
+using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     // TODO - This should move to the ILanguageClient when we remove the UI thread dependency.
     // https://github.com/dotnet/roslyn/issues/38477
-    internal class FindAllReferencesHandler : ILspRequestHandler<LSP.ReferenceParams, object[], Solution>
+    internal class FindAllReferencesHandler : ILspRequestHandler<object, object[], Solution>
     {
         private readonly IThreadingContext _threadingContext;
 
@@ -33,18 +35,22 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             _threadingContext = threadingContext;
         }
 
-        public async Task<object[]> HandleAsync(LSP.ReferenceParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public async Task<object[]> HandleAsync(object request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
+            // The VS LSP client supports streaming using IProgress<T> on various requests.
+            // However, this is not yet supported through Live Share, so deserialization fails on the IProgress<T> property.
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043376 tracks Live Share support for this (committed for 16.6).
+            var referenceParams = ((JObject)request).ToObject<ReferenceParams>(InProcLanguageServer.JsonSerializer);
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
             var solution = requestContext.Context;
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = solution.GetDocumentFromURI(referenceParams.TextDocument.Uri);
             if (document == null)
             {
                 return locations.ToArrayAndFree();
             }
 
             var findUsagesService = document.Project.LanguageServices.GetService<IFindUsagesService>();
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(referenceParams.Position), cancellationToken).ConfigureAwait(false);
 
             var context = new SimpleFindUsagesContext(cancellationToken);
 
@@ -59,11 +65,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
             if (requestContext?.ClientCapabilities?.ToObject<VSClientCapabilities>()?.HasVisualStudioLspCapability() == true)
             {
-                return await GetReferenceGroupsAsync(request, context, cancellationToken).ConfigureAwait(false);
+                return await GetReferenceGroupsAsync(referenceParams, context, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                return await GetLocationsAsync(request, context, cancellationToken).ConfigureAwait(false);
+                return await GetLocationsAsync(referenceParams, context, cancellationToken).ConfigureAwait(false);
             }
         }
 
