@@ -658,15 +658,6 @@ class C
                 // (12,44): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
                 //         public class InnerInner<W> : Base1<(int key3, int val3)> { }
                 Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(int key3, int val3)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(12, 44),
-                // (8,14): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
-                // public class Outer<T> : Base1<(int key, int val)>
-                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "Outer").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(8, 14),
-                // (10,18): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
-                //     public class Inner<U, V> : Base2<(int key2, int val2), V>
-                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "Inner").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(10, 18),
-                // (12,22): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
-                //         public class InnerInner<W> : Base1<(int key3, int val3)> { }
-                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "InnerInner").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(12, 22),
                 // (16,42): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
                 // public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
                 Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(int e2, int e3)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(16, 42),
@@ -775,10 +766,7 @@ class C
                 Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "((dynamic e1, dynamic e2, object e3) e4, dynamic e5)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(68, 13),
                 // (21,19): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
                 //     public static (int e1, int e2) Field1;
-                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(int e1, int e2)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(21, 19),
-                // (16,14): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
-                // public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
-                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "Derived").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(16, 14));
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(int e1, int e2)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(21, 19));
         }
 
         [Fact]

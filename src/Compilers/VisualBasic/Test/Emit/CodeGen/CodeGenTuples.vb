@@ -22629,7 +22629,7 @@ End Class
         <InlineData(True)>
         <InlineData(False)>
         <WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")>
-        Public Sub SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit(ByVal useImageReferences As Boolean)
+        Public Sub SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_IndirectInterfaces(ByVal useImageReferences As Boolean)
 
             Dim getReference As Func(Of Compilation, MetadataReference) = Function(c) If(useImageReferences, c.EmitToImageReference(), c.ToMetadataReference())
 
@@ -22664,18 +22664,19 @@ End Interface
 
 Public Interface I1(Of T)
     Inherits I2(Of T, (a As Object, b As Object))
-End Interface 
+End Interface
 "
             Dim lib1_comp = CreateCompilationWithMscorlib40(lib1_source, references:={getReference(valueTuple_comp), getReference(tupleElementNamesAttribute_comp)})
             lib1_comp.AssertNoDiagnostics()
 
             Dim lib2_source = "
-Public interface I0 
+Public interface I0
     Inherits I1(Of string)
-End Interface 
+End Interface
 "
             Dim lib2_comp = CreateCompilationWithMscorlib40(lib2_source, references:={getReference(lib1_comp), getReference(valueTuple_comp)}) ' Missing TupleElementNamesAttribute
             lib2_comp.AssertNoDiagnostics()
+            lib2_comp.AssertTheseEmitDiagnostics()
 
             Dim imc1 = CType(lib2_comp.GlobalNamespace.GetMember("I0"), TypeSymbol)
             AssertEx.SetEqual({"I1(Of System.String)"}, imc1.InterfacesNoUseSiteDiagnostics().Select(Function(i) i.ToTestDisplayString()))
@@ -22696,7 +22697,62 @@ End Class
             AssertEx.SetEqual({"I1(Of System.String)", "I2(Of System.String, (a As System.Object, b As System.Object))"}, imc2.AllInterfacesNoUseSiteDiagnostics.Select(Function(i) i.ToTestDisplayString()))
 
         End Sub
-        
+
+        <Fact, WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")>
+        Public Sub SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_BaseAndDirectInterface()
+
+            Dim source = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return ""{"" + Item1?.ToString() + "", "" + Item2?.ToString() + ""}""
+        End Function
+    End Structure
+End Namespace
+
+Namespace System.Runtime.CompilerServices
+    Public Class TupleElementNamesAttribute
+        Inherits Attribute
+
+        Public Sub New() ' Note: bad signature
+	    End Sub
+    End Class
+End Namespace
+
+Public Interface I(Of T)
+End Interface
+
+Public Class Base(Of T)
+End Class
+
+Public Class C1
+    Implements I(Of (a As Object, b As Object))
+End Class
+
+Public Class C2
+    Inherits Base(Of (a As Object, b As Object))
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseEmitDiagnostics(<errors><![CDATA[
+BC37268: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+    Implements I(Of (a As Object, b As Object))
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37268: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+    Inherits Base(Of (a As Object, b As Object))
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~
+                ]]></errors>)
+
+        End Sub
+
         <Theory>
         <InlineData(True)>
         <InlineData(False)>

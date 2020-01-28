@@ -197,7 +197,7 @@ public class C1 : C0
         [InlineData(true)]
         [InlineData(false)]
         [WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
-        public void SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit(bool useImageReferences)
+        public void SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_IndirectInterfaces(bool useImageReferences)
         {
             Func<CSharpCompilation, MetadataReference> getReference = c => useImageReferences ? c.EmitToImageReference() : c.ToMetadataReference();
 
@@ -262,6 +262,11 @@ public interface I0 : I1<string>
                 // public interface I0 : I1<string>
                 Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "I0").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(2, 18)
                 );
+            lib2_comp.VerifyEmitDiagnostics(
+                // (2,18): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                // public interface I0 : I1<string>
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "I0").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(2, 18)
+                );
 
             var imc1 = (TypeSymbol)lib2_comp.GlobalNamespace.GetMember("I0");
             AssertEx.SetEqual(
@@ -272,6 +277,61 @@ public interface I0 : I1<string>
                 new[] { "I1<System.String>", "I2<System.String, (System.Object a, System.Object b)>" },
                 imc1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
         }
+
+        [Fact, WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")]
+        public void SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_BaseAndDirectInterface()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute() { } // Note: bad signature
+    }
+}
+
+public interface I<T> { }
+
+public class Base<T> { }
+
+public class C1 : I<(object a, object b)> { }
+
+public class C2 : Base<(object a, object b)> { }
+";
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyEmitDiagnostics(
+                // (34,14): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                // public class C1 : I<(object a, object b)> { }
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "C1").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(34, 14),
+                // (34,21): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                // public class C1 : I<(object a, object b)> { }
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(object a, object b)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(34, 21),
+                // (36,24): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                // public class C2 : Base<(object a, object b)> { }
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(object a, object b)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(36, 24)
+                );
+        }
+
 
         [Fact]
         public void ExplicitAttributeFromSource()
