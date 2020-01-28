@@ -11285,7 +11285,7 @@ class C
         }
 
         [Fact]
-        public void SkipLocalsInitFieldInitializer()
+        public void SkipLocalsInitImplicitConstructor()
         {
             var src = @"
 using System.Runtime.CompilerServices;
@@ -11321,6 +11321,43 @@ class ClassNoAttributeNoLocal
             Assert.True(verifier.HasLocalsInit("ClassNoAttributeWithLocal..ctor"));
             Assert.Null(verifier.HasLocalsInit("ClassWithAttributeNoLocal..ctor"));
             Assert.Null(verifier.HasLocalsInit("ClassNoAttributeNoLocal..ctor"));
+        }
+
+        [Theory]
+        [InlineData("", "", true)]
+        [InlineData("", "[SkipLocalsInit]", true)]
+        [InlineData("[SkipLocalsInit]", "", false)]
+        [InlineData("[SkipLocalsInit]", "[SkipLocalsInit]", false)]
+        [InlineData("[module: SkipLocalsInit]", "", false)]
+        [InlineData("[module: SkipLocalsInit]", "[SkipLocalsInit]", false)]
+        public void SkipLocalsInitLambdaFieldInitializer(string outerAttribute, string ctorAttribute, bool hasLocalsInit)
+        {
+            var src = $@"
+using System.Runtime.CompilerServices;
+using System;
+
+{outerAttribute}
+class C
+{{
+    {ctorAttribute}
+    C() {{ }}
+
+    Action action = () =>
+    {{
+        int w = 1;
+        w = w + w + w;
+
+        void local()
+        {{
+            int x = 1;
+            x = x + x + x;
+        }}
+    }};
+}}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(src);
+            Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<>c.<.ctor>b__0_0")); // action
+            Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<.ctor>g__local|0_1")); // local
         }
 
         [Fact]
