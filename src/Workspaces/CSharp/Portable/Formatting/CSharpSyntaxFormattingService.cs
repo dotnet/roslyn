@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return _rules;
         }
 
-        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan> formattingSpans = null)
+        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> formattingSpans = null)
         {
             return new AggregatedFormattingResult(node, results, formattingSpans);
         }
