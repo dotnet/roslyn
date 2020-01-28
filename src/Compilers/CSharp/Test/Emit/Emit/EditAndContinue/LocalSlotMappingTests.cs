@@ -4212,10 +4212,9 @@ class C
 
             diff1.VerifyIL("C.G", @"
 {
-  // Code size       59 (0x3b)
+  // Code size       56 (0x38)
   .maxstack  2
-  .locals init (C.<G>d__0 V_0,
-                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> V_1)
+  .locals init (C.<G>d__0 V_0)
  ~IL_0000:  newobj     ""C.<G>d__0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -4228,15 +4227,13 @@ class C
  -IL_0019:  ldc.i4.m1
  -IL_001a:  stfld      ""int C.<G>d__0.<>1__state""
   IL_001f:  ldloc.0
-  IL_0020:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
-  IL_0025:  stloc.1
-  IL_0026:  ldloca.s   V_1
-  IL_0028:  ldloca.s   V_0
-  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<C.<G>d__0>(ref C.<G>d__0)""
-  IL_002f:  ldloc.0
-  IL_0030:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
-  IL_0035:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
-  IL_003a:  ret
+  IL_0020:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<C.<G>d__0>(ref C.<G>d__0)""
+  IL_002c:  ldloc.0
+  IL_002d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+  IL_0032:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+  IL_0037:  ret
 }
 ", methodToken: diff1.UpdatedMethods.Single());
         }
@@ -4275,10 +4272,9 @@ class C
 
             diff1.VerifyIL("C.G", @"
 {
-  // Code size       59 (0x3b)
+  // Code size       56 (0x38)
   .maxstack  2
-  .locals init (C.<G>d__0 V_0,
-                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> V_1)
+  .locals init (C.<G>d__0 V_0)
  ~IL_0000:  newobj     ""C.<G>d__0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -4291,15 +4287,13 @@ class C
   IL_0019:  ldc.i4.m1
   IL_001a:  stfld      ""int C.<G>d__0.<>1__state""
   IL_001f:  ldloc.0
-  IL_0020:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
-  IL_0025:  stloc.1
-  IL_0026:  ldloca.s   V_1
-  IL_0028:  ldloca.s   V_0
-  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<C.<G>d__0>(ref C.<G>d__0)""
-  IL_002f:  ldloc.0
-  IL_0030:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
-  IL_0035:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
-  IL_003a:  ret
+  IL_0020:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<C.<G>d__0>(ref C.<G>d__0)""
+  IL_002c:  ldloc.0
+  IL_002d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+  IL_0032:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+  IL_0037:  ret
 }
 ", methodToken: diff1.UpdatedMethods.Single());
         }
