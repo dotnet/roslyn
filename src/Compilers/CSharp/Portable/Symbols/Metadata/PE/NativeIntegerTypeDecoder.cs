@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (!type.IsGenericType)
             {
-                return _transformFlags[index] ? type.AsNativeInt(true) : type;
+                return _transformFlags[index] ? TransformTypeDefinition(type) : type;
             }
 
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
@@ -107,6 +107,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _index++;
             }
             throw new ArgumentException();
+        }
+
+        private static NamedTypeSymbol TransformTypeDefinition(NamedTypeSymbol type)
+        {
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_IntPtr:
+                case SpecialType.System_UIntPtr:
+                    return type.AsNativeInt(true);
+                default:
+                    throw new ArgumentException();
+            }
         }
     }
 }

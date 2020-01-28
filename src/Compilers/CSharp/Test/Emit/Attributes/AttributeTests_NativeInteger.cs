@@ -160,7 +160,7 @@ using System.Runtime.CompilerServices;
     static void M3([NativeInteger]object arg) { }
 }";
 
-            var comp = CreateCompilation(new[] { sourceAttribute, source }, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(new[] { sourceAttribute, source }, parseOptions: TestOptions.Regular8);
             verifyDiagnostics(comp);
 
             comp = CreateCompilation(new[] { sourceAttribute, source }, parseOptions: TestOptions.RegularPreview);
@@ -211,7 +211,7 @@ using System.Runtime.CompilerServices;
         }
 
         [Fact]
-        public void InvalidMetadata()
+        public void Metadata_TooFewAndTooManyTransformFlags()
         {
             var source0 =
 @".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
@@ -254,7 +254,7 @@ using System.Runtime.CompilerServices;
     }
 }";
 
-            var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (3,21): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static void F(A<nint, nuint> a)
@@ -262,6 +262,57 @@ using System.Runtime.CompilerServices;
                 // (3,27): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static void F(A<nint, nuint> a)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(3, 27));
+
+            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Metadata_UnexpectedTarget()
+        {
+            var source0 =
+@".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(bool[] b) cil managed { ret }
+}
+.class A<T>
+{
+}
+.class public B
+{
+  .method public static void F1(int32 x)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
+    ret
+  }
+  .method public static void F2(object[] y)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+    ret
+  }
+  .method public static void F3(class A<class B> z)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+    ret
+  }
+}";
+            var ref0 = CompileIL(source0);
+            var source1 =
+@"class Program
+{
+    static void F()
+    {
+        B.F1(default);
+        B.F2(default);
+        B.F3(default);
+    }
+}";
+
+            var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
