@@ -282,12 +282,12 @@ public class C { }";
             CreateCompilationWithMscorlib45(source, options: options)
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() }, null, null,
-                // Symbol diagnostics
-                Diagnostic("XX0001", "C").WithArguments("NamedType").WithWarningAsError(true),
-                // Syntax diagnostics
-                Diagnostic("XX0001", "using System;").WithArguments("UsingDirective").WithWarningAsError(true), // using directive
-                Diagnostic("XX0001", "Obsolete").WithArguments("Attribute").WithWarningAsError(true), // attribute syntax
-                Diagnostic("XX0001", @"[Obsolete]
+                    // Symbol diagnostics
+                    Diagnostic("XX0001", "C").WithArguments("NamedType").WithWarningAsError(true),
+                    // Syntax diagnostics
+                    Diagnostic("XX0001", "using System;").WithArguments("UsingDirective").WithWarningAsError(true), // using directive
+                    Diagnostic("XX0001", "Obsolete").WithArguments("Attribute").WithWarningAsError(true), // attribute syntax
+                    Diagnostic("XX0001", @"[Obsolete]
 public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true)); // class declaration
         }
         [Fact]
@@ -571,9 +571,9 @@ public class C : B
             CreateCompilationWithMscorlib45(baseCtorSource)
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("ConstructorInitializerDiagnostic"),
-                Diagnostic("CodeBlockDiagnostic"),
-                Diagnostic("CodeBlockDiagnostic"));
+                    Diagnostic("ConstructorInitializerDiagnostic"),
+                    Diagnostic("CodeBlockDiagnostic"),
+                    Diagnostic("CodeBlockDiagnostic"));
         }
 
         [Fact, WorkItem(1067286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067286")]
@@ -591,12 +591,12 @@ public class B
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("CodeBlockDiagnostic"),
-                Diagnostic("CodeBlockDiagnostic"),
-                Diagnostic("CodeBlockDiagnostic"),
-                Diagnostic("PropertyExpressionBodyDiagnostic"),
-                Diagnostic("IndexerExpressionBodyDiagnostic"),
-                Diagnostic("MethodExpressionBodyDiagnostic"));
+                    Diagnostic("CodeBlockDiagnostic"),
+                    Diagnostic("CodeBlockDiagnostic"),
+                    Diagnostic("CodeBlockDiagnostic"),
+                    Diagnostic("PropertyExpressionBodyDiagnostic"),
+                    Diagnostic("IndexerExpressionBodyDiagnostic"),
+                    Diagnostic("MethodExpressionBodyDiagnostic"));
         }
 
         [Fact, WorkItem(592, "https://github.com/dotnet/roslyn/issues/592")]
@@ -614,9 +614,9 @@ public class B
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("PropertyExpressionBodyDiagnostic"),
-                Diagnostic("IndexerExpressionBodyDiagnostic"),
-                Diagnostic("MethodExpressionBodyDiagnostic"));
+                    Diagnostic("PropertyExpressionBodyDiagnostic"),
+                    Diagnostic("IndexerExpressionBodyDiagnostic"),
+                    Diagnostic("MethodExpressionBodyDiagnostic"));
         }
 
         [Fact, WorkItem(592, "https://github.com/dotnet/roslyn/issues/592")]
@@ -634,9 +634,9 @@ public class B
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("MethodSymbolDiagnostic", "0").WithArguments("B.Property.get").WithLocation(4, 28),
-                Diagnostic("MethodSymbolDiagnostic", "Method").WithArguments("B.Method()").WithLocation(5, 16),
-                Diagnostic("MethodSymbolDiagnostic", "0").WithArguments("B.this[int].get").WithLocation(6, 31));
+                    Diagnostic("MethodSymbolDiagnostic", "0").WithArguments("B.Property.get").WithLocation(4, 28),
+                    Diagnostic("MethodSymbolDiagnostic", "Method").WithArguments("B.Method()").WithLocation(5, 16),
+                    Diagnostic("MethodSymbolDiagnostic", "0").WithArguments("B.this[int].get").WithLocation(6, 31));
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -677,7 +677,7 @@ public class B
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("MyFieldDiagnostic", @"public string field = ""field"";").WithLocation(4, 5));
+                     Diagnostic("MyFieldDiagnostic", @"public string field = ""field"";").WithLocation(4, 5));
         }
 
         [Fact, WorkItem(565, "https://github.com/dotnet/roslyn/issues/565")]
@@ -695,9 +695,9 @@ public class B
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("MyFieldDiagnostic", @"public string field1, field2;").WithLocation(4, 5),
-                Diagnostic("MyFieldDiagnostic", @"public int field3 = 0, field4 = 1;").WithLocation(5, 5),
-                Diagnostic("MyFieldDiagnostic", @"public int field5, field6 = 1;").WithLocation(6, 5));
+                     Diagnostic("MyFieldDiagnostic", @"public string field1, field2;").WithLocation(4, 5),
+                     Diagnostic("MyFieldDiagnostic", @"public int field3 = 0, field4 = 1;").WithLocation(5, 5),
+                     Diagnostic("MyFieldDiagnostic", @"public int field5, field6 = 1;").WithLocation(6, 5));
         }
 
         [Fact, WorkItem(1096600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1096600")]
@@ -1764,8 +1764,8 @@ public class C
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("Parameter_ID", "a").WithLocation(4, 18),
-                Diagnostic("Parameter_ID", "b").WithLocation(4, 25));
+                    Diagnostic("Parameter_ID", "a").WithLocation(4, 18),
+                    Diagnostic("Parameter_ID", "b").WithLocation(4, 25));
         }
 
         [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
@@ -1785,8 +1785,8 @@ public class C
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("Parameter_ID", "a").WithLocation(4, 20),
-                Diagnostic("Parameter_ID", "b").WithLocation(4, 30));
+                    Diagnostic("Parameter_ID", "a").WithLocation(4, 20),
+                    Diagnostic("Parameter_ID", "b").WithLocation(4, 30));
         }
 
         [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
@@ -1808,7 +1808,7 @@ public class C
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("Parameter_ID", "index").WithLocation(4, 25));
+                    Diagnostic("Parameter_ID", "index").WithLocation(4, 25));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
@@ -1829,9 +1829,9 @@ public class C
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("Local_ID", "x").WithLocation(6, 36),
-                Diagnostic("Parameter_ID", "a").WithLocation(6, 45),
-                Diagnostic("Parameter_ID", "b").WithLocation(6, 52));
+                    Diagnostic("Local_ID", "x").WithLocation(6, 36),
+                    Diagnostic("Parameter_ID", "a").WithLocation(6, 45),
+                    Diagnostic("Parameter_ID", "b").WithLocation(6, 52));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
@@ -1854,9 +1854,9 @@ public class C
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("Parameter_ID", "a").WithLocation(9, 37),
-                Diagnostic("Parameter_ID", "x").WithLocation(6, 26),
-                Diagnostic("Parameter_ID", "y").WithLocation(6, 33));
+                        Diagnostic("Parameter_ID", "a").WithLocation(9, 37),
+                        Diagnostic("Parameter_ID", "x").WithLocation(6, 26),
+                        Diagnostic("Parameter_ID", "y").WithLocation(6, 33));
         }
 
         [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
@@ -1874,8 +1874,8 @@ public class C
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("Parameter_ID", "x").WithLocation(4, 25),
-                Diagnostic("Parameter_ID", "y").WithLocation(4, 35));
+                    Diagnostic("Parameter_ID", "x").WithLocation(4, 25),
+                    Diagnostic("Parameter_ID", "y").WithLocation(4, 35));
         }
 
         [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
@@ -1893,7 +1893,7 @@ public class C
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("Parameter_ID", "c").WithLocation(4, 44));
+                    Diagnostic("Parameter_ID", "c").WithLocation(4, 44));
         }
 
         [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
@@ -1916,10 +1916,10 @@ public class C : I
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("Parameter_ID", "c").WithLocation(9, 18),
-                Diagnostic("Parameter_ID", "d").WithLocation(9, 25),
-                Diagnostic("Parameter_ID", "a").WithLocation(4, 16),
-                Diagnostic("Parameter_ID", "b").WithLocation(4, 23));
+                    Diagnostic("Parameter_ID", "c").WithLocation(9, 18),
+                    Diagnostic("Parameter_ID", "d").WithLocation(9, 25),
+                    Diagnostic("Parameter_ID", "a").WithLocation(4, 16),
+                    Diagnostic("Parameter_ID", "b").WithLocation(4, 23));
         }
 
         [Fact, WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
@@ -1937,8 +1937,8 @@ public static class C
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("Parameter_ID", "x").WithLocation(4, 28),
-                Diagnostic("Parameter_ID", "y").WithLocation(4, 35));
+                    Diagnostic("Parameter_ID", "x").WithLocation(4, 28),
+                    Diagnostic("Parameter_ID", "y").WithLocation(4, 35));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14061"), WorkItem(8753, "https://github.com/dotnet/roslyn/issues/8753")]
@@ -1963,16 +1963,16 @@ public class C
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("Parameter_ID", "a").WithLocation(4, 18), // ctor
-                Diagnostic("Parameter_ID", "b").WithLocation(4, 25),
-                Diagnostic("Local_ID", "c").WithLocation(6, 13),
-                Diagnostic("Local_ID", "d").WithLocation(6, 20),
-                Diagnostic("Parameter_ID", "a").WithLocation(10, 20), // M1
-                Diagnostic("Parameter_ID", "b").WithLocation(10, 30),
-                Diagnostic("Local_ID", "c").WithLocation(12, 11),
-                Diagnostic("Local_ID", "x").WithLocation(18, 36), // M2
-                Diagnostic("Parameter_ID", "a").WithLocation(26, 37),
-                Diagnostic("Parameter_ID", "index").WithLocation(28, 25)); // indexer
+                    Diagnostic("Parameter_ID", "a").WithLocation(4, 18), // ctor
+                    Diagnostic("Parameter_ID", "b").WithLocation(4, 25),
+                    Diagnostic("Local_ID", "c").WithLocation(6, 13),
+                    Diagnostic("Local_ID", "d").WithLocation(6, 20),
+                    Diagnostic("Parameter_ID", "a").WithLocation(10, 20), // M1
+                    Diagnostic("Parameter_ID", "b").WithLocation(10, 30),
+                    Diagnostic("Local_ID", "c").WithLocation(12, 11),
+                    Diagnostic("Local_ID", "x").WithLocation(18, 36), // M2
+                    Diagnostic("Parameter_ID", "a").WithLocation(26, 37), // M4
+                    Diagnostic("Parameter_ID", "index").WithLocation(28, 25)); // indexer
         }
 
         [Fact, WorkItem(15903, "https://github.com/dotnet/roslyn/issues/15903")]

@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis
 {
     public static class DiagnosticExtensions
     {
-        public static Action<Exception, DiagnosticAnalyzer, Diagnostic> AssertFailOnAnalyzerException = (e, a, d) => Assert.True(false);
-
         /// <summary>
         /// This is obsolete. Use Verify instead.
         /// </summary>
