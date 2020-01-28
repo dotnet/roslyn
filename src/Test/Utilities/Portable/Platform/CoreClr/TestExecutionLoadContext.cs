@@ -21,7 +21,6 @@ namespace Roslyn.Test.Utilities.CoreClr
 {
     internal sealed class TestExecutionLoadContext : AssemblyLoadContext
     {
-        private readonly static ImmutableDictionary<string, string> s_platformAssemblyPaths = GetPlatformAssemblyPaths();
         private readonly static Dictionary<string, Assembly> s_loadedPlatformAssemblies = new Dictionary<string, Assembly>(StringComparer.Ordinal);
 
         private readonly Dictionary<string, ModuleData> _dependencies;
@@ -37,57 +36,21 @@ namespace Roslyn.Test.Utilities.CoreClr
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
-            lock (s_platformAssemblyPaths)
+            var comparer = StringComparer.OrdinalIgnoreCase;
+            var comparison = StringComparison.OrdinalIgnoreCase;
+            if (assemblyName.Name.StartsWith("System.", comparison) ||
+                assemblyName.Name.StartsWith("Microsoft.", comparison) ||
+                comparer.Equals(assemblyName.Name, "mscorlib"))
             {
-                Assembly assembly;
-                if (s_platformAssemblyPaths.TryGetValue(assemblyName.Name, out var assemblyPath))
-                {
-                    assembly = LoadPlatformAssembly(assemblyName, assemblyPath);
-                    if (assembly != null)
-                    {
-                        return assembly;
-                    }
-                }
-
-                if (_dependencies.TryGetValue(assemblyName.FullName, out var moduleData))
-                {
-                    return LoadImageAsAssembly(moduleData.Image);
-                }
-
                 return null;
             }
-        }
 
-        private Assembly LoadPlatformAssembly(AssemblyName assemblyName, string assemblyPath)
-        {
-            lock (s_loadedPlatformAssemblies)
+            if (_dependencies.TryGetValue(assemblyName.FullName, out var moduleData))
             {
-                if (s_loadedPlatformAssemblies.TryGetValue(assemblyPath, out var assembly))
-                {
-                    return assembly;
-                }
-                else
-                {
-                    try
-                    {
-                        assembly = Default.LoadFromAssemblyName(assemblyName);
-                    }
-                    catch (FileNotFoundException)
-                    {
-                        // The assembly wasn't in the TPA list we can try to load
-                        // it from the dependencies list of the assembly. However,
-                        // if the assembly is mscorlib we won't be able to reload it,
-                        // no matter what
-                        if (assemblyName.Name == "mscorlib")
-                        {
-                            throw;
-                        }
-                        assembly = null;
-                    }
-
-                    return assembly;
-                }
+                return LoadImageAsAssembly(moduleData.Image);
             }
+
+            return null;
         }
 
         private Assembly LoadImageAsAssembly(ImmutableArray<byte> mainImage)
