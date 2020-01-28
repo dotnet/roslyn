@@ -1026,7 +1026,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-
         /// <summary>
         /// Returns true if locals are to be initialized
         /// </summary>

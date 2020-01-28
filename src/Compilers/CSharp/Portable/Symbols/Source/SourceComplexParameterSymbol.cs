@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ValidateCallerMemberNameAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
             }
             else if (ReportExplicitUseOfReservedAttributes(ref arguments,
-                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute))
+                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AllowNullAttribute))

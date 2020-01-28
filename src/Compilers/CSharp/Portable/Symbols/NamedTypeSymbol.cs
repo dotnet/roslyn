@@ -854,7 +854,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             bool haveChanges = MergeEquivalentTypeArguments(this, (NamedTypeSymbol)other, variance, allTypeParameters, allTypeArguments);
 
-            NamedTypeSymbol result = haveChanges ? this.WithTypeArguments(allTypeArguments.ToImmutable()) : this;
+            NamedTypeSymbol result;
+            if (haveChanges)
+            {
+                TypeMap substitution = new TypeMap(allTypeParameters.ToImmutable(), allTypeArguments.ToImmutable());
+                result = substitution.SubstituteNamedType(this.OriginalDefinition);
+            }
+            else
+            {
+                result = this;
+            }
 
             allTypeArguments.Free();
             allTypeParameters.Free();

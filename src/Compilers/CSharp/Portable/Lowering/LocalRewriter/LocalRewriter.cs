@@ -257,24 +257,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localFunction = node.Symbol;
             CheckRefReadOnlySymbols(localFunction);
 
-            var typeParameters = localFunction.TypeParameters;
-            if (typeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
+            if (_factory.CompilationState.ModuleBuilderOpt is { } moduleBuilder)
             {
-                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
-            }
-
-            if (_factory.CompilationState.Compilation.ShouldEmitNullableAttributes(localFunction))
-            {
-                bool constraintsNeedNullableAttribute = typeParameters.Any(
-                   typeParameter => ((SourceTypeParameterSymbolBase)typeParameter).ConstraintsNeedNullableAttribute());
-
-                bool returnTypeNeedsNullableAttribute = localFunction.ReturnTypeWithAnnotations.NeedsNullableAttribute();
-                bool parametersNeedNullableAttribute = localFunction.ParameterTypesWithAnnotations.Any(parameter => parameter.NeedsNullableAttribute());
-
-                if (constraintsNeedNullableAttribute || returnTypeNeedsNullableAttribute || parametersNeedNullableAttribute)
+                var typeParameters = localFunction.TypeParameters;
+                if (typeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
                 {
-                    _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
+                    moduleBuilder.EnsureIsUnmanagedAttributeExists();
                 }
+
+                if (hasReturnTypeOrParameter(localFunction, t => t.Type?.ContainsNativeInteger() == true))
+                {
+                    moduleBuilder.EnsureNativeIntegerAttributeExists();
+                }
+
+                if (_factory.CompilationState.Compilation.ShouldEmitNullableAttributes(localFunction))
+                {
+                    bool constraintsNeedNullableAttribute = typeParameters.Any(
+                       typeParameter => ((SourceTypeParameterSymbolBase)typeParameter).ConstraintsNeedNullableAttribute());
+
+                    if (constraintsNeedNullableAttribute || hasReturnTypeOrParameter(localFunction, t => t.NeedsNullableAttribute()))
+                    {
+                        moduleBuilder.EnsureNullableAttributeExists();
+                    }
+                }
+
+                static bool hasReturnTypeOrParameter(LocalFunctionSymbol localFunction, Func<TypeWithAnnotations, bool> predicate) =>
+                    predicate(localFunction.ReturnTypeWithAnnotations) || localFunction.ParameterTypesWithAnnotations.Any(predicate);
             }
 
             var oldContainingSymbol = _factory.CurrentFunction;

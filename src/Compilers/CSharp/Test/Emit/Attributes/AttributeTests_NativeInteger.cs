@@ -146,14 +146,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }";
             var source =
-@"#pragma warning disable 169
+@"#pragma warning disable 67
+#pragma warning disable 169
 using System;
 using System.Runtime.CompilerServices;
 [NativeInteger] class Program
 {
     [NativeInteger] IntPtr F;
+    [NativeInteger] event EventHandler E;
+    [NativeInteger] object P { get; }
     [NativeInteger(new[] { false, true })] static UIntPtr[] M1() => throw null;
     [return: NativeInteger(new[] { false, true })] static UIntPtr[] M2() => throw null;
+    static void M3([NativeInteger]object arg) { }
 }";
 
             var comp = CreateCompilation(new[] { sourceAttribute, source }, parseOptions: TestOptions.Regular7);
@@ -164,11 +168,25 @@ using System.Runtime.CompilerServices;
 
             static void verifyDiagnostics(CSharpCompilation comp)
             {
-                // PROTOTYPE: Should report ERR_ExplicitReservedAttr for all cases where `nint` is allowed.
                 comp.VerifyDiagnostics(
-                    // (4,2): error CS8335: Do not use 'System.Runtime.CompilerServices.NativeIntegerAttribute'. This is reserved for compiler usage.
+                    // (5,2): error CS8335: Do not use 'System.Runtime.CompilerServices.NativeIntegerAttribute'. This is reserved for compiler usage.
                     // [NativeInteger] class Program
-                    Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NativeInteger").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(4, 2));
+                    Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NativeInteger").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(5, 2),
+                    // (7,6): error CS8335: Do not use 'System.Runtime.CompilerServices.NativeIntegerAttribute'. This is reserved for compiler usage.
+                    //     [NativeInteger] IntPtr F;
+                    Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NativeInteger").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(7, 6),
+                    // (8,6): error CS8335: Do not use 'System.Runtime.CompilerServices.NativeIntegerAttribute'. This is reserved for compiler usage.
+                    //     [NativeInteger] event EventHandler E;
+                    Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NativeInteger").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(8, 6),
+                    // (9,6): error CS8335: Do not use 'System.Runtime.CompilerServices.NativeIntegerAttribute'. This is reserved for compiler usage.
+                    //     [NativeInteger] object P { get; }
+                    Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NativeInteger").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(9, 6),
+                    // (11,14): error CS8335: Do not use 'System.Runtime.CompilerServices.NativeIntegerAttribute'. This is reserved for compiler usage.
+                    //     [return: NativeInteger(new[] { false, true })] static UIntPtr[] M2() => throw null;
+                    Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NativeInteger(new[] { false, true })").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(11, 14),
+                    // (12,21): error CS8335: Do not use 'System.Runtime.CompilerServices.NativeIntegerAttribute'. This is reserved for compiler usage.
+                    //     static void M3([NativeInteger]object arg) { }
+                    Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NativeInteger").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(12, 21));
             }
         }
 
@@ -482,7 +500,7 @@ class Program
                 {
                     var method = module.ContainingAssembly.GetTypeByMetadataName("Program").GetMethod("<M>g__L|0_0");
                     AssertNativeIntegerAttribute(method.GetReturnTypeAttributes());
-                    AssertAttributes(method.GetAttributes());
+                    AssertAttributes(method.GetAttributes(), "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
                 });
         }
 
