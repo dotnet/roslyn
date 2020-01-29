@@ -614,14 +614,14 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             Assert.NotNull(dependencyGraph);
 
             var b = solution.GetProjectsByName("B").Single();
-            var firstBToC = b.ProjectReferences.First(reference => reference.ProjectId.DebugName == "C");
+            var c = solution.GetProjectsByName("C").Single();
+            var firstBToC = b.ProjectReferences.First(reference => reference.ProjectId == c.Id);
             solution = solution.RemoveProjectReference(b.Id, firstBToC);
             Assert.Same(dependencyGraph, solution.State.GetProjectDependencyGraph());
 
             b = solution.GetProjectsByName("B").Single();
-            var remainingBToC = b.ProjectReferences.First(reference => reference.ProjectId.DebugName == "C");
+            var remainingBToC = b.ProjectReferences.Single(reference => reference.ProjectId == c.Id);
             solution = solution.RemoveProjectReference(b.Id, remainingBToC);
-            Assert.NotNull(solution.State.GetProjectDependencyGraph());
             Assert.NotSame(dependencyGraph, solution.State.GetProjectDependencyGraph());
 
             VerifyDirectReferences(solution, "A", new string[] { "B" });
