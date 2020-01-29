@@ -25,9 +25,7 @@ namespace Roslyn.Test.Utilities.CoreClr
 
         public TestExecutionLoadContext(IList<ModuleData> dependencies)
         {
-            _dependencies = dependencies
-                .Select(x => new KeyValuePair<string, ModuleData>(x.FullName, x))
-                .ToImmutableDictionary(StringComparer.Ordinal);
+            _dependencies = dependencies.ToImmutableDictionary(d => d.FullName, StringComparer.Ordinal);
         }
 
         protected override Assembly Load(AssemblyName assemblyName)
