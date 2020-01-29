@@ -709,24 +709,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, operatorToken.Text, "default");
                     return;
                 }
-                else if (leftDefault && right.Type is TypeParameterSymbol)
-                {
-                    Debug.Assert(!right.Type.IsReferenceType);
-                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, right.Type);
-                    return;
-                }
-                else if (rightDefault && left.Type is TypeParameterSymbol)
-                {
-                    Debug.Assert(!left.Type.IsReferenceType);
-                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, left.Type);
-                    return;
-                }
             }
 
             if ((leftDefault || left.IsTypelessNew()) &&
                 (rightDefault || right.IsTypelessNew()))
             {
                 Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, node, operatorToken.Text, left.Display, right.Display);
+                return;
+            }
+            else if (leftDefault && right.Type is TypeParameterSymbol)
+            {
+                Debug.Assert(!right.Type.IsReferenceType);
+                Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, right.Type);
+                return;
+            }
+            else if (rightDefault && left.Type is TypeParameterSymbol)
+            {
+                Debug.Assert(!left.Type.IsReferenceType);
+                Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, left.Type);
                 return;
             }
 
