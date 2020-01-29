@@ -1,71 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // PROTOTYPE(UsedAssemblyReferences): Consider if it makes sense to move this type into its own file
-    internal static class BindingDiagnosticBagExtensions
-    {
-        internal static CSDiagnosticInfo Add(this CodeAnalysis.BindingDiagnosticBag diagnostics, ErrorCode code, Location location)
-        {
-            var info = new CSDiagnosticInfo(code);
-            diagnostics.DiagnosticBag?.Add(new CSDiagnostic(info, location));
-            return info;
-        }
-
-        internal static CSDiagnosticInfo Add(this CodeAnalysis.BindingDiagnosticBag diagnostics, ErrorCode code, Location location, params object[] args)
-        {
-            var info = new CSDiagnosticInfo(code, args);
-            diagnostics.DiagnosticBag?.Add(new CSDiagnostic(info, location));
-            return info;
-        }
-
-        internal static CSDiagnosticInfo Add(this CodeAnalysis.BindingDiagnosticBag diagnostics, ErrorCode code, Location location, ImmutableArray<Symbol> symbols, params object[] args)
-        {
-            var info = new CSDiagnosticInfo(code, args, symbols, ImmutableArray<Location>.Empty);
-            diagnostics.DiagnosticBag?.Add(new CSDiagnostic(info, location));
-            return info;
-        }
-
-        internal static void Add(this CodeAnalysis.BindingDiagnosticBag diagnostics, DiagnosticInfo? info, Location location)
-        {
-            if (info is object)
-            {
-                diagnostics.DiagnosticBag?.Add(info, location);
-            }
-        }
-
-        internal static void AddForSymbol(this ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, Symbol? symbol, bool addDiagnostics = true)
-        {
-            if (symbol is null)
-            {
-                return;
-            }
-
-            if (!useSiteInfo.AccumulatesDiagnostics)
-            {
-                Debug.Assert(!useSiteInfo.AccumulatesDependencies);
-                return;
-            }
-
-            var info = symbol.GetUseSiteInfo();
-
-            if (addDiagnostics)
-            {
-                useSiteInfo.AddDiagnostics(info);
-            }
-
-            useSiteInfo.AddDependencies(info);
-        }
-    }
-
     internal sealed class BindingDiagnosticBag : BindingDiagnosticBag<AssemblySymbol>
     {
         public static readonly BindingDiagnosticBag Discarded = new BindingDiagnosticBag(null, null);
@@ -202,6 +147,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override bool ReportUseSiteDiagnostic(DiagnosticInfo diagnosticInfo, DiagnosticBag diagnosticBag, Location location)
         {
             return Symbol.ReportUseSiteDiagnostic(diagnosticInfo, diagnosticBag, location);
+        }
+
+        internal CSDiagnosticInfo Add(ErrorCode code, Location location)
+        {
+            var info = new CSDiagnosticInfo(code);
+            Add(info, location);
+            return info;
+        }
+
+        internal CSDiagnosticInfo Add(ErrorCode code, Location location, params object[] args)
+        {
+            var info = new CSDiagnosticInfo(code, args);
+            Add(info, location);
+            return info;
+        }
+
+        internal CSDiagnosticInfo Add(ErrorCode code, Location location, ImmutableArray<Symbol> symbols, params object[] args)
+        {
+            var info = new CSDiagnosticInfo(code, args, symbols, ImmutableArray<Location>.Empty);
+            Add(info, location);
+            return info;
+        }
+
+        internal void Add(DiagnosticInfo? info, Location location)
+        {
+            if (info is object)
+            {
+                DiagnosticBag?.Add(info, location);
+            }
         }
     }
 }

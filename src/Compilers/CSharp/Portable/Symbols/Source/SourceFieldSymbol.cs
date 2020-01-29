@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (attribute.IsTargetAttribute(this, AttributeDescription.FixedBufferAttribute))
             {
                 // error CS1716: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute. Use the 'fixed' field modifier instead.
-                arguments.Diagnostics.Add(ErrorCode.ERR_DoNotUseFixedBufferAttr, arguments.AttributeSyntaxOpt.Name.Location);
+                ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_DoNotUseFixedBufferAttr, arguments.AttributeSyntaxOpt.Name.Location);
             }
             else
             {

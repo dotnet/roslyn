@@ -1569,7 +1569,7 @@ lReportErrorOnTwoTokens:
             Debug.Assert(Not attrData.HasErrors)
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
-                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             If arguments.SymbolPart = AttributeLocation.Return Then
@@ -1587,7 +1587,7 @@ lReportErrorOnTwoTokens:
 
         Private Sub DecodeWellKnownAttributeAppliedToMethod(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
-            Debug.Assert(TypeOf arguments.Diagnostics Is BindingDiagnosticBag)
+            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
             ' Decode well-known attributes applied to method
             Dim attrData = arguments.Attribute
@@ -1596,13 +1596,13 @@ lReportErrorOnTwoTokens:
                 ' Just report errors here. The extension attribute is decoded early.
 
                 If Me.MethodKind <> MethodKind.Ordinary AndAlso Me.MethodKind <> MethodKind.DeclareMethod Then
-                    arguments.Diagnostics.Add(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction, arguments.AttributeSyntaxOpt.GetLocation())
+                    diagnostics.Add(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction, arguments.AttributeSyntaxOpt.GetLocation())
 
                 ElseIf Not m_containingType.AllowsExtensionMethods() Then
-                    arguments.Diagnostics.Add(ERRID.ERR_ExtensionMethodNotInModule, arguments.AttributeSyntaxOpt.GetLocation())
+                    diagnostics.Add(ERRID.ERR_ExtensionMethodNotInModule, arguments.AttributeSyntaxOpt.GetLocation())
 
                 ElseIf Me.ParameterCount = 0 Then
-                    arguments.Diagnostics.Add(ERRID.ERR_ExtensionMethodNoParams, Me.Locations(0))
+                    diagnostics.Add(ERRID.ERR_ExtensionMethodNoParams, Me.Locations(0))
 
                 Else
                     Debug.Assert(Me.IsShared)
@@ -1610,13 +1610,13 @@ lReportErrorOnTwoTokens:
                     Dim firstParam As ParameterSymbol = Me.Parameters(0)
 
                     If firstParam.IsOptional Then
-                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOptionalFirstArg), firstParam.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOptionalFirstArg), firstParam.Locations(0))
 
                     ElseIf firstParam.IsParamArray Then
-                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodParamArrayFirstArg), firstParam.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodParamArrayFirstArg), firstParam.Locations(0))
 
                     ElseIf Not Me.ValidateGenericConstraintsOnExtensionMethodDefinition() Then
-                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodUncallable1, Me.Name), Me.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodUncallable1, Me.Name), Me.Locations(0))
 
                     End If
                 End If
@@ -1626,7 +1626,7 @@ lReportErrorOnTwoTokens:
                 ' Check for optional parameters
                 For Each parameter In Me.Parameters
                     If parameter.IsOptional Then
-                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidOptionalParameterUsage1, "WebMethod"), Me.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidOptionalParameterUsage1, "WebMethod"), Me.Locations(0))
                     End If
                 Next
 
@@ -1636,13 +1636,13 @@ lReportErrorOnTwoTokens:
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MethodImplAttribute) Then
                 AttributeData.DecodeMethodImplAttribute(Of MethodWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)(arguments, MessageProvider.Instance)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DllImportAttribute) Then
-                If Not IsDllImportAttributeAllowed(arguments.AttributeSyntaxOpt, DirectCast(arguments.Diagnostics, BindingDiagnosticBag)) Then
+                If Not IsDllImportAttributeAllowed(arguments.AttributeSyntaxOpt, diagnostics) Then
                     Return
                 End If
 
                 Dim moduleName As String = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 If Not MetadataHelpers.IsValidMetadataIdentifier(moduleName) Then
-                    arguments.Diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
                 End If
 
                 ' Default value of charset is inherited from the module (only if specified).
@@ -1665,7 +1665,7 @@ lReportErrorOnTwoTokens:
                         Case "EntryPoint"
                             importName = TryCast(namedArg.Value.ValueInternal, String)
                             If Not MetadataHelpers.IsValidMetadataIdentifier(importName) Then
-                                arguments.Diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(position).GetLocation(), attrData.AttributeClass)
+                                diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(position).GetLocation(), attrData.AttributeClass)
                                 Return
                             End If
 
@@ -1718,7 +1718,7 @@ lReportErrorOnTwoTokens:
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ConditionalAttribute) Then
                 If Not Me.IsSub Then
                     ' BC41007: Attribute 'Conditional' is only valid on 'Sub' declarations.
-                    arguments.Diagnostics.Add(ERRID.WRN_ConditionalNotValidOnFunction, Me.Locations(0))
+                    diagnostics.Add(ERRID.WRN_ConditionalNotValidOnFunction, Me.Locations(0))
                 End If
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.ObsoleteAttribute) Then
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.DeprecatedAttribute) Then
@@ -1727,10 +1727,10 @@ lReportErrorOnTwoTokens:
 
                 If methodImpl IsNot Nothing AndAlso (methodImpl.IsAsync OrElse methodImpl.IsIterator) AndAlso Not methodImpl.ContainingType.IsInterfaceType() Then
                     If attrData.IsTargetAttribute(Me, AttributeDescription.SecurityCriticalAttribute) Then
-                        Binder.ReportDiagnostic(DirectCast(arguments.Diagnostics, BindingDiagnosticBag), arguments.AttributeSyntaxOpt.GetLocation(), ERRID.ERR_SecurityCriticalAsync, "SecurityCritical")
+                        Binder.ReportDiagnostic(diagnostics, arguments.AttributeSyntaxOpt.GetLocation(), ERRID.ERR_SecurityCriticalAsync, "SecurityCritical")
                         Return
                     ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SecuritySafeCriticalAttribute) Then
-                        Binder.ReportDiagnostic(DirectCast(arguments.Diagnostics, BindingDiagnosticBag), arguments.AttributeSyntaxOpt.GetLocation(), ERRID.ERR_SecurityCriticalAsync, "SecuritySafeCritical")
+                        Binder.ReportDiagnostic(diagnostics, arguments.AttributeSyntaxOpt.GetLocation(), ERRID.ERR_SecurityCriticalAsync, "SecuritySafeCritical")
                         Return
                     End If
                 End If
@@ -1744,7 +1744,7 @@ lReportErrorOnTwoTokens:
             If arguments.Attribute.IsTargetAttribute(Me, description) Then
                 ' Obsolete Attribute is not allowed on event accessors.
                 If Me.IsAccessor() AndAlso Me.AssociatedSymbol.Kind = SymbolKind.Event Then
-                    arguments.Diagnostics.Add(ERRID.ERR_ObsoleteInvalidOnEventMember, Me.Locations(0), description.FullName)
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ObsoleteInvalidOnEventMember, Me.Locations(0), description.FullName)
                 End If
 
                 Return True

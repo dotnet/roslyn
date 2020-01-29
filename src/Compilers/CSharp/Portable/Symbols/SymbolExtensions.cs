@@ -96,6 +96,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsAtLeastAsVisibleAs(symbol, ref useSiteInfo);
         }
 
+        internal static void AddUseSiteInfo(this Symbol? symbol, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool addDiagnostics = true)
+        {
+            if (symbol is null)
+            {
+                return;
+            }
+
+            if (!useSiteInfo.AccumulatesDiagnostics)
+            {
+                Debug.Assert(!useSiteInfo.AccumulatesDependencies);
+                return;
+            }
+
+            var info = symbol.GetUseSiteInfo();
+
+            if (addDiagnostics)
+            {
+                useSiteInfo.AddDiagnostics(info);
+            }
+
+            useSiteInfo.AddDependencies(info);
+        }
+
         public static LocalizableErrorArgument GetKindText(this Symbol symbol)
         {
             return symbol.Kind.Localize();

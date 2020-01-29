@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -64,9 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!_usedAssemblyReferencesFrozen && !Volatile.Read(ref _usedAssemblyReferencesFrozen))
             {
-                // PROTOTYPE(UsedAssemblyReferences): Try to optimize scenarios when GetDiagnostics was called before
-                //                                    and we either already encountered errors, or have done all the work 
-                //                                    to record usage.
                 var diagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), new ConcurrentSet<AssemblySymbol>());
                 RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
 
@@ -76,8 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!seenErrors)
                 {
                     diagnostics.DiagnosticBag.Clear();
-                    // PROTOTYPE(UsedAssemblyReferences): Might want to suppress nullable analysis for this call.
-                    // PROTOTYPE(UsedAssemblyReferences): Ensure we don't trigger any analyzers during the GetDiagnosticsForAllMethodBodies call.
                     GetDiagnosticsForAllMethodBodies(diagnostics, doLowering: true, cancellationToken);
                     seenErrors = diagnostics.HasAnyErrors();
 
@@ -166,11 +163,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 switch (current)
                                 {
                                     case SourceAssemblySymbol sourceAssembly:
-                                        // PROTOTYPE(UsedAssemblyReferences): The set of assemblies used by the referenced compilation feels like
-                                        //                                    a reasonable approximation to the set of assembly references that would
-                                        //                                    be emitted into the resulting binary for that compilation. An alternative
-                                        //                                    would be to attempt to emit and get the exact set of emitted references
-                                        //                                    in case of success. This might be too slow though.
+                                        // The set of assemblies used by the referenced compilation feels like
+                                        // a reasonable approximation to the set of assembly references that would
+                                        // be emitted into the resulting binary for that compilation. An alternative
+                                        // would be to attempt to emit and get the exact set of emitted references
+                                        // in case of success. This might be too slow though.
                                         usedAssemblies = sourceAssembly.DeclaringCompilation.GetCompleteSetOfUsedAssemblies(cancellationToken);
                                         if (usedAssemblies is object)
                                         {

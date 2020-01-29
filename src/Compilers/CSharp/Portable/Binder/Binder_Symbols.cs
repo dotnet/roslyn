@@ -1444,7 +1444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NamedTypeSymbol typeSymbol = this.Compilation.GetWellKnownType(type);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
-            useSiteInfo.AddForSymbol(typeSymbol);
+            typeSymbol.AddUseSiteInfo(ref useSiteInfo);
             return typeSymbol;
         }
 

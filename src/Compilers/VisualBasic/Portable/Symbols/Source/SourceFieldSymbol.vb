@@ -311,9 +311,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim attrData = arguments.Attribute
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
+            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
-                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+                diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
@@ -323,13 +324,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If Me.ContainingType.IsSerializable Then
                     arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().HasNonSerializedAttribute = True
                 Else
-                    arguments.Diagnostics.Add(ERRID.ERR_InvalidNonSerializedUsage, arguments.AttributeSyntaxOpt.GetLocation())
+                    diagnostics.Add(ERRID.ERR_InvalidNonSerializedUsage, arguments.AttributeSyntaxOpt.GetLocation())
                 End If
 
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.FieldOffsetAttribute) Then
                 Dim offset = attrData.CommonConstructorArguments(0).DecodeValue(Of Integer)(SpecialType.System_Int32)
                 If offset < 0 Then
-                    arguments.Diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
                     offset = 0
                 End If
 
@@ -354,16 +355,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub VerifyConstantValueMatches(attrValue As ConstantValue, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim data = arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)()
             Dim constValue As ConstantValue
+            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
             If Me.IsConst Then
                 If Me.Type.IsDecimalType() OrElse Me.Type.IsDateTimeType() Then
                     constValue = Me.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
 
                     If constValue IsNot Nothing AndAlso Not constValue.IsBad AndAlso constValue <> attrValue Then
-                        arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
+                        diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
                 Else
-                    arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
+                    diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
                 End If
 
                 If data.ConstValue = CodeAnalysis.ConstantValue.Unset Then
@@ -374,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If constValue <> CodeAnalysis.ConstantValue.Unset Then
                     If constValue <> attrValue Then
-                        arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
+                        diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
                 Else
                     data.ConstValue = attrValue

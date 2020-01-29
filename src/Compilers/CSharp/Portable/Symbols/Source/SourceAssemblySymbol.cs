@@ -1997,19 +1997,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // this code won't be called unless we bound a well-formed, semantically correct ctor call.
             Debug.Assert(!arguments.Attribute.HasErrors);
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             TypeSymbol forwardedType = (TypeSymbol)arguments.Attribute.CommonConstructorArguments[0].ValueInternal;
 
             // This can happen if the argument is the null literal.
             if ((object)forwardedType == null)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_InvalidFwdType, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt));
+                diagnostics.Add(ErrorCode.ERR_InvalidFwdType, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt));
                 return;
             }
 
             UseSiteInfo<AssemblySymbol> useSiteInfo = forwardedType.GetUseSiteInfo();
             if (useSiteInfo.DiagnosticInfo?.Code != (int)ErrorCode.ERR_UnexpectedUnboundGenericName &&
-                ((BindingDiagnosticBag)arguments.Diagnostics).Add(useSiteInfo, useSiteInfo.DiagnosticInfo is object ? GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt) : Location.None))
+                diagnostics.Add(useSiteInfo, useSiteInfo.DiagnosticInfo is object ? GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt) : Location.None))
             {
                 return;
             }
@@ -2018,13 +2019,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (forwardedType.ContainingAssembly == this)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ForwardedTypeInThisAssembly, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt), forwardedType);
+                diagnostics.Add(ErrorCode.ERR_ForwardedTypeInThisAssembly, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt), forwardedType);
                 return;
             }
 
             if ((object)forwardedType.ContainingType != null)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ForwardedTypeIsNested, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt), forwardedType, forwardedType.ContainingType);
+                diagnostics.Add(ErrorCode.ERR_ForwardedTypeIsNested, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt), forwardedType, forwardedType.ContainingType);
                 return;
             }
 
@@ -2034,7 +2035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // exclude nullable and void, but that shouldn't be an issue because they have to be defined in
                 // corlib (since they are special types) and corlib can't refer to other assemblies (by definition).
 
-                arguments.Diagnostics.Add(ErrorCode.ERR_InvalidFwdType, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt));
+                diagnostics.Add(ErrorCode.ERR_InvalidFwdType, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt));
                 return;
             }
 
@@ -2054,7 +2055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NOTE: For the purposes of reporting this error, Dev10 considers C<int> and C<char>
                 // different types.  However, it will actually emit a single forwarder for C`1 (i.e.
                 // we'll have to de-dup again at emit time).
-                arguments.Diagnostics.Add(ErrorCode.ERR_DuplicateTypeForwarder, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt), forwardedType);
+                diagnostics.Add(ErrorCode.ERR_DuplicateTypeForwarder, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt), forwardedType);
             }
         }
 
@@ -2158,12 +2159,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
-            Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
             int signature;
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.InternalsVisibleToAttribute))
             {
-                DecodeOneInternalsVisibleToAttribute(arguments.AttributeSyntaxOpt, attribute, (BindingDiagnosticBag)arguments.Diagnostics, index, ref _lazyInternalsVisibleToMap);
+                DecodeOneInternalsVisibleToAttribute(arguments.AttributeSyntaxOpt, attribute, diagnostics, index, ref _lazyInternalsVisibleToMap);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AssemblySignatureKeyAttribute))
             {
@@ -2172,7 +2173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!StrongNameKeys.IsValidPublicKeyString(signatureKey))
                 {
-                    arguments.Diagnostics.Add(ErrorCode.ERR_InvalidSignaturePublicKey, attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt));
+                    diagnostics.Add(ErrorCode.ERR_InvalidSignaturePublicKey, attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt));
                 }
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AssemblyKeyFileAttribute))
@@ -2195,7 +2196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     bool foundBadWildcard = _compilation.IsEmitDeterministic && verString?.Contains('*') == true;
-                    arguments.Diagnostics.Add(foundBadWildcard ? ErrorCode.ERR_InvalidVersionFormatDeterministic : ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation);
+                    diagnostics.Add(foundBadWildcard ? ErrorCode.ERR_InvalidVersionFormatDeterministic : ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation);
                 }
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyVersionAttributeSetting = version;
@@ -2207,7 +2208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!VersionHelper.TryParse(verString, version: out dummy))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
-                    arguments.Diagnostics.Add(ErrorCode.WRN_InvalidVersionFormat, attributeArgumentSyntaxLocation);
+                    diagnostics.Add(ErrorCode.WRN_InvalidVersionFormat, attributeArgumentSyntaxLocation);
                 }
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyFileVersionAttributeSetting = verString;
@@ -2227,11 +2228,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (_compilation.Options.OutputKind.IsApplication())
                     {
-                        arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAssemblyCultureForExe, attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt));
+                        diagnostics.Add(ErrorCode.ERR_InvalidAssemblyCultureForExe, attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt));
                     }
                     else if (!AssemblyIdentity.IsValidCultureName(cultureString))
                     {
-                        arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAssemblyCulture, attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt));
+                        diagnostics.Add(ErrorCode.ERR_InvalidAssemblyCulture, attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt));
                         cultureString = null;
                     }
                 }
@@ -2259,7 +2260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: false, version: out dummy))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
-                    arguments.Diagnostics.Add(ErrorCode.ERR_InvalidVersionFormat2, attributeArgumentSyntaxLocation);
+                    diagnostics.Add(ErrorCode.ERR_InvalidVersionFormat2, attributeArgumentSyntaxLocation);
                 }
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AssemblyCopyrightAttribute))
@@ -2292,19 +2293,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ClassInterfaceAttribute))
             {
-                attribute.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
+                attribute.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TypeLibVersionAttribute))
             {
-                ValidateIntegralAttributeNonNegativeArguments(attribute, arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
+                ValidateIntegralAttributeNonNegativeArguments(attribute, arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ComCompatibleVersionAttribute))
             {
-                ValidateIntegralAttributeNonNegativeArguments(attribute, arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
+                ValidateIntegralAttributeNonNegativeArguments(attribute, arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.GuidAttribute))
             {
-                attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
+                attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CompilationRelaxationsAttribute))
             {
@@ -2343,7 +2344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)arguments.AttributeSyntaxOpt != null)
                 {
                     // [Extension] attribute should not be set explicitly.
-                    arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
+                    diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
                 }
             }
             else if ((signature = attribute.GetTargetAttributeSignatureIndex(this, AttributeDescription.AssemblyAlgorithmIdAttribute)) != -1)

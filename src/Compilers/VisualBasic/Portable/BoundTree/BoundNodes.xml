@@ -35,9 +35,6 @@
     <ValueType Name="NoOpStatementFlavor"/>
     <ValueType Name="BoundTypeOrValueData"/>
     <ValueType Name="BitVector" />
-      <!-- PROTOTYPE(UsedAssemblyReferences): Remove this entry once code generator is adjusted to 
-                                              handle ImmutableBindingDiagnostic specially.
-      -->
     <ValueType Name="ImmutableBindingDiagnostic" />
 
   <AbstractNode Name="BoundExpression" Base="BoundNode">
@@ -1492,10 +1489,7 @@
 
       <Field Name="LambdaSymbol" Type="LambdaSymbol" Null="disallow" />
       <Field Name="Body" Type="BoundBlock"/>
-      <!-- PROTOTYPE(UsedAssemblyReferences): Remove Null="allow" once code generator is adjusted to 
-                                              handle ImmutableBindingDiagnostic specially.
-      -->
-      <Field Name="Diagnostics" Type="ImmutableBindingDiagnostic(Of AssemblySymbol)" Null="allow" /> 
+      <Field Name="Diagnostics" Type="ImmutableBindingDiagnostic(Of AssemblySymbol)"/> 
       <Field Name="LambdaBinderOpt" Type="LambdaBodyBinder" Null="allow" />
 
       <!-- 

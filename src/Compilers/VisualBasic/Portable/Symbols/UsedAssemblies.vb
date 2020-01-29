@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -40,9 +42,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not _usedAssemblyReferencesFrozen AndAlso Not Volatile.Read(_usedAssemblyReferencesFrozen) Then
 
-                ' PROTOTYPE(UsedAssemblyReferences): Try To optimize scenarios When GetDiagnostics was called before
-                '                                    and we either already encountered errors, or have done all the work 
-                '                                    to record usage.
                 Dim diagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance(), New ConcurrentSet(Of AssemblySymbol)())
                 RoslynDebug.Assert(diagnostics.AccumulatesDiagnostics)
 
@@ -52,8 +51,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not seenErrors Then
                     diagnostics.DiagnosticBag.Clear()
-                    ' PROTOTYPE(UsedAssemblyReferences): Might want to suppress nullable analysis for this call.
-                    ' PROTOTYPE(UsedAssemblyReferences): Ensure we don't trigger any analyzers during the GetDiagnosticsForAllMethodBodies call.
                     GetDiagnosticsForAllMethodBodies(hasDeclarationErrors:=False, diagnostics, doLowering:=True, cancellationToken)
                     seenErrors = diagnostics.HasAnyErrors()
 
@@ -125,11 +122,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim sourceAssembly = TryCast(current, SourceAssemblySymbol)
 
                             If sourceAssembly IsNot Nothing Then
-                                ' PROTOTYPE(UsedAssemblyReferences) The set of assemblies used by the referenced compilation feels Like
-                                '                                   a reasonable approximation to the set of assembly references that would
-                                '                                   be emitted into the resulting binary for that compilation. An alternative
-                                '                                   would be to attempt to emit And get the exact set of emitted references
-                                '                                   in case of success. This might be too slow though.
+                                ' The set of assemblies used by the referenced compilation feels Like
+                                ' a reasonable approximation to the set of assembly references that would
+                                ' be emitted into the resulting binary for that compilation. An alternative
+                                ' would be to attempt to emit and get the exact set of emitted references
+                                ' in case of success. This might be too slow though.
                                 usedAssemblies = sourceAssembly.DeclaringCompilation.GetCompleteSetOfUsedAssemblies(cancellationToken)
                                 If usedAssemblies IsNot Nothing Then
                                     For Each dependency As AssemblySymbol In usedAssemblies

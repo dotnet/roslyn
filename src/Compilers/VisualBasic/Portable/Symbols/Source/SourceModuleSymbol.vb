@@ -1087,13 +1087,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
-                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.DefaultCharSetAttribute) Then
                 Dim charSet As CharSet = attrData.GetConstructorArgument(Of CharSet)(0, SpecialType.System_Enum)
                 If Not CommonModuleWellKnownAttributeData.IsValidCharSet(charSet) Then
-                    arguments.Diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
                 Else
                     arguments.GetOrCreateData(Of CommonModuleWellKnownAttributeData)().DefaultCharacterSet = charSet
                 End If

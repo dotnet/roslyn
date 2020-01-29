@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (attribute.IsTargetAttribute(this, AttributeDescription.FixedBufferAttribute))
             {
                 // error CS8362: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on property
-                arguments.Diagnostics.Add(ErrorCode.ERR_DoNotUseFixedBufferAttrOnProperty, arguments.AttributeSyntaxOpt.Name.Location);
+                ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_DoNotUseFixedBufferAttrOnProperty, arguments.AttributeSyntaxOpt.Name.Location);
             }
             else
             {

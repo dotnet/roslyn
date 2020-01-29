@@ -1,33 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-
-    ' PROTOTYPE(UsedAssemblyReferences) Consider if it makes sense to move this type into its own file
-    Friend Module BindingDiagnosticBagExtensions
-
-        <System.Runtime.CompilerServices.Extension()>
-        Friend Function Add(diagnostics As CodeAnalysis.BindingDiagnosticBag, code As ERRID, location As Location) As DiagnosticInfo
-            Dim info = ErrorFactory.ErrorInfo(code)
-            diagnostics.DiagnosticBag?.Add(New VBDiagnostic(info, location))
-            Return info
-        End Function
-
-        <System.Runtime.CompilerServices.Extension()>
-        Friend Function Add(diagnostics As CodeAnalysis.BindingDiagnosticBag, code As ERRID, location As Location, ParamArray args As Object()) As DiagnosticInfo
-            Dim info = ErrorFactory.ErrorInfo(code, args)
-            diagnostics.DiagnosticBag?.Add(New VBDiagnostic(info, location))
-            Return info
-        End Function
-
-        <System.Runtime.CompilerServices.Extension()>
-        Friend Sub Add(diagnostics As CodeAnalysis.BindingDiagnosticBag, info As DiagnosticInfo, location As Location)
-            diagnostics.DiagnosticBag?.Add(New VBDiagnostic(info, location))
-        End Sub
-
-    End Module
 
     Friend NotInheritable Class BindingDiagnosticBag
         Inherits BindingDiagnosticBag(Of AssemblySymbol)
@@ -172,6 +150,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     DependenciesBag.Add(containingAssembly)
                 End If
             End If
+        End Sub
+
+        Friend Overloads Function Add(code As ERRID, location As Location) As DiagnosticInfo
+            Dim info = ErrorFactory.ErrorInfo(code)
+            Add(info, location)
+            Return info
+        End Function
+
+        Friend Overloads Function Add(code As ERRID, location As Location, ParamArray args As Object()) As DiagnosticInfo
+            Dim info = ErrorFactory.ErrorInfo(code, args)
+            Add(info, location)
+            Return info
+        End Function
+
+        Friend Overloads Sub Add(info As DiagnosticInfo, location As Location)
+            DiagnosticBag?.Add(New VBDiagnostic(info, location))
         End Sub
 
     End Class

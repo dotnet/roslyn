@@ -652,7 +652,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim attrData = arguments.Attribute
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
-                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.NonSerializedAttribute) Then
@@ -662,7 +662,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If Me.ContainingType.IsSerializable Then
                     arguments.GetOrCreateData(Of EventWellKnownAttributeData).HasNonSerializedAttribute = True
                 Else
-                    arguments.Diagnostics.Add(ERRID.ERR_InvalidNonSerializedUsage, arguments.AttributeSyntaxOpt.GetLocation())
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_InvalidNonSerializedUsage, arguments.AttributeSyntaxOpt.GetLocation())
                 End If
 
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then

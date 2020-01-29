@@ -987,20 +987,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
-            Debug.Assert(TypeOf arguments.Diagnostics Is BindingDiagnosticBag)
+            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
                 ' Already have an attribute, no need to add another one.
                 Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.True)
                 _lazyEmitExtensionAttribute = ThreeState.False
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.InternalsVisibleToAttribute) Then
-                ProcessOneInternalsVisibleToAttribute(arguments.AttributeSyntaxOpt, attrData, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
+                ProcessOneInternalsVisibleToAttribute(arguments.AttributeSyntaxOpt, attrData, diagnostics)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblySignatureKeyAttribute) Then
                 Dim signatureKey = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblySignatureKeyAttributeSetting = signatureKey
 
                 If Not StrongNameKeys.IsValidPublicKeyString(signatureKey) Then
-                    arguments.Diagnostics.Add(ERRID.ERR_InvalidSignaturePublicKey, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
+                    diagnostics.Add(ERRID.ERR_InvalidSignaturePublicKey, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
                 End If
 
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyKeyFileAttribute) Then
@@ -1013,14 +1013,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim verString = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 Dim version As Version = Nothing
                 If Not VersionHelper.TryParseAssemblyVersion(verString, allowWildcard:=Not _compilation.IsEmitDeterministic, version:=version) Then
-                    arguments.Diagnostics.Add(ERRID.ERR_InvalidVersionFormat, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
+                    diagnostics.Add(ERRID.ERR_InvalidVersionFormat, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
                 End If
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyVersionAttributeSetting = version
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyFileVersionAttribute) Then
                 Dim dummy As Version = Nothing
                 Dim verString = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 If Not VersionHelper.TryParse(verString, version:=dummy) Then
-                    arguments.Diagnostics.Add(ERRID.WRN_InvalidVersionFormat, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
+                    diagnostics.Add(ERRID.WRN_InvalidVersionFormat, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
                 End If
 
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyFileVersionAttributeSetting = verString
@@ -1034,9 +1034,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim cultureString = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 If Not String.IsNullOrEmpty(cultureString) Then
                     If Me.DeclaringCompilation.Options.OutputKind.IsApplication() Then
-                        arguments.Diagnostics.Add(ERRID.ERR_InvalidAssemblyCultureForExe, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
+                        diagnostics.Add(ERRID.ERR_InvalidAssemblyCultureForExe, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
                     ElseIf Not AssemblyIdentity.IsValidCultureName(cultureString) Then
-                        arguments.Diagnostics.Add(ERRID.ERR_InvalidAssemblyCulture, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
+                        diagnostics.Add(ERRID.ERR_InvalidAssemblyCulture, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
                         cultureString = Nothing
                     End If
                 End If
@@ -1053,7 +1053,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim dummy As Version = Nothing
                 Dim verString = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 If Not VersionHelper.TryParseAssemblyVersion(verString, allowWildcard:=False, version:=dummy) Then
-                    arguments.Diagnostics.Add(ERRID.ERR_InvalidVersionFormat2, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
+                    diagnostics.Add(ERRID.ERR_InvalidVersionFormat2, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
                 End If
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyCopyrightAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyCopyrightAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
@@ -1062,13 +1062,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf attrData.IsSecurityAttribute(Me.DeclaringCompilation) Then
                 attrData.DecodeSecurityAttribute(Of CommonAssemblyWellKnownAttributeData)(Me, Me.DeclaringCompilation, arguments)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ClassInterfaceAttribute) Then
-                attrData.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
+                attrData.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, diagnostics)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.TypeLibVersionAttribute) Then
-                ValidateIntegralAttributeNonNegativeArguments(attrData, arguments.AttributeSyntaxOpt, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
+                ValidateIntegralAttributeNonNegativeArguments(attrData, arguments.AttributeSyntaxOpt, diagnostics)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ComCompatibleVersionAttribute) Then
-                ValidateIntegralAttributeNonNegativeArguments(attrData, arguments.AttributeSyntaxOpt, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
+                ValidateIntegralAttributeNonNegativeArguments(attrData, arguments.AttributeSyntaxOpt, diagnostics)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.GuidAttribute) Then
-                attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
+                attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.CompilationRelaxationsAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasCompilationRelaxationsAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ReferenceAssemblyAttribute) Then

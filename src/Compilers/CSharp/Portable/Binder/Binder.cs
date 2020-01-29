@@ -755,6 +755,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetWellKnownTypeMember(compilation, attributeMember, diagnostics, location, syntax, isOptional);
         }
 
+        public CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo(BindingDiagnosticBag futureDestination)
+        {
+            return new CompoundUseSiteInfo<AssemblySymbol>(futureDestination, Compilation.Assembly);
+        }
+
 #if DEBUG
         // Helper to allow displaying the binder hierarchy in the debugger.
         internal Binder[] GetAllBinders()

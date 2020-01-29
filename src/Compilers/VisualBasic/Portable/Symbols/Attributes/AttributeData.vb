@@ -380,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim argSyntaxLocation As Location = If(arguments.AttributeSyntaxOpt IsNot Nothing,
                                                                arguments.AttributeSyntaxOpt.ArgumentList.Arguments(1).GetLocation(),
                                                                NoLocation.Singleton)
-                        arguments.Diagnostics.Add(ERRID.ERR_PermissionSetAttributeInvalidFile, argSyntaxLocation, If(fileName, "<empty>"), filePropName)
+                        DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_PermissionSetAttributeInvalidFile, argSyntaxLocation, If(fileName, "<empty>"), filePropName)
 
                     ElseIf (Not PermissionSetAttributeTypeHasRequiredProperty(attrType, hexPropName)) Then
 

@@ -700,11 +700,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BoundCall.Synthesized(syntax, null, leftTruthOperator, loweredLeft);
         }
 
-        private CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo()
-        {
-            return new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
-        }
-
         private BoundExpression LowerUserDefinedBinaryOperator(
             SyntaxNode syntax,
             BinaryOperatorKind operatorKind,

@@ -274,11 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToBadExpression(expr, resultKind);
         }
 
-        public CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo(BindingDiagnosticBag futureDestination)
-        {
-            return new CompoundUseSiteInfo<AssemblySymbol>(futureDestination, Compilation.Assembly);
-        }
-
         internal static bool IsTypeOrValueExpression(BoundExpression expression)
         {
             switch (expression?.Kind)

@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ReportExtensionAttributeUseSiteInfo(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
 
             If arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.SkipLocalsInitAttribute) Then
-                arguments.Diagnostics.Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.SkipLocalsInitAttribute.FullName)
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.SkipLocalsInitAttribute.FullName)
             End If
         End Sub
 
