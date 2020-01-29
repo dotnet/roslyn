@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -60,18 +61,20 @@ namespace Microsoft.CodeAnalysis
             ProjectId projectId,
             ProjectId referencedProjectId)
         {
-            // Available, but currently unused
-            _ = referencedProjectId;
-
             var builder = existingTransitiveReferencesMap.ToBuilder();
 
             // Invalidate the transitive references from every project referencing the changed project (transitively)
             foreach (var (project, references) in existingTransitiveReferencesMap)
             {
-                if (references.Contains(projectId))
+                if (!references.Contains(projectId))
                 {
-                    builder.Remove(project);
+                    // This is the forward-references-equivalent of the optimization in the update of reverse transitive
+                    // references.
+                    continue;
                 }
+
+                Debug.Assert(references.Contains(referencedProjectId));
+                builder.Remove(project);
             }
 
             // Invalidate the transitive references from the changed project
@@ -124,10 +127,8 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                if (references.Contains(projectId))
-                {
-                    builder.Remove(project);
-                }
+                Debug.Assert(references.Contains(projectId));
+                builder.Remove(project);
             }
 
             // Invalidate the transitive references from the previously-referenced project
