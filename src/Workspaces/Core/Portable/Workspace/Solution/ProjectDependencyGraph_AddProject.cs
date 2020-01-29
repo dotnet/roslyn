@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
             // Track the existence of some new projects. Note this call only adds new ProjectIds, but doesn't add any references. Any caller who wants to add a new project
             // with references will first call this, and then call WithAdditionalProjectReferences to add references as well.
 
-            // Since we're adding a new project here, there aren't any references to it, or at least not yet. (If there are, they'll be added
+            // Since we're adding a new project here, there aren't any references to it or from it (any references will be added
             // later with WithAdditionalProjectReferences). Thus, the new projects aren't topologically sorted relative to any other project
             // and form their own dependency set. Thus, sticking them at the end is fine.
             var newTopologicallySortedProjects = _lazyTopologicallySortedProjects;

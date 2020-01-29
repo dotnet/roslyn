@@ -61,7 +61,9 @@ namespace Microsoft.CodeAnalysis
             ProjectId referencedProjectId)
         {
             if (existingReverseReferencesMap is null)
+            {
                 return null;
+            }
 
             var referencingProjects = existingReverseReferencesMap[referencedProjectId].Remove(projectId);
             return referencingProjects.IsEmpty

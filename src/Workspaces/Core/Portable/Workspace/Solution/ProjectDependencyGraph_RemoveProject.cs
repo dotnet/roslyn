@@ -153,12 +153,12 @@ namespace Microsoft.CodeAnalysis
             var builder = existingTransitiveReferencesMap.ToBuilder();
 
             // Iterate over each project and invalidate the transitive references for the project if the project has an
-            // existing transitive reference to 'projectId'.
+            // existing transitive reference to 'removedProjectId'.
             foreach (var (project, references) in existingTransitiveReferencesMap)
             {
                 if (references.Contains(removedProjectId))
                 {
-                    // The project transitively referenced 'projectId', so any transitive references brought in
+                    // The project transitively referenced 'removedProjectId', so any transitive references brought in
                     // exclusively through this reference are no longer valid. Remove the project from the map and the
                     // new transitive references will be recomputed the first time they are needed.
                     builder.Remove(project);
@@ -180,11 +180,16 @@ namespace Microsoft.CodeAnalysis
         {
             var builder = existingReverseTransitiveReferencesMap.ToBuilder();
 
+            // Iterate over each project and invalidate the transitive reverse references for the project if the project
+            // has an existing transitive reverse reference to 'removedProjectId'.
             foreach (var (project, references) in existingReverseTransitiveReferencesMap)
             {
                 if (references.Contains(removedProjectId))
                 {
-                    // Invalidate the cache for projects that reference the removed project
+                    // 'removedProjectId' transitively referenced the project, so any transitive reverse references
+                    // brought in exclusively through this reverse reference are no longer valid. Remove the project
+                    // from the map and the new transitive reverse references will be recomputed the first time they are
+                    // needed.
                     builder.Remove(project);
                 }
             }
