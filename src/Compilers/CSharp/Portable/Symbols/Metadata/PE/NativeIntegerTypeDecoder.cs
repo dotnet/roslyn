@@ -6,9 +6,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -54,13 +54,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private TypeSymbol TransformType(TypeSymbol type)
         {
-            return type switch
+            switch (type.TypeKind)
             {
-                NamedTypeSymbol namedType => TransformNamedType(namedType),
-                ArrayTypeSymbol arrayType => TransformArrayType(arrayType),
-                PointerTypeSymbol pointerType => TransformPointerType(pointerType),
-                _ => type,
-            };
+                case TypeKind.Array:
+                case TypeKind.Pointer:
+                case TypeKind.TypeParameter:
+                case TypeKind.Dynamic:
+                    return type;
+                case TypeKind.Class:
+                case TypeKind.Struct:
+                case TypeKind.Interface:
+                case TypeKind.Delegate:
+                case TypeKind.Enum:
+                    return TransformNamedType((NamedTypeSymbol)type);
+                case TypeKind.Error:
+                default:
+                    Debug.Assert(type.TypeKind == TypeKind.Error);
+                    throw new ArgumentException();
+            }
         }
 
         private NamedTypeSymbol TransformNamedType(NamedTypeSymbol type)

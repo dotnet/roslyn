@@ -939,7 +939,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TypeKind.Dynamic:
                         builder.Add(false);
                         break;
-
                     case TypeKind.Class:
                     case TypeKind.Struct:
                     case TypeKind.Interface:
@@ -952,10 +951,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             builder.Add(((NamedTypeSymbol)type).IsNativeInt);
                         }
                         break;
-
                     default:
-                        Debug.Assert(false);
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
                 }
 
                 // Continue walking types

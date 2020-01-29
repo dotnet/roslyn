@@ -385,6 +385,45 @@ public class C<T>
         }
 
         [Fact]
+        public void EmitAttribute_ErrorType()
+        {
+            var source1 =
+@"public class A { }
+public class B<T> { }";
+            var comp = CreateCompilation(source1, assemblyName: "95d36b13-f2e1-495d-9ab6-62e8cc63ac22");
+            var ref1 = comp.EmitToImageReference();
+
+            var source2 =
+@"public class C<T, U> { }
+public class D
+{
+    public B<nint> F1;
+    public C<nint, A> F2;
+}";
+            comp = CreateCompilation(source2, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            var ref2 = comp.EmitToImageReference();
+
+            var source3 =
+@"class Program
+{
+    static void Main()
+    {
+        var d = new D();
+        _ = d.F1;
+        _ = d.F2;
+    }
+}";
+            comp = CreateCompilation(source3, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0012: The type 'B<>' is defined in an assembly that is not referenced. You must add a reference to assembly '95d36b13-f2e1-495d-9ab6-62e8cc63ac22, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         _ = d.F1;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "F1").WithArguments("B<>", "95d36b13-f2e1-495d-9ab6-62e8cc63ac22, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 15),
+                // (7,15): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '95d36b13-f2e1-495d-9ab6-62e8cc63ac22, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         _ = d.F2;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "F2").WithArguments("A", "95d36b13-f2e1-495d-9ab6-62e8cc63ac22, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 15));
+        }
+
+        [Fact]
         public void EmitAttribute_Fields()
         {
             var source =
@@ -712,6 +751,41 @@ unsafe public class Program
     [NativeInteger({ False, True, True })] (System.IntPtr, System.UIntPtr) F5
 ";
             AssertNativeIntegerAttributes(comp, expected);
+        }
+
+        [Fact]
+        public void EmitAttribute_LongTuples()
+        {
+            var source1 =
+@"public interface IA { }
+public interface IB<T> { }
+public class C : IA, IB<(nint, object, nuint[], object, nint, object, (nint, nuint), object, nuint)>
+{
+}";
+            var comp = CreateCompilation(source1, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "C");
+                var interfaceImpl = reader.GetInterfaceImplementation(typeDef.GetInterfaceImplementations().ElementAt(1));
+                var customAttributes = interfaceImpl.GetCustomAttributes();
+                AssertAttributes(reader, customAttributes, "MethodDefinition:Void System.Runtime.CompilerServices.NativeIntegerAttribute..ctor(Boolean[])");
+                var customAttribute = GetAttributeByConstructorName(reader, customAttributes, "MethodDefinition:Void System.Runtime.CompilerServices.NativeIntegerAttribute..ctor(Boolean[])");
+                AssertEx.Equal(ImmutableArray.Create(false, false, true, false, false, true, false, true, false, false, true, true, false, false, true), reader.ReadBoolArray(customAttribute.Value));
+            });
+            var ref1 = comp.EmitToImageReference();
+
+            var source2 =
+@"class Program
+{
+    static void Main()
+    {
+        IA a = new C();
+        _ = a;
+    }
+}";
+            comp = CreateCompilation(source2, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
