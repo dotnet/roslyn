@@ -1483,7 +1483,7 @@ End Class]]>
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
+<Assembly: System.Diagnostics.CodeAnalysis("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
 ]]>
                             </Document>
                         </Project>
@@ -1497,7 +1497,7 @@ $"' This file is used by Code Analysis to maintain SuppressMessage
 
 Imports System.Diagnostics.CodeAnalysis
 
-<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
+<Assembly: System.Diagnostics.CodeAnalysis(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
 <Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
@@ -1568,7 +1568,7 @@ End Class
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
+<Assembly: System.Diagnostics.CodeAnalysis("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
 ]]>
                             </Document>
                         </Project>
@@ -1582,7 +1582,7 @@ $"' This file is used by Code Analysis to maintain SuppressMessage
 
 Imports System.Diagnostics.CodeAnalysis
 
-<Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
+<Assembly: System.Diagnostics.CodeAnalysis(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
 <Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 

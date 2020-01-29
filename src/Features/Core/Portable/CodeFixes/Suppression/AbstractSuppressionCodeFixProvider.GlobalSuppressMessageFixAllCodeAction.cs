@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var workspace = suppressionsDoc.Project.Solution.Workspace;
                 var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = await suppressionsDoc.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var addImportsService = suppressionsDoc.Project.LanguageServices.GetRequiredService<IAddImportsService>();
+                var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
 
                 foreach (var kvp in _diagnosticsBySymbol)
                 {
