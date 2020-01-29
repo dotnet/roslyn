@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// The path which contains mscorlib.  This can be null when specified by the user or running in a 
         /// CoreClr environment.
         /// </summary>
-        internal string SdkDirectory { get; }
+        internal string? SdkDirectory { get; }
 
         /// <summary>
         /// The temporary directory a compilation should use instead of <see cref="Path.GetTempPath"/>.  The latter
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal string TempDirectory { get; }
 
-        internal BuildPathsAlt(string clientDir, string workingDir, string sdkDir, string tempDir)
+        internal BuildPathsAlt(string clientDir, string workingDir, string? sdkDir, string tempDir)
         {
             ClientDirectory = clientDir;
             WorkingDirectory = workingDir;
@@ -79,10 +81,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public static Task<BuildResponse> RunServerCompilation(
             RequestLanguage language,
-            string sharedCompilationId,
+            string? sharedCompilationId,
             List<string> arguments,
             BuildPathsAlt buildPaths,
-            string keepAlive,
+            string? keepAlive,
             string libEnvVariable,
             CancellationToken cancellationToken)
         {
@@ -104,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
             RequestLanguage language,
             List<string> arguments,
             BuildPathsAlt buildPaths,
-            string pipeName,
-            string keepAlive,
+            string? pipeName,
+            string? keepAlive,
             string libEnvVariable,
             int? timeoutOverride,
             CreateServerFunc createServerFunc,
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // This code uses a Mutex.WaitOne / ReleaseMutex pairing. Both of these calls must occur on the same thread 
             // or an exception will be thrown. This code lives in a separate non-async function to help ensure this 
             // invariant doesn't get invalidated in the future by an `await` being inserted. 
-            static Task<NamedPipeClientStream> tryConnectToServer(
+            static Task<NamedPipeClientStream?>? tryConnectToServer(
                 string pipeName,
                 BuildPathsAlt buildPaths,
                 int? timeoutOverride,
@@ -167,8 +169,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 var clientDir = buildPaths.ClientDirectory;
                 var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
                 var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
-                Task<NamedPipeClientStream> pipeTask = null;
-                IServerMutex clientMutex = null;
+                Task<NamedPipeClientStream?>? pipeTask = null;
+                IServerMutex? clientMutex = null;
                 try
                 {
                     var holdsMutex = false;
@@ -288,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 // Cancel whatever task is still around
                 serverCts.Cancel();
-                Debug.Assert(response != null);
+                RoslynDebug.Assert(response != null);
                 return response;
             }
         }
@@ -300,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal static async Task CreateMonitorDisconnectTask(
             PipeStream pipeStream,
-            string identifier = null,
+            string? identifier = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var buffer = Array.Empty<byte>();
@@ -338,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>
         /// An open <see cref="NamedPipeClientStream"/> to the server process or null on failure.
         /// </returns>
-        internal static async Task<NamedPipeClientStream> TryConnectToServerAsync(
+        internal static async Task<NamedPipeClientStream?> TryConnectToServerAsync(
             string pipeName,
             int timeoutMs,
             CancellationToken cancellationToken)
@@ -488,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>
         /// Null if not enough information was found to create a valid pipe name.
         /// </returns>
-        internal static string GetPipeNameForPathOpt(string compilerExeDirectory)
+        internal static string? GetPipeNameForPathOpt(string compilerExeDirectory)
         {
             // Prefix with username and elevation
             bool isAdmin = false;
@@ -534,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 if (PlatformInformation.IsRunningOnMono)
                 {
-                    IServerMutex mutex = null;
+                    IServerMutex? mutex = null;
                     bool createdNew = false;
                     try
                     {
@@ -586,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// is <paramref name="workingDir"/>.  This function must emulate <see cref="Path.GetTempPath"/> as 
         /// closely as possible.
         /// </summary>
-        public static string GetTempPath(string workingDir)
+        public static string GetTempPath(string? workingDir)
         {
             if (PlatformInformation.IsUnix)
             {
@@ -737,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public static bool WasOpen(string mutexName)
         {
-            Mutex m = null;
+            Mutex? m = null;
             try
             {
                 return Mutex.TryOpenExisting(mutexName, out m);
