@@ -4,6 +4,7 @@
 
 using System;
 using System.CodeDom.Compiler;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -11,9 +12,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private sealed class GeneratedCodeTokenWalker : SyntaxWalker
         {
-            public GeneratedCodeTokenWalker()
+            private readonly CancellationToken _cancellationToken;
+
+            public GeneratedCodeTokenWalker(CancellationToken cancellationToken)
                 : base(SyntaxWalkerDepth.Token)
             {
+                _cancellationToken = cancellationToken;
             }
 
             public bool HasGeneratedCodeIdentifier { get; private set; }
@@ -23,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (HasGeneratedCodeIdentifier)
                     return;
 
+                _cancellationToken.ThrowIfCancellationRequested();
                 base.Visit(node);
             }
 
