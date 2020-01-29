@@ -10676,7 +10676,7 @@ public class MyClass {
         [WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")]
         [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
         [WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")]
-        [ConditionalFact(typeof(DesktopOnly), Reason = "Working with Tanner to track down the issue")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/coreclr/issues/22046")]
         public void DecimalLiteral_BreakingChange()
         {
             string source =

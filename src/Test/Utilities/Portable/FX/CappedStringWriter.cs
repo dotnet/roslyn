@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _expectedLength = expectedLength;
                 _remaining = Math.Max(256, expectedLength * 4);
             }
-            _remaining = int.MaxValue;
         }
 
         private void CapReached()
