@@ -168,6 +168,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => InheritsBaseMethodAttributes ? BaseMethod.ReturnValueMarshallingInformation : null;
 
         internal sealed override bool HasSpecialName => InheritsBaseMethodAttributes && BaseMethod.HasSpecialName;
+
+        // Synthesized methods created from a base method with [SkipLocalsInitAttribute] will also
+        // skip locals init where applicable, even if the synthesized method does not inherit attributes.
+        // Note that this doesn't affect BaseMethodWrapperSymbol for example because the implementation has no locals.
+        public sealed override bool AreLocalsZeroed => !(BaseMethod is SourceMethodSymbol sourceMethod) || sourceMethod.AreLocalsZeroed;
+
 #nullable restore
 
         public sealed override RefKind RefKind

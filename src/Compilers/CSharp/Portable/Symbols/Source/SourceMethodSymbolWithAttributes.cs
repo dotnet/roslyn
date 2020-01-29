@@ -345,13 +345,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
 
-        // PROTOTYPE(local-function-attributes): test local function with SkipLocalsInit
         public override bool AreLocalsZeroed
         {
             get
             {
                 var data = this.GetDecodedWellKnownAttributeData();
-                return data?.HasSkipLocalsInitAttribute != true && ContainingType.AreLocalsZeroed;
+                return data?.HasSkipLocalsInitAttribute != true && AreContainingSymbolLocalsZeroed;
             }
         }
 
