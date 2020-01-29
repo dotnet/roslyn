@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
 
-        private int _hashCode; // computed on demand
+        private int? _hashCode; // computed on demand
 
         internal SubstitutedMethodSymbol(NamedTypeSymbol containingSymbol, MethodSymbol originalDefinition)
             : this(containingSymbol, containingSymbol.TypeSubstitution, originalDefinition, constructedFrom: null)
@@ -363,13 +363,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If the containing type of the of the original definition is the same as our containing type
             // it's possible that we will compare equal to the original definition under certain conditions 
-            // (e.g, ignoring nullability) and want to retain the same hashcode. As such only make
-            // the containing type part of the hashcode when we know equality isn't possible
+            // (e.g, ignoring nullability) and want to retain the same hashcode. As such, consider only
+            // the the original definition for the hashcode when we know equality is possible
             var containingHashCode = _containingType.GetHashCode();
-            if (containingHashCode != this.OriginalDefinition.ContainingType.GetHashCode())
+            if (containingHashCode == this.OriginalDefinition.ContainingType.GetHashCode())
             {
-                code = Hash.Combine(containingHashCode, code);
+                return code;
             }
+
+            code = Hash.Combine(containingHashCode, code);
 
             // Unconstructed method may contain alpha-renamed type parameters while	
             // may still be considered equal, we do not want to give different hashcode to such types.	
@@ -433,23 +435,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int GetHashCode()
         {
-            int code = _hashCode;
-
-            if (code == 0)
+            if (!_hashCode.HasValue)
             {
-                code = ComputeHashCode();
-
-                // 0 means that hashcode is not initialized. 
-                // in a case we really get 0 for the hashcode, tweak it by +1
-                if (code == 0)
-                {
-                    code++;
-                }
-
-                _hashCode = code;
+                _hashCode = ComputeHashCode();
             }
 
-            return code;
+            return _hashCode.Value;
         }
     }
 }
