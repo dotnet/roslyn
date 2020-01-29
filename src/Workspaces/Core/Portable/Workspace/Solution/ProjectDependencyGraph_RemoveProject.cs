@@ -55,11 +55,11 @@ namespace Microsoft.CodeAnalysis
         {
             var builder = referencesMap.ToBuilder();
 
-            if (existingReverseReferencesMap is object && existingReverseReferencesMap.TryGetValue(projectId, out var referencingProjects))
+            if (existingReverseReferencesMap is object)
             {
                 // We know all the projects directly referencing 'projectId', so remove 'projectId' from the set of
                 // references in each of those cases directly.
-                foreach (var id in referencingProjects)
+                foreach (var id in existingReverseReferencesMap[projectId])
                 {
                     builder[id] = builder[id].Remove(projectId);
                 }
@@ -99,15 +99,9 @@ namespace Microsoft.CodeAnalysis
 
             // Iterate over each project referenced by 'projectId', which is now being removed. Update the reverse
             // references map for the project to no longer include 'projectId' in the list.
-            if (existingForwardReferencesMap.TryGetValue(projectId, out var referencedProjectIds))
+            foreach (var referencedProjectId in existingForwardReferencesMap[projectId])
             {
-                foreach (var referencedProjectId in referencedProjectIds)
-                {
-                    if (builder.TryGetValue(referencedProjectId, out var reverseDependencies))
-                    {
-                        builder[referencedProjectId] = reverseDependencies.Remove(projectId);
-                    }
-                }
+                builder[referencedProjectId] = existingReverseReferencesMap[referencedProjectId].Remove(projectId);
             }
 
             // Finally, remove 'projectId' itself.

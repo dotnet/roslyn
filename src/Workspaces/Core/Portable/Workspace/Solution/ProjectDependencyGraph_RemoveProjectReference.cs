@@ -51,12 +51,8 @@ namespace Microsoft.CodeAnalysis
             if (existingReverseReferencesMap is null)
                 return null;
 
-            if (existingReverseReferencesMap.TryGetValue(referencedProjectId, out var referencingProjects))
-            {
-                return existingReverseReferencesMap.SetItem(referencedProjectId, referencingProjects.Remove(projectId));
-            }
-
-            return existingReverseReferencesMap;
+            var referencingProjects = existingReverseReferencesMap[referencedProjectId];
+            return existingReverseReferencesMap.SetItem(referencedProjectId, referencingProjects.Remove(projectId));
         }
 
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewTransitiveReferencesMapForRemovedProjectReference(
