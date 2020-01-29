@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     // Every words-array in result corresponds to one name that will be generated.
                     // The name should only be used if it represents a valid identifier.
-                    if (syntaxFacts.IsValidIdentifier(string.Join(string.Empty, result[index])) == false)
+                    if (!syntaxFacts.IsValidIdentifier(string.Join(string.Empty, result[index])))
                     {
                         result.RemoveAt(index);
                     }
