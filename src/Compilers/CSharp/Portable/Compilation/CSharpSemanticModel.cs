@@ -3458,17 +3458,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
-                case BoundKind.ConditionalAccess:
-                    {
-                        var conditionalAccess = (BoundConditionalAccess)boundNode;
-                        if (conditionalAccess.AccessExpression is BoundExpression expression && expression.ExpressionSymbol is Symbol symbol)
-                        {
-                            symbols = ImmutableArray.Create(symbol);
-                            resultKind = boundNode.ResultKind;
-                        }
-                        break;
-                    }
-
                 default:
                     {
                         if (boundNode.ExpressionSymbol is Symbol symbol)
