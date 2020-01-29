@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using Humanizer;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -17,17 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         internal class NameGenerator
         {
-            internal static ImmutableArray<Words> GetBaseNames(Document document, ITypeSymbol type, bool pluralize)
+            internal static ImmutableArray<Words> GetBaseNames(ITypeSymbol type, bool pluralize)
             {
                 var baseName = TryRemoveInterfacePrefix(type);
                 var parts = StringBreaker.GetWordParts(baseName);
-                var result = GetInterleavedPatterns(document, parts, baseName, pluralize);
+                var result = GetInterleavedPatterns(parts, baseName, pluralize);
 
                 parts.Free();
                 return result;
             }
 
-            internal static ImmutableArray<Words> GetBaseNames(Document document, IAliasSymbol alias)
+            internal static ImmutableArray<Words> GetBaseNames(IAliasSymbol alias)
             {
                 var name = alias.Name;
                 if (alias.Target.IsType &&
@@ -38,14 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var breaks = StringBreaker.GetWordParts(name);
-                var result = GetInterleavedPatterns(document, breaks, name, pluralize: false);
+                var result = GetInterleavedPatterns(breaks, name, pluralize: false);
                 breaks.Free();
                 return result;
             }
 
-            private static ImmutableArray<Words> GetInterleavedPatterns(Document document, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
+            private static ImmutableArray<Words> GetInterleavedPatterns(ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
             {
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 var result = ArrayBuilder<Words>.GetInstance();
                 var breakCount = breaks.Count;
                 result.Add(GetWords(0, breakCount, breaks, baseName, pluralize));
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     // Every words-array in result corresponds to one name that will be generated.
                     // The name should only be used if it represents a valid identifier.
-                    if (!syntaxFacts.IsValidIdentifier(string.Join(string.Empty, result[index])))
+                    if (!CSharpSyntaxFactsService.Instance.IsValidIdentifier(string.Join(string.Empty, result[index])))
                     {
                         result.RemoveAt(index);
                     }
