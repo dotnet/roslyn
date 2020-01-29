@@ -5998,7 +5998,7 @@ namespace NS
 
         <WorkItem(39519, "https://github.com/dotnet/roslyn/issues/39519")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSuggestedNamesDontStartWithDigit() As Task
+        Public Async Function TestSuggestedNamesDontStartWithDigit_DigitsInTheMiddle() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS
@@ -6021,6 +6021,35 @@ namespace NS
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("foo123Bar", "foo123", "foo", "bar")
+                Await state.AssertCompletionItemsDoNotContainAny("123Bar")
+            End Using
+        End Function
+
+        <WorkItem(39519, "https://github.com/dotnet/roslyn/issues/39519")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSuggestedNamesDontStartWithDigit_DigitsOnTheRight() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+namespace NS
+{
+    class C
+    {
+        public void Foo(Foo123 $$)
+        {
+        }
+    }
+
+    public class Foo123
+    {
+    } 
+}
+]]></Document>)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, True)))
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("foo123", "foo")
                 Await state.AssertCompletionItemsDoNotContainAny("123")
             End Using
         End Function

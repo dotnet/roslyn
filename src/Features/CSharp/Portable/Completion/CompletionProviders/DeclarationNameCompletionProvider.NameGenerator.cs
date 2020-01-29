@@ -57,16 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     result.Add(GetLongestBackwardSubsequence(length, breaks, baseName, pluralize));
                 }
 
-                for (var index = result.Count - 1; index >= 0; index--)
-                {
-                    // Every words-array in result corresponds to one name that will be generated.
-                    // The name should only be used if it represents a valid identifier.
-                    if (!CSharpSyntaxFactsService.Instance.IsValidIdentifier(string.Join(string.Empty, result[index])))
-                    {
-                        result.RemoveAt(index);
-                    }
-                }
-
                 return result.ToImmutable();
             }
 

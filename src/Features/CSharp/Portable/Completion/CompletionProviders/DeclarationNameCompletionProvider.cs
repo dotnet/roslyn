@@ -225,7 +225,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         foreach (var baseName in baseNames)
                         {
                             var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
-                            if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
+
+                            // Don't add multiple items for the same name and only add valid identifiers
+                            if (name.Length > 1 && CSharpSyntaxFactsService.Instance.IsValidIdentifier(name) && !result.ContainsKey(name))
                             {
                                 var targetToken = context.TargetToken;
                                 var uniqueName = semanticFactsService.GenerateUniqueName(
