@@ -152,21 +152,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal CSDiagnosticInfo Add(ErrorCode code, Location location)
         {
             var info = new CSDiagnosticInfo(code);
-            DiagnosticBag?.Add(new CSDiagnostic(info, location));
+            Add(info, location);
             return info;
         }
 
         internal CSDiagnosticInfo Add(ErrorCode code, Location location, params object[] args)
         {
             var info = new CSDiagnosticInfo(code, args);
-            DiagnosticBag?.Add(new CSDiagnostic(info, location));
+            Add(info, location);
             return info;
         }
 
         internal CSDiagnosticInfo Add(ErrorCode code, Location location, ImmutableArray<Symbol> symbols, params object[] args)
         {
             var info = new CSDiagnosticInfo(code, args, symbols, ImmutableArray<Location>.Empty);
-            DiagnosticBag?.Add(new CSDiagnostic(info, location));
+            Add(info, location);
             return info;
         }
 

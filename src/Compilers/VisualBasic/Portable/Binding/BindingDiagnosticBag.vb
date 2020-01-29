@@ -154,13 +154,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overloads Function Add(code As ERRID, location As Location) As DiagnosticInfo
             Dim info = ErrorFactory.ErrorInfo(code)
-            DiagnosticBag?.Add(New VBDiagnostic(info, location))
+            Add(info, location)
             Return info
         End Function
 
         Friend Overloads Function Add(code As ERRID, location As Location, ParamArray args As Object()) As DiagnosticInfo
             Dim info = ErrorFactory.ErrorInfo(code, args)
-            DiagnosticBag?.Add(New VBDiagnostic(info, location))
+            Add(info, location)
             Return info
         End Function
 
