@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -30,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private readonly IAsynchronousOperationListener _listener;
             private readonly Workspace _workspace;
-            private readonly IDiagnosticAnalyzerService _analyzerService;
+            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
             private readonly object _gate;
 
@@ -42,14 +44,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 IThreadingContext threadingContext,
                 IAsynchronousOperationListener listener,
                 Workspace workspace,
-                IDiagnosticAnalyzerService analyzerService)
+                DiagnosticAnalyzerInfoCache analyzerInfoCache)
                 : base(threadingContext)
             {
                 _gate = new object();
 
                 _listener = listener;
                 _workspace = workspace;
-                _analyzerService = analyzerService;
+                _analyzerInfoCache = analyzerInfoCache;
             }
 
             public Workspace Workspace => _workspace;
@@ -241,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var snapshotService = _workspace.Services.GetRequiredService<IRemotableDataService>();
                     var assetBuilder = new CustomAssetBuilder(_workspace);
 
-                    foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
+                    foreach (var (_, reference) in _analyzerInfoCache.GetHostAnalyzerReferencesMap())
                     {
                         var asset = assetBuilder.Build(reference, cancellationToken);
 
@@ -259,7 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     var snapshotService = _workspace.Services.GetRequiredService<IRemotableDataService>();
 
-                    foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
+                    foreach (var (_, reference) in _analyzerInfoCache.GetHostAnalyzerReferencesMap())
                     {
                         snapshotService.RemoveGlobalAsset(reference, CancellationToken.None);
                     }

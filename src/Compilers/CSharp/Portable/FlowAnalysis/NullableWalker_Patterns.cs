@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -79,7 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="inputType">Type type of the input expression (before nullable analysis).
         /// Used to determine which types can contain null.</param>
-        /// <returns>true if there is a top-level explicit null check</returns>
         private void LearnFromAnyNullPatterns(
             int inputSlot,
             TypeSymbol inputType,
@@ -109,6 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break; // nothing to learn
                 case BoundRecursivePattern rp:
                     {
+                        if (rp.IsExplicitNotNullTest)
+                        {
+                            LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
+                        }
+
                         // for positional part: we only learn from tuples (not Deconstruct)
                         if (rp.DeconstructMethod is null && !rp.Deconstruction.IsDefault)
                         {
@@ -141,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override LocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
+        protected override (LocalState initialState, LocalState afterSwitchState) VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
             // first, learn from any null tests in the patterns
             int slot = node.Expression.IsSuppressed ? GetOrCreatePlaceholderSlot(node.Expression) : MakeSlot(node.Expression);
@@ -179,8 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            var afterSwitchState = labelStateMap.TryGetValue(node.BreakLabel, out var stateAndReachable) ? stateAndReachable.state : UnreachableState();
             labelStateMap.Free();
-            return initialState;
+            return (initialState, afterSwitchState);
         }
 
         protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
@@ -352,6 +359,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     if (inputSlot > 0)
                                     {
                                         MarkDependentSlotsNotNull(inputSlot, inputType, ref this.StateWhenFalse);
+                                        if (t.IsExplicitTest)
+                                        {
+                                            LearnFromNullTest(inputSlot, inputType, ref this.StateWhenFalse, markDependentSlotsNotNull: false);
+                                        }
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
                                     }
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);

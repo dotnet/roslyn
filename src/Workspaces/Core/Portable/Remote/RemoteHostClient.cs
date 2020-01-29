@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -53,12 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
             OnStatusChanged(started: true);
         }
 
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-        }
-
-        protected virtual void Dispose(bool disposing)
+        public virtual void Dispose()
         {
             OnStatusChanged(started: false);
         }
@@ -220,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken);
             public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken);
 
-            protected virtual void Dispose(bool disposing)
+            protected virtual void DisposeImpl()
             {
                 // do nothing
             }
@@ -234,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 _disposed = true;
 
-                Dispose(disposing: true);
+                DisposeImpl();
                 GC.SuppressFinalize(this);
             }
 

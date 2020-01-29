@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using System.Linq;
@@ -39,10 +41,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void VersionStamp_RoundTripText()
         {
-            using var writerStream = new MemoryStream();
-            using var writer = new ObjectWriter(writerStream);
             var versionStamp = VersionStamp.Create();
-            versionStamp.WriteTo(writer);
+
+            using var writerStream = new MemoryStream();
+
+            using (var writer = new ObjectWriter(writerStream, leaveOpen: true))
+            {
+                versionStamp.WriteTo(writer);
+            }
 
             using var readerStream = new MemoryStream(writerStream.ToArray());
             using var reader = ObjectReader.TryGetReader(readerStream);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected virtual bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
         {
-            return _next.IsUnboundTypeAllowed(syntax);
+            return Next.IsUnboundTypeAllowed(syntax);
         }
 
         /// <summary>
@@ -274,16 +276,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case BoundTupleLiteral sourceTuple:
-                    result = new BoundConvertedTupleLiteral(
-                        sourceTuple.Syntax,
-                        sourceTuple,
-                        wasTargetTyped: false,
-                        sourceTuple.Arguments.SelectAsArray(
-                            (e, t) => t.self.BindToNaturalType(e, t.diagnostics, t.reportNoTargetType), (self: this, diagnostics, reportNoTargetType)),
-                        sourceTuple.ArgumentNamesOpt,
-                        sourceTuple.InferredNamesOpt,
-                        sourceTuple.Type, // same type to keep original element names
-                        sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
+                    {
+                        var boundArgs = ArrayBuilder<BoundExpression>.GetInstance(sourceTuple.Arguments.Length);
+                        foreach (var arg in sourceTuple.Arguments)
+                        {
+                            boundArgs.Add(BindToNaturalType(arg, diagnostics, reportNoTargetType));
+                        }
+                        result = new BoundConvertedTupleLiteral(
+                            sourceTuple.Syntax,
+                            sourceTuple,
+                            wasTargetTyped: false,
+                            boundArgs.ToImmutableAndFree(),
+                            sourceTuple.ArgumentNamesOpt,
+                            sourceTuple.InferredNamesOpt,
+                            sourceTuple.Type, // same type to keep original element names
+                            sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
+                    }
                     break;
                 case BoundDefaultLiteral defaultExpr:
                     {

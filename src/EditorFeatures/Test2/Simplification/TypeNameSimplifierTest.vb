@@ -1,6 +1,7 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -5906,6 +5907,46 @@ End Class
 ]]></text>
 
             Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestSharedMemberOffOfMe() As Task
+            ' even if the user prefers qualified member access, we will strip off 'Me' when calling
+            ' a static method through it.
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" CommonReferences="true">
+                <Document>
+                    <![CDATA[
+Imports System
+Class Class1
+    Sub Main()
+        {|SimplifyParent:Me.Goo|}()
+    End Sub
+
+    Shared Sub Goo()
+    End Sub
+End Class
+]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+                  <![CDATA[
+Imports System
+Class Class1
+    Sub Main()
+        Goo()
+    End Sub
+
+    Shared Sub Goo()
+    End Sub
+End Class
+]]></text>
+
+            Await TestAsync(input, expected, QualifyMethodAccessOption(LanguageNames.VisualBasic))
         End Function
 
 #End Region
