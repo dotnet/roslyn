@@ -139,7 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 catch (ArgumentException e)
                 {
-                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens.{Environment.NewLine}Parameter name: kind", e.Message);
                     Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
                 }
 
@@ -151,7 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 catch (ArgumentException e)
                 {
-                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens.{Environment.NewLine}Parameter name: kind", e.Message);
                     Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
                 }
 
@@ -163,7 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 catch (ArgumentException e)
                 {
-                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens.{Environment.NewLine}Parameter name: kind", e.Message);
                     Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
                 }
             }
@@ -276,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("x,y,z", list2.ToString());
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/40875")]
+        [Fact]
         [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         [WorkItem(720708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")]
         public void TestLiteralDefaultStringValues()
@@ -335,7 +332,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // float
             CheckLiteralToString(0F, @"0F");
             CheckLiteralToString(0.012345F, @"0.012345F");
+#if NET472
             CheckLiteralToString(float.MaxValue, @"3.40282347E+38F");
+#else
+            CheckLiteralToString(float.MaxValue, @"3.4028235E+38F");
+#endif
 
             // double
             CheckLiteralToString(0D, @"0");

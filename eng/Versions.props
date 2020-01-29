@@ -159,7 +159,7 @@
     <MicrosoftVisualStudioValidationVersion>15.5.31</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioVsInteractiveWindowVersion>
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
-    <MicrosoftWin32RegistryVersion>4.6.0</MicrosoftWin32RegistryVersion>
+    <MicrosoftWin32RegistryVersion>4.7.0</MicrosoftWin32RegistryVersion>
     <MSBuildStructuredLoggerVersion>2.0.61</MSBuildStructuredLoggerVersion>
     <MDbgVersion>0.1.0</MDbgVersion>
     <MonoOptionsVersion>4.4.0</MonoOptionsVersion>
