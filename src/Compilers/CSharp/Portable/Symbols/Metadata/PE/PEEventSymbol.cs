@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEEventSymbol : EventSymbol
     {
-#nullable disable // The compiler cannot figure out that this is assigned in the constructor. https://github.com/dotnet/roslyn/issues/39166
         private readonly string _name;
-#nullable enable
         private readonly PENamedTypeSymbol _containingType;
         private readonly EventDefinitionHandle _handle;
         private readonly TypeWithAnnotations _eventTypeWithAnnotations;
@@ -79,11 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
             catch (BadImageFormatException mrEx)
             {
-                if ((object?)_name == null)
-                {
-                    _name = string.Empty;
-                }
-
+                _name = _name ?? string.Empty;
                 _lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
 
                 if (eventType.IsNil)
