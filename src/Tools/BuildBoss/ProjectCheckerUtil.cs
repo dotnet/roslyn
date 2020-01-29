@@ -323,7 +323,6 @@ namespace BuildBoss
                 {
                     case "net20":
                     case "net472":
-                    case "netcoreapp1.1":
                     case "netcoreapp2.1":
                     case "netcoreapp3.0":
                     case "netcoreapp3.1":
