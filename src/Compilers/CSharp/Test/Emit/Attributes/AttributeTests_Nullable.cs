@@ -332,7 +332,6 @@ public class C2 : Base<(object a, object b)> { }
                 );
         }
 
-
         [Fact]
         public void ExplicitAttributeFromSource()
         {
