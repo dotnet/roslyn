@@ -361,9 +361,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths))
                         .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
-                    var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding);
-                    var additionalDocuments = CreateDocumentInfos(projectFileInfo.AdditionalDocuments, projectId, commandLineArgs.Encoding);
-                    var analyzerConfigDocuments = CreateDocumentInfos(projectFileInfo.AnalyzerConfigDocuments, projectId, commandLineArgs.Encoding);
+                    // Since we don't know the encoding of all documents up front when loading a Project. 
+                    // Passing `null` for the encoding causes the FileTextLoader to try and determine the encoding for each document individually.
+                    var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, encoding: null);
+                    var additionalDocuments = CreateDocumentInfos(projectFileInfo.AdditionalDocuments, projectId, encoding: null);
+                    var analyzerConfigDocuments = CreateDocumentInfos(projectFileInfo.AnalyzerConfigDocuments, projectId, encoding: null);
                     CheckForDuplicateDocuments(documents.Concat(additionalDocuments).Concat(analyzerConfigDocuments), projectPath, projectId);
 
                     var analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
