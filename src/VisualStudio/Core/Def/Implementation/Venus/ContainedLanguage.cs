@@ -85,6 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                    projectId,
                    project,
                    GetFilePathFromHierarchyAndItemId(hierarchy, itemid),
+                   InternalLanguageNames.TypeScript,
                    languageServiceGuid,
                    vbHelperFormattingRule)
         {
@@ -113,6 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             ProjectId projectId,
             VisualStudioProject? project,
             string filePath,
+            string language,
             Guid languageServiceGuid,
             AbstractFormattingRule? vbHelperFormattingRule = null)
         {
@@ -140,10 +142,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             _bufferTagAggregator = bufferTagAggregatorFactory.CreateTagAggregator<ITag>(SubjectBuffer);
 
             DocumentId documentId;
-
-            if (this.Project != null)
+            if (project != null)
             {
-                documentId = this.Project.AddSourceTextContainer(
+                documentId = project.AddSourceTextContainer(
                     SubjectBuffer.AsTextContainer(), filePath,
                     sourceCodeKind: SourceCodeKind.Regular, folders: default,
                     documentServiceProvider: new ContainedDocument.DocumentServiceProvider(DataBuffer));
@@ -157,19 +158,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 Workspace.OnDocumentOpened(documentId, SubjectBuffer.AsTextContainer());
             }
 
-            this.ContainedDocument = new ContainedDocument(
+            ContainedDocument = new ContainedDocument(
                 componentModel.GetService<IThreadingContext>(),
                 documentId,
                 subjectBuffer: SubjectBuffer,
                 dataBuffer: DataBuffer,
                 bufferCoordinator,
-                this.Workspace,
-                project,
+                Workspace,
+                language,
                 componentModel,
                 vbHelperFormattingRule);
 
             // TODO: Can contained documents be linked or shared?
-            this.DataBuffer.Changed += OnDataBufferChanged;
+            DataBuffer.Changed += OnDataBufferChanged;
         }
 
         private void OnDisconnect()

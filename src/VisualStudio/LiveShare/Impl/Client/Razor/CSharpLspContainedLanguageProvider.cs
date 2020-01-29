@@ -6,6 +6,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -50,6 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
                 _razorProjectFactory.Workspace,
                 projectId,
                 project: null,
+                LanguageNames.CSharp,
                 filePath,
                 CSharpLspLanguageService.LanguageServiceGuid);
         }
