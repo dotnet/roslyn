@@ -8,11 +8,19 @@ using System.Text;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
     public class EndToEndTests : EmitMetadataTestBase
     {
+        private ITestOutputHelper _output;
+
+        public EndToEndTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         /// <summary>
         /// These tests are very sensitive to stack size hence we use a fresh thread to ensure there 
         /// is a consistent stack size for them to execute in. 
@@ -234,6 +242,8 @@ public class Test
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 780,
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
+
+            //_output.WriteLine($"nestingLevel: {nestingLevel}");
 
             RunTest(nestingLevel, runTest);
 

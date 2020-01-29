@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -2450,7 +2451,7 @@ parse_member_name:;
 
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
-                blockBody = this.ParseBlock(attributes: default, isMethodBody: true);
+                blockBody = this.ParseBlock(new ParseBlockArgs(attributes: default, isMethodBody: true));
             }
 
             if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
@@ -3286,7 +3287,7 @@ parse_member_name:;
                     {
                         if (!IsTerminator())
                         {
-                            blockBody = this.ParseBlock(attributes: default, isMethodBody: true, isAccessorBody: true);
+                            blockBody = this.ParseBlock(new ParseBlockArgs(attributes: default, isMethodBody: true, isAccessorBody: true));
                         }
                         else
                         {
@@ -6280,6 +6281,7 @@ done:;
         }
 
         /// <returns><c>null</c> when a statement cannot be parsed at this location.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private StatementSyntax TryParseStatementCore()
         {
             var resetPointBeforeStatement = this.GetResetPoint();
@@ -6472,7 +6474,7 @@ done:;
                 case SyntaxKind.WhileKeyword:
                     return this.ParseWhileStatement(attributes);
                 case SyntaxKind.OpenBraceToken:
-                    return this.ParseBlock(attributes);
+                    return this.ParseBlock(new ParseBlockArgs(attributes));
                 case SyntaxKind.SemicolonToken:
                     return _syntaxFactory.EmptyStatement(attributes, this.EatToken());
                 case SyntaxKind.IdentifierToken:
@@ -6973,26 +6975,56 @@ done:;
         }
 
         private BlockSyntax ParsePossiblyAttributedBlock(bool isMethodBody = false, bool isAccessorBody = false)
-            => ParseBlock(this.ParseAttributeDeclarations(), isMethodBody, isAccessorBody);
+            => ParseBlock(new ParseBlockArgs(this.ParseAttributeDeclarations(), isMethodBody, isAccessorBody));
+
+        private class ParseBlockArgs
+        {
+            internal readonly SyntaxList<AttributeListSyntax> attributes;
+            private readonly Flags flags;
+
+            public ParseBlockArgs(SyntaxList<AttributeListSyntax> attributes, bool isMethodBody = false, bool isAccessorBody = false)
+            {
+                this.attributes = attributes;
+                if (isMethodBody)
+                {
+                    this.flags |= Flags.IsMethodBody;
+                }
+                if (isAccessorBody)
+                {
+                    this.flags |= Flags.IsAccessorBody;
+                }
+            }
+
+            internal bool isMethodBody => (flags & Flags.IsMethodBody) != 0;
+            internal bool isAccessorBody => (flags & Flags.IsAccessorBody) != 0;
+
+            // TODO: we need the measure the actual difference if any from this.
+            // it could be that struct padding makes this moot for just 2 flags.
+            private enum Flags : byte
+            {
+                IsMethodBody = 1 << 0,
+                IsAccessorBody = 1 << 1
+            }
+        }
 
         // If "isMethodBody" is true, then this is the immediate body of a method/accessor.
         // In this case, we create a many-child list if the body is not a small single statement.
         // This then allows a "with many weak children" red node when the red node is created.
         // If "isAccessorBody" is true, then we produce a special diagnostic if the open brace is
         // missing.  Also, "isMethodBody" must be true.
-        private BlockSyntax ParseBlock(SyntaxList<AttributeListSyntax> attributes, bool isMethodBody = false, bool isAccessorBody = false)
+        private BlockSyntax ParseBlock(ParseBlockArgs args)
         {
             // Check again for incremental re-use, since ParseBlock is called from a bunch of places
             // other than ParseStatementCore()
             if (this.IsIncrementalAndFactoryContextMatches &&
                 this.CurrentNodeKind == SyntaxKind.Block &&
-                attributes.Count == 0)
+                args.attributes.Count == 0)
             {
                 return (BlockSyntax)this.EatNode();
             }
 
             // There's a special error code for a missing token after an accessor keyword
-            var openBrace = isAccessorBody && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken
+            var openBrace = args.isAccessorBody && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken
                 ? this.AddError(
                     SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
                     IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
@@ -7003,13 +7035,11 @@ done:;
             var statements = _pool.Allocate<StatementSyntax>();
             try
             {
-                CSharpSyntaxNode tmp = openBrace;
-                this.ParseStatements(ref tmp, statements, stopOnSwitchSections: false);
-                openBrace = (SyntaxToken)tmp;
+                openBrace = (SyntaxToken)this.ParseStatements(new ParseStatementsArgs((CSharpSyntaxNode)openBrace, statements, stopOnSwitchSections: false));
                 var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
 
                 SyntaxList<StatementSyntax> statementList;
-                if (isMethodBody && IsLargeEnoughNonEmptyStatementList(statements))
+                if (args.isMethodBody && IsLargeEnoughNonEmptyStatementList(statements))
                 {
                     // Force creation a many-children list, even if only 1, 2, or 3 elements in the statement list.
                     statementList = new SyntaxList<StatementSyntax>(SyntaxList.List(((SyntaxListBuilder)statements).ToArray()));
@@ -7019,7 +7049,7 @@ done:;
                     statementList = statements;
                 }
 
-                return _syntaxFactory.Block(attributes, openBrace, statementList, closeBrace);
+                return _syntaxFactory.Block(args.attributes, openBrace, statementList, closeBrace);
             }
             finally
             {
@@ -7049,11 +7079,25 @@ done:;
             }
         }
 
-        private void ParseStatements(ref CSharpSyntaxNode previousNode, SyntaxListBuilder<StatementSyntax> statements, bool stopOnSwitchSections)
+        private class ParseStatementsArgs
+        {
+            internal CSharpSyntaxNode previousNode;
+            internal SyntaxListBuilder<StatementSyntax> statements;
+            internal bool stopOnSwitchSections;
+
+            public ParseStatementsArgs(CSharpSyntaxNode previousNode, SyntaxListBuilder<StatementSyntax> statements, bool stopOnSwitchSections)
+            {
+                this.previousNode = previousNode;
+                this.statements = statements;
+                this.stopOnSwitchSections = stopOnSwitchSections;
+            }
+        }
+
+        private CSharpSyntaxNode ParseStatements(ParseStatementsArgs args)
         {
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
-            if (stopOnSwitchSections)
+            if (args.stopOnSwitchSections)
             {
                 _termState |= TerminatorState.IsSwitchSectionStart;
             }
@@ -7061,7 +7105,7 @@ done:;
             int lastTokenPosition = -1;
             while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken
                 && this.CurrentToken.Kind != SyntaxKind.EndOfFileToken
-                && !(stopOnSwitchSections && this.IsPossibleSwitchSection())
+                && !(args.stopOnSwitchSections && this.IsPossibleSwitchSection())
                 && IsMakingProgress(ref lastTokenPosition))
             {
                 if (this.IsPossibleStatement(acceptAccessibilityMods: true))
@@ -7069,16 +7113,16 @@ done:;
                     var statement = this.TryParseStatementCore();
                     if (statement != null)
                     {
-                        statements.Add(statement);
+                        args.statements.Add(statement);
                         continue;
                     }
                 }
 
                 GreenNode trailingTrivia;
-                var action = this.SkipBadStatementListTokens(statements, SyntaxKind.CloseBraceToken, out trailingTrivia);
+                var action = this.SkipBadStatementListTokens(args.statements, SyntaxKind.CloseBraceToken, out trailingTrivia);
                 if (trailingTrivia != null)
                 {
-                    previousNode = AddTrailingSkippedSyntax(previousNode, trailingTrivia);
+                    args.previousNode = AddTrailingSkippedSyntax(args.previousNode, trailingTrivia);
                 }
 
                 if (action == PostSkipAction.Abort)
@@ -7088,6 +7132,7 @@ done:;
             }
 
             _termState = saveTerm;
+            return args.previousNode;
         }
 
         private bool IsPossibleStatementStartOrStop()
@@ -7188,6 +7233,7 @@ done:;
                 || this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private StatementSyntax ParseEmbeddedStatement()
         {
             // The consumers of embedded statements are expecting to receive a non-null statement 
@@ -7936,9 +7982,7 @@ tryAgain:
                 while (IsPossibleSwitchSection());
 
                 // Next, parse statement list stopping for new sections
-                CSharpSyntaxNode tmp = labels[labels.Count - 1];
-                this.ParseStatements(ref tmp, statements, true);
-                labels[labels.Count - 1] = (SwitchLabelSyntax)tmp;
+                labels[labels.Count - 1] = (SwitchLabelSyntax)this.ParseStatements(new ParseStatementsArgs((CSharpSyntaxNode)labels[labels.Count - 1], statements, true));
 
                 return _syntaxFactory.SwitchSection(labels, statements);
             }
@@ -10914,7 +10958,7 @@ tryAgain:
                     expressionBody: null);
             }
 
-            var body = this.ParseBlock(attributes: default);
+            var body = this.ParseBlock(new ParseBlockArgs(attributes: default));
             IsInAsync = parentScopeIsInAsync;
             return _syntaxFactory.AnonymousMethodExpression(
                 asyncToken, @delegate, parameterList, body, expressionBody: null);
@@ -10968,7 +11012,7 @@ tryAgain:
 
         private (BlockSyntax, ExpressionSyntax) ParseLambdaBody()
             => CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                ? (ParseBlock(attributes: default), default(ExpressionSyntax))
+                ? (ParseBlock(new ParseBlockArgs(attributes: default)), default(ExpressionSyntax))
                 : (default(BlockSyntax), ParsePossibleRefExpression());
 
         private ParameterListSyntax ParseLambdaParameterList()
