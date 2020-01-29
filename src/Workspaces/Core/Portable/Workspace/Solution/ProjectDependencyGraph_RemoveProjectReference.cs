@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
             var projectIds = _projectIds;
 
             // Incrementally update the graph
-            var referencesMap = _referencesMap.SetItem(projectId, _referencesMap[projectId].Remove(referencedProjectId));
+            var referencesMap = ComputeNewReferencesMapForRemovedProjectReference(_referencesMap, projectId, referencedProjectId);
             var reverseReferencesMap = ComputeNewReverseReferencesMapForRemovedProjectReference(_lazyReverseReferencesMap, projectId, referencedProjectId);
             var transitiveReferencesMap = ComputeNewTransitiveReferencesMapForRemovedProjectReference(_transitiveReferencesMap, projectId, referencedProjectId);
             var reverseTransitiveReferencesMap = ComputeNewReverseTransitiveReferencesMapForRemovedProjectReference(_reverseTransitiveReferencesMap, projectId, referencedProjectId);
@@ -33,6 +33,17 @@ namespace Microsoft.CodeAnalysis
                 reverseTransitiveReferencesMap,
                 topologicallySortedProjects: default,
                 dependencySets: default);
+        }
+
+        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReferencesMapForRemovedProjectReference(
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingForwardReferencesMap,
+            ProjectId projectId,
+            ProjectId referencedProjectId)
+        {
+            var references = existingForwardReferencesMap[projectId].Remove(referencedProjectId);
+            return references.IsEmpty
+                ? existingForwardReferencesMap.Remove(projectId)
+                : existingForwardReferencesMap.SetItem(projectId, references);
         }
 
         /// <summary>
@@ -52,8 +63,10 @@ namespace Microsoft.CodeAnalysis
             if (existingReverseReferencesMap is null)
                 return null;
 
-            var referencingProjects = existingReverseReferencesMap[referencedProjectId];
-            return existingReverseReferencesMap.SetItem(referencedProjectId, referencingProjects.Remove(projectId));
+            var referencingProjects = existingReverseReferencesMap[referencedProjectId].Remove(projectId);
+            return referencingProjects.IsEmpty
+                ? existingReverseReferencesMap.Remove(referencedProjectId)
+                : existingReverseReferencesMap.SetItem(referencedProjectId, referencingProjects);
         }
 
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewTransitiveReferencesMapForRemovedProjectReference(

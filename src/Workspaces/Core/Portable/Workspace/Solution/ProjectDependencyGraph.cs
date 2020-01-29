@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
@@ -17,13 +18,34 @@ namespace Microsoft.CodeAnalysis
     public partial class ProjectDependencyGraph
     {
         private readonly ImmutableHashSet<ProjectId> _projectIds;
+
+        /// <summary>
+        /// The map of projects to dependencies. This field is always fully initialized. Projects which do not reference
+        /// any other projects do not have a key in this map (i.e. they are omitted, as opposed to including them with
+        /// an empty value).
+        ///
+        /// <list type="bullet">
+        /// <item><description>This field is always fully initialized</description></item>
+        /// <item><description>Projects which do not reference any other projects do not have a key in this map (i.e.
+        /// they are omitted, as opposed to including them with an empty value)</description></item>
+        /// <item><description>The keys in this map always contained in <see cref="_projectIds"/></description></item>
+        /// <item><description>The values in this map <em>might not</em> be contained in <see cref="_projectIds"/> (i.e.
+        /// projects are allowed to have references to projects which are not part of the solution)</description></item>
+        /// </list>
+        /// </summary>
         private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _referencesMap;
 
         // guards lazy computed data
         private readonly NonReentrantLock _dataLock = new NonReentrantLock();
 
-        // These are computed fully on demand. null or ImmutableArray.IsDefault indicates the item needs to be realized
+        /// <summary>
+        /// The lazily-initialized map of projects to projects which reference them. This field is either null, or
+        /// fully-computed. Projects which are not referenced by any other project do not have a key in this map (i.e.
+        /// they are omitted, as opposed to including them with an empty value).
+        /// </summary>
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? _lazyReverseReferencesMap;
+
+        // These are computed fully on demand. ImmutableArray.IsDefault indicates the item needs to be realized
         private ImmutableArray<ProjectId> _lazyTopologicallySortedProjects;
 
         // This is not typed ImmutableArray<ImmutableArray<...>> because GetDependencySets() wants to return
@@ -78,6 +100,9 @@ namespace Microsoft.CodeAnalysis
             _reverseTransitiveReferencesMap = reverseTransitiveReferencesMap;
             _lazyTopologicallySortedProjects = topologicallySortedProjects;
             _lazyDependencySets = dependencySets;
+
+            ValidateForwardReferences(_projectIds, _referencesMap);
+            ValidateReverseReferences(_projectIds, _referencesMap, _lazyReverseReferencesMap);
         }
 
         internal ProjectDependencyGraph WithProjectReferences(ProjectId projectId, IEnumerable<ProjectId> referencedProjectIds)
@@ -86,7 +111,11 @@ namespace Microsoft.CodeAnalysis
 
             // This method we can't optimize very well: changing project references arbitrarily could invalidate pretty much anything. The only thing we can reuse is our
             // actual map of project references for all the other projects, so we'll do that
-            return new ProjectDependencyGraph(_projectIds, _referencesMap.SetItem(projectId, referencedProjectIds.ToImmutableHashSet()));
+            var referencedProjects = referencedProjectIds.ToImmutableHashSet();
+            var referencesMap = referencedProjects.IsEmpty
+                ? _referencesMap.Remove(projectId)
+                : _referencesMap.SetItem(projectId, referencedProjects);
+            return new ProjectDependencyGraph(_projectIds, referencesMap);
         }
 
         /// <summary>
@@ -138,6 +167,7 @@ namespace Microsoft.CodeAnalysis
             if (_lazyReverseReferencesMap == null)
             {
                 _lazyReverseReferencesMap = this.ComputeReverseReferencesMap();
+                ValidateReverseReferences(_projectIds, _referencesMap, _lazyReverseReferencesMap);
             }
 
             if (_lazyReverseReferencesMap.TryGetValue(projectId, out var reverseReferences))
@@ -409,6 +439,55 @@ namespace Microsoft.CodeAnalysis
                 foreach (var other in otherProjects)
                 {
                     ComputedDependencySet(other, result);
+                }
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private static void ValidateForwardReferences(
+            ImmutableHashSet<ProjectId> projectIds,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> referencesMap)
+        {
+            RoslynDebug.Assert(referencesMap is object);
+
+            Debug.Assert(projectIds.Count >= referencesMap.Count);
+            Debug.Assert(referencesMap.Keys.All(projectIds.Contains));
+
+            foreach (var (_, referencedProjects) in referencesMap)
+            {
+                Debug.Assert(!referencedProjects.IsEmpty, "Unexpected empty value in the forward references map.");
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private static void ValidateReverseReferences(
+            ImmutableHashSet<ProjectId> projectIds,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> referencesMap,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? reverseReferencesMap)
+        {
+            if (reverseReferencesMap is null)
+                return;
+
+            Debug.Assert(projectIds.Count >= reverseReferencesMap.Count);
+
+            // The reverse references map is allowed to contain keys that are not present in 'projectIds'
+
+            foreach (var (project, referencedProjects) in referencesMap)
+            {
+                foreach (var referencedProject in referencedProjects)
+                {
+                    Debug.Assert(reverseReferencesMap.ContainsKey(referencedProject));
+                    Debug.Assert(reverseReferencesMap[referencedProject].Contains(project));
+                }
+            }
+
+            foreach (var (project, referencingProjects) in reverseReferencesMap)
+            {
+                Debug.Assert(!referencingProjects.IsEmpty, "Unexpected empty value in the reverse references map.");
+                foreach (var referencingProject in referencingProjects)
+                {
+                    Debug.Assert(referencesMap.ContainsKey(referencingProject));
+                    Debug.Assert(referencesMap[referencingProject].Contains(project));
                 }
             }
         }
