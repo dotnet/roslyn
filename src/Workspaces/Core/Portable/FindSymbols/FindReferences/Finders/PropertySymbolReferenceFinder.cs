@@ -159,16 +159,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var (matched, reason) = symbolsMatch(node, semanticModel);
                 if (matched)
                 {
-                    syntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out var argumentList);
-
-                    if (expression != null && symbolsMatch(expression, semanticModel).matched)
+                    SyntaxNode indexerReference;
+                    if (syntaxFacts.IsElementAccessExpression(node))
                     {
-                        // Element access with explicit member name (allowed in VB).
-                        // We have already added a reference location for the member name identifier, so skip this one.
-                        continue;
+                        // For an ElementAccessExpression the indexer we are looking for is the argumentList component.
+                        syntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out indexerReference);
+
+                        if (expression != null && symbolsMatch(expression, semanticModel).matched)
+                        {
+                            // Element access with explicit member name (allowed in VB).
+                            // We have already added a reference location for the member name identifier, so skip this one.
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        // For a ConditionalAccessExpression or an IndexerMemberCRef the matched node is the indexer we are looking for.
+                        indexerReference = node;
                     }
 
-                    var location = argumentList.SyntaxTree.GetLocation(new TextSpan(argumentList.SpanStart, 0));
+                    var location = indexerReference.SyntaxTree.GetLocation(new TextSpan(indexerReference.SpanStart, 0));
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(
                         node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts), candidateReason: reason)));
