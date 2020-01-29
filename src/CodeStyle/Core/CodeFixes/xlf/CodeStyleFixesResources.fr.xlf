@@ -2,10 +2,40 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../CodeStyleFixesResources.resx">
     <body>
-      <trans-unit id="EmptyResource">
-        <source>Remove this value when another is added.</source>
-        <target state="translated">Supprimer cette valeur quand une autre est ajoutée.</target>
-        <note>https://github.com/Microsoft/msbuild/issues/1661</note>
+      <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
+        <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
+        <target state="new">Compilation is required to accomplish the task but is not supported by project {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0">
+        <source>Fix all '{0}'</source>
+        <target state="new">Fix all '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_1">
+        <source>Fix all '{0}' in '{1}'</source>
+        <target state="new">Fix all '{0}' in '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_Solution">
+        <source>Fix all '{0}' in Solution</source>
+        <target state="new">Fix all '{0}' in Solution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_member">
+        <source>Remove unused member</source>
+        <target state="new">Remove unused member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Supplied_diagnostic_cannot_be_null">
+        <source>Supplied diagnostic cannot be null.</source>
+        <target state="new">Supplied diagnostic cannot be null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0">
+        <source>Syntax tree is required to accomplish the task but is not supported by document {0}.</source>
+        <target state="new">Syntax tree is required to accomplish the task but is not supported by document {0}.</target>
+        <note />
       </trans-unit>
     </body>
   </file>

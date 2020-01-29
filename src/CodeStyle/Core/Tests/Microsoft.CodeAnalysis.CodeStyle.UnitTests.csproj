@@ -4,14 +4,28 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
+    <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\EditorFeatures\Test\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs" Link="TestFramework\AbstractCodeActionOrUserDiagnosticTest.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Test\Diagnostics\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" Link="TestFramework\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Test\Diagnostics\AbstractUserDiagnosticTest.cs" Link="TestFramework\AbstractUserDiagnosticTest.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Test\Diagnostics\AbstractUserDiagnosticTest.FixAllDiagnosticProvider.cs" Link="TestFramework\AbstractUserDiagnosticTest.FixAllDiagnosticProvider.cs" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
     <ProjectReference Include="..\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes" />
+  <ItemGroup Label="Project References">
+    <!-- TODO: Remove the below project references to workspaces and test utility projects once all analyzer/code fix tests are switched to Microsoft.CodeAnalysis.Testing -->
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj"  Aliases="global,Workspaces"/>
+    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
+  </ItemGroup>
+  <Import Project="..\..\..\Analyzers\Core\Tests\Analyzers.UnitTests.projitems" Label="Shared" />
 </Project>

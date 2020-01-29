@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             bool outOfProcess)
         {
             await TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, priority,
-                parameters: new TestParameters(options: options, fixProviderData: outOfProcess));
+                initialMarkup, expectedMarkup, index,
+                parameters: new TestParameters(options: options, fixProviderData: outOfProcess, priority: priority));
         }
     }
 

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Analyzers.UnitTests</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.CodeAnalysis.Editor.Shared.Extensions" />
+    <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
+    <Import Include="Microsoft.CodeAnalysis.Test.Utilities" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.UnitTests" />
+    <Import Include="Roslyn.Test.Utilities" />
+    <Import Include="System.Threading.Tasks" />
+    <Import Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\RemoveUnusedMembersTests.vb" />
+  </ItemGroup>
+</Project>

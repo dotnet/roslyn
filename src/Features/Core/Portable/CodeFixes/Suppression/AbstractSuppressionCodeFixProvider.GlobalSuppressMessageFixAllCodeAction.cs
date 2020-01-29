@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = await suppressionsDoc.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
-
+                var generator = suppressionsDoc.GetRequiredLanguageService<SyntaxGenerator>();
                 foreach (var kvp in _diagnosticsBySymbol)
                 {
                     var targetSymbol = kvp.Key;
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         Contract.ThrowIfFalse(!diagnostic.IsSuppressed);
                         suppressionsRoot = Fixer.AddGlobalSuppressMessageAttribute(
                             suppressionsRoot, targetSymbol, _suppressMessageAttribute, diagnostic,
-                            workspace, compilation, addImportsService, cancellationToken);
+                            workspace, compilation, addImportsService, generator, cancellationToken);
                     }
                 }
 

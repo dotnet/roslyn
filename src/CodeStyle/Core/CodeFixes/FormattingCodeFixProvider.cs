@@ -17,7 +17,7 @@ using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     extern alias CodeStyle;
-    using Formatter = CodeStyle::Microsoft.CodeAnalysis.Formatting.Formatter;
+    using Formatter = CodeStyle::Microsoft.CodeAnalysis.CodeStyle.Formatting.Formatter;
     using ISyntaxFormattingService = ISyntaxFormattingService;
 
     internal abstract class AbstractFormattingCodeFixProvider : CodeFixProvider
@@ -77,14 +77,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 _formattingCodeFixProvider = formattingCodeFixProvider;
             }
 
-            protected override string CodeActionTitle => CodeStyleResources.Fix_formatting;
+            protected override string GetCodeActionTitle(FixAllContext fixAllContext) => CodeStyleResources.Fix_formatting;
 
-            protected override async Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+            protected override async Task<Document> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {
                 var options = await _formattingCodeFixProvider.GetOptionsAsync(document, fixAllContext.CancellationToken).ConfigureAwait(false);
                 var syntaxRoot = await document.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
                 var updatedSyntaxRoot = Formatter.Format(syntaxRoot, _formattingCodeFixProvider.SyntaxFormattingService, options, fixAllContext.CancellationToken);
-                return updatedSyntaxRoot;
+                return document.WithSyntaxRoot(updatedSyntaxRoot);
             }
         }
     }

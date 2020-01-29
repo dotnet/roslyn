@@ -22,14 +22,14 @@
 
   <Target Name="_GetFilesToPackage">
     <ItemGroup>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.resources.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.resources.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.dll" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.resources.dll" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.resources.dll" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll" />
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
@@ -63,4 +63,6 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\CSharp\CSharpWorkspaceExtensions.projitems" Label="Shared" />
+  <Import Project="..\..\..\Analyzers\CSharp\CodeFixes\CSharpCodeFixes.projitems" Label="Shared" />
 </Project>

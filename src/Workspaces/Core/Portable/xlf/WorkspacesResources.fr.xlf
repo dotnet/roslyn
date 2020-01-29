@@ -67,6 +67,21 @@
         <target state="translated">Préférences de champ</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_all_0">
+        <source>Fix all '{0}'</source>
+        <target state="new">Fix all '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_1">
+        <source>Fix all '{0}' in '{1}'</source>
+        <target state="new">Fix all '{0}' in '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_Solution">
+        <source>Fix all '{0}' in Solution</source>
+        <target state="new">Fix all '{0}' in Solution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">Indentation et espacement</target>
@@ -1257,6 +1272,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">La suppression de documents de configuration de l'analyseur n'est pas prise en charge.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Supplied_diagnostic_cannot_be_null">
+        <source>Supplied diagnostic cannot be null.</source>
+        <target state="new">Supplied diagnostic cannot be null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
         <source>Symbol "{0}" is not from source.</source>
         <target state="translated">Le symbole "{0}" ne provient pas de la source.</target>
@@ -1637,21 +1657,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Ajouté :</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_0">
-        <source>Fix all '{0}'</source>
-        <target state="translated">Corriger tous les '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_1">
-        <source>Fix all '{0}' in '{1}'</source>
-        <target state="translated">Pour toutes les '{0}' dans '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_Solution">
-        <source>Fix all '{0}' in Solution</source>
-        <target state="translated">Corriger tous les '{0}' dans la solution</target>
-        <note />
-      </trans-unit>
       <trans-unit id="After_colon">
         <source>After:</source>
         <target state="translated">Après :</target>
@@ -1740,11 +1745,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
         <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
         <target state="translated">Le service de type '{0}' est nécessaire pour accomplir la tâche mais n'est pas disponible dans l'espace de travail.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Supplied_diagnostic_cannot_be_null">
-        <source>Supplied diagnostic cannot be null.</source>
-        <target state="translated">Le diagnostic fourni ne peut pas être null.</target>
         <note />
       </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">

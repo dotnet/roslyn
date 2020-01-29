@@ -12,6 +12,31 @@
         <target state="translated">必須指定此選項的語言名稱。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Absolute_path_expected">
+        <source>Absolute path expected.</source>
+        <target state="new">Absolute path expected.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
+        <source>An element with the same key but a different value already exists.</source>
+        <target state="new">An element with the same key but a different value already exists.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
+        <source>Arrays with more than one dimension cannot be serialized.</source>
+        <target state="new">Arrays with more than one dimension cannot be serialized.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_serialize_type_0">
+        <source>Cannot serialize type '{0}'.</source>
+        <target state="new">Cannot serialize type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
+        <source>Deserialization reader for '{0}' read incorrect number of values.</source>
+        <target state="new">Deserialization reader for '{0}' read incorrect number of values.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
         <target state="translated">錯誤</target>
@@ -37,14 +62,59 @@
         <target state="translated">無</target>
         <note />
       </trans-unit>
+      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
+        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
+        <target state="new">Private member '{0}' can be removed as the value assigned to it is never read.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_is_unused">
+        <source>Private member '{0}' is unused.</source>
+        <target state="new">Private member '{0}' is unused.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
+        <source>Private method '{0}' can be removed as it is never invoked.</source>
+        <target state="new">Private method '{0}' can be removed as it is never invoked.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
+        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
+        <target state="new">Private property '{0}' can be converted to a method as its get accessor is never invoked.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">僅重構</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unread_private_members">
+        <source>Remove unread private members</source>
+        <target state="new">Remove unread private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_private_members">
+        <source>Remove unused private members</source>
+        <target state="new">Remove unused private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stream_is_too_long">
+        <source>Stream is too long.</source>
+        <target state="new">Stream is too long.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">建議</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
+        <source>The type '{0}' is not understood by the serialization binder.</source>
+        <target state="new">The type '{0}' is not understood by the serialization binder.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
+        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
+        <target state="new">Value too large to be represented as a 30 bit unsigned integer.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning">

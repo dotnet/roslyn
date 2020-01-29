@@ -1,0 +1,2 @@
+P:Microsoft.CodeAnalysis.Project.LanguageServices; Use 'GetExtendedLanguageServices' instead
+M:Microsoft.CodeAnalysis.Host.HostWorkspaceServices.GetLanguageServices(System.String); Use 'GetExtendedLanguageServices' or directly get the language service by invoking 'GetLanguageService' or 'GetRequiredLanguageService'

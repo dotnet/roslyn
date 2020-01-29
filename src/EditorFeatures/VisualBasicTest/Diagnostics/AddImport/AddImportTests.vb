@@ -32,10 +32,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                                                   placeSystemFirst As Boolean,
                                                   outOfProcess As Boolean) As Task
             Await TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, priority,
+                initialMarkup, expectedMarkup, index,
                 parameters:=New TestParameters(
                     options:=[Option](GenerationOptions.PlaceSystemNamespaceFirst, placeSystemFirst),
-                    fixProviderData:=outOfProcess))
+                    fixProviderData:=outOfProcess,
+                    priority:=priority))
         End Function
     End Class
 

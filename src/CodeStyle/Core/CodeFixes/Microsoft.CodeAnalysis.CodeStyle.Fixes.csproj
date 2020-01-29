@@ -8,7 +8,6 @@
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Features\Core\Portable\CodeFixes\PredefinedCodeFixProviderNames.cs" Link="PredefinedCodeFixProviderNames.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\IProgressTracker.cs" Link="IProgressTracker.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -42,4 +41,6 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\WorkspaceExtensions.projitems" Label="Shared" />
+  <Import Project="..\..\..\Analyzers\Core\CodeFixes\CodeFixes.projitems" Label="Shared" />
 </Project>

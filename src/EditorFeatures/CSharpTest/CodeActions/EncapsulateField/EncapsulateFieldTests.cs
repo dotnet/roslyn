@@ -1387,7 +1387,7 @@ class C
 }", options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestTuple()
         {
             var text = @"
@@ -1430,7 +1430,7 @@ class C
                 text, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNames()
         {
             var text = @"

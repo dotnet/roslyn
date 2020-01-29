@@ -77,10 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             return Task.CompletedTask;
         }
 
-        protected override bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, FixAllContext fixAllContext)
         {
-            var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-            return state.CodeActionEquivalenceKey == GetEquivalenceKey(node);
+            var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, fixAllContext.CancellationToken);
+            return fixAllContext.CodeActionEquivalenceKey == GetEquivalenceKey(node);
         }
 
         private static void MakeDeclarationNullable(SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled)

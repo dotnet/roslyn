@@ -112,8 +112,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
             Private ReadOnly _node As T
 
             Sub New(syntaxTree As SyntaxTree, node As T)
+#If Not CODE_STYLE Then
                 Contract.ThrowIfNull(syntaxTree)
                 Contract.ThrowIfNull(node)
+#End If
                 _tree = syntaxTree
                 _node = node
             End Sub

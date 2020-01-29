@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
@@ -137,6 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
                 workspace As Workspace,
                 compilation As Compilation,
                 addImportsService As IAddImportsService,
+                generator As SyntaxGenerator,
                 cancellationToken As CancellationToken) As SyntaxNode
             Dim compilationRoot = DirectCast(newRoot, CompilationUnitSyntax)
             Dim isFirst = Not compilationRoot.Attributes.Any()

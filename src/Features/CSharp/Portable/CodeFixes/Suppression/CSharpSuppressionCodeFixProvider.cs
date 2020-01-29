@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -97,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             Workspace workspace,
             Compilation compilation,
             IAddImportsService addImportsService,
+            SyntaxGenerator generator,
             CancellationToken cancellationToken)
         {
             var compilationRoot = (CompilationUnitSyntax)newRoot;

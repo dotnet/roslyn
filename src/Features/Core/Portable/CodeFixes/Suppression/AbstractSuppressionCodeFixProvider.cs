@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -55,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             Workspace workspace,
             Compilation compilation,
             IAddImportsService addImportsService,
+            SyntaxGenerator generator,
             CancellationToken cancellationToken);
 
         protected abstract SyntaxNode AddLocalSuppressMessageAttribute(

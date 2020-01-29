@@ -931,7 +931,7 @@ parseOptions: Options.Regular, index: CodeActionIndex);
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestTupleDeclarationWithNames()
         {
             await TestInRegularAndScriptAsync(
@@ -958,7 +958,7 @@ parseOptions: Options.Regular, index: CodeActionIndex);
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestTupleDeclarationWithSomeNames()
         {
             await TestInRegularAndScriptAsync(
@@ -985,7 +985,7 @@ parseOptions: Options.Regular, index: CodeActionIndex);
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestTupleWith1Arity()
         {
             await TestInRegularAndScriptAsync(
@@ -1014,7 +1014,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestTupleLiteralWithNames()
         {
             await TestInRegularAndScriptAsync(
@@ -1041,7 +1041,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestTupleDeclarationAndLiteralWithNames()
         {
             await TestInRegularAndScriptAsync(
@@ -1068,7 +1068,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestTupleIntoVar()
         {
             await TestInRegularAndScriptAsync(
@@ -1095,7 +1095,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), CompilerTrait(CompilerFeature.Tuples)]
         public async Task RefactorWithoutSystemValueTuple()
         {
             await TestInRegularAndScriptAsync(
@@ -1122,7 +1122,7 @@ class Program
 }", CodeActionIndex);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestTupleWithNestedNamedTuple()
         {
             // This is not the best refactoring, but this is an edge case
@@ -1150,7 +1150,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestDeconstruction()
         {
             await TestInRegularAndScriptAsync(
@@ -1177,7 +1177,7 @@ class Program
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs, CodeActionIndex);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestDeconstruction2()
         {
             await TestInRegularAndScriptAsync(
@@ -1207,7 +1207,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.OutVar)]
+        [CompilerTrait(CompilerFeature.OutVar)]
         public async Task TestOutVar()
         {
             await TestInRegularAndScriptAsync(
@@ -1238,7 +1238,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        [CompilerTrait(CompilerFeature.Patterns)]
         public async Task TestIsPattern()
         {
             await TestInRegularAndScriptAsync(
@@ -1269,7 +1269,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        [CompilerTrait(CompilerFeature.Patterns)]
         public async Task TestOutVarAndIsPattern()
         {
             await TestInRegularAndScriptAsync(
@@ -1300,7 +1300,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        [CompilerTrait(CompilerFeature.Patterns)]
         public async Task ConflictingOutVarLocals()
         {
             await TestInRegularAndScriptAsync(
@@ -1341,7 +1341,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Patterns)]
+        [CompilerTrait(CompilerFeature.Patterns)]
         public async Task ConflictingPatternLocals()
         {
             await TestInRegularAndScriptAsync(

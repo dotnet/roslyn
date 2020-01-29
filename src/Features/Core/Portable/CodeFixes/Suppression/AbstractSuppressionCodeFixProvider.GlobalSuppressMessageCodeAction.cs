@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -35,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = await suppressionsDoc.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
-
+                var generator = suppressionsDoc.GetRequiredLanguageService<SyntaxGenerator>();
                 suppressionsRoot = Fixer.AddGlobalSuppressMessageAttribute(
-                    suppressionsRoot, _targetSymbol, _suppressMessageAttribute, _diagnostic, workspace, compilation, addImportsService, cancellationToken);
+                    suppressionsRoot, _targetSymbol, _suppressMessageAttribute, _diagnostic, workspace, compilation, addImportsService, generator, cancellationToken);
                 return suppressionsDoc.WithSyntaxRoot(suppressionsRoot);
             }
 
