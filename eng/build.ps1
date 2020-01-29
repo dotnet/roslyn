@@ -607,6 +607,7 @@ try {
     }
 
     $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
+    InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
   }
 
   try
