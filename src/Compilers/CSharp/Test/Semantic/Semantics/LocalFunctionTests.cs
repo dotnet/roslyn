@@ -406,6 +406,39 @@ class C
         }
 
         [Fact]
+        public void LocalFunctionAttribute_SpeculativeSemanticModel()
+        {
+            var text = @"
+using System;
+
+class A : Attribute { }
+
+class C
+{
+    void M()
+    {
+        void local1() { }
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.RegularPreview);
+            var compilation = CreateCompilation(tree);
+            var model = compilation.GetSemanticModel(tree);
+
+            var newTree = SyntaxFactory.ParseSyntaxTree(text.Replace("void local1", "[A] void local1"), TestOptions.RegularPreview);
+            var localFunctionSyntax = newTree.GetRoot()
+                .DescendantNodes()
+                .OfType<LocalFunctionStatementSyntax>()
+                .Single();
+            var method = newTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(method.Body.SpanStart, method, out var speculativeModel));
+
+            var symbol = speculativeModel.GetDeclaredSymbol(localFunctionSyntax).GetSymbol<LocalFunctionSymbol>();
+            var attrs = symbol.GetAttributes();
+            Assert.Equal(new[] { "A" }, GetAttributeNames(attrs));
+        }
+
+        [Fact]
         public void LocalFunctionAttribute_OnFunction()
         {
             const string text = @"

@@ -264,11 +264,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bagCreatedOnThisThread = LoadAndValidateAttributes(
                     this.GetReturnTypeAttributeDeclarations(),
                     ref lazyCustomAttributesBag,
-                    symbolPart: AttributeLocation.Return);
+                    symbolPart: AttributeLocation.Return,
+                    binderOpt: (this as LocalFunctionSymbol)?.SignatureBinder);
             }
             else
             {
-                bagCreatedOnThisThread = LoadAndValidateAttributes(this.GetAttributeDeclarations(), ref lazyCustomAttributesBag);
+                bagCreatedOnThisThread = LoadAndValidateAttributes(
+                    this.GetAttributeDeclarations(),
+                    ref lazyCustomAttributesBag,
+                    binderOpt: (this as LocalFunctionSymbol)?.SignatureBinder);
             }
 
             if (bagCreatedOnThisThread)
