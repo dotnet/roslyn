@@ -30,9 +30,8 @@ namespace Microsoft.CodeAnalysis
         /// <item><description>This field is always fully initialized</description></item>
         /// <item><description>Projects which do not reference any other projects do not have a key in this map (i.e.
         /// they are omitted, as opposed to including them with an empty value)</description></item>
-        /// <item><description>The keys in this map always contained in <see cref="_projectIds"/></description></item>
-        /// <item><description>The values in this map <em>might not</em> be contained in <see cref="_projectIds"/> (i.e.
-        /// projects are allowed to have references to projects which are not part of the solution)</description></item>
+        /// <item><description>The keys and values in this map are always contained in
+        /// <see cref="_projectIds"/></description></item>
         /// </list>
         /// </summary>
         private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _referencesMap;
@@ -458,6 +457,10 @@ namespace Microsoft.CodeAnalysis
             foreach (var (_, referencedProjects) in referencesMap)
             {
                 Debug.Assert(!referencedProjects.IsEmpty, "Unexpected empty value in the forward references map.");
+                foreach (var referencedProject in referencedProjects)
+                {
+                    Debug.Assert(projectIds.Contains(referencedProject), "Unexpected reference to unknown project.");
+                }
             }
         }
 
@@ -471,8 +474,7 @@ namespace Microsoft.CodeAnalysis
                 return;
 
             Debug.Assert(projectIds.Count >= reverseReferencesMap.Count);
-
-            // The reverse references map is allowed to contain keys that are not present in 'projectIds'
+            Debug.Assert(reverseReferencesMap.Keys.All(projectIds.Contains));
 
             foreach (var (project, referencedProjects) in referencesMap)
             {
