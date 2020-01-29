@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
             // the project getting removed.
             var projectIds = _projectIds.Remove(projectId);
             var referencesMap = ComputeNewReferencesMapForRemovedProject(
-                referencesMap: _referencesMap,
+                existingForwardReferencesMap: _referencesMap,
                 existingReverseReferencesMap: _lazyReverseReferencesMap,
                 projectId);
 
@@ -42,40 +42,40 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Computes a new <see cref="_referencesMap"/> for the removal of a project.
         /// </summary>
-        /// <param name="referencesMap">The <see cref="_referencesMap"/> prior to the removal.</param>
+        /// <param name="existingForwardReferencesMap">The <see cref="_referencesMap"/> prior to the removal.</param>
         /// <param name="existingReverseReferencesMap">The <see cref="_lazyReverseReferencesMap"/> prior to the removal.
         /// This map serves as a hint to the removal process; i.e. it is assumed correct if it contains data, but may be
         /// omitted without impacting correctness.</param>
-        /// <param name="projectId">The ID of the project which is being removed.</param>
+        /// <param name="removedProjectId">The ID of the project which is being removed.</param>
         /// <returns>The <see cref="_referencesMap"/> for the project dependency graph once the project is removed.</returns>
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReferencesMapForRemovedProject(
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> referencesMap,
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingForwardReferencesMap,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
-            ProjectId projectId)
+            ProjectId removedProjectId)
         {
-            var builder = referencesMap.ToBuilder();
+            var builder = existingForwardReferencesMap.ToBuilder();
 
             if (existingReverseReferencesMap is object)
             {
                 // We know all the projects directly referencing 'projectId', so remove 'projectId' from the set of
                 // references in each of those cases directly.
-                foreach (var id in existingReverseReferencesMap[projectId])
+                foreach (var id in existingReverseReferencesMap[removedProjectId])
                 {
-                    builder[id] = builder[id].Remove(projectId);
+                    builder[id] = builder[id].Remove(removedProjectId);
                 }
             }
             else
             {
                 // We don't know which projects reference 'projectId', so iterate over all known projects and remove
                 // 'projectId' from the set of references if it exists.
-                foreach (var (id, references) in referencesMap)
+                foreach (var (id, references) in existingForwardReferencesMap)
                 {
-                    builder[id] = references.Remove(projectId);
+                    builder[id] = references.Remove(removedProjectId);
                 }
             }
 
             // Finally, remove 'projectId' itself.
-            builder.Remove(projectId);
+            builder.Remove(removedProjectId);
             return builder.ToImmutable();
         }
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForRemovedProject(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingForwardReferencesMap,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
-            ProjectId projectId)
+            ProjectId removedProjectId)
         {
             if (existingReverseReferencesMap is null)
             {
@@ -99,13 +99,13 @@ namespace Microsoft.CodeAnalysis
 
             // Iterate over each project referenced by 'projectId', which is now being removed. Update the reverse
             // references map for the project to no longer include 'projectId' in the list.
-            foreach (var referencedProjectId in existingForwardReferencesMap[projectId])
+            foreach (var referencedProjectId in existingForwardReferencesMap[removedProjectId])
             {
-                builder[referencedProjectId] = existingReverseReferencesMap[referencedProjectId].Remove(projectId);
+                builder[referencedProjectId] = existingReverseReferencesMap[referencedProjectId].Remove(removedProjectId);
             }
 
             // Finally, remove 'projectId' itself.
-            builder.Remove(projectId);
+            builder.Remove(removedProjectId);
             return builder.ToImmutable();
         }
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis
         /// <seealso cref="ComputeNewReverseTransitiveReferencesMapForRemovedProject"/>
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewTransitiveReferencesMapForRemovedProject(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingTransitiveReferencesMap,
-            ProjectId projectId)
+            ProjectId removedProjectId)
         {
             var builder = existingTransitiveReferencesMap.ToBuilder();
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis
             // existing transitive reference to 'projectId'.
             foreach (var (project, references) in existingTransitiveReferencesMap)
             {
-                if (references.Contains(projectId))
+                if (references.Contains(removedProjectId))
                 {
                     // The project transitively referenced 'projectId', so any transitive references brought in
                     // exclusively through this reference are no longer valid. Remove the project from the map and the
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Finally, remove 'projectId' itself.
-            builder.Remove(projectId);
+            builder.Remove(removedProjectId);
             return builder.ToImmutable();
         }
 
@@ -143,20 +143,20 @@ namespace Microsoft.CodeAnalysis
         /// <seealso cref="ComputeNewTransitiveReferencesMapForRemovedProject"/>
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseTransitiveReferencesMapForRemovedProject(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseTransitiveReferencesMap,
-            ProjectId projectId)
+            ProjectId removedProjectId)
         {
             var builder = existingReverseTransitiveReferencesMap.ToBuilder();
 
             foreach (var (project, references) in existingReverseTransitiveReferencesMap)
             {
-                if (references.Contains(projectId))
+                if (references.Contains(removedProjectId))
                 {
                     // Invalidate the cache for projects that reference the removed project
                     builder.Remove(project);
                 }
             }
 
-            builder.Remove(projectId);
+            builder.Remove(removedProjectId);
             return builder.ToImmutable();
         }
     }
