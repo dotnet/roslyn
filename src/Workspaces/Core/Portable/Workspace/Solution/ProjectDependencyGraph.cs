@@ -147,14 +147,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            if (_referencesMap.TryGetValue(projectId, out var projectIds))
-            {
-                return projectIds;
-            }
-            else
-            {
-                return ImmutableHashSet<ProjectId>.Empty;
-            }
+            return _referencesMap.GetValueOrDefault(projectId, ImmutableHashSet<ProjectId>.Empty);
         }
 
         /// <summary>
@@ -189,14 +182,7 @@ namespace Microsoft.CodeAnalysis
                 ValidateReverseReferences(_projectIds, _referencesMap, _lazyReverseReferencesMap);
             }
 
-            if (_lazyReverseReferencesMap.TryGetValue(projectId, out var reverseReferences))
-            {
-                return reverseReferences;
-            }
-            else
-            {
-                return ImmutableHashSet<ProjectId>.Empty;
-            }
+            return _lazyReverseReferencesMap.GetValueOrDefault(projectId, ImmutableHashSet<ProjectId>.Empty);
         }
 
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeReverseReferencesMap()
