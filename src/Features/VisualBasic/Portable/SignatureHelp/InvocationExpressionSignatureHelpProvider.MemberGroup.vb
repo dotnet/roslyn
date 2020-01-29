@@ -1,8 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.DocumentationComments
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -10,12 +9,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class InvocationExpressionSignatureHelpProvider
 
-        Private Function GetMemberGroupItems(document As Document,
-                                             invocationExpression As InvocationExpressionSyntax,
+        Private Function GetAccessibleMembers(invocationExpression As InvocationExpressionSyntax,
                                              semanticModel As SemanticModel,
                                              within As ISymbol,
                                              memberGroup As IEnumerable(Of ISymbol),
-                                             cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
+                                             cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol)
             Dim throughType As ITypeSymbol = Nothing
             Dim expression = TryCast(invocationExpression.Expression, MemberAccessExpressionSyntax).GetExpressionOfMemberAccessExpression()
 
@@ -32,8 +30,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 memberGroup = memberGroup.Where(Function(m) m.IsStatic)
             End If
 
-            Dim accessibleMembers = memberGroup.Where(Function(m) m.IsAccessibleWithin(within, throughType:=throughType)).ToList()
-            If accessibleMembers.Count = 0 Then
+            Return memberGroup.Where(Function(m) m.IsAccessibleWithin(within, throughType)).ToImmutableArray()
+        End Function
+
+        Private Function GetMemberGroupItems(accessibleMembers As ImmutableArray(Of ISymbol),
+                                             document As Document,
+                                             invocationExpression As InvocationExpressionSyntax,
+                                             semanticModel As SemanticModel,
+                                             cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
+            If accessibleMembers.Length = 0 Then
                 Return SpecializedCollections.EmptyEnumerable(Of SignatureHelpItem)()
             End If
 
