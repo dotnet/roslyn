@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var nameInfo = await NameDeclarationInfo.GetDeclarationInfo(document, position, cancellationToken).ConfigureAwait(false);
-                var baseNames = GetBaseNames(semanticModel, nameInfo);
+                var baseNames = GetBaseNames(document, semanticModel, nameInfo);
                 if (baseNames == default)
                 {
                     return;
@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel, NameDeclarationInfo nameInfo)
+        private ImmutableArray<ImmutableArray<string>> GetBaseNames(Document document, SemanticModel semanticModel, NameDeclarationInfo nameInfo)
         {
             if (nameInfo.Alias != null)
             {
-                return NameGenerator.GetBaseNames(nameInfo.Alias);
+                return NameGenerator.GetBaseNames(document, nameInfo.Alias);
             }
 
             if (!IsValidType(nameInfo.Type))
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: new HashSet<ITypeSymbol>());
 
-            var baseNames = NameGenerator.GetBaseNames(type, plural);
+            var baseNames = NameGenerator.GetBaseNames(document, type, plural);
             return baseNames;
         }
 
