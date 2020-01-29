@@ -82,6 +82,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Computes a new <see cref="_lazyReverseReferencesMap"/> for the removal of a project.
         /// </summary>
+        /// <param name="existingReverseReferencesMap">The <see cref="_lazyReverseReferencesMap"/> prior to the removal,
+        /// or <see langword="null"/> if the value prior to removal was not computed for the graph.</param>
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForRemovedProject(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingForwardReferencesMap,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,

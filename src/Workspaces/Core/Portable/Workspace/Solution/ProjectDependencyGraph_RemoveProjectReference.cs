@@ -34,6 +34,15 @@ namespace Microsoft.CodeAnalysis
                 dependencySets: default);
         }
 
+        /// <summary>
+        /// Computes a new <see cref="_lazyReverseReferencesMap"/> for the removal of a project reference.
+        /// </summary>
+        /// <param name="existingReverseReferencesMap">The <see cref="_lazyReverseReferencesMap"/> prior to the removal,
+        /// or <see langword="null"/> if the reverse references map was not computed for the prior graph.</param>
+        /// <param name="projectId">The project ID from which a project reference is being removed.</param>
+        /// <param name="referencedProjectId">The target of the project reference which is being removed.</param>
+        /// <returns>The updated (complete) reverse references map, or <see langword="null"/> if the reverse references
+        /// map could not be incrementally updated.</returns>
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForRemovedProjectReference(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
             ProjectId projectId,
@@ -55,6 +64,9 @@ namespace Microsoft.CodeAnalysis
             ProjectId projectId,
             ProjectId referencedProjectId)
         {
+            // Available, but currently unused
+            _ = referencedProjectId;
+
             var builder = existingTransitiveReferencesMap.ToBuilder();
 
             // Invalidate the transitive references from every project referencing the changed project (transitively)
@@ -91,7 +103,8 @@ namespace Microsoft.CodeAnalysis
                     // Suppose we start with the following graph, and are removing the project reference A->B:
                     //
                     //   A -> B -> C
-                    //   A -> D
+                    //     \
+                    //      > D
                     //
                     // This case is not hit for project C. The reverse transitive references for C contains B, which is
                     // the target project of the removed reference. We can see that project C is impacted by this
@@ -106,7 +119,7 @@ namespace Microsoft.CodeAnalysis
                     // are removing the project reference A->B:
                     //
                     //   A -> B -> D
-                    //   A -> D
+                    //     \_______^
                     //
                     // For this example, we do not hit this optimization because D contains project B in the set of
                     // reverse transitive references. Without more complicated checks, we cannot rule out the

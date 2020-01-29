@@ -494,7 +494,8 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             // We are going to create a solution with the references:
             //
             // A -> B -> C
-            // A -> D
+            //   \
+            //    > D
             //
             // and will then remove the project reference A->B. This test verifies that the new project dependency graph
             // did not lose previously-computed information about the transitive reverse references for D.
@@ -550,7 +551,8 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             // We are going to create a solution with the references:
             //
             // A -> B -> C
-            // A -> D
+            //   \
+            //    > D
             //
             // and will then remove the project reference A->B. This test verifies that the new project dependency graph
             // discards previously-computed information about the transitive reverse references for C.
@@ -579,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             // We are going to create a solution with the references:
             //
             // A -> B -> C -> D
-            // B -> C
+            //        \__^
             //
             // This solution has multiple references from B->C. We will remove one reference from B->C and verify that
             // the project dependency graph in the solution state did not change (reference equality).
