@@ -191,7 +191,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // Now that we have Doc Comments in place, We are searching for References in the Trivia as well by setting descendIntoTrivia: true
             var indexerMemberCrefs = syntaxRoot.DescendantNodes(descendIntoTrivia: true).Where(syntaxFacts.IsIndexerMemberCRef);
 
-            return elementAccessExpressions.Concat<SyntaxNode>(conditionalAccessExpressions).Concat(indexerMemberCrefs);
+            return elementAccessExpressions.Concat(conditionalAccessExpressions)
+                                           .Concat(indexerMemberCrefs);
         }
     }
 }
