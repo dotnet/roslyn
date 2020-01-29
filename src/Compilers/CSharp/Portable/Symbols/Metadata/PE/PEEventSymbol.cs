@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // CONSIDER: It would be nice if we could reuse this signature information in the PEMethodSymbol.
             var metadataDecoder = new MetadataDecoder(moduleSymbol, method);
             SignatureHeader signatureHeader;
-            BadImageFormatException mrEx;
+            BadImageFormatException? mrEx;
             var methodParams = metadataDecoder.GetSignatureForMethod(method.Handle, out signatureHeader, out mrEx, setParamHandles: false);
 
             if (mrEx != null)

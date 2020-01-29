@@ -317,11 +317,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (symbol is object)
             {
-                SyntaxReference reference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
+                SyntaxReference? reference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
 
                 if (reference == null && symbol.IsImplicitlyDeclared)
                 {
-                    Symbol containingSymbol = symbol.ContainingSymbol;
+                    Symbol? containingSymbol = symbol.ContainingSymbol;
                     if ((object)containingSymbol != null)
                     {
                         reference = containingSymbol.DeclaringSyntaxReferences.FirstOrDefault();
