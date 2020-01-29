@@ -64,6 +64,25 @@ namespace Roslyn.Utilities
             builder.Add(value);
         }
 
+        public static bool MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableHashSet<TValue>> dictionary, TKey key, TValue value, IEqualityComparer<TValue>? comparer = null)
+            where TKey : notnull
+        {
+            if (dictionary.TryGetValue(key, out var set))
+            {
+                var updated = set.Add(value);
+                if (set == updated)
+                    return false;
+
+                dictionary[key] = updated;
+                return true;
+            }
+            else
+            {
+                dictionary[key] = ImmutableHashSet.Create(comparer, value);
+                return true;
+            }
+        }
+
         public static void MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value, ImmutableArray<TValue> defaultArray)
             where TKey : notnull
             where TValue : IEquatable<TValue>

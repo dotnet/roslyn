@@ -194,13 +194,7 @@ namespace Microsoft.CodeAnalysis
                 var references = kvp.Value;
                 foreach (var referencedId in references)
                 {
-                    if (!reverseReferencesMap.TryGetValue(referencedId, out var reverseReferences))
-                    {
-                        reverseReferences = new HashSet<ProjectId>();
-                        reverseReferencesMap.Add(referencedId, reverseReferences);
-                    }
-
-                    reverseReferences.Add(kvp.Key);
+                    reverseReferencesMap.MultiAdd(referencedId, kvp.Key);
                 }
             }
 
