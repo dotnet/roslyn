@@ -40,10 +40,7 @@ namespace Microsoft.CodeAnalysis
             ProjectId projectId,
             ProjectId referencedProjectId)
         {
-            var references = existingForwardReferencesMap[projectId].Remove(referencedProjectId);
-            return references.IsEmpty
-                ? existingForwardReferencesMap.Remove(projectId)
-                : existingForwardReferencesMap.SetItem(projectId, references);
+            return existingForwardReferencesMap.MultiRemove(projectId, referencedProjectId);
         }
 
         /// <summary>
@@ -65,10 +62,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            var referencingProjects = existingReverseReferencesMap[referencedProjectId].Remove(projectId);
-            return referencingProjects.IsEmpty
-                ? existingReverseReferencesMap.Remove(referencedProjectId)
-                : existingReverseReferencesMap.SetItem(referencedProjectId, referencingProjects);
+            return existingReverseReferencesMap.MultiRemove(referencedProjectId, projectId);
         }
 
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewTransitiveReferencesMapForRemovedProjectReference(

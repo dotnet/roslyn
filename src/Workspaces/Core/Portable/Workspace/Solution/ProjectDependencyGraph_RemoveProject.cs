@@ -63,15 +63,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     foreach (var id in referencingProjects)
                     {
-                        var forwardReferences = builder[id].Remove(removedProjectId);
-                        if (forwardReferences.IsEmpty)
-                        {
-                            builder.Remove(id);
-                        }
-                        else
-                        {
-                            builder[id] = forwardReferences;
-                        }
+                        builder.MultiRemove(id, removedProjectId);
                     }
                 }
             }
@@ -79,17 +71,9 @@ namespace Microsoft.CodeAnalysis
             {
                 // We don't know which projects reference 'projectId', so iterate over all known projects and remove
                 // 'projectId' from the set of references if it exists.
-                foreach (var (id, references) in existingForwardReferencesMap)
+                foreach (var (id, _) in existingForwardReferencesMap)
                 {
-                    var forwardReferences = references.Remove(removedProjectId);
-                    if (forwardReferences.IsEmpty)
-                    {
-                        builder.Remove(id);
-                    }
-                    else
-                    {
-                        builder[id] = forwardReferences;
-                    }
+                    builder.MultiRemove(id, removedProjectId);
                 }
             }
 
@@ -126,15 +110,7 @@ namespace Microsoft.CodeAnalysis
             // reverse references map for the project to no longer include 'removedProjectId' in the list.
             foreach (var referencedProjectId in forwardReferences)
             {
-                var reverseReferences = existingReverseReferencesMap[referencedProjectId].Remove(removedProjectId);
-                if (reverseReferences.IsEmpty)
-                {
-                    builder.Remove(referencedProjectId);
-                }
-                else
-                {
-                    builder[referencedProjectId] = reverseReferences;
-                }
+                builder.MultiRemove(referencedProjectId, removedProjectId);
             }
 
             // Finally, remove 'removedProjectId' itself.
