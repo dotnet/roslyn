@@ -48,64 +48,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle; // ?
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context) // ?
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                CSharpFeaturesResources.Add_Explicit_Cast,
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
-            return Task.CompletedTask;
 
-            //var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            //var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            var document = context.Document;
+            var cancellationToken = context.CancellationToken;
+            var diagnostic = context.Diagnostics.First();
 
-            //if (!TryGetTargetNode(root, context.Span, out var target))
-            //{
-            //    return;
-            //}
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var targetNode = (ExpressionSyntax)TryGetTargetNode(root, diagnostic.Location.SourceSpan);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            //var nodeInfo = semanticModel.GetTypeInfo(target);
-            //var nodeType = nodeInfo.Type;
-            //var conversionType = nodeInfo.ConvertedType;
-
-            //TryGetNode(root, context.Span, SyntaxKind.Argument, target, out var argument);
-            //if (argument != null)
-            //{
-            //    // todo: constructor as well?
-            //    TryGetNode(root, context.Span, SyntaxKind.InvocationExpression, target, out var invocationNode);
-            //    TryGetNode(root, context.Span, SyntaxKind.ArgumentList, target, out var argumentListNode);
-            //    var symbolInfo = semanticModel.GetSymbolInfo(invocationNode);
-            //    var candidcateSymbols = symbolInfo.CandidateSymbols;
-
-            //    if (candidcateSymbols.Length != 1)
-            //    {
-            //        // either no candidates or multiple candidates
-            //        return;
-            //    }
-
-            //    var methodSymbol = (IMethodSymbol)candidcateSymbols[0];
-            //    var parameterList = methodSymbol.Parameters;
-
-            //    var argumentList = (ArgumentListSyntax)argumentListNode;
-            //    var argIndex = argumentList.Arguments.IndexOf((ArgumentSyntax)argument);
-
-            //    var parameter = parameterList[argIndex];
-            //    conversionType = parameter.Type;
-            //}
-
-            //// check if target node type and target converted type have a base-derived relationship
-            //if (IsValid(nodeType, conversionType) && target is ExpressionSyntax expression)
-            //{
-            //    var castExpression = expression.Cast(conversionType);
-            //    root = root.ReplaceNode(expression, castExpression);
-            //    context.RegisterCodeFix(new MyCodeAction(
-            //        CSharpFeaturesResources.Add_Explicit_Cast,
-            //        context.Document.WithSyntaxRoot(root)),
-            //        context.Diagnostics);
-            //}
+            if (CanReplace(semanticModel, root, targetNode, cancellationToken))
+            {
+                context.RegisterCodeFix(new MyCodeAction(
+                    CSharpFeaturesResources.Add_Explicit_Cast,
+                    c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                    context.Diagnostics);
+            }
         }
 
-        private void GetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode targetNode, CancellationToken cancellationToken, out ITypeSymbol nodeType, out ITypeSymbol conversionType) // add CancellationToken cancellationToken ?
+        private void GetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode targetNode, CancellationToken cancellationToken, out ITypeSymbol nodeType, out ITypeSymbol conversionType)
         {
             var nodeInfo = semanticModel.GetTypeInfo(targetNode, cancellationToken);
             nodeType = nodeInfo.Type;
@@ -117,12 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             if (argument != null)
             {
                 conversionType = null;
-                // todo: constructor as well?
-                TryGetNode(root, textSpan, SyntaxKind.InvocationExpression, targetNode, out var invocationNode);
+                var argumentListNode = argument.Parent;
+                var invocationNode = argumentListNode.Parent;
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
                 var candidcateSymbols = symbolInfo.CandidateSymbols;
 
-                TryGetNode(root, textSpan, SyntaxKind.ArgumentList, targetNode, out var argumentListNode);
                 var argumentList = (ArgumentListSyntax)argumentListNode;
 
                 var potentialConversionTypes = new List<ITypeSymbol> {};
@@ -135,12 +97,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                         continue;
                     }
 
-                    var argIndex = argumentList.Arguments.IndexOf((ArgumentSyntax)argument);
-
-                    var parameter = parameterList[argIndex];
-                    if (IsTypeValid(nodeType, parameter.Type))
+                    var allValid = true;
+                    for (var i = 0; i < parameterList.Length; i++)
                     {
-                        potentialConversionTypes.Add(parameter.Type);
+                        var argType = semanticModel.GetTypeInfo(argumentList.Arguments[i].Expression, cancellationToken);
+                        if (!IsTypeConvertible(argType.Type, parameterList[i].Type))
+                        {
+                            allValid = false;
+                            break;
+                        }
+                    }
+
+                    if (allValid)
+                    {
+                        var targetArgumentIndex = argumentList.Arguments.IndexOf((ArgumentSyntax)argument);
+                        var correspondingParameter = parameterList[targetArgumentIndex];
+                        potentialConversionTypes.Add(correspondingParameter.Type);
                     }
                 }
 
@@ -153,12 +125,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             }
         }
 
-        private bool IsTypeValid(ITypeSymbol nodeType, ITypeSymbol conversionType)
+        private bool IsTypeConvertible(ITypeSymbol nodeType, ITypeSymbol conversionType)
         {
             var iterator = conversionType;
             while (iterator != null)
             {
-                if (nodeType == iterator.BaseType) return true;
+                if (nodeType == iterator) return true;
                 iterator = iterator.BaseType;
             }
             return false;
@@ -167,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         private bool CanReplace(SemanticModel semanticModel, SyntaxNode root, SyntaxNode targetNode, CancellationToken cancellationToken)
         {
             GetTypeInfo(semanticModel, root, targetNode, cancellationToken, out var nodeType, out var conversionType);
-            return IsTypeValid(nodeType, conversionType);
+            return nodeType != conversionType && IsTypeConvertible(nodeType, conversionType);
         }
 
         protected SyntaxNode TryGetTargetNode(SyntaxNode root, TextSpan span)
@@ -205,11 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, targetNodes,
-                (semanticModel, targetNode) => CanReplace(semanticModel, root, targetNode, cancellationToken),
+                (_, targetNode) => true,
                 (semanticModel, currentRoot, targetNode) =>
                 {
                     GetTypeInfo(semanticModel, currentRoot, targetNode, cancellationToken, out var nodeType, out var conversionType);
-                    if (targetNode is ExpressionSyntax expression)
+                    if (nodeType != conversionType && conversionType != null && IsTypeConvertible(nodeType, conversionType) && targetNode is ExpressionSyntax expression)
                     {
                         var castExpression = expression.Cast(conversionType);
                         return currentRoot.ReplaceNode(expression, castExpression);
