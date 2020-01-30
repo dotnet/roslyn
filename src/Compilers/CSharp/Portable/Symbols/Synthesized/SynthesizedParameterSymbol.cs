@@ -266,7 +266,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _refCustomModifiers = refCustomModifiers;
             BaseParameterForAttributes = baseParameterForAttributes;
-
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
