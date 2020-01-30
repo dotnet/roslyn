@@ -4140,6 +4140,43 @@ class C
             Assert.Equal(SpecialType.System_Boolean, speculativeTypeInfo.Type.SpecialType);
         }
 
+        [Fact, WorkItem(40628, "https://github.com/dotnet/roslyn/issues/40628")]
+        public void GetConvertedTypeInfoOnNullableStruct()
+        {
+            var source = @"
+class C
+{
+    public void M()
+    {
+        int? i = 0;
+        _ = i == null;
+        _ = null == i;
+    }
+}";
+
+            var comp = CreateCompilation(source);
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var binaryExpressions = root.DescendantNodes().OfType<BinaryExpressionSyntax>().ToList();
+
+            var nullableIntNullLiteralReference = binaryExpressions[0].Right;
+            var typeInfo = model.GetTypeInfo(nullableIntNullLiteralReference);
+            Assert.Null(typeInfo.Type);
+            Assert.NotNull(typeInfo.ConvertedType);
+            Assert.True(typeInfo.ConvertedType.IsNullableType());
+            Assert.Equal(SpecialType.System_Int32, ((INamedTypeSymbol)typeInfo.ConvertedType).TypeArguments.Single().SpecialType);
+
+            nullableIntNullLiteralReference = binaryExpressions[1].Left;
+            typeInfo = model.GetTypeInfo(nullableIntNullLiteralReference);
+            Assert.Null(typeInfo.Type);
+            Assert.NotNull(typeInfo.ConvertedType);
+            Assert.True(typeInfo.ConvertedType.IsNullableType());
+            Assert.Equal(SpecialType.System_Int32, ((INamedTypeSymbol)typeInfo.ConvertedType).TypeArguments.Single().SpecialType);
+        }
+
         #region "regression helper"
         private void Regression(string text)
         {

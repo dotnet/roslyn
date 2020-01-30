@@ -591,6 +591,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Otherwise, we'll have reported the problem in ReportBinaryOperatorError.
                 resultLeft = BindToNaturalType(resultLeft, diagnostics, reportDefaultMissingType: false);
                 resultRight = BindToNaturalType(resultRight, diagnostics, reportDefaultMissingType: false);
+
+                if (foundOperator && (resultOperatorKind.OperandTypes() == BinaryOperatorKind.NullableNull))
+                {
+                    RoslynDebug.Assert(best.Signature.LeftType is object);
+                    RoslynDebug.Assert(best.Signature.RightType is object);
+
+                    if (resultLeft.IsLiteralNull())
+                    {
+                        resultLeft = CreateConversion(resultLeft, best.LeftConversion, best.Signature.LeftType, diagnostics);
+                    }
+
+                    if (resultRight.IsLiteralNull())
+                    {
+                        resultRight = CreateConversion(resultRight, best.RightConversion, best.Signature.RightType, diagnostics);
+                    }
+                }
             }
 
             hasErrors = hasErrors || resultConstant != null && resultConstant.IsBad;

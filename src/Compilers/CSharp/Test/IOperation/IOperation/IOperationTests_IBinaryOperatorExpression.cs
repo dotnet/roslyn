@@ -142,8 +142,10 @@ IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Right: 
-    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-";
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, Constant: null, IsImplicit) (Syntax: 'null')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')";
 
             VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
         }
