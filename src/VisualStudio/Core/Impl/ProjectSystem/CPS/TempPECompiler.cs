@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     // Turn off any warnings as errors just in case
                     .WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
                     .WithReportSuppressedDiagnostics(false)
-                    .WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty)
+                    .WithSpecificDiagnosticOptions(null)
                     // Turn off any signing and strong naming
                     .WithDelaySign(false)
                     .WithCryptoKeyFile(null)

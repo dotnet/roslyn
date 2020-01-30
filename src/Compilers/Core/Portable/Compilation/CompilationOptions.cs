@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new options instance with the specified diagnostic-specific options.
         /// </summary>
-        public CompilationOptions WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> value)
+        public CompilationOptions WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>? value)
         {
             return CommonWithSpecificDiagnosticOptions(value);
         }
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer comparer);
         protected abstract CompilationOptions CommonWithStrongNameProvider(StrongNameProvider? provider);
         protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic generalDiagnosticOption);
-        protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
+        protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>? specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics);
         protected abstract CompilationOptions CommonWithModuleName(string? moduleName);
