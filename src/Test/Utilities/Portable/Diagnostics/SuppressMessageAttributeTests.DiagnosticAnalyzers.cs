@@ -277,6 +277,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
         }
 
+        protected class ThrowExceptionFromSupportedDiagnostics : DiagnosticAnalyzer
+        {
+            public ThrowExceptionFromSupportedDiagnostics()
+            {
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                => throw new Exception("SupportedDiagnostics exception");
+
+            public override void Initialize(AnalysisContext analysisContext)
+                => throw new Exception("Initialize exception");
+        }
+
         protected static DiagnosticDescriptor GetRule(string id)
         {
             return new DiagnosticDescriptor(
