@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -204,6 +207,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol receiverType = expressionOpt.Type;
             return (object)receiverType != null && receiverType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)receiverType).IsComImport;
+        }
+
+#nullable enable
+        /// <summary>
+        /// Returns true if this is a binary operator that compares a null literal with a nullable value type.
+        /// </summary>
+        /// <param name="binaryOperator"></param>
+        /// <returns></returns>
+        internal static bool IsNullableComparedWithNull(this BoundBinaryOperator binaryOperator, [NotNullWhen(true)] out TypeSymbol? comparedType)
+        {
+            comparedType = null;
+            var @operator = binaryOperator.OperatorKind.Operator();
+            if ((@operator != BinaryOperatorKind.Equal
+                 && @operator != BinaryOperatorKind.NotEqual)
+                || binaryOperator.OperatorKind.OperandTypes() != BinaryOperatorKind.NullableNull)
+            {
+                return false;
+            }
+
+            Debug.Assert(binaryOperator.Left.IsLiteralNull() || binaryOperator.Right.IsLiteralNull());
+            comparedType = binaryOperator.Left.IsLiteralNull() ? binaryOperator.Right.Type : binaryOperator.Left.Type;
+            RoslynDebug.Assert(comparedType is object);
+            Debug.Assert(comparedType.IsNullableType());
+            Debug.Assert(binaryOperator.Type.SpecialType == SpecialType.System_Boolean);
+
+            return true;
         }
     }
 }

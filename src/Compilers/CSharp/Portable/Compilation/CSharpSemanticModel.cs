@@ -2101,6 +2101,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                     }
                 }
+                else if (boundNodeForSyntacticParent is BoundBinaryOperator binaryOp
+                         && binaryOp.IsNullableComparedWithNull(out TypeSymbol binaryType)
+                         && boundExpr.IsLiteralNull())
+                {
+                    // When a nullable value type is compared with null, we don't generate a BoundConversion in the tree.
+                    // Adjust the converted type to be the nullable conversion we expected.
+                    convertedType = binaryType;
+                    Debug.Assert(convertedType.IsNullableType());
+
+                    convertedNullability = nullability;
+                    conversion = Conversion.NullLiteral;
+                }
                 else
                 {
                     convertedType = type;
@@ -3606,11 +3618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)binaryOperator.MethodOpt == null && binaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
 
-                if (!isDynamic &&
-                    (op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual) &&
-                    ((binaryOperator.Left.IsLiteralNull() && binaryOperator.Right.Type.IsNullableType()) ||
-                     (binaryOperator.Right.IsLiteralNull() && binaryOperator.Left.Type.IsNullableType())) &&
-                    binaryOperator.Type.SpecialType == SpecialType.System_Boolean)
+                if (!isDynamic && binaryOperator.IsNullableComparedWithNull(out _))
                 {
                     // Comparison of a nullable type with null, return corresponding operator for Object.
                     var objectType = binaryOperator.Type.ContainingAssembly.GetSpecialType(SpecialType.System_Object);

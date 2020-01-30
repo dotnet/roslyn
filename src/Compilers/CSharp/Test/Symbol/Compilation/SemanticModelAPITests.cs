@@ -4175,6 +4175,25 @@ class C
             Assert.NotNull(typeInfo.ConvertedType);
             Assert.True(typeInfo.ConvertedType.IsNullableType());
             Assert.Equal(SpecialType.System_Int32, ((INamedTypeSymbol)typeInfo.ConvertedType).TypeArguments.Single().SpecialType);
+
+            CompileAndVerify(comp)
+                .VerifyIL("C.M", expectedIL: @"
+    {
+      // Code size       25 (0x19)
+      .maxstack  2
+      .locals init (int? V_0) //i
+      IL_0000:  ldloca.s   V_0
+      IL_0002:  ldc.i4.0
+      IL_0003:  call       ""int?..ctor(int)""
+      IL_0008:  ldloca.s   V_0
+      IL_000a:  call       ""bool int?.HasValue.get""
+      IL_000f:  pop
+      IL_0010:  ldloca.s   V_0
+      IL_0012:  call       ""bool int?.HasValue.get""
+      IL_0017:  pop
+      IL_0018:  ret
+    }
+");
         }
 
         #region "regression helper"

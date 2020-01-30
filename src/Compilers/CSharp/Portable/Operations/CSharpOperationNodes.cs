@@ -298,12 +298,35 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IOperation CreateLeftOperand()
         {
-            return _operationFactory.Create(_binaryOperator.Left);
+            return CreateOperandPossiblyInsertingConversion(_binaryOperator.Left);
         }
 
         protected override IOperation CreateRightOperand()
         {
-            return _operationFactory.Create(_binaryOperator.Right);
+            return CreateOperandPossiblyInsertingConversion(_binaryOperator.Right);
+        }
+
+        private IOperation CreateOperandPossiblyInsertingConversion(BoundExpression child)
+        {
+            var childOp = _operationFactory.Create(child);
+
+            if (_binaryOperator is BoundBinaryOperator binaryOp
+                && binaryOp.IsNullableComparedWithNull(out TypeSymbol finalType)
+                && child.IsLiteralNull())
+            {
+                return new ConversionOperation(
+                    childOp,
+                    Conversion.NullLiteral,
+                    isTryCast: false,
+                    isChecked: false,
+                    OwningSemanticModel,
+                    syntax: child.Syntax,
+                    type: finalType.GetPublicSymbol(),
+                    constantValue: null,
+                    isImplicit: true);
+            }
+
+            return childOp;
         }
     }
 

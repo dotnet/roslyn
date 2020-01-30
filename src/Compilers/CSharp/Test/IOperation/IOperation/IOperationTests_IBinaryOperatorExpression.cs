@@ -152,6 +152,35 @@ IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void VerifyNonLiftedBinaryOperators3()
+        {
+            var source = @"
+class C
+{
+    void F(string x, string y)
+    {
+        if (/*<bind>*/x == null/*</bind>*/)
+            x = y;
+    }
+}";
+
+            string expectedOperationTree =
+@"
+IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x == null')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+  Right: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'null')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+";
+
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void VerifyNonLiftedBinaryOperators1()
         {
             var source = @"
