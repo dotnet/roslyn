@@ -1582,7 +1582,7 @@ $"' This file is used by Code Analysis to maintain SuppressMessage
 
 Imports System.Diagnostics.CodeAnalysis
 
-<Assembly: System.Diagnostics.CodeAnalysis(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
 <Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
