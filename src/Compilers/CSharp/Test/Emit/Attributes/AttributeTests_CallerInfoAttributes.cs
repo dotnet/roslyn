@@ -1184,6 +1184,55 @@ name: LocalFunctionCaller
         }
 
         [Fact]
+        public void TestCallerMemberName_LocalFunctionAttribute_03()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+class D
+{
+    public void LocalFunctionCaller()
+    {
+        new Action(() =>
+        {
+            static void local1()
+            {
+                static void log([CallerMemberName] string callerName = """")
+                {
+                    Console.WriteLine(""name: "" + callerName);
+                }
+
+                log();
+            }
+
+            local1();
+        }).Invoke();
+    }
+}
+
+class Test
+{
+
+    public static void Main()
+    {
+        var d = new D();
+        d.LocalFunctionCaller();
+    }
+}";
+
+            var expected = @"
+name: LocalFunctionCaller
+";
+
+            var compilation = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseExe,
+                parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
+        [Fact]
         public void TestCallerMemberName_Operator()
         {
             string source = @"

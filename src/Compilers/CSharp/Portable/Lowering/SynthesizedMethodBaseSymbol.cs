@@ -130,7 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ordinal++,
                     p.RefKind,
                     p.Name,
-                    p.RefCustomModifiers,
+                    // the synthesized parameter doesn't need to have the same ref custom modifiers as the base
+                    refCustomModifiers: default,
                     inheritAttributes ? p as SourceComplexParameterSymbol : null));
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
