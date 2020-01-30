@@ -177,11 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Note that this doesn't affect BaseMethodWrapperSymbol for example because the implementation has no locals.
         public sealed override bool AreLocalsZeroed => !(BaseMethod is SourceMethodSymbol sourceMethod) || sourceMethod.AreLocalsZeroed;
 
-        internal override bool RequiresSecurityObject => InheritsBaseMethodAttributes && BaseMethod.RequiresSecurityObject;
+        internal sealed override bool RequiresSecurityObject => InheritsBaseMethodAttributes && BaseMethod.RequiresSecurityObject;
 
-        internal override bool HasDeclarativeSecurity => InheritsBaseMethodAttributes && BaseMethod.HasDeclarativeSecurity;
+        internal sealed override bool HasDeclarativeSecurity => InheritsBaseMethodAttributes && BaseMethod.HasDeclarativeSecurity;
 
-        internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => InheritsBaseMethodAttributes
+        internal sealed override IEnumerable<SecurityAttribute> GetSecurityInformation() => InheritsBaseMethodAttributes
                 ? BaseMethod.GetSecurityInformation()
                 : SpecializedCollections.EmptyEnumerable<SecurityAttribute>();
 

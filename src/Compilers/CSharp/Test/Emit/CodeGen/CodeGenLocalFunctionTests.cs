@@ -5365,7 +5365,7 @@ class C
         }
 
         [Fact]
-        public void LocalFunctionParamsArray_ParamArrayAttribute()
+        public void LocalFunctionParamsArray_NoParamArrayAttribute()
         {
             var source = @"
 class C

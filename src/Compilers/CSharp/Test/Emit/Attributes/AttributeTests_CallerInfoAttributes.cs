@@ -389,7 +389,7 @@ message: something happened
 line: 13
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1130,9 +1130,8 @@ class Test
 name: LocalFunctionCaller
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilation(
                 source,
-                references: new MetadataReference[] { SystemRef },
                 options: TestOptions.ReleaseExe,
                 parseOptions: TestOptions.RegularPreview);
             CompileAndVerify(compilation, expectedOutput: expected);
@@ -1177,9 +1176,8 @@ class Test
 name: LocalFunctionCaller
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilation(
                 source,
-                references: new MetadataReference[] { SystemRef },
                 options: TestOptions.ReleaseExe,
                 parseOptions: TestOptions.RegularPreview);
             CompileAndVerify(compilation, expectedOutput: expected);
@@ -1646,13 +1644,12 @@ partial class A
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilation(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview, path: @"C:\filename", encoding: Encoding.UTF8)
                 },
-                new[] { SystemRef },
-                TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default));
+                options: TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default));
 
             CompileAndVerify(compilation, expectedOutput: @"
 1: 'C:\filename'
