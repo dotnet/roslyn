@@ -12,7 +12,7 @@
     <AssemblyVersion/>
     <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
     <NoWarn>$(NoWarn);CA1819</NoWarn>
-
+    
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Build.Tasks</PackageId>
@@ -23,6 +23,12 @@
     </PackageDescription>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
+
+  <!-- Disable the nullable warnings when not compiling for netcoreapp3.1 -->
+  <PropertyGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
+    <NoWarn>$(NoWarn);8600;8601;8602;8603;8604</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <Content Include="*.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

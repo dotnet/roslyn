@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             if (IsDotNetHost(out string? pathToDotNet))
             {
                 commandLineArguments = $@"exec ""{toolFilePath}"" {commandLineArguments}";
-                return (pathToDotNet, commandLineArguments, toolFilePath);
+                return (pathToDotNet!, commandLineArguments, toolFilePath);
             }
             else
             {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
 
         private static string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
 
-        private static bool IsDotNetHost([NotNullWhen(true)] out string? pathToDotNet)
+        private static bool IsDotNetHost(out string? pathToDotNet)
         {
             pathToDotNet = GetDotNetPathOrDefault();
             return true;
