@@ -430,6 +430,7 @@ function TestUsingOptimizedRunner() {
     }
 
     if ($testVsi) {
+      Write-Host "Copying ServiceHub logs to $LogDir"
       Copy-Item -Path (Join-Path $TempDir "servicehub\logs") -Destination (Join-Path $LogDir "servicehub") -Recurse
     }
   }
