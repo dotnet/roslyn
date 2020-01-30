@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             for (int i = 0; i < count; i++)
             {
                 // Section: Name (8)
-                if (!ReadBytes(reader, 8, out byte[] name))
+                if (!ReadBytes(reader, 8, out byte[]? name))
                 {
                     return s_empty;
                 }
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return s_empty;
             }
 
-            if (!ReadBytes(reader, 16, out byte[] guidBytes))
+            if (!ReadBytes(reader, 16, out byte[]? guidBytes))
             {
                 return s_empty;
             }
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return true;
         }
 
-        private static bool ReadBytes(BinaryReader reader, int count, out byte[] output)
+        private static bool ReadBytes(BinaryReader reader, int count, [NotNullWhen(true)] out byte[]? output)
         {
             if (reader.BaseStream.Position + count >= reader.BaseStream.Length)
             {

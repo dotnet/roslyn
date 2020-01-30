@@ -7,6 +7,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <Nullable>enable</Nullable>
     <AutoGenerateAssemblyVersion>true</AutoGenerateAssemblyVersion>
     <AssemblyVersion/>
     <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
@@ -38,6 +39,7 @@
     <Compile Include="..\Portable\CommitHashAttribute.cs" />
     <Compile Include="..\Portable\InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs" />
+    <Compile Include="..\Portable\InternalUtilities\Debug.cs" Link="Debug.cs" />
     <Compile Include="..\Portable\InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="..\Portable\InternalUtilities\NullableAttributes.cs" />
     <Compile Include="..\Portable\InternalUtilities\PlatformInformation.cs" />
