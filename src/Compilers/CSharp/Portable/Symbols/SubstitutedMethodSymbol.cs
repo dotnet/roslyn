@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
 
-        private int? _hashCode; // computed on demand
+        private int _hashCode; // computed on demand
 
         internal SubstitutedMethodSymbol(NamedTypeSymbol containingSymbol, MethodSymbol originalDefinition)
             : this(containingSymbol, containingSymbol.TypeSubstitution, originalDefinition, constructedFrom: null)
@@ -392,6 +392,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            // 0 means that hashcode is not initialized. 
+            // in a case we really get 0 for the hashcode, tweak it by +1
+            if (code == 0)
+            {
+                code++;
+            }
+
             return code;
         }
 
@@ -435,12 +442,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int GetHashCode()
         {
-            if (!_hashCode.HasValue)
+            int code = _hashCode;
+            if (code == 0)
             {
-                _hashCode = ComputeHashCode();
+                code = ComputeHashCode();
+                _hashCode = code;
             }
 
-            return _hashCode.Value;
+            return code;
         }
     }
 }
