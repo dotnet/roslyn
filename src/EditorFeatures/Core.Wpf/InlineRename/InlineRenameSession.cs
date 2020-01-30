@@ -414,9 +414,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             AssertIsForeground();
             SetReferenceLocations(locations);
 
-            // If workspace would ignore changes to unchangeable documents, we filter out references in 
-            // them only to avoid displaying them in UI, i.e. everything else in inline rename is still
-            // oblivious to unchangeable document.
+            // It's OK to call SetReferenceLocations with all documents, including unchangeable ones, 
+            // because they can't be opened, so the _openTextBuffers loop won't matter. In fact, the entire
+            // inline rename is oblivious to unchangeable documents, we just need to filter out references
+            // in them to avoid displaying them in the UI. 
             // https://github.com/dotnet/roslyn/issues/41242
             if (_workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges)
             {
