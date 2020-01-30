@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     return defaultValue;
                 }
 
+                // Handle user option for additional excluded types
+                if (DataFlowAnalysisContext.ExcludedSymbols.Contains(instanceType))
+                {
+                    return defaultValue;
+                }
+
                 SetAbstractValue(instanceLocation, DisposeAbstractValue.NotDisposed);
                 return DisposeAbstractValue.NotDisposed;
             }
