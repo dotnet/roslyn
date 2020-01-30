@@ -61,6 +61,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
 
                 return SyntaxFactory.TriviaList(firstTrivia, secondTrivia, thirdTrivia);
             }
+
+            protected override string GetIndentString(SyntaxNode newRoot)
+            {
+                var newDocument = _document.WithSyntaxRoot(newRoot);
+
+                var indentationService = newDocument.GetLanguageService<Indentation.IIndentationService>();
+                var originalLineNumber = _sourceText.Lines.GetLineFromPosition(_cursorPosition).LineNumber;
+
+                var desiredIndentation = indentationService.GetIndentation(
+                    newDocument, originalLineNumber, _indentStyle, _cancellationToken);
+
+                var newSourceText = newDocument.GetSyntaxRootSynchronously(_cancellationToken).SyntaxTree.GetText(_cancellationToken);
+                var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
+                var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
+
+                var indent = baseOffsetInLine + desiredIndentation.Offset;
+                var indentString = indent.CreateIndentationString(_useTabs, _tabSize);
+
+                return indentString;
+            }
         }
     }
 }

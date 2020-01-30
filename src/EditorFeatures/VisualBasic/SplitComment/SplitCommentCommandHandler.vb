@@ -29,9 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
 
         Protected Overrides Function LineContainsComment(line As ITextSnapshotLine, caretPosition As Integer) As Boolean
             Dim snapshot = line.Snapshot
-            snapshot.GetText.Contains(CommentSplitter.CommentCharacter)
-
-            Return False
+            Return snapshot.GetText.Contains(CommentSplitter.CommentCharacter)
         End Function
 
         Protected Overrides Function SplitComment(document As Document, options As DocumentOptionSet, position As Integer, cancellationToken As CancellationToken) As Integer?

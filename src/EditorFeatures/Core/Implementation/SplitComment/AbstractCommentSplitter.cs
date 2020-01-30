@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 {
     internal abstract class AbstractCommentSplitter
     {
-        protected static SyntaxAnnotation RightNodeAnnotation = new SyntaxAnnotation();
-
         protected Document _document;
         protected int _cursorPosition;
         protected SourceText _sourceText;
@@ -25,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
         protected SyntaxNode GetNodeToReplace() => _trivia.SyntaxTree.GetRoot();
 
         protected abstract SyntaxTriviaList CreateSplitComment(string indentString);
+        protected abstract string GetIndentString(SyntaxNode newRoot);
 
         public int? TrySplit()
         {
@@ -62,26 +61,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             var newDocument = _document.WithSyntaxRoot(newRoot);
 
             return (newDocument, newPosition.GetValueOrDefault());
-        }
-
-        private string GetIndentString(SyntaxNode newRoot)
-        {
-            var newDocument = _document.WithSyntaxRoot(newRoot);
-
-            var indentationService = newDocument.GetLanguageService<Indentation.IIndentationService>();
-            var originalLineNumber = _sourceText.Lines.GetLineFromPosition(_cursorPosition).LineNumber;
-
-            var desiredIndentation = indentationService.GetIndentation(
-                newDocument, originalLineNumber, _indentStyle, _cancellationToken);
-
-            var newSourceText = newDocument.GetSyntaxRootSynchronously(_cancellationToken).SyntaxTree.GetText(_cancellationToken);
-            var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
-            var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
-
-            var indent = baseOffsetInLine + desiredIndentation.Offset;
-            var indentString = indent.CreateIndentationString(_useTabs, _tabSize);
-
-            return indentString;
         }
     }
 }

@@ -63,6 +63,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
 
                 Return SyntaxFactory.TriviaList(triviaList)
             End Function
+
+            Protected Overrides Function GetIndentString(newRoot As SyntaxNode) As String
+                Dim newDocument = _document.WithSyntaxRoot(newRoot)
+
+                Dim indentationService = newDocument.GetLanguageService(Of Indentation.IIndentationService)()
+                Dim originalLine = _sourceText.Lines.GetLineFromPosition(_cursorPosition)
+
+                Dim node = newRoot.FindNode(originalLine.Span, False, True)
+                hasLineContinuation = node.DescendantTrivia().Any(Function(x)
+                                                                      Return x.Kind() = SyntaxKind.LineContinuationTrivia
+                                                                  End Function)
+                If hasLineContinuation Then
+                    Return " "
+                End If
+
+                Dim desiredIndentation = indentationService.GetIndentation(
+                    newDocument, originalLine.LineNumber, _indentStyle, _cancellationToken)
+
+                Dim newSourceText = newDocument.GetSyntaxRootSynchronously(_cancellationToken).SyntaxTree.GetText(_cancellationToken)
+                Dim baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition)
+                Dim baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start
+
+                Dim indent = baseOffsetInLine + desiredIndentation.Offset
+                Dim indentString = indent.CreateIndentationString(_useTabs, _tabSize)
+
+                Return indentString
+            End Function
         End Class
     End Class
 End Namespace
