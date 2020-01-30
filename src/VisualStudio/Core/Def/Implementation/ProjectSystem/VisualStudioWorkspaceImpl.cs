@@ -1496,6 +1496,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
+                foreach (var documentId in solutionChangeAccumulator.DocumentIdsRemoved)
+                {
+                    this.ClearDocumentData(documentId);
+                }
+
                 SetCurrentSolution(solutionChangeAccumulator.Solution);
                 RaiseWorkspaceChangedEventAsync(
                     solutionChangeAccumulator.WorkspaceChangeKind,
