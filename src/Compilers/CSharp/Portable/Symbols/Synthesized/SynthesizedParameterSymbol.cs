@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
         // The parameter containing attributes to inherit into this synthesized parameter, if any.
-        internal SourceComplexParameterSymbol? BaseParameterForAttributes { get; }
+        private readonly SourceComplexParameterSymbol? _baseParameterForAttributes;
 
         public SynthesizedComplexParameterSymbol(
             MethodSymbol container,
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!refCustomModifiers.IsEmpty || baseParameterForAttributes is object);
 
             _refCustomModifiers = refCustomModifiers;
-            BaseParameterForAttributes = baseParameterForAttributes;
+            _baseParameterForAttributes = baseParameterForAttributes;
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -276,11 +276,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return BaseParameterForAttributes?.GetAttributes() ?? ImmutableArray<CSharpAttributeData>.Empty;
+            return _baseParameterForAttributes?.GetAttributes() ?? ImmutableArray<CSharpAttributeData>.Empty;
         }
 
-        public bool HasEnumeratorCancellationAttribute => BaseParameterForAttributes?.HasEnumeratorCancellationAttribute ?? false;
+        public bool HasEnumeratorCancellationAttribute => _baseParameterForAttributes?.HasEnumeratorCancellationAttribute ?? false;
 
-        internal override MarshalPseudoCustomAttributeData? MarshallingInformation => BaseParameterForAttributes?.MarshallingInformation;
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation => _baseParameterForAttributes?.MarshallingInformation;
     }
 }
