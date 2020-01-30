@@ -1995,6 +1995,9 @@ namespace Microsoft.CodeAnalysis
         /// Returns the compilation for the specified <see cref="ProjectId"/>.  Can return <see langword="null"/> when the project
         /// does not support compilations.
         /// </summary>
+        /// <remarks>
+        /// The compilation is guaranteed to have a syntax tree for each document of the project.
+        /// </remarks>
         private Task<Compilation?> GetCompilationAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             // TODO: figure out where this is called and why the nullable suppression is required
@@ -2005,6 +2008,9 @@ namespace Microsoft.CodeAnalysis
         /// Returns the compilation for the specified <see cref="ProjectState"/>.  Can return <see langword="null"/> when the project
         /// does not support compilations.
         /// </summary>
+        /// <remarks>
+        /// The compilation is guaranteed to have a syntax tree for each document of the project.
+        /// </remarks>
         public Task<Compilation?> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
         {
             return project.SupportsCompilation
