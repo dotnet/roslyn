@@ -456,10 +456,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveDocument directly this is
                                 // called, but since we're doing this in one large batch we need to do it now.
                                 _workspace.ClearDocumentData(id);
-                                s = s.RemoveAdditionalDocument(id);
                             }
 
-                            return s;
+                            return s.RemoveAdditionalDocuments(ids);
                         },
                         WorkspaceChangeKind.AdditionalDocumentRemoved);
 

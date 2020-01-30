@@ -1333,18 +1333,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new solution instance that no longer includes the specified additional document.
+        /// Creates a new solution instance that no longer includes the specified additional documents.
         /// </summary>
-        public SolutionState RemoveAdditionalDocument(DocumentId documentId)
+        public SolutionState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            CheckContainsAdditionalDocument(documentId);
-
-            var oldProject = this.GetProjectState(documentId.ProjectId)!;
-            var newProject = oldProject.RemoveAdditionalDocument(documentId);
-            var documentStates = SpecializedCollections.SingletonEnumerable(GetAdditionalDocumentState(documentId)!);
-
-            return this.ForkProject(newProject,
-                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(documentStates));
+            return RemoveDocumentsFromMultipleProjects(documentIds,
+                (projectState, documentId) => { CheckContainsAdditionalDocument(documentId); return projectState.GetAdditionalDocumentState(documentId)!; },
+                (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), translationAction: null));
         }
 
         /// <summary>

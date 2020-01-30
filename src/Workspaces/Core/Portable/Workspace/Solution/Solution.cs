@@ -918,7 +918,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution RemoveAdditionalDocument(DocumentId documentId)
         {
-            var newState = _state.RemoveAdditionalDocument(documentId);
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            return RemoveAdditionalDocuments(ImmutableArray.Create(documentId));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified additional documents.
+        /// </summary>
+        public Solution RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            var newState = _state.RemoveAdditionalDocuments(documentIds);
             if (newState == _state)
             {
                 return this;
