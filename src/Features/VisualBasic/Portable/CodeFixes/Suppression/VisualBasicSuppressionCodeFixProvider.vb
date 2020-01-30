@@ -129,10 +129,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return token.Kind = SyntaxKind.EndOfFileToken
         End Function
 
-        Protected Overrides Function AddGlobalSuppressMessageAttribute(newRoot As SyntaxNode, targetSymbol As ISymbol, diagnostic As Diagnostic, workspace As Workspace, compilation As Compilation, addImportsService As IAddImportsService, cancellationToken As CancellationToken) As SyntaxNode
+        Protected Overrides Function AddGlobalSuppressMessageAttribute(
+                newRoot As SyntaxNode,
+                targetSymbol As ISymbol,
+                suppressMessageAttribute As INamedTypeSymbol,
+                diagnostic As Diagnostic,
+                workspace As Workspace,
+                compilation As Compilation,
+                addImportsService As IAddImportsService,
+                cancellationToken As CancellationToken) As SyntaxNode
             Dim compilationRoot = DirectCast(newRoot, CompilationUnitSyntax)
             Dim isFirst = Not compilationRoot.Attributes.Any()
-            Dim attributeList = CreateAttributeList(targetSymbol, diagnostic, isAssemblyAttribute:=True)
+
+            Dim attributeName = DirectCast(suppressMessageAttribute.GenerateTypeSyntax(), NameSyntax).WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
+            Dim attributeList = CreateAttributeList(targetSymbol, attributeName, diagnostic, isAssemblyAttribute:=True)
 
             Dim attributeStatement = SyntaxFactory.AttributesStatement(New SyntaxList(Of AttributeListSyntax)().Add(attributeList))
             If Not isFirst Then
@@ -154,17 +164,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return compilationRoot.AddAttributes(attributeStatement).WithLeadingTrivia(leadingTrivia)
         End Function
 
-        Protected Overrides Function AddLocalSuppressMessageAttribute(targetNode As SyntaxNode, targetSymbol As ISymbol, diagnostic As Diagnostic) As SyntaxNode
+        Protected Overrides Function AddLocalSuppressMessageAttribute(
+                targetNode As SyntaxNode,
+                targetSymbol As ISymbol,
+                suppressMessageAttribute As INamedTypeSymbol,
+                diagnostic As Diagnostic) As SyntaxNode
             Dim memberNode = DirectCast(targetNode, StatementSyntax)
-            Dim attributeList = CreateAttributeList(targetSymbol, diagnostic, isAssemblyAttribute:=False)
+
+            Dim attributeName = DirectCast(suppressMessageAttribute.GenerateTypeSyntax(), NameSyntax)
+            Dim attributeList = CreateAttributeList(targetSymbol, attributeName, diagnostic, isAssemblyAttribute:=False)
             Dim leadingTrivia = memberNode.GetLeadingTrivia()
             memberNode = memberNode.WithoutLeadingTrivia()
             Return memberNode.AddAttributeLists(attributeList).WithLeadingTrivia(leadingTrivia)
         End Function
 
-        Private Function CreateAttributeList(targetSymbol As ISymbol, diagnostic As Diagnostic, isAssemblyAttribute As Boolean) As AttributeListSyntax
+        Private Function CreateAttributeList(
+                targetSymbol As ISymbol,
+                attributeName As NameSyntax,
+                diagnostic As Diagnostic,
+                isAssemblyAttribute As Boolean) As AttributeListSyntax
             Dim attributeTarget = If(isAssemblyAttribute, SyntaxFactory.AttributeTarget(SyntaxFactory.Token(SyntaxKind.AssemblyKeyword)), Nothing)
-            Dim attributeName = SyntaxFactory.ParseName(SuppressMessageAttributeName).WithAdditionalAnnotations(Simplifier.Annotation)
             Dim attributeArguments = CreateAttributeArguments(targetSymbol, diagnostic, isAssemblyAttribute)
 
             Dim attribute As AttributeSyntax = SyntaxFactory.Attribute(attributeTarget, attributeName, attributeArguments)
