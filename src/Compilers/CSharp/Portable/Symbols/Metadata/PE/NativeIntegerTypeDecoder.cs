@@ -57,7 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             switch (type.TypeKind)
             {
                 case TypeKind.Array:
+                    return TransformArrayType((ArrayTypeSymbol)type);
                 case TypeKind.Pointer:
+                    return TransformPointerType((PointerTypeSymbol)type);
                 case TypeKind.TypeParameter:
                 case TypeKind.Dynamic:
                     return type;
@@ -67,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case TypeKind.Delegate:
                 case TypeKind.Enum:
                     return TransformNamedType((NamedTypeSymbol)type);
-                case TypeKind.Error:
                 default:
                     Debug.Assert(type.TypeKind == TypeKind.Error);
                     throw new ArgumentException();

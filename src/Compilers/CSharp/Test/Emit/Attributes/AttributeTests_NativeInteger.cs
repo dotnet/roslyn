@@ -754,7 +754,28 @@ unsafe public class Program
         }
 
         [Fact]
-        public void EmitAttribute_LongTuples()
+        public void EmitAttribute_LongTuples_01()
+        {
+            var source =
+@"public class A<T>
+{
+}
+unsafe public class B
+{
+    public A<(object, (nint, nuint, nint[], nuint, nint, nuint*[], nint, nuint))> F1;
+    public A<(nint, object, nuint[], object, nint, object, (nint, nuint), object, nuint)> F2;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            var expected =
+@"B
+    [NativeInteger({ False, False, False, False, True, True, False, True, True, True, False, False, True, True, False, True })] A<(System.Object, (System.IntPtr, System.UIntPtr, System.IntPtr[], System.UIntPtr, System.IntPtr, System.UIntPtr*[], System.IntPtr, System.UIntPtr))> F1
+    [NativeInteger({ False, False, True, False, False, True, False, True, False, False, True, True, False, False, True })] A<(System.IntPtr, System.Object, System.UIntPtr[], System.Object, System.IntPtr, System.Object, (System.IntPtr, System.UIntPtr), System.Object, System.UIntPtr)> F2
+";
+            AssertNativeIntegerAttributes(comp, expected);
+        }
+
+        [Fact]
+        public void EmitAttribute_LongTuples_02()
         {
             var source1 =
 @"public interface IA { }
@@ -786,6 +807,27 @@ public class C : IA, IB<(nint, object, nuint[], object, nint, object, (nint, nui
 }";
             comp = CreateCompilation(source2, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
+        }
+
+        // Shouldn't depend on [NullablePublicOnly].
+        [Fact]
+        public void NoPublicMembers()
+        {
+            var source =
+@"class A<T>
+{
+}
+class B : A<nint>
+{
+}";
+            var comp = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview.WithNullablePublicOnly());
+            var expected =
+@"[NativeInteger({ False, True })] B
+";
+            AssertNativeIntegerAttributes(comp, expected);
         }
 
         [Fact]
