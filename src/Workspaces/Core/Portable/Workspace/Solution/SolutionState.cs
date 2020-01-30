@@ -1258,18 +1258,15 @@ namespace Microsoft.CodeAnalysis
                 });
         }
 
-        public SolutionState RemoveAnalyzerConfigDocument(DocumentId documentId)
+        public SolutionState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            CheckContainsAnalyzerConfigDocument(documentId);
-
-            var oldProject = this.GetProjectState(documentId.ProjectId)!;
-            var newProject = oldProject.RemoveAnalyzerConfigDocument(documentId);
-            var removedDocumentStates = SpecializedCollections.SingletonEnumerable(oldProject.GetAnalyzerConfigDocumentState(documentId)!);
-
-            return this.ForkProject(
-                newProject,
-                new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject),
-                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStates));
+            return RemoveDocumentsFromMultipleProjects(documentIds,
+                (projectState, documentId) => { CheckContainsAnalyzerConfigDocument(documentId); return projectState.GetAnalyzerConfigDocumentState(documentId)!; },
+                (oldProject, documentIds, _) =>
+                {
+                    var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
+                    return (newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                });
         }
 
         /// <summary>

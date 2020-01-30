@@ -475,10 +475,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveAnalyzerConfigDocument directly this is
                                 // called, but since we're doing this in one large batch we need to do it now.
                                 _workspace.ClearDocumentData(id);
-                                s = s.RemoveAnalyzerConfigDocument(id);
                             }
 
-                            return s;
+                            return s.RemoveAnalyzerConfigDocuments(ids);
                         },
                         WorkspaceChangeKind.AnalyzerConfigDocumentRemoved);
 

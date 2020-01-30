@@ -800,11 +800,9 @@ namespace Microsoft.CodeAnalysis
                 additionalDocumentStates: _additionalDocumentStates.RemoveRange(documentIds));
         }
 
-        public ProjectState RemoveAnalyzerConfigDocument(DocumentId documentId)
+        public ProjectState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            Debug.Assert(_analyzerConfigDocumentStates.ContainsKey(documentId));
-
-            var newAnalyzerConfigDocumentStates = _analyzerConfigDocumentStates.Remove(documentId);
+            var newAnalyzerConfigDocumentStates = _analyzerConfigDocumentStates.RemoveRange(documentIds);
 
             return CreateNewStateForChangedAnalyzerConfigDocuments(newAnalyzerConfigDocumentStates);
         }

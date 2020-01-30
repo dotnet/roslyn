@@ -940,9 +940,25 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>.
+        /// </summary>
         public Solution RemoveAnalyzerConfigDocument(DocumentId documentId)
         {
-            var newState = _state.RemoveAnalyzerConfigDocument(documentId);
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            return RemoveAnalyzerConfigDocuments(ImmutableArray.Create(documentId));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>s.
+        /// </summary>
+        public Solution RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            var newState = _state.RemoveAnalyzerConfigDocuments(documentIds);
             if (newState == _state)
             {
                 return this;
