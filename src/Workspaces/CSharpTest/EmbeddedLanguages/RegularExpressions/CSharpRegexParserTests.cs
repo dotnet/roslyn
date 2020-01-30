@@ -211,14 +211,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         private static XElement CreateDiagnosticsElement(SourceText text, RegexTree tree)
-        {
-            return new XElement("Diagnostics",
-                                tree.Diagnostics.Select(d =>
-                                    new XElement("Diagnostic",
-                                        new XAttribute("Message", d.Message),
-                                        new XAttribute("Span", d.Span),
-                                        GetTextAttribute(text, d.Span))));
-        }
+            => new XElement("Diagnostics",
+                tree.Diagnostics.Select(d =>
+                    new XElement("Diagnostic",
+                        new XAttribute("Message", d.Message),
+                        new XAttribute("Span", d.Span),
+                        GetTextAttribute(text, d.Span))));
 
         private static XAttribute GetTextAttribute(SourceText text, TextSpan span)
             => new XAttribute("Text", text.ToString(span));
