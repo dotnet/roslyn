@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
@@ -31,10 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public IEnumerable<DocumentId> DocumentIdsRemoved => _documentIdsRemoved;
 
         public bool HasChange => _workspaceChangeKind.HasValue;
-        public WorkspaceChangeKind WorkspaceChangeKind => _workspaceChangeKind.Value;
+        public WorkspaceChangeKind WorkspaceChangeKind => _workspaceChangeKind!.Value;
 
-        public ProjectId WorkspaceChangeProjectId { get; private set; }
-        public DocumentId WorkspaceChangeDocumentId { get; private set; }
+        public ProjectId? WorkspaceChangeProjectId { get; private set; }
+        public DocumentId? WorkspaceChangeDocumentId { get; private set; }
 
         public void UpdateSolutionForDocumentAction(Solution newSolution, WorkspaceChangeKind changeKind, IEnumerable<DocumentId> documentIds)
         {
