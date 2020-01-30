@@ -347,8 +347,6 @@ class Program
         {
             await TestInRegularAndScriptAsync(
             @"
-using System.Threading.Tasks;
-
 class Program
 {
     class Base {}
@@ -365,8 +363,6 @@ class Program
     }
 }",
             @"
-using System.Threading.Tasks;
-
 class Program
 {
     class Base {}
@@ -389,8 +385,6 @@ class Program
         {
             await TestMissingInRegularAndScriptAsync(
             @"
-using System.Threading.Tasks;
-
 class Program
 {
     class Base {}
@@ -447,8 +441,6 @@ class Program
         {
             await TestInRegularAndScriptAsync(
             @"
-using System.Collections.Generic;
-
 class Program
 {
     class Base {}
@@ -464,8 +456,6 @@ class Program
     }
 }",
             @"
-using System.Collections.Generic;
-
 class Program
 {
     class Base {}
@@ -487,8 +477,6 @@ class Program
         {
             await TestMissingInRegularAndScriptAsync(
             @"
-using System.Collections.Generic;
-
 class Program
 {
     class Base {}
@@ -511,8 +499,6 @@ class Program
         {
             await TestInRegularAndScriptAsync(
             @"
-using System.Collections.Generic;
-
 class Program
 {
     class Base {}
@@ -525,8 +511,6 @@ class Program
     }
 }",
             @"
-using System.Collections.Generic;
-
 class Program
 {
     class Base {}
@@ -546,8 +530,6 @@ class Program
         {
             await TestInRegularAndScriptAsync(
             @"
-using System.Collections.Generic;
-
 class Program
 {
     class Base {}
@@ -558,8 +540,6 @@ class Program
     }
 }",
             @"
-using System.Collections.Generic;
-
 class Program
 {
     class Base {}
@@ -697,6 +677,295 @@ class Program
         Func<Base, Base> func = d => d;
         Base b;
         return (Derived)func(b);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task InheritInterfaces1()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    interface Base1 {}
+    interface Base2 {}
+    class Derived : Base1, Base2 {}
+
+    void Foo(Base2 b) {
+        Derived d = [||]b;
+    }
+}",
+            @"
+class Program
+{
+    interface Base1 {}
+    interface Base2 {}
+    class Derived : Base1, Base2 {}
+
+    void Foo(Base2 b) {
+        Derived d = (Derived)b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task InheritInterfaces2()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    interface Base1 {}
+    interface Base2 {}
+    class Derived1 : Base1, Base2 {}
+    class Derived2 : Derived1 {}
+
+    void Foo(Base2 b) {
+        Derived2 d = [||]b;
+    }
+}",
+            @"
+class Program
+{
+    interface Base1 {}
+    interface Base2 {}
+    class Derived1 : Base1, Base2 {}
+    class Derived2 : Derived1 {}
+
+    void Foo(Base2 b) {
+        Derived2 d = (Derived2)b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task InheritInterfaces3()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    interface Base1 {}
+    interface Base2 : Base1 {}
+
+    Base2 Foo(Base1 b) {
+        return [||]b;
+    }
+}",
+            @"
+class Program
+{
+    interface Base1 {}
+    interface Base2 : Base1 {}
+
+    Base2 Foo(Base1 b) {
+        return (Base2)b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task InheritInterfaces4()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    interface Base1 {}
+    interface Base2 : Base1 {}
+
+    void Foo(Base1 b) {
+        Base2 b2 = [||]b;
+    }
+}",
+            @"
+class Program
+{
+    interface Base1 {}
+    interface Base2 : Base1 {}
+
+    void Foo(Base1 b) {
+        Base2 b2 = (Base2)b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task InheritInterfaces5()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    interface Base1 {}
+    interface Base2 : Base1 {}
+
+    void Foo(Base1 b) {
+        Base2 b2 = [||]b;
+    }
+}",
+            @"
+class Program
+{
+    interface Base1 {}
+    interface Base2 : Base1 {}
+
+    void Foo(Base1 b) {
+        Base2 b2 = (Base2)b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task InheritInterfaces6()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    interface Base1 {}
+    interface Base2 : Base1 {}
+    interface Base3 {}
+    class Derived1 : Base2, Base3 {}
+    class Derived2 : Derived1 {}
+
+    void Foo(Derived2 b) {}
+    void M(Base1 b) {
+        Foo([||]b);
+    }
+}",
+            @"
+class Program
+{
+    interface Base1 {}
+    interface Base2 : Base1 {}
+    interface Base3 {}
+    class Derived1 : Base2, Base3 {}
+    class Derived2 : Derived1 {}
+
+    void Foo(Derived2 b) {}
+    void M(Base1 b) {
+        Foo((Derived2)b);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MultipleCandidatesFunction1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base
+    {
+        public void Testing(Base d) { }
+    }
+    class Derived : Base
+    {
+        public void Testing(Derived d) { }
+    }
+
+    void M()
+    {
+        Base b = new Base();
+        Derived d = new Derived();
+        d.Testing([||]b);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MultipleCandidatesFunction2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base {}
+    class Derived1 : Base {}
+    class Derived2 : Derived1 {}
+
+    void Foo(Derived1 b1) {} 
+    void Foo(Derived2 b2) {}
+
+    void M()
+    {
+        Base b = new Base();
+        Foo(b[||]);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MultipleCandidatesFunction3()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    void Foo(Derived b1) {} 
+    void Foo() {}
+
+    void M()
+    {
+        Base b = new Base();
+        Foo([||]b);
+    }
+}",
+            @"
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    void Foo(Derived b1) {} 
+    void Foo() {}
+
+    void M()
+    {
+        Base b = new Base();
+        Foo((Derived)b);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MultipleCandidatesFunction4()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    void Foo(Derived b1) {} 
+    void Foo(int i) {}
+
+    void M()
+    {
+        Base b = new Base();
+        Foo([||]b);
+    }
+}",
+            @"
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    void Foo(Derived b1) {} 
+    void Foo(int i) {}
+
+    void M()
+    {
+        Base b = new Base();
+        Foo((Derived)b);
     }
 }");
         }

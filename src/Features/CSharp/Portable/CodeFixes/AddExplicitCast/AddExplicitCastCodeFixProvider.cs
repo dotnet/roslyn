@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             }
         }
 
+        // Output the current type info of the target node and the conversion type that the target node is going to be casted by
         private void GetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode targetNode, CancellationToken cancellationToken, out ITypeSymbol nodeType, out ITypeSymbol conversionType)
         {
             var nodeInfo = semanticModel.GetTypeInfo(targetNode, cancellationToken);
@@ -87,16 +88,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                 var argumentList = (ArgumentListSyntax)argumentListNode;
 
+                // Find all valid candidates and extract potential conversion types 
                 var potentialConversionTypes = new List<ITypeSymbol> {};
                 foreach (var candidcateSymbol in candidcateSymbols)
                 {
                     var methodSymbol = (IMethodSymbol)candidcateSymbol;
                     var parameterList = methodSymbol.Parameters;
-                    if (parameterList.Length != argumentList.Arguments.Count) 
+                    if (parameterList.Length != argumentList.Arguments.Count)
                     {
                         continue;
                     }
 
+                    // Test if all parameters are convertible, otherwise it is not the perfect match function
                     var allValid = true;
                     for (var i = 0; i < parameterList.Length; i++)
                     {
@@ -116,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     }
                 }
 
+                // If there is no exact solution, then don't provide suggestions
                 if (potentialConversionTypes.Count != 1)
                 {
                     return;
@@ -127,13 +131,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         private bool IsTypeConvertible(ITypeSymbol nodeType, ITypeSymbol conversionType)
         {
-            var iterator = conversionType;
-            while (iterator != null)
+            if (conversionType == null) return false;
+            if (nodeType == conversionType) return true;
+
+            var convertible = false;
+            if (conversionType.Interfaces.Length != 0)
             {
-                if (nodeType == iterator) return true;
-                iterator = iterator.BaseType;
+                foreach(var interface_type in conversionType.Interfaces)
+                {
+                    convertible |= IsTypeConvertible(nodeType, interface_type);
+                }
             }
-            return false;
+            convertible |= IsTypeConvertible(nodeType, conversionType.BaseType);
+
+            return convertible;
         }
 
         private bool CanReplace(SemanticModel semanticModel, SyntaxNode root, SyntaxNode targetNode, CancellationToken cancellationToken)
@@ -181,7 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 (semanticModel, currentRoot, targetNode) =>
                 {
                     GetTypeInfo(semanticModel, currentRoot, targetNode, cancellationToken, out var nodeType, out var conversionType);
-                    if (nodeType != conversionType && conversionType != null && IsTypeConvertible(nodeType, conversionType) && targetNode is ExpressionSyntax expression)
+                    if (nodeType != conversionType && conversionType != null &&
+                        IsTypeConvertible(nodeType, conversionType) &&
+                        targetNode is ExpressionSyntax expression)
                     {
                         var castExpression = expression.Cast(conversionType);
                         return currentRoot.ReplaceNode(expression, castExpression);
