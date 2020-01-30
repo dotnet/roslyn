@@ -1427,7 +1427,5 @@ class TestClass
 
             return null;
         }
-
-        #endregion Infrastructure
     }
 }
