@@ -1568,7 +1568,7 @@ End Class
 ' Project-level suppressions either have no target or are given
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
 ]]>
                             </Document>
                         </Project>
