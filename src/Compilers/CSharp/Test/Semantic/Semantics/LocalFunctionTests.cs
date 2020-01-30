@@ -418,39 +418,30 @@ class C
 {
     void M()
     {
-        void local1() { }
+        [A] void local1() { }
     }
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.RegularPreview);
-            var compilation = CreateCompilation(tree);
-            var model = compilation.GetSemanticModel(tree);
+            var model = CreateCompilation(tree).GetSemanticModel(tree);
+            var attrClass = model
+                .GetDeclaredSymbol(tree.FindNodeOrTokenByKind(SyntaxKind.ClassDeclaration).AsNode())
+                .GetSymbol<NamedTypeSymbol>();
+            Assert.Equal("A", attrClass.Name);
 
-            var localFunction = tree.GetRoot()
-                .DescendantNodes()
-                .OfType<LocalFunctionStatementSyntax>()
-                .Single();
-            var symbol = model.GetDeclaredSymbol(localFunction).GetSymbol<LocalFunctionSymbol>();
-            Assert.Empty(symbol.GetAttributes());
+            var attrSyntax = (AttributeSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.Attribute).AsNode();
+            var attrSymbol = model.GetSymbolInfo(attrSyntax.Name).Symbol.GetSymbol<MethodSymbol>();
+            Assert.Equal(attrClass.Constructors.Single(), attrSymbol);
 
-            var newTree = SyntaxFactory.ParseSyntaxTree(text.Replace("void local1", "[A] void local1"), TestOptions.RegularPreview);
-            var newLocalFunction = newTree.GetRoot()
-                .DescendantNodes()
-                .OfType<LocalFunctionStatementSyntax>()
-                .Single();
-            Assert.Throws<ArgumentException>(() => model.GetDeclaredSymbol(newLocalFunction));
-
+            // Verify with speculative semantic model
+            var newTree = SyntaxFactory.ParseSyntaxTree(text + " ", TestOptions.RegularPreview);
             var newMethod = newTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(newMethod.Body.SpanStart, newMethod, out var speculativeModel));
 
-            var newSymbol = speculativeModel.GetDeclaredSymbol(newLocalFunction).GetSymbol<LocalFunctionSymbol>();
-            var attr = newSymbol.GetAttributes().Single();
-            Assert.Equal("A", attr.AttributeClass.Name);
-
-            var attrName = newLocalFunction.AttributeLists.Single().Attributes.Single().Name;
-            var attrSymbol = speculativeModel.GetSymbolInfo(attrName).Symbol.GetSymbol<NamedTypeSymbol>();
+            var newAttrSyntax = (AttributeSyntax)newTree.FindNodeOrTokenByKind(SyntaxKind.Attribute).AsNode();
+            var speculativeAttr = speculativeModel.GetSymbolInfo(newAttrSyntax.Name).Symbol.GetSymbol<NamedTypeSymbol>();
             // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
-            Assert.Equal(attr.AttributeClass, attrSymbol);
+            Assert.Equal(attrClass, speculativeAttr);
         }
 
         [Fact]
