@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 #if CODE_STYLE
 using Formatter = CodeStyle::Microsoft.CodeAnalysis.Formatting.Formatter;
 using FormatterState = Microsoft.CodeAnalysis.Formatting.ISyntaxFormattingService;
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #else
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;

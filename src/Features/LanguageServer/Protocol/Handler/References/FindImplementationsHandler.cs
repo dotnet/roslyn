@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var context = new SimpleFindUsagesContext(cancellationToken);
 
-            await findUsagesService.FindImplementationsAsync(document, position, context).ConfigureAwait(false);
+            await FindImplementationsAsync(findUsagesService, document, position, context).ConfigureAwait(false);
 
             foreach (var definition in context.GetDefinitions())
             {
@@ -52,5 +52,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return locations.ToArrayAndFree();
         }
+
+        protected virtual Task FindImplementationsAsync(IFindUsagesService findUsagesService, Document document, int position, SimpleFindUsagesContext context)
+            => findUsagesService.FindImplementationsAsync(document, position, context);
     }
 }

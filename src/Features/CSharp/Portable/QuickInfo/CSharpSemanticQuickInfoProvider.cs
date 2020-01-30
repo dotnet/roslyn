@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             if (token.IsKind(SyntaxKind.CloseBracketToken, SyntaxKind.OpenBracketToken) &&
                 token.Parent?.Parent.IsKind(SyntaxKind.ElementAccessExpression) == true)
             {
-                found = token.Parent.Parent;
+                // Suppression is due to issue https://github.com/dotnet/roslyn/issues/41107
+                found = token.Parent.Parent!;
                 return true;
             }
 

@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         {
             if (hierarchy == null)
             {
-                return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projectOpt: null));
+                return Transform(_diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference());
             }
 
             // Analyzers are only supported for C# and VB currently.
@@ -103,7 +103,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             if (projectsWithHierarchy.Count() <= 1)
             {
-                return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projectsWithHierarchy.FirstOrDefault()));
+                var project = projectsWithHierarchy.FirstOrDefault();
+                if (project == null)
+                {
+                    return Transform(_diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference());
+                }
+                else
+                {
+                    return Transform(_diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project));
+                }
             }
             else
             {
@@ -112,16 +120,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 var descriptorsMap = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticDescriptor>>();
                 foreach (var project in projectsWithHierarchy)
                 {
-                    var newDescriptorTuples = _diagnosticService.CreateDiagnosticDescriptorsPerReference(project);
-                    foreach (var kvp in newDescriptorTuples)
+                    var descriptorsPerReference = _diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project);
+                    foreach (var (displayName, descriptors) in descriptorsPerReference)
                     {
-                        if (descriptorsMap.TryGetValue(kvp.Key, out var existingDescriptors))
+                        if (descriptorsMap.TryGetValue(displayName, out var existingDescriptors))
                         {
-                            descriptorsMap[kvp.Key] = existingDescriptors.Concat(kvp.Value).Distinct();
+                            descriptorsMap[displayName] = existingDescriptors.Concat(descriptors).Distinct();
                         }
                         else
                         {
-                            descriptorsMap[kvp.Key] = kvp.Value;
+                            descriptorsMap[displayName] = descriptors;
                         }
                     }
                 }

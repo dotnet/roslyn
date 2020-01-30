@@ -38,15 +38,15 @@ namespace Microsoft.CodeAnalysis.Remote
                     var projectId = arguments.ProjectId;
                     var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(cancellationToken);
 
-                    var result = await new DiagnosticComputer(solution.GetProject(projectId)).GetDiagnosticsAsync(
+                    var result = await new DiagnosticComputer(solution.GetProject(projectId), _analyzerInfoCache).GetDiagnosticsAsync(
                         analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
 
                     await RemoteEndPoint.WriteDataToNamedPipeAsync(pipeName, result, (writer, data, cancellationToken) =>
                     {
-                        var (diagnostics, telemetry, exceptions) = DiagnosticResultSerializer.WriteDiagnosticAnalysisResults(writer, data, cancellationToken);
+                        var (diagnostics, telemetry) = DiagnosticResultSerializer.WriteDiagnosticAnalysisResults(writer, data, cancellationToken);
 
                         // save log for debugging
-                        Log(TraceEventType.Information, $"diagnostics: {diagnostics}, telemetry: {telemetry}, exceptions: {exceptions}");
+                        Log(TraceEventType.Information, $"diagnostics: {diagnostics}, telemetry: {telemetry}");
 
                         return Task.CompletedTask;
                     }, cancellationToken).ConfigureAwait(false);
@@ -71,12 +71,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     service.AddSnapshot(snapshot, unitCount);
                 }
             }, cancellationToken);
-        }
-
-        private static string GetResultLogInfo(DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result)
-        {
-            // for now, simple logging
-            return $"Analyzer: {result.AnalysisResult.Count}, Telemetry: {result.TelemetryInfo.Count}, Exceptions: {result.Exceptions.Count}";
         }
     }
 }

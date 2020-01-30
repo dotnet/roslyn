@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis
 
             var newProjectIds = _projectIds.ToImmutableArray().Remove(projectId);
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
-            var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
+            var newDependencyGraph = _dependencyGraph.WithProjectRemoved(projectId);
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithRemovedProject(_projectIdToProjectStateMap[projectId]);
 
@@ -957,7 +957,19 @@ namespace Microsoft.CodeAnalysis
             var oldProject = this.GetProjectState(projectId)!;
             var newProject = oldProject.RemoveProjectReference(projectReference);
 
-            return this.ForkProject(newProject, newDependencyGraph: _dependencyGraph.WithProjectReferences(projectId, newProject.ProjectReferences.Select(p => p.ProjectId)));
+            ProjectDependencyGraph newDependencyGraph;
+            if (newProject.ContainsReferenceToProject(projectReference.ProjectId))
+            {
+                // The project contained multiple references to the project, and not all of them were removed. The
+                // dependency graph doesn't change.
+                newDependencyGraph = _dependencyGraph;
+            }
+            else
+            {
+                newDependencyGraph = _dependencyGraph.WithProjectReferenceRemoved(projectId, projectReference.ProjectId);
+            }
+
+            return this.ForkProject(newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
@@ -1794,31 +1806,49 @@ namespace Microsoft.CodeAnalysis
             var map = projectStates.Values.Select(state => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(
                     state.Id,
                     state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
+                    .Where(pair => !pair.Value.IsEmpty)
                     .ToImmutableDictionary();
 
             return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
         }
 
-        private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId projectId, ProjectDependencyGraph dependencyGraph)
+        private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
         {
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, CompilationTracker>();
-            var dependencies = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
+            IEnumerable<ProjectId>? dependencies = null;
 
-            foreach (var projectIdAndTracker in _projectIdToTrackerMap)
+            foreach (var (id, tracker) in _projectIdToTrackerMap)
             {
-                var id = projectIdAndTracker.Key;
-                var tracker = projectIdAndTracker.Value;
-
                 if (!tracker.HasCompilation)
                 {
                     continue;
                 }
 
-                var canReuse = id == projectId || !dependencies.Contains(id);
-                builder.Add(id, canReuse ? tracker : tracker.Fork(tracker.ProjectState));
+                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(tracker.ProjectState));
             }
 
             return builder.ToImmutable();
+
+            // Returns true if 'tracker' can be reused for project 'id'
+            bool CanReuse(ProjectId id)
+            {
+                if (id == changedProjectId)
+                    return true;
+
+                // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
+                // If the information is not available, do not compute it.
+                var forwardDependencies = dependencyGraph.TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
+                if (forwardDependencies is object && !forwardDependencies.Contains(changedProjectId))
+                {
+                    return true;
+                }
+
+                // Compute the set of all projects that depend on 'projectId'. This information answers the same
+                // question as the previous check, but involves at most one transitive computation within the
+                // dependency graph.
+                dependencies ??= dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(changedProjectId);
+                return !dependencies.Contains(id);
+            }
         }
 
         /// <summary>
