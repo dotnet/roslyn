@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -91,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         protected override SyntaxNode AddGlobalSuppressMessageAttribute(
             SyntaxNode newRoot,
             ISymbol targetSymbol,
+            INamedTypeSymbol suppressMessageAttribute,
             Diagnostic diagnostic,
             Workspace workspace,
             Compilation compilation,
@@ -100,37 +102,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             var compilationRoot = (CompilationUnitSyntax)newRoot;
             var isFirst = !compilationRoot.AttributeLists.Any();
 
-            var fullAttributeName = (QualifiedNameSyntax)SyntaxFactory.ParseName(SuppressMessageAttributeName);
-            var usingDirective = SyntaxFactory.UsingDirective(fullAttributeName.Left);
-
-            var hasUsingDirective = addImportsService.HasExistingImport(compilation, compilationRoot, contextLocation: null, usingDirective);
-            if (!hasUsingDirective && isFirst)
-            {
-                compilationRoot = Format(compilationRoot.AddUsings(usingDirective));
-                hasUsingDirective = true;
-            }
+            var attributeName = suppressMessageAttribute.GenerateNameSyntax()
+                                                        .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation);
 
             compilationRoot = compilationRoot.AddAttributeLists(
-                Format(CreateAttributeList(
+                CreateAttributeList(
                     targetSymbol,
+                    attributeName,
                     diagnostic,
                     isAssemblyAttribute: true,
                     leadingTrivia: default,
-                    needsLeadingEndOfLine: true,
-                    hasUsingDirective ? (NameSyntax)fullAttributeName.Right : fullAttributeName)));
+                    needsLeadingEndOfLine: true));
 
             if (isFirst && !newRoot.HasLeadingTrivia)
                 compilationRoot = compilationRoot.WithLeadingTrivia(SyntaxFactory.Comment(GlobalSuppressionsFileHeaderComment));
 
             return compilationRoot;
-
-            T Format<T>(T node) where T : SyntaxNode
-            {
-                return (T)Formatter.Format(node, workspace, cancellationToken: cancellationToken);
-            }
         }
 
-        protected override SyntaxNode AddLocalSuppressMessageAttribute(SyntaxNode targetNode, ISymbol targetSymbol, Diagnostic diagnostic)
+        protected override SyntaxNode AddLocalSuppressMessageAttribute(
+            SyntaxNode targetNode, ISymbol targetSymbol, INamedTypeSymbol suppressMessageAttribute, Diagnostic diagnostic)
         {
             var memberNode = (MemberDeclarationSyntax)targetNode;
 
@@ -148,19 +139,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
                 needsLeadingEndOfLine = true;
             }
 
-            var attributeList = CreateAttributeList(targetSymbol, diagnostic, isAssemblyAttribute: false, leadingTrivia: leadingTriviaForAttributeList, needsLeadingEndOfLine: needsLeadingEndOfLine);
+            var attributeName = suppressMessageAttribute.GenerateNameSyntax();
+            var attributeList = CreateAttributeList(
+                targetSymbol, attributeName, diagnostic, isAssemblyAttribute: false, leadingTrivia: leadingTriviaForAttributeList, needsLeadingEndOfLine: needsLeadingEndOfLine);
             return memberNode.AddAttributeLists(attributeList);
         }
 
         private AttributeListSyntax CreateAttributeList(
             ISymbol targetSymbol,
+            NameSyntax attributeName,
             Diagnostic diagnostic,
             bool isAssemblyAttribute,
             SyntaxTriviaList leadingTrivia,
-            bool needsLeadingEndOfLine,
-            NameSyntax attributeName = null)
+            bool needsLeadingEndOfLine)
         {
-            attributeName ??= SyntaxFactory.ParseName(SuppressMessageAttributeName).WithAdditionalAnnotations(Simplifier.Annotation);
             var attributeArguments = CreateAttributeArguments(targetSymbol, diagnostic, isAssemblyAttribute);
 
             var attributes = new SeparatedSyntaxList<AttributeSyntax>()
