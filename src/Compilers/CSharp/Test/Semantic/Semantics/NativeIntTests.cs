@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -44,6 +45,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Fact]
+        public void FromMetadata()
+        {
+            var source =
+@"interface I
+{
+    void F1(System.IntPtr x, nint y);
+    void F2(System.UIntPtr x, nuint y);
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var nodes = tree.GetRoot().DescendantNodes().ToArray();
+            var model = comp.GetSemanticModel(tree);
+            var methodDeclarations = nodes.OfType<MethodDeclarationSyntax>().ToArray();
+
+            var method = model.GetDeclaredSymbol(methodDeclarations[0]);
+            Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(FormatWithSpecialTypes));
+            VerifyTypes(method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>(), method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>(), signed: true);
+
+            method = model.GetDeclaredSymbol(methodDeclarations[1]);
+            Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
+            VerifyTypes(method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>(), method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>(), signed: false);
+        }
+
+        [Fact]
         public void FromSource()
         {
             var sourceA =
@@ -58,7 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var sourceB =
 @"interface I
 {
-    nint Add(nint x, nuint y);
+    void F1(System.IntPtr x, nint y);
+    void F2(System.UIntPtr x, nuint y);
 }";
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
@@ -66,27 +94,111 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             comp = CreateEmptyCompilation(sourceA);
             comp.VerifyDiagnostics();
-            var refA = comp.EmitToImageReference();
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            var ref1 = new CSharpCompilationReference(comp);
+            var ref2 = comp.EmitToImageReference();
+
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            verify(comp, comp.SyntaxTrees[0]);
+
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
             verify(comp, comp.SyntaxTrees[0]);
 
             static void verify(CSharpCompilation comp, SyntaxTree tree)
             {
                 var nodes = tree.GetRoot().DescendantNodes().ToArray();
                 var model = comp.GetSemanticModel(tree);
-                var method = model.GetDeclaredSymbol(nodes.OfType<MethodDeclarationSyntax>().Single());
-                Assert.Equal("nint I.Add(nint x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
-                var type0 = method.Parameters[0].Type;
-                var type1 = method.Parameters[1].Type;
-                Assert.Equal(SpecialType.System_IntPtr, type0.SpecialType);
-                Assert.True(IsNativeInt(type0));
-                Assert.Equal(SymbolKind.NamedType, type0.Kind);
-                Assert.Equal(TypeKind.Struct, type0.TypeKind);
-                Assert.Equal(SpecialType.System_UIntPtr, type1.SpecialType);
-                Assert.True(IsNativeInt(type1));
-                Assert.Equal(SymbolKind.NamedType, type1.Kind);
-                Assert.Equal(TypeKind.Struct, type1.TypeKind);
+                var methodDeclarations = nodes.OfType<MethodDeclarationSyntax>().ToArray();
+
+                var method = model.GetDeclaredSymbol(methodDeclarations[0]);
+                Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(FormatWithSpecialTypes));
+                VerifyTypes(method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>(), method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>(), signed: true);
+
+                method = model.GetDeclaredSymbol(methodDeclarations[1]);
+                Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
+                VerifyTypes(method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>(), method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>(), signed: false);
             }
+        }
+
+        private static void VerifyTypes(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType, bool signed)
+        {
+            var specialType = signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr;
+
+            Assert.Equal(specialType, underlyingType.SpecialType);
+            Assert.Equal(SymbolKind.NamedType, underlyingType.Kind);
+            Assert.Equal(TypeKind.Struct, underlyingType.TypeKind);
+            Assert.Same(underlyingType, underlyingType.ConstructedFrom);
+            Assert.False(underlyingType.IsNativeInt);
+
+            Assert.Equal(specialType, nativeIntegerType.SpecialType);
+            Assert.Equal(SymbolKind.NamedType, nativeIntegerType.Kind);
+            Assert.Equal(TypeKind.Struct, nativeIntegerType.TypeKind);
+            Assert.Same(nativeIntegerType, nativeIntegerType.ConstructedFrom);
+            Assert.True(nativeIntegerType.IsNativeInt);
+
+            Assert.Empty(nativeIntegerType.MemberNames);
+            Assert.Empty(nativeIntegerType.GetTypeMembers());
+            Assert.Empty(nativeIntegerType.GetMembers());
+
+            // PROTOTYPE: Include certain interfaces defined on the underlying type.
+            Assert.Empty(nativeIntegerType.InterfacesNoUseSiteDiagnostics());
+
+            Assert.Same(underlyingType, underlyingType.AsNativeInt(false));
+            Assert.Same(nativeIntegerType, nativeIntegerType.AsNativeInt(true));
+            Assert.Equal(nativeIntegerType, underlyingType.AsNativeInt(true));
+            Assert.Equal(underlyingType, nativeIntegerType.AsNativeInt(false));
+            VerifyEqualButDistinct(underlyingType, underlyingType.AsNativeInt(true));
+            VerifyEqualButDistinct(nativeIntegerType, nativeIntegerType.AsNativeInt(false));
+            VerifyEqualButDistinct(underlyingType, nativeIntegerType);
+        }
+
+        private static void VerifyMembers(NamedTypeSymbol type)
+        {
+            var memberNames = type.MemberNames;
+            var allMembers = type.GetMembers();
+
+            foreach (var member in allMembers)
+            {
+                Assert.Contains(member.Name, memberNames);
+                verifyMember(type, member);
+            }
+
+            var unorderedMembers = type.GetMembersUnordered();
+            Assert.Equal(allMembers.Length, unorderedMembers.Length);
+            verifyMembers(type, allMembers, unorderedMembers);
+
+            foreach (var memberName in memberNames)
+            {
+                var members = type.GetMembers(memberName);
+                Assert.False(members.IsDefaultOrEmpty);
+                verifyMembers(type, allMembers, members);
+            }
+
+            static void verifyMembers(NamedTypeSymbol type, ImmutableArray<Symbol> allMembers, ImmutableArray< Symbol> members)
+            {
+                foreach (var member in members)
+                {
+                    Assert.Contains(member, allMembers);
+                    verifyMember(type, member);
+                }
+            }
+
+            static void verifyMember(NamedTypeSymbol type, Symbol member)
+            {
+                Assert.Same(type, member.ContainingSymbol);
+                Assert.Same(type, member.ContainingType);
+            }
+        }
+
+        private static void VerifyEqualButDistinct(NamedTypeSymbol type, NamedTypeSymbol other)
+        {
+            Assert.NotSame(type, other);
+            Assert.Equal(type, other);
+            Assert.Equal(other, type);
+            Assert.True(type.Equals(other, TypeCompareKind.ConsiderEverything));
+            Assert.True(other.Equals(type, TypeCompareKind.ConsiderEverything));
+            Assert.Equal(type.GetHashCode(), other.GetHashCode());
         }
 
         [Fact]
@@ -102,38 +214,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var sourceB =
 @"interface I
 {
-    nint Add(nint x, nuint y);
+    void F1(System.IntPtr x, nint y);
+    void F2(System.UIntPtr x, nuint y);
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (3,5): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
-                //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint").WithArguments("System.IntPtr").WithLocation(3, 5),
-                // (3,14): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
-                //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint").WithArguments("System.IntPtr").WithLocation(3, 14),
-                // (3,22): error CS0518: Predefined type 'System.UIntPtr' is not defined or imported
-                //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nuint").WithArguments("System.UIntPtr").WithLocation(3, 22));
-            verify(comp);
-
-            static void verify(CSharpCompilation comp)
+            var diagnostics = new[]
             {
-                var tree = comp.SyntaxTrees[1];
+                // (3,20): error CS0234: The type or namespace name 'IntPtr' does not exist in the namespace 'System' (are you missing an assembly reference?)
+                //     void F1(System.IntPtr x, nint y);
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IntPtr").WithArguments("IntPtr", "System").WithLocation(3, 20),
+                // (3,30): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                //     void F1(System.IntPtr x, nint y);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint").WithArguments("System.IntPtr").WithLocation(3, 30),
+                // (4,20): error CS0234: The type or namespace name 'UIntPtr' does not exist in the namespace 'System' (are you missing an assembly reference?)
+                //     void F2(System.UIntPtr x, nuint y);
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "UIntPtr").WithArguments("UIntPtr", "System").WithLocation(4, 20),
+                // (4,31): error CS0518: Predefined type 'System.UIntPtr' is not defined or imported
+                //     void F2(System.UIntPtr x, nuint y);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nuint").WithArguments("System.UIntPtr").WithLocation(4, 31)
+            };
+
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(diagnostics);
+            verify(comp, comp.SyntaxTrees[1]);
+
+            comp = CreateEmptyCompilation(sourceA);
+            comp.VerifyDiagnostics();
+            var ref1 = new CSharpCompilationReference(comp);
+            var ref2 = comp.EmitToImageReference();
+
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(diagnostics);
+            verify(comp, comp.SyntaxTrees[0]);
+
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(diagnostics);
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
                 var nodes = tree.GetRoot().DescendantNodes().ToArray();
                 var model = comp.GetSemanticModel(tree);
-                var method = model.GetDeclaredSymbol(nodes.OfType<MethodDeclarationSyntax>().Single());
-                Assert.Equal("nint I.Add(nint x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
-                var type0 = method.Parameters[0].Type;
-                var type1 = method.Parameters[1].Type;
-                Assert.Equal(SpecialType.System_IntPtr, type0.SpecialType);
-                Assert.Equal(SymbolKind.ErrorType, type0.Kind);
-                Assert.Equal(TypeKind.Error, type0.TypeKind);
-                Assert.True(IsNativeInt(type0));
-                Assert.Equal(SpecialType.System_UIntPtr, type1.SpecialType);
-                Assert.True(IsNativeInt(type1));
-                Assert.Equal(SymbolKind.ErrorType, type1.Kind);
-                Assert.Equal(TypeKind.Error, type1.TypeKind);
+                var methodDeclarations = nodes.OfType<MethodDeclarationSyntax>().ToArray();
+
+                var method = model.GetDeclaredSymbol(methodDeclarations[0]);
+                Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(FormatWithSpecialTypes));
+                verifyTypes(method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>(), method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>(), signed: true);
+
+                method = model.GetDeclaredSymbol(methodDeclarations[1]);
+                Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
+                verifyTypes(method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>(), method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>(), signed: false);
+            }
+
+            static void verifyTypes(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType, bool signed)
+            {
+                Assert.Equal(SpecialType.None, underlyingType.SpecialType);
+                Assert.Equal(SymbolKind.ErrorType, underlyingType.Kind);
+                Assert.Equal(TypeKind.Error, underlyingType.TypeKind);
+                Assert.False(underlyingType.IsNativeInt);
+
+                var specialType = signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr;
+                Assert.Equal(specialType, nativeIntegerType.SpecialType);
+                Assert.Equal(SymbolKind.ErrorType, nativeIntegerType.Kind);
+                Assert.Equal(TypeKind.Error, nativeIntegerType.TypeKind);
+                Assert.True(nativeIntegerType.IsNativeInt);
+                Assert.Same(nativeIntegerType, nativeIntegerType.AsNativeInt(true));
+                VerifyEqualButDistinct(nativeIntegerType, nativeIntegerType.AsNativeInt(false));
             }
         }
 
@@ -177,12 +322,12 @@ interface I
                 Assert.Equal(SpecialType.None, type.SpecialType);
                 var method = model.GetDeclaredSymbol(nodes.OfType<MethodDeclarationSyntax>().Single());
                 Assert.Equal("nint I.Add(nint x, System.UIntPtr y)", method.ToTestDisplayString());
-                var type0 = method.Parameters[0].Type;
-                var type1 = method.Parameters[1].Type;
+                var type0 = method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>();
+                var type1 = method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>();
                 Assert.Equal(SpecialType.None, type0.SpecialType);
-                Assert.False(IsNativeInt(type0));
+                Assert.False(type0.IsNativeInt);
                 Assert.Equal(SpecialType.System_UIntPtr, type1.SpecialType);
-                Assert.True(IsNativeInt(type1));
+                Assert.True(type1.IsNativeInt);
             }
         }
 
@@ -214,18 +359,13 @@ interface I
                 var model = comp.GetSemanticModel(tree);
                 var method = model.GetDeclaredSymbol(nodes.OfType<MethodDeclarationSyntax>().Single());
                 Assert.Equal("System.Int16 I.Add(System.Int16 x, System.UIntPtr y)", method.ToTestDisplayString());
-                var type0 = method.Parameters[0].Type;
-                var type1 = method.Parameters[1].Type;
+                var type0 = method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>();
+                var type1 = method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>();
                 Assert.Equal(SpecialType.System_Int16, type0.SpecialType);
-                Assert.False(IsNativeInt(type0));
+                Assert.False(type0.IsNativeInt);
                 Assert.Equal(SpecialType.System_UIntPtr, type1.SpecialType);
-                Assert.True(IsNativeInt(type1));
+                Assert.True(type1.IsNativeInt);
             }
-        }
-
-        private static bool IsNativeInt(ITypeSymbol type)
-        {
-            return type.GetSymbol<NamedTypeSymbol>()?.IsNativeInt == true;
         }
 
         // PROTOTYPE: nint and nuint should be allowed.
