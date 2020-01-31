@@ -176,9 +176,32 @@ namespace Analyzer.Utilities
                 var split = name.Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries);
 
                 // If we don't find exactly one '->', we assume that there is no given suffix.
-                return split.Length == 2
-                    ? new SymbolNamesOption.NameParts(split[0], split[1])
-                    : new SymbolNamesOption.NameParts(name);
+                if (split.Length != 2)
+                {
+                    return new SymbolNamesOption.NameParts(name);
+                }
+
+                // Note that we do not validate if the suffix will give a valid class name.
+                var trimmedSuffix = split[1].Trim();
+
+                // Check if the given suffix is the special suffix symbol "{[ ]*?}" (opening curly brace '{', 0..N spaces and a closing curly brace '}')
+                if (trimmedSuffix.Length >= 2 &&
+                    trimmedSuffix[0] == '{' &&
+                    trimmedSuffix[trimmedSuffix.Length - 1] == '}')
+                {
+                    for (int i = 1; i < trimmedSuffix.Length - 2; i++)
+                    {
+                        if (trimmedSuffix[i] != ' ')
+                        {
+                            return new SymbolNamesOption.NameParts(split[0], trimmedSuffix);
+                        }
+                    }
+
+                    // Replace the special empty suffix symbol by an empty string
+                    return new SymbolNamesOption.NameParts(split[0], string.Empty);
+                }
+
+                return new SymbolNamesOption.NameParts(split[0], trimmedSuffix);
             }
         }
 
