@@ -102,6 +102,11 @@
         <target state="translated">Le paramètre de type '{1}' a la contrainte 'unmanaged'. '{1}' ne peut donc pas être utilisé comme contrainte pour '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConditionalOnLocalFunction">
+        <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
+        <target state="new">Local function '{0}' must be 'static' in order to use the Conditional attribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
         <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
         <target state="translated">Une expression de type '{0}' ne peut pas être prise en charge par un modèle de type '{1}'. Utilisez la version de langage '{2}' ou une version ultérieure pour faire correspondre un type ouvert à un modèle de constante.</target>

@@ -1029,6 +1029,9 @@
   <data name="ERR_ConditionalOnOverride" xml:space="preserve">
     <value>The Conditional attribute is not valid on '{0}' because it is an override method</value>
   </data>
+  <data name="ERR_ConditionalOnLocalFunction" xml:space="preserve">
+    <value>Local function '{0}' must be 'static' in order to use the Conditional attribute</value>
+  </data>
   <data name="ERR_PointerInAsOrIs" xml:space="preserve">
     <value>Neither 'is' nor 'as' is valid on pointer types</value>
   </data>

@@ -572,6 +572,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS0685: Conditional member '{0}' cannot have an out parameter
                 diagnostics.Add(ErrorCode.ERR_ConditionalWithOutParam, node.Location, this);
             }
+            else if (this is { MethodKind: MethodKind.LocalFunction, IsStatic: false })
+            {
+                diagnostics.Add(ErrorCode.ERR_ConditionalOnLocalFunction, node.Location, this);
+            }
             else
             {
                 string name = attribute.GetConstructorArgument<string>(0, SpecialType.System_String);

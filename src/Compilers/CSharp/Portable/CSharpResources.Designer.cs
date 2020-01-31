@@ -3130,6 +3130,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A local function must be &apos;static&apos; in order to use the Conditional attribute.
+        /// </summary>
+        internal static string ERR_ConditionalOnLocalFunction {
+            get {
+                return ResourceManager.GetString("ERR_ConditionalOnLocalFunction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is only valid on methods or attribute classes.
         /// </summary>
         internal static string ERR_ConditionalOnNonAttributeClass {
@@ -3706,7 +3715,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The DllImport attribute cannot be applied to a method that is generic or contained in a generic type..
+        ///   Looks up a localized string similar to The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type..
         /// </summary>
         internal static string ERR_DllImportOnGenericMethod {
             get {
