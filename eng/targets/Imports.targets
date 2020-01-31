@@ -39,9 +39,9 @@
     <BypassFrameworkInstallChecks>true</BypassFrameworkInstallChecks>
   </PropertyGroup>
 
-  <!-- Add the UnitTestContainer project capability -->
+  <!-- Add the TestContainer project capability -->
   <ItemGroup Condition="'$(IsTestProject)' == 'true'">
-    <ProjectCapability Include="UnitTestContainer" />
+    <ProjectCapability Include="TestContainer" />
   </ItemGroup>
 
   <!-- 
