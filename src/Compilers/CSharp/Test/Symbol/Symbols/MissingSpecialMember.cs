@@ -599,6 +599,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder:
                     case WellKnownType.System_Threading_CancellationToken:
                     case WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException:
+                    case WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -950,6 +951,8 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject:
+                    case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

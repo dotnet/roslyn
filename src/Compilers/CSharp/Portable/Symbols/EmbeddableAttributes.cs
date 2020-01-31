@@ -15,5 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         NullableAttribute = 0x08,
         NullableContextAttribute = 0x10,
         NullablePublicOnlyAttribute = 0x20,
+        NativeIntegerAttribute = 0x40,
     }
 }

@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedNullableAttributeSymbol _lazyNullableAttribute;
         private SynthesizedEmbeddedNullableContextAttributeSymbol _lazyNullableContextAttribute;
         private SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol _lazyNullablePublicOnlyAttribute;
+        private SynthesizedEmbeddedNativeIntegerAttributeSymbol _lazyNativeIntegerAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -94,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddIfNotNull(_lazyNullableAttribute);
             builder.AddIfNotNull(_lazyNullableContextAttribute);
             builder.AddIfNotNull(_lazyNullablePublicOnlyAttribute);
+            builder.AddIfNotNull(_lazyNativeIntegerAttribute);
 
             return builder.ToImmutableAndFree();
         }
@@ -231,6 +233,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeNullablePublicOnlyAttribute(arguments);
         }
 
+        internal override SynthesizedAttributeData SynthesizeNativeIntegerAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        {
+            if ((object)_lazyNativeIntegerAttribute != null)
+            {
+                var constructorIndex = (member == WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags) ? 1 : 0;
+                return new SynthesizedAttributeData(
+                    _lazyNativeIntegerAttribute.Constructors[constructorIndex],
+                    arguments,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeNativeIntegerAttribute(member, arguments);
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             if ((object)_lazyIsReadOnlyAttribute != null)
@@ -345,6 +361,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     AttributeDescription.NullablePublicOnlyAttribute,
                     CreateNullablePublicOnlyAttributeSymbol);
             }
+
+            if ((needsAttributes & EmbeddableAttributes.NativeIntegerAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyNativeIntegerAttribute,
+                    diagnostics,
+                    AttributeDescription.NativeIntegerAttribute,
+                    CreateNativeIntegerAttributeSymbol);
+            }
         }
 
         private SynthesizedEmbeddedAttributeSymbol CreateParameterlessEmbeddedAttributeSymbol(string name, NamespaceSymbol containingNamespace, DiagnosticBag diagnostics)
@@ -372,6 +397,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol CreateNullablePublicOnlyAttributeSymbol(string name, NamespaceSymbol containingNamespace, DiagnosticBag diagnostics)
             => new SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol(
+                    name,
+                    containingNamespace,
+                    SourceModule,
+                    GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
+                    GetSpecialType(SpecialType.System_Boolean, diagnostics));
+
+        private SynthesizedEmbeddedNativeIntegerAttributeSymbol CreateNativeIntegerAttributeSymbol(string name, NamespaceSymbol containingNamespace, DiagnosticBag diagnostics)
+            => new SynthesizedEmbeddedNativeIntegerAttributeSymbol(
                     name,
                     containingNamespace,
                     SourceModule,
