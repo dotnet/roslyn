@@ -153,44 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             VerifyEqualButDistinct(underlyingType, nativeIntegerType);
         }
 
-        private static void VerifyMembers(NamedTypeSymbol type)
-        {
-            var memberNames = type.MemberNames;
-            var allMembers = type.GetMembers();
-
-            foreach (var member in allMembers)
-            {
-                Assert.Contains(member.Name, memberNames);
-                verifyMember(type, member);
-            }
-
-            var unorderedMembers = type.GetMembersUnordered();
-            Assert.Equal(allMembers.Length, unorderedMembers.Length);
-            verifyMembers(type, allMembers, unorderedMembers);
-
-            foreach (var memberName in memberNames)
-            {
-                var members = type.GetMembers(memberName);
-                Assert.False(members.IsDefaultOrEmpty);
-                verifyMembers(type, allMembers, members);
-            }
-
-            static void verifyMembers(NamedTypeSymbol type, ImmutableArray<Symbol> allMembers, ImmutableArray< Symbol> members)
-            {
-                foreach (var member in members)
-                {
-                    Assert.Contains(member, allMembers);
-                    verifyMember(type, member);
-                }
-            }
-
-            static void verifyMember(NamedTypeSymbol type, Symbol member)
-            {
-                Assert.Same(type, member.ContainingSymbol);
-                Assert.Same(type, member.ContainingType);
-            }
-        }
-
         private static void VerifyEqualButDistinct(NamedTypeSymbol type, NamedTypeSymbol other)
         {
             Assert.NotSame(type, other);
