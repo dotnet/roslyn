@@ -187,11 +187,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public void UpdateText(SourceText newText)
            => _buffers.UpdateText(newText, _workspace.CurrentSolution);
 
-        public IEnumerable<TextSpan> GetEditorVisibleSpans()
-            => _buffers.GetEditorVisibleSpans();
+        internal IEnumerable<TextChange> FilterFormattedChanges(TextSpan span, IList<TextChange> changes)
+            => _buffers.FilterFormattedChanges(span, changes);
 
-        public BaseIndentationFormattingRule GetBaseIndentationRule(SyntaxNode root, SourceText text, List<TextSpan> spans, int spanIndex)
-            => _buffers.GetBaseIndentationRule(root, text, spans, spanIndex);
+        internal AbstractFormattingRule CreateFormattingRule(Document document, int position)
+            => _buffers.CreateFormattingRule(document, position);
     }
 
     internal sealed class ContainedDocumentBuffers
@@ -755,7 +755,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return Span.FromBounds(start, end);
         }
 
-        public IEnumerable<TextSpan> GetEditorVisibleSpans()
+        private IEnumerable<TextSpan> GetEditorVisibleSpans()
         {
             var subjectBuffer = (IProjectionBuffer)SubjectBuffer;
 
@@ -809,6 +809,79 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             edit.ApplyAndLogExceptions();
+        }
+
+        internal AbstractFormattingRule CreateFormattingRule(Document document, int position)
+        {
+            Contract.ThrowIfFalse(document.Id != DocumentId);
+
+            var textContainer = document.GetTextSynchronously(CancellationToken.None).Container;
+            if (!(textContainer.TryGetTextBuffer() is IProjectionBuffer))
+            {
+                return NoOpFormattingRule.Instance;
+            }
+
+            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
+            if (root == null)
+            {
+                return NoOpFormattingRule.Instance;
+            }
+
+            var editorOptions = _editorOptionsFactory.GetOptions(DataBuffer);
+            int indentationSize = editorOptions.GetIndentSize();
+
+            using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
+            var spans = pooledObject.Object;
+
+            var text = root.SyntaxTree.GetText(CancellationToken.None);
+
+            spans.AddRange(GetEditorVisibleSpans());
+
+            for (var i = 0; i < spans.Count; i++)
+            {
+                var visibleSpan = spans[i];
+                if (visibleSpan.IntersectsWith(position) || visibleSpan.End == position)
+                {
+                    return GetBaseIndentationRule(root, text, spans, i, indentationSize);
+                }
+            }
+
+            // in razor (especially in @helper tag), it is possible for us to be asked for next line of visible span
+            var line = text.Lines.GetLineFromPosition(position);
+            if (line.LineNumber > 0)
+            {
+                line = text.Lines[line.LineNumber - 1];
+
+                // find one that intersects with previous line
+                for (var i = 0; i < spans.Count; i++)
+                {
+                    var visibleSpan = spans[i];
+                    if (visibleSpan.IntersectsWith(line.Span))
+                    {
+                        return GetBaseIndentationRule(root, text, spans, i, indentationSize);
+                    }
+                }
+            }
+
+            throw new InvalidOperationException($"Can't find an intersection. Visible spans count: {spans.Count}");
+        }
+
+        internal IEnumerable<TextChange> FilterFormattedChanges(TextSpan span, IList<TextChange> changes)
+        {
+            // in case of a Venus, when format document command is issued, Venus will call format API with each script block spans.
+            // in that case, we need to make sure formatter doesn't overstep other script blocks content. in actual format selection case,
+            // we need to format more than given selection otherwise, we will not adjust indentation of first token of the given selection.
+            foreach (var visibleSpan in GetEditorVisibleSpans())
+            {
+                if (visibleSpan != span)
+                {
+                    continue;
+                }
+
+                return changes.Where(c => span.IntersectsWith(c.Span));
+            }
+
+            return changes;
         }
 
         internal void AdjustIndentation(IEnumerable<int> visibleSpanIndex, Solution solution)
@@ -887,14 +960,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             {
                 edit.Replace(change.Span.ToSpan(), change.NewText);
             }
-        }
-
-        // TODO: remove
-        public BaseIndentationFormattingRule GetBaseIndentationRule(SyntaxNode root, SourceText text, List<TextSpan> spans, int spanIndex)
-        {
-            var editorOptions = _editorOptionsFactory.GetOptions(DataBuffer);
-            int indentationSize = editorOptions.GetIndentSize();
-            return GetBaseIndentationRule(root, text, spans, spanIndex, indentationSize);
         }
 
         public BaseIndentationFormattingRule GetBaseIndentationRule(SyntaxNode root, SourceText text, List<TextSpan> spans, int spanIndex, int indentationSize)

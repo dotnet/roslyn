@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -14,9 +12,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
-using Microsoft.VisualStudio.Text.Projection;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -53,90 +48,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public AbstractFormattingRule CreateRule(Document document, int position)
             {
-                if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
+                try
                 {
-                    return NoOpFormattingRule.Instance;
-                }
-
-                var containedDocument = visualStudioWorkspace.TryGetContainedDocument(document.Id);
-                if (containedDocument == null)
-                {
-                    return NoOpFormattingRule.Instance;
-                }
-
-                var textContainer = document.GetTextSynchronously(CancellationToken.None).Container;
-                if (!(textContainer.TryGetTextBuffer() is IProjectionBuffer))
-                {
-                    return NoOpFormattingRule.Instance;
-                }
-
-                using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
-                var spans = pooledObject.Object;
-
-                var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
-                var text = root.SyntaxTree.GetText(CancellationToken.None);
-
-                spans.AddRange(containedDocument.GetEditorVisibleSpans());
-
-                for (var i = 0; i < spans.Count; i++)
-                {
-                    var visibleSpan = spans[i];
-                    if (visibleSpan.IntersectsWith(position) || visibleSpan.End == position)
+                    if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
                     {
-                        return containedDocument.GetBaseIndentationRule(root, text, spans, i);
+                        return NoOpFormattingRule.Instance;
                     }
-                }
 
-                // in razor (especially in @helper tag), it is possible for us to be asked for next line of visible span
-                var line = text.Lines.GetLineFromPosition(position);
-                if (line.LineNumber > 0)
-                {
-                    line = text.Lines[line.LineNumber - 1];
-
-                    // find one that intersects with previous line
-                    for (var i = 0; i < spans.Count; i++)
+                    var containedDocument = visualStudioWorkspace.TryGetContainedDocument(document.Id);
+                    if (containedDocument == null)
                     {
-                        var visibleSpan = spans[i];
-                        if (visibleSpan.IntersectsWith(line.Span))
-                        {
-                            return containedDocument.GetBaseIndentationRule(root, text, spans, i);
-                        }
+                        return NoOpFormattingRule.Instance;
                     }
+
+                    return containedDocument.CreateFormattingRule(document, position);
                 }
-
-                FatalError.ReportWithoutCrash(
-                    new InvalidOperationException($"Can't find an intersection. Visible spans count: {spans.Count}"));
-
-                return NoOpFormattingRule.Instance;
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                {
+                    return NoOpFormattingRule.Instance;
+                }
             }
 
             public IEnumerable<TextChange> FilterFormattedChanges(Document document, TextSpan span, IList<TextChange> changes)
             {
-                if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
+                try
                 {
-                    return changes;
-                }
-
-                var containedDocument = visualStudioWorkspace.TryGetContainedDocument(document.Id);
-                if (containedDocument == null)
-                {
-                    return changes;
-                }
-
-                // in case of a Venus, when format document command is issued, Venus will call format API with each script block spans.
-                // in that case, we need to make sure formatter doesn't overstep other script blocks content. in actual format selection case,
-                // we need to format more than given selection otherwise, we will not adjust indentation of first token of the given selection.
-                foreach (var visibleSpan in containedDocument.GetEditorVisibleSpans())
-                {
-                    if (visibleSpan != span)
+                    if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
                     {
-                        continue;
+                        return changes;
                     }
 
-                    return changes.Where(c => span.IntersectsWith(c.Span));
-                }
+                    var containedDocument = visualStudioWorkspace.TryGetContainedDocument(document.Id);
+                    if (containedDocument == null)
+                    {
+                        return changes;
+                    }
 
-                return changes;
+                    return containedDocument.FilterFormattedChanges(span, changes);
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                {
+                    return changes;
+                }
             }
         }
     }
