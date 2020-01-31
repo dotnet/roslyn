@@ -17,6 +17,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 {
+#if CODE_STYLE
+    using Resources = CSharpCodeStyleResources;
+#else
+    using Resources = FeaturesResources;
+#endif
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeStructFieldsWritable), Shared]
     internal class CSharpMakeStructFieldsWritableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
@@ -72,10 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             return Task.CompletedTask;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Make_readonly_fields_writable, createChangedDocument)
+                : base(Resources.Make_readonly_fields_writable, createChangedDocument)
             {
             }
         }
