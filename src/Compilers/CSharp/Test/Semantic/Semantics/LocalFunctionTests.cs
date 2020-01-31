@@ -406,21 +406,23 @@ class C
             Assert.Equal(attrType, info.Symbol);
         }
 
-        [Fact]
-        public void LocalFunctionAttribute_SpeculativeSemanticModel()
+        [Theory]
+        [InlineData("[A]")]
+        [InlineData("[return: A]")]
+        public void LocalFunctionAttribute_SpeculativeSemanticModel(string attributes)
         {
-            var text = @"
+            var text = $@"
 using System;
 
-class A : Attribute { }
+class A : Attribute {{ }}
 
 class C
-{
+{{
     void M()
-    {
-        [A] void local1() { }
-    }
-}
+    {{
+        {attributes} void local1() {{ }}
+    }}
+}}
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.RegularPreview);
             var model = CreateCompilation(tree).GetSemanticModel(tree);
