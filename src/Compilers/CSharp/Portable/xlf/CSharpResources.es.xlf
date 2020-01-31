@@ -432,6 +432,11 @@
         <target state="translated">El miembro estático "{0}" no se puede marcar como "readonly".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern has already been handled by a previous arm of the switch expression.</source>
         <target state="translated">El patrón ya se ha controlado con una parte anterior de la expresión switch.</target>

@@ -5081,6 +5081,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SwitchCaseSubsumed" xml:space="preserve">
     <value>The switch case has already been handled by a previous case.</value>
   </data>
+  <data name="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected" xml:space="preserve">
+    <value>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</value>
+  </data>
   <data name="ERR_SwitchArmSubsumed" xml:space="preserve">
     <value>The pattern has already been handled by a previous arm of the switch expression.</value>
   </data>
