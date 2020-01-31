@@ -196,13 +196,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             //
             // In other cases, don't bother looking at the right side of A.B or A::B. We will process those in
             // one of our other top level Visit methods (like VisitQualifiedName).
-            var canTrySimplify = node.Identifier.ValueText!.EndsWith("Attribute", StringComparison.Ordinal);
+            var canTrySimplify = node.Identifier.ValueText.EndsWith("Attribute", StringComparison.Ordinal);
             if (!canTrySimplify && !node.IsRightSideOfDotOrArrowOrColonColon())
             {
                 // The only possible simplifications to an unqualified identifier are replacement with an alias or
                 // replacement with a predefined type.
-                canTrySimplify = CanReplaceIdentifierWithAlias(node.Identifier.ValueText!)
-                    || CanReplaceIdentifierWithPredefinedType(node.Identifier.ValueText!);
+                canTrySimplify = CanReplaceIdentifierWithAlias(node.Identifier.ValueText)
+                    || CanReplaceIdentifierWithPredefinedType(node.Identifier.ValueText);
             }
 
             if (canTrySimplify && TrySimplify(node))
