@@ -970,7 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // PROTOTYPE(local-function-attributes): security-related properties perhaps should be
         // overridden in SynthesizedMethodBaseSymbol in order to work with local functions
 
-        internal sealed override bool RequiresSecurityObject
+        internal override bool RequiresSecurityObject
         {
             get
             {
@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool HasDeclarativeSecurity
+        internal override bool HasDeclarativeSecurity
         {
             get
             {
@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
+        internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
             var attributesBag = this.GetAttributesBag();
             var wellKnownData = (MethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;

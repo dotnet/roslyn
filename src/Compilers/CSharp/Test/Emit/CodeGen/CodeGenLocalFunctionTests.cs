@@ -5357,11 +5357,43 @@ class C
                 var attrs1 = localFn1.GetAttributes();
                 Assert.Equal("CompilerGeneratedAttribute", attrs1.Single().AttributeClass.Name);
 
-                // PROTOTYPE(local-function-attributes): consider preventing the lowered local function from containing DynamicAttribute
                 Assert.Equal("DynamicAttribute", localFn1.GetReturnTypeAttributes().Single().AttributeClass.Name);
 
                 var param = localFn1.Parameters.Single();
                 Assert.Equal("DynamicAttribute", param.GetAttributes().Single().AttributeClass.Name);
+            }
+        }
+
+        [Fact]
+        public void LocalFunctionParamsArray_NoParamArrayAttribute()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321
+        void local1(params int[] arr) { }
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal("CompilerGeneratedAttribute", attrs1.Single().AttributeClass.Name);
+
+                Assert.Empty(localFn1.GetReturnTypeAttributes());
+
+                var param = localFn1.Parameters.Single();
+                Assert.Empty(param.GetAttributes());
             }
         }
 
@@ -5723,8 +5755,6 @@ class C
                 Assert.True(localFn1.HasSpecialName);
             }
         }
-
-        // PROTOTYPE(local-function-attributes): Test MarshalAsAttribute (are any scenarios possible for it with local functions?)
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)
         {

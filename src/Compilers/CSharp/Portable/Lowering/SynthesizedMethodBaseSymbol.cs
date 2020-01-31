@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -127,8 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ordinal++,
                     p.RefKind,
                     p.Name,
-                    attributes: inheritAttributes ? p.GetAttributes() : default,
-                    hasEnumeratorCancellationAttribute: inheritAttributes && p.IsSourceParameterWithEnumeratorCancellationAttribute()));
+                    // the synthesized parameter doesn't need to have the same ref custom modifiers as the base
+                    refCustomModifiers: default,
+                    inheritAttributes ? p as SourceComplexParameterSymbol : null));
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
@@ -173,6 +177,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // skip locals init where applicable, even if the synthesized method does not inherit attributes.
         // Note that this doesn't affect BaseMethodWrapperSymbol for example because the implementation has no locals.
         public sealed override bool AreLocalsZeroed => !(BaseMethod is SourceMethodSymbol sourceMethod) || sourceMethod.AreLocalsZeroed;
+
+        internal sealed override bool RequiresSecurityObject => InheritsBaseMethodAttributes && BaseMethod.RequiresSecurityObject;
+
+        internal sealed override bool HasDeclarativeSecurity => InheritsBaseMethodAttributes && BaseMethod.HasDeclarativeSecurity;
+
+        internal sealed override IEnumerable<SecurityAttribute> GetSecurityInformation() => InheritsBaseMethodAttributes
+                ? BaseMethod.GetSecurityInformation()
+                : SpecializedCollections.EmptyEnumerable<SecurityAttribute>();
 
 #nullable restore
 
