@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 memberGroup = memberGroup.Where(Function(m) m.IsStatic)
             End If
 
-            Return memberGroup.WhereAsArray(Function(m) m.IsAccessibleWithin(within, throughType))
+            Return memberGroup.Where(Function(m) m.IsAccessibleWithin(within, throughType)).ToImmutableArray()
         End Function
 
         Private Function GetMemberGroupItems(accessibleMembers As ImmutableArray(Of ISymbol),
