@@ -5398,7 +5398,30 @@ class C
         }
 
         [Fact]
-        public void LocalFunctionConditionalAttribute()
+        public void LocalFunction_ConditionalAttributeDisallowed()
+        {
+            var source = @"
+using System.Diagnostics;
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+        [Conditional(""DEBUG"")] // 1
+        void local1() { }
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,10): error CS8764: Local function 'local1()' must be 'static' in order to use the Conditional attribute
+                //         [Conditional("DEBUG")] // 1
+                Diagnostic(ErrorCode.ERR_ConditionalOnLocalFunction, @"Conditional(""DEBUG"")").WithArguments("local1()").WithLocation(9, 10));
+        }
+
+        [Fact]
+        public void StaticLocalFunction_ConditionalAttribute()
         {
             var source = @"
 using System.Diagnostics;
@@ -5411,7 +5434,7 @@ class C
         local1();
 
         [Conditional(""DEBUG"")]
-        void local1()
+        static void local1()
         {
             Console.Write(""hello"");
         }
@@ -5438,6 +5461,62 @@ class C
                 var localFn1 = cClass.GetMethod("<Main>g__local1|0_0");
                 var attrs1 = localFn1.GetAttributes();
                 Assert.Equal(new[] { "CompilerGeneratedAttribute", "ConditionalAttribute" }, GetAttributeNames(attrs1));
+            }
+        }
+
+        [Fact]
+        public void LocalFunction_AttributeMarkedConditional()
+        {
+            var source = @"
+using System.Diagnostics;
+using System;
+
+[Conditional(""DEBUG"")]
+class Attr : Attribute { }
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321
+        [Attr]
+        [return: Attr]
+        T local1<[Attr] T>([Attr] T t) => t;
+    }
+}
+";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview.WithPreprocessorSymbols("DEBUG"),
+                symbolValidator: validate1);
+
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: validate2);
+
+            static void validate1(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal(new[] { "CompilerGeneratedAttribute", "Attr" }, GetAttributeNames(attrs1));
+                Assert.Equal(new[] { "Attr" }, GetAttributeNames(localFn1.GetReturnTypeAttributes()));
+                Assert.Equal(new[] { "Attr" }, GetAttributeNames(localFn1.TypeParameters.Single().GetAttributes()));
+                Assert.Equal(new[] { "Attr" }, GetAttributeNames(localFn1.Parameters.Single().GetAttributes()));
+            }
+
+            static void validate2(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(attrs1));
+                Assert.Empty(localFn1.GetReturnTypeAttributes());
+                Assert.Empty(localFn1.TypeParameters.Single().GetAttributes());
+                Assert.Empty(localFn1.Parameters.Single().GetAttributes());
             }
         }
 

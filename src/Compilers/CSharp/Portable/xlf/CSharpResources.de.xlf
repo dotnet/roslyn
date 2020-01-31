@@ -102,6 +102,11 @@
         <target state="translated">Der {1}-Typparameter enthält die Einschränkung "unmanaged". "{1}" kann daher nicht als Einschränkung für "{0}" verwendet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConditionalOnLocalFunction">
+        <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
+        <target state="new">Local function '{0}' must be 'static' in order to use the Conditional attribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
         <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
         <target state="translated">Ein Ausdruck vom Typ "{0}" kann nicht von einem Muster vom Typ "{1}" behandelt werden. Verwenden Sie Sprachversion {2} oder höher, um einen offenen Typ mit einem konstanten Muster abzugleichen.</target>
