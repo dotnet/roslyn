@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -27,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxNodeOrToken identifierNodeOrToken,
             ConstantValue? switchCaseLabelConstant = null)
         {
+            Debug.Assert(identifierNodeOrToken.IsToken || identifierNodeOrToken.IsNode);
             _containingMethod = containingMethod;
             _identifierNodeOrToken = identifierNodeOrToken;
             _switchCaseLabelConstant = switchCaseLabelConstant;
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var tk = _identifierNodeOrToken.AsToken();
             if (tk.Kind() != SyntaxKind.None)
             {
-                return tk.ValueText ?? "";
+                return tk.ValueText;
             }
 
             return _switchCaseLabelConstant?.ToString() ?? "";
@@ -78,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _identifierNodeOrToken.IsToken && _identifierNodeOrToken.Parent == null
                     ? ImmutableArray<Location>.Empty
-                    : ImmutableArray.Create<Location>(_identifierNodeOrToken.GetLocation());
+                    : ImmutableArray.Create<Location>(_identifierNodeOrToken.GetLocation()!);
             }
         }
 
@@ -95,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    node = _identifierNodeOrToken.AsNode().FirstAncestorOrSelf<SwitchLabelSyntax>();
+                    node = _identifierNodeOrToken.AsNode()!.FirstAncestorOrSelf<SwitchLabelSyntax>();
                 }
 
                 return node == null ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create<SyntaxReference>(node.GetReference());

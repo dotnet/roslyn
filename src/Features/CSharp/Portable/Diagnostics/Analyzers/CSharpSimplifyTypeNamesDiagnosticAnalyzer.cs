@@ -1,14 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable enable
+
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,113 +31,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxKind.QualifiedCref);
 
-        public CSharpSimplifyTypeNamesDiagnosticAnalyzer()
-            : base(s_kindsOfInterest)
+        protected override bool IsIgnoredCodeBlock(SyntaxNode codeBlock)
         {
+            // Avoid analysis of compilation units and types in AnalyzeCodeBlock. These nodes appear in code block
+            // callbacks when they include attributes, but analysis of the node at this level would block more efficient
+            // analysis of descendant members.
+            return codeBlock.IsKind(
+                SyntaxKind.CompilationUnit,
+                SyntaxKind.ClassDeclaration,
+                SyntaxKind.StructDeclaration,
+                SyntaxKind.InterfaceDeclaration,
+                SyntaxKind.DelegateDeclaration,
+                SyntaxKind.EnumDeclaration);
         }
 
-        protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        protected override void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
         {
-            // Only analyze the topmost name/member-access/qualified-cref.  We'll handle recursing
-            // into the node ourselves.  That way, in general, we report the largest/highest issue,
-            // and we don't recurse and report another diagnostics for sub-spans of that issue.
-            if (context.Node.Ancestors(ascendOutOfTrivia: false).Any(n => IsCandidate(n)))
-            {
+            var semanticModel = context.SemanticModel;
+            var cancellationToken = context.CancellationToken;
+
+            var syntaxTree = semanticModel.SyntaxTree;
+            var options = context.Options;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()!;
+
+            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, ignoredSpans: null, cancellationToken);
+            simplifier.Visit(context.CodeBlock);
+            if (!simplifier.HasDiagnostics)
                 return;
-            }
 
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
-            var semanticModel = context.SemanticModel;
-            var node = context.Node;
-
-            // Handle the topmost qualified-cref slightly differently.  Unlike names/member-accesses,
-            // we do want to recurse into these even if we are able to simplify it.
-            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax qualifiedCref))
-            {
-                AnalyzeQualifiedCref(context, qualifiedCref);
-            }
-            else
-            {
-                // Otherwise, just recurse into the topmost name/member-access normally.
-                RecurseAndAnalyzeNode(context, context.Node);
-            }
-        }
-
-        private void AnalyzeQualifiedCref(SyntaxNodeAnalysisContext context, QualifiedCrefSyntax qualifiedCref)
-        {
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
-            var semanticModel = context.SemanticModel;
-
-            // First, just try to simplify the top-most qualified-cref alone. If we're able to do
-            // this, then there's no need to process it's container.  i.e.
-            //
-            // if we have <see cref="A.B.C"/> and we simplify that to <see cref="C"/> there's no
-            // point looking at `A.B`.
-            if (TrySimplifyTypeNameExpression(semanticModel, qualifiedCref, options, out var diagnostic, cancellationToken))
+            foreach (var diagnostic in simplifier.Diagnostics)
             {
                 context.ReportDiagnostic(diagnostic);
-
-                // found a match on the qualified cref itself. report it and keep processing.
             }
-            else
-            {
-                // couldn't simplify the qualified cref itself.  descend into the container portion
-                // as that might have portions that can be simplified.
-                RecurseAndAnalyzeNode(context, qualifiedCref.Container);
-            }
-
-            // unilaterally process the member portion of the qualified cref.  These may have things
-            // like parameters that could be simplified.  i.e. if we have:
-            //
-            //      <see cref="A.B.C(X.Y)"/>
-            //
-            // We can simplify both the qualified portion to just `C` and we can simplify the
-            // parameter to just `Y`.
-            RecurseAndAnalyzeNode(context, qualifiedCref.Member);
         }
 
-        private void RecurseAndAnalyzeNode(SyntaxNodeAnalysisContext context, SyntaxNode node)
+        protected override void AnalyzeSemanticModel(SemanticModelAnalysisContext context, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree)
         {
-            var options = context.Options;
+            var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
-            foreach (var candidate in node.DescendantNodesAndSelf(DescendIntoChildren))
+            var syntaxTree = semanticModel.SyntaxTree;
+            var options = context.Options;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()!;
+            var root = syntaxTree.GetRoot(cancellationToken);
+
+            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, ignoredSpans: codeBlockIntervalTree, cancellationToken);
+            simplifier.Visit(root);
+            if (!simplifier.HasDiagnostics)
+                return;
+
+            foreach (var diagnostic in simplifier.Diagnostics)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-            }
-
-            return;
-
-            bool DescendIntoChildren(SyntaxNode n)
-            {
-                if (IsCandidate(n) &&
-                    TrySimplifyTypeNameExpression(context.SemanticModel, n, options, out var diagnostic, cancellationToken))
-                {
-                    // found a match. report is and stop processing.
-                    context.ReportDiagnostic(diagnostic);
-                    return false;
-                }
-
-                // descend further.
-                return true;
+                context.ReportDiagnostic(diagnostic);
             }
         }
 
         internal override bool IsCandidate(SyntaxNode node)
             => node != null && s_kindsOfInterest.Contains(node.Kind());
-
-        protected sealed override bool CanSimplifyTypeNameExpressionCore(
-            SemanticModel model, SyntaxNode node, OptionSet optionSet,
-            out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
-            CancellationToken cancellationToken)
-        {
-            return CanSimplifyTypeNameExpression(
-                model, node, optionSet,
-                out issueSpan, out diagnosticId, out inDeclaration,
-                cancellationToken);
-        }
 
         internal override bool CanSimplifyTypeNameExpression(
             SemanticModel model, SyntaxNode node, OptionSet optionSet,
@@ -157,23 +111,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
 
             SyntaxNode replacementSyntax;
-            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax crefSyntax))
+            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax? crefSyntax))
             {
-                if (!crefSyntax.TryReduceOrSimplifyExplicitName(model, out var replacement, out issueSpan, optionSet, cancellationToken))
+                if (!QualifiedCrefSimplifier.Instance.TrySimplify(crefSyntax, model, optionSet, out var replacement, out issueSpan, cancellationToken))
                     return false;
 
                 replacementSyntax = replacement;
             }
             else
             {
-                var expression = (ExpressionSyntax)node;
-
-                // in case of an As or Is expression we need to handle the binary expression, because it might be 
-                // required to add parenthesis around the expression. Adding the parenthesis is done in the CSharpNameSimplifier.Rewriter
-                var expressionToCheck = expression.Kind() == SyntaxKind.AsExpression || expression.Kind() == SyntaxKind.IsExpression
-                    ? ((BinaryExpressionSyntax)expression).Right
-                    : expression;
-                if (!expressionToCheck.TryReduceOrSimplifyExplicitName(model, out var replacement, out issueSpan, optionSet, cancellationToken))
+                if (!ExpressionSimplifier.Instance.TrySimplify((ExpressionSyntax)node, model, optionSet, out var replacement, out issueSpan, cancellationToken))
                     return false;
 
                 replacementSyntax = replacement;

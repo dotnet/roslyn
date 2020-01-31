@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
-        <target state="new">Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</target>
+        <target state="translated">Das Ändern der Version eines Assemblyverweises ist während des Debuggens nicht zulässig: "{0}" hat die Version in "{1}" geändert.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
@@ -46,7 +46,7 @@
       </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
-        <target state="new">Module has invalid attributes.</target>
+        <target state="translated">Das Modul weist ungültige Attribute auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
@@ -121,7 +121,7 @@
       </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
         <source>Unable to determine specific cause of the failure.</source>
-        <target state="new">Unable to determine specific cause of the failure.</target>
+        <target state="translated">Die spezifische Fehlerursache kann nicht ermittelt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
