@@ -1971,7 +1971,6 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-
         <WorkItem(40451, "https://github.com/dotnet/roslyn/issues/40451")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestSigHelpIsVisibleWithDuplicateMethodNames() As Task
