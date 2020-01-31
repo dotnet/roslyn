@@ -1019,7 +1019,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MetadataReference? GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
         {
             RoslynDebug.Assert(directive.SyntaxTree.FilePath is object);
-            RoslynDebug.Assert(directive.File.ValueText is object);
 
             MetadataReference reference;
             return ReferenceDirectiveMap.TryGetValue((directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
@@ -2929,7 +2928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var checksumDirective = (PragmaChecksumDirectiveTriviaSyntax)directive;
                 var path = checksumDirective.File.ValueText;
 
-                var checksumText = checksumDirective.Bytes.ValueText!;
+                var checksumText = checksumDirective.Bytes.ValueText;
                 var normalizedPath = documentsBuilder.NormalizeDebugDocumentPath(path, basePath: tree.FilePath);
                 var existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
 

@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return s_empty;
                 }
 
-                if (name.Length == 8 && name[0] == '.' &&
+                if (name!.Length == 8 && name[0] == '.' &&
                     name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd' && name[5] == '\0')
                 {
                     // Section: VirtualSize (4)
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return s_empty;
             }
 
-            return new Guid(guidBytes);
+            return new Guid(guidBytes!);
         }
 
         private static bool ReadUInt16(BinaryReader reader, out ushort output)
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return true;
         }
 
-        private static bool ReadBytes(BinaryReader reader, int count, [NotNullWhen(true)] out byte[]? output)
+        private static bool ReadBytes(BinaryReader reader, int count, out byte[]? output)
         {
             if (reader.BaseStream.Position + count >= reader.BaseStream.Length)
             {
