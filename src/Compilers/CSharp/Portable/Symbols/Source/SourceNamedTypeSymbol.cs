@@ -1401,7 +1401,7 @@ next:;
             Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
 
             return asNativeInt ?
-                (NamedTypeSymbol)new NativeIntegerTypeSymbol(this) :
+                (NamedTypeSymbol)new NativeIntegerTypeSymbol(this) : // PROTOTYPE: Consider caching instance, perhaps on containing assembly.
                 this;
         }
 
