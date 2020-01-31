@@ -16,24 +16,24 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
-            var analyzer = document.Project.LanguageServices.GetService<VSTypeScriptDiagnosticAnalyzerLanguageService>();
+            var analyzer = document.Project.LanguageServices.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
             if (analyzer == null)
             {
                 return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
             }
 
-            return analyzer.Implementation.AnalyzeDocumentSyntaxAsync(document, cancellationToken);
+            return analyzer.AnalyzeDocumentSyntaxAsync(document, cancellationToken);
         }
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var analyzer = document.Project.LanguageServices.GetService<VSTypeScriptDiagnosticAnalyzerLanguageService>();
+            var analyzer = document.Project.LanguageServices.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
             if (analyzer == null)
             {
                 return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
             }
 
-            return analyzer.Implementation.AnalyzeDocumentSemanticsAsync(document, cancellationToken);
+            return analyzer.AnalyzeDocumentSemanticsAsync(document, cancellationToken);
         }
     }
 }

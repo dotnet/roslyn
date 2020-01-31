@@ -17,11 +17,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
     [ExportLanguageService(typeof(VSTypeScriptDiagnosticAnalyzerLanguageService), InternalLanguageNames.TypeScript)]
     internal sealed class VSTypeScriptDiagnosticAnalyzerLanguageService : ILanguageService
     {
-        internal readonly IVSTypeScriptDiagnosticAnalyzerImplementation Implementation;
+        internal readonly IVSTypeScriptDiagnosticAnalyzerImplementation? Implementation;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptDiagnosticAnalyzerLanguageService(IVSTypeScriptDiagnosticAnalyzerImplementation implementation)
+        public VSTypeScriptDiagnosticAnalyzerLanguageService(
+            [Import(AllowDefault = true)]IVSTypeScriptDiagnosticAnalyzerImplementation? implementation = null)
         {
             Implementation = implementation;
         }
