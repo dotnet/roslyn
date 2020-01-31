@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     arguments.GetOrCreateData<ModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
                 }
             }
-            else if (ReportExplicitUseOfReservedAttributes(ref arguments,
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.NullableContextAttribute | ReservedAttributes.NullablePublicOnlyAttribute))
             {
             }

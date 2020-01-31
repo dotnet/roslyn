@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NativeIntegerAttribute = 1 << 9,
         }
 
-        internal bool ReportExplicitUseOfReservedAttributes(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
+        internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
         {
             var attribute = arguments.Attribute;
             if ((reserved & ReservedAttributes.DynamicAttribute) != 0 &&
