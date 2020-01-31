@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
+namespace Microsoft.CodeAnalysis.Editor.Venus
 {
     internal class ContainedDocumentPreserveFormattingRule : AbstractFormattingRule
     {
