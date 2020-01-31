@@ -39,11 +39,6 @@
     <BypassFrameworkInstallChecks>true</BypassFrameworkInstallChecks>
   </PropertyGroup>
 
-  <!-- Add the TestContainer project capability -->
-  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
-    <ProjectCapability Include="TestContainer" />
-  </ItemGroup>
-
   <!-- 
     Do not copy dependencies to the output directory of a library project, unless it's a unit test project.
   -->
