@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var generator = SyntaxGenerator.GetGenerator(document);
 
             // Create a simple interval tree for simplification spans.
-            var spansTree = new SimpleIntervalTree<TextSpan>(TextSpanIntervalIntrospector.Instance, spans);
+            var spansTree = new SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), spans);
 
             var nodes = root.DescendantNodesAndSelf().Where(IsInSpan);
             var (importDirectivesToAdd, namespaceSymbols, context) = strategy switch

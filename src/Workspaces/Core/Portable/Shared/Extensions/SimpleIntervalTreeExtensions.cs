@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <summary>
         /// check whether the given span is intersects with the tree
         /// </summary>
-        public static bool HasIntervalThatIntersectsWith(this SimpleIntervalTree<TextSpan> tree, TextSpan span)
+        public static bool HasIntervalThatIntersectsWith(this SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> tree, TextSpan span)
             => tree.HasIntervalThatIntersectsWith(span.Start, span.Length);
     }
 }
