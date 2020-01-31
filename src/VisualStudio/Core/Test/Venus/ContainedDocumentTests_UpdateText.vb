@@ -1,21 +1,22 @@
 ﻿' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
-
-#If False Then
+#If TODO
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 Imports Microsoft.VisualStudio.Text
 Imports Moq
 Imports Roslyn.Test.EditorUtilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
+    <UseExportProviderAttribute>
     Public Class ContainedDocumentTests_UpdateText
-        Inherits AbstractContainedDocumentTests
-
         ' TODO: Tests that involve:
         ' 1. Multiple incoming edits and visible spans.
         ' 2. Tests that change the length, thus moving spans in the new text.
@@ -354,7 +355,7 @@ b
             AssertEditsSplit(input, result, edits, expectedEdits)
         End Sub
 
-        <WpfFact, WorkItem(529800), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, WorkItem(529800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529800"), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub LargeAddAndRemove()
             Dim input = <Text>0
 [|12|]
@@ -400,7 +401,7 @@ b
         ''' To preserve the boundaries, we also skip whitespace and the "__o = ", as well as the 
         ''' ending newlines and ; if there is one.
         ''' </summary>
-        <WpfFact, WorkItem(617816), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, WorkItem(617816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617816"), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub AtEndOfExpressionNugget()
             Dim inputMarkup = <text>
 class C
@@ -453,7 +454,7 @@ class C
                          </text>.Value
 
             Dim input As String = Nothing
-            Dim spans As IList(Of TextSpan) = Nothing
+            Dim spans As ImmutableArray(Of TextSpan) = Nothing
             MarkupTestFile.GetSpans(inputMarkup.NormalizeLineEndings(), input, spans)
 
             Dim result As String = Nothing
@@ -502,11 +503,11 @@ class C
             edits As IEnumerable(Of TextChange),
             expectedEdits As IEnumerable(Of TextChange))
 
-            Dim visibleSpansInOriginalText As IList(Of TextSpan) = Nothing
+            Dim visibleSpansInOriginalText As ImmutableArray(Of TextSpan) = Nothing
             Dim originalText As String = Nothing
             MarkupTestFile.GetSpans(inputMarkup.NormalizeLineEndings(), originalText, visibleSpansInOriginalText)
 
-            Dim visibleSpansInNewText As IList(Of TextSpan) = Nothing
+            Dim visibleSpansInNewText As ImmutableArray(Of TextSpan) = Nothing
             Dim finalText As String = Nothing
             MarkupTestFile.GetSpans(resultingMarkup.NormalizeLineEndings(), finalText, visibleSpansInNewText)
 
@@ -516,7 +517,7 @@ class C
                 Setup(Function(e) e.Replace(It.IsAny(Of Span)(), It.IsAny(Of String)())).
                 Callback(Sub(span As Span, text As String) actualEdits.Add(New TextChange(New TextSpan(span.Start, span.Length), text)))
 
-            Dim buffer = EditorFactory.CreateBuffer(TestExportProvider.ExportProvider, originalText)
+            Dim buffer = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, originalText)
             Dim originalSnapshot = buffer.CurrentSnapshot
             textEdit.SetupGet(Function(e) e.Snapshot).Returns(originalSnapshot)
 
@@ -546,7 +547,6 @@ class C
                 visibleSpansInOriginalText,
                 newSnapshot.AsText(),
                 visibleSpansInNewText)
-
             AssertEx.Equal(expectedEdits, actualEdits)
         End Sub
 
@@ -555,7 +555,7 @@ class C
             expectedEdits As IEnumerable(Of TextChange),
             textChanges As IList(Of TextChange))
 
-            Dim visibleSpansInOriginalText As IList(Of TextSpan) = Nothing
+            Dim visibleSpansInOriginalText As ImmutableArray(Of TextSpan) = Nothing
             Dim originalText As String = Nothing
             MarkupTestFile.GetSpans(markup.NormalizeLineEndings(), originalText, visibleSpansInOriginalText)
 
@@ -565,7 +565,7 @@ class C
                 Setup(Function(e) e.Replace(It.IsAny(Of Span)(), It.IsAny(Of String)())).
                 Callback(Sub(span As Span, text As String) actualEdits.Add(New TextChange(New TextSpan(span.Start, span.Length), text)))
 
-            Dim buffer = EditorFactory.CreateBuffer(TestExportProvider.ExportProvider, originalText)
+            Dim buffer = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, originalText)
             textEdit.SetupGet(Function(e) e.Snapshot).Returns(buffer.CurrentSnapshot)
 
             Dim affectedVisibleSpans As IEnumerable(Of Integer) = Nothing
@@ -574,7 +574,6 @@ class C
                 textChanges,
                 visibleSpansInOriginalText,
                 affectedVisibleSpans)
-
             Assert.True(result)
             AssertEx.Equal(expectedEdits, actualEdits)
         End Sub
