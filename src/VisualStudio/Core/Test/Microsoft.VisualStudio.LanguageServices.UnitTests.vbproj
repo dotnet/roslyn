@@ -75,25 +75,6 @@
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-<<<<<<< HEAD
-=======
-    <Content Include="Debugging\ProximityExpressionsGetterTestFile.vb" />
-    <Compile Remove="Debugging\ProximityExpressionsGetterTestFile.vb" />
-    <Compile Update="Debugging\Resources.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Debugging\Resources.resx">
-      <CustomToolNamespace>Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging</CustomToolNamespace>
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
->>>>>>> Use Microsoft.NET.Sdk.WindowsDesktop for XAML projects
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
 </Project>
