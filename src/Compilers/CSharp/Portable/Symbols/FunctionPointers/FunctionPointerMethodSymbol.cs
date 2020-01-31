@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly ImmutableArray<FunctionPointerParameterSymbol> _parameters;
 
-        public static FunctionPointerMethodSymbol CreateMethodFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
+        public static FunctionPointerMethodSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
             var (callingConvention, conventionIsValid) = FunctionPointerTypeSymbol.GetCallingConvention(syntax.CallingConvention.Text);
             if (!conventionIsValid)
@@ -27,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             RefKind refKind = RefKind.None;
             TypeWithAnnotations returnType;
+            var refReadonlyModifiers = ImmutableArray<CustomModifier>.Empty;
 
             if (syntax.Parameters.Count == 0)
             {
@@ -35,8 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var returnTypeParameter = syntax.Parameters[^1];
-
-
                 var modifiers = returnTypeParameter.Modifiers;
                 for (int i = 0; i < modifiers.Count; i++)
                 {
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 i++;
                                 refKind = RefKind.RefReadOnly;
+                                refReadonlyModifiers = ParameterHelpers.CreateInModifiers(typeBinder, diagnostics, returnTypeParameter);
                             }
                             else
                             {
@@ -81,21 +83,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 callingConvention,
                 refKind,
                 returnType,
+                refReadonlyModifiers,
                 syntax,
                 typeBinder,
                 diagnostics,
                 suppressUseSiteDiagnostics);
         }
 
+        public static FunctionPointerMethodSymbol CreateFromMetadata(CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
+            => new FunctionPointerMethodSymbol(callingConvention, retAndParamTypes);
+
+
         private FunctionPointerMethodSymbol(
             CallingConvention callingConvention,
             RefKind refKind,
             TypeWithAnnotations returnType,
+            ImmutableArray<CustomModifier> refCustomModifiers,
             FunctionPointerTypeSyntax syntax,
             Binder typeBinder,
             DiagnosticBag diagnostics,
             bool suppressUseSiteDiagnostics)
         {
+            RefCustomModifiers = refCustomModifiers;
             CallingConvention = callingConvention;
             RefKind = refKind;
             ReturnTypeWithAnnotations = returnType;
@@ -108,6 +117,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics,
                     suppressUseSiteDiagnostics)
                 : ImmutableArray<FunctionPointerParameterSymbol>.Empty;
+        }
+
+        private FunctionPointerMethodSymbol(CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
+        {
+            Debug.Assert(retAndParamTypes.Length > 0);
+
+            ParamInfo<TypeSymbol> retInfo = retAndParamTypes[0];
+            var returnType = TypeWithAnnotations.Create(retInfo.Type, customModifiers: CSharpCustomModifier.Convert(retInfo.CustomModifiers));
+
+            RefCustomModifiers = CSharpCustomModifier.Convert(retInfo.RefCustomModifiers);
+            CallingConvention = callingConvention;
+            ReturnTypeWithAnnotations = returnType;
+            RefKind = getRefKind(retInfo, RefCustomModifiers, RefKind.RefReadOnly);
+            _parameters = makeParametersFromMetadata(retAndParamTypes.AsSpan()[1..], this);
+
+            static ImmutableArray<FunctionPointerParameterSymbol> makeParametersFromMetadata(ReadOnlySpan<ParamInfo<TypeSymbol>> parameterTypes, FunctionPointerMethodSymbol parent)
+            {
+                if (parameterTypes.Length > 0)
+                {
+                    var paramsBuilder = ArrayBuilder<FunctionPointerParameterSymbol>.GetInstance(parameterTypes.Length);
+
+                    for (int i = 0; i < parameterTypes.Length; i++)
+                    {
+                        ParamInfo<TypeSymbol> param = parameterTypes[i];
+                        var paramRefCustomMods = CSharpCustomModifier.Convert(param.RefCustomModifiers);
+                        var paramType = TypeWithAnnotations.Create(param.Type, customModifiers: CSharpCustomModifier.Convert(param.CustomModifiers));
+                        RefKind paramRefKind = getRefKind(param, paramRefCustomMods, RefKind.In);
+                        paramsBuilder.Add(new FunctionPointerParameterSymbol(paramType, paramRefKind, i, parent, paramRefCustomMods));
+                    }
+
+                    return paramsBuilder.ToImmutableAndFree();
+                }
+                else
+                {
+                    return ImmutableArray<FunctionPointerParameterSymbol>.Empty;
+                }
+            }
+
+            static RefKind getRefKind(ParamInfo<TypeSymbol> param, ImmutableArray<CustomModifier> paramRefCustomMods, RefKind hasInRefKind)
+            {
+                // PROTOTYPE(func-ptr): Need to encode out params as a custom modifier of some kind
+                return param.IsByRef switch
+                {
+                    false => RefKind.None,
+                    true when CustomModifierUtils.HasInAttributeModifier(paramRefCustomMods) => hasInRefKind,
+                    true => RefKind.Ref,
+                };
+            }
         }
 
         public override bool Equals(Symbol other, TypeCompareKind compareKind)
@@ -131,6 +188,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool EqualsNoParameters(FunctionPointerMethodSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
             => CallingConvention == other.CallingConvention
                && RefKind == other.RefKind
+               && ((compareKind & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) != 0
+                    || RefCustomModifiers.SequenceEqual(other.RefCustomModifiers))
                && ReturnTypeWithAnnotations.Equals(other.ReturnTypeWithAnnotations, compareKind, isValueTypeOverride);
 
         public override int GetHashCode()
@@ -152,8 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeWithAnnotations ReturnTypeWithAnnotations { get; }
         public override ImmutableArray<ParameterSymbol> Parameters =>
             _parameters.Cast<FunctionPointerParameterSymbol, ParameterSymbol>();
-        // PROTOTYPE(func-ptr): Implement custom modifiers
-        public override ImmutableArray<CustomModifier> RefCustomModifiers => throw new NotImplementedException();
+        public override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
         public override MethodKind MethodKind => MethodKind.FunctionPointerSignature;
 
         internal override DiagnosticInfo? GetUseSiteDiagnostic()

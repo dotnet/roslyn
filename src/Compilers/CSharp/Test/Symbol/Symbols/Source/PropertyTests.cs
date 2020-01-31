@@ -1449,36 +1449,43 @@ class B {
         public void CanNotReadPropertyOfUnsupportedType()
         {
             const string ilSource = @"
-.class public B
+.class public auto ansi beforefieldinit Indexers
+       extends [mscorlib]System.Object
 {
-  .method public instance void .ctor()
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string)
+           = {string('Item')}
+  .method public hidebysig specialname instance int32 
+          get_Item(string modreq(int16) x) cil managed
+  {
+    ldc.i4.0
+    ret
+  }
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
   {
     ldarg.0
-    call instance void class System.Object::.ctor()
+    call       instance void [mscorlib]System.Object::.ctor()
     ret
   }
-  .method public static method void*()[] get_Goo()
+
+  .property instance int32 Item(string modreq(int16))
   {
-    ldnull
-    ret
+    .get instance int32 Indexers::get_Item(string modreq(int16))
   }
-  .property method void*()[] Goo()
-  {
-    .get method void*()[] B::get_Goo()
-  }
-}
+} // end of class Indexers
 ";
             const string cSharpSource = @"
 class C {
     static void Main() {
-        object goo = B.Goo;
+        object goo = new Indexers()[null];
     }
 }
 ";
             CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,24): error CS1546: Property, indexer, or event 'B.Goo' is not supported by the language; try directly calling accessor method 'B.get_Goo()'
-                //         object goo = B.Goo;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("B.Goo", "B.get_Goo()"));
+                // (4,22): error CS1546: Property, indexer, or event 'Indexers.this[?]' is not supported by the language; try directly calling accessor method 'Indexers.get_Item(?)'
+                //         object goo = new Indexers()[null];
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[?]", "Indexers.get_Item(?)").WithLocation(4, 22));
         }
 
         [WorkItem(538791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538791")]

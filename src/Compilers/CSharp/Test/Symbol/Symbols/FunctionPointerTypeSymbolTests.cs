@@ -11,117 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FunctionPointerTypeSymbolTests : CSharpTestBase
     {
-        private void CommonVerifyFunctionPointer(FunctionPointerTypeSymbol symbol)
-        {
-            verifyPointerType(symbol);
-            verifySignature(symbol.Signature);
-            foreach (var param in symbol.Signature.Parameters)
-            {
-                verifyParameter(param, symbol.Signature);
-            }
-
-            static void verifyPointerType(FunctionPointerTypeSymbol symbol)
-            {
-                Assert.Equal(SymbolKind.FunctionPointer, symbol.Kind);
-                Assert.Equal(TypeKind.FunctionPointer, symbol.TypeKind);
-
-                Assert.False(symbol.IsReferenceType);
-                Assert.False(symbol.IsRefLikeType);
-                Assert.False(symbol.IsReadOnly);
-                Assert.False(symbol.IsStatic);
-                Assert.False(symbol.IsAbstract);
-                Assert.False(symbol.IsSealed);
-
-                Assert.True(symbol.IsValueType);
-
-                Assert.Null(symbol.ContainingSymbol);
-                Assert.Null(symbol.BaseTypeNoUseSiteDiagnostics);
-                Assert.Null(symbol.ObsoleteAttributeData);
-
-                Assert.Empty(symbol.Locations);
-                Assert.Empty(symbol.DeclaringSyntaxReferences);
-                Assert.Empty(symbol.GetMembers());
-                Assert.Empty(symbol.GetTypeMembers());
-                Assert.Empty(symbol.InterfacesNoUseSiteDiagnostics());
-            }
-
-            static void verifySignature(MethodSymbol symbol)
-            {
-                Assert.NotNull(symbol);
-
-                Assert.Equal(MethodKind.FunctionPointerSignature, symbol.MethodKind);
-                Assert.Equal(string.Empty, symbol.Name);
-                Assert.Equal(0, symbol.Arity);
-                Assert.Equal(default, symbol.ImplementationAttributes);
-                Assert.Equal(Accessibility.NotApplicable, symbol.DeclaredAccessibility);
-                Assert.Equal(FlowAnalysisAnnotations.None, symbol.ReturnTypeFlowAnalysisAnnotations);
-                Assert.Equal(FlowAnalysisAnnotations.None, symbol.FlowAnalysisAnnotations);
-
-                Assert.False(symbol.IsExtensionMethod);
-                Assert.False(symbol.HidesBaseMethodsByName);
-                Assert.False(symbol.IsStatic);
-                Assert.False(symbol.IsAsync);
-                Assert.False(symbol.IsVirtual);
-                Assert.False(symbol.IsOverride);
-                Assert.False(symbol.IsAbstract);
-                Assert.False(symbol.IsExtern);
-                Assert.False(symbol.IsExtensionMethod);
-                Assert.False(symbol.IsSealed);
-                Assert.False(symbol.IsExtern);
-                Assert.False(symbol.HasSpecialName);
-                Assert.False(symbol.HasDeclarativeSecurity);
-                Assert.False(symbol.RequiresSecurityObject);
-                Assert.False(symbol.IsDeclaredReadOnly);
-                Assert.False(symbol.IsMetadataNewSlot(true));
-                Assert.False(symbol.IsMetadataNewSlot(false));
-                Assert.False(symbol.IsMetadataVirtual(true));
-                Assert.False(symbol.IsMetadataVirtual(false));
-
-                Assert.True(symbol.IsImplicitlyDeclared);
-
-                Assert.Null(symbol.ContainingSymbol);
-                Assert.Null(symbol.AssociatedSymbol);
-                Assert.Null(symbol.ReturnValueMarshallingInformation);
-
-                Assert.Empty(symbol.TypeParameters);
-                Assert.Empty(symbol.ExplicitInterfaceImplementations);
-                Assert.Empty(symbol.Locations);
-                Assert.Empty(symbol.DeclaringSyntaxReferences);
-                Assert.Empty(symbol.TypeArgumentsWithAnnotations);
-                Assert.Empty(symbol.GetAppliedConditionalSymbols());
-                Assert.Empty(symbol.ReturnNotNullIfParameterNotNull);
-            }
-
-            static void verifyParameter(ParameterSymbol symbol, MethodSymbol containing)
-            {
-                Assert.NotNull(symbol);
-
-                Assert.Same(symbol.ContainingSymbol, containing);
-
-                Assert.Equal(string.Empty, symbol.Name);
-                Assert.Equal(FlowAnalysisAnnotations.None, symbol.FlowAnalysisAnnotations);
-
-                Assert.False(symbol.IsDiscard);
-                Assert.False(symbol.IsParams);
-                Assert.False(symbol.IsMetadataOptional);
-                Assert.False(symbol.IsIDispatchConstant);
-                Assert.False(symbol.IsIUnknownConstant);
-                Assert.False(symbol.IsCallerFilePath);
-                Assert.False(symbol.IsCallerLineNumber);
-                Assert.False(symbol.IsCallerFilePath);
-                Assert.False(symbol.IsCallerMemberName);
-
-                Assert.True(symbol.IsImplicitlyDeclared);
-
-                Assert.Null(symbol.MarshallingInformation);
-                Assert.Null(symbol.ExplicitDefaultConstantValue);
-
-                Assert.Empty(symbol.Locations);
-                Assert.Empty(symbol.DeclaringSyntaxReferences);
-                Assert.Empty(symbol.NotNullIfParameterNotNull);
-            }
-        }
-
         [InlineData("", RefKind.None)]
         [InlineData("ref", RefKind.Ref)]
         [InlineData("ref readonly", RefKind.RefReadOnly)]
@@ -139,7 +28,7 @@ class C
             var c = comp.GetTypeByMetadataName("C");
             var m = c.GetMethod("M");
             var pointerType = (FunctionPointerTypeSymbol)m.Parameters.Single().Type;
-            CommonVerifyFunctionPointer(pointerType);
+            FunctionPointerUtilities.CommonVerifyFunctionPointer(pointerType);
             Assert.Equal(expectedKind, pointerType.Signature.RefKind);
             Assert.Equal(SpecialType.System_Object, pointerType.Signature.ReturnType.SpecialType);
             Assert.Empty(pointerType.Signature.Parameters);
@@ -235,7 +124,7 @@ class C
             var c = comp.GetTypeByMetadataName("C");
             var m = c.GetMethod("M");
             var pointerType = (FunctionPointerTypeSymbol)m.Parameters.Single().Type;
-            CommonVerifyFunctionPointer(pointerType);
+            FunctionPointerUtilities.CommonVerifyFunctionPointer(pointerType);
             Assert.Equal(expectedConvention, pointerType.Signature.CallingConvention);
             Assert.Equal(SpecialType.System_String, pointerType.Signature.ReturnType.SpecialType);
         }
@@ -256,7 +145,7 @@ class C
             var c = comp.GetTypeByMetadataName("C");
             var m = c.GetMethod("M");
             var pointerType = (FunctionPointerTypeSymbol)m.Parameters.Single().Type;
-            CommonVerifyFunctionPointer(pointerType);
+            FunctionPointerUtilities.CommonVerifyFunctionPointer(pointerType);
             Assert.Equal(CallingConvention.Default, pointerType.Signature.CallingConvention);
         }
 
@@ -308,7 +197,7 @@ class C
             MethodSymbol getParam(int index)
             {
                 var type = ((FunctionPointerTypeSymbol)parameterTypes[index].Type);
-                CommonVerifyFunctionPointer(type);
+                FunctionPointerUtilities.CommonVerifyFunctionPointer(type);
                 Assert.True(type.Signature.ReturnsVoid);
                 return type.Signature;
             }
@@ -349,7 +238,7 @@ class C
             MethodSymbol getParam(int index)
             {
                 var type = ((FunctionPointerTypeSymbol)parameterTypes[index].Type);
-                CommonVerifyFunctionPointer(type);
+                FunctionPointerUtilities.CommonVerifyFunctionPointer(type);
                 return type.Signature;
             }
         }
@@ -436,7 +325,7 @@ class C
             MethodSymbol getParam(int index)
             {
                 var type = ((FunctionPointerTypeSymbol)parameterTypes[index].Type);
-                CommonVerifyFunctionPointer(type);
+                FunctionPointerUtilities.CommonVerifyFunctionPointer(type);
                 return type.Signature;
             }
         }
@@ -757,6 +646,49 @@ class C
                     // (4,22): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                     //     void M(delegate*<in string, void> p1) {}
                     Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in string").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(4, 22));
+        }
+
+        [Fact]
+        public void DifferringModOpts()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit Test1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig instance void  M(method bool& *(int32&) noModopts,
+                                              method bool modopt([mscorlib]System.Object)& *(int32&) modoptOnReturn,
+                                              method bool& *(int32 modopt([mscorlib]System.Object)&) modoptOnParam,
+                                              method bool& modopt([mscorlib]System.Object) *(int32&) modoptOnReturnRef,
+                                              method bool& *(int32& modopt([mscorlib]System.Object)) modoptOnParamRef) cil managed
+    {
+      // Code size       2 (0x2)
+      .maxstack  8
+      IL_0000:  nop
+      IL_0001:  ret
+    } // end of method Test::M
+}
+";
+
+            var comp = CreateCompilationWithIL("", ilSource, parseOptions: TestOptions.RegularPreview);
+            var testClass = comp.GetTypeByMetadataName("Test1")!;
+            var m = testClass.GetMethod("M");
+
+            foreach (var param1 in m.Parameters)
+            {
+                foreach (var param2 in m.Parameters)
+                {
+                    if (!ReferenceEquals(param1, param2))
+                    {
+                        Assert.False(param1.Type.Equals(param2.Type, TypeCompareKind.ConsiderEverything));
+                    }
+                    else
+                    {
+                        Assert.True(param1.Type.Equals(param2.Type, TypeCompareKind.ConsiderEverything));
+                    }
+
+                    Assert.True(param1.Type.Equals(param2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                }
+            }
         }
     }
 }

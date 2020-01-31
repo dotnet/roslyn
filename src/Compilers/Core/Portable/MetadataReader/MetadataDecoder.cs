@@ -319,6 +319,18 @@ namespace Microsoft.CodeAnalysis
                     typeSymbol = DecodeGenericTypeInstanceOrThrow(ref ppSig, out refersToNoPiaLocalType);
                     break;
 
+                case SignatureTypeCode.FunctionPointer:
+                    var signatureHeader = ppSig.ReadSignatureHeader();
+                    var parameters = DecodeSignatureParametersOrThrow(ref ppSig, signatureHeader, typeParameterCount: out int typeParamCount, shouldProcessAllBytes: false);
+
+                    if (typeParamCount != 0)
+                    {
+                        throw new UnsupportedSignatureContent();
+                    }
+
+                    typeSymbol = MakeFunctionPointerTypeSymbol(Cci.CallingConventionUtils.FromSignatureConvention(signatureHeader.CallingConvention, throwOnInvalidConvention: true), ImmutableArray.Create(parameters));
+                    break;
+
                 default:
                     throw new UnsupportedSignatureContent();
             }
@@ -1841,7 +1853,7 @@ tryAgain:
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        protected ParamInfo<TypeSymbol>[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount)
+        protected ParamInfo<TypeSymbol>[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount, bool shouldProcessAllBytes = true)
         {
             int paramCount;
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out paramCount, out typeParameterCount);
@@ -1862,7 +1874,7 @@ tryAgain:
                     DecodeParameterOrThrow(ref signatureReader, ref paramInfo[paramIndex]);
                 }
 
-                if (signatureReader.RemainingBytes > 0)
+                if (shouldProcessAllBytes && signatureReader.RemainingBytes > 0)
                 {
                     throw new UnsupportedSignatureContent();
                 }

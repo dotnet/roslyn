@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -12,19 +13,21 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     // PROTOTYPE(func-ptr): Support generic substitution and retargeting
-    internal sealed class FunctionPointerTypeSymbol : TypeSymbol
+    // PROTOTYPE(func-ptr): Match msvc's emitting of custom modifiers for calling convention
+    internal sealed partial class FunctionPointerTypeSymbol : TypeSymbol
     {
-        public static FunctionPointerTypeSymbol CreateFunctionPointerTypeSymbolFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
-        {
-
-            return new FunctionPointerTypeSymbol(
-                FunctionPointerMethodSymbol.CreateMethodFromSource(
+        public static FunctionPointerTypeSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
+            => new FunctionPointerTypeSymbol(
+                FunctionPointerMethodSymbol.CreateFromSource(
                     syntax,
                     typeBinder,
                     diagnostics,
                     basesBeingResolved,
                     suppressUseSiteDiagnostics));
-        }
+
+        public static FunctionPointerTypeSymbol CreateFromMetadata(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
+            => new FunctionPointerTypeSymbol(
+                FunctionPointerMethodSymbol.CreateFromMetadata(callingConvention, retAndParamTypes));
 
         public static (CallingConvention Convention, bool IsValid) GetCallingConvention(string convention) =>
             convention switch
@@ -39,11 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private FunctionPointerTypeSymbol(FunctionPointerMethodSymbol signature)
         {
-            _signature = signature;
+            Signature = signature;
         }
 
-        private readonly FunctionPointerMethodSymbol _signature;
-        public MethodSymbol Signature => _signature;
+        public FunctionPointerMethodSymbol Signature { get; }
 
         public override bool IsReferenceType => false;
         public override bool IsValueType => true;
@@ -83,24 +85,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return _signature.Equals(other._signature, compareKind, isValueTypeOverrideOpt);
+            return Signature.Equals(other.Signature, compareKind, isValueTypeOverrideOpt);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(1, _signature.GetHashCode());
+            return Hash.Combine(1, Signature.GetHashCode());
         }
 
         protected override ISymbol CreateISymbol()
         {
-            // PROTOTYPE(func-ptr): Implement
-            throw new NotImplementedException();
+            return new PublicModel.FunctionPointerTypeSymbol(this, DefaultNullableAnnotation);
         }
 
         protected override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            // PROTOTYPE(func-ptr): Implement
-            throw new NotImplementedException();
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.FunctionPointerTypeSymbol(this, nullableAnnotation);
         }
 
         internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
@@ -117,12 +118,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
-            return _signature.GetUseSiteDiagnostic();
+            return Signature.GetUseSiteDiagnostic();
         }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo? result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
-            return _signature.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes);
+            return Signature.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes);
         }
 
         internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
