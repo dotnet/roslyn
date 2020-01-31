@@ -134,5 +134,14 @@ namespace Analyzer.Utilities
         /// Boolean option to prevent analyzing indirect base types (walking more than one level up) when suggesting suffixes.
         /// </summary>
         public const string ExcludeIndirectBaseTypes = "exclude_indirect_base_types";
+
+        /// <summary>
+        /// String option to configure names of interfaces (separated by '|'), with their required generic interfaces (separated by '->').
+        /// Configurable rules: CA1010 (https://docs.microsoft.com/visualstudio/code-quality/ca1010)
+        /// Allowed interface formats:
+        ///   1. Interface name only(includes all interfaces with the name, regardless of the containing type or namespace)
+        ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format with an optional "T:" prefix.
+        /// </summary>
+        public const string AdditionalRequiredGenericInterfaces = "additional_required_generic_interfaces";
     }
 }
