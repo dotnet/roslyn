@@ -71,9 +71,10 @@ Here is an example from a test failure on Jenkins - it's reviewable even though 
  2. ServiceHub crash
 
     If you see integration tests failing for your PR with screenshots that show info-bar like so:
+    
     ![ServiceHub failure info-bar](images/how-to-investigate-ci-test-failures-servicehub-failure-infobar.png) 
     
     This means the ServiceHub process crashed. To see why check ServiceHub logs, which are available in the log artifacts:
+    
     ![ServiceHub log artifacts](images/how-to-investigate-ci-test-failures-servicehub-log-artifacts.png)
- 
  
