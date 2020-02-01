@@ -226,6 +226,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UnaryOperatorKind.UInt: opType = _compilation.GetSpecialType(SpecialType.System_UInt32); break;
                 case UnaryOperatorKind.Long: opType = _compilation.GetSpecialType(SpecialType.System_Int64); break;
                 case UnaryOperatorKind.ULong: opType = _compilation.GetSpecialType(SpecialType.System_UInt64); break;
+                case UnaryOperatorKind.NInt: opType = _compilation.GetSpecialType(SpecialType.System_IntPtr).AsNativeInt(true); break;
+                case UnaryOperatorKind.NUInt: opType = _compilation.GetSpecialType(SpecialType.System_UIntPtr).AsNativeInt(true); break;
                 case UnaryOperatorKind.Char: opType = _compilation.GetSpecialType(SpecialType.System_Char); break;
                 case UnaryOperatorKind.Float: opType = _compilation.GetSpecialType(SpecialType.System_Single); break;
                 case UnaryOperatorKind.Double: opType = _compilation.GetSpecialType(SpecialType.System_Double); break;
