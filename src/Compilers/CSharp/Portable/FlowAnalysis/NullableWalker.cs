@@ -1058,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Should we warn for assigning this state into this type?
         /// </summary>
-        private static bool ShouldReportNullableAssignment(TypeWithAnnotations type, NullableFlowState state)
+        internal static bool ShouldReportNullableAssignment(TypeWithAnnotations type, NullableFlowState state)
         {
             if (!type.HasType ||
                 type.Type.IsValueType)
@@ -1451,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
+        internal static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
         {
             if ((parameterAnnotations & FlowAnalysisAnnotations.AllowNull) != 0)
             {
@@ -3715,7 +3715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Fix a TypeWithAnnotations based on Allow/DisallowNull annotations prior to a conversion or assignment.
         /// Note this does not work for nullable value types, so an additional check with <see cref="CheckDisallowedNullAssignment"/> may be required.
         /// </summary>
-        private static TypeWithAnnotations ApplyLValueAnnotations(TypeWithAnnotations declaredType, FlowAnalysisAnnotations flowAnalysisAnnotations)
+        internal static TypeWithAnnotations ApplyLValueAnnotations(TypeWithAnnotations declaredType, FlowAnalysisAnnotations flowAnalysisAnnotations)
         {
             if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.DisallowNull) == FlowAnalysisAnnotations.DisallowNull)
             {
@@ -3732,7 +3732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Update the null-state based on MaybeNull/NotNull
         /// </summary>
-        private static TypeWithState ApplyUnconditionalAnnotations(TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
+        internal static TypeWithState ApplyUnconditionalAnnotations(TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
         {
             if ((annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
             {
@@ -4153,10 +4153,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // We do this extra check for types whose non-nullable version cannot be represented
-            if (((annotations & FlowAnalysisAnnotations.DisallowNull) != 0) && hasNoNonNullableCounterpart(state.Type) && state.MayBeNull)
+            if (IsDisallowedNullAssignment(state, annotations))
             {
                 ReportDiagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, location);
             }
+        }
+
+        static internal bool IsDisallowedNullAssignment(TypeWithState valueState, FlowAnalysisAnnotations targetAnnotations)
+        {
+            return ((targetAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0) &&
+                hasNoNonNullableCounterpart(valueState.Type) &&
+                valueState.MayBeNull;
 
             static bool hasNoNonNullableCounterpart(TypeSymbol type)
             {
@@ -6350,7 +6357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static FlowAnalysisAnnotations ToInwardAnnotations(FlowAnalysisAnnotations outwardAnnotations)
+        internal static FlowAnalysisAnnotations ToInwardAnnotations(FlowAnalysisAnnotations outwardAnnotations)
         {
             var annotations = FlowAnalysisAnnotations.None;
             if ((outwardAnnotations & FlowAnalysisAnnotations.MaybeNull) != 0)

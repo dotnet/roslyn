@@ -1136,8 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, parameter, false, extraArgument);
                 }
-
-                if (reportMismatchInParameterType != null &&
+                else if (reportMismatchInParameterType != null &&
                     !areParameterAnnotationsCompatible(
                         parameter.RefKind,
                         overriddenParameterType,
@@ -1169,72 +1168,102 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (refKind == RefKind.None || refKind == RefKind.In)
                 {
-                    bool overridingHasDisallowNull = (overridingAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0;
-                    bool overriddenHasDisallowNull = (overriddenAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0;
-                    if (overridingHasDisallowNull && !overriddenHasDisallowNull && overriddenType.GetValueNullableAnnotation() == NullableAnnotation.Annotated)
+                    // pre-condition attributes
+                    // Check whether we can assign a value from overridden parameter to overriding
+                    var valueState = NullableWalker.GetParameterState(overriddenType, overriddenAnnotations);
+                    if (isBadAssignment(valueState, overridingType, overridingAnnotations))
                     {
-                        // Can't assign from overriding to overridden
                         return false;
                     }
 
-                    bool overridingHasAllowNull = (overridingAnnotations & FlowAnalysisAnnotations.AllowNull) != 0;
-                    bool overriddenHasAllowNull = (overriddenAnnotations & FlowAnalysisAnnotations.AllowNull) != 0;
-                    if (overriddenHasAllowNull && !overridingHasAllowNull && !overridingType.CanBeAssignedNull)
+                    // unconditional post-condition attributes 
+                    bool overridingHasNotNull = (overridingAnnotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
+                    bool overriddenHasNotNull = (overriddenAnnotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
+                    if (overriddenHasNotNull && !overridingHasNotNull && (refKind == RefKind.None || refKind == RefKind.In) && !forRef)
                     {
-                        // Can't assign from overridden to overriding
+                        // Overriding doesn't conform to contract of overridden (ie. promise not to return if parameter is null)
+                        return false;
+                    }
+
+                    bool overridingHasMaybeNull = (overridingAnnotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull;
+                    bool overriddenHasMaybeNull = (overriddenAnnotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull;
+                    if (overriddenHasMaybeNull && !overridingHasMaybeNull && (refKind == RefKind.None || refKind == RefKind.In) && !forRef)
+                    {
+                        // Overriding doesn't conform to contract of overridden (ie. promise to only return if parameter is null)
                         return false;
                     }
                 }
 
-                bool overridingHasNotNull = (overridingAnnotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
-                bool overriddenHasNotNull = (overriddenAnnotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
-                if (overriddenHasNotNull && !overridingHasNotNull && (refKind == RefKind.None || refKind == RefKind.In) && !forRef)
+                // conditional post-condition attributes 
+                if (refKind == RefKind.Out)
                 {
-                    // Overriding doesn't conform to contract of overridden (ie. promise not to return if parameter is null)
-                    return false;
-                }
+                    // when true
+                    var valueWhenTrue = NullableWalker.ApplyUnconditionalAnnotations(
+                        overridingType.ToTypeWithState(),
+                        makeUnconditionalAnnotation(overridingAnnotations, sense: true));
 
-                bool overridingHasNotNullWhenTrue = (overridingAnnotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
-                bool overriddenHasNotNullWhenTrue = (overriddenAnnotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
-                if (overriddenHasNotNullWhenTrue && !overridingHasNotNullWhenTrue && refKind == RefKind.Out && overridingType.GetValueNullableAnnotation() == NullableAnnotation.Annotated)
-                {
-                    // Can't assign value from overriding to overridden in true case
-                    return false;
-                }
+                    var destAnnotationsWhenTrue = NullableWalker.ToInwardAnnotations(makeUnconditionalAnnotation(overriddenAnnotations, sense: true));
+                    if (isBadAssignment(valueWhenTrue, overriddenType, destAnnotationsWhenTrue))
+                    {
+                        // Can't assign value from overriding to overridden in true case
+                        return false;
+                    }
 
-                bool overridingHasNotNullWhenFalse = (overridingAnnotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
-                bool overriddenHasNotNullWhenFalse = (overriddenAnnotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
-                if (overriddenHasNotNullWhenFalse && !overridingHasNotNullWhenFalse && refKind == RefKind.Out && overridingType.GetValueNullableAnnotation() == NullableAnnotation.Annotated)
-                {
-                    // Can't assign value from overriding to overridden in false case
-                    return false;
-                }
+                    // when false
+                    var valueWhenFalse = NullableWalker.ApplyUnconditionalAnnotations(
+                        overridingType.ToTypeWithState(),
+                        makeUnconditionalAnnotation(overridingAnnotations, sense: false));
 
-                bool overridingHasMaybeNull = (overridingAnnotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull;
-                bool overriddenHasMaybeNull = (overriddenAnnotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull;
-                if (overriddenHasMaybeNull && !overridingHasMaybeNull && (refKind == RefKind.None || refKind == RefKind.In) && !forRef)
-                {
-                    // Overriding doesn't conform to contract of overridden (ie. promise to only return if parameter is null)
-                    return false;
-                }
-
-                bool overridingHasMaybeNullWhenTrue = (overridingAnnotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
-                bool overriddenHasMaybeNullWhenTrue = (overriddenAnnotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
-                if (overridingHasMaybeNullWhenTrue && !overriddenHasMaybeNullWhenTrue && refKind == RefKind.Out && !overriddenType.CanBeAssignedNull)
-                {
-                    // Can't assign value from overriding to overridden in true case
-                    return false;
-                }
-
-                bool overridingHasMaybeNullWhenFalse = (overridingAnnotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0;
-                bool overriddenHasMaybeNullWhenFalse = (overriddenAnnotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0;
-                if (overridingHasMaybeNullWhenFalse && !overriddenHasMaybeNullWhenFalse && refKind == RefKind.Out && !overriddenType.CanBeAssignedNull)
-                {
-                    // Can't assign value from overriding to overridden in false case
-                    return false;
+                    var destAnnotationsWhenFalse = NullableWalker.ToInwardAnnotations(makeUnconditionalAnnotation(overriddenAnnotations, sense: false));
+                    if (isBadAssignment(valueWhenFalse, overriddenType, destAnnotationsWhenFalse))
+                    {
+                        // Can't assign value from overriding to overridden in false case
+                        return false;
+                    }
                 }
 
                 return true;
+            }
+
+            static bool isBadAssignment(TypeWithState valueState, TypeWithAnnotations destinationType, FlowAnalysisAnnotations destinationAnnotations)
+            {
+                if (NullableWalker.ShouldReportNullableAssignment(
+                    NullableWalker.ApplyLValueAnnotations(destinationType, destinationAnnotations),
+                    valueState.State))
+                {
+                    return true;
+                }
+
+                if (NullableWalker.IsDisallowedNullAssignment(valueState, destinationAnnotations))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            // Convert both conditional annotations to unconditional ones or nothing
+            static FlowAnalysisAnnotations makeUnconditionalAnnotation(FlowAnalysisAnnotations annotations, bool sense)
+            {
+                if (sense)
+                {
+                    var unconditionalAnnotationWhenTrue = makeUnconditionalAnnotationCore(annotations, FlowAnalysisAnnotations.NotNullWhenTrue, FlowAnalysisAnnotations.NotNull);
+                    return makeUnconditionalAnnotationCore(unconditionalAnnotationWhenTrue, FlowAnalysisAnnotations.MaybeNullWhenTrue, FlowAnalysisAnnotations.MaybeNull);
+                }
+
+                var unconditionalAnnotationWhenFalse = makeUnconditionalAnnotationCore(annotations, FlowAnalysisAnnotations.NotNullWhenFalse, FlowAnalysisAnnotations.NotNull);
+                return makeUnconditionalAnnotationCore(unconditionalAnnotationWhenFalse, FlowAnalysisAnnotations.MaybeNullWhenFalse, FlowAnalysisAnnotations.MaybeNull);
+            }
+
+            // Convert Maybe/NotNullWhen into Maybe/NotNull or nothing
+            static FlowAnalysisAnnotations makeUnconditionalAnnotationCore(FlowAnalysisAnnotations annotations, FlowAnalysisAnnotations conditionalAnnotation, FlowAnalysisAnnotations replacementAnnotation)
+            {
+                if ((annotations & conditionalAnnotation) != 0)
+                {
+                    return annotations | replacementAnnotation;
+                }
+
+                return annotations & ~replacementAnnotation;
             }
 
             static bool isValidNullableConversion(

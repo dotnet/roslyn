@@ -14,7 +14,10 @@ namespace Roslyn.Utilities
     {
         private partial class Empty
         {
-            internal class Dictionary<TKey, TValue> : Collection<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
+            internal class Dictionary<TKey, TValue>
+#nullable disable
+               : Collection<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
+#nullable enable
                 where TKey : notnull
             {
                 public static readonly new Dictionary<TKey, TValue> Instance = new Dictionary<TKey, TValue>();
