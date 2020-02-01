@@ -2697,7 +2697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (isSense == false)
+                if (isSense == false && IsConditionalState)
                 {
                     SetConditionalState(StateWhenFalse, StateWhenTrue);
                 }
