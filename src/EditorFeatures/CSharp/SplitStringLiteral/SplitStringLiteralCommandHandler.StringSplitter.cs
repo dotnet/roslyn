@@ -10,6 +10,7 @@ using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
     using Microsoft.CodeAnalysis.Indentation;
+    using Microsoft.CodeAnalysis.Options;
 
     internal partial class SplitStringLiteralCommandHandler
     {
@@ -17,10 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         {
             protected static readonly SyntaxAnnotation RightNodeAnnotation = new SyntaxAnnotation();
 
-            protected static readonly SyntaxToken PlusNewLineToken = SyntaxFactory.Token(
-                leading: default,
-                SyntaxKind.PlusToken,
-                SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
+            protected readonly SyntaxToken PlusNewLineToken;
 
             protected readonly Document Document;
             protected readonly int CursorPosition;
@@ -46,6 +44,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 TabSize = tabSize;
                 _indentStyle = indentStyle;
                 CancellationToken = cancellationToken;
+
+                var options = document.GetOptionsAsync().Result;
+                var newLineKey = new OptionKey(NewLine, LanguageNames.CSharp);
+                var newLineValue = (string)options.GetOption(newLineKey);
+
+                // Check if there is a line ending specified in the editorconfig
+                // and ensure we honour it. 
+                if (!string.IsNullOrEmpty(newLineValue) && newLineValue == "\n")
+                {
+                    PlusNewLineToken = SyntaxFactory.Token(
+                   leading: default,
+                   SyntaxKind.PlusToken,
+                   SyntaxFactory.TriviaList(SyntaxFactory.ElasticLineFeed));
+                }
+                else
+                {
+                    PlusNewLineToken = SyntaxFactory.Token(
+                    leading: default,
+                    SyntaxKind.PlusToken,
+                    SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
+                }
             }
 
             public static StringSplitter Create(
