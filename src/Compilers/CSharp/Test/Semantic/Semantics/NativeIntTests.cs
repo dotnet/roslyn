@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
                 method = model.GetDeclaredSymbol(methodDeclarations[1]);
                 Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
-                verifyTypes(method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>(), method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>(), signed: true);
+                verifyTypes(method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>(), method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>(), signed: false);
             }
 
             static void verifyTypes(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType, bool signed)
