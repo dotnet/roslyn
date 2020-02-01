@@ -291,18 +291,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments, ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute | ReservedAttributes.TupleElementNamesAttribute))
             {
-                // NullableAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
                 arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
-            {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
             {
@@ -320,6 +314,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (type.Type.ContainsDynamic())
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length));
+            }
+
+            if (type.Type.ContainsNativeInteger())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }
 
             if (type.Type.ContainsTupleNames())
@@ -733,6 +732,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckModifiersAndType(diagnostics);
             this.Type.CheckAllConstraints(compilation, conversions, location, diagnostics);
+
+            if (Type.ContainsNativeInteger())
+            {
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 TypeWithAnnotations.NeedsNullableAttribute())

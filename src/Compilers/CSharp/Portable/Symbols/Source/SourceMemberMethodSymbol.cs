@@ -1220,29 +1220,14 @@ done:
             else if (VerifyObsoleteAttributeAppliedToMethod(ref arguments, AttributeDescription.DeprecatedAttribute))
             {
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
+                ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.NullableContextAttribute))
             {
-                // IsReadOnlyAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
-            {
-                // IsUnmanagedAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
-            {
-                // IsByRefLikeAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
             {
                 // [Extension] attribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableContextAttribute))
-            {
-                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullableContextAttribute);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)
                 || attribute.IsTargetAttribute(this, AttributeDescription.SecuritySafeCriticalAttribute))
@@ -1380,34 +1365,9 @@ done:
                 // MarshalAs applied to the return value:
                 MarshalAsAttributeDecoder<ReturnTypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
+                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute))
             {
-                // DynamicAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
-            {
-                // IsUnmanagedAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
-            {
-                // IsReadOnlyAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
-            {
-                // IsByRefLikeAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
-            {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
-            {
-                // NullableAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
             {

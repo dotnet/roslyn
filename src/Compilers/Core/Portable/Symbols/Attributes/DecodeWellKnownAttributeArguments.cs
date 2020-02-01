@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if some decoded data has been stored into <see cref="_lazyDecodeData"/>.
         /// </summary>
-        public bool HasDecodedData
+        public readonly bool HasDecodedData
         {
             get
             {
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Assumes <see cref="HasDecodedData"/> is true.
         /// </remarks>
-        public WellKnownAttributeData DecodedData
+        public readonly WellKnownAttributeData DecodedData
         {
             get
             {

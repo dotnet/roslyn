@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -604,7 +603,8 @@ unsafe class Program
             }
         }
 
-        public static IEnumerable<object[]> ConversionsData()
+        [Fact]
+        public void Conversions()
         {
             string convNone =
 @"{
@@ -660,10 +660,9 @@ $@"{{
   IL_001d:  newobj     ""{destType}?..ctor({destType})""
   IL_0022:  ret
 }}";
-            static void getArgs(ArrayBuilder<object[]> builder, string sourceType, string destType, string expectedImplicitIL, string expectedExplicitIL, string expectedCheckedIL = null)
+            void conversions(string sourceType, string destType, string expectedImplicitIL, string expectedExplicitIL, string expectedCheckedIL = null)
             {
-                getArgs1(
-                    builder,
+                Convert(
                     sourceType,
                     destType,
                     expectedImplicitIL,
@@ -673,8 +672,7 @@ $@"{{
                     expectedImplicitIL is null ?
                         expectedExplicitIL is null ? ErrorCode.ERR_NoImplicitConv : ErrorCode.ERR_NoImplicitConvCast :
                         0);
-                getArgs1(
-                    builder,
+                Convert(
                     sourceType,
                     destType,
                     expectedExplicitIL,
@@ -683,8 +681,7 @@ $@"{{
                     useChecked: false,
                     expectedExplicitIL is null ? ErrorCode.ERR_NoExplicitConv : 0);
                 expectedCheckedIL ??= expectedExplicitIL;
-                getArgs1(
-                    builder,
+                Convert(
                     sourceType,
                     destType,
                     expectedCheckedIL,
@@ -696,14 +693,7 @@ $@"{{
                 static bool usesIntPtrOrUIntPtr(string underlyingType) => underlyingType.Contains("IntPtr");
             }
 
-            static void getArgs1(ArrayBuilder<object[]> builder, string sourceType, string destType, string expectedIL, bool skipTypeChecks, bool useExplicitCast, bool useChecked, ErrorCode expectedErrorCode)
-            {
-                builder.Add(new object[] { sourceType, destType, expectedIL, skipTypeChecks, useExplicitCast, useChecked, expectedErrorCode });
-            }
-
-            var builder = new ArrayBuilder<object[]>();
-
-            getArgs(builder, sourceType: "object", destType: "nint", expectedImplicitIL: null,
+            conversions(sourceType: "object", destType: "nint", expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -711,8 +701,8 @@ $@"{{
   IL_0001:  unbox.any  ""System.IntPtr""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "string", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "void*", destType: "nint", expectedImplicitIL: null,
+            conversions(sourceType: "string", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "void*", destType: "nint", expectedImplicitIL: null,
 // PROTOTYPE: Should be conv.i.
 @"{
   // Code size        7 (0x7)
@@ -721,21 +711,21 @@ $@"{{
   IL_0001:  call       ""System.IntPtr System.IntPtr.op_Explicit(void*)""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "bool", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "char", destType: "nint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            getArgs(builder, sourceType: "sbyte", destType: "nint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
-            getArgs(builder, sourceType: "byte", destType: "nint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            getArgs(builder, sourceType: "short", destType: "nint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
-            getArgs(builder, sourceType: "ushort", destType: "nint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            getArgs(builder, sourceType: "int", destType: "nint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
-            getArgs(builder, sourceType: "uint", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.i.un"));
-            getArgs(builder, sourceType: "long", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
-            getArgs(builder, sourceType: "ulong", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
-            getArgs(builder, sourceType: "nint", destType: "nint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            getArgs(builder, sourceType: "nuint", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
-            getArgs(builder, sourceType: "float", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
-            getArgs(builder, sourceType: "double", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
-            getArgs(builder, sourceType: "decimal", destType: "nint", expectedImplicitIL: null,
+            conversions(sourceType: "bool", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char", destType: "nint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "sbyte", destType: "nint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
+            conversions(sourceType: "byte", destType: "nint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "short", destType: "nint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
+            conversions(sourceType: "ushort", destType: "nint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "int", destType: "nint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
+            conversions(sourceType: "uint", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "long", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
+            conversions(sourceType: "ulong", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "nint", destType: "nint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "float", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
+            conversions(sourceType: "double", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
+            conversions(sourceType: "decimal", destType: "nint", expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -752,19 +742,19 @@ $@"{{
   IL_0006:  conv.ovf.i
   IL_0007:  ret
 }");
-            getArgs(builder, sourceType: "System.IntPtr", destType: "nint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            getArgs(builder, sourceType: "System.UIntPtr", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "bool?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "char?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "char"));
-            getArgs(builder, sourceType: "sbyte?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "sbyte"));
-            getArgs(builder, sourceType: "byte?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "byte"));
-            getArgs(builder, sourceType: "short?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "short"));
-            getArgs(builder, sourceType: "ushort?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ushort"));
-            getArgs(builder, sourceType: "int?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "int"));
-            getArgs(builder, sourceType: "uint?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "uint"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "uint"));
-            getArgs(builder, sourceType: "long?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "long"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "long"));
-            getArgs(builder, sourceType: "ulong?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "ulong"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "ulong"));
-            getArgs(builder, sourceType: "nint?", destType: "nint", expectedImplicitIL: null,
+            conversions(sourceType: "System.IntPtr", destType: "nint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "System.UIntPtr", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "bool?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "char"));
+            conversions(sourceType: "sbyte?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "sbyte"));
+            conversions(sourceType: "byte?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "byte"));
+            conversions(sourceType: "short?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "short"));
+            conversions(sourceType: "ushort?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ushort"));
+            conversions(sourceType: "int?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "int"));
+            conversions(sourceType: "uint?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "uint"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "uint"));
+            conversions(sourceType: "long?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "long"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "long"));
+            conversions(sourceType: "ulong?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "ulong"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "ulong"));
+            conversions(sourceType: "nint?", destType: "nint", expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -772,10 +762,10 @@ $@"{{
   IL_0002:  call       ""nint nint?.Value.get""
   IL_0007:  ret
 }");
-            getArgs(builder, sourceType: "nuint?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
-            getArgs(builder, sourceType: "float?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "float"));
-            getArgs(builder, sourceType: "double?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "double"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "double"));
-            getArgs(builder, sourceType: "decimal?", destType: "nint", expectedImplicitIL: null,
+            conversions(sourceType: "nuint?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
+            conversions(sourceType: "float?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "float"));
+            conversions(sourceType: "double?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "double"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "double"));
+            conversions(sourceType: "decimal?", destType: "nint", expectedImplicitIL: null,
 @"{
   // Code size       14 (0xe)
   .maxstack  1
@@ -794,7 +784,7 @@ $@"{{
   IL_000c:  conv.ovf.i
   IL_000d:  ret
 }");
-            getArgs(builder, sourceType: "System.IntPtr?", destType: "nint", expectedImplicitIL: null,
+            conversions(sourceType: "System.IntPtr?", destType: "nint", expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -802,8 +792,8 @@ $@"{{
   IL_0002:  call       ""System.IntPtr System.IntPtr?.Value.get""
   IL_0007:  ret
 }");
-            getArgs(builder, sourceType: "System.UIntPtr?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "object", destType: "nint?", expectedImplicitIL: null,
+            conversions(sourceType: "System.UIntPtr?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "object", destType: "nint?", expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -811,8 +801,8 @@ $@"{{
   IL_0001:  unbox.any  ""nint?""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "string", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "void*", destType: "nint?", expectedImplicitIL: null,
+            conversions(sourceType: "string", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "void*", destType: "nint?", expectedImplicitIL: null,
 // PROTOTYPE: Should be conv.i.
 @"{
   // Code size       12 (0xc)
@@ -822,17 +812,17 @@ $@"{{
   IL_0006:  newobj     ""nint?..ctor(nint)""
   IL_000b:  ret
 }");
-            getArgs(builder, sourceType: "bool", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "char", destType: "nint?", expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
-            getArgs(builder, sourceType: "sbyte", destType: "nint?", expectedImplicitIL: convToNullableT("conv.i", "nint"), expectedExplicitIL: convToNullableT("conv.i", "nint"));
-            getArgs(builder, sourceType: "byte", destType: "nint?", expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
-            getArgs(builder, sourceType: "short", destType: "nint?", expectedImplicitIL: convToNullableT("conv.i", "nint"), expectedExplicitIL: convToNullableT("conv.i", "nint"));
-            getArgs(builder, sourceType: "ushort", destType: "nint?", expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
-            getArgs(builder, sourceType: "int", destType: "nint?", expectedImplicitIL: convToNullableT("conv.i", "nint"), expectedExplicitIL: convToNullableT("conv.i", "nint"));
-            getArgs(builder, sourceType: "uint", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
-            getArgs(builder, sourceType: "long", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
-            getArgs(builder, sourceType: "ulong", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
-            getArgs(builder, sourceType: "nint", destType: "nint?",
+            conversions(sourceType: "bool", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char", destType: "nint?", expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
+            conversions(sourceType: "sbyte", destType: "nint?", expectedImplicitIL: convToNullableT("conv.i", "nint"), expectedExplicitIL: convToNullableT("conv.i", "nint"));
+            conversions(sourceType: "byte", destType: "nint?", expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
+            conversions(sourceType: "short", destType: "nint?", expectedImplicitIL: convToNullableT("conv.i", "nint"), expectedExplicitIL: convToNullableT("conv.i", "nint"));
+            conversions(sourceType: "ushort", destType: "nint?", expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
+            conversions(sourceType: "int", destType: "nint?", expectedImplicitIL: convToNullableT("conv.i", "nint"), expectedExplicitIL: convToNullableT("conv.i", "nint"));
+            conversions(sourceType: "uint", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
+            conversions(sourceType: "long", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
+            conversions(sourceType: "ulong", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
+            conversions(sourceType: "nint", destType: "nint?",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -847,10 +837,10 @@ $@"{{
   IL_0001:  newobj     ""nint?..ctor(nint)""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "nuint", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
-            getArgs(builder, sourceType: "float", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
-            getArgs(builder, sourceType: "double", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
-            getArgs(builder, sourceType: "decimal", destType: "nint?", expectedImplicitIL: null,
+            conversions(sourceType: "nuint", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
+            conversions(sourceType: "float", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
+            conversions(sourceType: "double", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
+            conversions(sourceType: "decimal", destType: "nint?", expectedImplicitIL: null,
 @"{
   // Code size       13 (0xd)
   .maxstack  1
@@ -869,7 +859,7 @@ $@"{{
   IL_0007:  newobj     ""nint?..ctor(nint)""
   IL_000c:  ret
 }");
-            getArgs(builder, sourceType: "System.IntPtr", destType: "nint?",
+            conversions(sourceType: "System.IntPtr", destType: "nint?",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -884,22 +874,22 @@ $@"{{
   IL_0001:  newobj     ""nint?..ctor(nint)""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "System.UIntPtr", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "bool?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "char?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.u", "char", "nint"), expectedExplicitIL: convFromToNullableT("conv.u", "char", "nint"));
-            getArgs(builder, sourceType: "sbyte?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.i", "sbyte", "nint"), expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nint"));
-            getArgs(builder, sourceType: "byte?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.u", "byte", "nint"), expectedExplicitIL: convFromToNullableT("conv.u", "byte", "nint"));
-            getArgs(builder, sourceType: "short?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.i", "short", "nint"), expectedExplicitIL: convFromToNullableT("conv.i", "short", "nint"));
-            getArgs(builder, sourceType: "ushort?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.u", "ushort", "nint"), expectedExplicitIL: convFromToNullableT("conv.u", "ushort", "nint"));
-            getArgs(builder, sourceType: "int?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.i", "int", "nint"), expectedExplicitIL: convFromToNullableT("conv.i", "int", "nint"));
-            getArgs(builder, sourceType: "uint?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "uint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "uint", "nint"));
-            getArgs(builder, sourceType: "long?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "long", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "long", "nint"));
-            getArgs(builder, sourceType: "ulong?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "ulong", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "ulong", "nint"));
-            getArgs(builder, sourceType: "nint?", destType: "nint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            getArgs(builder, sourceType: "nuint?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "nuint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
-            getArgs(builder, sourceType: "float?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "float", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "float", "nint"));
-            getArgs(builder, sourceType: "double?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "double", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "double", "nint"));
-            getArgs(builder, sourceType: "decimal?", destType: "nint?", null,
+            conversions(sourceType: "System.UIntPtr", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "bool?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.u", "char", "nint"), expectedExplicitIL: convFromToNullableT("conv.u", "char", "nint"));
+            conversions(sourceType: "sbyte?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.i", "sbyte", "nint"), expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nint"));
+            conversions(sourceType: "byte?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.u", "byte", "nint"), expectedExplicitIL: convFromToNullableT("conv.u", "byte", "nint"));
+            conversions(sourceType: "short?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.i", "short", "nint"), expectedExplicitIL: convFromToNullableT("conv.i", "short", "nint"));
+            conversions(sourceType: "ushort?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.u", "ushort", "nint"), expectedExplicitIL: convFromToNullableT("conv.u", "ushort", "nint"));
+            conversions(sourceType: "int?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.i", "int", "nint"), expectedExplicitIL: convFromToNullableT("conv.i", "int", "nint"));
+            conversions(sourceType: "uint?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "uint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "uint", "nint"));
+            conversions(sourceType: "long?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "long", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "long", "nint"));
+            conversions(sourceType: "ulong?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "ulong", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "ulong", "nint"));
+            conversions(sourceType: "nint?", destType: "nint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "nuint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
+            conversions(sourceType: "float?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "float", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "float", "nint"));
+            conversions(sourceType: "double?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "double", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "double", "nint"));
+            conversions(sourceType: "decimal?", destType: "nint?", null,
 @"{
   // Code size       40 (0x28)
   .maxstack  1
@@ -942,9 +932,9 @@ $@"{{
   IL_0022:  newobj     ""nint?..ctor(nint)""
   IL_0027:  ret
 }");
-            getArgs(builder, sourceType: "System.IntPtr?", destType: "nint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            getArgs(builder, sourceType: "System.UIntPtr?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nint", destType: "object",
+            conversions(sourceType: "System.IntPtr?", destType: "nint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "System.UIntPtr?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint", destType: "object",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -959,8 +949,8 @@ $@"{{
   IL_0001:  box        ""System.IntPtr""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "nint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nint", destType: "void*", expectedImplicitIL: null,
+            conversions(sourceType: "nint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint", destType: "void*", expectedImplicitIL: null,
 // PROTOTYPE: Should be conv.i.
 @"{
   // Code size        7 (0x7)
@@ -969,19 +959,19 @@ $@"{{
   IL_0001:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "nint", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nint", destType: "char", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2"));
-            getArgs(builder, sourceType: "nint", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i1"), expectedCheckedIL: conv("conv.ovf.i1"));
-            getArgs(builder, sourceType: "nint", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u1"), expectedCheckedIL: conv("conv.ovf.u1"));
-            getArgs(builder, sourceType: "nint", destType: "short", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i2"), expectedCheckedIL: conv("conv.ovf.i2"));
-            getArgs(builder, sourceType: "nint", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2"));
-            getArgs(builder, sourceType: "nint", destType: "int", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4"));
-            getArgs(builder, sourceType: "nint", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4"));
-            getArgs(builder, sourceType: "nint", destType: "long", expectedImplicitIL: conv("conv.i8"), expectedExplicitIL: conv("conv.i8"));
-            getArgs(builder, sourceType: "nint", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i8"), expectedCheckedIL: conv("conv.ovf.u8")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
-            getArgs(builder, sourceType: "nint", destType: "float", expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
-            getArgs(builder, sourceType: "nint", destType: "double", expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
-            getArgs(builder, sourceType: "nint", destType: "decimal",
+            conversions(sourceType: "nint", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint", destType: "char", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2"));
+            conversions(sourceType: "nint", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i1"), expectedCheckedIL: conv("conv.ovf.i1"));
+            conversions(sourceType: "nint", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u1"), expectedCheckedIL: conv("conv.ovf.u1"));
+            conversions(sourceType: "nint", destType: "short", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i2"), expectedCheckedIL: conv("conv.ovf.i2"));
+            conversions(sourceType: "nint", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2"));
+            conversions(sourceType: "nint", destType: "int", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4"));
+            conversions(sourceType: "nint", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4"));
+            conversions(sourceType: "nint", destType: "long", expectedImplicitIL: conv("conv.i8"), expectedExplicitIL: conv("conv.i8"));
+            conversions(sourceType: "nint", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i8"), expectedCheckedIL: conv("conv.ovf.u8")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
+            conversions(sourceType: "nint", destType: "float", expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
+            conversions(sourceType: "nint", destType: "double", expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
+            conversions(sourceType: "nint", destType: "decimal",
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -998,21 +988,21 @@ $@"{{
   IL_0002:  call       ""decimal decimal.op_Implicit(long)""
   IL_0007:  ret
 }");
-            getArgs(builder, sourceType: "nint", destType: "System.IntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            getArgs(builder, sourceType: "nint", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nint", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nint", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "char"), expectedCheckedIL: convToNullableT("conv.ovf.u2", "char"));
-            getArgs(builder, sourceType: "nint", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i1", "sbyte"), expectedCheckedIL: convToNullableT("conv.ovf.i1", "sbyte"));
-            getArgs(builder, sourceType: "nint", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u1", "byte"), expectedCheckedIL: convToNullableT("conv.ovf.u1", "byte"));
-            getArgs(builder, sourceType: "nint", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i2", "short"), expectedCheckedIL: convToNullableT("conv.ovf.i2", "short"));
-            getArgs(builder, sourceType: "nint", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "ushort"), expectedCheckedIL: convToNullableT("conv.ovf.u2", "ushort"));
-            getArgs(builder, sourceType: "nint", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "int"), expectedCheckedIL: convToNullableT("conv.ovf.i4", "int"));
-            getArgs(builder, sourceType: "nint", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u4", "uint"), expectedCheckedIL: convToNullableT("conv.ovf.u4", "uint"));
-            getArgs(builder, sourceType: "nint", destType: "long?", expectedImplicitIL: convToNullableT("conv.i8", "long"), expectedExplicitIL: convToNullableT("conv.i8", "long"));
-            getArgs(builder, sourceType: "nint", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i8", "ulong"), expectedCheckedIL: convToNullableT("conv.ovf.u8", "ulong")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
-            getArgs(builder, sourceType: "nint", destType: "float?", expectedImplicitIL: convToNullableT("conv.r4", "float"), expectedExplicitIL: convToNullableT("conv.r4", "float"), null);
-            getArgs(builder, sourceType: "nint", destType: "double?", expectedImplicitIL: convToNullableT("conv.r8", "double"), expectedExplicitIL: convToNullableT("conv.r8", "double"), null);
-            getArgs(builder, sourceType: "nint", destType: "decimal?",
+            conversions(sourceType: "nint", destType: "System.IntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nint", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "char"), expectedCheckedIL: convToNullableT("conv.ovf.u2", "char"));
+            conversions(sourceType: "nint", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i1", "sbyte"), expectedCheckedIL: convToNullableT("conv.ovf.i1", "sbyte"));
+            conversions(sourceType: "nint", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u1", "byte"), expectedCheckedIL: convToNullableT("conv.ovf.u1", "byte"));
+            conversions(sourceType: "nint", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i2", "short"), expectedCheckedIL: convToNullableT("conv.ovf.i2", "short"));
+            conversions(sourceType: "nint", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "ushort"), expectedCheckedIL: convToNullableT("conv.ovf.u2", "ushort"));
+            conversions(sourceType: "nint", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "int"), expectedCheckedIL: convToNullableT("conv.ovf.i4", "int"));
+            conversions(sourceType: "nint", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u4", "uint"), expectedCheckedIL: convToNullableT("conv.ovf.u4", "uint"));
+            conversions(sourceType: "nint", destType: "long?", expectedImplicitIL: convToNullableT("conv.i8", "long"), expectedExplicitIL: convToNullableT("conv.i8", "long"));
+            conversions(sourceType: "nint", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i8", "ulong"), expectedCheckedIL: convToNullableT("conv.ovf.u8", "ulong")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
+            conversions(sourceType: "nint", destType: "float?", expectedImplicitIL: convToNullableT("conv.r4", "float"), expectedExplicitIL: convToNullableT("conv.r4", "float"), null);
+            conversions(sourceType: "nint", destType: "double?", expectedImplicitIL: convToNullableT("conv.r8", "double"), expectedExplicitIL: convToNullableT("conv.r8", "double"), null);
+            conversions(sourceType: "nint", destType: "decimal?",
 @"{
   // Code size       13 (0xd)
   .maxstack  1
@@ -1031,7 +1021,7 @@ $@"{{
   IL_0007:  newobj     ""decimal?..ctor(decimal)""
   IL_000c:  ret
 }");
-            getArgs(builder, sourceType: "nint", destType: "System.IntPtr?",
+            conversions(sourceType: "nint", destType: "System.IntPtr?",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1046,8 +1036,8 @@ $@"{{
   IL_0001:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "nint", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nint?", destType: "object",
+            conversions(sourceType: "nint", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "object",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1062,8 +1052,8 @@ $@"{{
   IL_0001:  box        ""nint?""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "nint?", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nint?", destType: "void*", expectedImplicitIL: null,
+            conversions(sourceType: "nint?", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "void*", expectedImplicitIL: null,
 // PROTOTYPE: Should be conv.i.
 @"{
   // Code size       13 (0xd)
@@ -1073,19 +1063,19 @@ $@"{{
   IL_0007:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
   IL_000c:  ret
 }");
-            getArgs(builder, sourceType: "nint?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nint?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2", "nint"));
-            getArgs(builder, sourceType: "nint?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i1", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i1", "nint"));
-            getArgs(builder, sourceType: "nint?", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u1", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u1", "nint"));
-            getArgs(builder, sourceType: "nint?", destType: "short", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i2", "nint"));
-            getArgs(builder, sourceType: "nint?", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2", "nint"));
-            getArgs(builder, sourceType: "nint?", destType: "int", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4", "nint"));
-            getArgs(builder, sourceType: "nint?", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u4", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u4", "nint"));
-            getArgs(builder, sourceType: "nint?", destType: "long", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i8", "nint"));
-            getArgs(builder, sourceType: "nint?", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i8", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u8", "nint")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
-            getArgs(builder, sourceType: "nint?", destType: "float", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r4", "nint"));
-            getArgs(builder, sourceType: "nint?", destType: "double", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r8", "nint"));
-            getArgs(builder, sourceType: "nint?", destType: "decimal", expectedImplicitIL: null,
+            conversions(sourceType: "nint?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2", "nint"));
+            conversions(sourceType: "nint?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i1", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i1", "nint"));
+            conversions(sourceType: "nint?", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u1", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u1", "nint"));
+            conversions(sourceType: "nint?", destType: "short", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i2", "nint"));
+            conversions(sourceType: "nint?", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2", "nint"));
+            conversions(sourceType: "nint?", destType: "int", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4", "nint"));
+            conversions(sourceType: "nint?", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u4", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u4", "nint"));
+            conversions(sourceType: "nint?", destType: "long", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i8", "nint"));
+            conversions(sourceType: "nint?", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i8", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u8", "nint")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
+            conversions(sourceType: "nint?", destType: "float", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r4", "nint"));
+            conversions(sourceType: "nint?", destType: "double", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r8", "nint"));
+            conversions(sourceType: "nint?", destType: "decimal", expectedImplicitIL: null,
 @"{
   // Code size       14 (0xe)
   .maxstack  1
@@ -1095,7 +1085,7 @@ $@"{{
   IL_0008:  call       ""decimal decimal.op_Implicit(long)""
   IL_000d:  ret
 }");
-            getArgs(builder, sourceType: "nint?", destType: "System.IntPtr", expectedImplicitIL: null,
+            conversions(sourceType: "nint?", destType: "System.IntPtr", expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -1103,20 +1093,20 @@ $@"{{
   IL_0002:  call       ""nint nint?.Value.get""
   IL_0007:  ret
 }");
-            getArgs(builder, sourceType: "nint?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nint?", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nint?", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nint", "char"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2", "nint", "char"));
-            getArgs(builder, sourceType: "nint?", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i1", "nint", "sbyte"), expectedCheckedIL: convFromToNullableT("conv.ovf.i1", "nint", "sbyte"));
-            getArgs(builder, sourceType: "nint?", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u1", "nint", "byte"), expectedCheckedIL: convFromToNullableT("conv.ovf.u1", "nint", "byte"));
-            getArgs(builder, sourceType: "nint?", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i2", "nint", "short"), expectedCheckedIL: convFromToNullableT("conv.ovf.i2", "nint", "short"));
-            getArgs(builder, sourceType: "nint?", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nint", "ushort"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2", "nint", "ushort"));
-            getArgs(builder, sourceType: "nint?", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nint", "int"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4", "nint", "int"));
-            getArgs(builder, sourceType: "nint?", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u4", "nint", "uint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u4", "nint", "uint"));
-            getArgs(builder, sourceType: "nint?", destType: "long?", expectedImplicitIL: convFromToNullableT("conv.i8", "nint", "long"), expectedExplicitIL: convFromToNullableT("conv.i8", "nint", "long"));
-            getArgs(builder, sourceType: "nint?", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i8", "nint", "ulong"), expectedCheckedIL: convFromToNullableT("conv.ovf.u8", "nint", "ulong")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
-            getArgs(builder, sourceType: "nint?", destType: "float?", expectedImplicitIL: convFromToNullableT("conv.r4", "nint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nint", "float"), null);
-            getArgs(builder, sourceType: "nint?", destType: "double?", expectedImplicitIL: convFromToNullableT("conv.r8", "nint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nint", "double"), null);
-            getArgs(builder, sourceType: "nint?", destType: "decimal?",
+            conversions(sourceType: "nint?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nint", "char"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2", "nint", "char"));
+            conversions(sourceType: "nint?", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i1", "nint", "sbyte"), expectedCheckedIL: convFromToNullableT("conv.ovf.i1", "nint", "sbyte"));
+            conversions(sourceType: "nint?", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u1", "nint", "byte"), expectedCheckedIL: convFromToNullableT("conv.ovf.u1", "nint", "byte"));
+            conversions(sourceType: "nint?", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i2", "nint", "short"), expectedCheckedIL: convFromToNullableT("conv.ovf.i2", "nint", "short"));
+            conversions(sourceType: "nint?", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nint", "ushort"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2", "nint", "ushort"));
+            conversions(sourceType: "nint?", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nint", "int"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4", "nint", "int"));
+            conversions(sourceType: "nint?", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u4", "nint", "uint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u4", "nint", "uint"));
+            conversions(sourceType: "nint?", destType: "long?", expectedImplicitIL: convFromToNullableT("conv.i8", "nint", "long"), expectedExplicitIL: convFromToNullableT("conv.i8", "nint", "long"));
+            conversions(sourceType: "nint?", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i8", "nint", "ulong"), expectedCheckedIL: convFromToNullableT("conv.ovf.u8", "nint", "ulong")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
+            conversions(sourceType: "nint?", destType: "float?", expectedImplicitIL: convFromToNullableT("conv.r4", "nint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nint", "float"), null);
+            conversions(sourceType: "nint?", destType: "double?", expectedImplicitIL: convFromToNullableT("conv.r8", "nint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nint", "double"), null);
+            conversions(sourceType: "nint?", destType: "decimal?",
 @"{
   // Code size       40 (0x28)
   .maxstack  1
@@ -1159,9 +1149,9 @@ $@"{{
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
   IL_0027:  ret
 }");
-            getArgs(builder, sourceType: "nint?", destType: "System.IntPtr?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            getArgs(builder, sourceType: "nint?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "object", destType: "nuint", expectedImplicitIL: null,
+            conversions(sourceType: "nint?", destType: "System.IntPtr?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nint?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "object", destType: "nuint", expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1169,8 +1159,8 @@ $@"{{
   IL_0001:  unbox.any  ""System.UIntPtr""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "string", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "void*", destType: "nuint", expectedImplicitIL: null,
+            conversions(sourceType: "string", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "void*", destType: "nuint", expectedImplicitIL: null,
 // PROTOTYPE: Should be conv.u.
 @"{
   // Code size        7 (0x7)
@@ -1179,21 +1169,21 @@ $@"{{
   IL_0001:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(void*)""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "bool", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "char", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            getArgs(builder, sourceType: "sbyte", destType: "nuint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
-            getArgs(builder, sourceType: "byte", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            getArgs(builder, sourceType: "short", destType: "nuint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
-            getArgs(builder, sourceType: "ushort", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            getArgs(builder, sourceType: "int", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
-            getArgs(builder, sourceType: "uint", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            getArgs(builder, sourceType: "long", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
-            getArgs(builder, sourceType: "ulong", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u.un"));
-            getArgs(builder, sourceType: "nint", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
-            getArgs(builder, sourceType: "nuint", destType: "nuint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            getArgs(builder, sourceType: "float", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
-            getArgs(builder, sourceType: "double", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
-            getArgs(builder, sourceType: "decimal", destType: "nuint", expectedImplicitIL: null,
+            conversions(sourceType: "bool", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "sbyte", destType: "nuint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "byte", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "short", destType: "nuint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "ushort", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "int", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "uint", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
+            conversions(sourceType: "long", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "ulong", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u.un"));
+            conversions(sourceType: "nint", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "nuint", destType: "nuint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "float", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "double", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "decimal", destType: "nuint", expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -1210,20 +1200,20 @@ $@"{{
   IL_0006:  conv.ovf.u.un
   IL_0007:  ret
 }");
-            getArgs(builder, sourceType: "System.IntPtr", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "System.UIntPtr", destType: "nuint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            getArgs(builder, sourceType: "bool?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "char?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "char"));
-            getArgs(builder, sourceType: "sbyte?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "sbyte"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "sbyte"));
-            getArgs(builder, sourceType: "byte?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "byte"));
-            getArgs(builder, sourceType: "short?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "short"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "short"));
-            getArgs(builder, sourceType: "ushort?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ushort"));
-            getArgs(builder, sourceType: "int?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "int"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "int"));
-            getArgs(builder, sourceType: "uint?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "uint"));
-            getArgs(builder, sourceType: "long?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "long"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "long"));
-            getArgs(builder, sourceType: "ulong?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ulong"), expectedCheckedIL: convFromNullableT("conv.ovf.u.un", "ulong"));
-            getArgs(builder, sourceType: "nint?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
-            getArgs(builder, sourceType: "nuint?", destType: "nuint", expectedImplicitIL: null,
+            conversions(sourceType: "System.IntPtr", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr", destType: "nuint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "bool?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "char"));
+            conversions(sourceType: "sbyte?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "sbyte"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "sbyte"));
+            conversions(sourceType: "byte?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "byte"));
+            conversions(sourceType: "short?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "short"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "short"));
+            conversions(sourceType: "ushort?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ushort"));
+            conversions(sourceType: "int?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "int"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "int"));
+            conversions(sourceType: "uint?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "uint"));
+            conversions(sourceType: "long?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "long"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "long"));
+            conversions(sourceType: "ulong?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ulong"), expectedCheckedIL: convFromNullableT("conv.ovf.u.un", "ulong"));
+            conversions(sourceType: "nint?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
+            conversions(sourceType: "nuint?", destType: "nuint", expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -1231,9 +1221,9 @@ $@"{{
   IL_0002:  call       ""nuint nuint?.Value.get""
   IL_0007:  ret
 }");
-            getArgs(builder, sourceType: "float?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "float"));
-            getArgs(builder, sourceType: "double?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "double"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "double"));
-            getArgs(builder, sourceType: "decimal?", destType: "nuint", expectedImplicitIL: null,
+            conversions(sourceType: "float?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "float"));
+            conversions(sourceType: "double?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "double"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "double"));
+            conversions(sourceType: "decimal?", destType: "nuint", expectedImplicitIL: null,
 @"{
   // Code size       14 (0xe)
   .maxstack  1
@@ -1252,8 +1242,8 @@ $@"{{
   IL_000c:  conv.ovf.u.un
   IL_000d:  ret
 }");
-            getArgs(builder, sourceType: "System.IntPtr?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "System.UIntPtr?", destType: "nuint", expectedImplicitIL: null,
+            conversions(sourceType: "System.IntPtr?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr?", destType: "nuint", expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -1261,7 +1251,7 @@ $@"{{
   IL_0002:  call       ""System.UIntPtr System.UIntPtr?.Value.get""
   IL_0007:  ret
 }");
-            getArgs(builder, sourceType: "object", destType: "nuint?", expectedImplicitIL: null,
+            conversions(sourceType: "object", destType: "nuint?", expectedImplicitIL: null,
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1269,8 +1259,8 @@ $@"{{
   IL_0001:  unbox.any  ""nuint?""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "string", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "void*", destType: "nuint?", expectedImplicitIL: null,
+            conversions(sourceType: "string", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "void*", destType: "nuint?", expectedImplicitIL: null,
 // PROTOTYPE: Should be conv.u.
 @"{
   // Code size       12 (0xc)
@@ -1280,18 +1270,18 @@ $@"{{
   IL_0006:  newobj     ""nuint?..ctor(nuint)""
   IL_000b:  ret
 }");
-            getArgs(builder, sourceType: "bool", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "char", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            getArgs(builder, sourceType: "sbyte", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.i", "nuint"), expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            getArgs(builder, sourceType: "byte", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            getArgs(builder, sourceType: "short", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.i", "nuint"), expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            getArgs(builder, sourceType: "ushort", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            getArgs(builder, sourceType: "int", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            getArgs(builder, sourceType: "uint", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            getArgs(builder, sourceType: "long", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            getArgs(builder, sourceType: "ulong", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u.un", "nuint"));
-            getArgs(builder, sourceType: "nint", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            getArgs(builder, sourceType: "nuint", destType: "nuint?",
+            conversions(sourceType: "bool", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
+            conversions(sourceType: "sbyte", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.i", "nuint"), expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "byte", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
+            conversions(sourceType: "short", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.i", "nuint"), expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "ushort", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
+            conversions(sourceType: "int", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "uint", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
+            conversions(sourceType: "long", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "ulong", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u.un", "nuint"));
+            conversions(sourceType: "nint", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "nuint", destType: "nuint?",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1306,9 +1296,9 @@ $@"{{
   IL_0001:  newobj     ""nuint?..ctor(nuint)""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "float", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            getArgs(builder, sourceType: "double", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
-            getArgs(builder, sourceType: "decimal", destType: "nuint?", expectedImplicitIL: null,
+            conversions(sourceType: "float", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "double", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "decimal", destType: "nuint?", expectedImplicitIL: null,
 @"{
   // Code size       13 (0xd)
   .maxstack  1
@@ -1327,8 +1317,8 @@ $@"{{
   IL_0007:  newobj     ""nuint?..ctor(nuint)""
   IL_000c:  ret
 }");
-            getArgs(builder, sourceType: "System.IntPtr", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "System.UIntPtr", destType: "nuint?",
+            conversions(sourceType: "System.IntPtr", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr", destType: "nuint?",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1343,21 +1333,21 @@ $@"{{
   IL_0001:  newobj     ""nuint?..ctor(nuint)""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "bool?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "char?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "char", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "char", "nuint"));
-            getArgs(builder, sourceType: "sbyte?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "sbyte", "nuint"));
-            getArgs(builder, sourceType: "byte?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "byte", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "byte", "nuint"));
-            getArgs(builder, sourceType: "short?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedExplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "short", "nuint"));
-            getArgs(builder, sourceType: "ushort?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"));
-            getArgs(builder, sourceType: "int?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "int", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "int", "nuint"));
-            getArgs(builder, sourceType: "uint?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "uint", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "uint", "nuint"));
-            getArgs(builder, sourceType: "long?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "long", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "long", "nuint"));
-            getArgs(builder, sourceType: "ulong?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "ulong", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u.un", "ulong", "nuint"));
-            getArgs(builder, sourceType: "nint?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "nint", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
-            getArgs(builder, sourceType: "nuint?", destType: "nuint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            getArgs(builder, sourceType: "float?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "float", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "float", "nuint"));
-            getArgs(builder, sourceType: "double?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "double", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "double", "nuint"));
-            getArgs(builder, sourceType: "decimal?", destType: "nuint?", null,
+            conversions(sourceType: "bool?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "char?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "char", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "char", "nuint"));
+            conversions(sourceType: "sbyte?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "sbyte", "nuint"));
+            conversions(sourceType: "byte?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "byte", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "byte", "nuint"));
+            conversions(sourceType: "short?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedExplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "short", "nuint"));
+            conversions(sourceType: "ushort?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"));
+            conversions(sourceType: "int?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "int", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "int", "nuint"));
+            conversions(sourceType: "uint?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "uint", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "uint", "nuint"));
+            conversions(sourceType: "long?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "long", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "long", "nuint"));
+            conversions(sourceType: "ulong?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "ulong", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u.un", "ulong", "nuint"));
+            conversions(sourceType: "nint?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "nint", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
+            conversions(sourceType: "nuint?", destType: "nuint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "float?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "float", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "float", "nuint"));
+            conversions(sourceType: "double?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "double", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "double", "nuint"));
+            conversions(sourceType: "decimal?", destType: "nuint?", null,
 @"{
   // Code size       40 (0x28)
   .maxstack  1
@@ -1400,9 +1390,9 @@ $@"{{
   IL_0022:  newobj     ""nuint?..ctor(nuint)""
   IL_0027:  ret
 }");
-            getArgs(builder, sourceType: "System.IntPtr?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "System.UIntPtr?", destType: "nuint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            getArgs(builder, sourceType: "nuint", destType: "object",
+            conversions(sourceType: "System.IntPtr?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.UIntPtr?", destType: "nuint?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint", destType: "object",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1417,8 +1407,8 @@ $@"{{
   IL_0001:  box        ""System.UIntPtr""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "nuint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nuint", destType: "void*", expectedImplicitIL: null,
+            conversions(sourceType: "nuint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint", destType: "void*", expectedImplicitIL: null,
 // PROTOTYPE: Should be conv.u.
 @"{
   // Code size        7 (0x7)
@@ -1427,19 +1417,19 @@ $@"{{
   IL_0001:  call       ""void* System.UIntPtr.op_Explicit(System.UIntPtr)""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "nuint", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nuint", destType: "char", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2.un"));
-            getArgs(builder, sourceType: "nuint", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i1"), expectedCheckedIL: conv("conv.ovf.i1.un"));
-            getArgs(builder, sourceType: "nuint", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u1"), expectedCheckedIL: conv("conv.ovf.u1.un"));
-            getArgs(builder, sourceType: "nuint", destType: "short", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i2"), expectedCheckedIL: conv("conv.ovf.i2.un"));
-            getArgs(builder, sourceType: "nuint", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2.un"));
-            getArgs(builder, sourceType: "nuint", destType: "int", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4.un"));
-            getArgs(builder, sourceType: "nuint", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4.un"));
-            getArgs(builder, sourceType: "nuint", destType: "long", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u8"), expectedCheckedIL: conv("conv.ovf.i8.un")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
-            getArgs(builder, sourceType: "nuint", destType: "ulong", expectedImplicitIL: conv("conv.u8"), expectedExplicitIL: conv("conv.u8"));
-            getArgs(builder, sourceType: "nuint", destType: "float", expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
-            getArgs(builder, sourceType: "nuint", destType: "double", expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
-            getArgs(builder, sourceType: "nuint", destType: "decimal",
+            conversions(sourceType: "nuint", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint", destType: "char", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2.un"));
+            conversions(sourceType: "nuint", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i1"), expectedCheckedIL: conv("conv.ovf.i1.un"));
+            conversions(sourceType: "nuint", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u1"), expectedCheckedIL: conv("conv.ovf.u1.un"));
+            conversions(sourceType: "nuint", destType: "short", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i2"), expectedCheckedIL: conv("conv.ovf.i2.un"));
+            conversions(sourceType: "nuint", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2.un"));
+            conversions(sourceType: "nuint", destType: "int", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4.un"));
+            conversions(sourceType: "nuint", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4.un"));
+            conversions(sourceType: "nuint", destType: "long", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u8"), expectedCheckedIL: conv("conv.ovf.i8.un")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
+            conversions(sourceType: "nuint", destType: "ulong", expectedImplicitIL: conv("conv.u8"), expectedExplicitIL: conv("conv.u8"));
+            conversions(sourceType: "nuint", destType: "float", expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
+            conversions(sourceType: "nuint", destType: "double", expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
+            conversions(sourceType: "nuint", destType: "decimal",
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -1456,21 +1446,21 @@ $@"{{
   IL_0002:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_0007:  ret
 }");
-            getArgs(builder, sourceType: "nuint", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nuint", destType: "System.UIntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            getArgs(builder, sourceType: "nuint", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nuint", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "char"), expectedCheckedIL: convToNullableT("conv.ovf.u2.un", "char"));
-            getArgs(builder, sourceType: "nuint", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i1", "sbyte"), expectedCheckedIL: convToNullableT("conv.ovf.i1.un", "sbyte"));
-            getArgs(builder, sourceType: "nuint", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u1", "byte"), expectedCheckedIL: convToNullableT("conv.ovf.u1.un", "byte"));
-            getArgs(builder, sourceType: "nuint", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i2", "short"), expectedCheckedIL: convToNullableT("conv.ovf.i2.un", "short"));
-            getArgs(builder, sourceType: "nuint", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "ushort"), expectedCheckedIL: convToNullableT("conv.ovf.u2.un", "ushort"));
-            getArgs(builder, sourceType: "nuint", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "int"), expectedCheckedIL: convToNullableT("conv.ovf.i4.un", "int"));
-            getArgs(builder, sourceType: "nuint", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u4", "uint"), expectedCheckedIL: convToNullableT("conv.ovf.u4.un", "uint"));
-            getArgs(builder, sourceType: "nuint", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u8", "long"), expectedCheckedIL: convToNullableT("conv.ovf.i8.un", "long")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
-            getArgs(builder, sourceType: "nuint", destType: "ulong?", expectedImplicitIL: convToNullableT("conv.u8", "ulong"), expectedExplicitIL: convToNullableT("conv.u8", "ulong"));
-            getArgs(builder, sourceType: "nuint", destType: "float?", expectedImplicitIL: convToNullableT("conv.r4", "float"), expectedExplicitIL: convToNullableT("conv.r4", "float"), null);
-            getArgs(builder, sourceType: "nuint", destType: "double?", expectedImplicitIL: convToNullableT("conv.r8", "double"), expectedExplicitIL: convToNullableT("conv.r8", "double"), null);
-            getArgs(builder, sourceType: "nuint", destType: "decimal?",
+            conversions(sourceType: "nuint", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint", destType: "System.UIntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "char"), expectedCheckedIL: convToNullableT("conv.ovf.u2.un", "char"));
+            conversions(sourceType: "nuint", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i1", "sbyte"), expectedCheckedIL: convToNullableT("conv.ovf.i1.un", "sbyte"));
+            conversions(sourceType: "nuint", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u1", "byte"), expectedCheckedIL: convToNullableT("conv.ovf.u1.un", "byte"));
+            conversions(sourceType: "nuint", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i2", "short"), expectedCheckedIL: convToNullableT("conv.ovf.i2.un", "short"));
+            conversions(sourceType: "nuint", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "ushort"), expectedCheckedIL: convToNullableT("conv.ovf.u2.un", "ushort"));
+            conversions(sourceType: "nuint", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "int"), expectedCheckedIL: convToNullableT("conv.ovf.i4.un", "int"));
+            conversions(sourceType: "nuint", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u4", "uint"), expectedCheckedIL: convToNullableT("conv.ovf.u4.un", "uint"));
+            conversions(sourceType: "nuint", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u8", "long"), expectedCheckedIL: convToNullableT("conv.ovf.i8.un", "long")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
+            conversions(sourceType: "nuint", destType: "ulong?", expectedImplicitIL: convToNullableT("conv.u8", "ulong"), expectedExplicitIL: convToNullableT("conv.u8", "ulong"));
+            conversions(sourceType: "nuint", destType: "float?", expectedImplicitIL: convToNullableT("conv.r4", "float"), expectedExplicitIL: convToNullableT("conv.r4", "float"), null);
+            conversions(sourceType: "nuint", destType: "double?", expectedImplicitIL: convToNullableT("conv.r8", "double"), expectedExplicitIL: convToNullableT("conv.r8", "double"), null);
+            conversions(sourceType: "nuint", destType: "decimal?",
 @"{
   // Code size       13 (0xd)
   .maxstack  1
@@ -1489,8 +1479,8 @@ $@"{{
   IL_0007:  newobj     ""decimal?..ctor(decimal)""
   IL_000c:  ret
 }");
-            getArgs(builder, sourceType: "nuint", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nuint", destType: "System.UIntPtr?",
+            conversions(sourceType: "nuint", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint", destType: "System.UIntPtr?",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1505,7 +1495,7 @@ $@"{{
   IL_0001:  newobj     ""System.UIntPtr?..ctor(System.UIntPtr)""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "nuint?", destType: "object",
+            conversions(sourceType: "nuint?", destType: "object",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1520,8 +1510,8 @@ $@"{{
   IL_0001:  box        ""nuint?""
   IL_0006:  ret
 }");
-            getArgs(builder, sourceType: "nuint?", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nuint?", destType: "void*", expectedImplicitIL: null,
+            conversions(sourceType: "nuint?", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "void*", expectedImplicitIL: null,
 // PROTOTYPE: Should be conv.u.
 @"{
   // Code size       13 (0xd)
@@ -1531,19 +1521,19 @@ $@"{{
   IL_0007:  call       ""void* System.UIntPtr.op_Explicit(System.UIntPtr)""
   IL_000c:  ret
 }");
-            getArgs(builder, sourceType: "nuint?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nuint?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2.un", "nuint"));
-            getArgs(builder, sourceType: "nuint?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i1", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i1.un", "nuint"));
-            getArgs(builder, sourceType: "nuint?", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u1", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u1.un", "nuint"));
-            getArgs(builder, sourceType: "nuint?", destType: "short", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i2.un", "nuint"));
-            getArgs(builder, sourceType: "nuint?", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2.un", "nuint"));
-            getArgs(builder, sourceType: "nuint?", destType: "int", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4.un", "nuint"));
-            getArgs(builder, sourceType: "nuint?", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u4.un", "nuint"));
-            getArgs(builder, sourceType: "nuint?", destType: "long", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u8", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i8.un", "nuint")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
-            getArgs(builder, sourceType: "nuint?", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u8", "nuint"));
-            getArgs(builder, sourceType: "nuint?", destType: "float", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r4", "nuint"));
-            getArgs(builder, sourceType: "nuint?", destType: "double", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r8", "nuint"));
-            getArgs(builder, sourceType: "nuint?", destType: "decimal", expectedImplicitIL: null,
+            conversions(sourceType: "nuint?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i1", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i1.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "byte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u1", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u1.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "short", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i2.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "int", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u4.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "long", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u8", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i8.un", "nuint")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
+            conversions(sourceType: "nuint?", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u8", "nuint"));
+            conversions(sourceType: "nuint?", destType: "float", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r4", "nuint"));
+            conversions(sourceType: "nuint?", destType: "double", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r8", "nuint"));
+            conversions(sourceType: "nuint?", destType: "decimal", expectedImplicitIL: null,
 @"{
   // Code size       14 (0xe)
   .maxstack  1
@@ -1553,8 +1543,8 @@ $@"{{
   IL_0008:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_000d:  ret
 }");
-            getArgs(builder, sourceType: "nuint?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nuint?", destType: "System.UIntPtr", expectedImplicitIL: null,
+            conversions(sourceType: "nuint?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "System.UIntPtr", expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -1562,19 +1552,19 @@ $@"{{
   IL_0002:  call       ""nuint nuint?.Value.get""
   IL_0007:  ret
 }");
-            getArgs(builder, sourceType: "nuint?", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nuint?", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nuint", "char"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2.un", "nuint", "char"));
-            getArgs(builder, sourceType: "nuint?", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i1", "nuint", "sbyte"), expectedCheckedIL: convFromToNullableT("conv.ovf.i1.un", "nuint", "sbyte"));
-            getArgs(builder, sourceType: "nuint?", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u1", "nuint", "byte"), expectedCheckedIL: convFromToNullableT("conv.ovf.u1.un", "nuint", "byte"));
-            getArgs(builder, sourceType: "nuint?", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i2", "nuint", "short"), expectedCheckedIL: convFromToNullableT("conv.ovf.i2.un", "nuint", "short"));
-            getArgs(builder, sourceType: "nuint?", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nuint", "ushort"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2.un", "nuint", "ushort"));
-            getArgs(builder, sourceType: "nuint?", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nuint", "int"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4.un", "nuint", "int"));
-            getArgs(builder, sourceType: "nuint?", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u4", "nuint", "uint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u4.un", "nuint", "uint"));
-            getArgs(builder, sourceType: "nuint?", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "long"), expectedCheckedIL: convFromToNullableT("conv.ovf.i8.un", "nuint", "long")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
-            getArgs(builder, sourceType: "nuint?", destType: "ulong?", expectedImplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"), expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"));
-            getArgs(builder, sourceType: "nuint?", destType: "float?", expectedImplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), null);
-            getArgs(builder, sourceType: "nuint?", destType: "double?", expectedImplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), null);
-            getArgs(builder, sourceType: "nuint?", destType: "decimal?",
+            conversions(sourceType: "nuint?", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nuint", "char"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2.un", "nuint", "char"));
+            conversions(sourceType: "nuint?", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i1", "nuint", "sbyte"), expectedCheckedIL: convFromToNullableT("conv.ovf.i1.un", "nuint", "sbyte"));
+            conversions(sourceType: "nuint?", destType: "byte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u1", "nuint", "byte"), expectedCheckedIL: convFromToNullableT("conv.ovf.u1.un", "nuint", "byte"));
+            conversions(sourceType: "nuint?", destType: "short?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i2", "nuint", "short"), expectedCheckedIL: convFromToNullableT("conv.ovf.i2.un", "nuint", "short"));
+            conversions(sourceType: "nuint?", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nuint", "ushort"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2.un", "nuint", "ushort"));
+            conversions(sourceType: "nuint?", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nuint", "int"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4.un", "nuint", "int"));
+            conversions(sourceType: "nuint?", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u4", "nuint", "uint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u4.un", "nuint", "uint"));
+            conversions(sourceType: "nuint?", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "long"), expectedCheckedIL: convFromToNullableT("conv.ovf.i8.un", "nuint", "long")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
+            conversions(sourceType: "nuint?", destType: "ulong?", expectedImplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"), expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"));
+            conversions(sourceType: "nuint?", destType: "float?", expectedImplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), null);
+            conversions(sourceType: "nuint?", destType: "double?", expectedImplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), null);
+            conversions(sourceType: "nuint?", destType: "decimal?",
 @"{
   // Code size       40 (0x28)
   .maxstack  1
@@ -1617,21 +1607,17 @@ $@"{{
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
   IL_0027:  ret
 }");
-            getArgs(builder, sourceType: "nuint?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
-            getArgs(builder, sourceType: "nuint?", destType: "System.UIntPtr?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-
-            return builder.ToImmutableAndFree();
+            conversions(sourceType: "nuint?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "System.UIntPtr?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
         }
 
-        [Theory]
-        [MemberData(nameof(ConversionsData))]
-        public void Conversions(string sourceType,
+        private void Convert(string sourceType,
             string destType,
             string expectedIL,
             bool skipTypeChecks,
             bool useExplicitCast,
             bool useChecked,
-            int expectedErrorCode)
+            ErrorCode expectedErrorCode)
         {
             bool useUnsafeContext = useUnsafe(sourceType) || useUnsafe(destType);
             string value = "value";
@@ -1641,7 +1627,7 @@ $@"{{
             }
             var expectedDiagnostics = expectedErrorCode == 0 ?
                 Array.Empty<DiagnosticDescription>() :
-                new[] { Diagnostic((ErrorCode)expectedErrorCode, value).WithArguments(sourceType, destType) };
+                new[] { Diagnostic(expectedErrorCode, value).WithArguments(sourceType, destType) };
             if (useChecked)
             {
                 value = $"checked({value})";
@@ -1677,44 +1663,213 @@ $@"class Program
             static bool useUnsafe(string underlyingType) => underlyingType == "void*";
         }
 
+        // PROTOTYPE:Test pre- and postfix increment and decrement. See UnopEasyOut.s_increment.
+
         // PROTOTYPE: Test unary operator- with `static IntPtr operator-(IntPtr)` defined on System.IntPtr. (Should be ignored for `nint`.)
-        public static IEnumerable<object[]> UnaryOperatorsData()
+
+        [Fact]
+        public void UnaryOperators()
         {
-            static void getArgs(ArrayBuilder<object[]> builder, string op, string opType, string expectedSymbol = null, DiagnosticDescription diagnostic = null)
+            static string getComplement(uint value)
             {
-                if (expectedSymbol == null && diagnostic == null)
-                {
-                    diagnostic = Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, opType);
-                }
-                builder.Add(new object[] { op, opType, expectedSymbol, diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>() });
+                object result = (IntPtr.Size == 4) ?
+                    (object)~value :
+                    (object)~(ulong)value;
+                return result.ToString();
             }
 
-            var builder = new ArrayBuilder<object[]>();
+            void unaryOp(string op, string opType, string expectedSymbol = null, string operand = null, string expectedResult = null, string expectedIL = "", DiagnosticDescription diagnostic = null)
+            {
+                operand ??= "default";
+                if (expectedSymbol == null && diagnostic == null)
+                {
+                    diagnostic = Diagnostic(ErrorCode.ERR_BadUnaryOp, $"{op}operand").WithArguments(op, opType);
+                }
 
-            getArgs(builder, "+", "nint", "nint nint.op_UnaryPlus(nint value)");
-            getArgs(builder, "+", "nuint", "nuint nuint.op_UnaryPlus(nuint value)");
-            getArgs(builder, "-", "nint", "nint nint.op_UnaryMinus(nint value)");
-            getArgs(builder, "-", "nuint", null);
-            getArgs(builder, "~", "nint", "nint nint.op_UnaryNot(nint value)");
-            getArgs(builder, "~", "nuint", "nuint nuint.op_UnaryNot(nuint value)");
+                UnaryOperator(op, opType, opType, expectedSymbol, operand, expectedResult, expectedIL, diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>());
+            }
 
-            // PROTOTYPE: Test nint? and nuint?
-            return builder;
+            unaryOp("+", "nint", "nint nint.op_UnaryPlus(nint value)", "3", "3",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            unaryOp(" + ", "nuint", "nuint nuint.op_UnaryPlus(nuint value)", "3", "3",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            unaryOp("+", "System.IntPtr");
+            unaryOp("+", "System.UIntPtr");
+            unaryOp("-", "nint", "nint nint.op_UnaryNegation(nint value)", "3", "-3",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  neg
+  IL_0002:  ret
+}");
+            unaryOp("-", "nuint", null, null, null, null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_BadUnaryOp.
+            unaryOp("-", "System.IntPtr");
+            unaryOp("-", "System.UIntPtr");
+            unaryOp("!", "nint");
+            unaryOp("!", "nuint");
+            unaryOp("!", "System.IntPtr");
+            unaryOp("!", "System.UIntPtr");
+            unaryOp("~", "nint", "nint nint.op_OnesComplement(nint value)", "3", "-4",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  not
+  IL_0002:  ret
+}");
+            unaryOp("~", "nuint", "nuint nuint.op_OnesComplement(nuint value)", "3", getComplement(3),
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  not
+  IL_0002:  ret
+}");
+            unaryOp("~", "System.IntPtr");
+            unaryOp("~", "System.UIntPtr");
+
+            unaryOp("+", "nint?", "nint nint.op_UnaryPlus(nint value)", "3", "3",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nint?..ctor(nint)""
+  IL_0021:  ret
+}");
+            unaryOp("+", "nuint?", "nuint nuint.op_UnaryPlus(nuint value)", "3", "3",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nuint?..ctor(nuint)""
+  IL_0021:  ret
+}");
+            unaryOp("+", "System.IntPtr?");
+            unaryOp("+", "System.UIntPtr?");
+            unaryOp("-", "nint?", "nint nint.op_UnaryNegation(nint value)", "3", "-3",
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  neg
+  IL_001d:  newobj     ""nint?..ctor(nint)""
+  IL_0022:  ret
+}");
+            unaryOp("-", "nuint?", null, null, null, null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint?")); // PROTOTYPE: Should report ERR_BadUnaryOp.
+            unaryOp("-", "System.IntPtr?");
+            unaryOp("-", "System.UIntPtr?");
+            unaryOp("!", "nint?");
+            unaryOp("!", "nuint?");
+            unaryOp("!", "System.IntPtr?");
+            unaryOp("!", "System.UIntPtr?");
+            unaryOp("~", "nint?", "nint nint.op_OnesComplement(nint value)", "3", "-4",
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  not
+  IL_001d:  newobj     ""nint?..ctor(nint)""
+  IL_0022:  ret
+}");
+            unaryOp("~", "nuint?", "nuint nuint.op_OnesComplement(nuint value)", "3", getComplement(3),
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001c:  not
+  IL_001d:  newobj     ""nuint?..ctor(nuint)""
+  IL_0022:  ret
+}");
+            unaryOp("~", "System.IntPtr?");
+            unaryOp("~", "System.UIntPtr?");
         }
 
-        [Theory(Skip = "PROTOTYPE")]
-        [MemberData(nameof(UnaryOperatorsData))]
-        public void UnaryOperators(string op, string opType, string expectedSymbol, DiagnosticDescription[] expectedDiagnostics)
+        private void UnaryOperator(string op, string opType, string resultType, string expectedSymbol, string operand, string expectedResult, string expectedIL, DiagnosticDescription[] expectedDiagnostics)
         {
             string source =
 $@"class Program
 {{
-    static object Evaluate({opType} operand)
+    static {resultType} Evaluate({opType} operand)
     {{
         return {op}operand;
     }}
+    static void Main()
+    {{
+        System.Console.WriteLine(Evaluate({operand}));
+    }}
 }}";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var tree = comp.SyntaxTrees[0];
@@ -1725,28 +1880,28 @@ $@"class Program
 
             if (expectedDiagnostics.Length == 0)
             {
-                CompileAndVerify(comp);
+                var verifier = CompileAndVerify(comp, expectedOutput: expectedResult);
+                verifier.VerifyIL("Program.Evaluate", expectedIL);
             }
         }
 
-        public static IEnumerable<object[]> BinaryOperatorsData()
+        [Fact]
+        public void BinaryOperators()
         {
-            static void getArgs(ArrayBuilder<object[]> builder, string op, string leftType, string rightType, string expectedSymbol1 = null, string expectedSymbol2 = "", DiagnosticDescription[] diagnostics1 = null, DiagnosticDescription[] diagnostics2 = null)
+            void binaryOps(string op, string leftType, string rightType, string expectedSymbol1 = null, string expectedSymbol2 = "", DiagnosticDescription[] diagnostics1 = null, DiagnosticDescription[] diagnostics2 = null)
             {
-                getArgs1(builder, op, leftType, rightType, expectedSymbol1, diagnostics1);
-                getArgs1(builder, op, rightType, leftType, expectedSymbol2 == "" ? expectedSymbol1 : expectedSymbol2, diagnostics2 ?? diagnostics1);
+                binaryOp(op, leftType, rightType, expectedSymbol1, diagnostics1);
+                binaryOp(op, rightType, leftType, expectedSymbol2 == "" ? expectedSymbol1 : expectedSymbol2, diagnostics2 ?? diagnostics1);
             }
 
-            static void getArgs1(ArrayBuilder<object[]> builder, string op, string leftType, string rightType, string expectedSymbol, DiagnosticDescription[] diagnostics)
+            void binaryOp(string op, string leftType, string rightType, string expectedSymbol, DiagnosticDescription[] diagnostics)
             {
                 if (expectedSymbol == null && diagnostics == null)
                 {
                     diagnostics = new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, leftType, rightType) };
                 }
-                builder.Add(new object[] { op, leftType, rightType, expectedSymbol, diagnostics ?? Array.Empty<DiagnosticDescription>() });
+                BinaryOperator(op, leftType, rightType, expectedSymbol, diagnostics ?? Array.Empty<DiagnosticDescription>());
             }
-
-            var builder = new ArrayBuilder<object[]>();
 
             var arithmeticOperators = new[]
             {
@@ -1785,926 +1940,922 @@ $@"class Program
 
             foreach ((string symbol, string name) in arithmeticOperators)
             {
-                getArgs(builder, symbol, "nint", "object");
-                getArgs(builder, symbol, "nint", "string");
+                binaryOps(symbol, "nint", "object");
+                binaryOps(symbol, "nint", "string");
                 // PROTOTYPE: Test all:
-                if (symbol == "*") getArgs(builder, symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
-                getArgs(builder, symbol, "nint", "bool");
-                getArgs(builder, symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "byte", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "short", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "ushort", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "uint", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") });
-                getArgs(builder, symbol, "nint", "long", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint") });
-                getArgs(builder, symbol, "nint", "float", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint", "double", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                if (symbol == "*") binaryOps(symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nint", "bool");
+                binaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "byte", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "short", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "ushort", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "uint", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") });
+                binaryOps(symbol, "nint", "long", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint") });
+                binaryOps(symbol, "nint", "float", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nint", "double", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint", "System.UIntPtr");
-                getArgs(builder, symbol, "nint", "bool?");
-                getArgs(builder, symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "byte?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "short?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "ushort?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") });
-                getArgs(builder, symbol, "nint", "long?", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint") });
-                getArgs(builder, symbol, "nint", "float?", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint", "double?", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint", "System.UIntPtr");
+                binaryOps(symbol, "nint", "bool?");
+                binaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "byte?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "short?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "ushort?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") });
+                binaryOps(symbol, "nint", "long?", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint") });
+                binaryOps(symbol, "nint", "float?", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nint", "double?", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint", "System.UIntPtr?");
-                getArgs(builder, symbol, "nint", "object");
-                getArgs(builder, symbol, "nint?", "string");
+                binaryOps(symbol, "nint", "System.UIntPtr?");
+                binaryOps(symbol, "nint", "object");
+                binaryOps(symbol, "nint?", "string");
                 // PROTOTYPE: Test all:
-                if (symbol == "*") getArgs(builder, symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
-                getArgs(builder, symbol, "nint?", "bool");
-                getArgs(builder, symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "byte", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "short", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "ushort", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") });
-                getArgs(builder, symbol, "nint?", "long", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint?") });
-                getArgs(builder, symbol, "nint?", "float", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint?", "double", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                if (symbol == "*") binaryOps(symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nint?", "bool");
+                binaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "byte", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "short", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "ushort", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") });
+                binaryOps(symbol, "nint?", "long", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint?") });
+                binaryOps(symbol, "nint?", "float", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nint?", "double", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint?", "System.UIntPtr");
-                getArgs(builder, symbol, "nint?", "bool?");
-                getArgs(builder, symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "byte?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "short?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") });
-                getArgs(builder, symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint?") });
-                getArgs(builder, symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint?", "System.UIntPtr");
+                binaryOps(symbol, "nint?", "bool?");
+                binaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "byte?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "short?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") });
+                binaryOps(symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint?") });
+                binaryOps(symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint?", "System.UIntPtr?");
-                getArgs(builder, symbol, "nuint", "object");
-                getArgs(builder, symbol, "nuint", "string");
+                binaryOps(symbol, "nint?", "System.UIntPtr?");
+                binaryOps(symbol, "nuint", "object");
+                binaryOps(symbol, "nuint", "string");
                 // PROTOTYPE: Test all:
-                if (symbol == "*") getArgs(builder, symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
-                getArgs(builder, symbol, "nuint", "bool");
-                getArgs(builder, symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint") });
-                getArgs(builder, symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") });
-                getArgs(builder, symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint") });
-                getArgs(builder, symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint", "float", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint", "double", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint", "System.IntPtr");
+                if (symbol == "*") binaryOps(symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nuint", "bool");
+                binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint") });
+                binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") });
+                binaryOps(symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint") });
+                binaryOps(symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint", "float", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint", "double", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint", "System.IntPtr");
                 //getArgs(builder, symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint", "bool?");
-                getArgs(builder, symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint") });
-                getArgs(builder, symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") });
-                getArgs(builder, symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint") });
-                getArgs(builder, symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint", "float?", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint", "System.IntPtr?");
+                binaryOps(symbol, "nuint", "bool?");
+                binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint") });
+                binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") });
+                binaryOps(symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint") });
+                binaryOps(symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint", "float?", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint", "System.IntPtr?");
                 //getArgs(builder, symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint?", "object");
-                getArgs(builder, symbol, "nuint?", "string");
+                binaryOps(symbol, "nuint?", "object");
+                binaryOps(symbol, "nuint?", "string");
                 // PROTOTYPE: Test all:
-                if (symbol == "*") getArgs(builder, symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
-                getArgs(builder, symbol, "nuint?", "bool");
-                getArgs(builder, symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint?", "float", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint?", "double", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint?", "System.IntPtr");
+                if (symbol == "*") binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nuint?", "bool");
+                binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint?") });
+                binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") });
+                binaryOps(symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint?") });
+                binaryOps(symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint?", "float", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint?", "double", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint?", "System.IntPtr");
                 //getArgs(builder, symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint?", "bool?");
-                getArgs(builder, symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint?", "float?", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint?", "System.IntPtr?");
+                binaryOps(symbol, "nuint?", "bool?");
+                binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint?") });
+                binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") });
+                binaryOps(symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint?") });
+                binaryOps(symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint?", "float?", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint?", "System.IntPtr?");
                 //getArgs(builder, symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
             }
 
             foreach ((string symbol, string name) in comparisonOperators)
             {
-                getArgs(builder, symbol, "nint", "object");
-                getArgs(builder, symbol, "nint", "string");
-                getArgs(builder, symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint") });
-                getArgs(builder, symbol, "nint", "bool");
-                getArgs(builder, symbol, "nint", "char", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "sbyte", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "byte", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "short", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "ushort", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "int", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "uint", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "nint", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") });
-                getArgs(builder, symbol, "nint", "long", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint") });
-                getArgs(builder, symbol, "nint", "float", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint", "double", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint", "object");
+                binaryOps(symbol, "nint", "string");
+                binaryOps(symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint") });
+                binaryOps(symbol, "nint", "bool");
+                binaryOps(symbol, "nint", "char", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "sbyte", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "byte", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "short", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "ushort", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "int", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "uint", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "nint", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") });
+                binaryOps(symbol, "nint", "long", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint") });
+                binaryOps(symbol, "nint", "float", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nint", "double", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint", "System.UIntPtr");
-                getArgs(builder, symbol, "nint", "bool?");
-                getArgs(builder, symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "sbyte?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "byte?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "short?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "ushort?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "int?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "uint?", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "nint?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") });
-                getArgs(builder, symbol, "nint", "long?", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint") });
-                getArgs(builder, symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint", "System.UIntPtr");
+                binaryOps(symbol, "nint", "bool?");
+                binaryOps(symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "sbyte?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "byte?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "short?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "ushort?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "int?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "uint?", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "nint?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") });
+                binaryOps(symbol, "nint", "long?", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint") });
+                binaryOps(symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint", "System.UIntPtr?");
-                getArgs(builder, symbol, "nint", "object");
-                getArgs(builder, symbol, "nint?", "string");
-                getArgs(builder, symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?") });
-                getArgs(builder, symbol, "nint?", "bool");
-                getArgs(builder, symbol, "nint?", "char", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "sbyte", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "byte", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "short", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "ushort", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "int", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "uint", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "nint", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") });
-                getArgs(builder, symbol, "nint?", "long", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint?") });
-                getArgs(builder, symbol, "nint?", "float", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint?", "double", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint", "System.UIntPtr?");
+                binaryOps(symbol, "nint", "object");
+                binaryOps(symbol, "nint?", "string");
+                binaryOps(symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?") });
+                binaryOps(symbol, "nint?", "bool");
+                binaryOps(symbol, "nint?", "char", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "sbyte", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "byte", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "short", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "ushort", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "int", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "uint", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "nint", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") });
+                binaryOps(symbol, "nint?", "long", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint?") });
+                binaryOps(symbol, "nint?", "float", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nint?", "double", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint?", "System.UIntPtr");
-                getArgs(builder, symbol, "nint?", "bool?");
-                getArgs(builder, symbol, "nint?", "char?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "sbyte?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "byte?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "short?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "ushort?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "int?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "uint?", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "nint?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") });
-                getArgs(builder, symbol, "nint?", "long?", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint?") });
-                getArgs(builder, symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint?", "System.UIntPtr");
+                binaryOps(symbol, "nint?", "bool?");
+                binaryOps(symbol, "nint?", "char?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "sbyte?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "byte?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "short?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "ushort?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "int?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "uint?", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "nint?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") });
+                binaryOps(symbol, "nint?", "long?", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint?") });
+                binaryOps(symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint?", "System.UIntPtr?");
-                getArgs(builder, symbol, "nuint", "object");
-                getArgs(builder, symbol, "nuint", "string");
-                getArgs(builder, symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint") });
-                getArgs(builder, symbol, "nuint", "bool");
-                getArgs(builder, symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "short", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint") });
-                getArgs(builder, symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") });
-                getArgs(builder, symbol, "nuint", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint") });
-                getArgs(builder, symbol, "nuint", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint", "float", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint", "System.IntPtr");
+                binaryOps(symbol, "nint?", "System.UIntPtr?");
+                binaryOps(symbol, "nuint", "object");
+                binaryOps(symbol, "nuint", "string");
+                binaryOps(symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint") });
+                binaryOps(symbol, "nuint", "bool");
+                binaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint") });
+                binaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") });
+                binaryOps(symbol, "nuint", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint") });
+                binaryOps(symbol, "nuint", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint", "float", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint", "System.IntPtr");
                 //getArgs(builder, symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint", "bool?");
-                getArgs(builder, symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "short?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint") });
-                getArgs(builder, symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") });
-                getArgs(builder, symbol, "nuint", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint") });
-                getArgs(builder, symbol, "nuint", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint", "float?", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint", "System.IntPtr?");
+                binaryOps(symbol, "nuint", "bool?");
+                binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint") });
+                binaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") });
+                binaryOps(symbol, "nuint", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint") });
+                binaryOps(symbol, "nuint", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint", "float?", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint", "System.IntPtr?");
                 //getArgs(builder, symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint?", "object");
-                getArgs(builder, symbol, "nuint?", "string");
-                getArgs(builder, symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "bool");
-                getArgs(builder, symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "short", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint?", "float", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint?", "double", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint?", "System.IntPtr");
+                binaryOps(symbol, "nuint?", "object");
+                binaryOps(symbol, "nuint?", "string");
+                binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?") });
+                binaryOps(symbol, "nuint?", "bool");
+                binaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint?") });
+                binaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") });
+                binaryOps(symbol, "nuint?", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint?") });
+                binaryOps(symbol, "nuint?", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint?", "float", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint?", "double", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint?", "System.IntPtr");
                 //getArgs(builder, symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint?", "bool?");
-                getArgs(builder, symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "short?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint?", "float?", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint?", "System.IntPtr?");
+                binaryOps(symbol, "nuint?", "bool?");
+                binaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint?") });
+                binaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") });
+                binaryOps(symbol, "nuint?", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint?") });
+                binaryOps(symbol, "nuint?", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint?", "float?", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint?", "System.IntPtr?");
                 //getArgs(builder, symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
             }
 
             foreach ((string symbol, string name) in additionOperators)
             {
-                getArgs(builder, symbol, "nint", "object");
-                getArgs(builder, symbol, "nint", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
-                getArgs(builder, symbol, "nint", "void*", $"void* void*.{name}(long left, void* right)", $"void* void*.{name}(void* left, long right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
-                getArgs(builder, symbol, "nint", "bool");
-                getArgs(builder, symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "byte", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "short", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "ushort", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "uint", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") });
-                getArgs(builder, symbol, "nint", "long", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint") });
-                getArgs(builder, symbol, "nint", "float", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint", "double", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint", "object");
+                binaryOps(symbol, "nint", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
+                binaryOps(symbol, "nint", "void*", $"void* void*.{name}(long left, void* right)", $"void* void*.{name}(void* left, long right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
+                binaryOps(symbol, "nint", "bool");
+                binaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "byte", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "short", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "ushort", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "uint", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") });
+                binaryOps(symbol, "nint", "long", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint") });
+                binaryOps(symbol, "nint", "float", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nint", "double", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint", "System.UIntPtr");
-                getArgs(builder, symbol, "nint", "bool?");
-                getArgs(builder, symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "byte?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "short?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "ushort?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") });
-                getArgs(builder, symbol, "nint", "long?", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint") });
-                getArgs(builder, symbol, "nint", "float?", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint", "double?", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint", "System.UIntPtr");
+                binaryOps(symbol, "nint", "bool?");
+                binaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "byte?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "short?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "ushort?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") });
+                binaryOps(symbol, "nint", "long?", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint") });
+                binaryOps(symbol, "nint", "float?", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nint", "double?", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint", "System.UIntPtr?");
-                getArgs(builder, symbol, "nint", "object");
-                getArgs(builder, symbol, "nint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
-                getArgs(builder, symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "nint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "void*", "nint?"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
-                getArgs(builder, symbol, "nint?", "bool");
-                getArgs(builder, symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "byte", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "short", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "ushort", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") });
-                getArgs(builder, symbol, "nint?", "long", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint?") });
-                getArgs(builder, symbol, "nint?", "float", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint?", "double", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint", "System.UIntPtr?");
+                binaryOps(symbol, "nint", "object");
+                binaryOps(symbol, "nint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
+                binaryOps(symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "nint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "void*", "nint?"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
+                binaryOps(symbol, "nint?", "bool");
+                binaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "byte", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "short", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "ushort", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") });
+                binaryOps(symbol, "nint?", "long", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint?") });
+                binaryOps(symbol, "nint?", "float", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nint?", "double", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint?", "System.UIntPtr");
-                getArgs(builder, symbol, "nint?", "bool?");
-                getArgs(builder, symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "byte?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "short?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") });
-                getArgs(builder, symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint?") });
-                getArgs(builder, symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint?", "System.UIntPtr");
+                binaryOps(symbol, "nint?", "bool?");
+                binaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "byte?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "short?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") });
+                binaryOps(symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint?") });
+                binaryOps(symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint?", "System.UIntPtr?");
-                getArgs(builder, symbol, "nuint", "object");
-                getArgs(builder, symbol, "nuint", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
-                getArgs(builder, symbol, "nuint", "void*", $"void* void*.{name}(ulong left, void* right)", $"void* void*.{name}(void* left, ulong right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
-                getArgs(builder, symbol, "nuint", "bool");
-                getArgs(builder, symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint") });
-                getArgs(builder, symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") });
-                getArgs(builder, symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint") });
-                getArgs(builder, symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint", "float", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint", "double", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint", "System.IntPtr");
+                binaryOps(symbol, "nint?", "System.UIntPtr?");
+                binaryOps(symbol, "nuint", "object");
+                binaryOps(symbol, "nuint", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
+                binaryOps(symbol, "nuint", "void*", $"void* void*.{name}(ulong left, void* right)", $"void* void*.{name}(void* left, ulong right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
+                binaryOps(symbol, "nuint", "bool");
+                binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint") });
+                binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") });
+                binaryOps(symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint") });
+                binaryOps(symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint", "float", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint", "double", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint", "System.IntPtr");
                 //getArgs(builder, symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint", "bool?");
-                getArgs(builder, symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint") });
-                getArgs(builder, symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") });
-                getArgs(builder, symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint") });
-                getArgs(builder, symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint", "float?", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint", "System.IntPtr?");
+                binaryOps(symbol, "nuint", "bool?");
+                binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint") });
+                binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") });
+                binaryOps(symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint") });
+                binaryOps(symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint", "float?", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint", "System.IntPtr?");
                 //getArgs(builder, symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint?", "object");
-                getArgs(builder, symbol, "nuint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
-                getArgs(builder, symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
-                getArgs(builder, symbol, "nuint?", "bool");
-                getArgs(builder, symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint?", "float", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint?", "double", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint?", "System.IntPtr");
+                binaryOps(symbol, "nuint?", "object");
+                binaryOps(symbol, "nuint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
+                binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
+                binaryOps(symbol, "nuint?", "bool");
+                binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint?") });
+                binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") });
+                binaryOps(symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint?") });
+                binaryOps(symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint?", "float", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint?", "double", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint?", "System.IntPtr");
                 //getArgs(builder, symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint?", "bool?");
-                getArgs(builder, symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint?", "float?", $"float float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint?", "System.IntPtr?");
+                binaryOps(symbol, "nuint?", "bool?");
+                binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint?") });
+                binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") });
+                binaryOps(symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint?") });
+                binaryOps(symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint?", "float?", $"float float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint?", "System.IntPtr?");
                 //getArgs(builder, symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
             }
 
             foreach ((string symbol, string name) in shiftOperators)
             {
-                getArgs(builder, symbol, "nint", "object");
-                getArgs(builder, symbol, "nint", "string");
-                getArgs(builder, symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
-                getArgs(builder, symbol, "nint", "bool");
-                getArgs(builder, symbol, "nint", "char", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint", "sbyte", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint", "byte", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint", "short", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint", "ushort", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint", "int", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint", "uint");
-                getArgs(builder, symbol, "nint", "nint");
-                getArgs(builder, symbol, "nint", "nuint");
-                getArgs(builder, symbol, "nint", "long");
-                getArgs(builder, symbol, "nint", "ulong");
-                getArgs(builder, symbol, "nint", "float");
-                getArgs(builder, symbol, "nint", "double");
-                getArgs(builder, symbol, "nint", "decimal");
-                getArgs(builder, symbol, "nint", "System.IntPtr");
-                getArgs(builder, symbol, "nint", "System.UIntPtr");
-                getArgs(builder, symbol, "nint", "bool?");
-                getArgs(builder, symbol, "nint", "char?", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint", "byte?", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint", "short?", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint", "ushort?", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint", "int?", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint", "uint?");
-                getArgs(builder, symbol, "nint", "nint?");
-                getArgs(builder, symbol, "nint", "nuint?");
-                getArgs(builder, symbol, "nint", "long?");
-                getArgs(builder, symbol, "nint", "ulong?");
-                getArgs(builder, symbol, "nint", "float?");
-                getArgs(builder, symbol, "nint", "double?");
-                getArgs(builder, symbol, "nint", "decimal?");
-                getArgs(builder, symbol, "nint", "System.IntPtr?");
-                getArgs(builder, symbol, "nint", "System.UIntPtr?");
-                getArgs(builder, symbol, "nint", "object");
-                getArgs(builder, symbol, "nint?", "string");
-                getArgs(builder, symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
-                getArgs(builder, symbol, "nint?", "bool");
-                getArgs(builder, symbol, "nint?", "char", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint?", "byte", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint?", "short", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint?", "ushort", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint?", "int", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint?", "uint");
-                getArgs(builder, symbol, "nint?", "nint");
-                getArgs(builder, symbol, "nint?", "nuint");
-                getArgs(builder, symbol, "nint?", "long");
-                getArgs(builder, symbol, "nint?", "ulong");
-                getArgs(builder, symbol, "nint?", "float");
-                getArgs(builder, symbol, "nint?", "double");
-                getArgs(builder, symbol, "nint?", "decimal");
-                getArgs(builder, symbol, "nint?", "System.IntPtr");
-                getArgs(builder, symbol, "nint?", "System.UIntPtr");
-                getArgs(builder, symbol, "nint?", "bool?");
-                getArgs(builder, symbol, "nint?", "char?", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint?", "byte?", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint?", "short?", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint?", "int?", $"nint nint.{name}(nint left, int right)", null);
-                getArgs(builder, symbol, "nint?", "uint?");
-                getArgs(builder, symbol, "nint?", "nint?");
-                getArgs(builder, symbol, "nint?", "nuint?");
-                getArgs(builder, symbol, "nint?", "long?");
-                getArgs(builder, symbol, "nint?", "ulong?");
-                getArgs(builder, symbol, "nint?", "float?");
-                getArgs(builder, symbol, "nint?", "double?");
-                getArgs(builder, symbol, "nint?", "decimal?");
-                getArgs(builder, symbol, "nint?", "System.IntPtr?");
-                getArgs(builder, symbol, "nint?", "System.UIntPtr?");
-                getArgs(builder, symbol, "nuint", "object");
-                getArgs(builder, symbol, "nuint", "string");
-                getArgs(builder, symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
-                getArgs(builder, symbol, "nuint", "bool");
-                getArgs(builder, symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint", "int", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint", "uint");
-                getArgs(builder, symbol, "nuint", "nint");
-                getArgs(builder, symbol, "nuint", "nuint");
-                getArgs(builder, symbol, "nuint", "long");
-                getArgs(builder, symbol, "nuint", "ulong");
-                getArgs(builder, symbol, "nuint", "float");
-                getArgs(builder, symbol, "nuint", "double");
-                getArgs(builder, symbol, "nuint", "decimal");
-                getArgs(builder, symbol, "nuint", "System.IntPtr");
-                getArgs(builder, symbol, "nuint", "System.UIntPtr");
-                getArgs(builder, symbol, "nuint", "bool?");
-                getArgs(builder, symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint", "int?", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint", "uint?");
-                getArgs(builder, symbol, "nuint", "nint?");
-                getArgs(builder, symbol, "nuint", "nuint?");
-                getArgs(builder, symbol, "nuint", "long?");
-                getArgs(builder, symbol, "nuint", "ulong?");
-                getArgs(builder, symbol, "nuint", "float?");
-                getArgs(builder, symbol, "nuint", "double?");
-                getArgs(builder, symbol, "nuint", "decimal?");
-                getArgs(builder, symbol, "nuint", "System.IntPtr?");
-                getArgs(builder, symbol, "nuint", "System.UIntPtr?");
-                getArgs(builder, symbol, "nuint?", "object");
-                getArgs(builder, symbol, "nuint?", "string");
-                getArgs(builder, symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
-                getArgs(builder, symbol, "nuint?", "bool");
-                getArgs(builder, symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint?", "int", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint?", "uint");
-                getArgs(builder, symbol, "nuint?", "nint");
-                getArgs(builder, symbol, "nuint?", "nuint");
-                getArgs(builder, symbol, "nuint?", "long");
-                getArgs(builder, symbol, "nuint?", "ulong");
-                getArgs(builder, symbol, "nuint?", "float");
-                getArgs(builder, symbol, "nuint?", "double");
-                getArgs(builder, symbol, "nuint?", "decimal");
-                getArgs(builder, symbol, "nuint?", "System.IntPtr");
-                getArgs(builder, symbol, "nuint?", "System.UIntPtr");
-                getArgs(builder, symbol, "nuint?", "bool?");
-                getArgs(builder, symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint?", "int?", $"nuint nuint.{name}(nuint left, int right)", null);
-                getArgs(builder, symbol, "nuint?", "uint?");
-                getArgs(builder, symbol, "nuint?", "nint?");
-                getArgs(builder, symbol, "nuint?", "nuint?");
-                getArgs(builder, symbol, "nuint?", "long?");
-                getArgs(builder, symbol, "nuint?", "ulong?");
-                getArgs(builder, symbol, "nuint?", "float?");
-                getArgs(builder, symbol, "nuint?", "double?");
-                getArgs(builder, symbol, "nuint?", "decimal?");
-                getArgs(builder, symbol, "nuint?", "System.IntPtr?");
-                getArgs(builder, symbol, "nuint?", "System.UIntPtr?");
+                binaryOps(symbol, "nint", "object");
+                binaryOps(symbol, "nint", "string");
+                binaryOps(symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nint", "bool");
+                binaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint", "byte", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint", "short", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint", "ushort", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint", "uint");
+                binaryOps(symbol, "nint", "nint");
+                binaryOps(symbol, "nint", "nuint");
+                binaryOps(symbol, "nint", "long");
+                binaryOps(symbol, "nint", "ulong");
+                binaryOps(symbol, "nint", "float");
+                binaryOps(symbol, "nint", "double");
+                binaryOps(symbol, "nint", "decimal");
+                binaryOps(symbol, "nint", "System.IntPtr");
+                binaryOps(symbol, "nint", "System.UIntPtr");
+                binaryOps(symbol, "nint", "bool?");
+                binaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint", "byte?", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint", "short?", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint", "ushort?", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint", "uint?");
+                binaryOps(symbol, "nint", "nint?");
+                binaryOps(symbol, "nint", "nuint?");
+                binaryOps(symbol, "nint", "long?");
+                binaryOps(symbol, "nint", "ulong?");
+                binaryOps(symbol, "nint", "float?");
+                binaryOps(symbol, "nint", "double?");
+                binaryOps(symbol, "nint", "decimal?");
+                binaryOps(symbol, "nint", "System.IntPtr?");
+                binaryOps(symbol, "nint", "System.UIntPtr?");
+                binaryOps(symbol, "nint", "object");
+                binaryOps(symbol, "nint?", "string");
+                binaryOps(symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nint?", "bool");
+                binaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint?", "byte", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint?", "short", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint?", "ushort", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint?", "uint");
+                binaryOps(symbol, "nint?", "nint");
+                binaryOps(symbol, "nint?", "nuint");
+                binaryOps(symbol, "nint?", "long");
+                binaryOps(symbol, "nint?", "ulong");
+                binaryOps(symbol, "nint?", "float");
+                binaryOps(symbol, "nint?", "double");
+                binaryOps(symbol, "nint?", "decimal");
+                binaryOps(symbol, "nint?", "System.IntPtr");
+                binaryOps(symbol, "nint?", "System.UIntPtr");
+                binaryOps(symbol, "nint?", "bool?");
+                binaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint?", "byte?", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint?", "short?", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, int right)", null);
+                binaryOps(symbol, "nint?", "uint?");
+                binaryOps(symbol, "nint?", "nint?");
+                binaryOps(symbol, "nint?", "nuint?");
+                binaryOps(symbol, "nint?", "long?");
+                binaryOps(symbol, "nint?", "ulong?");
+                binaryOps(symbol, "nint?", "float?");
+                binaryOps(symbol, "nint?", "double?");
+                binaryOps(symbol, "nint?", "decimal?");
+                binaryOps(symbol, "nint?", "System.IntPtr?");
+                binaryOps(symbol, "nint?", "System.UIntPtr?");
+                binaryOps(symbol, "nuint", "object");
+                binaryOps(symbol, "nuint", "string");
+                binaryOps(symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nuint", "bool");
+                binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint", "int", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint", "uint");
+                binaryOps(symbol, "nuint", "nint");
+                binaryOps(symbol, "nuint", "nuint");
+                binaryOps(symbol, "nuint", "long");
+                binaryOps(symbol, "nuint", "ulong");
+                binaryOps(symbol, "nuint", "float");
+                binaryOps(symbol, "nuint", "double");
+                binaryOps(symbol, "nuint", "decimal");
+                binaryOps(symbol, "nuint", "System.IntPtr");
+                binaryOps(symbol, "nuint", "System.UIntPtr");
+                binaryOps(symbol, "nuint", "bool?");
+                binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint", "int?", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint", "uint?");
+                binaryOps(symbol, "nuint", "nint?");
+                binaryOps(symbol, "nuint", "nuint?");
+                binaryOps(symbol, "nuint", "long?");
+                binaryOps(symbol, "nuint", "ulong?");
+                binaryOps(symbol, "nuint", "float?");
+                binaryOps(symbol, "nuint", "double?");
+                binaryOps(symbol, "nuint", "decimal?");
+                binaryOps(symbol, "nuint", "System.IntPtr?");
+                binaryOps(symbol, "nuint", "System.UIntPtr?");
+                binaryOps(symbol, "nuint?", "object");
+                binaryOps(symbol, "nuint?", "string");
+                binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nuint?", "bool");
+                binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint?", "int", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint?", "uint");
+                binaryOps(symbol, "nuint?", "nint");
+                binaryOps(symbol, "nuint?", "nuint");
+                binaryOps(symbol, "nuint?", "long");
+                binaryOps(symbol, "nuint?", "ulong");
+                binaryOps(symbol, "nuint?", "float");
+                binaryOps(symbol, "nuint?", "double");
+                binaryOps(symbol, "nuint?", "decimal");
+                binaryOps(symbol, "nuint?", "System.IntPtr");
+                binaryOps(symbol, "nuint?", "System.UIntPtr");
+                binaryOps(symbol, "nuint?", "bool?");
+                binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint?", "int?", $"nuint nuint.{name}(nuint left, int right)", null);
+                binaryOps(symbol, "nuint?", "uint?");
+                binaryOps(symbol, "nuint?", "nint?");
+                binaryOps(symbol, "nuint?", "nuint?");
+                binaryOps(symbol, "nuint?", "long?");
+                binaryOps(symbol, "nuint?", "ulong?");
+                binaryOps(symbol, "nuint?", "float?");
+                binaryOps(symbol, "nuint?", "double?");
+                binaryOps(symbol, "nuint?", "decimal?");
+                binaryOps(symbol, "nuint?", "System.IntPtr?");
+                binaryOps(symbol, "nuint?", "System.UIntPtr?");
             }
 
             foreach ((string symbol, string name) in equalityOperators)
             {
-                getArgs(builder, symbol, "nint", "object");
-                getArgs(builder, symbol, "nint", "string");
-                getArgs(builder, symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint") });
-                getArgs(builder, symbol, "nint", "bool");
-                getArgs(builder, symbol, "nint", "char", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "sbyte", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "byte", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "short", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "ushort", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "int", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "uint", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "nint", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") });
-                getArgs(builder, symbol, "nint", "long", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint") });
-                getArgs(builder, symbol, "nint", "float", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint", "double", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint", "object");
+                binaryOps(symbol, "nint", "string");
+                binaryOps(symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint") });
+                binaryOps(symbol, "nint", "bool");
+                binaryOps(symbol, "nint", "char", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "sbyte", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "byte", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "short", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "ushort", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "int", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "uint", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "nint", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") });
+                binaryOps(symbol, "nint", "long", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint") });
+                binaryOps(symbol, "nint", "float", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nint", "double", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint", "System.UIntPtr");
-                getArgs(builder, symbol, "nint", "bool?");
-                getArgs(builder, symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "sbyte?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "byte?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "short?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "ushort?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "int?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "uint?", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "nint?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") });
-                getArgs(builder, symbol, "nint", "long?", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint") });
-                getArgs(builder, symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint", "System.UIntPtr");
+                binaryOps(symbol, "nint", "bool?");
+                binaryOps(symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "sbyte?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "byte?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "short?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "ushort?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "int?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "uint?", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "nint?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") });
+                binaryOps(symbol, "nint", "long?", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint") });
+                binaryOps(symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint", "System.UIntPtr?");
-                getArgs(builder, symbol, "nint", "object");
-                getArgs(builder, symbol, "nint?", "string");
-                getArgs(builder, symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?") });
-                getArgs(builder, symbol, "nint?", "bool");
-                getArgs(builder, symbol, "nint?", "char", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "sbyte", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "byte", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "short", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "ushort", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "int", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "uint", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "nint", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") });
-                getArgs(builder, symbol, "nint?", "long", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint?") });
-                getArgs(builder, symbol, "nint?", "float", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint?", "double", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint", "System.UIntPtr?");
+                binaryOps(symbol, "nint", "object");
+                binaryOps(symbol, "nint?", "string");
+                binaryOps(symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?") });
+                binaryOps(symbol, "nint?", "bool");
+                binaryOps(symbol, "nint?", "char", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "sbyte", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "byte", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "short", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "ushort", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "int", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "uint", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "nint", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") });
+                binaryOps(symbol, "nint?", "long", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint?") });
+                binaryOps(symbol, "nint?", "float", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nint?", "double", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint?", "System.UIntPtr");
-                getArgs(builder, symbol, "nint?", "bool?");
-                getArgs(builder, symbol, "nint?", "char?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "sbyte?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "byte?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "short?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "ushort?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "int?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "uint?", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "nint?", $"bool nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") });
-                getArgs(builder, symbol, "nint?", "long?", $"bool long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint?") });
-                getArgs(builder, symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nint?", "System.UIntPtr");
+                binaryOps(symbol, "nint?", "bool?");
+                binaryOps(symbol, "nint?", "char?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "sbyte?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "byte?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "short?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "ushort?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "int?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "uint?", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "nint?", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") });
+                binaryOps(symbol, "nint?", "long?", $"bool long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint?") });
+                binaryOps(symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 //getArgs(builder, symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint?", "System.UIntPtr?");
-                getArgs(builder, symbol, "nuint", "object");
-                getArgs(builder, symbol, "nuint", "string");
-                getArgs(builder, symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint") });
-                getArgs(builder, symbol, "nuint", "bool");
-                getArgs(builder, symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "short", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint") });
-                getArgs(builder, symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") });
-                getArgs(builder, symbol, "nuint", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint") });
-                getArgs(builder, symbol, "nuint", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint", "float", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint", "System.IntPtr");
+                binaryOps(symbol, "nint?", "System.UIntPtr?");
+                binaryOps(symbol, "nuint", "object");
+                binaryOps(symbol, "nuint", "string");
+                binaryOps(symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint") });
+                binaryOps(symbol, "nuint", "bool");
+                binaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint") });
+                binaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") });
+                binaryOps(symbol, "nuint", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint") });
+                binaryOps(symbol, "nuint", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint", "float", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint", "System.IntPtr");
                 //getArgs(builder, symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint", "bool?");
-                getArgs(builder, symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "short?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint") });
-                getArgs(builder, symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") });
-                getArgs(builder, symbol, "nuint", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint") });
-                getArgs(builder, symbol, "nuint", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint", "float?", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint", "System.IntPtr?");
+                binaryOps(symbol, "nuint", "bool?");
+                binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint") });
+                binaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") });
+                binaryOps(symbol, "nuint", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint") });
+                binaryOps(symbol, "nuint", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint", "float?", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint", "System.IntPtr?");
                 //getArgs(builder, symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint?", "object");
-                getArgs(builder, symbol, "nuint?", "string");
-                getArgs(builder, symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "bool");
-                getArgs(builder, symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "short", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint?", "float", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint?", "double", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint?", "System.IntPtr");
+                binaryOps(symbol, "nuint?", "object");
+                binaryOps(symbol, "nuint?", "string");
+                binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?") });
+                binaryOps(symbol, "nuint?", "bool");
+                binaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint?") });
+                binaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") });
+                binaryOps(symbol, "nuint?", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint?") });
+                binaryOps(symbol, "nuint?", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint?", "float", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint?", "double", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint?", "System.IntPtr");
                 //getArgs(builder, symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint?", "bool?");
-                getArgs(builder, symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "short?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint?") });
-                getArgs(builder, symbol, "nuint?", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint?", "float?", $"bool float.{name}(float left, float right)");
-                getArgs(builder, symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
-                getArgs(builder, symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                getArgs(builder, symbol, "nuint?", "System.IntPtr?");
+                binaryOps(symbol, "nuint?", "bool?");
+                binaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint?") });
+                binaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") });
+                binaryOps(symbol, "nuint?", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint?") });
+                binaryOps(symbol, "nuint?", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint?", "float?", $"bool float.{name}(float left, float right)");
+                binaryOps(symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
+                binaryOps(symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
+                binaryOps(symbol, "nuint?", "System.IntPtr?");
                 //getArgs(builder, symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
             }
 
             foreach ((string symbol, string name) in logicalOperators)
             {
-                getArgs(builder, symbol, "nint", "object");
-                getArgs(builder, symbol, "nint", "string");
-                getArgs(builder, symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
-                getArgs(builder, symbol, "nint", "bool");
-                getArgs(builder, symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "byte", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "short", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "ushort", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "uint", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "nuint");
-                getArgs(builder, symbol, "nint", "long", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "ulong");
-                getArgs(builder, symbol, "nint", "float");
-                getArgs(builder, symbol, "nint", "double");
-                getArgs(builder, symbol, "nint", "decimal");
+                binaryOps(symbol, "nint", "object");
+                binaryOps(symbol, "nint", "string");
+                binaryOps(symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nint", "bool");
+                binaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "byte", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "short", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "ushort", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "uint", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "nuint");
+                binaryOps(symbol, "nint", "long", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "ulong");
+                binaryOps(symbol, "nint", "float");
+                binaryOps(symbol, "nint", "double");
+                binaryOps(symbol, "nint", "decimal");
                 //getArgs(builder, symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint", "System.UIntPtr");
-                getArgs(builder, symbol, "nint", "bool?");
-                getArgs(builder, symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "byte?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "short?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "ushort?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint", "nuint?");
-                getArgs(builder, symbol, "nint", "long?", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint", "ulong?");
-                getArgs(builder, symbol, "nint", "float?");
-                getArgs(builder, symbol, "nint", "double?");
-                getArgs(builder, symbol, "nint", "decimal?");
+                binaryOps(symbol, "nint", "System.UIntPtr");
+                binaryOps(symbol, "nint", "bool?");
+                binaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "sbyte?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "byte?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "short?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "ushort?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint", "nuint?");
+                binaryOps(symbol, "nint", "long?", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint", "ulong?");
+                binaryOps(symbol, "nint", "float?");
+                binaryOps(symbol, "nint", "double?");
+                binaryOps(symbol, "nint", "decimal?");
                 //getArgs(builder, symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint", "System.UIntPtr?");
-                getArgs(builder, symbol, "nint", "object");
-                getArgs(builder, symbol, "nint?", "string");
-                getArgs(builder, symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
-                getArgs(builder, symbol, "nint?", "bool");
-                getArgs(builder, symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "byte", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "short", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "ushort", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "nuint");
-                getArgs(builder, symbol, "nint?", "long", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "ulong");
-                getArgs(builder, symbol, "nint?", "float");
-                getArgs(builder, symbol, "nint?", "double");
-                getArgs(builder, symbol, "nint?", "decimal");
+                binaryOps(symbol, "nint", "System.UIntPtr?");
+                binaryOps(symbol, "nint", "object");
+                binaryOps(symbol, "nint?", "string");
+                binaryOps(symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nint?", "bool");
+                binaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "byte", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "short", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "ushort", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "nuint");
+                binaryOps(symbol, "nint?", "long", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "ulong");
+                binaryOps(symbol, "nint?", "float");
+                binaryOps(symbol, "nint?", "double");
+                binaryOps(symbol, "nint?", "decimal");
                 //getArgs(builder, symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint?", "System.UIntPtr");
-                getArgs(builder, symbol, "nint?", "bool?");
-                getArgs(builder, symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "byte?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "short?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
-                getArgs(builder, symbol, "nint?", "nuint?");
-                getArgs(builder, symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
-                getArgs(builder, symbol, "nint?", "ulong?");
-                getArgs(builder, symbol, "nint?", "float?");
-                getArgs(builder, symbol, "nint?", "double?");
-                getArgs(builder, symbol, "nint?", "decimal?");
+                binaryOps(symbol, "nint?", "System.UIntPtr");
+                binaryOps(symbol, "nint?", "bool?");
+                binaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "sbyte?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "byte?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "short?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "ushort?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "nint?", "nuint?");
+                binaryOps(symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
+                binaryOps(symbol, "nint?", "ulong?");
+                binaryOps(symbol, "nint?", "float?");
+                binaryOps(symbol, "nint?", "double?");
+                binaryOps(symbol, "nint?", "decimal?");
                 //getArgs(builder, symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nint?", "System.UIntPtr?");
-                getArgs(builder, symbol, "nuint", "object");
-                getArgs(builder, symbol, "nuint", "string");
-                getArgs(builder, symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
-                getArgs(builder, symbol, "nuint", "bool");
-                getArgs(builder, symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "int");
-                getArgs(builder, symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "nint");
-                getArgs(builder, symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "long");
-                getArgs(builder, symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint", "float");
-                getArgs(builder, symbol, "nuint", "double");
-                getArgs(builder, symbol, "nuint", "decimal");
-                getArgs(builder, symbol, "nuint", "System.IntPtr");
+                binaryOps(symbol, "nint?", "System.UIntPtr?");
+                binaryOps(symbol, "nuint", "object");
+                binaryOps(symbol, "nuint", "string");
+                binaryOps(symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nuint", "bool");
+                binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "int");
+                binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "nint");
+                binaryOps(symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "long");
+                binaryOps(symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint", "float");
+                binaryOps(symbol, "nuint", "double");
+                binaryOps(symbol, "nuint", "decimal");
+                binaryOps(symbol, "nuint", "System.IntPtr");
                 //getArgs(builder, symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint", "bool?");
-                getArgs(builder, symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "int?");
-                getArgs(builder, symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "nint?");
-                getArgs(builder, symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint", "long?");
-                getArgs(builder, symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint", "float?");
-                getArgs(builder, symbol, "nuint", "double?");
-                getArgs(builder, symbol, "nuint", "decimal?");
-                getArgs(builder, symbol, "nuint", "System.IntPtr?");
+                binaryOps(symbol, "nuint", "bool?");
+                binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "int?");
+                binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "nint?");
+                binaryOps(symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "long?");
+                binaryOps(symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint", "float?");
+                binaryOps(symbol, "nuint", "double?");
+                binaryOps(symbol, "nuint", "decimal?");
+                binaryOps(symbol, "nuint", "System.IntPtr?");
                 //getArgs(builder, symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint?", "object");
-                getArgs(builder, symbol, "nuint?", "string");
-                getArgs(builder, symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
-                getArgs(builder, symbol, "nuint?", "bool");
-                getArgs(builder, symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "int");
-                getArgs(builder, symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "nint");
-                getArgs(builder, symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "long");
-                getArgs(builder, symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint?", "float");
-                getArgs(builder, symbol, "nuint?", "double");
-                getArgs(builder, symbol, "nuint?", "decimal");
-                getArgs(builder, symbol, "nuint?", "System.IntPtr");
+                binaryOps(symbol, "nuint?", "object");
+                binaryOps(symbol, "nuint?", "string");
+                binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nuint?", "bool");
+                binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "int");
+                binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "nint");
+                binaryOps(symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "long");
+                binaryOps(symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint?", "float");
+                binaryOps(symbol, "nuint?", "double");
+                binaryOps(symbol, "nuint?", "decimal");
+                binaryOps(symbol, "nuint?", "System.IntPtr");
                 //getArgs(builder, symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
-                getArgs(builder, symbol, "nuint?", "bool?");
-                getArgs(builder, symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "int?");
-                getArgs(builder, symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "nint?");
-                getArgs(builder, symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                getArgs(builder, symbol, "nuint?", "long?");
-                getArgs(builder, symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
-                getArgs(builder, symbol, "nuint?", "float?");
-                getArgs(builder, symbol, "nuint?", "double?");
-                getArgs(builder, symbol, "nuint?", "decimal?");
-                getArgs(builder, symbol, "nuint?", "System.IntPtr?");
+                binaryOps(symbol, "nuint?", "bool?");
+                binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "int?");
+                binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "nint?");
+                binaryOps(symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "long?");
+                binaryOps(symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
+                binaryOps(symbol, "nuint?", "float?");
+                binaryOps(symbol, "nuint?", "double?");
+                binaryOps(symbol, "nuint?", "decimal?");
+                binaryOps(symbol, "nuint?", "System.IntPtr?");
                 //getArgs(builder, symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
             }
-
-            return builder;
         }
 
-        [Theory]
-        [MemberData(nameof(BinaryOperatorsData))]
-        public void BinaryOperators(string op, string leftType, string rightType, string expectedSymbol, DiagnosticDescription[] expectedDiagnostics)
+        private void BinaryOperator(string op, string leftType, string rightType, string expectedSymbol, DiagnosticDescription[] expectedDiagnostics)
         {
             bool useUnsafeContext = useUnsafe(leftType) || useUnsafe(rightType);
             string source =

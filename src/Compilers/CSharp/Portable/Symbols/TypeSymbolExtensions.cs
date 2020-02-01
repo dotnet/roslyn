@@ -902,6 +902,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly Func<TypeSymbol, object?, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
 
+        internal static bool ContainsNativeInteger(this TypeSymbol type)
+        {
+            var result = type.VisitType((type, unused1, unused2) => (type as NamedTypeSymbol)?.IsNativeInt == true, (object?)null, canDigThroughNullable: true);
+            return result is object;
+        }
+
+        internal static bool ContainsNativeInteger(this TypeWithAnnotations type)
+        {
+            return type.Type?.ContainsNativeInteger() == true;
+        }
+
         /// <summary>
         /// Return true if the type contains any tuples.
         /// </summary>
@@ -1630,16 +1641,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (type.Type.ContainsTupleNames())
                 {
-                    SynthesizedAttributeData? attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
-                    if (attr != null)
-                    {
-                        builder.Add(attr);
-                    }
+                    addIfNotNull(builder, compilation.SynthesizeTupleNamesAttribute(type.Type));
                 }
-
+                if (type.Type.ContainsNativeInteger())
+                {
+                    addIfNotNull(builder, moduleBuilder.SynthesizeNativeIntegerAttribute(declaringSymbol, type.Type));
+                }
                 if (compilation.ShouldEmitNullableAttributes(declaringSymbol))
                 {
-                    SynthesizedAttributeData? attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
+                    addIfNotNull(builder, moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type));
+                }
+
+                static void addIfNotNull(ArrayBuilder<Cci.ICustomAttribute> builder, SynthesizedAttributeData? attr)
+                {
                     if (attr != null)
                     {
                         builder.Add(attr);
@@ -1693,6 +1707,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !returnType.IsGenericTaskType(declaringCompilation) &&
                 !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
                 !returnType.IsIAsyncEnumeratorType(declaringCompilation);
+        }
+
+        internal static int TypeToIndex(this TypeSymbol type)
+        {
+            switch (type.GetSpecialTypeSafe())
+            {
+                case SpecialType.System_Object: return 0;
+                case SpecialType.System_String: return 1;
+                case SpecialType.System_Boolean: return 2;
+                case SpecialType.System_Char: return 3;
+                case SpecialType.System_SByte: return 4;
+                case SpecialType.System_Int16: return 5;
+                case SpecialType.System_Int32: return 6;
+                case SpecialType.System_Int64: return 7;
+                case SpecialType.System_Byte: return 8;
+                case SpecialType.System_UInt16: return 9;
+                case SpecialType.System_UInt32: return 10;
+                case SpecialType.System_UInt64: return 11;
+                case SpecialType.System_IntPtr when ((NamedTypeSymbol)type).IsNativeInt: return 12;
+                case SpecialType.System_UIntPtr when ((NamedTypeSymbol)type).IsNativeInt: return 13;
+                case SpecialType.System_Single: return 14;
+                case SpecialType.System_Double: return 15;
+                case SpecialType.System_Decimal: return 16;
+
+                case SpecialType.None:
+                    if ((object)type != null && type.IsNullableType())
+                    {
+                        TypeSymbol underlyingType = type.GetNullableUnderlyingType();
+
+                        switch (underlyingType.GetSpecialTypeSafe())
+                        {
+                            case SpecialType.System_Boolean: return 17;
+                            case SpecialType.System_Char: return 18;
+                            case SpecialType.System_SByte: return 19;
+                            case SpecialType.System_Int16: return 20;
+                            case SpecialType.System_Int32: return 21;
+                            case SpecialType.System_Int64: return 22;
+                            case SpecialType.System_Byte: return 23;
+                            case SpecialType.System_UInt16: return 24;
+                            case SpecialType.System_UInt32: return 25;
+                            case SpecialType.System_UInt64: return 26;
+                            case SpecialType.System_IntPtr when ((NamedTypeSymbol)underlyingType).IsNativeInt: return 27;
+                            case SpecialType.System_UIntPtr when ((NamedTypeSymbol)underlyingType).IsNativeInt: return 28;
+                            case SpecialType.System_Single: return 29;
+                            case SpecialType.System_Double: return 30;
+                            case SpecialType.System_Decimal: return 31;
+                        }
+                    }
+
+                    // fall through
+                    goto default;
+
+                default: return -1;
+            }
         }
     }
 }

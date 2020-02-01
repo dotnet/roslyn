@@ -12,7 +12,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {

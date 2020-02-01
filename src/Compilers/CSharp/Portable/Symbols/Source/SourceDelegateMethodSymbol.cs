@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Generic;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -319,6 +315,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+
+                if (ReturnType.ContainsNativeInteger())
+                {
+                    compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
+                }
+
+                ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
                 if (compilation.ShouldEmitNullableAttributes(this) &&
                     ReturnTypeWithAnnotations.NeedsNullableAttribute())
