@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         private bool IsTypeConvertible(ITypeSymbol nodeType, ITypeSymbol conversionType)
         {
             if (conversionType == null) return false;
-            if (nodeType == conversionType) return true;
+            if (nodeType.Equals(conversionType)) return true;
 
             var convertible = false;
             if (conversionType.Interfaces.Length != 0)
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         private bool CanReplace(SemanticModel semanticModel, SyntaxNode root, SyntaxNode targetNode, CancellationToken cancellationToken)
         {
             GetTypeInfo(semanticModel, root, targetNode, cancellationToken, out var nodeType, out var conversionType);
-            return nodeType != conversionType && IsTypeConvertible(nodeType, conversionType);
+            return !nodeType.Equals(conversionType) && IsTypeConvertible(nodeType, conversionType);
         }
 
         protected SyntaxNode TryGetTargetNode(SyntaxNode root, TextSpan span)
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 (semanticModel, currentRoot, targetNode) =>
                 {
                     GetTypeInfo(semanticModel, currentRoot, targetNode, cancellationToken, out var nodeType, out var conversionType);
-                    if (nodeType != conversionType && conversionType != null &&
+                    if (!nodeType.Equals(conversionType) && conversionType != null &&
                         IsTypeConvertible(nodeType, conversionType) &&
                         targetNode is ExpressionSyntax expression)
                     {

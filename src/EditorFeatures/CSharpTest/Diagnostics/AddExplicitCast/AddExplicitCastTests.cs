@@ -164,7 +164,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
-        public async Task SimpleFunctionArgumentsWithObject()
+        public async Task SimpleFunctionArgumentsWithObject1()
         {
             await TestInRegularAndScriptAsync(
             @"
@@ -201,6 +201,48 @@ class Program
     void M() {
         Base b;
         passDerived((Derived)b);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task SimpleFunctionArgumentsWithObject2()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    Base returnBase() {
+        Base b;
+        return b;
+    }
+
+    void passDerived(int i, Derived d) {}
+
+    void M() {
+        Base b;
+        passDerived(1, [|b|]);
+    }
+}",
+            @"
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    Base returnBase() {
+        Base b;
+        return b;
+    }
+
+    void passDerived(int i, Derived d) {}
+
+    void M() {
+        Base b;
+        passDerived(1, (Derived)b);
     }
 }");
         }
@@ -482,13 +524,51 @@ class Program
     class Base {}
     class Derived : Base {}
     class Test {
-        Private void testing(Derived d) {}
+        private void testing(Derived d) {}
     }
 
     void M() {
         Base b;
         Test t;
         t.testing(b[||]);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task MemberFunctions()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+    class Test {
+        public void testing(Derived d) {}
+        private void testing(Base b) {}
+    }
+
+    void M() {
+        Base b;
+        Test t;
+        t.testing(b[||]);
+    }
+}",
+            @"
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+    class Test {
+        public void testing(Derived d) {}
+        private void testing(Base b) {}
+    }
+
+    void M() {
+        Base b;
+        Test t;
+        t.testing((Derived)b);
     }
 }");
         }
