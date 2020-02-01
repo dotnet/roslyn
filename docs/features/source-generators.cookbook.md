@@ -59,17 +59,6 @@ This section is broken down by user scenarios, with general solutions listed fir
 **Example:**
 
 ```csharp
-public partial class UserClass
-{
-    public void UserMethod()
-    {
-        // call into a generated method
-        GeneratedNamespace.GeneratedClass.GeneratedMethod();
-    }
-}
-```
-
-```csharp
 public class CustomGenerator : ISourceGenerator
 {
     public void Execute(SourceGeneratorContext context)
@@ -89,6 +78,17 @@ namespace GeneratedNamespace
 }
 ```
 
+```csharp
+public partial class UserClass
+{
+    public void UserMethod()
+    {
+        // call into a generated method
+        GeneratedNamespace.GeneratedClass.GeneratedMethod();
+    }
+}
+```
+
 ### Single file transformation
 
 **User scenario:** As a generator author I want to be able to transform a single file into a C# representation.
@@ -103,7 +103,7 @@ public class FileTransformGenerator : ISourceGenerator
         public void Execute(SourceGeneratorContext context)
         {
             // find anything that matches our files
-            var myFiles = context.AnalyzerOptions.AdditionalFiles.WhereAsArray(at => at.Path.EndsWith(".myextension"));
+            var myFiles = context.AnalyzerOptions.AdditionalFiles.Where(at => at.Path.EndsWith(".myextension"));
             foreach (var file in myFiles)
             {
                 var content = file.GetText(context.CancellationToken);
@@ -113,7 +113,7 @@ public class FileTransformGenerator : ISourceGenerator
                 string output = "namespace MyNS { public class MyClass { } }";
                 var sourceText = SourceText.From(output);
 
-                context.AddSource("myGeneratedFile.cs", sourceText);
+                context.AddSource($"{file.Name}generated.cs", sourceText);
             }
         }
     }
@@ -133,8 +133,8 @@ public partial class UserClass
 {
     public void UserMethod()
     {
-        // call into a generated method
-        GeneratedMethod();
+        // call into a method inside the class
+        this.GeneratedMethod();
     }
 }
 ```
