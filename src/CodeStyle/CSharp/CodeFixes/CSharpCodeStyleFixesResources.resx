@@ -120,4 +120,7 @@
   <data name="Expected_string_or_char_literal" xml:space="preserve">
     <value>Expected string or char literal</value>
   </data>
+  <data name="Convert_switch_statement_to_expression" xml:space="preserve">
+    <value>Convert switch statement to expression</value>
+  </data>
 </root>

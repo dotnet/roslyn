@@ -6,6 +6,6 @@
 	
 	<!-- Explicitly reference BannedApiAnalyzers, which is part of Roslyn.Diagnostics.Analyzers, but latter package reference is removed from this project -->
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
-	<AdditionalFiles Include="$(MSBuildThisFileDirectory)\BannedSymbols.txt" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)\BannedSymbols.txt" />
   </ItemGroup>
 </Project>

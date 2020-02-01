@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if CODE_STYLE
-extern alias Workspaces;
-#endif
-
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,19 +14,17 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-#if CODE_STYLE
-    using OptionKey = Workspaces::Microsoft.CodeAnalysis.Options.OptionKey;
-    using Workspaces::Roslyn.Utilities;
-    using static Workspaces::Microsoft.CodeAnalysis.ImmutableArrayExtensions;
-#else
-    using Microsoft.CodeAnalysis.Options;
-    using Roslyn.Utilities;
-#endif
-
     public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest : AbstractUserDiagnosticTest
     {
         private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap =

@@ -5,7 +5,12 @@
 using System;
 using System.Linq;
 using System.Threading;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
 using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {

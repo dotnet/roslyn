@@ -189,4 +189,28 @@
   <data name="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked" xml:space="preserve">
     <value>Private property '{0}' can be converted to a method as its get accessor is never invoked.</value>
   </data>
+  <data name="Organize_usings" xml:space="preserve">
+    <value>Organize usings</value>
+  </data>
+  <data name="this_dot_and_Me_dot_preferences" xml:space="preserve">
+    <value>this. and Me. preferences</value>
+  </data>
+  <data name="Language_keywords_vs_BCL_types_preferences" xml:space="preserve">
+    <value>Language keywords vs BCL types preferences</value>
+  </data>
+  <data name="Parentheses_preferences" xml:space="preserve">
+    <value>Parentheses preferences</value>
+  </data>
+  <data name="Modifier_preferences" xml:space="preserve">
+    <value>Modifier preferences</value>
+  </data>
+  <data name="Expression_level_preferences" xml:space="preserve">
+    <value>Expression-level preferences</value>
+  </data>
+  <data name="Field_preferences" xml:space="preserve">
+    <value>Field preferences</value>
+  </data>
+  <data name="Parameter_preferences" xml:space="preserve">
+    <value>Parameter preferences</value>
+  </data>
 </root>

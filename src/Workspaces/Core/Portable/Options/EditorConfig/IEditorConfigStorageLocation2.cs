@@ -4,11 +4,15 @@
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
 
+namespace Microsoft.CodeAnalysis.Internal.Options
+{
+    public interface IEditorConfigStorageLocation2 : IEditorConfigStorageLocation
+#else
 namespace Microsoft.CodeAnalysis.Options
 {
     internal interface IEditorConfigStorageLocation2 : IEditorConfigStorageLocation
+#endif
     {
         /// <summary>
         /// Gets the editorconfig string representation for this storage location.

@@ -8,8 +8,15 @@ using System;
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 #endif
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.Options
+#endif
 {
+    /// <summary>
+    /// Option key.
+    /// </summary>
     public readonly struct OptionKey : IEquatable<OptionKey>
     {
         public IOption Option { get; }

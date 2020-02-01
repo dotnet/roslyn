@@ -61,6 +61,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert switch statement to expression.
+        /// </summary>
+        internal static string Convert_switch_statement_to_expression {
+            get {
+                return ResourceManager.GetString("Convert_switch_statement_to_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected string or char literal.
         /// </summary>
         internal static string Expected_string_or_char_literal {

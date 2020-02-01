@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -20,10 +19,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
         End Function
 
         Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
+            Return CreateWorkspaceFromFile(initialMarkup, parameters, rootFilePath:=Nothing)
+        End Function
+
+        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters, Optional rootFilePath As String = Nothing) As TestWorkspace
             Return TestWorkspace.CreateVisualBasic(
                 initialMarkup,
                 parameters.parseOptions,
-                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)),
+                rootFilePath:=rootFilePath)
         End Function
 
         Friend Overloads Async Function TestAsync(

@@ -133,6 +133,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression-level preferences.
+        /// </summary>
+        internal static string Expression_level_preferences {
+            get {
+                return ResourceManager.GetString("Expression_level_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field preferences.
+        /// </summary>
+        internal static string Field_preferences {
+            get {
+                return ResourceManager.GetString("Field_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fix formatting.
         /// </summary>
         internal static string Fix_formatting {
@@ -151,6 +169,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Language keywords vs BCL types preferences.
+        /// </summary>
+        internal static string Language_keywords_vs_BCL_types_preferences {
+            get {
+                return ResourceManager.GetString("Language_keywords_vs_BCL_types_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifier preferences.
+        /// </summary>
+        internal static string Modifier_preferences {
+            get {
+                return ResourceManager.GetString("Modifier_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to New line preferences.
         /// </summary>
         internal static string New_line_preferences {
@@ -165,6 +201,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string None {
             get {
                 return ResourceManager.GetString("None", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organize usings.
+        /// </summary>
+        internal static string Organize_usings {
+            get {
+                return ResourceManager.GetString("Organize_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter preferences.
+        /// </summary>
+        internal static string Parameter_preferences {
+            get {
+                return ResourceManager.GetString("Parameter_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parentheses preferences.
+        /// </summary>
+        internal static string Parentheses_preferences {
+            get {
+                return ResourceManager.GetString("Parentheses_preferences", resourceCulture);
             }
         }
         
@@ -256,6 +319,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string The_type_0_is_not_understood_by_the_serialization_binder {
             get {
                 return ResourceManager.GetString("The_type_0_is_not_understood_by_the_serialization_binder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to this. and Me. preferences.
+        /// </summary>
+        internal static string this_dot_and_Me_dot_preferences {
+            get {
+                return ResourceManager.GetString("this_dot_and_Me_dot_preferences", resourceCulture);
             }
         }
         

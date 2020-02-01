@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics
         protected override string GetLanguage() => LanguageNames.CSharp;
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
+            => CreateWorkspaceFromFile(initialMarkup, parameters, rootFilePath: null);
+        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters, string rootFilePath = null)
+            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, rootFilePath: rootFilePath);
     }
 }

@@ -3,13 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
-    using OptionSet = Options.OptionSet;
+#if CODE_STYLE
+    using Microsoft.CodeAnalysis.Internal.Options;
+    using OptionSet = Diagnostics.AnalyzerConfigOptions;
+#else
+    using Microsoft.CodeAnalysis.CodeStyle;
+    using Microsoft.CodeAnalysis.Options;
+#endif
 
     internal static class SimplificationHelpers
     {

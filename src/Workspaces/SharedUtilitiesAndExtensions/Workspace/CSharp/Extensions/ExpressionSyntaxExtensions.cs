@@ -14,8 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
-    using OptionSet = Options.OptionSet;
-
     internal static partial class ExpressionSyntaxExtensions
     {
         public static ExpressionSyntax WalkUpParentheses(this ExpressionSyntax expression)

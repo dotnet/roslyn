@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var sourceIndex = 0;
                 foreach (var markedSource in markedSources)
                 {
-                    var documentName = TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension);
+                    var documentName = TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension, rootFilePath: null);
                     var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId(), documentName);
                     var text = SourceText.From(markedSource);
 

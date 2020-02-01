@@ -3,15 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
 #if CODE_STYLE
-using Microsoft.CodeAnalysis.CodeStyle.Formatting;
 using FormatterState = Microsoft.CodeAnalysis.Formatting.ISyntaxFormattingService;
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #else
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Formatting;
 using FormatterState = Microsoft.CodeAnalysis.Workspace;
 #endif
 

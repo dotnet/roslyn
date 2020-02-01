@@ -4,7 +4,12 @@
 
 using System;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.CodeStyle;
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.CodeStyle
+#endif
 {
     internal enum OperatorPlacementWhenWrappingPreference
     {

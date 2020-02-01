@@ -5,9 +5,15 @@
 using System;
 using System.Collections.Generic;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+{
+    public interface IEditorConfigStorageLocation
+#else
 namespace Microsoft.CodeAnalysis.Options
 {
     internal interface IEditorConfigStorageLocation
+#endif
     {
         bool TryGetOption(IReadOnlyDictionary<string, string> rawOptions, Type type, out object value);
     }

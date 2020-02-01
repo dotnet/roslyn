@@ -6,14 +6,14 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
 #if CODE_STYLE
     using OptionSet = AnalyzerConfigOptions;
+    using Microsoft.CodeAnalysis.Internal.Options;
 #else
-    using OptionSet = Options.OptionSet;
+    using Microsoft.CodeAnalysis.Options;
 #endif
 
     internal abstract class AbstractBuiltInCodeStyleDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer

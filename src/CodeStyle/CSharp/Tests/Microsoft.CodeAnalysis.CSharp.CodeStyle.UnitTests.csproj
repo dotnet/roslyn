@@ -23,6 +23,7 @@
   <ItemGroup Label="Project References">
     <!-- TODO: Remove the below project reference to C# workspaces project once all analyzer/code fix tests are switched to Microsoft.CodeAnalysis.Testing -->
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\EditorFeatures\CSharpTest\Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" Link="TestFramework\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />

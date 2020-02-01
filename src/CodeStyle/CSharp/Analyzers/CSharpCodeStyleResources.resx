@@ -130,4 +130,29 @@
     <value>Make readonly fields writable</value>
     <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
   </data>
+  <data name="Convert_switch_statement_to_expression" xml:space="preserve">
+    <value>Convert switch statement to expression</value>
+  </data>
+  <data name="Use_switch_expression" xml:space="preserve">
+    <value>Use 'switch' expression</value>
+  </data>
+  <data name="var_preferences" xml:space="preserve">
+    <value>var preferences</value>
+  </data>
+  <data name="Expression_bodied_members" xml:space="preserve">
+    <value>Expression-bodied members</value>
+  </data>
+  <data name="Pattern_matching_preferences" xml:space="preserve">
+    <value>Pattern matching preferences</value>
+  </data>
+  <data name="Null_checking_preferences" xml:space="preserve">
+    <value>Null-checking preferences</value>
+  </data>
+  <data name="Code_block_preferences" xml:space="preserve">
+    <value>Code-block preferences</value>
+  </data>
+  <data name="using_directive_preferences" xml:space="preserve">
+    <value>'using' directive preferences</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>

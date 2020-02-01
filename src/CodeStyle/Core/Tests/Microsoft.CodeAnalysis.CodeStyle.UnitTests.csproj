@@ -19,7 +19,7 @@
   </ItemGroup>
   <ItemGroup Label="Project References">
     <!-- TODO: Remove the below project references to workspaces and test utility projects once all analyzer/code fix tests are switched to Microsoft.CodeAnalysis.Testing -->
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj"  Aliases="global,Workspaces"/>
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
   </ItemGroup>

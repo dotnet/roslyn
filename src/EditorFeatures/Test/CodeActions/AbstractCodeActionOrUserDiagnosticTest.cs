@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if CODE_STYLE
-extern alias Workspaces;
-#endif
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -21,25 +19,19 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
+using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-{
 #if CODE_STYLE
-    using Workspaces::Roslyn.Utilities;
-    using OptionKey = Workspaces::Microsoft.CodeAnalysis.Options.OptionKey;
-    using CodeActionPriority = Workspaces::Microsoft.CodeAnalysis.CodeActions.CodeActionPriority;
-    using NotificationOption = Workspaces::Microsoft.CodeAnalysis.CodeStyle.NotificationOption;
-    using Options = Workspaces::Microsoft.CodeAnalysis.Options;
-    using CodeStyle = Workspaces::Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Internal.Options;
 #else
-    using Microsoft.CodeAnalysis.Options;
-    using Microsoft.CodeAnalysis.CodeStyle;
-    using Roslyn.Utilities;
-    using Options = CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
 #endif
 
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+{
     [UseExportProvider]
     public abstract partial class AbstractCodeActionOrUserDiagnosticTest
     {
@@ -102,16 +94,102 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected TestWorkspace CreateWorkspaceFromOptions(
             string initialMarkup, TestParameters parameters)
         {
-            var workspace = TestWorkspace.IsWorkspaceElement(initialMarkup)
-                 ? TestWorkspace.Create(initialMarkup, openDocuments: false)
-                 : CreateWorkspaceFromFile(initialMarkup, parameters);
+            // For CodeStyle layer testing, we create an .editorconfig at project root
+            // to apply the options as workspace options are not available in CodeStyle layer.
+            // Otherwise, we apply the options directly to the workspace.
 
+#if CODE_STYLE
+            // We need to ensure that our projects/documents are rooted for
+            // execution from CodeStyle layer as we will be adding a rooted .editorconfig to each project
+            // to apply the options.
+            var workspace = CreateWorkspace(rootFilePath: @"z:\");
+            if (parameters.options != null)
+            {
+                AddAnalyzerConfigDocumentWithOptions(workspace, parameters.options);
+            }
+#else
+            var workspace = CreateWorkspace(rootFilePath: null);
             workspace.ApplyOptions(parameters.options);
+#endif
 
             return workspace;
+
+            TestWorkspace CreateWorkspace(string rootFilePath)
+                => TestWorkspace.IsWorkspaceElement(initialMarkup)
+                 ? TestWorkspace.Create(initialMarkup, openDocuments: false)
+                 : CreateWorkspaceFromFile(initialMarkup, parameters, rootFilePath);
+        }
+
+        private static void AddAnalyzerConfigDocumentWithOptions(TestWorkspace workspace, IDictionary<OptionKey, object> options)
+        {
+            Debug.Assert(options != null);
+            var analyzerConfigText = GenerateAnalyzerConfigText(options);
+
+            var newSolution = workspace.CurrentSolution;
+            foreach (var project in workspace.Projects)
+            {
+                Assert.True(PathUtilities.IsAbsolute(project.FilePath));
+                var projectRootFilePath = PathUtilities.GetPathRoot(project.FilePath);
+                var documentId = DocumentId.CreateNewId(project.Id);
+                newSolution = newSolution.AddAnalyzerConfigDocument(
+                    documentId,
+                    ".editorconfig",
+                    SourceText.From(analyzerConfigText),
+                    filePath: Path.Combine(projectRootFilePath, ".editorconfig"));
+            }
+
+            workspace.TryApplyChanges(newSolution);
+            return;
+
+            static string GenerateAnalyzerConfigText(IDictionary<OptionKey, object> options)
+            {
+                var textBuilder = new StringBuilder();
+                foreach (var (optionKey, value) in options)
+                {
+                    foreach (var location in optionKey.Option.StorageLocations)
+                    {
+                        if (location is IEditorConfigStorageLocation2 editorConfigStorageLocation)
+                        {
+                            var editorConfigString = editorConfigStorageLocation.GetEditorConfigString(value, default);
+                            if (editorConfigString != null)
+                            {
+                                textBuilder.AppendLine(GetSectionHeader(optionKey));
+                                textBuilder.AppendLine(editorConfigString);
+                                textBuilder.AppendLine();
+                                break;
+                            }
+
+                            Assert.False(true, "Unexpected non-editorconfig option");
+                        }
+                    }
+                }
+
+                return textBuilder.ToString();
+
+                static string GetSectionHeader(OptionKey optionKey)
+                {
+                    if (optionKey.Option.IsPerLanguage)
+                    {
+                        switch (optionKey.Language)
+                        {
+                            case LanguageNames.CSharp:
+                                return "[*.cs]";
+                            case LanguageNames.VisualBasic:
+                                return "[*.vb]";
+                        }
+                    }
+
+                    return "[*]";
+                }
+            }
         }
 
         protected abstract TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters);
+
+        protected virtual TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters, string rootFilePath = null)
+        {
+            throw new NotImplementedException();
+        }
 
         private TestParameters WithRegularOptions(TestParameters parameters)
             => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Regular));
@@ -592,40 +670,40 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
             => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
 
-        internal (OptionKey, object) SingleOption<T>(Options.Option<T> option, T enabled)
+        internal (OptionKey, object) SingleOption<T>(Option<T> option, T enabled)
             => (new OptionKey(option), enabled);
 
-        protected (OptionKey, object) SingleOption<T>(Options.PerLanguageOption<T> option, T value)
+        protected (OptionKey, object) SingleOption<T>(PerLanguageOption<T> option, T value)
             => (new OptionKey(option, this.GetLanguage()), value);
 
-        protected (OptionKey, object) SingleOption<T>(Options.Option<CodeStyle.CodeStyleOption<T>> option, T enabled, NotificationOption notification)
-            => SingleOption(option, new CodeStyle.CodeStyleOption<T>(enabled, notification));
+        protected (OptionKey, object) SingleOption<T>(Option<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
+            => SingleOption(option, new CodeStyleOption<T>(enabled, notification));
 
-        protected (OptionKey, object) SingleOption<T>(Options.Option<CodeStyle.CodeStyleOption<T>> option, CodeStyle.CodeStyleOption<T> codeStyle)
+        protected (OptionKey, object) SingleOption<T>(Option<CodeStyleOption<T>> option, CodeStyleOption<T> codeStyle)
             => (new OptionKey(option), codeStyle);
 
-        protected (OptionKey, object) SingleOption<T>(Options.PerLanguageOption<CodeStyle.CodeStyleOption<T>> option, T enabled, NotificationOption notification)
-            => SingleOption(option, new CodeStyle.CodeStyleOption<T>(enabled, notification));
+        protected (OptionKey, object) SingleOption<T>(PerLanguageOption<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
+            => SingleOption(option, new CodeStyleOption<T>(enabled, notification));
 
-        protected (OptionKey, object) SingleOption<T>(Options.PerLanguageOption<CodeStyle.CodeStyleOption<T>> option, CodeStyle.CodeStyleOption<T> codeStyle)
+        protected (OptionKey, object) SingleOption<T>(PerLanguageOption<CodeStyleOption<T>> option, CodeStyleOption<T> codeStyle)
             => SingleOption(option, codeStyle, language: GetLanguage());
 
-        protected static (OptionKey, object) SingleOption<T>(Options.PerLanguageOption<CodeStyle.CodeStyleOption<T>> option, CodeStyle.CodeStyleOption<T> codeStyle, string language)
+        protected static (OptionKey, object) SingleOption<T>(PerLanguageOption<CodeStyleOption<T>> option, CodeStyleOption<T> codeStyle, string language)
             => (new OptionKey(option, language), codeStyle);
 
-        protected IDictionary<OptionKey, object> Option<T>(Options.Option<CodeStyle.CodeStyleOption<T>> option, T enabled, NotificationOption notification)
+        protected IDictionary<OptionKey, object> Option<T>(Option<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
             => OptionsSet(SingleOption(option, enabled, notification));
 
-        protected IDictionary<OptionKey, object> Option<T>(Options.Option<CodeStyle.CodeStyleOption<T>> option, CodeStyle.CodeStyleOption<T> codeStyle)
+        protected IDictionary<OptionKey, object> Option<T>(Option<CodeStyleOption<T>> option, CodeStyleOption<T> codeStyle)
             => OptionsSet(SingleOption(option, codeStyle));
 
-        protected IDictionary<OptionKey, object> Option<T>(Options.PerLanguageOption<CodeStyle.CodeStyleOption<T>> option, T enabled, NotificationOption notification)
+        protected IDictionary<OptionKey, object> Option<T>(PerLanguageOption<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
             => OptionsSet(SingleOption(option, enabled, notification));
 
-        protected IDictionary<OptionKey, object> Option<T>(Options.PerLanguageOption<T> option, T value)
+        protected IDictionary<OptionKey, object> Option<T>(PerLanguageOption<T> option, T value)
             => OptionsSet(SingleOption(option, value));
 
-        protected IDictionary<OptionKey, object> Option<T>(Options.PerLanguageOption<CodeStyle.CodeStyleOption<T>> option, CodeStyle.CodeStyleOption<T> codeStyle)
+        protected IDictionary<OptionKey, object> Option<T>(PerLanguageOption<CodeStyleOption<T>> option, CodeStyleOption<T> codeStyle)
             => OptionsSet(SingleOption(option, codeStyle));
 
         internal static IDictionary<OptionKey, object> OptionsSet(

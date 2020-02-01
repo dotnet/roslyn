@@ -4,12 +4,25 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 
+#if CODE_STYLE
+using Resources = Microsoft.CodeAnalysis.CodeStyleResources;
+#else
+using Microsoft.CodeAnalysis.Options;
+using Resources = Microsoft.CodeAnalysis.WorkspacesResources;
+#endif
+
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.CodeStyle
+#endif
 {
+    /// <summary>
+    /// Code style options
+    /// </summary>
     public class CodeStyleOptions
     {
         private static readonly ImmutableArray<IOption>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption>();
@@ -403,13 +416,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
     internal static class CodeStyleOptionGroups
     {
-        public static readonly OptionGroup Usings = new OptionGroup(WorkspacesResources.Organize_usings, priority: 1);
-        public static readonly OptionGroup ThisOrMe = new OptionGroup(WorkspacesResources.this_dot_and_Me_dot_preferences, priority: 2);
-        public static readonly OptionGroup PredefinedTypeNameUsage = new OptionGroup(WorkspacesResources.Language_keywords_vs_BCL_types_preferences, priority: 3);
-        public static readonly OptionGroup Parentheses = new OptionGroup(WorkspacesResources.Parentheses_preferences, priority: 4);
-        public static readonly OptionGroup Modifier = new OptionGroup(WorkspacesResources.Modifier_preferences, priority: 5);
-        public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(WorkspacesResources.Expression_level_preferences, priority: 6);
-        public static readonly OptionGroup Field = new OptionGroup(WorkspacesResources.Field_preferences, priority: 7);
-        public static readonly OptionGroup Parameter = new OptionGroup(WorkspacesResources.Parameter_preferences, priority: 8);
+        public static readonly OptionGroup Usings = new OptionGroup(Resources.Organize_usings, priority: 1);
+        public static readonly OptionGroup ThisOrMe = new OptionGroup(Resources.this_dot_and_Me_dot_preferences, priority: 2);
+        public static readonly OptionGroup PredefinedTypeNameUsage = new OptionGroup(Resources.Language_keywords_vs_BCL_types_preferences, priority: 3);
+        public static readonly OptionGroup Parentheses = new OptionGroup(Resources.Parentheses_preferences, priority: 4);
+        public static readonly OptionGroup Modifier = new OptionGroup(Resources.Modifier_preferences, priority: 5);
+        public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(Resources.Expression_level_preferences, priority: 6);
+        public static readonly OptionGroup Field = new OptionGroup(Resources.Field_preferences, priority: 7);
+        public static readonly OptionGroup Parameter = new OptionGroup(Resources.Parameter_preferences, priority: 8);
     }
 }

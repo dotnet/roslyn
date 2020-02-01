@@ -61,6 +61,33 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code-block preferences.
+        /// </summary>
+        internal static string Code_block_preferences {
+            get {
+                return ResourceManager.GetString("Code_block_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert switch statement to expression.
+        /// </summary>
+        internal static string Convert_switch_statement_to_expression {
+            get {
+                return ResourceManager.GetString("Convert_switch_statement_to_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expression-bodied members.
+        /// </summary>
+        internal static string Expression_bodied_members {
+            get {
+                return ResourceManager.GetString("Expression_bodied_members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Indentation preferences.
         /// </summary>
         internal static string Indentation_preferences {
@@ -79,11 +106,56 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Null-checking preferences.
+        /// </summary>
+        internal static string Null_checking_preferences {
+            get {
+                return ResourceManager.GetString("Null_checking_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pattern matching preferences.
+        /// </summary>
+        internal static string Pattern_matching_preferences {
+            get {
+                return ResourceManager.GetString("Pattern_matching_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Space preferences.
         /// </summary>
         internal static string Space_preferences {
             get {
                 return ResourceManager.GetString("Space_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;switch&apos; expression.
+        /// </summary>
+        internal static string Use_switch_expression {
+            get {
+                return ResourceManager.GetString("Use_switch_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;using&apos; directive preferences.
+        /// </summary>
+        internal static string using_directive_preferences {
+            get {
+                return ResourceManager.GetString("using_directive_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to var preferences.
+        /// </summary>
+        internal static string var_preferences {
+            get {
+                return ResourceManager.GetString("var_preferences", resourceCulture);
             }
         }
         
