@@ -611,6 +611,537 @@ unsafe class Program
             }
         }
 
+        [Theory]
+        [InlineData("")]
+        [InlineData("unchecked")]
+        [InlineData("checked")]
+        public void ConstantConversions_ToNativeInt(string context)
+        {
+            var source =
+$@"#pragma warning disable 219
+class Program
+{{
+    static void F1()
+    {{
+        nint i;
+        {context}
+        {{
+            i = sbyte.MaxValue;
+            i = byte.MaxValue;
+            i = char.MaxValue;
+            i = short.MaxValue;
+            i = ushort.MaxValue;
+            i = int.MaxValue;
+            i = uint.MaxValue;
+            i = long.MaxValue;
+            i = ulong.MaxValue;
+            i = float.MaxValue;
+            i = double.MaxValue;
+            i = (decimal)int.MaxValue;
+            i = (nint)int.MaxValue;
+            i = (nuint)uint.MaxValue;
+        }}
+    }}
+    static void F2()
+    {{
+        nuint u;
+        {context}
+        {{
+            u = sbyte.MaxValue;
+            u = byte.MaxValue;
+            u = char.MaxValue;
+            u = short.MaxValue;
+            u = ushort.MaxValue;
+            u = int.MaxValue;
+            u = uint.MaxValue;
+            u = long.MaxValue;
+            u = ulong.MaxValue;
+            u = float.MaxValue;
+            u = double.MaxValue;
+            u = (decimal)uint.MaxValue;
+            u = (nint)int.MaxValue;
+            u = (nuint)uint.MaxValue;
+        }}
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (15,17): error CS0266: Cannot implicitly convert type 'uint' to 'nint'. An explicit conversion exists (are you missing a cast?)
+                //             i = uint.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "uint.MaxValue").WithArguments("uint", "nint").WithLocation(15, 17),
+                // (16,17): error CS0266: Cannot implicitly convert type 'long' to 'nint'. An explicit conversion exists (are you missing a cast?)
+                //             i = long.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "long.MaxValue").WithArguments("long", "nint").WithLocation(16, 17),
+                // (17,17): error CS0266: Cannot implicitly convert type 'ulong' to 'nint'. An explicit conversion exists (are you missing a cast?)
+                //             i = ulong.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "ulong.MaxValue").WithArguments("ulong", "nint").WithLocation(17, 17),
+                // (18,17): error CS0266: Cannot implicitly convert type 'float' to 'nint'. An explicit conversion exists (are you missing a cast?)
+                //             i = float.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "float.MaxValue").WithArguments("float", "nint").WithLocation(18, 17),
+                // (19,17): error CS0266: Cannot implicitly convert type 'double' to 'nint'. An explicit conversion exists (are you missing a cast?)
+                //             i = double.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "double.MaxValue").WithArguments("double", "nint").WithLocation(19, 17),
+                // (20,17): error CS0266: Cannot implicitly convert type 'decimal' to 'nint'. An explicit conversion exists (are you missing a cast?)
+                //             i = (decimal)int.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(decimal)int.MaxValue").WithArguments("decimal", "nint").WithLocation(20, 17),
+                // (22,17): error CS0266: Cannot implicitly convert type 'nuint' to 'nint'. An explicit conversion exists (are you missing a cast?)
+                //             i = (nuint)uint.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(nuint)uint.MaxValue").WithArguments("nuint", "nint").WithLocation(22, 17),
+                // (37,17): error CS0266: Cannot implicitly convert type 'long' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //             u = long.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "long.MaxValue").WithArguments("long", "nuint").WithLocation(37, 17),
+                // (38,17): error CS0266: Cannot implicitly convert type 'ulong' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //             u = ulong.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "ulong.MaxValue").WithArguments("ulong", "nuint").WithLocation(38, 17),
+                // (39,17): error CS0266: Cannot implicitly convert type 'float' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //             u = float.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "float.MaxValue").WithArguments("float", "nuint").WithLocation(39, 17),
+                // (40,17): error CS0266: Cannot implicitly convert type 'double' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //             u = double.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "double.MaxValue").WithArguments("double", "nuint").WithLocation(40, 17),
+                // (41,17): error CS0266: Cannot implicitly convert type 'decimal' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //             u = (decimal)uint.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(decimal)uint.MaxValue").WithArguments("decimal", "nuint").WithLocation(41, 17),
+                // (42,17): error CS0266: Cannot implicitly convert type 'nint' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //             u = (nint)int.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(nint)int.MaxValue").WithArguments("nint", "nuint").WithLocation(42, 17));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("unchecked")]
+        [InlineData("checked")]
+        public void ConstantConversions_FromNativeInt(string context)
+        {
+            var source =
+$@"#pragma warning disable 219
+class Program
+{{
+    static void F1()
+    {{
+        const nint n = (nint)int.MaxValue;
+        {context}
+        {{
+            sbyte sb = n;
+            byte b = n;
+            char c = n;
+            short s = n;
+            ushort us = n;
+            int i = n;
+            uint u = n;
+            long l = n;
+            ulong ul = n;
+            float f = n;
+            double d = n;
+            decimal dec = n;
+            nuint nu = n;
+        }}
+    }}
+    static void F2()
+    {{
+        const nuint nu = (nuint)uint.MaxValue;
+        {context}
+        {{
+            sbyte sb = nu;
+            byte b = nu;
+            char c = nu;
+            short s = nu;
+            ushort us = nu;
+            int i = nu;
+            uint u = nu;
+            long l = nu;
+            ulong ul = nu;
+            float f = nu;
+            double d = nu;
+            decimal dec = nu;
+            nint n = nu;
+        }}
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,24): error CS0266: Cannot implicitly convert type 'nint' to 'sbyte'. An explicit conversion exists (are you missing a cast?)
+                //             sbyte sb = n;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "n").WithArguments("nint", "sbyte").WithLocation(9, 24),
+                // (10,22): error CS0266: Cannot implicitly convert type 'nint' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                //             byte b = n;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "n").WithArguments("nint", "byte").WithLocation(10, 22),
+                // (11,22): error CS0266: Cannot implicitly convert type 'nint' to 'char'. An explicit conversion exists (are you missing a cast?)
+                //             char c = n;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "n").WithArguments("nint", "char").WithLocation(11, 22),
+                // (12,23): error CS0266: Cannot implicitly convert type 'nint' to 'short'. An explicit conversion exists (are you missing a cast?)
+                //             short s = n;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "n").WithArguments("nint", "short").WithLocation(12, 23),
+                // (13,25): error CS0266: Cannot implicitly convert type 'nint' to 'ushort'. An explicit conversion exists (are you missing a cast?)
+                //             ushort us = n;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "n").WithArguments("nint", "ushort").WithLocation(13, 25),
+                // (14,21): error CS0266: Cannot implicitly convert type 'nint' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //             int i = n;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "n").WithArguments("nint", "int").WithLocation(14, 21),
+                // (15,22): error CS0266: Cannot implicitly convert type 'nint' to 'uint'. An explicit conversion exists (are you missing a cast?)
+                //             uint u = n;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "n").WithArguments("nint", "uint").WithLocation(15, 22),
+                // (17,24): error CS0266: Cannot implicitly convert type 'nint' to 'ulong'. An explicit conversion exists (are you missing a cast?)
+                //             ulong ul = n;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "n").WithArguments("nint", "ulong").WithLocation(17, 24),
+                // (21,24): error CS0266: Cannot implicitly convert type 'nint' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //             nuint nu = n;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "n").WithArguments("nint", "nuint").WithLocation(21, 24),
+                // (29,24): error CS0266: Cannot implicitly convert type 'nuint' to 'sbyte'. An explicit conversion exists (are you missing a cast?)
+                //             sbyte sb = nu;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nu").WithArguments("nuint", "sbyte").WithLocation(29, 24),
+                // (30,22): error CS0266: Cannot implicitly convert type 'nuint' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                //             byte b = nu;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nu").WithArguments("nuint", "byte").WithLocation(30, 22),
+                // (31,22): error CS0266: Cannot implicitly convert type 'nuint' to 'char'. An explicit conversion exists (are you missing a cast?)
+                //             char c = nu;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nu").WithArguments("nuint", "char").WithLocation(31, 22),
+                // (32,23): error CS0266: Cannot implicitly convert type 'nuint' to 'short'. An explicit conversion exists (are you missing a cast?)
+                //             short s = nu;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nu").WithArguments("nuint", "short").WithLocation(32, 23),
+                // (33,25): error CS0266: Cannot implicitly convert type 'nuint' to 'ushort'. An explicit conversion exists (are you missing a cast?)
+                //             ushort us = nu;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nu").WithArguments("nuint", "ushort").WithLocation(33, 25),
+                // (34,21): error CS0266: Cannot implicitly convert type 'nuint' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //             int i = nu;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nu").WithArguments("nuint", "int").WithLocation(34, 21),
+                // (35,22): error CS0266: Cannot implicitly convert type 'nuint' to 'uint'. An explicit conversion exists (are you missing a cast?)
+                //             uint u = nu;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nu").WithArguments("nuint", "uint").WithLocation(35, 22),
+                // (36,22): error CS0266: Cannot implicitly convert type 'nuint' to 'long'. An explicit conversion exists (are you missing a cast?)
+                //             long l = nu;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nu").WithArguments("nuint", "long").WithLocation(36, 22),
+                // (41,22): error CS0266: Cannot implicitly convert type 'nuint' to 'nint'. An explicit conversion exists (are you missing a cast?)
+                //             nint n = nu;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nu").WithArguments("nuint", "nint").WithLocation(41, 22));
+        }
+
+        [Fact]
+        public void Constants_NInt()
+        {
+            string source =
+$@"class Program
+{{
+    static void Main()
+    {{
+        F(default);
+        F(int.MinValue);
+        F({short.MinValue - 1});
+        F(short.MinValue);
+        F(-2);
+        F(-1);
+        F(0);
+        F(1);
+        F(2);
+        F(3);
+        F(4);
+        F(5);
+        F(6);
+        F(7);
+        F(8);
+        F(9);
+        F(short.MaxValue);
+        F(ushort.MaxValue);
+        F({ushort.MaxValue + 1});
+        F(int.MaxValue);
+    }}
+    static void F(nint n)
+    {{
+        System.Console.WriteLine(n);
+    }}
+}}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            string expectedOutput =
+@"0
+-2147483648
+-32769
+-32768
+-2
+-1
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+32767
+65535
+65536
+2147483647";
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+            string expectedIL =
+@"{
+  // Code size      171 (0xab)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  call       ""void Program.F(nint)""
+  IL_0007:  ldc.i4     0x80000000
+  IL_000c:  conv.i
+  IL_000d:  call       ""void Program.F(nint)""
+  IL_0012:  ldc.i4     0xffff7fff
+  IL_0017:  conv.i
+  IL_0018:  call       ""void Program.F(nint)""
+  IL_001d:  ldc.i4     0xffff8000
+  IL_0022:  conv.i
+  IL_0023:  call       ""void Program.F(nint)""
+  IL_0028:  ldc.i4.s   -2
+  IL_002a:  conv.i
+  IL_002b:  call       ""void Program.F(nint)""
+  IL_0030:  ldc.i4.m1
+  IL_0031:  conv.i
+  IL_0032:  call       ""void Program.F(nint)""
+  IL_0037:  ldc.i4.0
+  IL_0038:  conv.i
+  IL_0039:  call       ""void Program.F(nint)""
+  IL_003e:  ldc.i4.1
+  IL_003f:  conv.i
+  IL_0040:  call       ""void Program.F(nint)""
+  IL_0045:  ldc.i4.2
+  IL_0046:  conv.i
+  IL_0047:  call       ""void Program.F(nint)""
+  IL_004c:  ldc.i4.3
+  IL_004d:  conv.i
+  IL_004e:  call       ""void Program.F(nint)""
+  IL_0053:  ldc.i4.4
+  IL_0054:  conv.i
+  IL_0055:  call       ""void Program.F(nint)""
+  IL_005a:  ldc.i4.5
+  IL_005b:  conv.i
+  IL_005c:  call       ""void Program.F(nint)""
+  IL_0061:  ldc.i4.6
+  IL_0062:  conv.i
+  IL_0063:  call       ""void Program.F(nint)""
+  IL_0068:  ldc.i4.7
+  IL_0069:  conv.i
+  IL_006a:  call       ""void Program.F(nint)""
+  IL_006f:  ldc.i4.8
+  IL_0070:  conv.i
+  IL_0071:  call       ""void Program.F(nint)""
+  IL_0076:  ldc.i4.s   9
+  IL_0078:  conv.i
+  IL_0079:  call       ""void Program.F(nint)""
+  IL_007e:  ldc.i4     0x7fff
+  IL_0083:  conv.i
+  IL_0084:  call       ""void Program.F(nint)""
+  IL_0089:  ldc.i4     0xffff
+  IL_008e:  conv.i
+  IL_008f:  call       ""void Program.F(nint)""
+  IL_0094:  ldc.i4     0x10000
+  IL_0099:  conv.i
+  IL_009a:  call       ""void Program.F(nint)""
+  IL_009f:  ldc.i4     0x7fffffff
+  IL_00a4:  conv.i
+  IL_00a5:  call       ""void Program.F(nint)""
+  IL_00aa:  ret
+}";
+            verifier.VerifyIL("Program.Main", expectedIL);
+
+            // PROTOTYPE: Test other source types.
+        }
+
+        [Fact]
+        public void Constants_NUInt()
+        {
+            string source =
+$@"class Program
+{{
+    static void Main()
+    {{
+        F(default);
+        F(0);
+        F(1);
+        F(2);
+        F(3);
+        F(4);
+        F(5);
+        F(6);
+        F(7);
+        F(8);
+        F(9);
+        F(short.MaxValue);
+        F(ushort.MaxValue);
+        F(int.MaxValue);
+        F({(uint)int.MaxValue + 1});
+        F(uint.MaxValue);
+    }}
+    static void F(nuint n)
+    {{
+        System.Console.WriteLine(n);
+    }}
+}}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            string expectedOutput =
+@"0
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+32767
+65535
+2147483647
+2147483648
+4294967295";
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+            string expectedIL =
+@"{
+  // Code size      130 (0x82)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  call       ""void Program.F(nuint)""
+  IL_0007:  ldc.i4.0
+  IL_0008:  conv.i
+  IL_0009:  call       ""void Program.F(nuint)""
+  IL_000e:  ldc.i4.1
+  IL_000f:  conv.i
+  IL_0010:  call       ""void Program.F(nuint)""
+  IL_0015:  ldc.i4.2
+  IL_0016:  conv.i
+  IL_0017:  call       ""void Program.F(nuint)""
+  IL_001c:  ldc.i4.3
+  IL_001d:  conv.i
+  IL_001e:  call       ""void Program.F(nuint)""
+  IL_0023:  ldc.i4.4
+  IL_0024:  conv.i
+  IL_0025:  call       ""void Program.F(nuint)""
+  IL_002a:  ldc.i4.5
+  IL_002b:  conv.i
+  IL_002c:  call       ""void Program.F(nuint)""
+  IL_0031:  ldc.i4.6
+  IL_0032:  conv.i
+  IL_0033:  call       ""void Program.F(nuint)""
+  IL_0038:  ldc.i4.7
+  IL_0039:  conv.i
+  IL_003a:  call       ""void Program.F(nuint)""
+  IL_003f:  ldc.i4.8
+  IL_0040:  conv.i
+  IL_0041:  call       ""void Program.F(nuint)""
+  IL_0046:  ldc.i4.s   9
+  IL_0048:  conv.i
+  IL_0049:  call       ""void Program.F(nuint)""
+  IL_004e:  ldc.i4     0x7fff
+  IL_0053:  conv.i
+  IL_0054:  call       ""void Program.F(nuint)""
+  IL_0059:  ldc.i4     0xffff
+  IL_005e:  conv.i
+  IL_005f:  call       ""void Program.F(nuint)""
+  IL_0064:  ldc.i4     0x7fffffff
+  IL_0069:  conv.i
+  IL_006a:  call       ""void Program.F(nuint)""
+  IL_006f:  ldc.i4     0x80000000
+  IL_0074:  conv.u
+  IL_0075:  call       ""void Program.F(nuint)""
+  IL_007a:  ldc.i4.m1
+  IL_007b:  conv.u
+  IL_007c:  call       ""void Program.F(nuint)""
+  IL_0081:  ret
+}";
+            verifier.VerifyIL("Program.Main", expectedIL);
+
+            // PROTOTYPE: Test other source types.
+        }
+
+        [Fact]
+        public void Constants_Locals()
+        {
+            var source =
+@"#pragma warning disable 219
+class Program
+{
+    static void Main()
+    {
+        const System.IntPtr a = default;
+        const nint b = default;
+        const System.UIntPtr c = default;
+        const nuint d = default;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0283: The type 'IntPtr' cannot be declared const
+                //         const System.IntPtr a = default;
+                Diagnostic(ErrorCode.ERR_BadConstType, "System.IntPtr").WithArguments("System.IntPtr").WithLocation(6, 15),
+                // (8,15): error CS0283: The type 'UIntPtr' cannot be declared const
+                //         const System.UIntPtr c = default;
+                Diagnostic(ErrorCode.ERR_BadConstType, "System.UIntPtr").WithArguments("System.UIntPtr").WithLocation(8, 15));
+        }
+
+        [Fact]
+        public void Constants_Fields()
+        {
+            var source =
+@"class Program
+{
+    const System.IntPtr A = default(System.IntPtr);
+    const nint B = default(nint);
+    const System.UIntPtr C = default(System.UIntPtr);
+    const nuint D = default(nuint);
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS0283: The type 'IntPtr' cannot be declared const
+                //     const System.IntPtr A = default(System.IntPtr);
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("System.IntPtr").WithLocation(3, 5),
+                // (3,29): error CS0133: The expression being assigned to 'Program.A' must be constant
+                //     const System.IntPtr A = default(System.IntPtr);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "default(System.IntPtr)").WithArguments("Program.A").WithLocation(3, 29),
+                // (5,5): error CS0283: The type 'UIntPtr' cannot be declared const
+                //     const System.UIntPtr C = default(System.UIntPtr);
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("System.UIntPtr").WithLocation(5, 5),
+                // (5,30): error CS0133: The expression being assigned to 'Program.C' must be constant
+                //     const System.UIntPtr C = default(System.UIntPtr);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "default(System.UIntPtr)").WithArguments("Program.C").WithLocation(5, 30));
+        }
+
+        [Fact]
+        public void Constants_FromMetadata()
+        {
+            var source0 =
+@"public class Constants
+{
+    public const nint NIntMin = int.MinValue;
+    public const nint NIntMax = int.MaxValue;
+    public const nuint NUIntMin = uint.MinValue;
+    public const nuint NUIntMax = uint.MaxValue;
+}";
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            var ref0 = comp.EmitToImageReference();
+
+            var source1 =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const nint nintMin = Constants.NIntMin;
+        const nint nintMax = Constants.NIntMax;
+        const nuint nuintMin = Constants.NUIntMin;
+        const nuint nuintMax = Constants.NUIntMax;
+        Console.WriteLine(nintMin);
+        Console.WriteLine(nintMax);
+        Console.WriteLine(nuintMin);
+        Console.WriteLine(nuintMax);
+    }
+}";
+            comp = CreateCompilation(source1, references: new[] { ref0 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, expectedOutput:
+@"-2147483648
+2147483647
+0
+4294967295");
+        }
+
         [Fact]
         public void Conversions()
         {
@@ -670,7 +1201,7 @@ $@"{{
 }}";
             void conversions(string sourceType, string destType, string expectedImplicitIL, string expectedExplicitIL, string expectedCheckedIL = null)
             {
-                Convert(
+                convert(
                     sourceType,
                     destType,
                     expectedImplicitIL,
@@ -680,7 +1211,7 @@ $@"{{
                     expectedImplicitIL is null ?
                         expectedExplicitIL is null ? ErrorCode.ERR_NoImplicitConv : ErrorCode.ERR_NoImplicitConvCast :
                         0);
-                Convert(
+                convert(
                     sourceType,
                     destType,
                     expectedExplicitIL,
@@ -689,7 +1220,7 @@ $@"{{
                     useChecked: false,
                     expectedExplicitIL is null ? ErrorCode.ERR_NoExplicitConv : 0);
                 expectedCheckedIL ??= expectedExplicitIL;
-                Convert(
+                convert(
                     sourceType,
                     destType,
                     expectedCheckedIL,
@@ -1617,61 +2148,59 @@ $@"{{
 }");
             conversions(sourceType: "nuint?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nuint?", destType: "System.UIntPtr?", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-        }
 
-        private void Convert(string sourceType,
-            string destType,
-            string expectedIL,
-            bool skipTypeChecks,
-            bool useExplicitCast,
-            bool useChecked,
-            ErrorCode expectedErrorCode)
-        {
-            bool useUnsafeContext = useUnsafe(sourceType) || useUnsafe(destType);
-            string value = "value";
-            if (useExplicitCast)
+            void convert(string sourceType,
+                string destType,
+                string expectedIL,
+                bool skipTypeChecks,
+                bool useExplicitCast,
+                bool useChecked,
+                ErrorCode expectedErrorCode)
             {
-                value = $"({destType})value";
-            }
-            var expectedDiagnostics = expectedErrorCode == 0 ?
-                Array.Empty<DiagnosticDescription>() :
-                new[] { Diagnostic(expectedErrorCode, value).WithArguments(sourceType, destType) };
-            if (useChecked)
-            {
-                value = $"checked({value})";
-            }
-            string source =
-$@"class Program
+                bool useUnsafeContext = useUnsafe(sourceType) || useUnsafe(destType);
+                string value = "value";
+                if (useExplicitCast)
+                {
+                    value = $"({destType})value";
+                }
+                var expectedDiagnostics = expectedErrorCode == 0 ?
+                    Array.Empty<DiagnosticDescription>() :
+                    new[] { Diagnostic(expectedErrorCode, value).WithArguments(sourceType, destType) };
+                if (useChecked)
+                {
+                    value = $"checked({value})";
+                }
+                string source =
+    $@"class Program
 {{
     static {(useUnsafeContext ? "unsafe " : "")}{destType} Convert({sourceType} value)
     {{
         return {value};
     }}
 }}";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics(expectedDiagnostics);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var expr = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
-            var underlyingTypeInfo = model.GetTypeInfo(expr);
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+                var typeInfo = model.GetTypeInfo(expr);
 
-            if (!skipTypeChecks)
-            {
-                Assert.Equal(sourceType, underlyingTypeInfo.Type.ToString());
-                Assert.Equal(destType, underlyingTypeInfo.ConvertedType.ToString());
+                if (!skipTypeChecks)
+                {
+                    Assert.Equal(sourceType, typeInfo.Type.ToString());
+                    Assert.Equal(destType, typeInfo.ConvertedType.ToString());
+                }
+
+                if (expectedIL != null)
+                {
+                    var verifier = CompileAndVerify(comp, verify: useUnsafeContext ? Verification.Skipped : Verification.Passes);
+                    verifier.VerifyIL("Program.Convert", expectedIL);
+                }
+
+                static bool useUnsafe(string type) => type == "void*";
             }
-
-            if (expectedIL != null)
-            {
-                var verifier = CompileAndVerify(comp, verify: useUnsafeContext ? Verification.Skipped : Verification.Passes);
-                verifier.VerifyIL("Program.Convert", expectedIL);
-            }
-
-            static bool useUnsafe(string underlyingType) => underlyingType == "void*";
         }
-
-        // PROTOTYPE:Test pre- and postfix increment and decrement. See UnopEasyOut.s_increment.
 
         // PROTOTYPE: Test unary operator- with `static IntPtr operator-(IntPtr)` defined on System.IntPtr. (Should be ignored for `nint`.)
 
@@ -1694,7 +2223,7 @@ $@"class Program
                     diagnostic = Diagnostic(ErrorCode.ERR_BadUnaryOp, $"{op}operand").WithArguments(op, opType);
                 }
 
-                UnaryOperator(op, opType, opType, expectedSymbol, operand, expectedResult, expectedIL, diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>());
+                unaryOperator(op, opType, opType, expectedSymbol, operand, expectedResult, expectedIL, diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>());
             }
 
             unaryOp("+", "nint", "nint nint.op_UnaryPlus(nint value)", "3", "3",
@@ -1861,12 +2390,11 @@ $@"class Program
 }");
             unaryOp("~", "System.IntPtr?");
             unaryOp("~", "System.UIntPtr?");
-        }
 
-        private void UnaryOperator(string op, string opType, string resultType, string expectedSymbol, string operand, string expectedResult, string expectedIL, DiagnosticDescription[] expectedDiagnostics)
-        {
-            string source =
-$@"class Program
+            void unaryOperator(string op, string opType, string resultType, string expectedSymbol, string operand, string expectedResult, string expectedIL, DiagnosticDescription[] expectedDiagnostics)
+            {
+                string source =
+    $@"class Program
 {{
     static {resultType} Evaluate({opType} operand)
     {{
@@ -1877,21 +2405,622 @@ $@"class Program
         System.Console.WriteLine(Evaluate({operand}));
     }}
 }}";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics(expectedDiagnostics);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var expr = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
-            var symbolInfo = model.GetSymbolInfo(expr);
-            Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+                var symbolInfo = model.GetSymbolInfo(expr);
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
-            if (expectedDiagnostics.Length == 0)
-            {
-                var verifier = CompileAndVerify(comp, expectedOutput: expectedResult);
-                verifier.VerifyIL("Program.Evaluate", expectedIL);
+                if (expectedDiagnostics.Length == 0)
+                {
+                    var verifier = CompileAndVerify(comp, expectedOutput: expectedResult);
+                    verifier.VerifyIL("Program.Evaluate", expectedIL);
+                }
             }
         }
+
+        [Fact]
+        public void IncrementOperators()
+        {
+            void incrementOps(string op, string opType, string expectedSymbol = null, bool useChecked = false, string values = null, string expectedResult = null, string expectedIL = "", string expectedLiftedIL = "", DiagnosticDescription diagnostic = null)
+            {
+                incrementOperator(op, opType, isPrefix: true, expectedSymbol, useChecked, values, expectedResult, expectedIL, getDiagnostics(opType, isPrefix: true, diagnostic));
+                incrementOperator(op, opType, isPrefix: false, expectedSymbol, useChecked, values, expectedResult, expectedIL, getDiagnostics(opType, isPrefix: false, diagnostic));
+                opType += "?";
+                incrementOperator(op, opType, isPrefix: true, expectedSymbol, useChecked, values, expectedResult, expectedLiftedIL, getDiagnostics(opType, isPrefix: true, diagnostic));
+                incrementOperator(op, opType, isPrefix: false, expectedSymbol, useChecked, values, expectedResult, expectedLiftedIL, getDiagnostics(opType, isPrefix: false, diagnostic));
+
+                DiagnosticDescription[] getDiagnostics(string opType, bool isPrefix, DiagnosticDescription diagnostic)
+                {
+                    if (expectedSymbol == null && diagnostic == null)
+                    {
+                        diagnostic = Diagnostic(ErrorCode.ERR_BadUnaryOp, isPrefix ? op + "operand" : "operand" + op).WithArguments(op, opType);
+                    }
+                    return diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>();
+                }
+            }
+
+            incrementOps("++", "nint", "nint nint.op_Increment(nint value)", useChecked: false,
+                values: $"{int.MinValue}, -1, 0, {int.MaxValue - 1}, {int.MaxValue}",
+                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "0" : "2147483648")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add
+  IL_001f:  newobj     ""nint?..ctor(nint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("++", "nuint", "nuint nuint.op_Increment(nuint value)", useChecked: false,
+                values: $"0, {int.MaxValue}, {uint.MaxValue - 1}, {uint.MaxValue}",
+                expectedResult: $"1, 2147483648, 4294967295, {(IntPtr.Size == 4 ? "0" : "4294967296")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add
+  IL_001f:  newobj     ""nuint?..ctor(nuint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("++", "System.IntPtr");
+            incrementOps("++", "System.UIntPtr");
+            incrementOps("--", "nint", "nint nint.op_Decrement(nint value)", useChecked: false,
+                values: $"{int.MinValue}, {int.MinValue + 1}, 0, 1, {int.MaxValue}",
+                expectedResult: $"{(IntPtr.Size == 4 ? "2147483647" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub
+  IL_001f:  newobj     ""nint?..ctor(nint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("--", "nuint", "nuint nuint.op_Decrement(nuint value)", useChecked: false,
+                values: $"0, 1, {uint.MaxValue}",
+                expectedResult: $"{(IntPtr.Size == 4 ? uint.MaxValue.ToString() : ulong.MaxValue.ToString())}, 0, 4294967294",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub
+  IL_001f:  newobj     ""nuint?..ctor(nuint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("--", "System.IntPtr");
+            incrementOps("--", "System.UIntPtr");
+
+            incrementOps("++", "nint", "nint nint.op_Increment(nint value)", useChecked: true,
+                values: $"{int.MinValue}, -1, 0, {int.MaxValue - 1}, {int.MaxValue}",
+                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "System.OverflowException" : "2147483648")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add.ovf
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add.ovf
+  IL_001f:  newobj     ""nint?..ctor(nint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("++", "nuint", "nuint nuint.op_Increment(nuint value)", useChecked: true,
+                values: $"0, {int.MaxValue}, {uint.MaxValue - 1}, {uint.MaxValue}",
+                expectedResult: $"1, 2147483648, 4294967295, {(IntPtr.Size == 4 ? "System.OverflowException" : "4294967296")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add.ovf.un
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add.ovf.un
+  IL_001f:  newobj     ""nuint?..ctor(nuint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("--", "nint", "nint nint.op_Decrement(nint value)", useChecked: true,
+                values: $"{int.MinValue}, {int.MinValue + 1}, 0, 1, {int.MaxValue}",
+                expectedResult: $"{(IntPtr.Size == 4 ? "System.OverflowException" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub.ovf
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub.ovf
+  IL_001f:  newobj     ""nint?..ctor(nint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("--", "nuint", "nuint nuint.op_Decrement(nuint value)", useChecked: true,
+                values: $"0, 1, {uint.MaxValue}",
+                expectedResult: $"System.OverflowException, 0, 4294967294",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub.ovf.un
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub.ovf.un
+  IL_001f:  newobj     ""nuint?..ctor(nuint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+
+            void incrementOperator(string op, string opType, bool isPrefix, string expectedSymbol, bool useChecked, string values, string expectedResult, string expectedIL, DiagnosticDescription[] expectedDiagnostics)
+            {
+                var source =
+$@"using System;
+class Program
+{{
+    static {opType} Evaluate({opType} operand)
+    {{
+        {(useChecked ? "checked" : "unchecked")}
+        {{
+            {(isPrefix ? op + "operand" : "operand" + op)};
+            return operand;
+        }}
+    }}
+    static void EvaluateAndReport({opType} operand)
+    {{
+        object result;
+        try
+        {{
+            result = Evaluate(operand);
+        }}
+        catch (Exception e)
+        {{
+            result = e.GetType();
+        }}
+        Console.Write(result);
+    }}
+    static void Main()
+    {{
+        bool separator = false;
+        foreach (var value in new {opType}[] {{ {values} }})
+        {{
+            if (separator) Console.Write("", "");
+            separator = true;
+            EvaluateAndReport(value);
+        }}
+    }}
+}}";
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var kind = (op == "++") ?
+                    isPrefix ? SyntaxKind.PreIncrementExpression : SyntaxKind.PostIncrementExpression :
+                    isPrefix ? SyntaxKind.PreDecrementExpression : SyntaxKind.PostDecrementExpression;
+                var expr = tree.GetRoot().DescendantNodes().Single(n => n.Kind() == kind);
+                var symbolInfo = model.GetSymbolInfo(expr);
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+
+                if (expectedDiagnostics.Length == 0)
+                {
+                    var verifier = CompileAndVerify(comp, expectedOutput: expectedResult);
+                    verifier.VerifyIL("Program.Evaluate", expectedIL);
+                }
+            }
+        }
+
+        [Fact]
+        public void IncrementOperators_RefOperand()
+        {
+            void incrementOps(string op, string opType, string expectedSymbol = null, string values = null, string expectedResult = null, string expectedIL = "", string expectedLiftedIL = "", DiagnosticDescription diagnostic = null)
+            {
+                incrementOperator(op, opType, expectedSymbol, values, expectedResult, expectedIL, getDiagnostics(opType, diagnostic));
+                opType += "?";
+                incrementOperator(op, opType, expectedSymbol, values, expectedResult, expectedLiftedIL, getDiagnostics(opType, diagnostic));
+
+                DiagnosticDescription[] getDiagnostics(string opType, DiagnosticDescription diagnostic)
+                {
+                    if (expectedSymbol == null && diagnostic == null)
+                    {
+                        diagnostic = Diagnostic(ErrorCode.ERR_BadUnaryOp, op + "operand").WithArguments(op, opType);
+                    }
+                    return diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>();
+                }
+            }
+
+            incrementOps("++", "nint", "nint nint.op_Increment(nint value)",
+                values: $"{int.MinValue}, -1, 0, {int.MaxValue - 1}, {int.MaxValue}",
+                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "0" : "2147483648")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldind.i
+  IL_0003:  ldc.i4.1
+  IL_0004:  add
+  IL_0005:  stind.i
+  IL_0006:  ret
+}",
+@"{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""nint?""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""bool nint?.HasValue.get""
+  IL_000f:  brtrue.s   IL_001c
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  initobj    ""nint?""
+  IL_0019:  ldloc.1
+  IL_001a:  br.s       IL_002a
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0023:  ldc.i4.1
+  IL_0024:  add
+  IL_0025:  newobj     ""nint?..ctor(nint)""
+  IL_002a:  stobj      ""nint?""
+  IL_002f:  ret
+}");
+            incrementOps("++", "nuint", "nuint nuint.op_Increment(nuint value)",
+                values: $"0, {int.MaxValue}, {uint.MaxValue - 1}, {uint.MaxValue}",
+                expectedResult: $"1, 2147483648, 4294967295, {(IntPtr.Size == 4 ? "0" : "4294967296")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldind.i
+  IL_0003:  ldc.i4.1
+  IL_0004:  add
+  IL_0005:  stind.i
+  IL_0006:  ret
+}",
+@"{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""nuint?""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""bool nuint?.HasValue.get""
+  IL_000f:  brtrue.s   IL_001c
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  initobj    ""nuint?""
+  IL_0019:  ldloc.1
+  IL_001a:  br.s       IL_002a
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0023:  ldc.i4.1
+  IL_0024:  add
+  IL_0025:  newobj     ""nuint?..ctor(nuint)""
+  IL_002a:  stobj      ""nuint?""
+  IL_002f:  ret
+}");
+            incrementOps("--", "nint", "nint nint.op_Decrement(nint value)",
+                values: $"{int.MinValue}, {int.MinValue + 1}, 0, 1, {int.MaxValue}",
+                expectedResult: $"{(IntPtr.Size == 4 ? "2147483647" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldind.i
+  IL_0003:  ldc.i4.1
+  IL_0004:  sub
+  IL_0005:  stind.i
+  IL_0006:  ret
+}",
+@"{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""nint?""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""bool nint?.HasValue.get""
+  IL_000f:  brtrue.s   IL_001c
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  initobj    ""nint?""
+  IL_0019:  ldloc.1
+  IL_001a:  br.s       IL_002a
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0023:  ldc.i4.1
+  IL_0024:  sub
+  IL_0025:  newobj     ""nint?..ctor(nint)""
+  IL_002a:  stobj      ""nint?""
+  IL_002f:  ret
+}");
+            incrementOps("--", "nuint", "nuint nuint.op_Decrement(nuint value)",
+                values: $"0, 1, {uint.MaxValue}",
+                expectedResult: $"{(IntPtr.Size == 4 ? uint.MaxValue.ToString() : ulong.MaxValue.ToString())}, 0, 4294967294",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldind.i
+  IL_0003:  ldc.i4.1
+  IL_0004:  sub
+  IL_0005:  stind.i
+  IL_0006:  ret
+}",
+@"{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""nuint?""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""bool nuint?.HasValue.get""
+  IL_000f:  brtrue.s   IL_001c
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  initobj    ""nuint?""
+  IL_0019:  ldloc.1
+  IL_001a:  br.s       IL_002a
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0023:  ldc.i4.1
+  IL_0024:  sub
+  IL_0025:  newobj     ""nuint?..ctor(nuint)""
+  IL_002a:  stobj      ""nuint?""
+  IL_002f:  ret
+}");
+
+            void incrementOperator(string op, string opType, string expectedSymbol, string values, string expectedResult, string expectedIL, DiagnosticDescription[] expectedDiagnostics)
+            {
+                string source =
+    $@"using System;
+class Program
+{{
+    static void Evaluate(ref {opType} operand)
+    {{
+        {op}operand;
+    }}
+    static void EvaluateAndReport({opType} operand)
+    {{
+        object result;
+        try
+        {{
+            Evaluate(ref operand);
+            result = operand;
+        }}
+        catch (Exception e)
+        {{
+            result = e.GetType();
+        }}
+        Console.Write(result);
+    }}
+    static void Main()
+    {{
+        bool separator = false;
+        foreach (var value in new {opType}[] {{ {values} }})
+        {{
+            if (separator) Console.Write("", "");
+            separator = true;
+            EvaluateAndReport(value);
+        }}
+    }}
+}}";
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var kind = (op == "++") ? SyntaxKind.PreIncrementExpression : SyntaxKind.PreDecrementExpression;
+                var expr = tree.GetRoot().DescendantNodes().Single(n => n.Kind() == kind);
+                var symbolInfo = model.GetSymbolInfo(expr);
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+
+                if (expectedDiagnostics.Length == 0)
+                {
+                    var verifier = CompileAndVerify(comp, expectedOutput: expectedResult);
+                    verifier.VerifyIL("Program.Evaluate", expectedIL);
+                }
+            }
+        }
+
+        // PROTOTYPE: Test ++x where there are user-defined conversions between X and nint. (See comments in LocalRewriter.MakeBuiltInIncrementOperator.)
 
         [Fact]
         public void BinaryOperators()
@@ -1908,7 +3037,7 @@ $@"class Program
                 {
                     diagnostics = new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, leftType, rightType) };
                 }
-                BinaryOperator(op, leftType, rightType, expectedSymbol, diagnostics ?? Array.Empty<DiagnosticDescription>());
+                binaryOperator(op, leftType, rightType, expectedSymbol, diagnostics ?? Array.Empty<DiagnosticDescription>());
             }
 
             var arithmeticOperators = new[]
@@ -2861,34 +3990,34 @@ $@"class Program
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
                 //getArgs(builder, symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
             }
-        }
 
-        private void BinaryOperator(string op, string leftType, string rightType, string expectedSymbol, DiagnosticDescription[] expectedDiagnostics)
-        {
-            bool useUnsafeContext = useUnsafe(leftType) || useUnsafe(rightType);
-            string source =
-$@"class Program
+            void binaryOperator(string op, string leftType, string rightType, string expectedSymbol, DiagnosticDescription[] expectedDiagnostics)
+            {
+                bool useUnsafeContext = useUnsafe(leftType) || useUnsafe(rightType);
+                string source =
+    $@"class Program
 {{
     static {(useUnsafeContext ? "unsafe " : "")}object Evaluate({leftType} x, {rightType} y)
     {{
         return x {op} y;
     }}
 }}";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics(expectedDiagnostics);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var expr = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
-            var symbolInfo = model.GetSymbolInfo(expr);
-            Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var expr = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+                var symbolInfo = model.GetSymbolInfo(expr);
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
-            if (expectedDiagnostics.Length == 0)
-            {
-                CompileAndVerify(comp);
+                if (expectedDiagnostics.Length == 0)
+                {
+                    CompileAndVerify(comp);
+                }
+
+                static bool useUnsafe(string type) => type == "void*";
             }
-
-            static bool useUnsafe(string underlyingType) => underlyingType == "void*";
         }
 
         [Fact]

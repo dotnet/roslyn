@@ -104,6 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UnaryOperatorKind.UInt:
                 case UnaryOperatorKind.Long:
                 case UnaryOperatorKind.ULong:
+                case UnaryOperatorKind.NInt:
+                case UnaryOperatorKind.NUInt:
                 case UnaryOperatorKind.Char:
                 case UnaryOperatorKind.Enum:
                 case UnaryOperatorKind.Pointer:
