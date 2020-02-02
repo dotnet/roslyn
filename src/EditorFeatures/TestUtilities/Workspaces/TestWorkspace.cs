@@ -354,6 +354,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.OnAnalyzerConfigDocumentRemoved(documentId);
         }
 
+        protected override void ApplyProjectChanges(ProjectChanges projectChanges)
+        {
+            if (projectChanges.OldProject.FilePath != projectChanges.NewProject.FilePath)
+            {
+                var hostProject = this.GetTestProject(projectChanges.NewProject.Id);
+                hostProject.OnProjectFilePathChanged(projectChanges.NewProject.FilePath);
+                base.OnProjectNameChanged(projectChanges.NewProject.Id, projectChanges.NewProject.Name, projectChanges.NewProject.FilePath);
+            }
+
+            base.ApplyProjectChanges(projectChanges);
+        }
+
         internal override void SetDocumentContext(DocumentId documentId)
         {
             OnDocumentContextUpdated(documentId);

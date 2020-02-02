@@ -17,7 +17,7 @@ using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     extern alias CodeStyle;
-    using Formatter = CodeStyle::Microsoft.CodeAnalysis.Formatting.Formatter;
+    using Formatter = Microsoft.CodeAnalysis.CodeStyle.Formatting.Formatter;
     using ISyntaxFormattingService = ISyntaxFormattingService;
 
     internal abstract class AbstractFormattingCodeFixProvider : CodeFixProvider

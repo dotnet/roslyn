@@ -23,17 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             bool commonReferences,
             ParseOptions parseOptions,
             CompilationOptions compilationOptions,
-            string rootFilePath,
             params object[] elements)
         {
-            string filePath = null;
-            if (rootFilePath != null)
-            {
-                filePath = Path.Combine(rootFilePath, assemblyName +
-                    (language == LanguageNames.CSharp ? ".csproj" :
-                     language == LanguageNames.VisualBasic ? ".vbproj" : ("." + language)));
-            }
-
             return new XElement(ProjectElementName,
                 new XAttribute(AssemblyNameAttributeName, assemblyName),
                 new XAttribute(LanguageAttributeName, language),
@@ -42,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 parseOptions == null ? null : CreateDocumentationModeAttribute(parseOptions),
                 parseOptions == null ? null : CreateFeaturesAttribute(parseOptions),
                 compilationOptions == null ? null : CreateCompilationOptionsElement(compilationOptions),
-                filePath == null ? null : new XAttribute(FilePathAttributeName, filePath),
                 elements);
         }
 

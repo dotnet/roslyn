@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\HostWorkspaceServicesExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\SimplificationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\AbstractAddImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\AddImportHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\IAddImportsService.cs" />
@@ -32,12 +33,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\GeneratedCodeRecognition\IGeneratedCodeRecognitionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Precedence\IPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Precedence\PrecedenceKind.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Simplification\AliasAnnotation.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Simplification\DoNotAddImportsAnnotation.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Simplification\DoNotAllowVarAnnotation.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Simplification\SimplificationHelpers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Simplification\SpecialTypeAnnotation.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Simplification\SymbolAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\AbstractTypeInferenceService.AbstractTypeInferrer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\AbstractTypeInferenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\ITypeInferenceService.cs" />
@@ -89,8 +84,5 @@
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\OrderableMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\WorkspaceKindMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\WorkspaceServiceMetadata.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Helpers\" />
   </ItemGroup>
 </Project>

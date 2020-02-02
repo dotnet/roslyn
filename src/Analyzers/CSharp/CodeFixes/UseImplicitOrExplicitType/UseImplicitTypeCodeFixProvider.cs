@@ -16,6 +16,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 {
+#if CODE_STYLE
+    using Resources = CSharpCodeStyleResources;
+#else
+    using Resources = CSharpFeaturesResources;
+#endif
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseImplicitType), Shared]
     internal class UseImplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
@@ -61,12 +67,12 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             editor.ReplaceNode(node, implicitType);
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.use_var_instead_of_explicit_type,
+                : base(Resources.use_var_instead_of_explicit_type,
                        createChangedDocument,
-                       CSharpFeaturesResources.use_var_instead_of_explicit_type)
+                       Resources.use_var_instead_of_explicit_type)
             {
             }
         }

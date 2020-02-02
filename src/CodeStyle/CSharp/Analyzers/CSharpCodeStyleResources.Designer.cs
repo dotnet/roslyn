@@ -133,11 +133,47 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use explicit type.
+        /// </summary>
+        internal static string Use_explicit_type {
+            get {
+                return ResourceManager.GetString("Use_explicit_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use explicit type instead of &apos;var&apos;.
+        /// </summary>
+        internal static string Use_explicit_type_instead_of_var {
+            get {
+                return ResourceManager.GetString("Use_explicit_type_instead_of_var", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use implicit type.
+        /// </summary>
+        internal static string Use_implicit_type {
+            get {
+                return ResourceManager.GetString("Use_implicit_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;switch&apos; expression.
         /// </summary>
         internal static string Use_switch_expression {
             get {
                 return ResourceManager.GetString("Use_switch_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to use &apos;var&apos; instead of explicit type.
+        /// </summary>
+        internal static string use_var_instead_of_explicit_type {
+            get {
+                return ResourceManager.GetString("use_var_instead_of_explicit_type", resourceCulture);
             }
         }
         

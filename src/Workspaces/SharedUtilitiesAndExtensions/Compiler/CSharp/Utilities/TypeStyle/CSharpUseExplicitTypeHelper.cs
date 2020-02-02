@@ -4,11 +4,17 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle.TypeStyle;
+#else
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {

@@ -7,14 +7,20 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
+#if CODE_STYLE
+    using Resources = CSharpCodeStyleResources;
+#else
+    using Resources = CSharpFeaturesResources;
+#endif
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpUseExplicitTypeDiagnosticAnalyzer : CSharpTypeStyleDiagnosticAnalyzerBase
     {
         private static readonly LocalizableString s_Title =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_explicit_type), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+            new LocalizableResourceString(nameof(Resources.Use_explicit_type), Resources.ResourceManager, typeof(Resources));
 
         private static readonly LocalizableString s_Message =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_explicit_type_instead_of_var), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+            new LocalizableResourceString(nameof(Resources.Use_explicit_type_instead_of_var), Resources.ResourceManager, typeof(Resources));
 
         protected override CSharpTypeStyleHelper Helper => CSharpUseExplicitTypeHelper.Instance;
 

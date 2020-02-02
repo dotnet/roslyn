@@ -21,17 +21,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
-        [return: NotNullIfNotNull(parameterName: "symbol")]
-        public static ITypeSymbol? RemoveNullableIfPresent(this ITypeSymbol? symbol)
-        {
-            if (symbol.IsNullable())
-            {
-                return symbol.GetTypeArguments().Single();
-            }
-
-            return symbol;
-        }
-
         /// <summary>
         /// Returns the corresponding symbol in this type or a base type that implements
         /// interfaceMember (either implicitly or explicitly), or null if no such symbol exists

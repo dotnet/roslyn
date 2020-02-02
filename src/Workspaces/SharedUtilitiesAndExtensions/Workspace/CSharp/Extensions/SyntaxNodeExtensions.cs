@@ -15,6 +15,10 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using SyntaxNodeOrTokenExtensions = Microsoft.CodeAnalysis.Shared.Extensions.SyntaxNodeOrTokenExtensions;
 
+#if CODE_STYLE
+#else
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxNodeExtensions
@@ -186,23 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var rewriter = new SingleLineRewriter(useElasticTrivia);
             return (TNode)rewriter.Visit(node);
         }
-
-        public static bool IsAsyncSupportingFunctionSyntax(this SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.MethodDeclaration)
-                || node.IsAnyLambdaOrAnonymousMethod()
-                || node.IsKind(SyntaxKind.LocalFunctionStatement);
-        }
-
-        public static bool IsAnyLambda(this SyntaxNode node)
-        {
-            return
-                node.IsKind(SyntaxKind.ParenthesizedLambdaExpression) ||
-                node.IsKind(SyntaxKind.SimpleLambdaExpression);
-        }
-
-        public static bool IsAnyLambdaOrAnonymousMethod(this SyntaxNode node)
-            => node.IsAnyLambda() || node.IsKind(SyntaxKind.AnonymousMethodExpression);
 
         /// <summary>
         /// Returns true if the passed in node contains an interleaved pp directive.
@@ -412,56 +399,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node, out ImmutableArray<SyntaxTrivia> strippedTrivia) where TSyntaxNode : SyntaxNode
             => CSharpSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out strippedTrivia);
-
-        public static bool IsAnyAssignExpression(this SyntaxNode node)
-            => SyntaxFacts.IsAssignmentExpression(node.Kind());
-
-        public static bool IsCompoundAssignExpression(this SyntaxNode node)
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.CoalesceAssignmentExpression:
-                case SyntaxKind.AddAssignmentExpression:
-                case SyntaxKind.SubtractAssignmentExpression:
-                case SyntaxKind.MultiplyAssignmentExpression:
-                case SyntaxKind.DivideAssignmentExpression:
-                case SyntaxKind.ModuloAssignmentExpression:
-                case SyntaxKind.AndAssignmentExpression:
-                case SyntaxKind.ExclusiveOrAssignmentExpression:
-                case SyntaxKind.OrAssignmentExpression:
-                case SyntaxKind.LeftShiftAssignmentExpression:
-                case SyntaxKind.RightShiftAssignmentExpression:
-                    return true;
-            }
-
-            return false;
-        }
-
-        public static bool IsLeftSideOfAssignExpression(this SyntaxNode node)
-        {
-            return node.IsParentKind(SyntaxKind.SimpleAssignmentExpression) &&
-                ((AssignmentExpressionSyntax)node.Parent).Left == node;
-        }
-
-        public static bool IsLeftSideOfAnyAssignExpression(this SyntaxNode node)
-        {
-            return node != null &&
-                node.Parent.IsAnyAssignExpression() &&
-                ((AssignmentExpressionSyntax)node.Parent).Left == node;
-        }
-
-        public static bool IsRightSideOfAnyAssignExpression(this SyntaxNode node)
-        {
-            return node.Parent.IsAnyAssignExpression() &&
-                ((AssignmentExpressionSyntax)node.Parent).Right == node;
-        }
-
-        public static bool IsLeftSideOfCompoundAssignExpression(this SyntaxNode node)
-        {
-            return node != null &&
-                node.Parent.IsCompoundAssignExpression() &&
-                ((AssignmentExpressionSyntax)node.Parent).Left == node;
-        }
 
         public static bool IsVariableDeclaratorValue(this SyntaxNode node)
         {
@@ -674,39 +611,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>();
-        }
-
-        public static ConditionalAccessExpressionSyntax GetParentConditionalAccessExpression(this SyntaxNode node)
-        {
-            var current = node;
-            while (current?.Parent != null)
-            {
-                if (current.IsParentKind(SyntaxKind.ConditionalAccessExpression) &&
-                    ((ConditionalAccessExpressionSyntax)current.Parent).WhenNotNull == current)
-                {
-                    return (ConditionalAccessExpressionSyntax)current.Parent;
-                }
-
-                current = current.Parent;
-            }
-
-            return null;
-        }
-
-        public static ConditionalAccessExpressionSyntax GetInnerMostConditionalAccessExpression(this SyntaxNode node)
-        {
-            if (!(node is ConditionalAccessExpressionSyntax))
-            {
-                return null;
-            }
-
-            var result = (ConditionalAccessExpressionSyntax)node;
-            while (result.WhenNotNull is ConditionalAccessExpressionSyntax)
-            {
-                result = (ConditionalAccessExpressionSyntax)result.WhenNotNull;
-            }
-
-            return result;
         }
 
         public static bool IsInExpressionTree(

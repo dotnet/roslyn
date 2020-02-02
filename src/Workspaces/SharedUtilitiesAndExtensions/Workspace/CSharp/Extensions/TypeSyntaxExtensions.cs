@@ -10,20 +10,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
-    internal static class TypeSyntaxExtensions
+    internal static partial class TypeSyntaxExtensions
     {
-        public static bool IsVoid(this TypeSyntax typeSyntax)
-        {
-            return typeSyntax.IsKind(SyntaxKind.PredefinedType) &&
-                ((PredefinedTypeSyntax)typeSyntax).Keyword.IsKind(SyntaxKind.VoidKeyword);
-        }
-
-        public static bool IsPartial(this TypeSyntax typeSyntax)
-        {
-            return typeSyntax is IdentifierNameSyntax &&
-                ((IdentifierNameSyntax)typeSyntax).Identifier.IsKind(SyntaxKind.PartialKeyword);
-        }
-
         public static bool IsPotentialTypeName(this TypeSyntax typeSyntax, SemanticModel semanticModelOpt, CancellationToken cancellationToken)
         {
             if (typeSyntax == null)
@@ -63,35 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 && !typeSymbol.IsErrorType();
         }
 
-        /// <summary>
-        /// Determines whether the specified TypeSyntax is actually 'var'.
-        /// </summary>
-        public static bool IsTypeInferred(this TypeSyntax typeSyntax, SemanticModel semanticModel)
-        {
-            if (!typeSyntax.IsVar)
-            {
-                return false;
-            }
-
-            if (semanticModel.GetAliasInfo(typeSyntax) != null)
-            {
-                return false;
-            }
-
-            var type = semanticModel.GetTypeInfo(typeSyntax).Type;
-            if (type == null)
-            {
-                return false;
-            }
-
-            if (type.Name == "var")
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         public static TypeSyntax GenerateReturnTypeSyntax(this IMethodSymbol method)
         {
             var returnType = method.ReturnType;
@@ -109,8 +68,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return returnType.GenerateTypeSyntax();
             }
         }
-
-        public static TypeSyntax StripRefIfNeeded(this TypeSyntax type)
-            => type is RefTypeSyntax refType ? refType.Type : type;
     }
 }

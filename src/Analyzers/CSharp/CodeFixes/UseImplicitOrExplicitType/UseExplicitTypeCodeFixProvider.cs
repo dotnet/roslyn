@@ -20,6 +20,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 {
+#if CODE_STYLE
+    using Resources = CSharpCodeStyleResources;
+#else
+    using Resources = CSharpFeaturesResources;
+#endif
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
     internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
@@ -158,12 +164,12 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Use_explicit_type_instead_of_var,
+                : base(Resources.Use_explicit_type_instead_of_var,
                        createChangedDocument,
-                       CSharpFeaturesResources.Use_explicit_type_instead_of_var)
+                       Resources.Use_explicit_type_instead_of_var)
             {
             }
         }

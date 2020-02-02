@@ -155,4 +155,16 @@
     <value>'using' directive preferences</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Use_explicit_type_instead_of_var" xml:space="preserve">
+    <value>Use explicit type instead of 'var'</value>
+  </data>
+  <data name="Use_explicit_type" xml:space="preserve">
+    <value>Use explicit type</value>
+  </data>
+  <data name="use_var_instead_of_explicit_type" xml:space="preserve">
+    <value>use 'var' instead of explicit type</value>
+  </data>
+  <data name="Use_implicit_type" xml:space="preserve">
+    <value>Use implicit type</value>
+  </data>
 </root>

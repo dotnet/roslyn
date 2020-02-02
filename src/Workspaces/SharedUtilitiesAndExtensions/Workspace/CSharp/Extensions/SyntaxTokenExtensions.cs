@@ -229,30 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        /// <summary>
-        /// Returns true if this token is something that looks like a C# keyword. This includes 
-        /// actual keywords, contextual keywords, and even 'var' and 'dynamic'
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public static bool CouldBeKeyword(this SyntaxToken token)
-        {
-            if (token.IsKeyword())
-            {
-                return true;
-            }
-
-            if (token.Kind() == SyntaxKind.IdentifierToken)
-            {
-                var simpleNameText = token.ValueText;
-                return simpleNameText == "var" ||
-                       simpleNameText == "dynamic" ||
-                       SyntaxFacts.GetContextualKeywordKind(simpleNameText) != SyntaxKind.None;
-            }
-
-            return false;
-        }
-
         public static SyntaxToken WithCommentsFrom(
             this SyntaxToken token,
             IEnumerable<SyntaxTrivia> leadingTrivia,

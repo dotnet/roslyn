@@ -19,15 +19,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
         End Function
 
         Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
-            Return CreateWorkspaceFromFile(initialMarkup, parameters, rootFilePath:=Nothing)
-        End Function
-
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters, Optional rootFilePath As String = Nothing) As TestWorkspace
             Return TestWorkspace.CreateVisualBasic(
                 initialMarkup,
                 parameters.parseOptions,
-                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)),
-                rootFilePath:=rootFilePath)
+                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Friend Overloads Async Function TestAsync(

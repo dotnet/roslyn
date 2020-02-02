@@ -42,6 +42,21 @@
         <target state="translated">Préférences d'espace</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_explicit_type">
+        <source>Use explicit type</source>
+        <target state="new">Use explicit type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_explicit_type_instead_of_var">
+        <source>Use explicit type instead of 'var'</source>
+        <target state="new">Use explicit type instead of 'var'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_implicit_type">
+        <source>Use implicit type</source>
+        <target state="new">Use implicit type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
         <target state="new">Use 'switch' expression</target>
@@ -50,6 +65,11 @@
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
         <target state="translated">Préférences d'enveloppement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="use_var_instead_of_explicit_type">
+        <source>use 'var' instead of explicit type</source>
+        <target state="new">use 'var' instead of explicit type</target>
         <note />
       </trans-unit>
       <trans-unit id="using_directive_preferences">

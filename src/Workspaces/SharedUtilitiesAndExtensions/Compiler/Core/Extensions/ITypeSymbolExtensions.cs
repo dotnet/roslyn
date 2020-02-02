@@ -726,5 +726,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type.WithNullableAnnotation(nullableAnnotation);
 #endif
         }
+
+        [return: NotNullIfNotNull(parameterName: "symbol")]
+        public static ITypeSymbol? RemoveNullableIfPresent(this ITypeSymbol? symbol)
+        {
+            if (symbol.IsNullable())
+            {
+                return symbol.GetTypeArguments().Single();
+            }
+
+            return symbol;
+        }
     }
 }

@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle.TypeStyle
+#else
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
+#endif
 {
     [Flags]
     internal enum UseVarPreference
