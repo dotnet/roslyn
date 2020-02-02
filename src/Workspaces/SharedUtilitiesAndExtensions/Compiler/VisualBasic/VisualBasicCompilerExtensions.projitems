@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\VisualBasicUnnecessaryImportsProvider.vb" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />

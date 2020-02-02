@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
     internal partial class AbstractCSharpRemoveUnnecessaryImportsService :
         AbstractRemoveUnnecessaryImportsService<UsingDirectiveSyntax>
     {
+        protected override IUnnecessaryImportsProvider UnnecessaryImportsProvider
+            => CSharpUnnecessaryImportsProvider.Instance;
+
         public override async Task<Document> RemoveUnnecessaryImportsAsync(
             Document document,
             Func<SyntaxNode, bool> predicate,
@@ -44,34 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 cancellationToken.ThrowIfCancellationRequested();
                 return document.WithSyntaxRoot(await FormatResultAsync(document, newRoot, cancellationToken).ConfigureAwait(false));
             }
-        }
-
-        protected override ImmutableArray<UsingDirectiveSyntax> GetUnnecessaryImports(
-            SemanticModel model, SyntaxNode root,
-            Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
-        {
-            predicate ??= Functions<SyntaxNode>.True;
-            var diagnostics = model.GetDiagnostics(cancellationToken: cancellationToken);
-            if (!diagnostics.Any())
-            {
-                return ImmutableArray<UsingDirectiveSyntax>.Empty;
-            }
-
-            var unnecessaryImports = new HashSet<UsingDirectiveSyntax>();
-
-            foreach (var diagnostic in diagnostics)
-            {
-                if (diagnostic.Id == "CS8019")
-                {
-
-                    if (root.FindNode(diagnostic.Location.SourceSpan) is UsingDirectiveSyntax node && predicate(node))
-                    {
-                        unnecessaryImports.Add(node);
-                    }
-                }
-            }
-
-            return unnecessaryImports.ToImmutableArray();
         }
 
         private async Task<SyntaxNode> FormatResultAsync(Document document, CompilationUnitSyntax newRoot, CancellationToken cancellationToken)

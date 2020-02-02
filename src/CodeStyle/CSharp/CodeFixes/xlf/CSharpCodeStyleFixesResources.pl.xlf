@@ -12,6 +12,11 @@
         <target state="new">Expected string or char literal</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_Unnecessary_Usings">
+        <source>Remove Unnecessary Usings</source>
+        <target state="new">Remove Unnecessary Usings</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

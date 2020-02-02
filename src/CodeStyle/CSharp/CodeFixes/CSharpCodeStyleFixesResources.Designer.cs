@@ -77,5 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("Expected_string_or_char_literal", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove Unnecessary Usings.
+        /// </summary>
+        internal static string Remove_Unnecessary_Usings {
+            get {
+                return ResourceManager.GetString("Remove_Unnecessary_Usings", resourceCulture);
+            }
+        }
     }
 }

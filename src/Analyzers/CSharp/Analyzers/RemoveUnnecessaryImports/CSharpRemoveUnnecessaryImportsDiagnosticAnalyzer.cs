@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -15,21 +17,33 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
+#if CODE_STYLE
+    using Resources = CSharpCodeStyleResources;
+#else
+    using Resources = CSharpFeaturesResources;
+#endif
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer :
         AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
     {
-        private static readonly LocalizableString s_TitleAndMessageFormat =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.Using_directive_is_unnecessary), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+        private static readonly LocalizableString s_titleAndMessageFormat =
+            new LocalizableResourceString(nameof(Resources.Using_directive_is_unnecessary), Resources.ResourceManager, typeof(Resources));
 
         protected override LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor()
-            => s_TitleAndMessageFormat;
+            => s_titleAndMessageFormat;
 
         // C# has no need to do any merging of using statements.  Only VB needs to
         // merge import clauses to an import statement if it all the import clauses
         // are unnecessary.
         protected override ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<SyntaxNode> unnecessaryImports)
             => unnecessaryImports;
+
+        protected override IUnnecessaryImportsProvider UnnecessaryImportsProvider
+            => CSharpUnnecessaryImportsProvider.Instance;
+
+        protected override bool IsRegularCommentOrDocComment(SyntaxTrivia trivia)
+            => trivia.IsRegularComment() || trivia.IsDocComment();
 
         protected override IEnumerable<TextSpan> GetFixableDiagnosticSpans(
             IEnumerable<SyntaxNode> nodes, SyntaxTree tree, CancellationToken cancellationToken)

@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.CodeFixes</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersCodeFixProvider.vb" />
   </ItemGroup>
 </Project>

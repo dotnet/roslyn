@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// Represents a single fix. This is essentially a tuple
     /// that holds on to a <see cref="CodeAction"/> and the set of
     /// <see cref="Diagnostic"/>s that this <see cref="CodeAction"/> will fix.
-    // </summary>
+    /// </summary>
     internal sealed class CodeFix
     {
         internal readonly Project Project;

@@ -185,5 +185,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return model ?? throw new InvalidOperationException();
         }
+
+        public static IEnumerable<Document> GetLinkedDocuments(this Document document)
+        {
+            var solution = document.Project.Solution;
+
+            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
+            {
+                yield return solution.GetRequiredDocument(linkedDocumentId);
+            }
+        }
     }
 }

@@ -33,6 +33,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\GeneratedCodeRecognition\IGeneratedCodeRecognitionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Precedence\IPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Precedence\PrecedenceKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\IRemoveUnnecessaryImportsService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\IUnnecessaryImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\AbstractTypeInferenceService.AbstractTypeInferrer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\AbstractTypeInferenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\ITypeInferenceService.cs" />

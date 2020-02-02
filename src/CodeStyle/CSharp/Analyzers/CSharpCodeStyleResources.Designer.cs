@@ -178,6 +178,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Using directive is unnecessary..
+        /// </summary>
+        internal static string Using_directive_is_unnecessary {
+            get {
+                return ResourceManager.GetString("Using_directive_is_unnecessary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;using&apos; directive preferences.
         /// </summary>
         internal static string using_directive_preferences {

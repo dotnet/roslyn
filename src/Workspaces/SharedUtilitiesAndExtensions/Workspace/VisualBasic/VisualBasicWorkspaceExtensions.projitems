@@ -49,6 +49,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeBlockSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxGeneratorVisitor.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\VariableDeclaratorSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\AbstractVisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\AbstractVisualBasicRemoveUnnecessaryImportsService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\VisualBasicUnnecessaryImportsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicAddImportsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicGeneratedCodeRecognitionService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicCommandLineParserService.vb" />

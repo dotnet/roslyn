@@ -22,6 +22,11 @@
         <target state="new">Fix all '{0}' in Solution</target>
         <note />
       </trans-unit>
+      <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">
+        <source>Project of ID {0} is required to accomplish the task but is not available from the solution</source>
+        <target state="new">Project of ID {0} is required to accomplish the task but is not available from the solution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unused_member">
         <source>Remove unused member</source>
         <target state="new">Remove unused member</target>
@@ -35,6 +40,11 @@
       <trans-unit id="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0">
         <source>Syntax tree is required to accomplish the task but is not supported by document {0}.</source>
         <target state="new">Syntax tree is required to accomplish the task but is not supported by document {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_solution_does_not_contain_the_specified_document">
+        <source>The solution does not contain the specified document.</source>
+        <target state="new">The solution does not contain the specified document.</target>
         <note />
       </trans-unit>
     </body>

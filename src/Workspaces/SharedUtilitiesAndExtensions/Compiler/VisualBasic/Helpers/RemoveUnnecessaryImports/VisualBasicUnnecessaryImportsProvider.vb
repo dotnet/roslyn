@@ -4,55 +4,33 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
-    Partial Friend MustInherit Class AbstractVisualBasicRemoveUnnecessaryImportsService
-        Inherits AbstractRemoveUnnecessaryImportsService(Of ImportsClauseSyntax)
+    Friend NotInheritable Class VisualBasicUnnecessaryImportsProvider
+        Inherits AbstractUnnecessaryImportsProvider(Of ImportsClauseSyntax)
 
-        Public Overrides Async Function RemoveUnnecessaryImportsAsync(
-                document As Document,
-                predicate As Func(Of SyntaxNode, Boolean),
-                cancellationToken As CancellationToken) As Task(Of Document)
+        Public Shared Instance As New VisualBasicUnnecessaryImportsProvider
 
-            predicate = If(predicate, Functions(Of SyntaxNode).True)
-            Using Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_VisualBasic, cancellationToken)
-
-                Dim unnecessaryImports = Await GetCommonUnnecessaryImportsOfAllContextAsync(
-                    document, predicate, cancellationToken).ConfigureAwait(False)
-                If unnecessaryImports.Any(Function(import) import.OverlapsHiddenPosition(cancellationToken)) Then
-                    Return document
-                End If
-
-                Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-
-                Dim oldRoot = DirectCast(root, CompilationUnitSyntax)
-                Dim newRoot = New Rewriter(Me, document, unnecessaryImports, cancellationToken).Visit(oldRoot)
-                newRoot = newRoot.WithAdditionalAnnotations(Formatter.Annotation)
-
-                cancellationToken.ThrowIfCancellationRequested()
-                Return document.WithSyntaxRoot(newRoot)
-            End Using
-        End Function
+        Private Sub New()
+        End Sub
 
         Protected Overrides Function GetUnnecessaryImports(
                 model As SemanticModel, root As SyntaxNode,
                 predicate As Func(Of SyntaxNode, Boolean),
-                cancellationToken As CancellationToken) As ImmutableArray(Of ImportsClauseSyntax)
+                cancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode)
             predicate = If(predicate, Functions(Of SyntaxNode).True)
             Dim diagnostics = model.GetDiagnostics(cancellationToken:=cancellationToken)
 
-            Dim unnecessaryImports = New HashSet(Of ImportsClauseSyntax)
+            Dim unnecessaryImports = New HashSet(Of SyntaxNode)
 
             For Each diagnostic In diagnostics
                 If diagnostic.Id = "BC50000" Then
                     Dim node = root.FindNode(diagnostic.Location.SourceSpan)
                     If node IsNot Nothing AndAlso predicate(node) Then
-                        unnecessaryImports.Add(DirectCast(node, ImportsClauseSyntax))
+                        unnecessaryImports.Add(node)
                     End If
                 End If
 
@@ -73,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         Private Shared Sub AddRedundantImports(
                 compilationUnit As CompilationUnitSyntax,
                 semanticModel As SemanticModel,
-                unnecessaryImports As HashSet(Of ImportsClauseSyntax),
+                unnecessaryImports As HashSet(Of SyntaxNode),
                 predicate As Func(Of SyntaxNode, Boolean),
                 cancellationToken As CancellationToken)
             ' Now that we've visited the tree, add any imports that bound to project level
@@ -97,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         Private Shared Sub AddRedundantAliasImportsClause(
                 clause As SimpleImportsClauseSyntax,
                 semanticModel As SemanticModel,
-                unnecessaryImports As HashSet(Of ImportsClauseSyntax),
+                unnecessaryImports As HashSet(Of SyntaxNode),
                 predicate As Func(Of SyntaxNode, Boolean),
                 cancellationToken As CancellationToken)
 
@@ -120,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         Private Shared Sub AddRedundantMemberImportsClause(
                 clause As SimpleImportsClauseSyntax,
                 semanticModel As SemanticModel,
-                unnecessaryImports As HashSet(Of ImportsClauseSyntax),
+                unnecessaryImports As HashSet(Of SyntaxNode),
                 predicate As Func(Of SyntaxNode, Boolean),
                 cancellationToken As CancellationToken)
 

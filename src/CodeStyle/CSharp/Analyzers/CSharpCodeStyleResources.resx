@@ -167,4 +167,7 @@
   <data name="Use_implicit_type" xml:space="preserve">
     <value>Use implicit type</value>
   </data>
+  <data name="Using_directive_is_unnecessary" xml:space="preserve">
+    <value>Using directive is unnecessary.</value>
+  </data>
 </root>

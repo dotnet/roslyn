@@ -97,6 +97,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Project of ID {0} is required to accomplish the task but is not available from the solution.
+        /// </summary>
+        internal static string Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution {
+            get {
+                return ResourceManager.GetString("Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_" +
+                        "solution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove unused member.
         /// </summary>
         internal static string Remove_unused_member {
@@ -120,6 +130,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0 {
             get {
                 return ResourceManager.GetString("SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The solution does not contain the specified document..
+        /// </summary>
+        internal static string The_solution_does_not_contain_the_specified_document {
+            get {
+                return ResourceManager.GetString("The_solution_does_not_contain_the_specified_document", resourceCulture);
             }
         }
     }

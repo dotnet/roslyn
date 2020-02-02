@@ -123,4 +123,7 @@
   <data name="Convert_switch_statement_to_expression" xml:space="preserve">
     <value>Convert switch statement to expression</value>
   </data>
+  <data name="Remove_Unnecessary_Usings" xml:space="preserve">
+    <value>Remove Unnecessary Usings</value>
+  </data>
 </root>

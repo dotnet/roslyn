@@ -12,7 +12,6 @@ Option Strict On
 Option Explicit On
 
 Imports System
-Imports System.Reflection
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.VBCodeStyleFixesResources
     
@@ -23,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBCodeStyleFixesResources
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBCodeStyleFixesResources
         Friend ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
             Get
                 If Object.ReferenceEquals(resourceMan, Nothing) Then
-                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBCodeStyleFixesResources", GetType(VBCodeStyleFixesResources).GetTypeInfo.Assembly)
+                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBCodeStyleFixesResources", GetType(VBCodeStyleFixesResources).Assembly)
                     resourceMan = temp
                 End If
                 Return resourceMan
@@ -62,11 +61,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBCodeStyleFixesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Remove this value when another is added..
+        '''  Looks up a localized string similar to Remove Unnecessary Imports.
         '''</summary>
-        Friend ReadOnly Property EmptyResource() As String
+        Friend ReadOnly Property Remove_Unnecessary_Imports() As String
             Get
-                Return ResourceManager.GetString("EmptyResource", resourceCulture)
+                Return ResourceManager.GetString("Remove_Unnecessary_Imports", resourceCulture)
             End Get
         End Property
     End Module

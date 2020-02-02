@@ -19,17 +19,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         IUnnecessaryImportsService,
         IEqualityComparer<T> where T : SyntaxNode
     {
+        protected abstract IUnnecessaryImportsProvider UnnecessaryImportsProvider { get; }
+
         public Task<Document> RemoveUnnecessaryImportsAsync(Document document, CancellationToken cancellationToken)
             => RemoveUnnecessaryImportsAsync(document, predicate: null, cancellationToken: cancellationToken);
 
         public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
-
-        public ImmutableArray<SyntaxNode> GetUnnecessaryImports(
-            SemanticModel model, CancellationToken cancellationToken)
-        {
-            var root = model.SyntaxTree.GetRoot(cancellationToken);
-            return GetUnnecessaryImports(model, root, predicate: null, cancellationToken: cancellationToken).CastArray<SyntaxNode>();
-        }
 
         protected SyntaxToken StripNewLines(Document document, SyntaxToken token)
         {
@@ -49,10 +44,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             return token.WithLeadingTrivia(trimmedLeadingTrivia);
         }
 
-        protected abstract ImmutableArray<T> GetUnnecessaryImports(
-            SemanticModel model, SyntaxNode root,
-            Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
-
         protected async Task<HashSet<T>> GetCommonUnnecessaryImportsOfAllContextAsync(
             Document document, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
         {
@@ -60,15 +51,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var unnecessaryImports = new HashSet<T>(this);
-            unnecessaryImports.AddRange(GetUnnecessaryImports(
-                model, root, predicate, cancellationToken));
+            unnecessaryImports.AddRange(UnnecessaryImportsProvider.GetUnnecessaryImports(
+                model, root, predicate, cancellationToken).Cast<T>());
             foreach (var current in document.GetLinkedDocuments())
             {
                 var currentModel = await current.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var currentRoot = await current.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                unnecessaryImports.IntersectWith(GetUnnecessaryImports(
-                    currentModel, currentRoot, predicate, cancellationToken));
+                unnecessaryImports.IntersectWith(UnnecessaryImportsProvider.GetUnnecessaryImports(
+                    currentModel, currentRoot, predicate, cancellationToken).Cast<T>());
             }
 
             return unnecessaryImports;
@@ -83,5 +74,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         {
             return obj.Span.GetHashCode();
         }
+
+        ImmutableArray<SyntaxNode> IUnnecessaryImportsService.GetUnnecessaryImports(SemanticModel semanticModel, CancellationToken cancellationToken)
+            => UnnecessaryImportsProvider.GetUnnecessaryImports(semanticModel, cancellationToken);
     }
 }
