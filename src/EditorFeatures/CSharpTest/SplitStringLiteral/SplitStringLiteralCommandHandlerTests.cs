@@ -37,16 +37,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             Action callback,
             bool verifyUndo = true,
             IndentStyle indentStyle = IndentStyle.Smart,
-            bool useTabs = false)
+            bool useTabs = false,
+            string lineEnding = "\r\n")
         {
             using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
-                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
+                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)
+                .WithChangedOption(NewLine, LanguageNames.CSharp, lineEnding)));
 
             if (useTabs && expectedOutputMarkup != null)
             {
                 Assert.Contains("\t", expectedOutputMarkup);
+            }
+
+            if (lineEnding == "\n" && expectedOutputMarkup != null)
+            {
+                Assert.DoesNotContain("\r\n", expectedOutputMarkup);
             }
 
             var document = workspace.Documents.Single();
@@ -102,7 +109,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         private void TestHandled(
             string inputMarkup, string expectedOutputMarkup,
             bool verifyUndo = true, IndentStyle indentStyle = IndentStyle.Smart,
-            bool useTabs = false)
+            bool useTabs = false,
+            string lineEnding = "\r\n")
         {
             TestWorker(
                 inputMarkup, expectedOutputMarkup,
@@ -110,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 {
                     Assert.True(false, "Should not reach here.");
                 },
-                verifyUndo, indentStyle, useTabs);
+                verifyUndo, indentStyle, useTabs, lineEnding);
         }
 
         private void TestNotHandled(string inputMarkup)
@@ -890,6 +898,32 @@ $""[||]"";
 	}
 }",
             useTabs: true);
+        }
+
+        [WorkItem(41322, "https://github.com/dotnet/roslyn/issues/41322")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestHonourEndOfLineOption()
+        {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ""Hello [||]World!"";
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = ""Hello "" +
+        ""World!"";
+    }
+}",
+            verifyUndo: false,
+            lineEnding: "\n");
         }
     }
 }
