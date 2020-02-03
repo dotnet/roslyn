@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int code = this.OriginalDefinition.GetHashCode();
 
-            // If the containing type of the of the original definition is the same as our containing type
+            // If the containing type of the original definition is the same as our containing type
             // it's possible that we will compare equal to the original definition under certain conditions 
             // (e.g, ignoring nullability) and want to retain the same hashcode. As such, consider only
             // the the original definition for the hashcode when we know equality is possible
@@ -373,8 +373,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             code = Hash.Combine(containingHashCode, code);
 
-            // Unconstructed method may contain alpha-renamed type parameters while	
-            // may still be considered equal, we do not want to give different hashcode to such types.	
+            // Unconstructed methods may contain alpha-renamed type parameters while	
+            // still be considered equal; we do not want to give a different hashcode to such types.	
             //	
             // Example:	
             //   Having original method A<U>.Goo<V>() we create two _unconstructed_ methods	

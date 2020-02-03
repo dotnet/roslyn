@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var code = this.OriginalDefinition.GetHashCode();
 
-            // If the containing type of the of the original definition is the same as our containing type
+            // If the containing type of the original definition is the same as our containing type
             // it's possible that we will compare equal to the original definition under certain conditions 
             // (e.g, ignoring nullability) and want to retain the same hashcode. As such only make
             // the containing type part of the hashcode when we know equality isn't possible
