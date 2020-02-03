@@ -207,8 +207,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // Produce the indices for the source and metadata symbols in parallel.
                 var tasks = new List<Task>
                 {
-                    GetTask(project, (self, project, _, cancellationToken) => self.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), null, cancellationToken),
-                    GetTask(project, (self, project, _, cancellationToken) => self.UpdateReferencesAsync(project, cancellationToken), null, cancellationToken)
+                    InvokeAsync(project, (self, project, _, cancellationToken) => self.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), null, cancellationToken),
+                    InvokeAsync(project, (self, project, _, cancellationToken) => self.UpdateReferencesAsync(project, cancellationToken), null, cancellationToken)
                 };
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -233,9 +233,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36158", AllowCaptures = false, Constraint = "Avoid captures to reduce GC pressure when running in the host workspace.")]
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            private Task GetTask(Project project, Func<IncrementalAnalyzer, Project, PortableExecutableReference, CancellationToken, Task> func, PortableExecutableReference reference, CancellationToken cancellationToken)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            private Task InvokeAsync(Project project, Func<IncrementalAnalyzer, Project, PortableExecutableReference, CancellationToken, Task> func, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
                 var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
                 return isRemoteWorkspace
@@ -257,7 +255,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
                 {
                     tasks.Add(
-                        GetTask(project, (self, project, reference, cancellationToken) => self.UpdateReferenceAsync(project, reference, cancellationToken), reference, cancellationToken));
+                        InvokeAsync(project, (self, project, reference, cancellationToken) => self.UpdateReferenceAsync(project, reference, cancellationToken), reference, cancellationToken));
                 }
 
                 return Task.WhenAll(tasks);

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 if (!_initialized)
                 {
                     // We're still in the constructor, need to defer sending until we've finished initializing
-                    Task.Yield().GetAwaiter().OnCompleted(SendFunctionDefinitionsAsync);
+                    Task.Yield().GetAwaiter().OnCompleted(() => Task.Run(SendFunctionDefinitions));
                     return;
                 }
 
@@ -98,14 +98,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
             return command.Arguments != null &&
                    command.Arguments.Keys.FirstOrDefault() == "SendFunctionDefinitions";
-        }
-
-        [NonEvent]
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private void SendFunctionDefinitionsAsync()
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-        {
-            Task.Run((Action)SendFunctionDefinitions);
         }
 
         [NonEvent]

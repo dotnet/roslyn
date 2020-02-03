@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
         Public Sub New()
         End Sub
 
-        Protected Overrides Async Function RewriteFieldNameAndAccessibility(originalFieldName As String,
+        Protected Overrides Async Function RewriteFieldNameAndAccessibilityAsync(originalFieldName As String,
                                                         makePrivate As Boolean,
                                                         document As Document,
                                                         declarationAnnotation As SyntaxAnnotation,

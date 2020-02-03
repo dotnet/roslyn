@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()
             Dim context = New TaggerContext(Of BraceHighlightTag)(
                 doc, buffer.CurrentSnapshot, New SnapshotPoint(buffer.CurrentSnapshot, position))
-            Await producer.ProduceTagsAsync_ForTestingPurposesOnly(context)
+            Await producer.GetTestAccessor().ProduceTagsAsync(context)
             Return context.tagSpans
         End Function
 

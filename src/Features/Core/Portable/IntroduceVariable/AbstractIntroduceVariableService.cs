@@ -447,9 +447,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return anonymousMethodParameters;
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        protected static async Task<(SemanticDocument newSemanticDocument, ISet<TExpressionSyntax> newMatches)> ComplexifyParentingStatements(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        protected static async Task<(SemanticDocument newSemanticDocument, ISet<TExpressionSyntax> newMatches)> ComplexifyParentingStatementsAsync(
             SemanticDocument semanticDocument,
             ISet<TExpressionSyntax> matches,
             CancellationToken cancellationToken)

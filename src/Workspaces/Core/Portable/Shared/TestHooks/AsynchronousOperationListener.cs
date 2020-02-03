@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        public Task CreateExpeditedWaitTask()
+        public Task ExpeditedWaitAsync()
         {
             using (_gate.DisposableWait(CancellationToken.None))
             {

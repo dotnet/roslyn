@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             document = await RemoveSimplifierAnnotationsFromImportsAsync(document, cancellationToken).ConfigureAwait(false);
 
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
-            var docWithDocComments = await ConvertDocCommentsToRegularComments(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
+            var docWithDocComments = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
             var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbolCompilation, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
             var node = await docWithAssemblyInfo.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -102,9 +102,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// <returns>The updated document</returns>
         protected abstract Task<Document> AddAssemblyInfoRegionAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken);
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        protected abstract Task<Document> ConvertDocCommentsToRegularComments(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken);
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        protected abstract Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken);
 
         protected abstract ImmutableArray<AbstractReducer> GetReducers();
 

@@ -69,10 +69,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static bool GetIsPartial(IMethodSymbol method)
             => GetIsPartial(GetInfo(method));
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public static bool GetIsAsync(IMethodSymbol method)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-            => GetIsAsync(GetInfo(method));
+        public static bool GetIsAsyncMethod(IMethodSymbol method)
+            => GetIsAsyncMethod(GetInfo(method));
 
         private static ImmutableArray<SyntaxNode> GetStatements(CodeGenerationMethodInfo info)
             => info?._statements ?? ImmutableArray<SyntaxNode>.Empty;
@@ -89,9 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private static bool GetIsPartial(CodeGenerationMethodInfo info)
             => info != null && info._isPartial;
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private static bool GetIsAsync(CodeGenerationMethodInfo info)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private static bool GetIsAsyncMethod(CodeGenerationMethodInfo info)
             => info != null && info._isAsync;
     }
 }

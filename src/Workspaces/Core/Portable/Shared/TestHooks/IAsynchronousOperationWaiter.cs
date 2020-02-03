@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// completed. Asynchronous operations are expedited when possible, meaning artificial delays placed before
         /// asynchronous operations are shortened.
         /// </summary>
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        Task CreateExpeditedWaitTask();
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        Task ExpeditedWaitAsync();
         bool HasPendingWork { get; }
     }
 }

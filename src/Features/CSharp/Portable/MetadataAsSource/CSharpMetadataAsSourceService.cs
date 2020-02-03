@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             return s_memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
-        protected override async Task<Document> ConvertDocCommentsToRegularComments(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
+        protected override async Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

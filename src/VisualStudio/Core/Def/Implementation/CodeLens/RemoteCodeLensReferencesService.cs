@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
         }
 
-        public async Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
+        public async Task<string> GetFullyQualifiedNameAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeLens_GetFullyQualifiedName, cancellationToken))
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 {
                     var result = await client.TryRunRemoteAsync<string>(
                         WellKnownServiceHubServices.CodeAnalysisService,
-                        nameof(IRemoteCodeLensReferencesService.GetFullyQualifiedName),
+                        nameof(IRemoteCodeLensReferencesService.GetFullyQualifiedNameAsync),
                         solution,
                         new object[] { documentId, syntaxNode.Span },
                         callbackTarget: null,
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     }
                 }
 
-                return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedName(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+                return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedNameAsync(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
             }
         }
 

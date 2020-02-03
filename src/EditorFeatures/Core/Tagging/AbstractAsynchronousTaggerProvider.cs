@@ -187,13 +187,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         protected abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        internal Task ProduceTagsAsync_ForTestingPurposesOnly(TaggerContext<TTag> context)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-        {
-            return ProduceTagsAsync(context);
-        }
-
         /// <summary>
         /// Produce tags for the given context.
         /// Keep in sync with <see cref="ProduceTagsSynchronously(TaggerContext{TTag})"/>
@@ -250,6 +243,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             ProduceTagsAsync(context, spanToTag, caretPosition).Wait(context.CancellationToken);
         }
 
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
         private struct DiffResult
         {
             public NormalizedSnapshotSpanCollection Added { get; }
@@ -267,6 +263,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             public int Count => Added.Count + Removed.Count;
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AbstractAsynchronousTaggerProvider<TTag> _provider;
+
+            public TestAccessor(AbstractAsynchronousTaggerProvider<TTag> provider)
+            {
+                _provider = provider;
+            }
+
+            internal Task ProduceTagsAsync(TaggerContext<TTag> context)
+                => _provider.ProduceTagsAsync(context);
         }
     }
 }

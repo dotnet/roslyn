@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
 
                 // in case this is e.g. an overridden property accessor, we'll treat the property itself as the definition symbol
-                var propertyAndProjectId = await GetPropertyFromAccessorOrAnOverride(bestSymbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
+                var propertyAndProjectId = await GetPropertyFromAccessorOrAnOverrideAsync(bestSymbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
 
                 return propertyAndProjectId.Symbol != null
                     ? propertyAndProjectId
@@ -224,9 +224,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            internal static async Task<SymbolAndProjectId> GetPropertyFromAccessorOrAnOverride(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            internal static async Task<SymbolAndProjectId> GetPropertyFromAccessorOrAnOverrideAsync(
                 SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
             {
                 var symbol = symbolAndProjectId.Symbol;
@@ -244,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
                     if (originalSourceSymbol.Symbol != null)
                     {
-                        return await GetPropertyFromAccessorOrAnOverride(originalSourceSymbol, solution, cancellationToken).ConfigureAwait(false);
+                        return await GetPropertyFromAccessorOrAnOverrideAsync(originalSourceSymbol, solution, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
@@ -256,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
                     foreach (var methodImplementor in methodImplementors)
                     {
-                        var propertyAccessorOrAnOverride = await GetPropertyFromAccessorOrAnOverride(methodImplementor, solution, cancellationToken).ConfigureAwait(false);
+                        var propertyAccessorOrAnOverride = await GetPropertyFromAccessorOrAnOverrideAsync(methodImplementor, solution, cancellationToken).ConfigureAwait(false);
                         if (propertyAccessorOrAnOverride.Symbol != null)
                         {
                             return propertyAccessorOrAnOverride;
@@ -270,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Rename
             private static async Task<bool> IsPropertyAccessorOrAnOverrideAsync(
                 ISymbol symbol, Solution solution, CancellationToken cancellationToken)
             {
-                var result = await GetPropertyFromAccessorOrAnOverride(
+                var result = await GetPropertyFromAccessorOrAnOverrideAsync(
                     SymbolAndProjectId.Create(symbol, projectId: null),
                     solution, cancellationToken).ConfigureAwait(false);
                 return result.Symbol != null;

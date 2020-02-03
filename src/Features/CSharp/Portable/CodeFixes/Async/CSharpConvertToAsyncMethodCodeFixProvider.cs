@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             get { return ImmutableArray.Create(CS4008); }
         }
 
-        protected override async Task<string> GetDescription(
+        protected override async Task<string> GetDescriptionAsync(
             Diagnostic diagnostic,
             SyntaxNode node,
             SemanticModel semanticModel,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return string.Format(CSharpFeaturesResources.Make_0_return_Task_instead_of_void, methodNode.WithBody(null));
         }
 
-        protected override async Task<Tuple<SyntaxTree, SyntaxNode>> GetRootInOtherSyntaxTree(
+        protected override async Task<Tuple<SyntaxTree, SyntaxNode>> GetRootInOtherSyntaxTreeAsync(
             SyntaxNode node,
             SemanticModel semanticModel,
             Diagnostic diagnostic,

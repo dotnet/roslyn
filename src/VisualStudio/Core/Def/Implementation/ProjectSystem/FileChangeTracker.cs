@@ -96,9 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var unused = _fileChangeCookie.GetValue(CancellationToken.None);
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public void StartFileChangeListeningAsync()
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        public Task StartFileChangeListeningAsync()
         {
             if (_disposed)
             {
@@ -134,6 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (s_lastBackgroundTaskGate)
             {
                 s_lastBackgroundTask = s_lastBackgroundTask.ContinueWith(_ => _fileChangeCookie.GetValueAsync(CancellationToken.None), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+                return s_lastBackgroundTask;
             }
         }
 

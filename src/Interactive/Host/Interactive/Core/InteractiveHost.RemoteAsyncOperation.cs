@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return null;
             }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            public Task<TResult> AsyncExecute(Action<Service, RemoteAsyncOperation<TResult>> action)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            public Task<TResult> ExecuteAsync(Action<Service, RemoteAsyncOperation<TResult>> action)
             {
                 try
                 {

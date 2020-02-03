@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     result.Add(SyntaxFactory.Token(SyntaxKind.ShadowsKeyword))
                 End If
 
-                If CodeGenerationMethodInfo.GetIsAsync(method) Then
+                If CodeGenerationMethodInfo.GetIsAsyncMethod(method) Then
                     result.Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))
                 End If
             End If

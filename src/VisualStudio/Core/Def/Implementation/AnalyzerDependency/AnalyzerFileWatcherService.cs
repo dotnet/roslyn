@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     tracker = new FileChangeTracker(_fileChangeService, filePath);
                     tracker.UpdatedOnDisk += Tracker_UpdatedOnDisk;
-                    tracker.StartFileChangeListeningAsync();
+                    _ = tracker.StartFileChangeListeningAsync();
 
                     _fileChangeTrackers.Add(filePath, tracker);
                 }

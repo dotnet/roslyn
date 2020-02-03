@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (destination != CodeGenerationDestination.InterfaceType)
             {
-                if (CodeGenerationMethodInfo.GetIsAsync(method))
+                if (CodeGenerationMethodInfo.GetIsAsyncMethod(method))
                 {
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword));
                 }

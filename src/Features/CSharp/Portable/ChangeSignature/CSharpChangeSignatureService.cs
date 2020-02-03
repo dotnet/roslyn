@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return separators;
         }
 
-        public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+        public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvokeAsync(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Document document,
             CancellationToken cancellationToken)

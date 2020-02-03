@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Sub
 
         Friend Async Function GetNewChangeEventsAsync() As Task(Of IEnumerable(Of WorkspaceChangeEventArgs))
-            Await _asynchronousOperationWaiter.CreateExpeditedWaitTask()
+            Await _asynchronousOperationWaiter.ExpeditedWaitAsync()
 
             ' Return the events so far, clearing the list if somebody wants to ask for further events
             Dim changeEvents = _changeEvents

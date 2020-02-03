@@ -319,9 +319,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             // Used by ResetInteractive - consider improving (we should remember the parameters for auto-reset, e.g.)
 
             [OneWay]
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            public void SetPathsAsync(
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            public void SetPaths(
                 RemoteAsyncOperation<RemoteExecutionResult> operation,
                 string[] referenceSearchPaths,
                 string[] sourceSearchPaths,
@@ -370,9 +368,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Execution is performed on the UI thread.
             /// </summary>
             [OneWay]
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            public void InitializeContextAsync(RemoteAsyncOperation<RemoteExecutionResult> operation, string initializationFile, bool isRestarting)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            public void InitializeContext(RemoteAsyncOperation<RemoteExecutionResult> operation, string initializationFile, bool isRestarting)
             {
                 Debug.Assert(operation != null);
 
@@ -386,9 +382,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Adds an assembly reference to the current session.
             /// </summary>
             [OneWay]
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            public void AddReferenceAsync(RemoteAsyncOperation<bool> operation, string reference)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            public void AddReference(RemoteAsyncOperation<bool> operation, string reference)
             {
                 Debug.Assert(operation != null);
                 Debug.Assert(reference != null);
@@ -433,9 +427,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Executes given script snippet on the UI thread in the context of the current session.
             /// </summary>
             [OneWay]
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            public void ExecuteAsync(RemoteAsyncOperation<RemoteExecutionResult> operation, string text)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            public void Execute(RemoteAsyncOperation<RemoteExecutionResult> operation, string text)
             {
                 Debug.Assert(operation != null);
                 Debug.Assert(text != null);
@@ -494,9 +486,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Executes given script file on the UI thread in the context of the current session.
             /// </summary>
             [OneWay]
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            public void ExecuteFileAsync(RemoteAsyncOperation<RemoteExecutionResult> operation, string path)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            public void ExecuteFile(RemoteAsyncOperation<RemoteExecutionResult> operation, string path)
             {
                 Debug.Assert(operation != null);
                 Debug.Assert(path != null);

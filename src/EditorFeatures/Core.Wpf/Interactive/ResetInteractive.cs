@@ -39,9 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _createImport = createImport;
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        internal Task Execute(IInteractiveWindow interactiveWindow, string title)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        internal Task ExecuteAsync(IInteractiveWindow interactiveWindow, string title)
         {
             if (GetProjectProperties(out var references, out var referenceSearchPaths, out var sourceSearchPaths, out var projectNamespaces, out var projectDirectory, out var is64Bit))
             {
@@ -93,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             {
                 // First, start a build.
                 // If the build fails do not reset the REPL.
-                var builtSuccessfully = await BuildProject().ConfigureAwait(true);
+                var builtSuccessfully = await BuildProjectAsync().ConfigureAwait(true);
                 if (!builtSuccessfully)
                 {
                     return;
@@ -144,9 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         /// A method that should trigger an async project build.
         /// </summary>
         /// <returns>Whether or not the build was successful.</returns>
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        protected abstract Task<bool> BuildProject();
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        protected abstract Task<bool> BuildProjectAsync();
 
         /// <summary>
         /// A method that should trigger a project cancellation.
