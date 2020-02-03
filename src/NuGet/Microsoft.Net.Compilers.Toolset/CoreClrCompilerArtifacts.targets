@@ -13,8 +13,8 @@
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.CSharp.dll" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netcoreapp3.1\**\Microsoft.CodeAnalysis.CSharp.resources.dll" />
 
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.VisualBasic.dll" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netcoreapp3.1\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.dll" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" />
 
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\csc.dll" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\csc.deps.json" />
