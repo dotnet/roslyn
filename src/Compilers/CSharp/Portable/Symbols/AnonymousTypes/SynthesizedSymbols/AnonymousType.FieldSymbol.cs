@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public AnonymousTypeFieldSymbol(PropertySymbol property)
             {
-                Debug.Assert((object)property != null);
+                RoslynDebug.Assert((object)property != null);
                 _property = property;
             }
 
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal override MarshalPseudoCustomAttributeData MarshallingInformation
+            internal override MarshalPseudoCustomAttributeData? MarshallingInformation
             {
                 get { return null; }
             }
@@ -86,12 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+            internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
             {
                 get { return null; }
             }
 
-            internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
+            internal override ConstantValue? GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
             {
                 return null;
             }
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return true; }
             }
 
-            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData>? attributes)
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

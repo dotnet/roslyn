@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Symbols;
@@ -75,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Note, the set of possible associated symbols might be expanded in the future to 
         /// reflect changes in the languages.
         /// </summary>
-        public abstract Symbol AssociatedSymbol { get; }
+        public abstract Symbol? AssociatedSymbol { get; }
 
         /// <summary>
         /// Returns true if this field was declared as "readonly". 
@@ -111,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this.IsFixedSizeBuffer is true, returns the underlying implementation type for the
         /// fixed-size buffer when emitted.  Otherwise returns null.
         /// </summary>
-        internal virtual NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
+        internal virtual NamedTypeSymbol? FixedImplementationType(PEModuleBuilder emitModule)
         {
             return null;
         }
@@ -147,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                ConstantValue constantValue = GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
+                ConstantValue? constantValue = GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
                 return constantValue != null && !constantValue.IsBad; //can be null in error scenarios
             }
         }
@@ -156,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If IsConst returns true, then returns the constant value of the field or enum member. If IsConst returns
         /// false, then returns null.
         /// </summary>
-        public virtual object ConstantValue
+        public virtual object? ConstantValue
         {
             get
             {
@@ -165,12 +168,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                ConstantValue constantValue = GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
+                ConstantValue? constantValue = GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
                 return constantValue == null ? null : constantValue.Value; //can be null in error scenarios
             }
         }
 
-        internal abstract ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes);
+        internal abstract ConstantValue? GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes);
 
         /// <summary>
         /// Gets the kind of this symbol.
@@ -291,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Null if no specific marshalling information is available for the field.
         /// </summary>
         /// <remarks>PE symbols don't provide this information and always return null.</remarks>
-        internal abstract MarshalPseudoCustomAttributeData MarshallingInformation { get; }
+        internal abstract MarshalPseudoCustomAttributeData? MarshallingInformation { get; }
 
         /// <summary>
         /// Returns the marshalling type of this field, or 0 if marshalling information isn't available.
@@ -320,12 +323,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
+#nullable disable // Can 'newOwner as SubstitutedNamedTypeSymbol' be null? https://github.com/dotnet/roslyn/issues/39166
             return newOwner.IsDefinition ? this : new SubstitutedFieldSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
+#nullable enable
         }
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             if (this.IsDefinition)
             {
@@ -335,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.OriginalDefinition.GetUseSiteDiagnostic();
         }
 
-        internal bool CalculateUseSiteDiagnostic(ref DiagnosticInfo result)
+        internal bool CalculateUseSiteDiagnostic(ref DiagnosticInfo? result)
         {
             Debug.Assert(IsDefinition);
 
@@ -349,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we check if its definition depends on a type from a unified reference.
             if (this.ContainingModule.HasUnifiedReferences)
             {
-                HashSet<TypeSymbol> unificationCheckedTypes = null;
+                HashSet<TypeSymbol>? unificationCheckedTypes = null;
                 if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes))
                 {
                     return true;
@@ -374,8 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = GetUseSiteDiagnostic();
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
+                DiagnosticInfo? info = GetUseSiteDiagnostic();
+                return (object?)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
             }
         }
 
@@ -408,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// tuple underlying type. Otherwise, null. In case of a malformed underlying type
         /// the corresponding underlying field might be missing, return null in this case too.
         /// </summary>
-        public virtual FieldSymbol TupleUnderlyingField
+        public virtual FieldSymbol? TupleUnderlyingField
         {
             get
             {
@@ -420,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this field represents a tuple element, returns a corresponding default element field.
         /// Otherwise returns null.
         /// </summary>
-        public virtual FieldSymbol CorrespondingTupleField
+        public virtual FieldSymbol? CorrespondingTupleField
         {
             get
             {

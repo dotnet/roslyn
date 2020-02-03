@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -66,21 +68,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         private readonly FieldDefinitionHandle _handle;
+#nullable disable // The compiler cannot figure out that _name is assigned in the constructor. https://github.com/dotnet/roslyn/issues/39166
         private readonly string _name;
+#nullable enable
         private readonly FieldAttributes _flags;
         private readonly PENamedTypeSymbol _containingType;
         private bool _lazyIsVolatile;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-        private ConstantValue _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset; // Indicates an uninitialized ConstantValue
-        private Tuple<CultureInfo, string> _lazyDocComment;
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private ConstantValue? _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset; // Indicates an uninitialized ConstantValue
+        private Tuple<CultureInfo, string>? _lazyDocComment;
+        private DiagnosticInfo? _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
-        private TypeWithAnnotations.Boxed _lazyType;
+        private TypeWithAnnotations.Boxed? _lazyType;
         private int _lazyFixedSize;
-        private NamedTypeSymbol _lazyFixedImplementationType;
-        private PEEventSymbol _associatedEventOpt;
+        private NamedTypeSymbol? _lazyFixedImplementationType;
+        private PEEventSymbol? _associatedEventOpt;
         private PackedFlags _packedFlags;
 
         internal PEFieldSymbol(
@@ -88,8 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PENamedTypeSymbol containingType,
             FieldDefinitionHandle fieldDef)
         {
-            Debug.Assert((object)moduleSymbol != null);
-            Debug.Assert((object)containingType != null);
+            RoslynDebug.Assert((object)moduleSymbol != null);
+            RoslynDebug.Assert((object)containingType != null);
             Debug.Assert(!fieldDef.IsNil);
 
             _handle = fieldDef;
@@ -167,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get
             {
@@ -233,12 +237,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         internal void SetAssociatedEvent(PEEventSymbol eventSymbol)
         {
-            Debug.Assert((object)eventSymbol != null);
+            RoslynDebug.Assert((object)eventSymbol != null);
             Debug.Assert(TypeSymbol.Equals(eventSymbol.ContainingType, _containingType, TypeCompareKind.ConsiderEverything2));
 
             // This should always be true in valid metadata - there should only
             // be one event with a given name in a given type.
-            if ((object)_associatedEventOpt == null)
+            if ((object?)_associatedEventOpt == null)
             {
                 // No locking required since this method will only be called by the thread that created
                 // the field symbol (and will be called before the field symbol is added to the containing 
@@ -269,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 _lazyIsVolatile = isVolatile;
 
-                TypeSymbol fixedElementType;
+                TypeSymbol? fixedElementType;
                 int fixedSize;
                 if (customModifiersArray.IsEmpty && IsFixedBuffer(out fixedSize, out fixedElementType))
                 {
@@ -282,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private bool IsFixedBuffer(out int fixedSize, out TypeSymbol fixedElementType)
+        private bool IsFixedBuffer(out int fixedSize, out TypeSymbol? fixedElementType)
         {
             fixedSize = 0;
             fixedElementType = null;
@@ -316,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             EnsureSignatureIsLoaded();
-            return _lazyType.Value;
+            return _lazyType!.Value;
         }
 
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations
@@ -348,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureSignatureIsLoaded();
-                return (object)_lazyFixedImplementationType != null;
+                return (object?)_lazyFixedImplementationType != null;
             }
         }
 
@@ -361,13 +365,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
+        internal override NamedTypeSymbol? FixedImplementationType(PEModuleBuilder emitModule)
         {
             EnsureSignatureIsLoaded();
             return _lazyFixedImplementationType;
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get
             {
@@ -400,11 +404,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
+        internal override ConstantValue? GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
         {
             if (_lazyConstantValue == Microsoft.CodeAnalysis.ConstantValue.Unset)
             {
-                ConstantValue value = null;
+                ConstantValue? value = null;
 
                 if ((_flags & FieldAttributes.Literal) != 0)
                 {
@@ -524,9 +528,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private bool FilterOutDecimalConstantAttribute()
         {
-            ConstantValue value;
+            ConstantValue? value;
             return this.Type.SpecialType == SpecialType.System_Decimal &&
-                   (object)(value = GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false)) != null &&
+                   (object?)(value = GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false)) != null &&
                    value.Discriminator == ConstantValueTypeDiscriminator.Decimal;
         }
 
@@ -546,16 +550,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref _lazyDocComment);
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
             {
-                DiagnosticInfo result = null;
+                DiagnosticInfo? result = null;
                 CalculateUseSiteDiagnostic(ref result);
                 _lazyUseSiteDiagnostic = result;
             }
@@ -572,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }

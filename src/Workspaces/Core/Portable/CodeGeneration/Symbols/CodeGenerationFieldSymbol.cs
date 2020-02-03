@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public IFieldSymbol CorrespondingTupleField => null;
+        public IFieldSymbol? CorrespondingTupleField => null;
 
         public override SymbolKind Kind => SymbolKind.Field;
 
@@ -56,9 +59,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             visitor.VisitField(this);
         }
 
+        [return: MaybeNull]
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
+#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return visitor.VisitField(this);
+#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         public bool IsConst
@@ -89,6 +95,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public ISymbol AssociatedSymbol => null;
+        public ISymbol? AssociatedSymbol => null;
     }
 }

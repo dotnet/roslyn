@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -40,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
+        Cci.IFieldDefinition? Cci.IFieldReference.GetResolvedField(EmitContext context)
         {
             return ResolvedFieldImpl((PEModuleBuilder)context.Module);
         }
 
-        private Cci.IFieldDefinition ResolvedFieldImpl(PEModuleBuilder moduleBeingBuilt)
+        private Cci.IFieldDefinition? ResolvedFieldImpl(PEModuleBuilder moduleBeingBuilt)
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        Cci.ISpecializedFieldReference Cci.IFieldReference.AsSpecializedFieldReference
+        Cci.ISpecializedFieldReference? Cci.IFieldReference.AsSpecializedFieldReference
         {
             get
             {
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+        Cci.IDefinition? Cci.IReference.AsDefinition(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
@@ -126,14 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        MetadataConstant Cci.IFieldDefinition.GetCompileTimeValue(EmitContext context)
+        MetadataConstant? Cci.IFieldDefinition.GetCompileTimeValue(EmitContext context)
         {
             CheckDefinitionInvariant();
 
             return GetMetadataConstantValue(context);
         }
 
-        internal MetadataConstant GetMetadataConstantValue(EmitContext context)
+        internal MetadataConstant? GetMetadataConstantValue(EmitContext context)
         {
             // A constant field of type decimal is not treated as a compile time value in CLR,
             // so check if it is a metadata constant, not just a constant to exclude decimals.
@@ -235,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IMarshallingInformation Cci.IFieldDefinition.MarshallingInformation
+        Cci.IMarshallingInformation? Cci.IFieldDefinition.MarshallingInformation
         {
             get
             {

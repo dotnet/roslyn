@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the members of superType are accessible from subType due to inheritance.
         /// </summary>
-        public static bool IsAccessibleViaInheritance(this NamedTypeSymbol superType, NamedTypeSymbol subType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsAccessibleViaInheritance(this NamedTypeSymbol superType, NamedTypeSymbol subType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             // NOTE: we don't use strict inheritance.  Instead we ignore constructed generic types
             // and only consider the unconstructed types.  Ecma-334, 4th edition contained the
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return superType.TypeKind == TypeKind.Submission && subType.TypeKind == TypeKind.Submission;
         }
 
-        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbol type, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
         }

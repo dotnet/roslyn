@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected abstract TypeSyntax TypeSyntax { get; }
+        protected abstract TypeSyntax? TypeSyntax { get; }
 
         protected abstract SyntaxTokenList ModifiersTokenList { get; }
 
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_VolatileStruct, this.ErrorLocation, this, type);
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             if (!this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
             {
                 // Inconsistent accessibility: field type '{1}' is less accessible than field '{0}'
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract bool HasInitializer { get; }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData>? attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -115,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get
             {
@@ -231,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal sealed override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
             while (true)
             {
@@ -268,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
+        internal override NamedTypeSymbol? FixedImplementationType(PEModuleBuilder emitModule)
         {
             Debug.Assert(!this.IsFixedSizeBuffer, "Subclasses representing fixed fields must override");
             return null;
@@ -279,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly bool _hasInitializer;
 
-        private TypeWithAnnotations.Boxed _lazyType;
+        private TypeWithAnnotations.Boxed? _lazyType;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
@@ -291,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             bool modifierErrors,
             DiagnosticBag diagnostics)
-            : base(containingType, modifiers, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.GetLocation())
+            : base(containingType, modifiers, declarator.Identifier.ValueText ?? "", declarator.GetReference(), declarator.Identifier.GetLocation())
         {
             _hasInitializer = declarator.Initializer != null;
 
@@ -407,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            Debug.Assert(fieldsBeingBound != null);
+            RoslynDebug.Assert(fieldsBeingBound != null);
 
             if (_lazyType != null)
             {
@@ -426,8 +428,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // When we have multiple declarators, we report the type diagnostics on only the first.
             DiagnosticBag diagnosticsForFirstDeclarator = DiagnosticBag.GetInstance();
 
-            Symbol associatedPropertyOrEvent = this.AssociatedSymbol;
-            if ((object)associatedPropertyOrEvent != null && associatedPropertyOrEvent.Kind == SymbolKind.Event)
+            Symbol? associatedPropertyOrEvent = this.AssociatedSymbol;
+            if ((object?)associatedPropertyOrEvent != null && associatedPropertyOrEvent.Kind == SymbolKind.Event)
             {
                 EventSymbol @event = (EventSymbol)associatedPropertyOrEvent;
                 if (@event.IsWindowsRuntimeEvent)
@@ -487,11 +489,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             fieldsBeingBound = new ConsList<FieldSymbol>(this, fieldsBeingBound);
 
                             var initializerBinder = new ImplicitlyTypedFieldBinder(binder, fieldsBeingBound);
-                            var initializerOpt = initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind.None, (EqualsValueClauseSyntax)declarator.Initializer, declarator);
+                            var initializerOpt = initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind.None, (EqualsValueClauseSyntax?)declarator.Initializer, declarator);
 
                             if (initializerOpt != null)
                             {
-                                if ((object)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
+                                if ((object?)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
                                 {
                                     type = TypeWithAnnotations.Create(initializerOpt.Type);
                                 }
@@ -566,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyFieldTypeInferred != 0 || Volatile.Read(ref _lazyFieldTypeInferred) != 0;
         }
 
-        protected sealed override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
+        protected sealed override ConstantValue? MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
         {
             if (!this.IsConst || VariableDeclaratorNode.Initializer == null)
             {

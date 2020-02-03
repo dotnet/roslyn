@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            int constantVal = ignoreSymbolStoreDebuggingMode.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false).Int32Value;
+            int constantVal = ignoreSymbolStoreDebuggingMode.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false)!.Int32Value;
 
             // Since .NET 2.0 the combinations of None, Default and DisableOptimizations have the following effect:
             // 
@@ -657,8 +657,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                constantVal |= defaultDebuggingMode.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false).Int32Value;
-                constantVal |= disableOptimizationsDebuggingMode.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false).Int32Value;
+                constantVal |= defaultDebuggingMode.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false)!.Int32Value;
+                constantVal |= disableOptimizationsDebuggingMode.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false)!.Int32Value;
             }
 
             if (_options.EnableEditAndContinue)
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                constantVal |= enableEncDebuggingMode.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false).Int32Value;
+                constantVal |= enableEncDebuggingMode.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false)!.Int32Value;
             }
 
             var typedConstantDebugMode = new TypedConstant(debuggingModesType, TypedConstantKind.Enum, constantVal);

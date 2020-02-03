@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             var initializer = syntax.EqualsValue;
-            Debug.Assert(initializer != null);
+            RoslynDebug.Assert(initializer != null);
             return new ExplicitValuedEnumConstantSymbol(containingEnum, syntax, initializer, diagnostics);
         }
 
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected SourceEnumConstantSymbol(SourceMemberContainerTypeSymbol containingEnum, EnumMemberDeclarationSyntax syntax, DiagnosticBag diagnostics)
-            : base(containingEnum, syntax.Identifier.ValueText, syntax.GetReference(), syntax.Identifier.GetLocation())
+            : base(containingEnum, syntax.Identifier.ValueText ?? "", syntax.GetReference(), syntax.Identifier.GetLocation())
         {
             if (this.Name == WellKnownMemberNames.EnumBackingFieldName)
             {
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return TypeWithAnnotations.Create(this.ContainingType);
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get
             {
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal sealed override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
             while (true)
             {
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DiagnosticBag diagnostics) :
                 base(containingEnum, syntax, diagnostics)
             {
-                Debug.Assert((object)otherConstant != null);
+                RoslynDebug.Assert((object)otherConstant != null);
                 Debug.Assert(otherConstantOffset > 0);
 
                 _otherConstant = otherConstant;
@@ -200,7 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return Microsoft.CodeAnalysis.ConstantValue.Unset;
                 }
+#nullable disable // Can 'otherValue' be null? https://github.com/dotnet/roslyn/issues/39166
                 if (otherValue.IsBad)
+#nullable enable
                 {
                     return Microsoft.CodeAnalysis.ConstantValue.Bad;
                 }

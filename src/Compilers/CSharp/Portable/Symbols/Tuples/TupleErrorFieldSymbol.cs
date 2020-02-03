@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly int _tupleElementIndex;
 
         private readonly ImmutableArray<Location> _locations;
-        private readonly DiagnosticInfo _useSiteDiagnosticInfo;
+        private readonly DiagnosticInfo? _useSiteDiagnosticInfo;
         private readonly TupleErrorFieldSymbol _correspondingDefaultField;
 
         // default tuple elements like Item1 or Item20 could be provided by the user or
@@ -37,11 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol container,
             string name,
             int tupleElementIndex,
-            Location location,
+            Location? location,
             TypeWithAnnotations type,
-            DiagnosticInfo useSiteDiagnosticInfo,
+            DiagnosticInfo? useSiteDiagnosticInfo,
             bool isImplicitlyDeclared,
-            TupleErrorFieldSymbol correspondingDefaultFieldOpt)
+            TupleErrorFieldSymbol? correspondingDefaultFieldOpt)
 
             : base(container, name, isPublic: true, isReadOnly: false, isStatic: false)
         {
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _type = type;
             _locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(location);
             _useSiteDiagnosticInfo = useSiteDiagnosticInfo;
-            _tupleElementIndex = (object)correspondingDefaultFieldOpt == null ? tupleElementIndex << 1 : (tupleElementIndex << 1) + 1;
+            _tupleElementIndex = (object?)correspondingDefaultFieldOpt == null ? tupleElementIndex << 1 : (tupleElementIndex << 1) + 1;
             _isImplicitlyDeclared = isImplicitlyDeclared;
 
             Debug.Assert((correspondingDefaultFieldOpt == null) == this.IsDefaultTupleElement);
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override FieldSymbol TupleUnderlyingField
+        public override FieldSymbol? TupleUnderlyingField
         {
             get
             {
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _type;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             return _useSiteDiagnosticInfo;
         }
@@ -159,19 +161,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(ContainingType.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             return Equals(obj as TupleErrorFieldSymbol, compareKind);
         }
 
-        public bool Equals(TupleErrorFieldSymbol other, TypeCompareKind compareKind)
+        public bool Equals(TupleErrorFieldSymbol? other, TypeCompareKind compareKind)
         {
-            if ((object)other == this)
+            if ((object?)other == this)
             {
                 return true;
             }
 
-            return (object)other != null &&
+            return (object?)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
                 TypeSymbol.Equals(ContainingType, other.ContainingType, compareKind);
         }

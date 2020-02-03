@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.DocumentationComments;
 
@@ -21,11 +23,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public new IFieldSymbol OriginalDefinition => _symbol.OriginalDefinition;
 
-            public IFieldSymbol CorrespondingTupleField => null;
+            public IFieldSymbol? CorrespondingTupleField => null;
 
-            public ISymbol AssociatedSymbol => _symbol.AssociatedSymbol;
+            public ISymbol? AssociatedSymbol => _symbol.AssociatedSymbol;
 
-            public object ConstantValue => _symbol.ConstantValue;
+            public object? ConstantValue => _symbol.ConstantValue;
 
             public ImmutableArray<CustomModifier> CustomModifiers => _symbol.CustomModifiers;
 

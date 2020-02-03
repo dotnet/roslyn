@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingField.GetAttributes();
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             return _underlyingField.GetUseSiteDiagnostic();
         }
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(_containingTuple.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
 
-        public override sealed bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override sealed bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             var other = obj as TupleFieldSymbol;
 
@@ -282,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _cannotUse = cannotUse;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             if (_cannotUse)
             {

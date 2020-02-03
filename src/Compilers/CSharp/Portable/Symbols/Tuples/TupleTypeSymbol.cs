@@ -564,9 +564,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<FieldSymbol> TupleElements
             => IsTupleType ? TupleData!.TupleElements(this) : default;
 
-        public TMember? GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember underlyingMemberOpt) where TMember : Symbol
+        public TMember? GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember? underlyingMemberOpt) where TMember : Symbol
         {
-            return IsTupleType ? TupleData!.GetTupleMemberSymbolForUnderlyingMember(underlyingMemberOpt) : default;
+            return IsTupleType ? TupleData!.GetTupleMemberSymbolForUnderlyingMember(underlyingMemberOpt) : null;
         }
 
         protected ArrayBuilder<Symbol>? AddOrWrapTupleMembers(ImmutableArray<Symbol> currentMembers)
@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     members.Add(defaultTupleField);
 
-                    if (defaultImplicitlyDeclared && !String.IsNullOrEmpty(providedName))
+                    if (defaultImplicitlyDeclared && !RoslynString.IsNullOrEmpty(providedName))
                     {
                         // Add friendly named element field.
                         members.Add(new TupleErrorFieldSymbol(this,
@@ -1104,9 +1104,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return map;
             }
 
-            public TMember? GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember underlyingMemberOpt) where TMember : Symbol
+            public TMember? GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember? underlyingMemberOpt) where TMember : Symbol
             {
-                if ((object)underlyingMemberOpt == null)
+                if ((object?)underlyingMemberOpt == null)
                 {
                     return null;
                 }

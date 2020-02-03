@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -15,17 +17,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class GlobalExpressionVariable : SourceMemberFieldSymbol
     {
-        private TypeWithAnnotations.Boxed _lazyType;
+        private TypeWithAnnotations.Boxed? _lazyType;
 
         /// <summary>
         /// The type syntax, if any, from source. Optional for patterns that can omit an explicit type.
         /// </summary>
-        private SyntaxReference _typeSyntaxOpt;
+        private SyntaxReference? _typeSyntaxOpt;
 
         internal GlobalExpressionVariable(
             SourceMemberContainerTypeSymbol containingType,
             DeclarationModifiers modifiers,
-            TypeSyntax typeSyntax,
+            TypeSyntax? typeSyntax,
             string name,
             SyntaxReference syntax,
             Location location)
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static GlobalExpressionVariable Create(
                 SourceMemberContainerTypeSymbol containingType,
                 DeclarationModifiers modifiers,
-                TypeSyntax typeSyntax,
+                TypeSyntax? typeSyntax,
                 string name,
                 SyntaxNode syntax,
                 Location location,
@@ -55,17 +57,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => default(SyntaxList<AttributeListSyntax>);
-        protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntaxOpt?.GetSyntax();
+        protected override TypeSyntax? TypeSyntax => (TypeSyntax?)_typeSyntaxOpt?.GetSyntax();
         protected override SyntaxTokenList ModifiersTokenList => default(SyntaxTokenList);
         public override bool HasInitializer => false;
-        protected override ConstantValue MakeConstantValue(
+        protected override ConstantValue? MakeConstantValue(
             HashSet<SourceFieldSymbolWithSyntaxReference> dependencies,
             bool earlyDecodingWellKnownAttributes,
             DiagnosticBag diagnostics) => null;
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            Debug.Assert(fieldsBeingBound != null);
+            RoslynDebug.Assert(fieldsBeingBound != null);
 
             if (_lazyType != null)
             {
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isVar && !fieldsBeingBound.ContainsReference(this))
             {
                 InferFieldType(fieldsBeingBound, binder);
-                Debug.Assert(_lazyType != null);
+                RoslynDebug.Assert(_lazyType != null);
             }
             else
             {
@@ -113,7 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnostics.Free();
+#nullable disable // The compiler can't tell that 'SetType' ensures '_lazyType' is not null. https://github.com/dotnet/roslyn/issues/39166
             return _lazyType.Value;
+#nullable enable
         }
 
         /// <summary>
@@ -127,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // In the event that we race to set the type of a field, we should
             // always deduce the same type, unless the cached type is an error.
 
-            Debug.Assert((object)originalType == null ||
+            Debug.Assert((object?)originalType == null ||
                 originalType.IsErrorType() ||
                 TypeSymbol.Equals(originalType, type.Type, TypeCompareKind.ConsiderEverything2));
 
@@ -163,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal InferrableGlobalExpressionVariable(
                 SourceMemberContainerTypeSymbol containingType,
                 DeclarationModifiers modifiers,
-                TypeSyntax typeSyntax,
+                TypeSyntax? typeSyntax,
                 string name,
                 SyntaxReference syntax,
                 Location location,

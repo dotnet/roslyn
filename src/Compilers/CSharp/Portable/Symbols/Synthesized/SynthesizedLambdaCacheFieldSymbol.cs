@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, name, isPublic: true, isReadOnly: isReadOnly, isStatic: isStatic)
         {
             Debug.Assert((object)type != null);
-            Debug.Assert((object)topLevelMethod != null);
+            RoslynDebug.Assert((object)topLevelMethod != null);
             _type = TypeWithAnnotations.Create(type);
             _topLevelMethod = topLevelMethod;
         }
