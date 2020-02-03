@@ -1716,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static IEnumerable<string> ParseUsings(string arg, string? value, IList<Diagnostic> diagnostics)
         {
-            if (value is null || value.Length == 0)
+            if (RoslynString.IsNullOrEmpty(value))
             {
                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Namespace1.Localize(), arg);
                 yield break;

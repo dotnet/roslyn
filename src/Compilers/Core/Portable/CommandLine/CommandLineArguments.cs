@@ -426,9 +426,10 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<PortableExecutableReference>.Empty;
             }
 
-            if (references.IsDefaultOrEmpty && messageProviderOpt != null)
+            if (references.IsDefaultOrEmpty && diagnosticsOpt != null)
             {
-                diagnosticsOpt!.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.ERR_MetadataFileNotFound, cmdReference.Reference));
+                RoslynDebug.AssertNotNull(messageProviderOpt);
+                diagnosticsOpt.Add(new DiagnosticInfo(messageProviderOpt, messageProviderOpt.ERR_MetadataFileNotFound, cmdReference.Reference));
                 return ImmutableArray<PortableExecutableReference>.Empty;
             }
 

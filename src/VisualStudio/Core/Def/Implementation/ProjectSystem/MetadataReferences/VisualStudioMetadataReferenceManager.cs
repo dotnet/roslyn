@@ -328,13 +328,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string? assemblyDir = null;
             foreach (var moduleName in manifestModule.GetModuleNames())
             {
-                if (moduleBuilder.Count == 0)
+                if (assemblyDir is null)
                 {
                     moduleBuilder.Add(manifestModule);
                     assemblyDir = Path.GetDirectoryName(fileKey.FullPath);
                 }
 
-                var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir!, moduleName));
+                var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName));
                 var metadata = moduleMetadataFactory(moduleFileKey, storages);
 
                 moduleBuilder.Add(metadata);
