@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(CS0266, CS1503); }
+            get => ImmutableArray.Create(CS0266, CS1503);
         }
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle; // ?
@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 var argumentListNode = argument.Parent;
                 var invocationNode = argumentListNode.Parent;
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
-                var candidcateSymbols = symbolInfo.CandidateSymbols;
+                var candidateSymbols = symbolInfo.CandidateSymbols;
 
                 var argumentList = (ArgumentListSyntax)argumentListNode;
 
                 // Find all valid candidates and extract potential conversion types 
                 var potentialConversionTypes = new List<ITypeSymbol> {};
-                foreach (var candidcateSymbol in candidcateSymbols)
+                foreach (var candidcateSymbol in candidateSymbols)
                 {
                     var methodSymbol = (IMethodSymbol)candidcateSymbol;
                     var parameterList = methodSymbol.Parameters;

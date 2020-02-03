@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add Explicit Cast.
+        ///   Looks up a localized string similar to Add explicit cast.
         /// </summary>
         internal static string Add_Explicit_Cast {
             get {
