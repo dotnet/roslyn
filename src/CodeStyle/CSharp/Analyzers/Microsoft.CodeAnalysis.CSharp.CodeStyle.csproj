@@ -56,6 +56,7 @@
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\SyntaxKindEx.cs" Link="Formatting\Rules\SyntaxKindEx.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\TokenBasedFormattingRule.cs" Link="Formatting\Rules\TokenBasedFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\WrappingFormattingRule.cs" Link="Formatting\Rules\WrappingFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\LanguageServices\CSharpSyntaxKindsService.cs" Link="LanguageServices\CSharpSyntaxKindsService.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Utilities\FormattingRangeHelper.cs" Link="Formatting\FormattingRangeHelper.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -75,5 +76,8 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="LanguageServices\" />
   </ItemGroup>
 </Project>
