@@ -1208,7 +1208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (refKind == RefKind.Out)
             {
-                // conditional post-condition attributes
+                // post-condition attributes (`Maybe/NotNull` and `Maybe/NotNullWhen`)
                 // when true
                 var valueWhenTrue = ApplyUnconditionalAnnotations(
                     overridingType.ToTypeWithState(),
