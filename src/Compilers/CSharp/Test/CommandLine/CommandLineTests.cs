@@ -5753,10 +5753,10 @@ class A                                                               \
             {
                 // [applicable to both Windows and Unix]
                 // if our parent (xunit) process itself has input redirected, we cannot test this
-                // error case because our child process will inherit it and we cannot achive what
+                // error case because our child process will inherit it and we cannot achieve what
                 // we are aiming for: isatty(0):true and thereby Console.IsInputerRedirected:false in
                 // child. running this case will make StreamReader to hang (waiting for input, that
-                // we do not propagrate: parent.In->child.In).
+                // we do not propagate: parent.In->child.In).
                 //
                 // note: in Unix we can "close" fd0 by appending `0>&-` in the `sh -c` command below,
                 // but that will also not impact the result of isatty(), and in turn causes a different
