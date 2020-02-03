@@ -652,6 +652,10 @@ try {
   }
 
   if ($launch) {
+    if (-not $build) {
+      InitializeBuildTool
+    }
+
     $devenvExe = Join-Path $env:VSINSTALLDIR 'Common7\IDE\devenv.exe'
     &$devenvExe /rootSuffix RoslynDev
   }
