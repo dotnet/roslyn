@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
@@ -364,20 +365,24 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(6, 14));
         }
 
-        [Fact]
-        public void LocalFunctionAttribute_TypeParameter()
+        [Theory]
+        [InlineData("[A] void local() { }")]
+        [InlineData("[return: A] void local() { }")]
+        [InlineData("void local([A] int i) { }")]
+        [InlineData("void local<[A]T>() {}")]
+        public void LocalFunctionAttribute_SpeculativeSemanticModel(string localFunction)
         {
-            const string text = @"
+            string text = $@"
 using System;
-class A : Attribute {}
+class A : Attribute {{}}
 
 class C
-{
+{{
     static void M()
-    {
-        void local<[A]T>() {}
-    }
-}";
+    {{
+        {localFunction}
+    }}
+}}";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var comp = (Compilation)CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);

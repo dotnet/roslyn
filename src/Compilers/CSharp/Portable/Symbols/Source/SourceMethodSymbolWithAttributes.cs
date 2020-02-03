@@ -259,16 +259,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var attributesBag = forReturnType ? copyFrom.GetReturnTypeAttributesBag() : copyFrom.GetAttributesBag();
                 bagCreatedOnThisThread = Interlocked.CompareExchange(ref lazyCustomAttributesBag, attributesBag, null) == null;
             }
-            else if (forReturnType)
-            {
-                bagCreatedOnThisThread = LoadAndValidateAttributes(
-                    this.GetReturnTypeAttributeDeclarations(),
-                    ref lazyCustomAttributesBag,
-                    symbolPart: AttributeLocation.Return);
-            }
             else
             {
-                bagCreatedOnThisThread = LoadAndValidateAttributes(this.GetAttributeDeclarations(), ref lazyCustomAttributesBag);
+                var (declarations, symbolPart) = forReturnType
+                    ? (GetReturnTypeAttributeDeclarations(), AttributeLocation.Return)
+                    : (GetAttributeDeclarations(), AttributeLocation.None);
+                bagCreatedOnThisThread = LoadAndValidateAttributes(
+                    declarations,
+                    ref lazyCustomAttributesBag,
+                    symbolPart,
+                    binderOpt: (this as LocalFunctionSymbol)?.SignatureBinder);
             }
 
             if (bagCreatedOnThisThread)
