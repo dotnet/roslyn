@@ -1,9 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct SymbolUsageInfo : IEquatable<SymbolUsageInfo>
     {
         public static readonly SymbolUsageInfo None = Create(ValueUsageInfo.None);
-        public static readonly ImmutableArray<string> LocalizableStringsForAllAllowedValues = CreateLocalizableStringsForAllAllowedValues();
 
         public ValueUsageInfo? ValueUsageInfoOpt { get; }
         public TypeOrNamespaceUsageInfo? TypeOrNamespaceUsageInfoOpt { get; }
@@ -35,19 +34,6 @@ namespace Microsoft.CodeAnalysis
         public static SymbolUsageInfo Create(TypeOrNamespaceUsageInfo typeOrNamespaceUsageInfo)
             => new SymbolUsageInfo(valueUsageInfoOpt: null, typeOrNamespaceUsageInfo);
 
-        private static ImmutableArray<string> CreateLocalizableStringsForAllAllowedValues()
-        {
-            var valueUsageInfoStrings = Enum.GetValues(typeof(ValueUsageInfo))
-                                        .Cast<ValueUsageInfo>()
-                                        .Where(value => value.IsSingleBitSet())
-                                        .Select(v => v.ToLocalizableString());
-            var typeOrNamespaceUsageInfoStrings = Enum.GetValues(typeof(TypeOrNamespaceUsageInfo))
-                                                  .Cast<TypeOrNamespaceUsageInfo>()
-                                                  .Where(value => value.IsSingleBitSet())
-                                                  .Select(v => v.ToLocalizableString());
-            return valueUsageInfoStrings.Concat(typeOrNamespaceUsageInfoStrings).ToImmutableArray();
-        }
-
         public bool IsReadFrom()
             => ValueUsageInfoOpt.HasValue && ValueUsageInfoOpt.Value.IsReadFrom();
 
@@ -56,12 +42,6 @@ namespace Microsoft.CodeAnalysis
 
         public bool IsNameOnly()
             => ValueUsageInfoOpt.HasValue && ValueUsageInfoOpt.Value.IsNameOnly();
-
-        public string ToLocalizableString()
-            => ValueUsageInfoOpt.HasValue ? ValueUsageInfoOpt.Value.ToLocalizableString() : TypeOrNamespaceUsageInfoOpt.Value.ToLocalizableString();
-
-        public ImmutableArray<string> ToLocalizableValues()
-            => ValueUsageInfoOpt.HasValue ? ValueUsageInfoOpt.Value.ToLocalizableValues() : TypeOrNamespaceUsageInfoOpt.Value.ToLocalizableValues();
 
         public override bool Equals(object obj)
             => obj is SymbolUsageInfo && Equals((SymbolUsageInfo)obj);

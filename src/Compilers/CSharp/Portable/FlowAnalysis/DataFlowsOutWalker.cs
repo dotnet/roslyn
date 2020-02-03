@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -58,17 +60,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _dataFlowsOut;
         }
 
+        protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
+        {
+            _dataFlowsOut.Clear();
+            return base.Scan(ref badRegion);
+        }
+
         protected override void EnterRegion()
         {
             // to handle loops properly, we must assume that every variable that flows in is
             // assigned at the beginning of the loop.  If it isn't, then it must be in a loop
             // and flow out of the region in that loop (and into the region inside the loop).
-            foreach (Symbol variable in _dataFlowsIn)
+            foreach (ISymbol variable in _dataFlowsIn)
             {
-                int slot = this.GetOrCreateSlot(variable);
+                Symbol variableSymbol = variable.GetSymbol();
+                int slot = this.GetOrCreateSlot(variableSymbol);
                 if (slot > 0 && !this.State.IsAssigned(slot))
                 {
-                    _dataFlowsOut.Add(variable);
+                    _dataFlowsOut.Add(variableSymbol);
                 }
             }
 

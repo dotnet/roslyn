@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -58,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
             if (result.HasValue && result.Value)
             {
-                var includedMembers = viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.MemberSymbol);
+                var includedMembers = viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.Symbol);
 
                 return new ExtractInterfaceOptionsResult(
                     isCancelled: false,

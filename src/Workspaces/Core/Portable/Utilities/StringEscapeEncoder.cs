@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Text;
@@ -11,7 +13,7 @@ namespace Roslyn.Utilities
         {
             StringBuilder builder = null;
 
-            int startIndex = 0;
+            var startIndex = 0;
             while (startIndex < text.Length)
             {
                 var prefixIndex = text.IndexOf(escapePrefix, startIndex);
@@ -38,14 +40,14 @@ namespace Roslyn.Utilities
 
                 if (index > startIndex)
                 {
-                    // everything between the start and the prohibitted character
+                    // everything between the start and the prohibited character
                     builder.Append(text, startIndex, index - startIndex);
                 }
 
                 // add the escape prefix before the character that needs escaping
                 builder.Append(escapePrefix);
 
-                // add the prohibitted character data as hex after the prefix
+                // add the prohibited character data as hex after the prefix
                 builder.AppendFormat("{0:X2}", (int)text[index]);
 
                 startIndex = index + 1;
@@ -64,7 +66,7 @@ namespace Roslyn.Utilities
         public static string Unescape(this string text, char escapePrefix)
         {
             StringBuilder builder = null;
-            int startIndex = 0;
+            var startIndex = 0;
 
             while (startIndex < text.Length)
             {
@@ -106,7 +108,7 @@ namespace Roslyn.Utilities
 
         private static int ParseHex(string text, int start, int length)
         {
-            int value = 0;
+            var value = 0;
 
             for (int i = start, end = start + length; i < end; i++)
             {

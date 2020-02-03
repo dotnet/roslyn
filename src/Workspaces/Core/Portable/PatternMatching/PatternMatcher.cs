@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             CultureInfo culture,
             bool allowFuzzyMatching = false)
         {
-            culture = culture ?? CultureInfo.CurrentCulture;
+            culture ??= CultureInfo.CurrentCulture;
 
             _compareInfo = culture.CompareInfo;
             _textInfo = culture.TextInfo;
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private static bool ContainsUpperCaseLetter(string pattern)
         {
             // Expansion of "foreach(char ch in pattern)" to avoid a CharEnumerator allocation
-            for (int i = 0; i < pattern.Length; i++)
+            for (var i = 0; i < pattern.Length; i++)
             {
                 if (char.IsUpper(pattern[i]))
                 {
@@ -249,9 +251,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private static bool ContainsSpaceOrAsterisk(string text)
         {
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
-                char ch = text[i];
+                var ch = text[i];
                 if (ch == ' ' || ch == '*')
                 {
                     return true;
@@ -469,8 +471,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             // We'll have 3 pattern parts Si/U/I against two candidate parts Simple/UI.  However, U
             // and I will both match in UI. 
 
-            int currentCandidateHump = 0;
-            int currentPatternHump = 0;
+            var currentCandidateHump = 0;
+            var currentPatternHump = 0;
             int? firstMatch = null;
             bool? contiguous = null;
 
@@ -504,7 +506,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
 
                 var candidateHump = candidateHumps[currentCandidateHump];
-                bool gotOneMatchThisCandidate = false;
+                var gotOneMatchThisCandidate = false;
 
                 // Consider the case of matching SiUI against SimpleUIElement. The candidate parts
                 // will be Simple/UI/Element, and the pattern parts will be Si/U/I.  We'll match 'Si'
@@ -534,12 +536,12 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     matchSpans.Add(new TextSpan(candidateHump.Start, patternChunkCharacterSpan.Length));
                     gotOneMatchThisCandidate = true;
 
-                    firstMatch = firstMatch ?? currentCandidateHump;
+                    firstMatch ??= currentCandidateHump;
 
                     // If we were contiguous, then keep that value.  If we weren't, then keep that
                     // value.  If we don't know, then set the value to 'true' as an initial match is
                     // obviously contiguous.
-                    contiguous = contiguous ?? true;
+                    contiguous ??= true;
 
                     candidateHump = new TextSpan(candidateHump.Start + patternChunkCharacterSpan.Length, candidateHump.Length - patternChunkCharacterSpan.Length);
                 }

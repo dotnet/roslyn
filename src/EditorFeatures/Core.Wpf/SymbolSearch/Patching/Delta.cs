@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -65,8 +67,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch.Patching
             fixed (byte* pSourceBuf = sourceBytes)
             fixed (byte* pPatchBuf = patchBytes)
             {
-                DeltaInput ds = new DeltaInput(pSourceBuf, sourceBytes.Length, true);
-                DeltaInput dp = new DeltaInput(pPatchBuf, patchBytes.Length, true);
+                var ds = new DeltaInput(pSourceBuf, sourceBytes.Length, true);
+                var dp = new DeltaInput(pPatchBuf, patchBytes.Length, true);
                 if (!ApplyDeltaB(DeltaApplyFlag.None,
                                   ds,
                                   dp,
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch.Patching
                     throw new Win32Exception();
                 }
 
-                byte[] targetBytes = new byte[output.cbBuf.ToInt32()];
+                var targetBytes = new byte[output.cbBuf.ToInt32()];
                 Marshal.Copy(output.pBuf, targetBytes, 0, targetBytes.Length);
                 DeltaFree(output.pBuf);
                 return targetBytes;

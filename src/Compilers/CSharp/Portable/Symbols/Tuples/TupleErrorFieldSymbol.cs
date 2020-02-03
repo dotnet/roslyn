@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -56,14 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _correspondingDefaultField = correspondingDefaultFieldOpt ?? this;
         }
 
-        public override bool IsTupleField
-        {
-            get
-            {
-                return true;
-            }
-        }
-
         /// <summary>
         /// If this is a field representing a tuple element,
         /// returns the index of the element (zero-based).
@@ -97,6 +91,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Failed to find one
                 return null;
+            }
+        }
+
+        public override FieldSymbol OriginalDefinition
+        {
+            get
+            {
+                return this;
             }
         }
 
@@ -157,12 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(ContainingType.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
-            return Equals(obj as TupleErrorFieldSymbol);
+            return Equals(obj as TupleErrorFieldSymbol, compareKind);
         }
 
-        public bool Equals(TupleErrorFieldSymbol other)
+        public bool Equals(TupleErrorFieldSymbol other, TypeCompareKind compareKind)
         {
             if ((object)other == this)
             {
@@ -171,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (object)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
-                TypeSymbol.Equals(ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything2);
+                TypeSymbol.Equals(ContainingType, other.ContainingType, compareKind);
         }
     }
 }

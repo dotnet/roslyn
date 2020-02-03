@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
@@ -128,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         private bool TryClassifySymbol(
             NameSyntax name,
-            ISymbol symbol,
+            [NotNullWhen(returnValue: true)] ISymbol? symbol,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
             out ClassifiedSpan classifiedSpan)
@@ -170,14 +175,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 }
             }
 
-            if (name.IsUnmanaged && name.Parent.IsKind(SyntaxKind.TypeConstraint))
+            if ((name.IsUnmanaged || name.IsNotNull) && name.Parent.IsKind(SyntaxKind.TypeConstraint))
             {
+                var nameToCheck = name.IsUnmanaged ? "unmanaged" : "notnull";
                 var alias = semanticModel.GetAliasInfo(name, cancellationToken);
-                if (alias == null || alias.Name != "unmanaged")
+                if (alias == null || alias.Name != nameToCheck)
                 {
-                    if (!IsSymbolWithName(symbol, "unmanaged"))
+                    if (!IsSymbolWithName(symbol, nameToCheck))
                     {
-                        // We bound to a symbol.  If we bound to a symbol called "unmanaged" then we want to
+                        // We bound to a symbol.  If we bound to a symbol called "unmanaged"/"notnull" then we want to
                         // classify this appropriately as a type.  Otherwise, we want to classify this as
                         // a keyword.
                         classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
@@ -314,7 +320,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             var identifierName = name as IdentifierNameSyntax;
             if (symbolInfo.Symbol.IsImplicitValueParameter())
             {
+#nullable disable // Can 'identifierName' be null here?
                 result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
+#nullable enable
                 return true;
             }
 
@@ -336,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private bool IsSymbolWithName(ISymbol symbol, string name)
+        private bool IsSymbolWithName([NotNullWhen(returnValue: true)] ISymbol? symbol, string name)
         {
             if (symbol is null || symbol.Name != name)
             {

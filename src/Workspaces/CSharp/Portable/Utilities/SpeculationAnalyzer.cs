@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -52,8 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
             bool skipVerificationForReplacedNode = false,
-            bool failOnOverloadResolutionFailuresInOriginalCode = false) :
-            base(expression, newExpression, semanticModel, cancellationToken, skipVerificationForReplacedNode, failOnOverloadResolutionFailuresInOriginalCode)
+            bool failOnOverloadResolutionFailuresInOriginalCode = false)
+            : base(expression, newExpression, semanticModel, cancellationToken, skipVerificationForReplacedNode, failOnOverloadResolutionFailuresInOriginalCode)
         {
         }
 
@@ -98,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public static SemanticModel CreateSpeculativeSemanticModelForNode(SyntaxNode originalNode, SyntaxNode nodeToSpeculate, SemanticModel semanticModel)
         {
-            int position = originalNode.SpanStart;
-            bool isInNamespaceOrTypeContext = SyntaxFacts.IsInNamespaceOrTypeContext(originalNode as ExpressionSyntax);
+            var position = originalNode.SpanStart;
+            var isInNamespaceOrTypeContext = SyntaxFacts.IsInNamespaceOrTypeContext(originalNode as ExpressionSyntax);
             return CreateSpeculativeSemanticModelForNode(nodeToSpeculate, semanticModel, position, isInNamespaceOrTypeContext);
         }
 
@@ -114,9 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 semanticModel = semanticModel.ParentModel;
             }
 
-            var statementNode = nodeToSpeculate as StatementSyntax;
             SemanticModel speculativeModel;
-            if (statementNode != null)
+            if (nodeToSpeculate is StatementSyntax statementNode)
             {
                 semanticModel.TryGetSpeculativeSemanticModel(position, statementNode, out speculativeModel);
                 return speculativeModel;
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                         Debug.Assert(originalParams.Count == replacedParams.Count);
 
                         paramNames = new List<string>();
-                        for (int i = 0; i < originalParams.Count; i++)
+                        for (var i = 0; i < originalParams.Count; i++)
                         {
                             var originalParam = originalParams[i];
                             var replacedParam = replacedParams[i];
@@ -340,9 +341,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 return false;
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.ConditionalExpression)
+            else if (currentOriginalNode.IsKind(SyntaxKind.ConditionalExpression, out ConditionalExpressionSyntax originalExpression))
             {
-                var originalExpression = (ConditionalExpressionSyntax)currentOriginalNode;
                 var newExpression = (ConditionalExpressionSyntax)currentReplacedNode;
 
                 if (originalExpression.Condition != previousOriginalNode)
@@ -395,9 +395,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.CaseSwitchLabel)
+            else if (currentOriginalNode.IsKind(SyntaxKind.CaseSwitchLabel, out CaseSwitchLabelSyntax originalCaseSwitchLabel))
             {
-                var originalCaseSwitchLabel = (CaseSwitchLabelSyntax)currentOriginalNode;
                 var newCaseSwitchLabel = (CaseSwitchLabelSyntax)currentReplacedNode;
 
                 // If case label is changing, then need to check if the semantics will change for the switch expression.  
@@ -424,9 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // (since originalCaseType != newCaseType)
                 return originalConversion == newConversion;
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.SwitchStatement)
+            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchStatement, out SwitchStatementSyntax originalSwitchStatement))
             {
-                var originalSwitchStatement = (SwitchStatementSyntax)currentOriginalNode;
                 var newSwitchStatement = (SwitchStatementSyntax)currentReplacedNode;
 
                 if (originalSwitchStatement.Expression == previousOriginalNode)
@@ -438,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                     var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
                     var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
-                    for (int i = 0; i < originalSwitchLabels.Length; i++)
+                    for (var i = 0; i < originalSwitchLabels.Length; i++)
                     {
                         if (originalSwitchLabels[i] is CaseSwitchLabelSyntax originalSwitchLabel)
                         {
@@ -450,9 +448,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.IfStatement)
+            else if (currentOriginalNode.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax originalIfStatement))
             {
-                var originalIfStatement = (IfStatementSyntax)currentOriginalNode;
                 var newIfStatement = (IfStatementSyntax)currentReplacedNode;
 
                 if (originalIfStatement.Condition == previousOriginalNode)
@@ -560,18 +557,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             expression = expression.WalkDownParentheses();
 
-            switch (expression.Kind())
+            return expression.Kind() switch
             {
-                case SyntaxKind.InvocationExpression:
-                    return ((InvocationExpressionSyntax)expression).ArgumentList;
-                case SyntaxKind.ObjectCreationExpression:
-                    return ((ObjectCreationExpressionSyntax)expression).ArgumentList;
-                case SyntaxKind.ElementAccessExpression:
-                    return ((ElementAccessExpressionSyntax)expression).ArgumentList;
-
-                default:
-                    return null;
-            }
+                SyntaxKind.InvocationExpression => ((InvocationExpressionSyntax)expression).ArgumentList,
+                SyntaxKind.ObjectCreationExpression => ((ObjectCreationExpressionSyntax)expression).ArgumentList,
+                SyntaxKind.ElementAccessExpression => ((ElementAccessExpressionSyntax)expression).ArgumentList,
+                _ => (BaseArgumentListSyntax)null,
+            };
         }
 
         protected override ExpressionSyntax GetReceiver(ExpressionSyntax expression)
@@ -715,8 +707,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private bool ReplacementBreaksQueryClause(QueryClauseSyntax originalClause, QueryClauseSyntax newClause)
         {
             // Ensure QueryClauseInfos are compatible.
-            QueryClauseInfo originalClauseInfo = this.OriginalSemanticModel.GetQueryClauseInfo(originalClause, this.CancellationToken);
-            QueryClauseInfo newClauseInfo = this.SpeculativeSemanticModel.GetQueryClauseInfo(newClause, this.CancellationToken);
+            var originalClauseInfo = this.OriginalSemanticModel.GetQueryClauseInfo(originalClause, this.CancellationToken);
+            var newClauseInfo = this.SpeculativeSemanticModel.GetQueryClauseInfo(newClause, this.CancellationToken);
 
             return !SymbolInfosAreCompatible(originalClauseInfo.CastInfo, newClauseInfo.CastInfo) ||
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);

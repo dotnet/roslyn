@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 //#define DEBUG_ALPHA // turn on DEBUG_ALPHA to help diagnose issues around type parameter alpha-renaming
 
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         foreach (TypeWithAnnotations constraintType in constraintTypes)
                         {
-                            if (!ConstraintsHelper.IsObjectConstraintSignificant(IsNotNullableIfReferenceTypeFromConstraintType(constraintType, out _), bestObjectConstraint))
+                            if (!ConstraintsHelper.IsObjectConstraintSignificant(IsNotNullableFromConstraintType(constraintType, out _), bestObjectConstraint))
                             {
                                 bestObjectConstraint = default;
                                 break;
@@ -149,22 +151,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return constraintTypes.ToImmutableAndFree();
         }
 
-        internal override bool? IsNotNullableIfReferenceType
+        internal override bool? IsNotNullable
         {
             get
             {
                 if (_underlyingTypeParameter.ConstraintTypesNoUseSiteDiagnostics.IsEmpty)
                 {
-                    return _underlyingTypeParameter.IsNotNullableIfReferenceType;
+                    return _underlyingTypeParameter.IsNotNullable;
                 }
                 else if (!HasNotNullConstraint && !HasValueTypeConstraint && !HasReferenceTypeConstraint)
                 {
                     var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                     _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty), constraintTypes, null);
-                    return IsNotNullableIfReferenceTypeFromConstraintTypes(constraintTypes.ToImmutableAndFree());
+                    return IsNotNullableFromConstraintTypes(constraintTypes.ToImmutableAndFree());
                 }
 
-                return CalculateIsNotNullableIfReferenceType();
+                return CalculateIsNotNullable();
             }
         }
 

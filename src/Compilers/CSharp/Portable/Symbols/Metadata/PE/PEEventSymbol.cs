@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -102,7 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-                type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol);
+
+                // The containing type is passed to NullableTypeDecoder.TransformType to determine access
+                // because the event does not have explicit accessibility in metadata.
+                type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol, accessSymbol: _containingType, nullableContext: _containingType);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
                 _eventTypeWithAnnotations = type;
             }

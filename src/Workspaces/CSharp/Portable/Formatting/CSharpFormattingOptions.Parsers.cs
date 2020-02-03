@@ -1,10 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -50,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetValue(binaryOperatorSpacingValue.Trim(), out var value) ? value : BinaryOperatorSpacingOptions.Single;
 
         private static string GetSpacingAroundBinaryOperatorEditorConfigString(BinaryOperatorSpacingOptions value)
-            => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetKey(value, out string key) ? key : null;
+            => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetKey(value, out var key) ? key : null;
 
         internal static LabelPositionOptions ParseEditorConfigLabelPositioning(string labelIndentationValue)
             => s_labelPositionOptionsEditorConfigMap.TryGetValue(labelIndentationValue.Trim(), out var value) ? value : LabelPositionOptions.NoIndent;
 
         private static string GetLabelPositionOptionEditorConfigString(LabelPositionOptions value)
-            => s_labelPositionOptionsEditorConfigMap.TryGetKey(value, out string key) ? key : null;
+            => s_labelPositionOptionsEditorConfigMap.TryGetKey(value, out var key) ? key : null;
 
         internal static bool DetermineIfNewLineOptionIsSet(string value, NewLineOption optionName)
         {

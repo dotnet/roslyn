@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -37,8 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                 var completion = new TaskCompletionSource<ImmutableArray<ActiveStatementDebugInfo>>();
                 var builders = default(ArrayBuilder<ArrayBuilder<ActiveStatementDebugInfo>>);
-                int pendingRuntimes = 0;
-                int runtimeCount = 0;
+                var pendingRuntimes = 0;
+                var runtimeCount = 0;
 
                 // No exception should be thrown in case of errors on the debugger side. 
                 // The debugger is responsible to provide telemetry for error cases.
@@ -67,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                         {
                             var clrRuntimeInstance = (DkmClrRuntimeInstance)runtimeInstance;
 
-                            int runtimeIndex = runtimeCount;
+                            var runtimeIndex = runtimeCount;
                             runtimeCount++;
 
                             clrRuntimeInstance.GetActiveStatements(workList, activeStatementsResult =>
@@ -104,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                                     GroupActiveStatementsByInstructionId(instructionMap, activeStatementsResult.ActiveStatements);
 
-                                    int pendingStatements = instructionMap.Count;
+                                    var pendingStatements = instructionMap.Count;
                                     localBuilders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(pendingStatements);
                                     localBuilders[runtimeIndex].Count = pendingStatements;
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -94,14 +97,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             }
         }
 
-        public bool OpenFileOnly(Workspace workspace) => false;
+        public bool OpenFileOnly(OptionSet options) => false;
 
         public override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-            context.RegisterSemanticModelAction(this.AnalyzeSemanticModel);
+            context.RegisterSemanticModelAction(AnalyzeSemanticModel);
         }
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
@@ -142,7 +145,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                     descriptor = fadeOut ? _unnecessaryClassificationIdDescriptor : _classificationIdDescriptor;
                 }
 
-                Func<SyntaxNode, SyntaxToken> getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
+                var getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
                 var contiguousSpans = unnecessaryImports.GetContiguousSpans(getLastTokenFunc);
                 var diagnostics =
                     CreateClassificationDiagnostics(contiguousSpans, tree, descriptor, cancellationToken).Concat(

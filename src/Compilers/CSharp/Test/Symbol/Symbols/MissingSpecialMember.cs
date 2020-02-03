@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -574,6 +576,8 @@ namespace System
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
                     case WellKnownType.System_Runtime_CompilerServices_NullableAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_NullableContextAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
                     case WellKnownType.System_Span_T:
@@ -610,6 +614,7 @@ namespace System
 
                 switch (wkt)
                 {
+                    case WellKnownType.System_ValueTuple:
                     case WellKnownType.System_ValueTuple_T1:
                     case WellKnownType.System_ValueTuple_T2:
                     case WellKnownType.System_ValueTuple_T3:
@@ -899,6 +904,8 @@ namespace System
                     case WellKnownMember.System_Array__Empty:
                     case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte:
                     case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags:
+                    case WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor:
                     case WellKnownMember.System_Span_T__ctor:
                     case WellKnownMember.System_Span_T__get_Item:
                     case WellKnownMember.System_Span_T__get_Length:
@@ -1275,9 +1282,6 @@ class MyClass
             compilation.VerifyEmitDiagnostics(
                 // (9,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //         MyClass b = (int?)1;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int?)1").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 21),
-                // (9,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //         MyClass b = (int?)1;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int?)1").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 21)
                 );
         }
@@ -1366,39 +1370,6 @@ class Program
                 // (58,9): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //         Test.NullableDecimal();            
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Test.NullableDecimal()").WithArguments("System.Nullable`1", ".ctor").WithLocation(58, 9)
-                );
-        }
-
-        [Fact]
-        public void System_String__ConcatObjectObject()
-        {
-            var source =
-@"
-
-using System;
-
-class Class1
-{
-    static void Main()
-    {
-    }
-}
-
-class MyClass
-{
-    public static implicit operator MyClass(decimal Value)
-    {
-        Console.WriteLine(""Value is: "" + Value);
-        return new MyClass();
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObjectObject);
-            compilation.VerifyEmitDiagnostics(
-                // (16,27): error CS0656: Missing compiler required member 'System.String.Concat'
-                //         Console.WriteLine("Value is: " + Value);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""Value is: "" + Value").WithArguments("System.String", "Concat").WithLocation(16, 27)
                 );
         }
 
@@ -1520,6 +1491,31 @@ namespace Test
         }
 
         [Fact]
+        public void System_String__ConcatObjectObject()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+class Class1
+{
+    static void Main()
+    {
+        Expression<Func<object, string>> e = x => ""X = "" + x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObjectObject);
+            compilation.VerifyEmitDiagnostics(
+                // (9,51): error CS0656: Missing compiler required member 'System.String.Concat'
+                //         Expression<Func<object, string>> e = x => "X = " + x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""X = "" + x").WithArguments("System.String", "Concat").WithLocation(9, 51)
+                );
+        }
+
+        [Fact]
         public void System_String__ConcatStringStringString()
         {
             string source = @"
@@ -1529,7 +1525,7 @@ struct S
     private string str;
     public S(char chr) { this.str = chr.ToString(); }
     public S(string str) { this.str = str; }
-    public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+    public static S operator + (S x, S y) { return new S(x.str + '+' + y.str); }
 }
 
 class C
@@ -1542,8 +1538,8 @@ class C
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatStringStringString);
             compilation.VerifyEmitDiagnostics(
                 // (8,58): error CS0656: Missing compiler required member 'System.String.Concat'
-                //     public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '+'").WithArguments("System.String", "Concat").WithLocation(8, 58)
+                //     public static S operator + (S x, S y) { return new S(x.str + '+' + y.str); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x.str + '+' + y.str").WithArguments("System.String", "Concat").WithLocation(8, 58)
                 );
         }
 
@@ -1732,9 +1728,6 @@ class C
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
-                // (11,5): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //     c++;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c++").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 5),
                 // (11,5): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //     c++;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c++").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 5)
@@ -1965,10 +1958,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "bt").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 21),
                 // (13,14): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //         T(1, true & bnt);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14),
-                // (13,14): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //         T(1, true & bnt);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true & bnt").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14)
                 );
         }
 
@@ -2263,28 +2253,26 @@ struct X
         [Fact]
         public void System_String__ConcatObject()
         {
+            // It isn't possible to trigger this diagnostic, as we don't use String.Concat(object)
+
             var source = @"
 using System;
-
 public class Test
 {
     private static string S = ""F"";
     private static object O = ""O"";
-
     static void Main()
     {
         Console.WriteLine(O + null);
         Console.WriteLine(S + null);
     }
 }
-";
-            var compilation = CreateCompilationWithMscorlib45(source);
+    ";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObject);
-            compilation.VerifyEmitDiagnostics(
-                // (11,27): error CS0656: Missing compiler required member 'System.String.Concat'
-                //         Console.WriteLine(O + null);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "O + null").WithArguments("System.String", "Concat").WithLocation(11, 27)
-                );
+            compilation.VerifyEmitDiagnostics(); // We don't expect any
+            CompileAndVerify(compilation, expectedOutput: @"O
+F");
         }
 
         [Fact]

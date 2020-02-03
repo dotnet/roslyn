@@ -1,13 +1,17 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
@@ -15,10 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     {
         private class DocumentOptions : IDocumentOptions
         {
-            private ICodingConventionsSnapshot _codingConventionSnapshot;
+            private readonly ICodingConventionsSnapshot _codingConventionSnapshot;
             private readonly IErrorLoggerService _errorLogger;
-            private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, string>> s_convertedDictionaryCache =
-                new ConditionalWeakTable<IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, string>>();
+            private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object?>, IReadOnlyDictionary<string, string?>> s_convertedDictionaryCache =
+                new ConditionalWeakTable<IReadOnlyDictionary<string, object?>, IReadOnlyDictionary<string, string?>>();
 
             public DocumentOptions(ICodingConventionsSnapshot codingConventionSnapshot, IErrorLoggerService errorLogger)
             {
@@ -26,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 _errorLogger = errorLogger;
             }
 
-            public bool TryGetDocumentOption(OptionKey option, OptionSet underlyingOptions, out object value)
+            public bool TryGetDocumentOption(OptionKey option, out object? value)
             {
                 var editorConfigPersistence = option.Option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
                 if (editorConfigPersistence == null)
@@ -35,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     return false;
                 }
 
-                // Temporarly map our old Dictionary<string, object> to a Dictionary<string, string>. This can go away once we either
+                // Temporarily map our old Dictionary<string, object> to a Dictionary<string, string>. This can go away once we either
                 // eliminate the legacy editorconfig support, or we change IEditorConfigStorageLocation.TryGetOption to take
                 // some interface that lets us pass both the Dictionary<string, string> we get from the new system, and the
                 // Dictionary<string, object> from the old system.
@@ -48,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 try
                 {
-                    var underlyingOption = underlyingOptions.GetOption(option);
-                    return editorConfigPersistence.TryGetOption(underlyingOption, allRawConventions, option.Option.Type, out value);
+                    return editorConfigPersistence.TryGetOption(allRawConventions, option.Option.Type, out value);
                 }
                 catch (Exception ex)
                 {
@@ -64,35 +67,35 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             /// where we just convert the values to strings with ToString(). Ordering of the underlying dictionary is preserved, so that way
             /// code that relies on the underlying ordering of the underlying dictionary isn't affected.
             /// </summary>
-            private class StringConvertingDictionary : IReadOnlyDictionary<string, string>
+            private class StringConvertingDictionary : IReadOnlyDictionary<string, string?>
             {
-                private readonly IReadOnlyDictionary<string, object> _underlyingDictionary;
+                private readonly IReadOnlyDictionary<string, object?> _underlyingDictionary;
 
-                public StringConvertingDictionary(IReadOnlyDictionary<string, object> underlyingDictionary)
+                public StringConvertingDictionary(IReadOnlyDictionary<string, object?> underlyingDictionary)
                 {
                     _underlyingDictionary = underlyingDictionary ?? throw new ArgumentNullException(nameof(underlyingDictionary));
                 }
 
-                public string this[string key] => _underlyingDictionary[key]?.ToString();
+                public string? this[string key] => _underlyingDictionary[key]?.ToString();
 
                 public IEnumerable<string> Keys => _underlyingDictionary.Keys;
-                public IEnumerable<string> Values => _underlyingDictionary.Values.Select(s => s?.ToString());
+                public IEnumerable<string?> Values => _underlyingDictionary.Values.Select(s => s?.ToString());
 
                 public int Count => _underlyingDictionary.Count;
 
                 public bool ContainsKey(string key) => _underlyingDictionary.ContainsKey(key);
 
-                public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+                public IEnumerator<KeyValuePair<string, string?>> GetEnumerator()
                 {
                     foreach (var pair in _underlyingDictionary)
                     {
-                        yield return new KeyValuePair<string, string>(pair.Key, pair.Value?.ToString());
+                        yield return new KeyValuePair<string, string?>(pair.Key, pair.Value?.ToString());
                     }
                 }
 
-                public bool TryGetValue(string key, out string value)
+                public bool TryGetValue(string key, out string? value)
                 {
-                    if (_underlyingDictionary.TryGetValue(key, out object objectValue))
+                    if (_underlyingDictionary.TryGetValue(key, out var objectValue))
                     {
                         value = objectValue?.ToString();
                         return true;

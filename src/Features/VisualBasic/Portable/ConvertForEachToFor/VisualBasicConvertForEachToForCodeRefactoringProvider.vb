@@ -1,4 +1,6 @@
-﻿' Copyright(c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt In the project root For license information
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
@@ -6,8 +8,8 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.ConvertForEachToFor
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Operations
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertForEachToForCodeRefactoringProvider)), [Shared]>
@@ -20,24 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
 
         Protected Overrides ReadOnly Property Title As String = VBFeaturesResources.Convert_to_For
 
-        Protected Overrides Function GetForEachStatement(selection As TextSpan, token As SyntaxToken) As ForEachBlockSyntax
-            Dim forEachBlock = token.Parent.FirstAncestorOrSelf(Of ForEachBlockSyntax)()
-            If forEachBlock Is Nothing Then
-                Return Nothing
-            End If
-
-            ' support refactoring only if caret Is on for each statement
-            Dim scope = forEachBlock.ForEachStatement.Span
-            If Not scope.IntersectsWith(selection) Then
-                Return Nothing
-            End If
-
+        Protected Overrides Function IsValid(foreachNode As ForEachBlockSyntax) As Boolean
             ' we don't support colon separated statements
-            If forEachBlock.DescendantTrivia().Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia)) Then
-                Return Nothing
-            End If
-
-            Return forEachBlock
+            Return Not foreachNode.DescendantTrivia().Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia))
         End Function
 
         Protected Overrides Function ValidLocation(foreachInfo As ForEachInfo) As Boolean
@@ -144,9 +131,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
             ' use original text
             Dim foreachVariableToken = generator.Identifier(foreachVariable.ToString())
 
-            ' create varialbe statement
+            ' create variable statement
             Dim variableStatement = AddItemVariableDeclaration(
                 generator, type, foreachVariableToken, foreachInfo.ForEachElementType, collectionVariableName, indexVariable)
+
+            ' Nested loops might not have a Next statement
+            If IsForEachVariableWrittenInside Then
+                variableStatement = variableStatement.WithAdditionalAnnotations(CreateWarningAnnotation())
+            End If
 
             Return forEachBlock.Statements.Insert(0, DirectCast(variableStatement, StatementSyntax))
         End Function
@@ -165,5 +157,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
                 type = Nothing
             End If
         End Sub
+
+        Protected Overrides Function IsSupported(foreachVariable As ILocalSymbol, foreachOperation As IForEachLoopOperation, foreachStatement As ForEachBlockSyntax) As Boolean
+            ' VB can have Next variable. but we only support
+            ' simple 1 variable case.
+            If foreachOperation.NextVariables.Length > 1 Then
+                Return False
+            End If
+
+            If foreachOperation.NextVariables.IsEmpty AndAlso foreachStatement.NextStatement Is Nothing Then
+                Return False
+            End If
+
+            ' It is okay to omit variable in next, but if it presents, it must be same as one in the loop
+            If Not foreachOperation.NextVariables.IsEmpty Then
+                Dim nextVariable = TryCast(foreachOperation.NextVariables(0), ILocalReferenceOperation)
+                If nextVariable Is Nothing OrElse nextVariable.Local?.Equals(foreachVariable) = False Then
+                    ' We do not support anything else than local reference for next variable
+                    ' operation
+                    Return False
+                End If
+            End If
+
+            Return True
+        End Function
     End Class
 End Namespace

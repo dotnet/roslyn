@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -11,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents either a namespace or a type.
     /// </summary>
-    internal abstract class NamespaceOrTypeSymbol : Symbol, INamespaceOrTypeSymbol
+    internal abstract class NamespaceOrTypeSymbol : Symbol, INamespaceOrTypeSymbolInternal
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -372,34 +375,5 @@ Done:
 
             return symbols;
         }
-
-        #region INamespaceOrTypeSymbol Members
-
-        ImmutableArray<ISymbol> INamespaceOrTypeSymbol.GetMembers()
-        {
-            return StaticCast<ISymbol>.From(this.GetMembers());
-        }
-
-        ImmutableArray<ISymbol> INamespaceOrTypeSymbol.GetMembers(string name)
-        {
-            return StaticCast<ISymbol>.From(this.GetMembers(name));
-        }
-
-        ImmutableArray<INamedTypeSymbol> INamespaceOrTypeSymbol.GetTypeMembers()
-        {
-            return StaticCast<INamedTypeSymbol>.From(this.GetTypeMembers());
-        }
-
-        ImmutableArray<INamedTypeSymbol> INamespaceOrTypeSymbol.GetTypeMembers(string name)
-        {
-            return StaticCast<INamedTypeSymbol>.From(this.GetTypeMembers(name));
-        }
-
-        ImmutableArray<INamedTypeSymbol> INamespaceOrTypeSymbol.GetTypeMembers(string name, int arity)
-        {
-            return StaticCast<INamedTypeSymbol>.From(this.GetTypeMembers(name, arity));
-        }
-
-        #endregion
     }
 }

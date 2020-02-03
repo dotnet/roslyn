@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -36,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             _workspace = workspace;
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
             _codingConventionsManager = codingConventionsManager;
-            _errorLogger = workspace.Services.GetService<IErrorLoggerService>();
+            _errorLogger = workspace.Services.GetRequiredService<IErrorLoggerService>();
 
             workspace.DocumentOpened += Workspace_DocumentOpened;
             workspace.DocumentClosed += Workspace_DocumentClosed;
@@ -72,12 +76,16 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             {
                 var documentId = e.Document.Id;
                 var filePath = e.Document.FilePath;
-                _openDocumentContexts.Add(documentId, Task.Run(async () =>
+
+                if (filePath != null)
                 {
-                    var context = await GetConventionContextAsync(filePath, CancellationToken.None).ConfigureAwait(false);
-                    OnCodingConventionContextCreated(documentId, context);
-                    return context;
-                }));
+                    _openDocumentContexts.Add(documentId, Task.Run(async () =>
+                    {
+                        var context = await GetConventionContextAsync(filePath, CancellationToken.None).ConfigureAwait(false);
+                        OnCodingConventionContextCreated(documentId, context);
+                        return context;
+                    }));
+                }
             }
         }
 
@@ -99,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             }
         }
 
-        private void ClearOpenFileCache(ProjectId projectId = null)
+        private void ClearOpenFileCache(ProjectId? projectId = null)
         {
             lock (_gate)
             {
@@ -133,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 TaskScheduler.Default);
         }
 
-        public async Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
+        public async Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             Task<ICodingConventionContext> contextTask;
 
@@ -179,10 +187,9 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 // as in some builds the ICodingConventionsManager captures the thread pool.
                 var conventionsAsync = Task.Run(() => GetConventionContextAsync(path, cancellationToken));
 
-                using (var context = await conventionsAsync.ConfigureAwait(false))
-                {
-                    return new DocumentOptions(context.CurrentConventions, _errorLogger);
-                }
+                using var context = await conventionsAsync.ConfigureAwait(false);
+
+                return new DocumentOptions(context.CurrentConventions, _errorLogger);
             }
         }
 

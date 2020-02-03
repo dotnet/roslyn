@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Threading;
@@ -215,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     {
                         case ExpressionSyntax expression:
                             // If we reached here, it means we have a sub-expression that
-                            // does not garantee definite assignment. We should make sure that
+                            // does not guarantee definite assignment. We should make sure that
                             // the pattern variable is not used outside of the expression boundaries.
                             return CheckExpression(expression);
 

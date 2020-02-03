@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private const string IsRemovableAssignmentKey = nameof(IsRemovableAssignmentKey);
 
         // Diagnostic reported for expression statements that drop computed value, for example, "Computation();".
-        // This is **not** an unneccessary (fading) diagnostic as the expression being flagged is not unncessary, but the dropped value is.
+        // This is **not** an unnecessary (fading) diagnostic as the expression being flagged is not unncessary, but the dropped value is.
         private static readonly DiagnosticDescriptor s_expressionValueIsUnusedRule = CreateDescriptorWithId(
             IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Expression_value_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
@@ -73,12 +75,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             description: new LocalizableResourceString(nameof(FeaturesResources.Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: true);
 
-        // Diagnostic reported for unneccessary parameters that can be removed.
+        // Diagnostic reported for unnecessary parameters that can be removed.
         private static readonly DiagnosticDescriptor s_unusedParameterRule = CreateDescriptorWithId(
             IDEDiagnosticIds.UnusedParameterDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            description: new LocalizableResourceString(nameof(FeaturesResources.Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            description: new LocalizableResourceString(nameof(FeaturesResources.Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: true);
 
         private static readonly PropertiesMap s_propertiesMap = CreatePropertiesMap();
@@ -181,8 +183,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterCompilationStartAction(
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+
+            context.RegisterCompilationStartAction(
                 compilationContext => SymbolStartAnalyzer.CreateAndRegisterActions(compilationContext, this));
+        }
 
         private bool TryGetOptions(
             SyntaxTree syntaxTree,
@@ -280,15 +286,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 return false;
             }
 
-            switch (unusedParametersPreference)
+            if (unusedParametersPreference == UnusedParametersPreference.NonPublicMethods)
             {
-                case UnusedParametersPreference.AllMethods:
-                    return true;
-                case UnusedParametersPreference.NonPublicMethods:
-                    return !symbol.HasPublicResultantVisibility();
-                default:
-                    throw ExceptionUtilities.Unreachable;
+                return !symbol.HasPublicResultantVisibility();
             }
+
+            return true;
         }
 
         public static bool TryGetUnusedValuePreference(Diagnostic diagnostic, out UnusedValuePreference preference)

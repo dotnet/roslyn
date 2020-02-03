@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -14,10 +16,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var document = DocumentationComment.FromXmlFragment("");
 
-            Assert.Equal(null, document.ExampleText);
-            Assert.Equal(null, document.ReturnsText);
-            Assert.Equal(null, document.ValueText);
-            Assert.Equal(null, document.SummaryText);
+            Assert.Null(document.ExampleText);
+            Assert.Null(document.ReturnsText);
+            Assert.Null(document.ValueText);
+            Assert.Null(document.SummaryText);
         }
 
         [Fact]
@@ -220,7 +222,7 @@ This is random top-level text.
         [Fact, WorkItem(612456, "DevDiv2/DevDiv")]
         public void ReservedXmlNamespaceInName()
         {
-            string fragment = @"<summary><xmlns:boo /></summary>";
+            var fragment = @"<summary><xmlns:boo /></summary>";
 
             var comments = DocumentationComment.FromXmlFragment(fragment);
 
@@ -231,7 +233,7 @@ This is random top-level text.
         [Fact, WorkItem(18901, "https://github.com/dotnet/roslyn/pull/18901")]
         public void TrimEachLine()
         {
-            string multiLineText = @"
+            var multiLineText = @"
 
 
 
@@ -247,7 +249,7 @@ Hello
 
                                            1";
 
-            string fullXml = $@"<summary>{multiLineText}</summary>
+            var fullXml = $@"<summary>{multiLineText}</summary>
                   <returns>{multiLineText}</returns>
                   <value>{multiLineText}</value>
                   <example>{multiLineText}</example>
@@ -256,7 +258,7 @@ Hello
                   <remarks>{multiLineText}</remarks>";
 
 
-            string expected = @"Hello
+            var expected = @"Hello
 World     .
 +
 .......

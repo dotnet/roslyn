@@ -119,7 +119,7 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
     }
   }
   finally {
-    # If we didn't finish then an error occured or the user hit ctrl-c.  Either
+    # If we didn't finish then an error occurred or the user hit ctrl-c.  Either
     # way kill the process
     if (-not $finished) {
       $process.Kill()
@@ -279,7 +279,7 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
   $projectPath = "src\NuGet\$packageName\$packageName.Package.csproj"
   $force32Flag = if ($force32) { " /p:BOOTSTRAP32=true" } else { "" }
 
-  Run-MSBuild $projectPath "/restore /t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
+  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:UseRoslynAnalyzers=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
   $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
   Unzip "$dir\$packageFile" $dir
 

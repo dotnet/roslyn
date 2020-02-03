@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -34,31 +36,18 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
+            var (document, _, cancellationToken) = context;
             var service = document.GetLanguageService<IReplacePropertyWithMethodsService>();
             if (service == null)
             {
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var position = context.Span.Start;
-            var token = root.FindToken(position);
-
-            if (!token.Span.Contains(context.Span))
-            {
-                return;
-            }
-
-            var propertyDeclaration = service.GetPropertyDeclaration(token);
+            var propertyDeclaration = await service.GetPropertyDeclarationAsync(context).ConfigureAwait(false);
             if (propertyDeclaration == null)
             {
                 return;
             }
-
-            // var propertyName = service.GetPropertyName(propertyDeclaration);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration) as IPropertySymbol;
@@ -72,11 +61,12 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 ? FeaturesResources.Replace_0_with_method
                 : FeaturesResources.Replace_0_with_methods;
 
-            // Looks good!
-            context.RegisterRefactoring(new ReplacePropertyWithMethodsCodeAction(
-                string.Format(resourceString, propertyName),
-                c => ReplacePropertyWithMethodsAsync(context.Document, propertySymbol, c),
-                propertyName));
+            context.RegisterRefactoring(
+                new ReplacePropertyWithMethodsCodeAction(
+                    string.Format(resourceString, propertyName),
+                    c => ReplacePropertyWithMethodsAsync(document, propertySymbol, c),
+                    propertyName),
+                propertyDeclaration.Span);
         }
 
         private async Task<Solution> ReplacePropertyWithMethodsAsync(
@@ -363,30 +353,27 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             var editor = new SyntaxEditor(root, updatedSolution.Workspace);
 
             // First replace all the properties with the appropriate getters/setters.
-            foreach (var definition in currentDefinitions)
+            foreach (var (property, declaration) in currentDefinitions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var propertyDefinition = definition.property;
-                var propertyDeclaration = definition.declaration;
-
                 var members = await service.GetReplacementMembersAsync(
                     updatedDocument,
-                    propertyDefinition, propertyDeclaration,
-                    definitionToBackingField.GetValueOrDefault(propertyDefinition),
+                    property, declaration,
+                    definitionToBackingField.GetValueOrDefault(property),
                     desiredGetMethodName, desiredSetMethodName,
                     cancellationToken).ConfigureAwait(false);
 
                 // Properly make the members fit within an interface if that's what
                 // we're generating into.
-                if (propertyDefinition.ContainingType.TypeKind == TypeKind.Interface)
+                if (property.ContainingType.TypeKind == TypeKind.Interface)
                 {
                     members = members.Select(editor.Generator.AsInterfaceMember)
                                      .WhereNotNull()
                                      .ToList();
                 }
 
-                var nodeToReplace = service.GetPropertyNodeToReplace(propertyDeclaration);
+                var nodeToReplace = service.GetPropertyNodeToReplace(declaration);
                 editor.InsertAfter(nodeToReplace, members);
                 editor.RemoveNode(nodeToReplace);
             }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -178,6 +180,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 refactoringResult.TypeNode,
                 cancellationToken).ConfigureAwait(false);
 
+            var syntaxFactsService = refactoringResult.DocumentToExtractFrom.GetLanguageService<ISyntaxFactsService>();
+            var originalDocumentSyntaxRoot = await refactoringResult.DocumentToExtractFrom.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var fileBanner = syntaxFactsService.GetFileBanner(originalDocumentSyntaxRoot);
+
             var interfaceDocumentId = DocumentId.CreateNewId(refactoringResult.DocumentToExtractFrom.Project.Id, debugName: extractInterfaceOptions.FileName);
 
             var unformattedInterfaceDocument = await GetUnformattedInterfaceDocumentAsync(
@@ -187,6 +193,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 refactoringResult.DocumentToExtractFrom.Folders,
                 extractedInterfaceSymbol,
                 interfaceDocumentId,
+                fileBanner,
                 cancellationToken).ConfigureAwait(false);
 
             var completedUnformattedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
@@ -291,7 +298,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 currentRoots[tree] = root.ReplaceToken(token, token.WithAdditionalAnnotations(annotation));
             }
 
-            Solution annotatedSolution = solution;
+            var annotatedSolution = solution;
             foreach (var root in currentRoots)
             {
                 var document = annotatedSolution.GetDocument(root.Key);
@@ -334,6 +341,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             IEnumerable<string> folders,
             INamedTypeSymbol extractedInterfaceSymbol,
             DocumentId interfaceDocumentId,
+            ImmutableArray<SyntaxTrivia> fileBanner,
             CancellationToken cancellationToken)
         {
             var solutionWithInterfaceDocument = solution.AddDocument(interfaceDocumentId, name, text: "", folders: folders);
@@ -348,7 +356,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 options: new CodeGenerationOptions(contextLocation: interfaceDocumentSemanticModel.SyntaxTree.GetLocation(new TextSpan()), generateMethodBodies: false),
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            return unformattedInterfaceDocument;
+            var syntaxRoot = await unformattedInterfaceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return unformattedInterfaceDocument.WithSyntaxRoot(syntaxRoot.WithPrependedLeadingTrivia(fileBanner));
         }
 
         private async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
@@ -407,7 +416,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
                 var typeDeclaration = currentRoot.GetAnnotatedNodes(typeNodeAnnotation).SingleOrDefault();
 
-                if (typeDeclaration == default)
+                if (typeDeclaration == null)
                 {
                     continue;
                 }
@@ -609,7 +618,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 return false;
             }
 
-            if (type == typeParameter ||
+            // We want to ignore nullability when comparing as T and T? both are references to the type parameter
+            if (type.Equals(typeParameter, SymbolEqualityComparer.Default) ||
                 type.GetTypeArguments().Any(t => DoesTypeReferenceTypeParameter(t, typeParameter, checkedTypes)))
             {
                 return true;

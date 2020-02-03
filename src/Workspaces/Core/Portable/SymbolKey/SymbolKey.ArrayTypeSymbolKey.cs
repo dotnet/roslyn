@@ -1,7 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System.Linq;
-using Roslyn.Utilities;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis
 {
@@ -20,8 +19,13 @@ namespace Microsoft.CodeAnalysis
                 var elementTypeResolution = reader.ReadSymbolKey();
                 var rank = reader.ReadInteger();
 
-                return CreateSymbolInfo(GetAllSymbols<ITypeSymbol>(elementTypeResolution)
-                            .Select(s => reader.Compilation.CreateArrayTypeSymbol(s, rank)));
+                using var result = PooledArrayBuilder<IArrayTypeSymbol>.GetInstance(elementTypeResolution.SymbolCount);
+                foreach (var typeSymbol in elementTypeResolution.OfType<ITypeSymbol>())
+                {
+                    result.AddIfNotNull(reader.Compilation.CreateArrayTypeSymbol(typeSymbol, rank));
+                }
+
+                return CreateResolution(result);
             }
         }
     }

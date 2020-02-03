@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             public async Task<Checksum> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
             {
                 using (var stream = await ReadBlobColumnAsync(key, ChecksumColumnName, checksumOpt: null, cancellationToken).ConfigureAwait(false))
-                using (var reader = ObjectReader.TryGetReader(stream, cancellationToken))
+                using (var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken))
                 {
                     if (reader != null)
                     {
@@ -93,13 +95,11 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                         try
                         {
-                            using (var pooledConnection = Storage.GetPooledConnection())
-                            {
-                                // Lookup the row from the DocumentData table corresponding to our dataId.
-                                return ReadBlob(
-                                    pooledConnection.Connection, dataId, columnName,
-                                    checksumOpt, cancellationToken);
-                            }
+                            using var pooledConnection = Storage.GetPooledConnection();
+                            // Lookup the row from the DocumentData table corresponding to our dataId.
+                            return ReadBlob(
+                                pooledConnection.Connection, dataId, columnName,
+                                checksumOpt, cancellationToken);
                         }
                         catch (Exception ex)
                         {
@@ -203,11 +203,9 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             private bool ChecksumsMatch_MustRunInTransaction(SqlConnection connection, long rowId, Checksum checksum, CancellationToken cancellationToken)
             {
-                using (var checksumStream = connection.ReadBlob_MustRunInTransaction(DataTableName, ChecksumColumnName, rowId))
-                using (var reader = ObjectReader.TryGetReader(checksumStream, cancellationToken))
-                {
-                    return reader != null && Checksum.ReadFrom(reader) == checksum;
-                }
+                using var checksumStream = connection.ReadBlob_MustRunInTransaction(DataTableName, ChecksumColumnName, rowId);
+                using var reader = ObjectReader.TryGetReader(checksumStream, leaveOpen: false, cancellationToken);
+                return reader != null && Checksum.ReadFrom(reader) == checksum;
             }
 
             protected bool GetAndVerifyRowId(SqlConnection connection, long dataId, out long rowId)
@@ -273,17 +271,15 @@ namespace Microsoft.CodeAnalysis.SQLite
                 byte[] checksumBytes, int checksumLength,
                 byte[] dataBytes, int dataLength)
             {
-                using (var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_0_1_2_3_value))
-                {
-                    var statement = resettableStatement.Statement;
+                using var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_0_1_2_3_value);
+                var statement = resettableStatement.Statement;
 
-                    // Binding indices are 1 based.
-                    BindFirstParameter(statement, dataId);
-                    statement.BindBlobParameter(parameterIndex: 2, value: checksumBytes, length: checksumLength);
-                    statement.BindBlobParameter(parameterIndex: 3, value: dataBytes, length: dataLength);
+                // Binding indices are 1 based.
+                BindFirstParameter(statement, dataId);
+                statement.BindBlobParameter(parameterIndex: 2, value: checksumBytes, length: checksumLength);
+                statement.BindBlobParameter(parameterIndex: 3, value: dataBytes, length: dataLength);
 
-                    statement.Step();
-                }
+                statement.Step();
             }
 
             public void AddAndClearAllPendingWrites(ArrayBuilder<Action<SqlConnection>> result)

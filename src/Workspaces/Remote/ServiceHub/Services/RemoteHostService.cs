@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -17,13 +21,11 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Services;
-using Microsoft.CodeAnalysis.Remote.Storage;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -42,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Remote
         // it is saved here more on debugging purpose.
         private static Func<FunctionId, bool> s_logChecker = _ => false;
 
-        private string _host;
+        private string? _host;
         private int _primaryInstance;
-        private PerformanceReporter _performanceReporter;
+        private PerformanceReporter? _performanceReporter;
 
         static RemoteHostService()
         {
@@ -55,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Remote
             SetNativeDllSearchDirectories();
         }
 
-        public RemoteHostService(Stream stream, IServiceProvider serviceProvider) :
-            base(serviceProvider, stream)
+        public RemoteHostService(Stream stream, IServiceProvider serviceProvider)
+            : base(serviceProvider, stream)
         {
             _shutdownCancellationSource = new CancellationTokenSource();
 
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Remote
             StartService();
         }
 
-        public string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken)
+        public string Connect(string host, int uiCultureLCID, int cultureLCID, string? serializedSession, CancellationToken cancellationToken)
         {
             return RunService(() =>
             {
@@ -74,17 +76,20 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var existing = Interlocked.CompareExchange(ref _host, host, null);
 
-                SetGlobalContext(uiCultureLCID, cultureLCID, serializedSession);
+                // serializedSession may be null for testing
+                if (serializedSession != null)
+                {
+                    SetGlobalContext(uiCultureLCID, cultureLCID, serializedSession);
+                }
 
                 if (existing != null && existing != host)
                 {
-                    LogError($"{host} is given for {existing}");
+                    Log(TraceEventType.Error, $"{host} is given for {existing}");
                 }
 
                 // log telemetry that service hub started
                 RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(SetSessionInfo));
 
-                // serializedSession will be null for testing
                 if (serializedSession != null)
                 {
                     // Set this process's priority BelowNormal.
@@ -94,22 +99,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return _host;
-            }, cancellationToken);
-        }
-
-        protected override void OnDisconnected(JsonRpcDisconnectedEventArgs e)
-        {
-            _shutdownCancellationSource.Cancel();
-
-            base.OnDisconnected(e);
-        }
-
-        public void UpdateSolutionStorageLocation(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
-        {
-            RunService(() =>
-            {
-                var persistentStorageService = GetPersistentStorageService();
-                persistentStorageService.UpdateStorageLocation(solutionId, storageLocation);
             }, cancellationToken);
         }
 
@@ -179,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private void SetSessionInfo(Dictionary<string, object> m)
+        private void SetSessionInfo(Dictionary<string, object?> m)
         {
             m["Host"] = _host;
             m["InstanceId"] = _primaryInstance;
@@ -187,17 +176,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void SetGlobalContext(int uiCultureLCID, int cultureLCID, string serializedSession)
         {
-            // set global telemetry session
-            var session = GetTelemetrySession(serializedSession);
-            if (session == null)
-            {
-                return;
-            }
+            var session = new TelemetrySession(serializedSession);
+            session.Start();
 
             EnsureCulture(uiCultureLCID, cultureLCID);
 
             // set roslyn loggers
-            WatsonReporter.SetTelemetrySession(session);
+            RoslynServices.SetTelemetrySession(session);
 
             RoslynLogger.SetLogger(AggregateLogger.Create(new VSTelemetryLogger(session), RoslynLogger.GetLogger()));
 
@@ -239,22 +224,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return ex is ArgumentOutOfRangeException || ex is CultureNotFoundException;
         }
 
-        private static TelemetrySession GetTelemetrySession(string serializedSession)
-        {
-            var session = serializedSession != null ? new TelemetrySession(serializedSession) : null;
-
-            // actually starting the session
-            session?.Start();
-
-            return session;
-        }
-
-        private RemotePersistentStorageLocationService GetPersistentStorageService()
-        {
-            return (RemotePersistentStorageLocationService)SolutionService.PrimaryWorkspace.Services.GetService<IPersistentStorageLocationService>();
-        }
-
-        private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()
+        private RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()
         {
             var notificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
             return notificationService;
@@ -356,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     AssetStorage.TryAddAsset(newChecksum, newText);
                 }
 
-                async Task<SourceText> TryGetSourceTextAsync()
+                async Task<SourceText?> TryGetSourceTextAsync()
                 {
                     // check the cheap and fast one first.
                     // see if the cache has the source text
@@ -403,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             public override char this[int position] => _text[position];
-            public override Encoding Encoding => _text.Encoding;
+            public override Encoding? Encoding => _text.Encoding;
             public override int Length => _text.Length;
             public override SourceText GetSubText(TextSpan span) => _text.GetSubText(span);
             public override SourceText WithChanges(IEnumerable<TextChange> changes) => _text.WithChanges(changes);

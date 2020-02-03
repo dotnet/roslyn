@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -12166,7 +12168,7 @@ var y, y1(Dummy(3 is var x1, x1));
 
             var y1 = model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single();
             Assert.Equal("var y1", y1.ToTestDisplayString());
-            Assert.True(((LocalSymbol)y1).Type.IsErrorType());
+            Assert.True(((ILocalSymbol)y1).Type.IsErrorType());
         }
 
         [Fact]
@@ -12218,7 +12220,7 @@ public class X
             VerifyNotInScope(model, x1Ref[1]);
 
             var e = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(id => id.Identifier.ValueText == "e").Single();
-            var symbol = (LocalSymbol)model.GetDeclaredSymbol(e);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(e);
             Assert.Equal("var e", symbol.ToTestDisplayString());
             Assert.True(symbol.Type.IsErrorType());
         }
@@ -12262,7 +12264,7 @@ public class X
 
             model = compilation.GetSemanticModel(tree);
             var zRef = GetReference(tree, "z1");
-            Assert.True(((TypeSymbol)model.GetTypeInfo(zRef).Type).IsErrorType());
+            Assert.True(model.GetTypeInfo(zRef).Type.IsErrorType());
         }
 
         [Fact]
@@ -13784,8 +13786,8 @@ class Program
 
             VerifyModelForDeclarationOrVarSimplePattern(model, designation, refs);
 
-            var x1 = (LocalSymbol)model.GetDeclaredSymbol(designation);
-            Assert.Equal("System.Int32", x1.TypeWithAnnotations.ToTestDisplayString());
+            var x1 = (ILocalSymbol)model.GetDeclaredSymbol(designation);
+            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
         }
 
         [Fact]

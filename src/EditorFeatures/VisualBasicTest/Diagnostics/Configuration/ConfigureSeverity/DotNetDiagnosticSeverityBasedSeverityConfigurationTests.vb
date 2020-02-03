@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -169,19 +171,7 @@ dotnet_diagnostic.XYZ0001.severity = none
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_diagnostic.XYZ0001.severity = none
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+                Await TestMissingInRegularAndScriptAsync(input)
             End Function
 
             <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>

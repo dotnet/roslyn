@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -39,10 +42,10 @@ class C
             void assertTypeInfo(SyntaxNode syntax)
             {
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
-                Assert.NotNull(typeInfo);
+                Assert.NotEqual(default, typeInfo);
                 Assert.NotNull(typeInfo.Type);
-                Assert.Equal(cType, typeInfo.Type);
-                Assert.Equal(cType, typeInfo.ConvertedType);
+                Assert.Equal(cType.GetPublicSymbol(), typeInfo.Type);
+                Assert.Equal(cType.GetPublicSymbol(), typeInfo.ConvertedType);
 
             }
         }
@@ -74,17 +77,17 @@ class D : C {}";
             assertTypeInfo(coalesceAssignment.Left);
 
             var whenNullTypeInfo = semanticModel.GetTypeInfo(coalesceAssignment.Right);
-            Assert.NotNull(whenNullTypeInfo);
-            Assert.Equal(dType, whenNullTypeInfo.Type);
-            Assert.Equal(cType, whenNullTypeInfo.ConvertedType);
+            Assert.NotEqual(default, whenNullTypeInfo);
+            Assert.Equal(dType.GetPublicSymbol(), whenNullTypeInfo.Type);
+            Assert.Equal(cType, whenNullTypeInfo.ConvertedType.GetSymbol());
 
             void assertTypeInfo(SyntaxNode syntax)
             {
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
-                Assert.NotNull(typeInfo);
+                Assert.NotEqual(default, typeInfo);
                 Assert.NotNull(typeInfo.Type);
-                Assert.Equal(cType, typeInfo.Type);
-                Assert.Equal(cType, typeInfo.ConvertedType);
+                Assert.Equal(cType, typeInfo.Type.GetSymbol());
+                Assert.Equal(cType.GetPublicSymbol(), typeInfo.ConvertedType);
 
             }
         }
@@ -114,9 +117,9 @@ class D : C {}";
             var coalesceAssignment = syntaxRoot.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
 
             var whenNullTypeInfo = semanticModel.GetTypeInfo(coalesceAssignment);
-            Assert.NotNull(whenNullTypeInfo);
-            Assert.Equal(dType, whenNullTypeInfo.Type);
-            Assert.Equal(cType, whenNullTypeInfo.ConvertedType);
+            Assert.NotEqual(default, whenNullTypeInfo);
+            Assert.Equal(dType, whenNullTypeInfo.Type.GetSymbol());
+            Assert.Equal(cType.GetPublicSymbol(), whenNullTypeInfo.ConvertedType);
 
             assertTypeInfo(coalesceAssignment.Right);
             assertTypeInfo(coalesceAssignment.Left);
@@ -124,16 +127,16 @@ class D : C {}";
             void assertTypeInfo(SyntaxNode syntax)
             {
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
-                Assert.NotNull(typeInfo);
+                Assert.NotEqual(default, typeInfo);
                 Assert.NotNull(typeInfo.Type);
-                Assert.Equal(dType, typeInfo.Type);
-                Assert.Equal(dType, typeInfo.ConvertedType);
+                Assert.Equal(dType.GetPublicSymbol(), typeInfo.Type);
+                Assert.Equal(dType, typeInfo.ConvertedType.GetSymbol());
 
             }
         }
 
         [Fact]
-        public void CoalesceAssignment_NotConvertedToNonNullable()
+        public void CoalesceAssignment_ConvertedToNonNullable()
         {
             var source = @"
 class C
@@ -152,14 +155,34 @@ class C
             var semanticModel = comp.GetSemanticModel(syntaxTree);
             var coalesceAssignment = syntaxRoot.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
 
-            var nullable = comp.GetSpecialType(SpecialType.System_Nullable_T);
             var int32 = comp.GetSpecialType(SpecialType.System_Int32);
-
             var coalesceType = semanticModel.GetTypeInfo(coalesceAssignment).Type;
-            var genericParameter = ((INamedTypeSymbol)coalesceType).TypeArguments.Single();
 
-            Assert.Equal(nullable, coalesceType.OriginalDefinition);
-            Assert.Equal(int32, genericParameter);
+            Assert.Equal(int32.GetPublicSymbol(), coalesceType);
+        }
+
+        [Fact]
+        public void CoalesceAssignment_DefaultConvertedToNonNullable()
+        {
+            var source = @"
+class C
+{
+    void M(int? a)
+    {
+        a ??= default;
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var syntaxRoot = syntaxTree.GetRoot();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var defaultLiteral = syntaxRoot.DescendantNodes().OfType<LiteralExpressionSyntax>().Where(expr => expr.IsKind(SyntaxKind.DefaultLiteralExpression)).Single();
+
+            Assert.Equal(SpecialType.System_Int32, semanticModel.GetTypeInfo(defaultLiteral).Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, semanticModel.GetTypeInfo(defaultLiteral).ConvertedType.SpecialType);
         }
     }
 }

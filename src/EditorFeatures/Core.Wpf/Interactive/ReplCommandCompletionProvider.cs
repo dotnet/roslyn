@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,9 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
             var cancellationToken = context.CancellationToken;
 
             // the provider might be invoked in non-interactive context:
-            Workspace ws;
-            SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (Workspace.TryGetWorkspace(sourceText.Container, out ws))
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (Workspace.TryGetWorkspace(sourceText.Container, out var ws))
             {
                 if (ws is InteractiveWorkspace workspace)
                 {
@@ -33,14 +34,14 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
 
                     if (await ShouldDisplayCommandCompletionsAsync(tree, position, cancellationToken).ConfigureAwait(false))
                     {
-                        IInteractiveWindowCommands commands = window.GetInteractiveCommands();
+                        var commands = window.GetInteractiveCommands();
                         if (commands != null)
                         {
                             foreach (var command in commands.GetCommands())
                             {
                                 foreach (var commandName in command.Names)
                                 {
-                                    string completion = GetCompletionString(commandName);
+                                    var completion = GetCompletionString(commandName);
                                     context.AddItem(CommonCompletionItem.Create(
                                         completion, displayTextSuffix: "", CompletionItemRules.Default, description: command.Description.ToSymbolDisplayParts(), glyph: Glyph.Intrinsic));
                                 }

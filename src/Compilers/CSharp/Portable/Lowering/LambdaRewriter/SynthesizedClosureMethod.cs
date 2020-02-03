@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -6,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class SynthesizedClosureMethod : SynthesizedMethodBaseSymbol, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly MethodSymbol _topLevelMethod;
         private readonly ImmutableArray<NamedTypeSymbol> _structEnvironments;
 
+        internal MethodSymbol TopLevelMethod { get; }
         internal readonly DebugId LambdaId;
 
         internal SynthesizedClosureMethod(
@@ -27,8 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugId topLevelMethodId,
             MethodSymbol originalMethod,
             SyntaxReference blockSyntax,
-            DebugId lambdaId,
-            DiagnosticBag diagnostics)
+            DebugId lambdaId)
             : base(containingType,
                    originalMethod,
                    blockSyntax,
@@ -38,35 +42,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
                    MakeDeclarationModifiers(closureKind, originalMethod))
         {
-            _topLevelMethod = topLevelMethod;
+            TopLevelMethod = topLevelMethod;
             ClosureKind = closureKind;
             LambdaId = lambdaId;
 
             TypeMap typeMap;
             ImmutableArray<TypeParameterSymbol> typeParameters;
-            ImmutableArray<TypeParameterSymbol> constructedFromTypeParameters;
 
             var lambdaFrame = ContainingType as SynthesizedClosureEnvironment;
             switch (closureKind)
             {
                 case ClosureKind.Singleton: // all type parameters on method (except the top level method's)
                 case ClosureKind.General: // only lambda's type parameters on method (rest on class)
-                    Debug.Assert((object)lambdaFrame != null);
+                    RoslynDebug.Assert(!(lambdaFrame is null));
                     typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(
                         originalMethod,
                         this,
                         out typeParameters,
-                        out constructedFromTypeParameters,
+                        out _,
                         lambdaFrame.OriginalContainingMethodOpt);
                     break;
                 case ClosureKind.ThisOnly: // all type parameters on method
                 case ClosureKind.Static:
-                    Debug.Assert((object)lambdaFrame == null);
+                    RoslynDebug.Assert(lambdaFrame is null);
                     typeMap = TypeMap.Empty.WithConcatAlphaRename(
                         originalMethod,
                         this,
                         out typeParameters,
-                        out constructedFromTypeParameters,
+                        out _,
                         stopAt: null);
                     break;
                 default:
@@ -99,6 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AssignTypeMapAndTypeParameters(typeMap, typeParameters);
+
+            // static local functions should be emitted as static.
+            Debug.Assert(!(originalMethod is LocalFunctionSymbol) || !originalMethod.IsStatic || IsStatic);
         }
 
         private static DeclarationModifiers MakeDeclarationModifiers(ClosureKind closureKind, MethodSymbol originalMethod)
@@ -161,16 +167,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool GenerateDebugInfo => !this.IsAsync;
         internal override bool IsExpressionBodied => false;
-        internal MethodSymbol TopLevelMethod => _topLevelMethod;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             // Syntax offset of a syntax node contained in a lambda body is calculated by the containing top-level method.
             // The offset is thus relative to the top-level method body start.
-            return _topLevelMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
+            return TopLevelMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
         }
 
-        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
+        public sealed override bool AreLocalsZeroed => TopLevelMethod.AreLocalsZeroed;
+
+        IMethodSymbolInternal? ISynthesizedMethodBodyImplementationSymbol.Method => TopLevelMethod;
 
         // The lambda method body needs to be updated when the containing top-level method body is updated.
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;

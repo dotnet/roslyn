@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -57,6 +59,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 var deserializationConstructorCheck = new DeserializationConstructorCheck(context.Compilation);
                 context.RegisterSymbolStartAction(symbolStartContext =>
                 {
+                    if (HasSyntaxErrors((INamedTypeSymbol)symbolStartContext.Symbol, symbolStartContext.CancellationToken))
+                    {
+                        // Bail out on syntax errors.
+                        return;
+                    }
+
                     // Create a new SymbolStartAnalyzer instance for every named type symbol
                     // to ensure there is no shared state (such as identified unused parameters within the type),
                     // as that would lead to duplicate diagnostics being reported from symbol end action callbacks
@@ -64,6 +72,23 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore, deserializationConstructorCheck);
                     symbolAnalyzer.OnSymbolStart(symbolStartContext);
                 }, SymbolKind.NamedType);
+
+                return;
+
+                // Local functions
+                static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
+                {
+                    foreach (var syntaxRef in namedTypeSymbol.DeclaringSyntaxReferences)
+                    {
+                        var syntax = syntaxRef.GetSyntax(cancellationToken);
+                        if (syntax.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
             }
 
             private void OnSymbolStart(SymbolStartAnalysisContext context)
@@ -140,12 +165,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     !isLocalFunctionParameter)
                 {
                     messageFormat = hasReference
-                        ? FeaturesResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used
+                        ? FeaturesResources.Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used
                         : FeaturesResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API;
                 }
                 else if (hasReference)
                 {
-                    messageFormat = FeaturesResources.Remove_unused_parameter_0_its_initial_value_is_never_used;
+                    messageFormat = FeaturesResources.Parameter_0_can_be_removed_its_initial_value_is_never_used;
                 }
                 else
                 {
@@ -190,6 +215,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     method.IsAbstract ||
                     method.IsVirtual ||
                     method.IsOverride ||
+                    method.PartialImplementationPart != null ||
                     !method.ExplicitOrImplicitInterfaceImplementations().IsEmpty ||
                     method.IsAccessor() ||
                     method.IsAnonymousFunction() ||

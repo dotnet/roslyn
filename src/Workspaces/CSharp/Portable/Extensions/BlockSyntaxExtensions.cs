@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -21,25 +23,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (preference != ExpressionBodyPreference.Never &&
                 block != null && block.Statements.Count == 1)
             {
+                var firstStatement = block.Statements[0];
+
                 var version = ((CSharpParseOptions)options).LanguageVersion;
-                var acceptableVersion =
-                    version >= LanguageVersion.CSharp7 ||
-                    (version >= LanguageVersion.CSharp6 && IsSupportedInCSharp6(declarationKind));
-
-                if (acceptableVersion)
+                if (TryGetExpression(version, firstStatement, out expression, out semicolonToken) &&
+                    MatchesPreference(expression, preference))
                 {
-                    var firstStatement = block.Statements[0];
-
-                    if (TryGetExpression(version, firstStatement, out expression, out semicolonToken) &&
-                        MatchesPreference(expression, preference))
-                    {
-                        // The close brace of the block may have important trivia on it (like 
-                        // comments or directives).  Preserve them on the semicolon when we
-                        // convert to an expression body.
-                        semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
-                            block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
-                        return true;
-                    }
+                    // The close brace of the block may have important trivia on it (like 
+                    // comments or directives).  Preserve them on the semicolon when we
+                    // convert to an expression body.
+                    semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
+                        block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
+                    return true;
                 }
             }
 
@@ -54,11 +49,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
-            if (!block.TryConvertToExpressionBody(
+            var version = ((CSharpParseOptions)options).LanguageVersion;
+
+            // We can always use arrow-expression bodies in C# 7 or above.
+            // We can also use them in C# 6, but only a select set of member kinds.
+            var acceptableVersion =
+                version >= LanguageVersion.CSharp7 ||
+                (version >= LanguageVersion.CSharp6 && IsSupportedInCSharp6(declarationKind));
+
+            if (!acceptableVersion ||
+                !block.TryConvertToExpressionBody(
                     declarationKind, options, preference,
                     out var expression, out semicolonToken))
             {
                 arrowExpression = default;
+                semicolonToken = default;
                 return false;
             }
 

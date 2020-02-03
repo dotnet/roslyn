@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var items = await _service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return items.Select(x => new InternalFSharpNavigableItem(x));
+            return items?.Select(x => new InternalFSharpNavigableItem(x));
         }
 
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)

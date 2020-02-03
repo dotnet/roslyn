@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     if (!directoryFilePath.EndsWith("\\"))
                     {
-                        directoryFilePath = directoryFilePath + "\\";
+                        directoryFilePath += "\\";
                     }
 
                     _directoryFilePathOpt = directoryFilePath;
@@ -237,7 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             int IVsFreeThreadedFileChangeEvents.FilesChanged(uint cChanges, string[] rgpszFile, uint[] rggrfChange)
             {
-                for (int i = 0; i < cChanges; i++)
+                for (var i = 0; i < cChanges; i++)
                 {
                     FileChanged?.Invoke(this, rgpszFile[i]);
                 }
@@ -265,7 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             int IVsFreeThreadedFileChangeEvents2.DirectoryChangedEx2(string pszDirectory, uint cChanges, string[] rgpszFile, uint[] rggrfChange)
             {
-                for (int i = 0; i < cChanges; i++)
+                for (var i = 0; i < cChanges; i++)
                 {
                     FileChanged?.Invoke(this, rgpszFile[i]);
                 }
@@ -298,7 +298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             int IVsFreeThreadedFileChangeEvents2.FilesChanged(uint cChanges, string[] rgpszFile, uint[] rggrfChange)
             {
-                for (int i = 0; i < cChanges; i++)
+                for (var i = 0; i < cChanges; i++)
                 {
                     FileChanged?.Invoke(this, rgpszFile[i]);
                 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool _lazyIsVarArg;
         // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
-        private TypeWithAnnotations _lazyReturnType;
+        private TypeWithAnnotations.Boxed _lazyReturnType;
         private TypeWithAnnotations.Boxed _lazyIteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
@@ -45,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _declarationModifiers =
                 DeclarationModifiers.Private |
-                DeclarationModifiers.Static |
                 syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics);
 
             this.CheckUnsafeModifier(_declarationModifiers, _declarationDiagnostics);
@@ -128,6 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
             => _declarationDiagnostics.AddRange(diagnostics);
 
+        public override bool RequiresInstanceReceiver => false;
+
         public override bool IsVararg
         {
             get
@@ -166,9 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics);
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilation: false);
-            ParameterHelpers.EnsureNullableAttributeExists(parameters, diagnostics, modifyCompilation: false);
-            // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already
+            var compilation = DeclaringCompilation;
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, parameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.EnsureNullableAttributeExists(compilation, this, parameters, diagnostics, modifyCompilation: false);
+            // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
 
             var isVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
             if (isVararg)
@@ -200,17 +204,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 ComputeReturnType();
-                return _lazyReturnType;
+                return _lazyReturnType.Value;
             }
         }
 
-        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override RefKind RefKind => _refKind;
 
         internal void ComputeReturnType()
         {
-            if (!_lazyReturnType.IsDefault)
+            if (_lazyReturnType is object)
             {
                 return;
             }
@@ -219,28 +227,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSyntax returnTypeSyntax = _syntax.ReturnType;
             TypeWithAnnotations returnType = _binder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
 
-            if (this.IsAsync)
-            {
-                if (this.RefKind != RefKind.None)
-                {
-                    ReportBadRefToken(returnTypeSyntax, diagnostics);
-                }
-                else if (returnType.Type.IsBadAsyncReturn(this.DeclaringCompilation))
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
-                }
-            }
+            var compilation = DeclaringCompilation;
 
-            var location = _syntax.ReturnType.Location;
-            if (_refKind == RefKind.RefReadOnly)
+            // Skip some diagnostics when the local function is not associated with a compilation
+            // (specifically, local functions nested in expressions in the EE).
+            if (compilation is object)
             {
-                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
-            }
+                if (this.IsAsync)
+                {
+                    if (this.RefKind != RefKind.None)
+                    {
+                        ReportBadRefToken(returnTypeSyntax, diagnostics);
+                    }
+                    else if (returnType.Type.IsBadAsyncReturn(compilation))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
+                    }
+                }
 
-            if (returnType.NeedsNullableAttribute())
-            {
-                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
-                // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already
+                var location = _syntax.ReturnType.Location;
+                if (_refKind == RefKind.RefReadOnly)
+                {
+                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
+                }
+
+                if (compilation.ShouldEmitNullableAttributes(this) &&
+                    returnType.NeedsNullableAttribute())
+                {
+                    compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
+                    // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
+                }
             }
 
             // span-like types are returnable in general
@@ -256,14 +272,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             lock (_declarationDiagnostics)
             {
-                if (!_lazyReturnType.IsDefault)
+                if (_lazyReturnType is object)
                 {
                     diagnostics.Free();
                     return;
                 }
 
                 _declarationDiagnostics.AddRangeAndFree(diagnostics);
-                _lazyReturnType = returnType;
+                Interlocked.CompareExchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType), null);
             }
         }
 
@@ -287,9 +303,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
             }
         }
-
-        // Replace with IsStatic after fixing https://github.com/dotnet/roslyn/issues/27719.
-        internal bool IsStaticLocalFunction => _syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
 
         internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
         {
@@ -365,6 +378,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsDeclaredReadOnly => false;
 
         public override DllImportData GetDllImportData() => null;
+
+        public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
 
@@ -488,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _syntax.GetHashCode();
         }
 
-        public sealed override bool Equals(object symbol)
+        public sealed override bool Equals(Symbol symbol, TypeCompareKind compareKind)
         {
             if ((object)this == symbol) return true;
 

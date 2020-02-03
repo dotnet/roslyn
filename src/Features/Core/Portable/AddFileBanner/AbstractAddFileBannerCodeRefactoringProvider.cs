@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -24,15 +26,13 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-
-            if (!context.Span.IsEmpty)
+            var (document, span, cancellationToken) = context;
+            if (!span.IsEmpty)
             {
                 return;
             }
 
-            var position = context.Span.Start;
+            var position = span.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var firstToken = root.GetFirstToken();
@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 if (siblingBanner.Length > 0 && !siblingDocument.IsGeneratedCode(cancellationToken))
                 {
                     context.RegisterRefactoring(
-                        new MyCodeAction(c => AddBannerAsync(document, root, siblingDocument, siblingBanner, c)));
+                        new MyCodeAction(_ => AddBannerAsync(document, root, siblingDocument, siblingBanner)),
+                        new Text.TextSpan(position, length: 0));
                     return;
                 }
             }
@@ -79,8 +80,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
 
         private Task<Document> AddBannerAsync(
             Document document, SyntaxNode root,
-            Document siblingDocument, ImmutableArray<SyntaxTrivia> banner,
-            CancellationToken cancellationToken)
+            Document siblingDocument, ImmutableArray<SyntaxTrivia> banner)
         {
             banner = UpdateEmbeddedFileNames(siblingDocument, document, banner);
 

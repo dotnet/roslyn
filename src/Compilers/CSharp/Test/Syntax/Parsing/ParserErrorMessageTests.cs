@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -266,9 +268,6 @@ class A
                 // (6,32): error CS0178: Invalid rank specifier: expected ',' or ']'
                 //         int[] arr = new int[5][5;
                 Diagnostic(ErrorCode.ERR_InvalidArray, "5").WithLocation(6, 32),
-                // (6,32): error CS0178: Invalid rank specifier: expected ',' or ']'
-                //         int[] arr = new int[5][5;
-                Diagnostic(ErrorCode.ERR_InvalidArray, "5").WithLocation(6, 32),
                 // (6,33): error CS1003: Syntax error, ',' expected
                 //         int[] arr = new int[5][5;
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(6, 33),
@@ -277,7 +276,10 @@ class A
                 Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(6, 33),
                 // (6,33): error CS1003: Syntax error, ']' expected
                 //         int[] arr = new int[5][5;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 33),
+                // (6,33): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         int[] arr = new int[5][5;
+                Diagnostic(ErrorCode.ERR_InvalidArray, "").WithLocation(6, 33)
                 );
         }
 
@@ -4126,7 +4128,7 @@ class Program
     }
 }
 ";
-
+            // note: ErrorCode.ManagedAddr not given for Test1* because the base type after binding is considered to be System.Object
             CreateCompilation(test).GetDeclarationDiagnostics().Verify(
                 // (6,15): error CS1521: Invalid base type
                 // class Test3 : Test1*    // CS1521
@@ -4134,9 +4136,6 @@ class Program
                 // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class Test3 : Test1*    // CS1521
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Test1*").WithLocation(6, 15),
-                // (6,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Test1')
-                // class Test3 : Test1*    // CS1521
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "Test1*").WithArguments("Test1").WithLocation(6, 15),
                 // (6,15): error CS0527: Type 'Test1*' in interface list is not an interface
                 // class Test3 : Test1*    // CS1521
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1*").WithArguments("Test1*").WithLocation(6, 15),
@@ -4819,10 +4818,7 @@ unsafe public class Test
             CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (4,14): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(4, 14),
-                // (4,14): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
-                //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(4, 14)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(4, 14)
                 );
         }
 
@@ -4842,10 +4838,7 @@ unsafe public class Test
             CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (6,33): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //         int*[] p = new int*[] { stackalloc int[1] };
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(6, 33),
-                // (6,33): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
-                //         int*[] p = new int*[] { stackalloc int[1] };
-                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(6, 33)
                 );
         }
 
@@ -4908,10 +4901,7 @@ public class Test
             CreateCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
                 // (6,39): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //         using (System.IDisposable v = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(6, 39),
-                // (6,39): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'IDisposable' is not possible.
-                //         using (System.IDisposable v = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "System.IDisposable").WithLocation(6, 39)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(6, 39)
              );
         }
 
@@ -5775,7 +5765,7 @@ class TestClass { }";
                                 N(SyntaxKind.IdentifierToken, "One");
                             }
                         }
-                        N(SyntaxKind.CommaToken, ""); // missing
+                        M(SyntaxKind.CommaToken);
                         N(SyntaxKind.Attribute);
                         {
                             N(SyntaxKind.IdentifierName);

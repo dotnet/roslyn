@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -19,11 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public SyntaxNodeKey(string name, int ordinal)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
             if (ordinal < -1)
             {
                 // Note: An ordinal value of -1 is special -- it means that this is the node
@@ -31,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw new ArgumentOutOfRangeException(nameof(ordinal));
             }
 
-            _name = name;
+            _name = name ?? throw new ArgumentNullException(nameof(name));
             _ordinal = ordinal;
         }
 

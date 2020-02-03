@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -32,16 +34,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             }
 
             // now check whether parser think whether there is already counterpart closing parenthesis
-            var pair = token.Parent.GetParentheses();
+            var (openBrace, closeBrace) = token.Parent.GetParentheses();
 
             // if pair is on the same line, then the closing parenthesis must belong to other tracker.
             // let it through
-            if (snapshot.GetLineNumberFromPosition(pair.openBrace.SpanStart) == snapshot.GetLineNumberFromPosition(pair.closeBrace.Span.End))
+            if (snapshot.GetLineNumberFromPosition(openBrace.SpanStart) == snapshot.GetLineNumberFromPosition(closeBrace.Span.End))
             {
                 return true;
             }
 
-            return (int)pair.closeBrace.Kind() != ClosingTokenKind || pair.closeBrace.Span.Length == 0;
+            return (int)closeBrace.Kind() != ClosingTokenKind || closeBrace.Span.Length == 0;
         }
     }
 }

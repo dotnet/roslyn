@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.Binder;
@@ -1155,7 +1158,7 @@ oneMoreTime:
             // Emit switch jump table
             if (expression.Type.SpecialType != SpecialType.System_String)
             {
-                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingType().PrimitiveTypeCode);
+                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingTypeOrSelf().PrimitiveTypeCode);
             }
             else
             {
@@ -1435,13 +1438,8 @@ oneMoreTime:
             if (_ilEmitStyle == ILEmitStyle.Debug)
             {
                 var syntax = local.GetDeclaratorSyntax();
-                int syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
-
-                // Synthesized locals emitted for switch case patterns are all associated with the switch statement 
-                // and have distinct types. We use their types to match them, not the ordinal as the ordinal might
-                // change if switch cases are reordered.
-                int ordinal = (localKind != SynthesizedLocalKind.SwitchCasePatternMatching) ?
-                    _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset) : 0;
+                int syntaxOffset = _method.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(syntax), syntax.SyntaxTree);
+                int ordinal = _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset);
 
                 // user-defined locals should have 0 ordinal:
                 Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);

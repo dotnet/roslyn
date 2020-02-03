@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -8,10 +10,15 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -22,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     /// </summary>
     internal partial class TriviaDataFactory : AbstractTriviaDataFactory
     {
-        public TriviaDataFactory(TreeData treeInfo, OptionSet optionSet) :
-            base(treeInfo, optionSet)
+        public TriviaDataFactory(TreeData treeInfo, OptionSet optionSet)
+            : base(treeInfo, optionSet)
         {
         }
 
@@ -110,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // only whitespace in between
-            int space = GetSpaceOnSingleLine(result);
+            var space = GetSpaceOnSingleLine(result);
             Contract.ThrowIfFalse(space >= -1);
 
             if (space >= 0)
@@ -130,8 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // check whether we can cache trivia info for current indentation
             var lineCountAndIndentation = GetLineBreaksAndIndentation(result);
 
-            var canUseTriviaAsItIs = lineCountAndIndentation.Item1;
-            return GetWhitespaceTriviaData(lineCountAndIndentation.Item2, lineCountAndIndentation.Item3, canUseTriviaAsItIs, result.TreatAsElastic);
+            return GetWhitespaceTriviaData(lineCountAndIndentation.lineBreaks, lineCountAndIndentation.indentation, lineCountAndIndentation.canUseTriviaAsItIs, result.TreatAsElastic);
         }
 
         private int CalculateSpaces(SyntaxToken token1, SyntaxToken token2)
@@ -142,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return textSnippet.ConvertTabToSpace(this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp), initialColumn, textSnippet.Length);
         }
 
-        private ValueTuple<bool, int, int> GetLineBreaksAndIndentation(Analyzer.AnalysisResult result)
+        private (bool canUseTriviaAsItIs, int lineBreaks, int indentation) GetLineBreaksAndIndentation(Analyzer.AnalysisResult result)
         {
             Debug.Assert(result.Tab >= 0);
             Debug.Assert(result.LineBreaks >= 0);
@@ -150,17 +156,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var indentation = result.Tab * this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp) + result.Space;
             if (result.HasTrailingSpace || result.HasUnknownWhitespace)
             {
-                return ValueTuple.Create(false, result.LineBreaks, indentation);
+                if (result.HasUnknownWhitespace && result.LineBreaks == 0 && indentation == 0)
+                {
+                    // make sure we don't remove all whitespace
+                    indentation = 1;
+                }
+
+                return (canUseTriviaAsItIs: false, result.LineBreaks, indentation);
             }
 
             if (!this.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp))
             {
                 if (result.Tab > 0)
                 {
-                    return ValueTuple.Create(false, result.LineBreaks, indentation);
+                    return (canUseTriviaAsItIs: false, result.LineBreaks, indentation);
                 }
 
-                return ValueTuple.Create(true, result.LineBreaks, indentation);
+                return (canUseTriviaAsItIs: true, result.LineBreaks, indentation);
             }
 
             Debug.Assert(this.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp));
@@ -168,18 +180,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // tab can only appear before space to be a valid tab for indentation
             if (result.HasTabAfterSpace)
             {
-                return ValueTuple.Create(false, result.LineBreaks, indentation);
+                return (canUseTriviaAsItIs: false, result.LineBreaks, indentation);
             }
 
             if (result.Space >= this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp))
             {
-                return ValueTuple.Create(false, result.LineBreaks, indentation);
+                return (canUseTriviaAsItIs: false, result.LineBreaks, indentation);
             }
 
             Debug.Assert((indentation / this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp)) == result.Tab);
             Debug.Assert((indentation % this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp)) == result.Space);
 
-            return ValueTuple.Create(true, result.LineBreaks, indentation);
+            return (canUseTriviaAsItIs: true, result.LineBreaks, indentation);
         }
 
         private int GetSpaceOnSingleLine(Analyzer.AnalysisResult result)

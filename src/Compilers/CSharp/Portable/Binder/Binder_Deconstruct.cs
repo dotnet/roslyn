@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -96,7 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var deconstructionDiagnostics = new DiagnosticBag();
             BoundExpression boundRight = rightPlaceholder ?? BindValue(right, deconstructionDiagnostics, BindValueKind.RValue);
+
             boundRight = FixTupleLiteral(locals.NestedVariables, boundRight, deconstruction, deconstructionDiagnostics);
+            boundRight = BindToNaturalType(boundRight, diagnostics);
 
             bool resultIsUsed = resultIsUsedOverride || IsDeconstructionResultUsed(left);
             var assignment = BindDeconstructionAssignment(deconstruction, left, boundRight, locals.NestedVariables, resultIsUsed, deconstructionDiagnostics);
@@ -515,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The tuple created here is not identical to the one created by
             // DeconstructionVariablesAsTuple. It represents a smaller
             // tree of types used for figuring out natural types in tuple literal.
-            return TupleTypeSymbol.Create(
+            return NamedTypeSymbol.CreateTuple(
                 locationOpt: null,
                 elementTypesWithAnnotations: typesWithAnnotationsBuilder.ToImmutableAndFree(),
                 elementLocations: locationsBuilder.ToImmutableAndFree(),
@@ -528,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax: syntax);
         }
 
-        private BoundTupleLiteral DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables,
+        private BoundTupleExpression DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables,
             DiagnosticBag diagnostics, bool ignoreDiagnosticsFromTuple)
         {
             int count = variables.Count;
@@ -564,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<bool> inferredPositions = tupleNames.IsDefault ? default : tupleNames.SelectAsArray(n => n != null);
             bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
-            var type = TupleTypeSymbol.Create(
+            var type = NamedTypeSymbol.CreateTuple(
                 syntax.Location,
                 typesWithAnnotationsBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
                 tupleNames, this.Compilation,
@@ -573,9 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 errorPositions: disallowInferredNames ? inferredPositions : default,
                 syntax: syntax, diagnostics: ignoreDiagnosticsFromTuple ? null : diagnostics);
 
-            // Always track the inferred positions in the bound node, so that conversions don't produce a warning
-            // for "dropped names" on tuple literal when the name was inferred.
-            return new BoundTupleLiteral(syntax, tupleNames, inferredPositions, arguments, type);
+            return (BoundTupleExpression)BindToNaturalType(new BoundTupleLiteral(syntax, arguments, tupleNames, inferredPositions, type), diagnostics);
         }
 
         /// <summary>Extract inferred name from a single deconstruction variable.</summary>
@@ -613,6 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(receiverSyntax, receiver);
             }
 
+            receiver = BindToNaturalType(receiver, diagnostics);
             var analyzedArguments = AnalyzedArguments.GetInstance();
             var outVars = ArrayBuilder<OutDeconstructVarPendingInference>.GetInstance(numCheckedVariables);
 

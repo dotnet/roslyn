@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -41,8 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         public Solution FinalSolution { get; private set; }
         public bool ShowCheckBoxes { get; private set; }
 
-        public PreviewEngine(IThreadingContext threadingContext, string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true) :
-            this(threadingContext, title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
+        public PreviewEngine(IThreadingContext threadingContext, string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true)
+            : this(threadingContext, title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
         {
         }
 
@@ -116,7 +118,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var builder = ArrayBuilder<AbstractChange>.GetInstance();
 
             // Documents
-            var changedDocuments = projectChanges.SelectMany(p => p.GetChangedDocuments());
+            // (exclude unchangeable ones if they will be ignored when applied to workspace.)
+            var changedDocuments = projectChanges.SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true, _oldSolution.Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges));
             var addedDocuments = projectChanges.SelectMany(p => p.GetAddedDocuments());
             var removedDocuments = projectChanges.SelectMany(p => p.GetRemovedDocuments());
 
@@ -176,14 +179,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 var left = _oldSolution.GetTextDocument(documentId);
                 var right = _newSolution.GetTextDocument(documentId);
 
-                var leftDocument = left as Document;
-                var rightDocument = right as Document;
-
-                if (leftDocument != null)
+                if (left is Document leftDocument)
                 {
                     linkedDocumentIds.AddRange(leftDocument.GetLinkedDocumentIds());
                 }
-                else if (rightDocument != null)
+                else if (right is Document rightDocument)
                 {
                     // Added document.
                     linkedDocumentIds.AddRange(rightDocument.GetLinkedDocumentIds());

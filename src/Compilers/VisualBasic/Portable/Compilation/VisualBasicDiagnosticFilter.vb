@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -94,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' to turn a diagnostic into a warning, and the global option was Suppress, the diagnostic
         ''' would be suppressed.
         '''
-        ''' Pragmas are considered seperately. If a diagnostic would not otherwise
+        ''' Pragmas are considered separately. If a diagnostic would not otherwise
         ''' be suppressed, but is suppressed by a pragma,
         ''' <paramref name="hasDisableDirectiveSuppression"/>
         ''' is true but the diagnostic is not reported as suppressed.

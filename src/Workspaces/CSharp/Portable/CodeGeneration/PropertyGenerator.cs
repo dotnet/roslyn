@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = SyntaxFactory.IndexerDeclaration(
                     attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
                     modifiers: GenerateModifiers(property, destination, options),
-                    type: property.GenerateTypeSyntax(),
+                    type: GenerateTypeSyntax(property),
                     explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                     parameterList: ParameterGenerator.GenerateBracketedParameterList(property.Parameters, explicitInterfaceSpecifier != null, options),
                     accessorList: GenerateAccessorList(property, destination, workspace, options, parseOptions));
@@ -112,9 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
            IPropertySymbol property, CodeGenerationDestination destination,
            Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
-            var initializerNode = CodeGenerationPropertyInfo.GetInitializer(property) as ExpressionSyntax;
-
-            var initializer = initializerNode != null
+            var initializer = CodeGenerationPropertyInfo.GetInitializer(property) is ExpressionSyntax initializerNode
                 ? SyntaxFactory.EqualsValueClause(initializerNode)
                 : default;
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var propertyDeclaration = SyntaxFactory.PropertyDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), options),
                 modifiers: GenerateModifiers(property, destination, options),
-                type: property.GenerateTypeSyntax(),
+                type: GenerateTypeSyntax(property),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: property.Name.ToIdentifierToken(),
                 accessorList: accessorList,
@@ -138,6 +138,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddFormatterAndCodeGeneratorAnnotationsTo(
                 AddAnnotationsTo(property, propertyDeclaration));
         }
+
+        private static TypeSyntax GenerateTypeSyntax(IPropertySymbol property)
+        {
+            var returnType = property.Type;
+
+            if (property.ReturnsByRef)
+            {
+                return returnType.GenerateRefTypeSyntax();
+            }
+            else if (property.ReturnsByRefReadonly)
+            {
+                return returnType.GenerateRefReadOnlyTypeSyntax();
+            }
+            else
+            {
+                return returnType.GenerateTypeSyntax();
+            }
+        }
+
 
         private static bool TryGetExpressionBody(
             BasePropertyDeclarationSyntax baseProperty, ParseOptions options, ExpressionBodyPreference preference,
@@ -348,7 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     // because of the boxing requirement in order to call the method.
                     // therefore it seems like a small oversight to leave out the keyword for an explicit impl from metadata.
                     var hasAllReadOnlyAccessors = property.GetMethod?.IsReadOnly != false && property.SetMethod?.IsReadOnly != false;
-                    if (hasAllReadOnlyAccessors)
+                    // Don't show the readonly modifier if the containing type is already readonly
+                    if (hasAllReadOnlyAccessors && !property.ContainingType.IsReadOnly)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
                     }

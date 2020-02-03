@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// The default callback to pass to <see cref="TelemetrySessionExtensions.PostFault(TelemetrySession, string, string, Exception, Func{IFaultUtility, int})"/>.
         /// Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
         /// </summary>
-        private static Func<IFaultUtility, int> s_defaultCallback = _ => 0;
+        private static readonly Func<IFaultUtility, int> s_defaultCallback = _ => 0;
 
         /// <summary>
         /// Report Non-Fatal Watson

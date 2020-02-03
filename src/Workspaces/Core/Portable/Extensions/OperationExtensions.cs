@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -23,21 +24,23 @@ namespace Microsoft.CodeAnalysis
         public static ValueUsageInfo GetValueUsageInfo(this IOperation operation)
         {
             /*
-            |    code         | Read | Write | ReadableRef | WritableRef | NonReadWriteRef |
-            | x.Prop = 1      |      |  ✔️   |             |             |                 |
-            | x.Prop += 1     |  ✔️  |  ✔️   |             |             |                 |
-            | x.Prop++        |  ✔️  |  ✔️   |             |             |                 |
-            | Foo(x.Prop)     |  ✔️  |       |             |             |                 |
-            | Foo(x.Prop),    |      |       |     ✔️      |             |                 |
+            |    code                  | Read | Write | ReadableRef | WritableRef | NonReadWriteRef |
+            | x.Prop = 1               |      |  ✔️   |             |             |                 |
+            | x.Prop += 1              |  ✔️  |  ✔️   |             |             |                 |
+            | x.Prop++                 |  ✔️  |  ✔️   |             |             |                 |
+            | Foo(x.Prop)              |  ✔️  |       |             |             |                 |
+            | Foo(x.Prop),             |      |       |     ✔️      |             |                 |
                where void Foo(in T v)
-            | Foo(out x.Prop) |      |       |             |     ✔️      |                 |
-            | Foo(ref x.Prop) |      |       |     ✔️      |     ✔️      |                 |
-            | nameof(x)       |      |       |             |             |       ✔️        | ️
-            | sizeof(x)       |      |       |             |             |       ✔️        | ️
-            | typeof(x)       |      |       |             |             |       ✔️        | ️
-            | out var x       |      |  ✔️   |             |             |                 | ️
-            | case X x:       |      |  ✔️   |             |             |                 | ️
-            | obj is X x      |      |  ✔️   |             |             |                 |
+            | Foo(out x.Prop)          |      |       |             |     ✔️      |                 |
+            | Foo(ref x.Prop)          |      |       |     ✔️      |     ✔️      |                 |
+            | nameof(x)                |      |       |             |             |       ✔️        | ️
+            | sizeof(x)                |      |       |             |             |       ✔️        | ️
+            | typeof(x)                |      |       |             |             |       ✔️        | ️
+            | out var x                |      |  ✔️   |             |             |                 | ️
+            | case X x:                |      |  ✔️   |             |             |                 | ️
+            | obj is X x               |      |  ✔️   |             |             |                 |
+            | ref var x =              |      |       |     ✔️      |     ✔️      |                 |
+            | ref readonly var x =     |      |       |     ✔️      |             |                 |
 
             */
             if (operation is ILocalReferenceOperation localReference &&
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
-                    case IOperation iop when iop.GetType().GetInterfaces().Any(i => i.Name == "IRecursivePatternOperation"):
+                    case IRecursivePatternOperation _:
                         // A declaration pattern within a recursive pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -72,11 +75,29 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
+                    case ISwitchExpressionArmOperation _:
+                        // A declaration pattern within a switch expression arm is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj' below:
+                        //      obj switch
+                        //      {
+                        //          X x => ...
+                        //
+                        return ValueUsageInfo.Write;
+
                     case IIsPatternOperation _:
                         // A declaration pattern within an is pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
                         //      if (obj is X x)
+                        //
+                        return ValueUsageInfo.Write;
+
+                    case IPropertySubpatternOperation _:
+                        // A declaration pattern within a property sub-pattern is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj.Property' below:
+                        //      if (obj is { Property : int x })
                         //
                         return ValueUsageInfo.Write;
 
@@ -144,6 +165,20 @@ namespace Microsoft.CodeAnalysis
             else if (operation.IsInLeftOfDeconstructionAssignment(out _))
             {
                 return ValueUsageInfo.Write;
+            }
+            else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation)
+            {
+                if (variableInitializerOperation.Parent is IVariableDeclaratorOperation variableDeclaratorOperation)
+                {
+                    switch (variableDeclaratorOperation.Symbol.RefKind)
+                    {
+                        case RefKind.Ref:
+                            return ValueUsageInfo.ReadableWritableReference;
+
+                        case RefKind.RefReadOnly:
+                            return ValueUsageInfo.ReadableReference;
+                    }
+                }
             }
 
             return ValueUsageInfo.Read;

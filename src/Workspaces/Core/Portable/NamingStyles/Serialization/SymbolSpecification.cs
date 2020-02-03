@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return new DeclarationModifiers();
             }
 
-            DeclarationModifiers result = new DeclarationModifiers();
+            var result = new DeclarationModifiers();
             foreach (var modifier in requiredModifierList)
             {
                 switch (modifier.ModifierKindWrapper)
@@ -340,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 });
         }
 
-        public struct ModifierKind : ISymbolMatcher
+        public struct ModifierKind : ISymbolMatcher, IEquatable<ModifierKind>
         {
             public ModifierKindEnum ModifierKindWrapper;
 
@@ -427,6 +429,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             internal static ModifierKind FromXElement(XElement modifierElement)
                 => new ModifierKind((ModifierKindEnum)Enum.Parse(typeof(ModifierKindEnum), modifierElement.Value));
+
+            public override bool Equals(object obj)
+                => obj is ModifierKind kind && Equals(kind);
+
+            public override int GetHashCode()
+                => ModifierKindWrapper.GetHashCode();
+
+            public bool Equals(ModifierKind other)
+                => ModifierKindWrapper == other.ModifierKindWrapper;
         }
 
         public enum ModifierKindEnum

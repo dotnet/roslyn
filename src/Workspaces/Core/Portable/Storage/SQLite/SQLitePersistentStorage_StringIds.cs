@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -143,18 +145,16 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             try
             {
-                using (var resettableStatement = connection.GetResettableStatement(_select_star_from_0_where_1_limit_one))
+                using var resettableStatement = connection.GetResettableStatement(_select_star_from_0_where_1_limit_one);
+                var statement = resettableStatement.Statement;
+
+                // SQLite's binding indices are 1-based. 
+                statement.BindStringParameter(parameterIndex: 1, value: value);
+
+                var stepResult = statement.Step();
+                if (stepResult == Result.ROW)
                 {
-                    var statement = resettableStatement.Statement;
-
-                    // SQLite's binding indices are 1-based. 
-                    statement.BindStringParameter(parameterIndex: 1, value: value);
-
-                    var stepResult = statement.Step();
-                    if (stepResult == Result.ROW)
-                    {
-                        return statement.GetInt32At(columnIndex: 0);
-                    }
+                    return statement.GetInt32At(columnIndex: 0);
                 }
             }
             catch (Exception ex)

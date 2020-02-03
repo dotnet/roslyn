@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -33,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
         private static ProjectItem CreateFolder(ProjectItems currentItems, string container)
         {
             var folderName = container;
-            int index = 1;
+            var index = 1;
 
             // Keep looking for a unique name as long as we collide with some item.
 

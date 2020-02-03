@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -248,14 +252,15 @@ namespace Microsoft.CodeAnalysis
 
         CSharp7Sentinel = System_IFormatProvider, // all types that were known before CSharp7 should remain above this sentinel
 
+        System_ValueTuple,
         System_ValueTuple_T1,
         System_ValueTuple_T2,
         System_ValueTuple_T3,
         System_ValueTuple_T4,
-        System_ValueTuple_T5,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
+        System_ValueTuple_T5,
         System_ValueTuple_T6,
         System_ValueTuple_T7,
         System_ValueTuple_TRest,
@@ -264,6 +269,8 @@ namespace Microsoft.CodeAnalysis
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
         System_Runtime_CompilerServices_NullableAttribute,
+        System_Runtime_CompilerServices_NullableContextAttribute,
+        System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute,
 
         System_Runtime_CompilerServices_IsReadOnlyAttribute,
@@ -301,6 +308,7 @@ namespace Microsoft.CodeAnalysis
 
         System_InvalidOperationException,
         System_Runtime_CompilerServices_SwitchExpressionException,
+        System_Collections_Generic_IEqualityComparer_T,
 
         NextAvailable,
 
@@ -545,14 +553,15 @@ namespace Microsoft.CodeAnalysis
 
             "System.IFormatProvider",
 
+            "System.ValueTuple",
             "System.ValueTuple`1",
             "System.ValueTuple`2",
             "System.ValueTuple`3",
             "System.ValueTuple`4",
-            "System.ValueTuple`5",
 
             "", // extension marker
 
+            "System.ValueTuple`5",
             "System.ValueTuple`6",
             "System.ValueTuple`7",
             "System.ValueTuple`8",
@@ -562,6 +571,8 @@ namespace Microsoft.CodeAnalysis
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 
             "System.Runtime.CompilerServices.NullableAttribute",
+            "System.Runtime.CompilerServices.NullableContextAttribute",
+            "System.Runtime.CompilerServices.NullablePublicOnlyAttribute",
             "System.Runtime.CompilerServices.ReferenceAssemblyAttribute",
 
             "System.Runtime.CompilerServices.IsReadOnlyAttribute",
@@ -598,7 +609,8 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.CancellationTokenSource",
 
             "System.InvalidOperationException",
-            "System.Runtime.CompilerServices.SwitchExpressionException"
+            "System.Runtime.CompilerServices.SwitchExpressionException",
+            "System.Collections.Generic.IEqualityComparer`1",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -667,7 +679,7 @@ namespace Microsoft.CodeAnalysis
         public static bool IsValueTupleType(this WellKnownType typeId)
         {
             Debug.Assert(typeId != WellKnownType.ExtSentinel);
-            return typeId >= WellKnownType.System_ValueTuple_T1 && typeId <= WellKnownType.System_ValueTuple_TRest;
+            return typeId >= WellKnownType.System_ValueTuple && typeId <= WellKnownType.System_ValueTuple_TRest;
         }
 
         public static bool IsValid(this WellKnownType typeId)

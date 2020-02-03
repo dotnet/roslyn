@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -87,15 +91,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IEnumerable<ReferencedSymbol> FilterToAliasMatches(
             this IEnumerable<ReferencedSymbol> result,
-            IAliasSymbol aliasSymbolOpt)
+            IAliasSymbol? aliasSymbol)
         {
-            if (aliasSymbolOpt == null)
+            if (aliasSymbol == null)
             {
                 return result;
             }
 
             return from r in result
-                   let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbolOpt))
+                   let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbol))
                    where aliasLocations.Any()
                    select new ReferencedSymbol(r.DefinitionAndProjectId, aliasLocations);
         }
@@ -117,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             foreach (var reference in result)
             {
-                var isCaseSensitive = solution.Workspace.Services.GetLanguageServices(reference.Definition.Language).GetService<ISyntaxFactsService>().IsCaseSensitive;
+                var isCaseSensitive = solution.Workspace.Services.GetLanguageServices(reference.Definition.Language).GetRequiredService<ISyntaxFactsService>().IsCaseSensitive;
                 var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
                 if (reference.Definition.IsOrdinaryMethod() &&
                     !comparer.Equals(reference.Definition.Name, symbol.Name))

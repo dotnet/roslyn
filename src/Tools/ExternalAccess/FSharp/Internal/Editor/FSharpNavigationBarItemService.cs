@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         public async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-            return items.Select(x => ConvertToNavigationBarItem(x)).ToList();
+            return items?.Select(x => ConvertToNavigationBarItem(x)).ToList();
         }
 
         public void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
                     item.Text,
                     FSharpGlyphHelpers.ConvertTo(item.Glyph),
                     item.Spans,
-                    item.ChildItems.Select(x => ConvertToNavigationBarItem(x)).ToList(),
+                    item.ChildItems?.Select(x => ConvertToNavigationBarItem(x)).ToList(),
                     item.Indent,
                     item.Bolded,
                     item.Grayed);

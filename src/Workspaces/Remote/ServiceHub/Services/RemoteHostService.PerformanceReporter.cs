@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -60,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     _diagnosticAnalyzerPerformanceTracker.GenerateReport(pooledObject.Object);
 
-                    foreach (var badAnalyzerInfo in pooledObject.Object)
+                    foreach (var analyzerInfo in pooledObject.Object)
                     {
-                        var newAnalyzer = _reported.Add(badAnalyzerInfo.AnalyzerId);
-                        var internalUser = WatsonReporter.IsUserMicrosoftInternal;
+                        var newAnalyzer = _reported.Add(analyzerInfo.AnalyzerId);
+                        var internalUser = RoslynServices.IsUserMicrosoftInternal;
 
                         // we only report same analyzer once unless it is internal user
                         if (internalUser || newAnalyzer)
@@ -72,10 +74,10 @@ namespace Microsoft.CodeAnalysis.Remote
                             RoslynLogger.Log(FunctionId.Diagnostics_BadAnalyzer, KeyValueLogMessage.Create(m =>
                             {
                                 // since it is telemetry, we hash analyzer name if it is not builtin analyzer
-                                m[nameof(badAnalyzerInfo.AnalyzerId)] = internalUser ? badAnalyzerInfo.AnalyzerId : badAnalyzerInfo.PIISafeAnalyzerId;
-                                m[nameof(badAnalyzerInfo.LocalOutlierFactor)] = badAnalyzerInfo.LocalOutlierFactor;
-                                m[nameof(badAnalyzerInfo.Average)] = badAnalyzerInfo.Average;
-                                m[nameof(badAnalyzerInfo.AdjustedStandardDeviation)] = badAnalyzerInfo.AdjustedStandardDeviation;
+                                m[nameof(analyzerInfo.AnalyzerId)] = internalUser ? analyzerInfo.AnalyzerId : analyzerInfo.PIISafeAnalyzerId;
+                                m[nameof(analyzerInfo.LocalOutlierFactor)] = analyzerInfo.LocalOutlierFactor;
+                                m[nameof(analyzerInfo.Average)] = analyzerInfo.Average;
+                                m[nameof(analyzerInfo.AdjustedStandardDeviation)] = analyzerInfo.AdjustedStandardDeviation;
                             }));
                         }
 
@@ -83,7 +85,9 @@ namespace Microsoft.CodeAnalysis.Remote
                         // when we want to find out VS performance issue that could be caused by analyzer
                         if (newAnalyzer)
                         {
-                            _logger.TraceEvent(TraceEventType.Error, 0, $"[{badAnalyzerInfo.AnalyzerId} ({badAnalyzerInfo.AnalyzerIdHash})] LOF: {badAnalyzerInfo.LocalOutlierFactor}, Avg: {badAnalyzerInfo.Average}, Stddev: {badAnalyzerInfo.AdjustedStandardDeviation}");
+                            _logger.TraceEvent(TraceEventType.Warning, 0,
+                                $"Analyzer perf indicators exceeded threshold for '{analyzerInfo.AnalyzerId}' ({analyzerInfo.AnalyzerIdHash}): " +
+                                $"LOF: {analyzerInfo.LocalOutlierFactor}, Avg: {analyzerInfo.Average}, Stddev: {analyzerInfo.AdjustedStandardDeviation}");
                         }
                     }
                 }

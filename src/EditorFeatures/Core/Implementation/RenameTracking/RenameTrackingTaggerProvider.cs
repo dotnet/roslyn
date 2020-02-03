@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -136,7 +138,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         internal static CodeAction CreateCodeAction(
             Document document,
             Diagnostic diagnostic,
-            IWaitIndicator waitIndicator,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             ITextUndoHistoryRegistry undoHistoryRegistry)
         {
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             textBuffer = text.Container.TryGetTextBuffer();
             return textBuffer != null &&
                 textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine) &&
-                stateMachine.CanInvokeRename(out var unused);
+                stateMachine.CanInvokeRename(out _);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -36,14 +38,13 @@ namespace Microsoft.CodeAnalysis.Options
             => CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(str, out var result) ? result : new Optional<CodeStyleOption<bool>>();
         private static readonly Func<CodeStyleOption<bool>, string> s_getBoolCodeStyleOptionEditorConfigStringForValue = GetBoolCodeStyleOptionEditorConfigStringForValue;
         private static string GetBoolCodeStyleOptionEditorConfigStringForValue(CodeStyleOption<bool> value)
-            => value.Value
-               ? $"true:{value.Notification.ToEditorConfigString()}"
-               : value.Notification != null ? $"false:{value.Notification.ToEditorConfigString()}" : "false";
+            => $"{(value.Value ? "true" : "false")}:{value.Notification.ToEditorConfigString()}";
 
         private static readonly Func<string, Optional<CodeStyleOption<string>>> s_parseStringCodeStyleOption = ParseStringCodeStyleOption;
         private static Optional<CodeStyleOption<string>> ParseStringCodeStyleOption(string str)
             => CodeStyleHelpers.TryParseStringEditorConfigCodeStyleOption(str, out var result) ? result : new Optional<CodeStyleOption<string>>();
         private static readonly Func<CodeStyleOption<string>, string> s_getStringCodeStyleOptionEditorConfigStringForValue = GetStringCodeStyleOptionEditorConfigStringForValue;
-        private static string GetStringCodeStyleOptionEditorConfigStringForValue(CodeStyleOption<string> value) => value.Value.ToLowerInvariant();
+        private static string GetStringCodeStyleOptionEditorConfigStringForValue(CodeStyleOption<string> value)
+            => $"{value.Value.ToLowerInvariant()}:{value.Notification.ToEditorConfigString()}";
     }
 }

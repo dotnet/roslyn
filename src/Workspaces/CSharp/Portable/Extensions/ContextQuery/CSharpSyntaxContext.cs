@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsCrefContext;
         public readonly bool IsCatchFilterContext;
         public readonly bool IsDestructorTypeContext;
+        public readonly bool IsLeftSideOfImportAliasDirective;
 
         private CSharpSyntaxContext(
             Workspace workspace,
@@ -74,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isNameOfContext,
             bool isInQuery,
             bool isInImportsDirective,
+            bool isLeftSideOfImportAliasDirective,
             bool isLabelContext,
             bool isTypeArgumentOfConstraintContext,
             bool isRightOfDotOrArrowOrColonColon,
@@ -139,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsCrefContext = isCrefContext;
             this.IsCatchFilterContext = isCatchFilterContext;
             this.IsDestructorTypeContext = isDestructorTypeContext;
+            this.IsLeftSideOfImportAliasDirective = isLeftSideOfImportAliasDirective;
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -162,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
             var isPreProcessorKeywordContext = isPreProcessorDirectiveContext
-                ? syntaxTree.IsPreProcessorKeywordContext(position, leftToken, cancellationToken)
+                ? syntaxTree.IsPreProcessorKeywordContext(position, leftToken)
                 : false;
 
             var isPreProcessorExpressionContext = isPreProcessorDirectiveContext
@@ -186,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 : false;
 
             var isConstantExpressionContext = !isPreProcessorDirectiveContext
-                ? syntaxTree.IsConstantExpressionContext(position, leftToken, cancellationToken)
+                ? syntaxTree.IsConstantExpressionContext(position, leftToken)
                 : false;
 
             var containingTypeDeclaration = syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
@@ -227,26 +232,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isEnumTypeMemberAccessContext: syntaxTree.IsEnumTypeMemberAccessContext(semanticModel, position, cancellationToken),
                 isNameOfContext: syntaxTree.IsNameOfContext(position, semanticModel, cancellationToken),
                 isInQuery: leftToken.GetAncestor<QueryExpressionSyntax>() != null,
-                isInImportsDirective: IsLeftSideOfUsingAliasDirective(leftToken, cancellationToken),
+                isInImportsDirective: leftToken.GetAncestor<UsingDirectiveSyntax>() != null,
+                isLeftSideOfImportAliasDirective: IsLeftSideOfUsingAliasDirective(leftToken),
                 isLabelContext: syntaxTree.IsLabelContext(position, cancellationToken),
                 isTypeArgumentOfConstraintContext: syntaxTree.IsTypeArgumentOfConstraintClause(position, cancellationToken),
                 isRightOfDotOrArrowOrColonColon: syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken),
                 isIsOrAsOrSwitchExpressionContext: syntaxTree.IsIsOrAsOrSwitchExpressionContext(semanticModel, position, leftToken, cancellationToken),
                 isObjectCreationTypeContext: syntaxTree.IsObjectCreationTypeContext(position, leftToken, cancellationToken),
-                isDefiniteCastTypeContext: syntaxTree.IsDefiniteCastTypeContext(position, leftToken, cancellationToken),
+                isDefiniteCastTypeContext: syntaxTree.IsDefiniteCastTypeContext(position, leftToken),
                 isGenericTypeArgumentContext: syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken),
-                isEnumBaseListContext: syntaxTree.IsEnumBaseListContext(position, leftToken, cancellationToken),
-                isIsOrAsTypeContext: syntaxTree.IsIsOrAsTypeContext(position, leftToken, cancellationToken),
+                isEnumBaseListContext: syntaxTree.IsEnumBaseListContext(position, leftToken),
+                isIsOrAsTypeContext: syntaxTree.IsIsOrAsTypeContext(position, leftToken),
                 isLocalVariableDeclarationContext: syntaxTree.IsLocalVariableDeclarationContext(position, leftToken, cancellationToken),
-                isDeclarationExpressionContext: syntaxTree.IsDeclarationExpressionContext(position, leftToken, cancellationToken),
-                isFixedVariableDeclarationContext: syntaxTree.IsFixedVariableDeclarationContext(position, leftToken, cancellationToken),
-                isParameterTypeContext: syntaxTree.IsParameterTypeContext(position, leftToken, cancellationToken),
+                isDeclarationExpressionContext: syntaxTree.IsDeclarationExpressionContext(position, leftToken),
+                isFixedVariableDeclarationContext: syntaxTree.IsFixedVariableDeclarationContext(position, leftToken),
+                isParameterTypeContext: syntaxTree.IsParameterTypeContext(position, leftToken),
                 isPossibleLambdaOrAnonymousMethodParameterTypeContext: syntaxTree.IsPossibleLambdaOrAnonymousMethodParameterTypeContext(position, leftToken, cancellationToken),
-                isImplicitOrExplicitOperatorTypeContext: syntaxTree.IsImplicitOrExplicitOperatorTypeContext(position, leftToken, cancellationToken),
-                isPrimaryFunctionExpressionContext: syntaxTree.IsPrimaryFunctionExpressionContext(position, leftToken, cancellationToken),
-                isDelegateReturnTypeContext: syntaxTree.IsDelegateReturnTypeContext(position, leftToken, cancellationToken),
-                isTypeOfExpressionContext: syntaxTree.IsTypeOfExpressionContext(position, leftToken, cancellationToken),
-                precedingModifiers: syntaxTree.GetPrecedingModifiers(position, leftToken, cancellationToken),
+                isImplicitOrExplicitOperatorTypeContext: syntaxTree.IsImplicitOrExplicitOperatorTypeContext(position, leftToken),
+                isPrimaryFunctionExpressionContext: syntaxTree.IsPrimaryFunctionExpressionContext(position, leftToken),
+                isDelegateReturnTypeContext: syntaxTree.IsDelegateReturnTypeContext(position, leftToken),
+                isTypeOfExpressionContext: syntaxTree.IsTypeOfExpressionContext(position, leftToken),
+                precedingModifiers: syntaxTree.GetPrecedingModifiers(position, leftToken),
                 isInstanceContext: syntaxTree.IsInstanceContext(targetToken, semanticModel, cancellationToken),
                 isCrefContext: syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
                 isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
@@ -327,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return this.SyntaxTree.IsMemberDeclarationContext(this.Position, this, validModifiers, validTypeDeclarations, canBePartial, cancellationToken);
         }
 
-        private static bool IsLeftSideOfUsingAliasDirective(SyntaxToken leftToken, CancellationToken cancellationToken)
+        private static bool IsLeftSideOfUsingAliasDirective(SyntaxToken leftToken)
         {
             var usingDirective = leftToken.GetAncestor<UsingDirectiveSyntax>();
 

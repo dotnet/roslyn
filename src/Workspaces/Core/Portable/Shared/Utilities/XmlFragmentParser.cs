@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -18,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private XmlReader _xmlReader;
         private readonly Reader _textReader = new Reader();
 
-        private static readonly ObjectPool<XmlFragmentParser> s_pool =
-            new ObjectPool<XmlFragmentParser>(() => new XmlFragmentParser(), size: 2);
+        private static readonly ObjectPool<XmlFragmentParser> s_pool = SharedPools.Default<XmlFragmentParser>();
 
         /// <summary>
         /// Parse the given XML fragment. The given callback is executed until either the end of the fragment
@@ -171,7 +172,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                 // 3. The user text (xml fragments)
                 // 4. Current element end tag
 
-                int initialCount = count;
+                var initialCount = count;
 
                 // <root>
                 _position += EncodeAndAdvance(s_rootStart, _position, buffer, ref index, ref count);
@@ -202,7 +203,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                     return 0;
                 }
 
-                int charCount = Math.Min(src.Length - srcIndex, destCount);
+                var charCount = Math.Min(src.Length - srcIndex, destCount);
                 Debug.Assert(charCount > 0);
                 src.CopyTo(srcIndex, dest, destIndex, charCount);
 

@@ -8,18 +8,18 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Microsoft Visual Basic 代码页编辑器</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="translated">带编码功能的 Visual Basic 编辑器</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Microsoft Visual Basic 编辑器</target>
+        <source>Visual Basic Editor</source>
+        <target state="translated">Visual Basic 编辑器</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
         <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
-        <target state="needs-review-translation">自动插入 End 构造;更改整齐排列设置;更改大纲模式;自动插入 Interface 和 MustOverride 成员;显示或隐藏过程行分隔符;打开或关闭错误纠正建议;打开或关闭引用和关键字的突出显示;正则表达式;为正则表达式着色;在光标下突出显示相关组件;报告无效的正则表达式</target>
+        <target state="translated">自动插入 End 构造;更改整齐排列设置;更改大纲模式;自动插入 Interface 和 MustOverride 成员;显示或隐藏过程行分隔符;打开或关闭错误纠正建议;打开或关闭引用和关键字的突出显示;正则表达式;对正则表达式着色;突出显示光标下的相关部分;报告无效正则表达式;regex;正则表达式;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -104,12 +104,12 @@
       </trans-unit>
       <trans-unit id="An_empty_Visual_Basic_script_file">
         <source>An empty Visual Basic script file.</source>
-        <target state="new">An empty Visual Basic script file.</target>
+        <target state="translated">空的 Visual Basic 脚本文件。</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_Script">
         <source>Visual Basic Script</source>
-        <target state="new">Visual Basic Script</target>
+        <target state="translated">Visual Basic 脚本</target>
         <note />
       </trans-unit>
     </body>

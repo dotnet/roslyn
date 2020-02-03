@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,6 +18,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         public static bool CanBeSuppressed(Diagnostic diagnostic)
         {
             return CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: true);
+        }
+
+        public static bool CanBeSuppressedWithAttribute(Diagnostic diagnostic)
+        {
+            if (IsCompilerDiagnostic(diagnostic))
+            {
+                return false;
+            }
+
+            // IDE0055 cannot be suppressed with an attribute because the formatter implementation only adheres to
+            // pragma-based source suppressions.
+            return diagnostic.Id != IDEDiagnosticIds.FormattingDiagnosticId;
         }
 
         public static bool CanBeUnsuppressed(Diagnostic diagnostic)

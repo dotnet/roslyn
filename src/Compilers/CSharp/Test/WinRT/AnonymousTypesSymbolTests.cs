@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -1023,7 +1025,7 @@ class Query
 
         private void TestAnonymousType(NamedTypeSymbol type, int typeIndex, TypeDescr typeDescr)
         {
-            Assert.NotNull(typeDescr);
+            Assert.NotEqual(default, typeDescr);
             Assert.NotNull(typeDescr.FieldNames);
 
             //  prepare 
@@ -1667,7 +1669,7 @@ class Program
 
             var sym = model.GetSymbolInfo(expr);
             Assert.NotNull(sym.Symbol);
-            Assert.True(((Symbol)sym.Symbol).IsFromCompilation(comp), "IsFromCompilation");
+            Assert.True(sym.Symbol.GetSymbol().IsFromCompilation(comp), "IsFromCompilation");
             Assert.False(sym.Symbol.Locations.IsEmpty, "Symbol Location");
             Assert.True(sym.Symbol.Locations[0].IsInSource);
 
@@ -1676,7 +1678,7 @@ class Program
             var mems = info.Type.GetMembers();
             foreach (var m in mems)
             {
-                Assert.True(((Symbol)m).IsFromCompilation(comp), "IsFromCompilation");
+                Assert.True(m.GetSymbol().IsFromCompilation(comp), "IsFromCompilation");
                 Assert.False(m.Locations.IsEmpty, String.Format("No Location: {0}", m));
                 Assert.True(m.Locations[0].IsInSource);
             }
@@ -1712,8 +1714,8 @@ class Program
             var statement2 = mainBlock.Statements[1] as LocalDeclarationStatementSyntax;
             var statement3 = mainBlock.Statements[2] as LocalDeclarationStatementSyntax;
             var statement4 = mainBlock.Statements[3] as LocalDeclarationStatementSyntax;
-            var localA3 = model.GetDeclaredSymbol(statement3.Declaration.Variables[0]) as LocalSymbol;
-            var localA4 = model.GetDeclaredSymbol(statement4.Declaration.Variables[0]) as LocalSymbol;
+            var localA3 = model.GetDeclaredSymbol(statement3.Declaration.Variables[0]) as ILocalSymbol;
+            var localA4 = model.GetDeclaredSymbol(statement4.Declaration.Variables[0]) as ILocalSymbol;
             var typeA3 = localA3.Type;
             var typeA4 = localA4.Type;
 
@@ -1948,7 +1950,7 @@ class C
 
             var compilation = CreateCompilationWithMscorlib40(source);
             compilation.CreateAnonymousTypeSymbol(
-                ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
+                ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol(), compilation.GetSpecialType(SpecialType.System_Boolean).GetPublicSymbol()),
                 ImmutableArray.Create("m1", "m2"));
 
             this.CompileAndVerify(compilation).VerifyIL("C.Main", expectedIL);

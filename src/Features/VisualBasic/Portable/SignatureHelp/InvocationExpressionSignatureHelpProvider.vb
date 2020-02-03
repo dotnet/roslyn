@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -14,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     <ExportSignatureHelpProvider("InvocationExpressionSignatureHelpProvider", LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class InvocationExpressionSignatureHelpProvider
-        Inherits AbstractVisualBasicSignatureHelpProvider
+        Inherits AbstractOrdinaryMethodSignatureHelpProvider
 
         <ImportingConstructor>
         Public Sub New()
@@ -78,7 +80,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 invocationExpression.Expression)
 
             ' get the regular signature help items
-            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
             Dim memberGroup = semanticModel.GetMemberGroup(targetExpression, cancellationToken).
                                             FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
 
@@ -96,6 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 memberGroup = memberGroup.WhereAsArray(Function(m) Not m.Equals(enclosingSymbol))
             End If
 
+            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
             memberGroup = memberGroup.Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart)
 
             Dim typeInfo = semanticModel.GetTypeInfo(targetExpression, cancellationToken)
@@ -114,8 +116,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
             Dim items = New List(Of SignatureHelpItem)
-            If memberGroup.Count > 0 Then
-                items.AddRange(GetMemberGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, memberGroup, cancellationToken))
+            If memberGroup.Length > 0 Then
+                items.AddRange(GetMemberGroupItems(document, invocationExpression, semanticModel, within, memberGroup, cancellationToken))
             End If
 
             If expressionType.IsDelegateType() Then

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -160,6 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
             return SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
@@ -229,7 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
@@ -404,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
             {
@@ -421,12 +432,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_isCheckedBuiltin == other._isCheckedBuiltin &&
                 _parameters.Length == other._parameters.Length &&
                 string.Equals(_name, other._name, StringComparison.Ordinal) &&
-                TypeSymbol.Equals(_containingType, other._containingType, TypeCompareKind.ConsiderEverything2) &&
-                TypeSymbol.Equals(_returnType, other._returnType, TypeCompareKind.ConsiderEverything2))
+                TypeSymbol.Equals(_containingType, other._containingType, compareKind) &&
+                TypeSymbol.Equals(_returnType, other._returnType, compareKind))
             {
                 for (int i = 0; i < _parameters.Length; i++)
                 {
-                    if (!TypeSymbol.Equals(_parameters[i].Type, other._parameters[i].Type, TypeCompareKind.ConsiderEverything2))
+                    if (!TypeSymbol.Equals(_parameters[i].Type, other._parameters[i].Type, compareKind))
                     {
                         return false;
                     }
@@ -454,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if (obj == (object)this)
                 {
@@ -468,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                return Ordinal == other.Ordinal && ContainingSymbol == other.ContainingSymbol;
+                return Ordinal == other.Ordinal && ContainingSymbol.Equals(other.ContainingSymbol, compareKind);
             }
 
             public override int GetHashCode()

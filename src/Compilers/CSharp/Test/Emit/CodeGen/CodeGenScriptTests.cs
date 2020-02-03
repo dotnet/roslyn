@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -491,7 +494,7 @@ public abstract class C
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: @"complete");
             var methodData = verifier.TestData.GetMethodData("<Initialize>");
-            Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<object>", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());
             methodData.VerifyIL(
 @"{
   // Code size       60 (0x3c)
@@ -522,7 +525,7 @@ public abstract class C
   IL_003b:  ret
 }");
             methodData = verifier.TestData.GetMethodData("<Main>");
-            Assert.True(methodData.Method.ReturnsVoid);
+            Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
             methodData.VerifyIL(
 @"{
   // Code size       25 (0x19)
@@ -554,7 +557,7 @@ public abstract class C
                 references);
             var verifier = CompileAndVerify(s0, verify: Verification.Fails);
             var methodData = verifier.TestData.GetMethodData("<Initialize>");
-            Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<object>", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());
             methodData.VerifyIL(
 @"{
   // Code size       60 (0x3c)
@@ -585,7 +588,7 @@ public abstract class C
   IL_003b:  ret
 }");
             methodData = verifier.TestData.GetMethodData("<Factory>");
-            Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<object>", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());
             methodData.VerifyIL(
 @"{
   // Code size       12 (0xc)

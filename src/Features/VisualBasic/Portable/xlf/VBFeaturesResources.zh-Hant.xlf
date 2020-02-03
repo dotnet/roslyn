@@ -19,12 +19,12 @@
       </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
-        <target state="translated">新增缺少的匯入</target>
+        <target state="translated">新增缺少的 Import</target>
         <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
         <source>Add 'Shadows'</source>
-        <target state="translated">新增「陰影」</target>
+        <target state="translated">新增 'Shadows'</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="translated">使 '{0}' 可繼承</target>
+        <target state="translated">將 '{0}' 設為可繼承</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -95,11 +95,6 @@
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">移除不必要的匯入</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_Imports">
-        <source>&amp;Sort Imports</source>
-        <target state="new">&amp;Sort Imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -342,11 +337,6 @@
         <target state="translated">&lt;新變數&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_and_Sort_Imports">
-        <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">移除及排序匯入(&amp;E)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
         <source>Creates a delegate procedure instance that references the specified procedure.
 AddressOf &lt;procedureName&gt;</source>
@@ -375,7 +365,7 @@ AddressOf &lt;procedureName&gt;</target>
       </trans-unit>
       <trans-unit id="Used_in_a_Declare_statement_The_Ansi_modifier_specifies_that_Visual_Basic_should_marshal_all_strings_to_ANSI_values_and_should_look_up_the_procedure_without_modifying_its_name_during_the_search_If_no_character_set_is_specified_ANSI_is_the_default">
         <source>Used in a Declare statement. The Ansi modifier specifies that Visual Basic should marshal all strings to ANSI values, and should look up the procedure without modifying its name during the search. If no character set is specified, ANSI is the default.</source>
-        <target state="translated">用在 Declare 陳述式中。Ansi 修飾詞會指定 Visual Basic 應將所有字串封送處理成 ANSI 值，且在搜尋期間，應查詢程序但不要修改其名稱。若未指定字元集，預設值就是 ANSI。</target>
+        <target state="translated">用在 Declare 陳述式中。Ansi 修飾元會指定 Visual Basic 應將所有字串封送處理成 ANSI 值，且在搜尋期間，應查詢程序但不要修改其名稱。若未指定字元集，預設值就是 ANSI。</target>
         <note />
       </trans-unit>
       <trans-unit id="Specifies_a_data_type_in_a_declaration_statement">
@@ -395,7 +385,7 @@ AddressOf &lt;procedureName&gt;</target>
       </trans-unit>
       <trans-unit id="Used_in_a_Declare_statement_The_Auto_modifier_specifies_that_Visual_Basic_should_marshal_strings_according_to_NET_Framework_rules_and_should_determine_the_base_character_set_of_the_run_time_platform_and_possibly_modify_the_external_procedure_name_if_the_initial_search_fails">
         <source>Used in a Declare statement. The Auto modifier specifies that Visual Basic should marshal strings according to .NET Framework rules, and should determine the base character set of the run-time platform and possibly modify the external procedure name if the initial search fails.</source>
-        <target state="translated">用在 Declare 陳述式中。Auto 修飾詞可指定 Visual Basic 應該根據 .NET Framework 規則封送處理字串，且應判斷執行階段平台的基礎字元集，若初始搜尋失敗，還可能修改外部程序名稱。</target>
+        <target state="translated">用在 Declare 陳述式中。Auto 修飾元可指定 Visual Basic 應該根據 .NET Framework 規則封送處理字串，且應判斷執行階段平台的基礎字元集，若初始搜尋失敗，還可能修改外部程序名稱。</target>
         <note />
       </trans-unit>
       <trans-unit id="Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_can_change_the_underlying_value_of_the_argument_in_the_calling_code">
@@ -1519,7 +1509,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">在 '{0}' 中產生擴展轉換</target>
+        <target state="translated">在 '{0}' 中產生放大轉換</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
@@ -1694,7 +1684,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">聯結條件</target>
+        <target state="translated">Join 條件</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">
@@ -1709,7 +1699,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="as_clause">
         <source>as clause</source>
-        <target state="translated">As 子句</target>
+        <target state="translated">as 子句</target>
         <note>{Locked="as"} "as" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="type_parameters">
@@ -1739,7 +1729,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Add_Overloads">
         <source>Add 'Overloads'</source>
-        <target state="translated">新增「多載」</target>
+        <target state="translated">新增 'Overloads'</target>
         <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">

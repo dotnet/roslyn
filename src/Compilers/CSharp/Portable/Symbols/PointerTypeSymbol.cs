@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Represents a pointer type such as "int *". Pointer types
     /// are used only in unsafe code.
     /// </summary>
-    internal sealed partial class PointerTypeSymbol : TypeSymbol, IPointerTypeSymbol
+    internal sealed partial class PointerTypeSymbol : TypeSymbol
     {
         private readonly TypeWithAnnotations _pointedAtType;
 
@@ -268,10 +270,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return WithPointedAtType(transform(PointedAtTypeWithAnnotations));
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
+        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-            TypeWithAnnotations pointedAtType = PointedAtTypeWithAnnotations.MergeNullability(((PointerTypeSymbol)other).PointedAtTypeWithAnnotations, VarianceKind.None);
+            TypeWithAnnotations pointedAtType = PointedAtTypeWithAnnotations.MergeEquivalentTypes(((PointerTypeSymbol)other).PointedAtTypeWithAnnotations, VarianceKind.None);
             return WithPointedAtType(pointedAtType);
         }
 
@@ -294,32 +296,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.PointedAtTypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes);
         }
 
-        #region IPointerTypeSymbol Members
-
-        ITypeSymbol IPointerTypeSymbol.PointedAtType
+        protected override ISymbol CreateISymbol()
         {
-            get { return this.PointedAtType; }
+            return new PublicModel.PointerTypeSymbol(this, DefaultNullableAnnotation);
         }
 
-        ImmutableArray<CustomModifier> IPointerTypeSymbol.CustomModifiers
+        protected override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            get { return this.PointedAtTypeWithAnnotations.CustomModifiers; }
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.PointerTypeSymbol(this, nullableAnnotation);
         }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitPointerType(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitPointerType(this);
-        }
-
-        #endregion
     }
 }

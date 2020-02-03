@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // Taken from csharp\LanguageAnalysis\Compiler\IDE\LIB\CMEvents.cpp
 
@@ -77,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldAttribute != null && newAttribute != null);
 
-                bool same = true;
+                var same = true;
 
                 if (!CompareNames(oldAttribute.Name, newAttribute.Name))
                 {
@@ -110,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                for (int i = 0; i < oldArguments.Count; i++)
+                for (var i = 0; i < oldArguments.Count; i++)
                 {
                     var oldArgument = oldArguments[i];
                     var newArgument = newArguments[i];
@@ -182,9 +184,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         && CompareExpressions(oldBinaryExpression.Right, newBinaryExpression.Right);
                 }
 
-                if (oldExpression is AssignmentExpressionSyntax)
+                if (oldExpression is AssignmentExpressionSyntax oldAssignmentExpression)
                 {
-                    var oldAssignmentExpression = (AssignmentExpressionSyntax)oldExpression;
                     var newAssignmentExpression = (AssignmentExpressionSyntax)newExpression;
 
                     return CompareExpressions(oldAssignmentExpression.Left, newAssignmentExpression.Left)
@@ -206,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldParameter != null && newParameter != null);
 
-                bool same = true;
+                var same = true;
 
                 if (!StringComparer.Ordinal.Equals(CodeModelService.GetName(oldParameter), CodeModelService.GetName(newParameter)))
                 {
@@ -275,7 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldEnumMember != null && newEnumMember != null);
 
-                bool same = true;
+                var same = true;
 
                 if (!StringComparer.Ordinal.Equals(CodeModelService.GetName(oldEnumMember), CodeModelService.GetName(newEnumMember)))
                 {
@@ -302,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldProperty != null && newProperty != null);
 
-                bool same = true;
+                var same = true;
 
                 if (!StringComparer.Ordinal.Equals(CodeModelService.GetName(oldProperty), CodeModelService.GetName(newProperty)))
                 {
@@ -372,7 +373,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldField != null && newField != null);
 
-                bool same = true;
+                var same = true;
                 same &= CompareChildren(
                     CompareVariableDeclarators,
                     oldField.Declaration.Variables.AsReadOnlyList(),
@@ -382,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     eventQueue);
 
                 // If modifiers have changed enqueue a element changed (unknown change) node
-                if ((oldField.Kind() != newField.Kind()) ||
+                if (oldField.Kind() != newField.Kind() ||
                     !CompareModifiers(oldField, newField))
                 {
                     EnqueueChangeEvent(newField, newNodeParent, CodeModelEventType.Unknown, eventQueue);
@@ -434,7 +435,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
                 else
                 {
-                    bool same = true;
+                    var same = true;
 
                     if (!CompareModifiers(oldMethod, newMethod))
                     {
@@ -531,7 +532,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     var oldMembers = GetValidMembers(oldType);
                     var newMembers = GetValidMembers(newType);
 
-                    bool same = true;
+                    var same = true;
 
                     // If the type name is different, it might mean that the whole type has been removed and a new one added.
                     // In that case, we shouldn't do any other checks and instead return immediately.
@@ -589,7 +590,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     var newDelegate = (DelegateDeclarationSyntax)newMember;
 
-                    bool same = true;
+                    var same = true;
 
                     // If the delegate name is different, it might mean that the whole delegate has been removed and a new one added.
                     // In that case, we shouldn't do any other checks and instead return immediately.
@@ -692,7 +693,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         return false;
                     }
 
-                    for (int i = 0; i < oldTypes.Count; i++)
+                    for (var i = 0; i < oldTypes.Count; i++)
                     {
                         if (!CompareTypes(oldTypes[i].Type, newTypes[i].Type))
                         {
@@ -753,7 +754,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                             return false;
                         }
 
-                        for (int i = 0; i < oldGenericName.Arity; i++)
+                        for (var i = 0; i < oldGenericName.Arity; i++)
                         {
                             if (!CompareTypes(oldGenericName.TypeArgumentList.Arguments[i], newGenericName.TypeArgumentList.Arguments[i]))
                             {
@@ -800,7 +801,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         var oldArrayType = (ArrayTypeSyntax)oldType;
                         var newArrayType = (ArrayTypeSyntax)newType;
 
-                        return (oldArrayType.RankSpecifiers.Count == newArrayType.RankSpecifiers.Count)
+                        return oldArrayType.RankSpecifiers.Count == newArrayType.RankSpecifiers.Count
                             && CompareTypes(oldArrayType.ElementType, newArrayType.ElementType);
 
                     case SyntaxKind.PointerType:

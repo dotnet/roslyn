@@ -70,6 +70,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not null here..
+        /// </summary>
+        internal static string _0_is_not_null_here {
+            get {
+                return ResourceManager.GetString("_0_is_not_null_here", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; may be null here..
+        /// </summary>
+        internal static string _0_may_be_null_here {
+            get {
+                return ResourceManager.GetString("_0_may_be_null_here", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add accessibility modifiers.
         /// </summary>
         internal static string Add_accessibility_modifiers {
@@ -210,6 +228,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Apply_this_qualification_preferences {
             get {
                 return ResourceManager.GetString("Apply_this_qualification_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assign &apos;out&apos; parameters.
+        /// </summary>
+        internal static string Assign_out_parameters {
+            get {
+                return ResourceManager.GetString("Assign_out_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assign &apos;out&apos; parameters (at start).
+        /// </summary>
+        internal static string Assign_out_parameters_at_start {
+            get {
+                return ResourceManager.GetString("Assign_out_parameters_at_start", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to asynchronous foreach statement.
+        /// </summary>
+        internal static string asynchronous_foreach_statement {
+            get {
+                return ResourceManager.GetString("asynchronous_foreach_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to asynchronous using declaration.
+        /// </summary>
+        internal static string asynchronous_using_declaration {
+            get {
+                return ResourceManager.GetString("asynchronous_using_declaration", resourceCulture);
             }
         }
         
@@ -431,11 +485,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert to &apos;switch&apos;.
+        ///   Looks up a localized string similar to Convert to &apos;switch&apos; expression.
         /// </summary>
-        internal static string Convert_to_switch {
+        internal static string Convert_to_switch_expression {
             get {
-                return ResourceManager.GetString("Convert_to_switch", resourceCulture);
+                return ResourceManager.GetString("Convert_to_switch_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to &apos;switch&apos; statement.
+        /// </summary>
+        internal static string Convert_to_switch_statement {
+            get {
+                return ResourceManager.GetString("Convert_to_switch_statement", resourceCulture);
             }
         }
         
@@ -782,6 +845,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to local variable declaration.
+        /// </summary>
+        internal static string local_variable_declaration {
+            get {
+                return ResourceManager.GetString("local_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to lock statement.
         /// </summary>
         internal static string lock_statement {
@@ -953,6 +1025,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pass in captured variables as arguments.
+        /// </summary>
+        internal static string Pass_in_captured_variables_as_arguments {
+            get {
+                return ResourceManager.GetString("Pass_in_captured_variables_as_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Properties.
         /// </summary>
         internal static string Properties {
@@ -1007,15 +1088,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to R&amp;emove and Sort Usings.
-        /// </summary>
-        internal static string Remove_and_Sort_Usings {
-            get {
-                return ResourceManager.GetString("Remove_and_Sort_Usings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove &apos;this&apos; qualification.
         /// </summary>
         internal static string Remove_this_qualification {
@@ -1066,6 +1138,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Replace_return_with_yield_return {
             get {
                 return ResourceManager.GetString("Replace_return_with_yield_return", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reverse &apos;for&apos; statement.
+        /// </summary>
+        internal static string Reverse_for_statement {
+            get {
+                return ResourceManager.GetString("Reverse_for_statement", resourceCulture);
             }
         }
         
@@ -1187,15 +1268,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &amp;Sort Usings.
-        /// </summary>
-        internal static string Sort_Usings {
-            get {
-                return ResourceManager.GetString("Sort_Usings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to struct.
         /// </summary>
         internal static string struct_ {
@@ -1219,6 +1291,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Suggested_name {
             get {
                 return ResourceManager.GetString("Suggested_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to switch statement.
+        /// </summary>
+        internal static string switch_statement {
+            get {
+                return ResourceManager.GetString("switch_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to switch statement case clause.
+        /// </summary>
+        internal static string switch_statement_case_clause {
+            get {
+                return ResourceManager.GetString("switch_statement_case_clause", resourceCulture);
             }
         }
         
@@ -1405,6 +1495,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to using declaration.
+        /// </summary>
+        internal static string using_declaration {
+            get {
+                return ResourceManager.GetString("using_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to using directive.
         /// </summary>
         internal static string using_directive {
@@ -1459,11 +1558,12 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to C# 7 enhanced switch statement.
+        ///   Looks up a localized string similar to Warning: Adding parameters to local function declaration may produce invalid code..
         /// </summary>
-        internal static string v7_switch {
+        internal static string Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code {
             get {
-                return ResourceManager.GetString("v7_switch", resourceCulture);
+                return ResourceManager.GetString("Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid" +
+                        "_code", resourceCulture);
             }
         }
         
@@ -1477,11 +1577,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Warning: Extracting a local function reference may produce invalid code.
+        ///   Looks up a localized string similar to Warning: Inlining temporary into conditional method call..
         /// </summary>
-        internal static string Warning_Extracting_a_local_function_reference_may_produce_invalid_code {
+        internal static string Warning_Inlining_temporary_into_conditional_method_call {
             get {
-                return ResourceManager.GetString("Warning_Extracting_a_local_function_reference_may_produce_invalid_code", resourceCulture);
+                return ResourceManager.GetString("Warning_Inlining_temporary_into_conditional_method_call", resourceCulture);
             }
         }
         
@@ -1495,11 +1595,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to yield statement.
+        ///   Looks up a localized string similar to yield break statement.
         /// </summary>
-        internal static string yield_statement {
+        internal static string yield_break_statement {
             get {
-                return ResourceManager.GetString("yield_statement", resourceCulture);
+                return ResourceManager.GetString("yield_break_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to yield return statement.
+        /// </summary>
+        internal static string yield_return_statement {
+            get {
+                return ResourceManager.GetString("yield_return_statement", resourceCulture);
             }
         }
     }

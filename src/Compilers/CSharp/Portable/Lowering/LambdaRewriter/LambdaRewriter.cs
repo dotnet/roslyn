@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #if DEBUG
 //#define CHECK_LOCALS // define CHECK_LOCALS to help debug some rewriting problems that would otherwise cause code-gen failures
@@ -143,6 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ImmutableHashSet<Symbol> _allCapturedVariables;
 
+#nullable enable
+
         private LambdaRewriter(
             Analysis analysis,
             NamedTypeSymbol thisType,
@@ -157,11 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<LocalSymbol> assignLocals)
             : base(slotAllocatorOpt, compilationState, diagnostics)
         {
-            Debug.Assert(analysis != null);
-            Debug.Assert((object)thisType != null);
-            Debug.Assert(method != null);
-            Debug.Assert(compilationState != null);
-            Debug.Assert(diagnostics != null);
+            RoslynDebug.Assert(analysis != null);
+            RoslynDebug.Assert((object)thisType != null);
+            RoslynDebug.Assert(method != null);
+            RoslynDebug.Assert(compilationState != null);
+            RoslynDebug.Assert(diagnostics != null);
 
             _topLevelMethod = method;
             _substitutedSourceMethod = substitutedSourceMethod;
@@ -184,6 +188,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             });
             _allCapturedVariables = allCapturedVars.ToImmutable();
         }
+
+#nullable restore
 
         protected override bool NeedsProxy(Symbol localOrParameter)
         {
@@ -325,14 +331,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Analysis.VisitScopeTree(_analysis.ScopeTree, scope =>
             {
-                if (scope.DeclaredEnvironments.Count > 0)
+                if (scope.DeclaredEnvironment is { } env)
                 {
                     Debug.Assert(!_frames.ContainsKey(scope.BoundNode));
-                    // At the moment, all variables declared in the same
-                    // scope always get assigned to the same environment
-                    Debug.Assert(scope.DeclaredEnvironments.Count == 1);
 
-                    var env = scope.DeclaredEnvironments[0];
                     var frame = MakeFrame(scope, env);
                     env.SynthesizedEnvironment = frame;
 
@@ -420,8 +422,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureKind = ClosureKind.ThisOnly;
                     closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal;
                 }
-                else if (closure.CapturedEnvironments.Count == 0 &&
-                         _analysis.MethodsConvertedToDelegates.Contains(originalMethod))
+                else if ((closure.CapturedEnvironments.Count == 0 &&
+                          originalMethod.MethodKind == MethodKind.LambdaMethod &&
+                          _analysis.MethodsConvertedToDelegates.Contains(originalMethod)) ||
+                         // If we are in a variant interface, runtime might not consider the 
+                         // method synthesized directly within the interface as variant safe.
+                         // For simplicity we do not perform precise analysis whether this would
+                         // definitely be the case. If we are in a variant interface, we always force
+                         // creation of a display class.
+                         VarianceSafety.GetEnclosingVariantInterface(_topLevelMethod) is object)
                 {
                     translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, syntax);
                     closureKind = ClosureKind.Singleton;
@@ -436,24 +445,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
 
+                Debug.Assert((object)translatedLambdaContainer != _topLevelMethod.ContainingType ||
+                             VarianceSafety.GetEnclosingVariantInterface(_topLevelMethod) is null);
+
                 // Move the body of the lambda to a freshly generated synthetic method on its frame.
                 topLevelMethodId = _analysis.GetTopLevelMethodId();
                 lambdaId = GetLambdaId(syntax, closureKind, closureOrdinal);
 
                 var synthesizedMethod = new SynthesizedClosureMethod(
                     translatedLambdaContainer,
-                    GetStructClosures(closure),
+                    getStructClosures(closure),
                     closureKind,
                     _topLevelMethod,
                     topLevelMethodId,
                     originalMethod,
                     closure.BlockSyntax,
-                    lambdaId,
-                    Diagnostics);
+                    lambdaId);
                 closure.SynthesizedLoweredMethod = synthesizedMethod;
             });
 
-            ImmutableArray<SynthesizedClosureEnvironment> GetStructClosures(Analysis.Closure closure)
+            static ImmutableArray<SynthesizedClosureEnvironment> getStructClosures(Analysis.Closure closure)
             {
                 var closuresBuilder = ArrayBuilder<SynthesizedClosureEnvironment>.GetInstance();
 
@@ -938,12 +949,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 do
                 {
                     oldTypeArg = newTypeArg;
-                    newTypeArg = this.TypeMap.SubstituteType(typeArg);
-
-                    // When type substitution does not change the type, it is expected to return the very same object.
-                    // Therefore the loop is terminated when that type (as an object) does not change.
+                    newTypeArg = this.TypeMap.SubstituteType(oldTypeArg);
                 }
-                while ((object)oldTypeArg.Type != newTypeArg.Type);
+                while (!TypeSymbol.Equals(oldTypeArg.Type, newTypeArg.Type, TypeCompareKind.ConsiderEverything));
+
+                // When type substitution does not change the type, it is expected to return the very same object.
+                // Therefore the loop is terminated when that type (as an object) does not change.
+                Debug.Assert((object)oldTypeArg.Type == newTypeArg.Type);
 
                 // The types are the same, so the last pass performed no substitutions.
                 // Therefore the annotations ought to be the same too.
@@ -987,6 +999,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructedFrame = translatedLambdaContainer;
             }
 
+            synthesizedMethod = synthesizedMethod.AsMember(constructedFrame);
+            if (synthesizedMethod.IsGenericMethod)
+            {
+                synthesizedMethod = synthesizedMethod.Construct(realTypeArguments);
+            }
+            else
+            {
+                Debug.Assert(realTypeArguments.Length == 0);
+            }
+
             // for instance lambdas, receiver is the frame
             // for static lambdas, get the singleton receiver
             if (closureKind == ClosureKind.Singleton)
@@ -996,21 +1018,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (closureKind == ClosureKind.Static)
             {
-                receiver = null;
+                receiver = new BoundTypeExpression(syntax, null, synthesizedMethod.ContainingType);
             }
             else // ThisOnly and General
             {
                 receiver = FrameOfType(syntax, constructedFrame);
-            }
-
-            synthesizedMethod = synthesizedMethod.AsMember(constructedFrame);
-            if (synthesizedMethod.IsGenericMethod)
-            {
-                synthesizedMethod = synthesizedMethod.Construct(realTypeArguments);
-            }
-            else
-            {
-                Debug.Assert(realTypeArguments.Length == 0);
             }
         }
 
@@ -1388,7 +1400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaId = new DebugId(_lambdaDebugInfoBuilder.Count, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
             }
 
-            int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree);
+            int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(lambdaOrLambdaBodySyntax), lambdaOrLambdaBodySyntax.SyntaxTree);
             _lambdaDebugInfoBuilder.Add(new LambdaDebugInfo(syntaxOffset, lambdaId, closureOrdinal));
             return lambdaId;
         }
@@ -1418,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNode tmpScope = null;
                 Analysis.VisitScopeTree(_analysis.ScopeTree, scope =>
                 {
-                    if (scope.DeclaredEnvironments.Contains(closure.ContainingEnvironmentOpt))
+                    if (scope.DeclaredEnvironment == closure.ContainingEnvironmentOpt)
                     {
                         tmpScope = scope.BoundNode;
                     }

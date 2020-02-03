@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -52,9 +54,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // We're going to be checking every invocation in the compilation. Cache information
                 // we compute in this object so we don't have to continually recompute it.
                 var infoCache = new InfoCache(compilationContext.Compilation);
-                compilationContext.RegisterOperationAction(
-                    c => AnalyzeInvocation(c, infoCache),
-                    OperationKind.Invocation);
+
+                // The System.Range type is always required to offer this fix.
+                if (infoCache.RangeType != null)
+                {
+                    compilationContext.RegisterOperationAction(
+                        c => AnalyzeInvocation(c, infoCache),
+                        OperationKind.Invocation);
+                }
             });
         }
 
@@ -78,8 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         {
             // Validate we're on a piece of syntax we expect.  While not necessary for analysis, we
             // want to make sure we're on something the fixer will know how to actually fix.
-            var invocationSyntax = invocation.Syntax as InvocationExpressionSyntax;
-            if (invocationSyntax is null ||
+            if (!(invocation.Syntax is InvocationExpressionSyntax invocationSyntax) ||
                 invocationSyntax.ArgumentList is null)
             {
                 return default;

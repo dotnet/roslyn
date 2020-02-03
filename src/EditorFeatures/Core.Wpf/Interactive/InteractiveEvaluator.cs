@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 extern alias Scripting;
 extern alias InteractiveHost;
 
@@ -133,17 +135,12 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             set
             {
-                if (value == null)
-                {
-                    throw new ArgumentNullException();
-                }
-
                 if (_currentWindow != null)
                 {
                     throw new NotSupportedException(InteractiveEditorFeaturesResources.The_CurrentWindow_property_may_only_be_assigned_once);
                 }
 
-                _currentWindow = value;
+                _currentWindow = value ?? throw new ArgumentNullException();
                 _workspace.Window = value;
 
                 Task.Run(() => _interactiveHost.SetOutputs(_currentWindow.OutputWriter, _currentWindow.ErrorOutputWriter));
@@ -395,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private Project CreateSubmissionProject(Solution solution, string languageName, ImmutableArray<string> imports, ImmutableArray<MetadataReference> references)
         {
-            var name = "Submission#" + (_submissionCount++);
+            var name = "Submission#" + _submissionCount++;
 
             // Grab a local copy so we aren't closing over the field that might change. The
             // collection itself is an immutable collection.

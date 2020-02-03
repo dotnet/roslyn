@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,8 +9,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -363,7 +363,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 this.AnalyzerConfigDocuments.Select(d => d.ToDocumentInfo()),
                 this.IsSubmission,
                 this.HostObjectType,
-                hasAllInformation: true)
+                hasAllInformation: true,
+                runAnalyzers: true)
                 .WithDefaultNamespace(this.DefaultNamespace);
         }
 
@@ -395,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private string GetTestOutputFilePath(string filepath)
         {
-            string outputFilePath = @"Z:\";
+            var outputFilePath = @"Z:\";
 
             try
             {

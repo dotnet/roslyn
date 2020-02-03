@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -463,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(typeNode, methodResult, boundArguments, diagnostics)
                     boundArguments = argumentInfo.Arguments
 
-                    ReportDiagnosticsIfObsolete(diagnostics, methodResult.Candidate.UnderlyingSymbol, node)
+                    ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, methodResult.Candidate.UnderlyingSymbol, node)
 
                     ' If a coclass was instantiated, convert the class to the interface type.
                     If type0.IsInterfaceType() Then

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
 Imports System.ComponentModel.Composition.Hosting
@@ -23,6 +25,7 @@ Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
@@ -33,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
     Friend Class TestEnvironment
         Implements IDisposable
 
-        Private Shared ReadOnly s_exportProviderFactory As Lazy(Of IExportProviderFactory) = New Lazy(Of IExportProviderFactory)(
+        Friend Shared ReadOnly s_exportCatalog As Lazy(Of ComposableCatalog) = New Lazy(Of ComposableCatalog)(
             Function()
                 Dim catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 catalog = catalog.WithParts(GetType(FileChangeWatcherProvider),
@@ -46,25 +49,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                                             GetType(CPSProjectFactory),
                                             GetType(VisualStudioRuleSetManagerFactory),
                                             GetType(VsMetadataServiceFactory),
-                                            GetType(VisualStudioMetadataReferenceManagerFactory))
-                Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog)
+                                            GetType(VisualStudioMetadataReferenceManagerFactory),
+                                            GetType(MockWorkspaceEventListenerProvider))
+
+                Return catalog
             End Function)
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
 
-        Public ReadOnly Property ThreadingContext As IThreadingContext
-        Public ReadOnly Property ServiceProvider As MockServiceProvider
-        Public ReadOnly Property ExportProvider As Composition.ExportProvider
+        Public Sub New(Optional solutionIsFullyLoaded As Boolean = True, Optional exportProviderFactory As IExportProviderFactory = Nothing)
 
-        Public Sub New(Optional solutionIsFullyLoaded As Boolean = True)
-            ExportProvider = s_exportProviderFactory.Value.CreateExportProvider()
+            If exportProviderFactory Is Nothing Then
+                exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(s_exportCatalog.Value)
+            End If
+
+            ExportProvider = exportProviderFactory.CreateExportProvider()
             _workspace = ExportProvider.GetExportedValue(Of VisualStudioWorkspaceImpl)
             ThreadingContext = ExportProvider.GetExportedValue(Of IThreadingContext)()
             Interop.WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
 
-            ServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
-            ServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(solutionIsFullyLoaded)
+            Dim mockServiceProvider As MockServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
+            mockServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(solutionIsFullyLoaded)
+            ServiceProvider = mockServiceProvider
         End Sub
 
         Public ReadOnly Property ProjectFactory As VisualStudioProjectFactory
@@ -81,7 +88,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
             <ImportingConstructor>
             Public Sub New(exportProvider As Composition.ExportProvider)
-                MyBase.New(exportProvider, exportProvider.GetExportedValue(Of MockServiceProvider))
+                MyBase.New(exportProvider,
+                           exportProvider.GetExportedValue(Of MockServiceProvider))
             End Sub
 
             Public Overrides Sub DisplayReferencedSymbols(solution As Microsoft.CodeAnalysis.Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))
@@ -104,6 +112,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Throw New NotImplementedException()
             End Function
         End Class
+
+        Public ReadOnly Property ThreadingContext As IThreadingContext
+        Public ReadOnly Property ServiceProvider As IServiceProvider
+        Public ReadOnly Property ExportProvider As Composition.ExportProvider
+
         Public ReadOnly Property Workspace As VisualStudioWorkspaceImpl
             Get
                 Return _workspace
@@ -129,7 +142,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function CreateHierarchy(projectName As String, projectBinPath As String, projectRefPath As String, projectCapabilities As String) As IVsHierarchy
-            Return New MockHierarchy(projectName, CreateProjectFile(projectName), projectBinPath, projectRefPath, projectCapabilities, Guid.NewGuid())
+            Return New MockHierarchy(projectName, CreateProjectFile(projectName), projectBinPath, projectRefPath, projectCapabilities)
         End Function
 
         Public Function GetUpdatedCompilationOptionOfSingleProject() As CompilationOptions
@@ -139,7 +152,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         <PartNotDiscoverable>
         <Export>
         <Export(GetType(SVsServiceProvider))>
-        Public Class MockServiceProvider
+        Private Class MockServiceProvider
             Implements System.IServiceProvider
             Implements SVsServiceProvider ' The shell service provider actually implements this too for people using that type directly
             Implements Shell.IAsyncServiceProvider
@@ -148,18 +161,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Private ReadOnly _fileChangeEx As MockVsFileChangeEx = New MockVsFileChangeEx
 
             Public MockMonitorSelection As IVsMonitorSelection
-            Public VsSolutionMock As MockVsSolution
 
             <ImportingConstructor>
             Public Sub New(exportProvider As Composition.ExportProvider)
                 _exportProvider = exportProvider
-                VsSolutionMock = New MockVsSolution()
             End Sub
 
             Public Function GetService(serviceType As Type) As Object Implements System.IServiceProvider.GetService
                 Select Case serviceType
                     Case GetType(SVsSolution)
-                        Return VsSolutionMock
+                        ' Return a loose mock that just is a big no-op
+                        Dim solutionMock As New Mock(Of IVsSolution)(MockBehavior.Loose)
+                        Return solutionMock.Object
 
                     Case GetType(SComponentModel)
                         Return GetComponentModelMock()
@@ -175,10 +188,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
                     Case GetType(SVsFileChangeEx)
                         Return _fileChangeEx
-
-                    Case GetType(SVsRunningDocumentTable)
-                        Dim rdtMock As New Mock(Of IVsRunningDocumentTable4)(MockBehavior.Loose)
-                        Return rdtMock.Object
 
                     Case Else
                         Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")

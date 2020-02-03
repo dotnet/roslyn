@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -1007,8 +1009,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             resultType As TypeSymbol,
             ByRef integerOverflow As Boolean,
             ByRef divideByZero As Boolean,
-            ByRef compoundLengthOutOfLimit As Boolean,
-            <[In], Out> Optional ByRef compoundStringLength As Integer = 0
+            ByRef lengthOutOfLimit As Boolean
         ) As ConstantValue
 
             Debug.Assert(left IsNot Nothing)
@@ -1017,7 +1018,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             integerOverflow = False
             divideByZero = False
-            compoundLengthOutOfLimit = False
+            lengthOutOfLimit = False
 
             Dim leftConstantValue As ConstantValue = left.ConstantValueOpt
             Dim rightConstantValue As ConstantValue = right.ConstantValueOpt
@@ -1082,11 +1083,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = FoldStringBinaryOperator(
                                                 op,
                                                 leftConstantValue,
-                                                rightConstantValue,
-                                                compoundStringLength)
+                                                rightConstantValue)
 
                     If result.IsBad Then
-                        compoundLengthOutOfLimit = True
+                        lengthOutOfLimit = True
                     End If
 
                 ElseIf leftUnderlying.IsBooleanType() Then
@@ -1487,41 +1487,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Returns ConstantValue.Bad if, and only if, compound string length is out of supported limit.
-        ''' The <paramref name="compoundStringLength"/> parameter contains value corresponding to the 
-        ''' <paramref name="left"/> node, or zero, which will trigger inference. Upon return, it will 
-        ''' be adjusted to correspond future result node.
         ''' </summary>
         Private Shared Function FoldStringBinaryOperator(
             op As BinaryOperatorKind,
             left As ConstantValue,
-            right As ConstantValue,
-            <[In], Out> Optional ByRef compoundStringLength As Integer = 0
+            right As ConstantValue
         ) As ConstantValue
             Debug.Assert((op And BinaryOperatorKind.OpMask) = op)
 
             Dim result As ConstantValue
 
-            Dim leftValue As String = If(left.IsNothing, String.Empty, left.StringValue)
-            Dim rightValue As String = If(right.IsNothing, String.Empty, right.StringValue)
-
             Select Case op
                 Case BinaryOperatorKind.Concatenate
-                    If compoundStringLength = 0 Then
-                        ' Infer. Keep it simple for now.
-                        compoundStringLength = leftValue.Length
-                    End If
 
-                    Debug.Assert(compoundStringLength >= leftValue.Length)
+                    Dim leftValue As Rope = If(left.IsNothing, Rope.Empty, left.RopeValue)
+                    Dim rightValue As Rope = If(right.IsNothing, Rope.Empty, right.RopeValue)
 
-                    Dim newCompoundLength = CLng(compoundStringLength) + CLng(leftValue.Length) + CLng(rightValue.Length)
+                    Dim newLength = CLng(leftValue.Length) + CLng(rightValue.Length)
 
-                    If newCompoundLength > Integer.MaxValue Then
+                    If newLength > Integer.MaxValue Then
                         Return ConstantValue.Bad
                     End If
 
                     Try
-                        result = ConstantValue.Create(String.Concat(leftValue, rightValue))
-                        compoundStringLength = CInt(newCompoundLength)
+                        result = ConstantValue.CreateFromRope(Rope.Concat(leftValue, rightValue))
                     Catch e As System.OutOfMemoryException
                         Return ConstantValue.Bad
                     End Try
@@ -1532,6 +1521,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      BinaryOperatorKind.LessThanOrEqual,
                      BinaryOperatorKind.Equals,
                      BinaryOperatorKind.NotEquals
+
+                    Dim leftValue As String = If(left.IsNothing, String.Empty, left.StringValue)
+                    Dim rightValue As String = If(right.IsNothing, String.Empty, right.StringValue)
 
                     Dim stringComparisonSucceeds As Boolean = False
 

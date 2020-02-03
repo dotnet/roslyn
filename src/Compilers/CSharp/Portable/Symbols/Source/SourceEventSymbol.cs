@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -302,17 +304,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            {
+                attribute.DecodeSkipLocalsInitAttribute<CommonEventWellKnownAttributeData>(DeclaringCompilation, ref arguments);
+            }
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
+            var compilation = this.DeclaringCompilation;
             var type = this.TypeWithAnnotations;
 
             if (type.Type.ContainsDynamic())
             {
-                var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length));
             }
 
@@ -322,9 +328,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
-            if (type.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, containingType.GetNullableContextValue(), type));
             }
         }
 
@@ -339,6 +345,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return data != null && data.HasSpecialNameAttribute;
             }
         }
+
+        public bool HasSkipLocalsInitAttribute
+            => GetDecodedWellKnownAttributeData()?.HasSkipLocalsInitAttribute == true;
 
         public sealed override bool IsAbstract
         {
@@ -636,13 +645,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool ComputeIsWindowsRuntimeEvent()
         {
-            // Interface events don't override or implement other events, so they only
-            // depend the output kind.
-            if (this.containingType.IsInterfaceType())
-            {
-                return this.IsCompilationOutputWinMdObj();
-            }
-
             // If you explicitly implement an event, then you're a WinRT event if and only if it's a WinRT event.
             ImmutableArray<EventSymbol> explicitInterfaceImplementations = this.ExplicitInterfaceImplementations;
             if (!explicitInterfaceImplementations.IsEmpty)
@@ -653,6 +655,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert((object)this.OverriddenEvent == null);
 
                 return explicitInterfaceImplementations[0].IsWindowsRuntimeEvent;
+            }
+
+            // Interface events don't override or implicitly implement other events, so they only
+            // depend on the output kind at this point.
+            if (this.containingType.IsInterfaceType())
+            {
+                return this.IsCompilationOutputWinMdObj();
             }
 
             // If you override an event, then you're a WinRT event if and only if it's a WinRT event.
@@ -675,7 +684,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (Symbol interfaceMember in @interface.GetMembers(this.Name))
                 {
                     if (interfaceMember.Kind == SymbolKind.Event && //quick check (necessary, not sufficient)
-                        this == this.containingType.FindImplementationForInterfaceMember(interfaceMember)) //slow check (necessary and sufficient)
+                        interfaceMember.IsImplementableInterfaceMember() &&
+                        // We are passing ignoreImplementationInInterfacesIfResultIsNotReady: true to avoid a cycle. If false is passed, FindImplementationForInterfaceMemberInNonInterface
+                        // will look how event accessors are implemented and we end up here again since we will need to know their signature for that.
+                        this == this.containingType.FindImplementationForInterfaceMemberInNonInterface(interfaceMember, ignoreImplementationInInterfacesIfResultIsNotReady: true)) //slow check (necessary and sufficient)
                     {
                         sawImplicitImplementation = true;
 
@@ -716,14 +728,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
+            var compilation = DeclaringCompilation;
             var location = this.Locations[0];
 
             this.CheckModifiersAndType(diagnostics);
-            this.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+            this.Type.CheckAllConstraints(compilation, conversions, location, diagnostics);
 
-            if (this.TypeWithAnnotations.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this) &&
+                TypeWithAnnotations.NeedsNullableAttribute())
             {
-                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
         }
     }

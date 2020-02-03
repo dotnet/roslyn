@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -47,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 if (NestedHierarchyHasProjectTreeCapability(item, "AnalyzerDependency"))
                 {
-                    var projectRootItem = FindProjectRootItem(item, out string targetFrameworkMoniker);
+                    var projectRootItem = FindProjectRootItem(item, out var targetFrameworkMoniker);
                     if (projectRootItem != null)
                     {
                         return CreateCollectionSourceCore(projectRootItem, item, targetFrameworkMoniker);
@@ -94,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             var projectTreeCapabilities = GetProjectTreeCapabilities(hierarchy, itemId);
 
-            bool isTargetNode = false;
+            var isTargetNode = false;
             string potentialTFM = null;
             foreach (var capability in projectTreeCapabilities)
             {
@@ -126,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 var hierarchy = projectRootItem.HierarchyIdentity.NestedHierarchy;
                 var itemId = projectRootItem.HierarchyIdentity.NestedItemID;
-                if (hierarchy.GetCanonicalName(itemId, out string projectCanonicalName) == VSConstants.S_OK)
+                if (hierarchy.GetCanonicalName(itemId, out var projectCanonicalName) == VSConstants.S_OK)
                 {
                     return new CpsDiagnosticItemSource(workspace, projectCanonicalName, projectId, item, _commandHandler, analyzerService);
                 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,6 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 diagnostics.Add(ErrorCode.ERR_BadDynamicQuery, fromClause.Expression.Location);
                 boundFromExpression = BadExpression(fromClause.Expression, boundFromExpression);
+            }
+            else
+            {
+                boundFromExpression = BindToNaturalType(boundFromExpression, diagnostics);
             }
 
             QueryTranslationState state = new QueryTranslationState();
@@ -225,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result.Update(
                 result.ReceiverOpt, result.Method, arguments.ToImmutableAndFree(), default(ImmutableArray<string>),
                 default(ImmutableArray<RefKind>), result.IsDelegateCall, result.Expanded, result.InvokedAsExtensionMethod,
-                argsToParams.ToImmutableAndFree(), result.ResultKind, result.BinderOpt, result.Type);
+                argsToParams.ToImmutableAndFree(), result.ResultKind, result.OriginalMethodsOpt, result.BinderOpt, result.Type);
         }
 
         private void ReduceQuery(QueryTranslationState state, DiagnosticBag diagnostics)
@@ -268,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReduceJoin(JoinClauseSyntax join, QueryTranslationState state, DiagnosticBag diagnostics)
         {
-            var inExpression = BindValue(join.InExpression, diagnostics, BindValueKind.RValue);
+            var inExpression = BindRValueWithoutTargetType(join.InExpression, diagnostics);
 
             // If the from expression is of the type dynamic we can't infer the types for any lambdas that occur in the query.
             // Only if there are none we could bind the query but we report an error regardless since such queries are not useful.
@@ -566,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaBodyBinder = lambdaBodyBinder.GetBinder(let.Expression);
                 Debug.Assert(lambdaBodyBinder != null);
 
-                var yExpression = lambdaBodyBinder.BindValue(let.Expression, d, BindValueKind.RValue);
+                var yExpression = lambdaBodyBinder.BindRValueWithoutTargetType(let.Expression, d);
                 SourceLocation errorLocation = new SourceLocation(let.SyntaxTree, new TextSpan(let.Identifier.SpanStart, let.Expression.Span.End - let.Identifier.SpanStart));
                 if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())
                 {
@@ -618,9 +624,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundQueryClause(
                 syntax: syntax, value: expression,
                 definedSymbol: definedSymbol,
-                queryInvocation: queryInvocation,
+                operation: queryInvocation,
                 binder: this,
-                castInvocation: castInvocation, unoptimizedForm: unoptimizedForm,
+                cast: castInvocation, unoptimizedForm: unoptimizedForm,
                 type: TypeOrError(expression));
         }
 
@@ -689,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeQueryUnboundLambda(node, new QueryUnboundLambdaState(this, qvm, parameters, bodyFactory));
         }
 
-        private UnboundLambda MakeQueryUnboundLambda(CSharpSyntaxNode node, QueryUnboundLambdaState state)
+        private static UnboundLambda MakeQueryUnboundLambda(CSharpSyntaxNode node, QueryUnboundLambdaState state)
         {
             Debug.Assert(node is ExpressionSyntax || LambdaUtilities.IsQueryPairLambda(node));
             var lambda = new UnboundLambda(node, state, hasErrors: false) { WasCompilerGenerated = true };

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -119,7 +121,7 @@ class C : IB, IC
             var compilation = CompileAndVerify(source);
             compilation.VerifyDiagnostics();
 
-            var globalNamespace = (NamespaceSymbol)compilation.Compilation.GlobalNamespace;
+            var globalNamespace = (NamespaceSymbol)((CSharpCompilation)compilation.Compilation).GlobalNamespace;
 
             var type = globalNamespace.GetMember<NamedTypeSymbol>("IA");
             CheckIndexer(type.Indexers.Single(), true, true, SpecialType.System_Object, SpecialType.System_String);
@@ -1279,7 +1281,7 @@ public class Derived : Base
             // Confirm that the base indexer is used (even though the derived indexer signature matches).
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(indexerAccessSyntax);
-            Assert.Equal(baseIndexer, symbolInfo.Symbol);
+            Assert.Equal(baseIndexer.GetPublicSymbol(), symbolInfo.Symbol);
         }
 
         /// <summary>
@@ -1780,19 +1782,18 @@ interface B
                 // (19,9): error CS0668: Two indexers have different names; the IndexerName attribute must be used with the same name on every indexer within a type
                 //     int this[long x] { get; }
                 Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this").WithLocation(19, 9),
-
-                // (12,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant1 = "X";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant1").WithArguments("default interface implementation").WithLocation(12, 18),
-                // (13,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "8.0").WithLocation(12, 18),
+                // (13,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant2 = A.Constant2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant2").WithArguments("default interface implementation").WithLocation(13, 18),
-                // (6,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "8.0").WithLocation(13, 18),
+                // (6,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant1 = B.Constant1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant1").WithArguments("default interface implementation").WithLocation(6, 18),
-                // (7,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "8.0").WithLocation(6, 18),
+                // (7,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant2 = B.Constant2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant2").WithArguments("default interface implementation").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "8.0").WithLocation(7, 18)
                 );
         }
 
@@ -1893,19 +1894,18 @@ interface B<T>
                 // (7,18): error CS0110: The evaluation of the constant value for 'A<T>.Constant2' involves a circular definition
                 //     const string Constant2 = B<int>.Constant2;
                 Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("A<T>.Constant2").WithLocation(7, 18),
-
-                // (15,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (15,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant1 = "X";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant1").WithArguments("default interface implementation").WithLocation(15, 18),
-                // (16,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "8.0").WithLocation(15, 18),
+                // (16,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant2 = A<bool>.Constant2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant2").WithArguments("default interface implementation").WithLocation(16, 18),
-                // (6,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "8.0").WithLocation(16, 18),
+                // (6,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant1 = B<string>.Constant1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant1").WithArguments("default interface implementation").WithLocation(6, 18),
-                // (7,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "8.0").WithLocation(6, 18),
+                // (7,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant2 = B<int>.Constant2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Constant2").WithArguments("default interface implementation").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "8.0").WithLocation(7, 18)
                 );
         }
 
@@ -2624,18 +2624,18 @@ public class Wrapper
             // The receiver of each access expression has an indexer group.
             foreach (var syntax in receiverSyntaxes)
             {
-                var type = model.GetTypeInfo(syntax).Type;
+                var type = model.GetTypeInfo(syntax).Type.GetSymbol();
                 Assert.NotNull(type);
 
                 var indexerGroup = model.GetIndexerGroup(syntax);
 
                 if (type.Equals(baseType))
                 {
-                    Assert.True(indexerGroup.SetEquals(baseIndexerGroup, EqualityComparer<IPropertySymbol>.Default));
+                    Assert.True(indexerGroup.SetEquals(baseIndexerGroup.GetPublicSymbols(), EqualityComparer<IPropertySymbol>.Default));
                 }
                 else if (type.Equals(derivedType))
                 {
-                    Assert.True(indexerGroup.SetEquals(derivedIndexerGroup, EqualityComparer<IPropertySymbol>.Default));
+                    Assert.True(indexerGroup.SetEquals(derivedIndexerGroup.GetPublicSymbols(), EqualityComparer<IPropertySymbol>.Default));
                 }
                 else
                 {
@@ -2708,17 +2708,17 @@ class Derived2 : Base
 
             // In declaring type, can see everything.
             Assert.True(model.GetIndexerGroup(receiverSyntaxes[0]).SetEquals(
-                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer, privateIndexer),
+                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer, privateIndexer).GetPublicSymbols(),
                 EqualityComparer<IPropertySymbol>.Default));
 
             // In subtype of declaring type, can see non-private.
             Assert.True(model.GetIndexerGroup(receiverSyntaxes[1]).SetEquals(
-                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer),
+                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer).GetPublicSymbols(),
                 EqualityComparer<IPropertySymbol>.Default));
 
             // In subtype of declaring type, can only see public (or internal) members of other subtypes.
             Assert.True(model.GetIndexerGroup(receiverSyntaxes[2]).SetEquals(
-                ImmutableArray.Create<PropertySymbol>(publicIndexer),
+                ImmutableArray.Create<PropertySymbol>(publicIndexer).GetPublicSymbols(),
                 EqualityComparer<IPropertySymbol>.Default));
         }
 

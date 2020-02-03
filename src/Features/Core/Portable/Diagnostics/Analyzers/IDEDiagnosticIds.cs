@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseImplicitTypeDiagnosticId = "IDE0007";
         public const string UseExplicitTypeDiagnosticId = "IDE0008";
         public const string AddQualificationDiagnosticId = "IDE0009";
-        public const string PopulateSwitchDiagnosticId = "IDE0010";
+        public const string PopulateSwitchStatementDiagnosticId = "IDE0010";
         public const string AddBracesDiagnosticId = "IDE0011";
 
         // IDE0012-IDE0015 deprecated and replaced with PreferBuiltInOrFrameworkTypeDiagnosticId (IDE0049)
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseCompoundAssignmentDiagnosticId = "IDE0054";
 
-        public const string FormattingDiagnosticId = "IDE0055";
+        public const string FormattingDiagnosticId = FormattingDiagnosticIds.FormattingDiagnosticId;
 
         public const string UseIndexOperatorDiagnosticId = "IDE0056";
         public const string UseRangeOperatorDiagnosticId = "IDE0057";
@@ -115,6 +115,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseRecommendedDisposePatternDiagnosticId = "IDE0068";
         public const string DisposableFieldsShouldBeDisposedDiagnosticId = "IDE0069";
 
+        public const string UseSystemHashCode = "IDE0070";
+
+        public const string SimplifyInterpolationId = "IDE0071";
+
+        public const string PopulateSwitchExpressionDiagnosticId = "IDE0072";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
@@ -124,5 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string NamingRuleId = "IDE1006";
         public const string UnboundIdentifierId = "IDE1007";
         public const string UnboundConstructorId = "IDE1008";
+
+        // Reserved for workspace error ids IDE1100-IDE1200 (see WorkspaceDiagnosticDescriptors)
     }
 }

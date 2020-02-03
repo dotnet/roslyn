@@ -1,13 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -103,9 +105,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return null;
             }
 
-            options = options ?? CompilerAnalyzerConfigOptions.Empty;
-            rules = rules ?? GetDefaultFormattingRules(syntaxFormattingService);
-            spans = spans ?? SpecializedCollections.SingletonEnumerable(node.FullSpan);
+            options ??= CompilerAnalyzerConfigOptions.Empty;
+            rules ??= GetDefaultFormattingRules(syntaxFormattingService);
+            spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
             return syntaxFormattingService.Format(node, spans, options, rules, cancellationToken);
         }
 

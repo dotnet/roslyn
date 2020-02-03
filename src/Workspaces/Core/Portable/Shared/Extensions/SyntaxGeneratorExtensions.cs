@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -17,14 +20,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class SyntaxGeneratorExtensions
     {
         public static SyntaxNode CreateThrowNotImplementedStatement(
-            this SyntaxGenerator codeDefinitionFactory,
-            Compilation compilation)
+            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
         {
             return codeDefinitionFactory.ThrowStatement(
-               codeDefinitionFactory.ObjectCreationExpression(
-                   codeDefinitionFactory.TypeExpression(compilation.NotImplementedExceptionType(), addImport: false),
-                   SpecializedCollections.EmptyList<SyntaxNode>()));
+               CreateNotImplementedException(codeDefinitionFactory, compilation));
         }
+
+        public static SyntaxNode CreateThrowNotImplementedExpression(
+            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
+        {
+            return codeDefinitionFactory.ThrowExpression(
+               CreateNotImplementedException(codeDefinitionFactory, compilation));
+        }
+
+        private static SyntaxNode CreateNotImplementedException(SyntaxGenerator codeDefinitionFactory, Compilation compilation)
+            => codeDefinitionFactory.ObjectCreationExpression(
+                    codeDefinitionFactory.TypeExpression(compilation.NotImplementedExceptionType(), addImport: false),
+                    SpecializedCollections.EmptyList<SyntaxNode>());
 
         public static ImmutableArray<SyntaxNode> CreateThrowNotImplementedStatementBlock(
             this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
@@ -258,7 +270,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // already declared as nullable to indicate that null is ok.  Adding a null check
             // just disallows something that should be allowed.
             var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck() && !parameter.Type.IsNullable();
-            if (shouldAddNullCheck && preferThrowExpression)
+
+            if (shouldAddNullCheck && preferThrowExpression && factory.SupportsThrowExpression())
             {
                 // Generate: this.x = x ?? throw ...
                 assignStatements.Add(CreateAssignWithNullCheckStatement(
@@ -425,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessibility: overriddenProperty.ComputeResultantAccessibility(containingType),
                 modifiers: modifiers,
                 name: overriddenProperty.Name,
-                parameters: overriddenProperty.Parameters.WithAttributesToBeCopied(containingType),
+                parameters: overriddenProperty.RemoveInaccessibleAttributesAndAttributesOfTypes(containingType).Parameters,
                 isIndexer: overriddenProperty.IsIndexer(),
                 getMethod: accessorGet,
                 setMethod: accessorSet);
@@ -524,10 +537,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    method: overriddenMethod,
+                    method: overriddenMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(newContainingType),
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
-                    parameters: overriddenMethod.Parameters.WithAttributesToBeCopied(newContainingType),
                     statements: overriddenMethod.ReturnsVoid
                         ? ImmutableArray.Create(codeFactory.ExpressionStatement(body))
                         : ImmutableArray.Create(codeFactory.ReturnStatement(body)));

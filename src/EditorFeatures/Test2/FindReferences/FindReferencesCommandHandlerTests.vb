@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.FindReferences
 Imports Microsoft.CodeAnalysis.Editor.Host
@@ -71,6 +73,10 @@ class C
             End Sub
 
             Public Function StartSearch(title As String, supportsReferences As Boolean) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearch
+                Return _context
+            End Function
+
+            Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
                 Return _context
             End Function
         End Class

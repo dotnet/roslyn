@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -91,9 +93,9 @@ class C
 {
     void M(string s, string t)
     {
-        {|FixAllInDocument:if|} (s == null)
+        if (s == null)
         {
-            throw new ArgumentNullException(nameof(s));
+            {|FixAllInDocument:throw new ArgumentNullException(nameof(s));|}
         }
 
         if (t == null)
@@ -132,9 +134,9 @@ class C
             throw new ArgumentNullException(nameof(s));
         }
 
-        {|FixAllInDocument:if|} (t == null)
+        if (t == null)
         {
-            throw new ArgumentNullException(nameof(t));
+            {|FixAllInDocument:throw new ArgumentNullException(nameof(t));|}
         }
 
         _s = s;

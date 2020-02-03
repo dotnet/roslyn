@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -18,18 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         {
         }
 
-        protected override IEnumerable<TextSpan> GetHighlights(
-            CheckedExpressionSyntax checkedExpressionSyntax, CancellationToken cancellationToken)
-        {
-            switch (checkedExpressionSyntax.Kind())
-            {
-                case SyntaxKind.CheckedExpression:
-                case SyntaxKind.UncheckedExpression:
-                    yield return checkedExpressionSyntax.Keyword.Span;
-                    break;
-                default:
-                    yield break;
-            }
-        }
+        protected override void AddHighlights(CheckedExpressionSyntax checkedExpressionSyntax, List<TextSpan> highlights, CancellationToken cancellationToken)
+            => highlights.Add(checkedExpressionSyntax.Keyword.Span);
     }
 }

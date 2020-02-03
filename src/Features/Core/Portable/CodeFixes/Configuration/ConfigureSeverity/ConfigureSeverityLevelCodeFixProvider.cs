@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,9 +16,8 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 {
-    // https://github.com/dotnet/roslyn/issues/36330 tracks uncommenting the below attributes.
-    //[ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    //[ExtensionOrder(Before = PredefinedCodeFixProviderNames.Suppression)]
+    [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.Suppression)]
     internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {
         private static readonly ImmutableArray<(string name, string value)> s_editorConfigSeverityStrings =
@@ -43,6 +44,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 
         private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
+            // Bail out if NativeEditorConfigSupport experiment is not enabled.
+            if (!EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(project.Solution.Workspace))
+            {
+                return ImmutableArray<CodeFix>.Empty;
+            }
+
             var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {

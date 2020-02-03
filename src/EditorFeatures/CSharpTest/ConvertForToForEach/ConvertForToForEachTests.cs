@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertForToForEach;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForToForEach
@@ -348,10 +351,11 @@ class C
 }");
         }
 
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
-        public async Task TestMissingOutsideKeyword()
+        public async Task TestBeforeKeyword()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -361,6 +365,18 @@ class C
        [||] for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v|} in array)
+        {
+            Console.WriteLine(v);
         }
     }
 }");
@@ -376,9 +392,40 @@ class C
 {
     void Test(string[] array)
     {
-        for ([||] int i = 0; i < array.Length; i++)
+        for ( [||]int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestInParentheses()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        for ([||]int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v|} in array)
+        {
+            Console.WriteLine(v);
         }
     }
 }");
@@ -394,9 +441,40 @@ class C
 {
     void Test(string[] array)
     {
-        for (int i = 0; i < array.Length; i++ [||])
+        for (int i = 0; i < array.Length; i++[||] )
         {
             Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestInParentheses2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        for (int i = 0; i < array.Length; i++[||])
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v|} in array)
+        {
+            Console.WriteLine(v);
         }
     }
 }");

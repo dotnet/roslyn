@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -77,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             _registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(workspace);
 
-            DiagnosticService = new DiagnosticService(_listenerProvider);
+            DiagnosticService = new DiagnosticService(_listenerProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
             DiagnosticService.Register(updateSource);
 
             if (createTaggerProvider)
@@ -144,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             internal MyDiagnosticAnalyzerService(
                 ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap,
                 IAsynchronousOperationListener listener)
-                : base(new HostAnalyzerManager(ImmutableArray.Create<AnalyzerReference>(new TestAnalyzerReferenceByLanguage(analyzersMap)), hostDiagnosticUpdateSource: null),
+                : base(new DiagnosticAnalyzerInfoCache(ImmutableArray.Create<AnalyzerReference>(new TestAnalyzerReferenceByLanguage(analyzersMap))),
                       hostDiagnosticUpdateSource: null,
                       registrationService: new MockDiagnosticUpdateSourceRegistrationService(),
                       listener: listener)

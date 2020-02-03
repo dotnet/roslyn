@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -20,6 +22,8 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
                     (currentDeclaration, generator) =>
                     {
                         return generator.GetAccessibility(currentDeclaration) == Accessibility.NotApplicable
-                                    ? generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility) // No accessibilty was declared, we need to add it
+                                    ? generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility) // No accessibility was declared, we need to add it
                                     : generator.WithAccessibility(currentDeclaration, Accessibility.NotApplicable); // There was an accessibility, so remove it                       
                     });
             }
@@ -64,7 +68,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             public MyCodeAction(CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Add_accessibility_modifiers, createChangedDocument, FeaturesResources.Add_accessibility_modifiers)
             {
-                this.Priority = priority;
+                Priority = priority;
             }
 
             internal override CodeActionPriority Priority { get; }

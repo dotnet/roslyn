@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -21,10 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // indent is the spaces/tabs between last new line (if there is one) and end of trivia
             var indent = precedingTrivia.AsString();
-            int lastNewLinePos = indent.LastIndexOf(NewLine, StringComparison.Ordinal);
+            var lastNewLinePos = indent.LastIndexOf(NewLine, StringComparison.Ordinal);
             if (lastNewLinePos != -1)
             {
-                int start = lastNewLinePos + NewLine.Length;
+                var start = lastNewLinePos + NewLine.Length;
                 indent = indent.Substring(start, indent.Length - start);
             }
 
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static string ContentBeforeLastNewLine(this IEnumerable<SyntaxTrivia> trivia)
         {
             var leading = trivia.AsString();
-            int lastNewLinePos = leading.LastIndexOf(NewLine, StringComparison.Ordinal);
+            var lastNewLinePos = leading.LastIndexOf(NewLine, StringComparison.Ordinal);
             if (lastNewLinePos == -1)
             {
                 return string.Empty;
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Positional patterns
-            if (token.Parent.IsKind(SyntaxKindEx.PositionalPatternClause) && token.Parent.Parent.IsKind(SyntaxKindEx.RecursivePattern))
+            if (token.Parent.IsKind(SyntaxKind.PositionalPatternClause) && token.Parent.Parent.IsKind(SyntaxKind.RecursivePattern))
             {
                 // Avoid treating tuple expressions as positional patterns for formatting
                 return token.Parent.Parent.GetFirstToken() != token;
@@ -143,10 +145,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsSemicolonInForStatement(this SyntaxToken token)
         {
-            var forStatement = token.Parent as ForStatementSyntax;
             return
                 token.Kind() == SyntaxKind.SemicolonToken &&
-                forStatement != null &&
+                token.Parent is ForStatementSyntax forStatement &&
                 (forStatement.FirstSemicolonToken == token || forStatement.SecondSemicolonToken == token);
         }
 
@@ -157,8 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            var statement = token.Parent as StatementSyntax;
-            if (statement == null ||
+            if (!(token.Parent is StatementSyntax statement) ||
                 statement.GetLastToken() != token)
             {
                 return false;
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            return token.Parent is ExpressionSyntax || token.Parent.IsKind(SyntaxKindEx.PropertyPatternClause);
+            return token.Parent is ExpressionSyntax || token.Parent.IsKind(SyntaxKind.PropertyPatternClause);
         }
 
         public static bool IsCloseBraceOfEmbeddedBlock(this SyntaxToken token)
@@ -184,8 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            var block = token.Parent as BlockSyntax;
-            if (block == null ||
+            if (!(token.Parent is BlockSyntax block) ||
                 block.CloseBraceToken != token)
             {
                 return false;
@@ -221,8 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsParenInParenthesizedExpression(this SyntaxToken token)
         {
-            var parenthesizedExpression = token.Parent as ParenthesizedExpressionSyntax;
-            if (parenthesizedExpression == null)
+            if (!(token.Parent is ParenthesizedExpressionSyntax parenthesizedExpression))
             {
                 return false;
             }
@@ -285,35 +283,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsCloseParenInStatement(this SyntaxToken token)
         {
-            var statement = token.Parent as StatementSyntax;
-            if (statement == null)
+            if (!(token.Parent is StatementSyntax statement))
             {
                 return false;
             }
 
-            switch (statement)
+            return statement switch
             {
-                case IfStatementSyntax ifStatement:
-                    return ifStatement.CloseParenToken.Equals(token);
-                case SwitchStatementSyntax switchStatement:
-                    return switchStatement.CloseParenToken.Equals(token);
-                case WhileStatementSyntax whileStatement:
-                    return whileStatement.CloseParenToken.Equals(token);
-                case DoStatementSyntax doStatement:
-                    return doStatement.CloseParenToken.Equals(token);
-                case ForStatementSyntax forStatement:
-                    return forStatement.CloseParenToken.Equals(token);
-                case CommonForEachStatementSyntax foreachStatement:
-                    return foreachStatement.CloseParenToken.Equals(token);
-                case LockStatementSyntax lockStatement:
-                    return lockStatement.CloseParenToken.Equals(token);
-                case UsingStatementSyntax usingStatement:
-                    return usingStatement.CloseParenToken.Equals(token);
-                case FixedStatementSyntax fixedStatement:
-                    return fixedStatement.CloseParenToken.Equals(token);
-            }
-
-            return false;
+                IfStatementSyntax ifStatement => ifStatement.CloseParenToken.Equals(token),
+                SwitchStatementSyntax switchStatement => switchStatement.CloseParenToken.Equals(token),
+                WhileStatementSyntax whileStatement => whileStatement.CloseParenToken.Equals(token),
+                DoStatementSyntax doStatement => doStatement.CloseParenToken.Equals(token),
+                ForStatementSyntax forStatement => forStatement.CloseParenToken.Equals(token),
+                CommonForEachStatementSyntax foreachStatement => foreachStatement.CloseParenToken.Equals(token),
+                LockStatementSyntax lockStatement => lockStatement.CloseParenToken.Equals(token),
+                UsingStatementSyntax usingStatement => usingStatement.CloseParenToken.Equals(token),
+                FixedStatementSyntax fixedStatement => fixedStatement.CloseParenToken.Equals(token),
+                _ => false,
+            };
         }
 
         public static bool IsDotInMemberAccessOrQualifiedName(this SyntaxToken token)
@@ -323,8 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsDotInMemberAccess(this SyntaxToken token)
         {
-            var memberAccess = token.Parent as MemberAccessExpressionSyntax;
-            if (memberAccess == null)
+            if (!(token.Parent is MemberAccessExpressionSyntax memberAccess))
             {
                 return false;
             }
@@ -354,19 +340,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => token.Kind() == SyntaxKind.ColonToken && token.Parent is CasePatternSwitchLabelSyntax;
 
         public static bool IsColonInSwitchExpressionArm(this SyntaxToken token)
-            => token.Kind() == SyntaxKind.ColonToken && token.Parent.IsKind(SyntaxKindEx.SwitchExpressionArm);
+            => token.Kind() == SyntaxKind.ColonToken && token.Parent.IsKind(SyntaxKind.SwitchExpressionArm);
 
         public static bool IsCommaInSwitchExpression(this SyntaxToken token)
-            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKindEx.SwitchExpression);
+            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.SwitchExpression);
 
         public static bool IsCommaInPropertyPatternClause(this SyntaxToken token)
-            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKindEx.PropertyPatternClause);
+            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.PropertyPatternClause);
 
         public static bool IsIdentifierInLabeledStatement(this SyntaxToken token)
         {
-            var labeledStatement = token.Parent as LabeledStatementSyntax;
             return token.Kind() == SyntaxKind.IdentifierToken &&
-                labeledStatement != null &&
+                token.Parent is LabeledStatementSyntax labeledStatement &&
                 labeledStatement.Identifier == token;
         }
 
@@ -377,9 +362,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsColonInLabeledStatement(this SyntaxToken token)
         {
-            var labeledStatement = token.Parent as LabeledStatementSyntax;
             return token.Kind() == SyntaxKind.ColonToken &&
-                labeledStatement != null &&
+                token.Parent is LabeledStatementSyntax labeledStatement &&
                 labeledStatement.ColonToken == token;
         }
 
@@ -396,17 +380,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsNestedQueryExpression(this SyntaxToken token)
         {
-            var fromClause = token.Parent as FromClauseSyntax;
             return token.Kind() == SyntaxKind.InKeyword &&
-                   fromClause != null &&
+                   token.Parent is FromClauseSyntax fromClause &&
                    fromClause.Expression is QueryExpressionSyntax;
         }
 
         public static bool IsFirstFromKeywordInExpression(this SyntaxToken token)
         {
-            var queryExpression = token.Parent.Parent as QueryExpressionSyntax;
             return token.Kind() == SyntaxKind.FromKeyword &&
-                   queryExpression != null &&
+                   token.Parent.Parent is QueryExpressionSyntax queryExpression &&
                    queryExpression.GetFirstToken().Equals(token);
         }
 
@@ -525,8 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             Contract.ThrowIfNull(node);
 
-            var blockNode = node as BlockSyntax;
-            if (blockNode == null || blockNode.Parent == null)
+            if (!(node is BlockSyntax blockNode) || blockNode.Parent == null)
             {
                 return false;
             }

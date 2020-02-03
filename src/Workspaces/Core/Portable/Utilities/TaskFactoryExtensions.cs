@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -8,20 +10,12 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Roslyn.Utilities
 {
+    // TODO: revisit https://github.com/dotnet/roslyn/issues/39222
+
     [SuppressMessage("ApiDesign", "CA1068", Justification = "Matching TPL Signatures")]
     internal static partial class TaskFactoryExtensions
     {
         public static Task SafeStartNew(this TaskFactory factory, Action action, CancellationToken cancellationToken, TaskScheduler scheduler)
-        {
-            return factory.SafeStartNew(action, cancellationToken, TaskCreationOptions.None, scheduler);
-        }
-
-        public static Task SafeStartNew(
-            this TaskFactory factory,
-            Action action,
-            CancellationToken cancellationToken,
-            TaskCreationOptions creationOptions,
-            TaskScheduler scheduler)
         {
             void wrapped()
             {
@@ -35,21 +29,10 @@ namespace Roslyn.Utilities
                 }
             }
 
-            // The one and only place we can call StartNew().
-            return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
+            return factory.StartNew(wrapped, cancellationToken, TaskCreationOptions.None, scheduler);
         }
 
         public static Task<TResult> SafeStartNew<TResult>(this TaskFactory factory, Func<TResult> func, CancellationToken cancellationToken, TaskScheduler scheduler)
-        {
-            return factory.SafeStartNew(func, cancellationToken, TaskCreationOptions.None, scheduler);
-        }
-
-        public static Task<TResult> SafeStartNew<TResult>(
-            this TaskFactory factory,
-            Func<TResult> func,
-            CancellationToken cancellationToken,
-            TaskCreationOptions creationOptions,
-            TaskScheduler scheduler)
         {
             TResult wrapped()
             {
@@ -63,42 +46,21 @@ namespace Roslyn.Utilities
                 }
             }
 
-            // The one and only place we can call StartNew<>().
-            return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
+            return factory.StartNew(wrapped, cancellationToken, TaskCreationOptions.None, scheduler);
         }
 
         public static Task SafeStartNewFromAsync(this TaskFactory factory, Func<Task> actionAsync, CancellationToken cancellationToken, TaskScheduler scheduler)
         {
-            return factory.SafeStartNewFromAsync(actionAsync, cancellationToken, TaskCreationOptions.None, scheduler);
-        }
-
-        public static Task SafeStartNewFromAsync(
-            this TaskFactory factory,
-            Func<Task> actionAsync,
-            CancellationToken cancellationToken,
-            TaskCreationOptions creationOptions,
-            TaskScheduler scheduler)
-        {
             // The one and only place we can call StartNew<>().
-            var task = factory.StartNew(actionAsync, cancellationToken, creationOptions, scheduler).Unwrap();
+            var task = factory.StartNew(actionAsync, cancellationToken, TaskCreationOptions.None, scheduler).Unwrap();
             TaskExtensions.ReportFatalError(task, actionAsync);
             return task;
         }
 
         public static Task<TResult> SafeStartNewFromAsync<TResult>(this TaskFactory factory, Func<Task<TResult>> funcAsync, CancellationToken cancellationToken, TaskScheduler scheduler)
         {
-            return factory.SafeStartNewFromAsync(funcAsync, cancellationToken, TaskCreationOptions.None, scheduler);
-        }
-
-        public static Task<TResult> SafeStartNewFromAsync<TResult>(
-            this TaskFactory factory,
-            Func<Task<TResult>> funcAsync,
-            CancellationToken cancellationToken,
-            TaskCreationOptions creationOptions,
-            TaskScheduler scheduler)
-        {
             // The one and only place we can call StartNew<>().
-            var task = factory.StartNew(funcAsync, cancellationToken, creationOptions, scheduler).Unwrap();
+            var task = factory.StartNew(funcAsync, cancellationToken, TaskCreationOptions.None, scheduler).Unwrap();
             TaskExtensions.ReportFatalError(task, funcAsync);
             return task;
         }

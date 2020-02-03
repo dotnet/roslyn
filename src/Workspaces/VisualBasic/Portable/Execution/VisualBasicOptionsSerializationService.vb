@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -30,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             writer.WriteBoolean(vbOptions.OptionCompareText)
             writer.WriteBoolean(vbOptions.EmbedVbCoreRuntime)
 
-            ' save parse option for embeded types - My types
+            ' save parse option for embedded types - My types
             writer.WriteBoolean(vbOptions.ParseOptions IsNot Nothing)
             If vbOptions.ParseOptions IsNot Nothing Then
                 WriteTo(vbOptions.ParseOptions, writer, cancellationToken)
@@ -50,11 +52,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
                 ' all value here should be primitive types
                 writer.WriteValue(kv.Value)
             Next
-        End Sub
-
-        Public Overrides Sub WriteTo(options As OptionSet, writer As ObjectWriter, cancellationToken As CancellationToken)
-            WriteOptionSetTo(options, LanguageNames.VisualBasic, writer, cancellationToken)
-            WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken)
         End Sub
 
         Public Overrides Function ReadCompilationOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As CompilationOptions
@@ -127,15 +124,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             Next
             Dim options = New VisualBasicParseOptions(languageVersion, documentationMode, kind, builder.MoveToImmutable())
             Return options.WithFeatures(features)
-        End Function
-
-        Public Overrides Function ReadOptionSetFrom(reader As ObjectReader, cancellationToken As CancellationToken) As OptionSet
-            Dim options As OptionSet = New SerializedPartialOptionSet()
-
-            options = ReadOptionSetFrom(options, LanguageNames.VisualBasic, reader, cancellationToken)
-            options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken)
-
-            Return options
         End Function
     End Class
 End Namespace

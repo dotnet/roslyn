@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -337,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var result = results[f];
                 TMember member = result.Member;
-                if (result.Result.IsValid && member.IsStatic != keepStatic)
+                if (result.Result.IsValid && member.RequiresInstanceReceiver() == keepStatic)
                 {
                     results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
                 }
@@ -2067,8 +2069,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   argument is more specific and no type argument is less specific than the
             //   corresponding type argument in the other. 
 
-            var n1 = t1.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
-            var n2 = t2.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
+            var n1 = t1 as NamedTypeSymbol;
+            var n2 = t2 as NamedTypeSymbol;
             Debug.Assert(((object)n1 == null) == ((object)n2 == null));
 
             if ((object)n1 == null)
@@ -2341,12 +2343,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceArguments = tupleSource.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
-            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
+            if (!destination.IsTupleTypeOfCardinality(sourceArguments.Length))
             {
                 return false;
             }
 
-            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
+            var destTypes = destination.TupleElementTypesWithAnnotations;
             Debug.Assert(sourceArguments.Length == destTypes.Length);
 
             for (int i = 0; i < sourceArguments.Length; i++)

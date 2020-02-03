@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -30,15 +32,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     internal abstract class AbstractOptionPreviewViewModel : AbstractNotifyPropertyChanged, IDisposable
     {
-        private IComponentModel _componentModel;
+        private readonly IComponentModel _componentModel;
         private IWpfTextViewHost _textViewHost;
 
-        private IContentType _contentType;
-        private IEditorOptionsFactoryService _editorOptions;
-        private ITextEditorFactoryService _textEditorFactoryService;
-        private ITextBufferFactoryService _textBufferFactoryService;
-        private IProjectionBufferFactoryService _projectionBufferFactory;
-        private IContentTypeRegistryService _contentTypeRegistryService;
+        private readonly IContentType _contentType;
+        private readonly IEditorOptionsFactoryService _editorOptions;
+        private readonly ITextEditorFactoryService _textEditorFactoryService;
+        private readonly ITextBufferFactoryService _textBufferFactoryService;
+        private readonly IProjectionBufferFactoryService _projectionBufferFactory;
+        private readonly IContentTypeRegistryService _contentTypeRegistryService;
 
         public List<object> Items { get; set; }
         public ObservableCollection<AbstractCodeStyleOptionViewModel> CodeStyleItems { get; set; }

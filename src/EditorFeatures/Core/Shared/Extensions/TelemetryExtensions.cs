@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Globalization;
@@ -28,15 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         public static short GetScopeIdForTelemetry(this FixAllScope scope)
-        {
-            switch (scope)
+            => (short)(scope switch
             {
-                case FixAllScope.Document: return 1;
-                case FixAllScope.Project: return 2;
-                case FixAllScope.Solution: return 3;
-                default: return 4;
-            }
-        }
+                FixAllScope.Document => 1,
+                FixAllScope.Project => 2,
+                FixAllScope.Solution => 3,
+                _ => 4,
+            });
 
         public static string GetTelemetryDiagnosticID(this Diagnostic diagnostic)
         {

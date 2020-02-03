@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var containingSymbol = symbol.ContainingSymbol;
 
-                while (!containingSymbol.DeclaringSyntaxReferences.Any())
+                while (containingSymbol.DeclaringSyntaxReferences.IsDefaultOrEmpty)
                 {
                     containingSymbol = containingSymbol.ContainingSymbol;
                 }
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis
                 SymbolKind kind, string localName,
                 CancellationToken cancellationToken)
             {
-                int ordinal = 0;
+                var ordinal = 0;
 
                 foreach (var declaringLocation in containingSymbol.DeclaringSyntaxReferences)
                 {
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis
                     // Dictionary<SyntaxTree, ...> that it uses to check if the SyntaxTree
                     // is applicable wheras the public interface requires us to enumerate
                     // the entire IEnumerable of trees in the Compilation.
-                    if (!compilation.SyntaxTrees.Contains(declaringLocation.SyntaxTree))
+                    if (!Contains(compilation.SyntaxTrees, declaringLocation.SyntaxTree))
                     {
                         continue;
                     }
@@ -112,6 +113,19 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
+            }
+
+            private static bool Contains(IEnumerable<SyntaxTree> trees, SyntaxTree tree)
+            {
+                foreach (var current in trees)
+                {
+                    if (current == tree)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
     }

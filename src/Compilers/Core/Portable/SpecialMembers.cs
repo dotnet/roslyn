@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
@@ -834,6 +838,15 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
+                // System_Object__EqualsObjectObject
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)SpecialType.System_Object,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
+
                 // System_Object__ToString
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
                 (byte)SpecialType.System_Object,                                                                            // DeclaringTypeId
@@ -1099,6 +1112,7 @@ namespace Microsoft.CodeAnalysis
                 "GetUpperBound",                            // System_Array__GetUpperBound
                 "GetHashCode",                              // System_Object__GetHashCode
                 "Equals",                                   // System_Object__Equals
+                "Equals",                                   // System_Object__EqualsObjectObject
                 "ToString",                                 // System_Object__ToString
                 "ReferenceEquals",                          // System_Object__ReferenceEquals
                 "op_Explicit",                              // System_IntPtr__op_Explicit_ToPointer

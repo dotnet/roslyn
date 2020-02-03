@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -76,8 +78,8 @@ static class S2
             CheckTypes(sourceType, retargetingType);
 
             CheckMethods(sourceMethod, retargetingMethod);
-            var sourceReduced = sourceMethod.ReduceExtensionMethod(sourceType);
-            var retargetingReduced = retargetingMethod.ReduceExtensionMethod(retargetingType);
+            var sourceReduced = sourceMethod.ReduceExtensionMethod(sourceType, null!);
+            var retargetingReduced = retargetingMethod.ReduceExtensionMethod(retargetingType, null!);
             CheckReducedExtensionMethods(sourceReduced, retargetingReduced);
         }
 
@@ -462,11 +464,11 @@ public class TestS { }
             var retargetingAssembly = new RetargetingAssemblySymbol((SourceAssemblySymbol)comp.Assembly, isLinked: false);
             var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             Assert.IsType<RetargetingNamedTypeSymbol>(retargetingType);
-            Assert.False(((INamedTypeSymbol)retargetingType).IsSerializable);
+            Assert.False(retargetingType.IsSerializable);
 
             var retargetingTypeS = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("TestS");
             Assert.IsType<RetargetingNamedTypeSymbol>(retargetingTypeS);
-            Assert.True(((INamedTypeSymbol)retargetingTypeS).IsSerializable);
+            Assert.True(retargetingTypeS.IsSerializable);
         }
 
         [Fact]
@@ -814,8 +816,8 @@ class C1<T>
             Assert.Equal(a == null, b == null);
             if (a != null)
             {
-                CheckSymbols((TypeSymbol)a.TryGetSafeArrayElementUserDefinedSubtype(),
-                             (TypeSymbol)b.TryGetSafeArrayElementUserDefinedSubtype(),
+                CheckSymbols((Symbol)a.TryGetSafeArrayElementUserDefinedSubtype(),
+                             (Symbol)b.TryGetSafeArrayElementUserDefinedSubtype(),
                              recurse: false);
             }
         }

@@ -10,7 +10,7 @@ $branchNames = @(
 function Get-AzureBadge($branchName, $jobName, $configName, [switch]$integration = $false) {
     $name = if ($integration) { "roslyn-integration-CI" } else { "roslyn-CI" }
     $id = if ($integration) { 245 } else { 15 }
-    $template = "[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/$($name)?branchname=$branchName&jobname=$jobName&configuration=$configName)]"
+    $template = "[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/$($name)?branchname=$branchName&jobname=$jobName&configuration=$jobName$configName&label=build)]"
     $template += "(https://dev.azure.com/dnceng/public/_build/latest?definitionId=$($id)&branchname=$branchName&view=logs)"
     return $template
 }
@@ -18,9 +18,14 @@ function Get-AzureBadge($branchName, $jobName, $configName, [switch]$integration
 function Get-AzureLine($branchName, $jobNames, [switch]$integration = $false) {
     $line = "**$branchName**|"
     foreach ($jobName in $jobNames) {
+
+        $configName = ""
         $i = $jobName.IndexOf('#')
-        $configName = $jobName.SubString($i + 1)
-        $jobName = $jobName.Substring(0, $i)
+        if ($i -ge 0)
+        {
+            $configName = "%20$($jobName.SubString($i + 1))"
+            $jobName = $jobName.Substring(0, $i)
+        }
 
         $line += Get-AzureBadge $branchName $jobName $configName -integration:$integration
         $line += "|"
@@ -71,14 +76,16 @@ function Get-CoreClrTable() {
 
 function Get-IntegrationTable() {
     $jobNames = @(
-        'Windows_VisualStudio_Integration_Tests#debug',
-        'Windows_VisualStudio_Integration_Tests#release'
+        'VS_Integration#debug_async',
+        'VS_Integration#release_async',
+        'VS_Integration#debug_legacy',
+        'VS_Integration#release_legacy'
     )
 
     $table = @'
 ### Integration Tests
-|Branch|Debug|Release|
-|:--:|:--:|:--:|
+|Branch|Debug|Release|Debug (Legacy completion)|Release (Legacy completion)
+|:--:|:--:|:--:|:--:|:--:|
 
 '@
 
@@ -91,9 +98,9 @@ function Get-IntegrationTable() {
 
 function Get-MiscTable() {
     $jobNames = @(
-        'Windows_Determinism_Test#',
-        'Windows_Correctness_Test#',
-        'Windows_Desktop_Spanish_Unit_Tests#',
+        'Windows_Determinism_Test',
+        'Windows_Correctness_Test',
+        'Windows_Desktop_Spanish_Unit_Tests',
         'Linux_Test#mono'
     )
 
@@ -114,8 +121,6 @@ function Get-MiscTable() {
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 try {
-    . (Join-Path $PSScriptRoot "build-utils.ps1")
-    
 
     Get-DesktopTable | Write-Output
     Get-CoreClrTable | Write-Output

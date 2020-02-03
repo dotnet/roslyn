@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 var workspace = _peekableItem._workspace;
                 var solution = workspace.CurrentSolution;
                 var project = solution.GetProject(_peekableItem._projectId);
-                var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
                 var symbol = _peekableItem._symbolKey.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken).Symbol;
                 if (symbol == null)
@@ -72,14 +74,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 if (!sourceLocations.Any())
                 {
                     // It's a symbol from metadata, so we want to go produce it from metadata
-                    var declarationFile = _peekableItem._metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation: false, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var declarationFile = _peekableItem._metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation: false, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
                     var peekDisplayInfo = new PeekResultDisplayInfo(declarationFile.DocumentTitle, declarationFile.DocumentTitle, declarationFile.DocumentTitle, declarationFile.DocumentTitle);
                     var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                     var entityOfInterestSpan = PeekHelpers.GetEntityOfInterestSpan(symbol, workspace, declarationFile.IdentifierLocation, cancellationToken);
                     resultCollection.Add(PeekHelpers.CreateDocumentPeekResult(declarationFile.FilePath, identifierSpan, entityOfInterestSpan, peekDisplayInfo, _peekableItem.PeekResultFactory, isReadOnly: true));
                 }
 
-                int processedSourceLocations = 0;
+                var processedSourceLocations = 0;
 
                 foreach (var declaration in sourceLocations)
                 {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 void AnalyzeOperation(OperationAnalysisContext operationContext)
                 {
                     var fieldReference = (IFieldReferenceOperation)operationContext.Operation;
-                    (bool isCandidate, bool written) = TryGetOrInitializeFieldState(fieldReference.Field, operationContext.Options, operationContext.CancellationToken);
+                    var (isCandidate, written) = TryGetOrInitializeFieldState(fieldReference.Field, operationContext.Options, operationContext.CancellationToken);
 
                     // Ignore fields that are not candidates or have already been written outside the constructor/field initializer.
                     if (!isCandidate || written)
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     {
                         if (member is IFieldSymbol field && fieldStateMap.TryRemove(field, out var value))
                         {
-                            (bool isCandidate, bool written) = value;
+                            var (isCandidate, written) = value;
                             if (isCandidate && !written)
                             {
                                 var option = GetCodeStyleOption(field, symbolEndContext.Options, symbolEndContext.CancellationToken);
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     }
                 }
 
-                bool IsCandidateField(IFieldSymbol symbol) =>
+                static bool IsCandidateField(IFieldSymbol symbol) =>
                         symbol.DeclaredAccessibility == Accessibility.Private &&
                         !symbol.IsReadOnly &&
                         !symbol.IsConst &&
@@ -136,7 +138,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 }
 
                 // Method to compute the initial field state.
-                (bool isCandidate, bool written) ComputeInitialFieldState(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
+                static (bool isCandidate, bool written) ComputeInitialFieldState(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
                 {
                     Debug.Assert(IsCandidateField(field));
 

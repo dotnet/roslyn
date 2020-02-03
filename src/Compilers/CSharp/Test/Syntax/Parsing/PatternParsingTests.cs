@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Text;
@@ -1840,17 +1842,14 @@ case KeyValuePair<String, DateTime>[] pairs2:
         {
             var expect = new[]
             { 
-                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case (x: ((3))): ; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x: ((3)))").WithArguments("recursive patterns").WithLocation(1, 19)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(x: ((3)))").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
             };
             UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularWithoutRecursivePatterns, expect);
             checkNodes();
 
-            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularDefault, expect);
-            checkNodes();
-
-            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularPreview);
+            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.Regular8);
             checkNodes();
 
             void checkNodes()
@@ -1926,9 +1925,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 // (1,19): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 // switch (e) { case (((x: 3))): ; }
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(((x: 3)))").WithLocation(1, 19),
-                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case (((x: 3))): ; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(((x: 3)))").WithArguments("recursive patterns").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(((x: 3)))").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
                 // (1,20): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 // switch (e) { case (((x: 3))): ; }
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "((x: 3))").WithLocation(1, 20)
@@ -2012,9 +2011,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void RecursivePattern_01()
         {
             UsingStatement(@"switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T(X: 3, Y: 4){L: 5} p").WithArguments("recursive patterns").WithLocation(1, 19)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T(X: 3, Y: 4){L: 5} p").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
                 );
             N(SyntaxKind.SwitchStatement);
             {
@@ -2123,9 +2122,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void BrokenPattern_06()
         {
             UsingStatement(@"switch (e) { case (: ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case (: ; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(: ").WithArguments("recursive patterns").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(: ").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
                 // (1,20): error CS1001: Identifier expected
                 // switch (e) { case (: ; }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 20),
@@ -2175,9 +2174,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void BrokenPattern_07()
         {
             UsingStatement(@"switch (e) { case (", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case (
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(").WithArguments("recursive patterns").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
                 // (1,20): error CS1026: ) expected
                 // switch (e) { case (
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 20),
@@ -2188,15 +2187,45 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 // switch (e) { case (
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 20)
             );
+
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.PositionalPatternClause);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.ColonToken);
+                    }
+                }
+                M(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
         }
 
         [Fact]
         public void ParenthesizedExpression_07()
         {
             UsingStatement(@"switch (e) { case (): }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case (): }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("recursive patterns").WithLocation(1, 19));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "()").WithArguments("recursive patterns", "8.0").WithLocation(1, 19));
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -2242,15 +2271,41 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 // switch (e) { case
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 18)
                 );
+
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CaseSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.ColonToken);
+                    }
+                }
+                M(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
         }
 
         [Fact]
         public void ParenthesizedExpression_05()
         {
             UsingStatement(@"switch (e) { case (x: ): ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case (x: ): ; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x: )").WithArguments("recursive patterns").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(x: )").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
                 // (1,23): error CS8504: Pattern missing
                 // switch (e) { case (x: ): ; }
                 Diagnostic(ErrorCode.ERR_MissingPattern, ")").WithLocation(1, 23)
@@ -2312,9 +2367,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void EmptySwitchExpression()
         {
             UsingExpression("1 switch {}", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // 1 switch {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch {}").WithArguments("recursive patterns").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch {}").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -2333,9 +2388,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void SwitchExpression01()
         {
             UsingExpression("1 switch {a => b, c => d}", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // 1 switch {a => b, c => d}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch {a => b, c => d}").WithArguments("recursive patterns").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch {a => b, c => d}").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -2385,9 +2440,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void SwitchExpression02()
         {
             UsingExpression("1 switch { a?b:c => d }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // 1 switch { a?b:c => d }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch { a?b:c => d }").WithArguments("recursive patterns").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { a?b:c => d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1),
                 // (1,13): error CS1003: Syntax error, '=>' expected
                 // 1 switch { a?b:c => d }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>", "?").WithLocation(1, 13),
@@ -2448,9 +2503,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void SwitchExpression03()
         {
             UsingExpression("1 switch { (a, b, c) => d }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // 1 switch { (a, b, c) => d }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch { (a, b, c) => d }").WithArguments("recursive patterns").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { (a, b, c) => d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -2519,9 +2574,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
             // This put the parser into an infinite loop at one time. The precise diagnostics and nodes
             // are not as important as the fact that it terminates.
             UsingStatement("switch (e) { case T( : Q x = n; break; } ", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,19): error CS8652: The feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // switch (e) { case T( : Q x = n; break; } 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T( : Q x = n").WithArguments("recursive patterns").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T( : Q x = n").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
                 // (1,22): error CS1001: Identifier expected
                 // switch (e) { case T( : Q x = n; break; } 
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 22),
@@ -5187,7 +5242,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         }
 
         [Fact]
-        public void ParenthseizedExpressionOfSwitchExpression()
+        public void ParenthesizedExpressionOfSwitchExpression()
         {
             UsingStatement("Console.Write((t) switch {var x => x});");
             N(SyntaxKind.ExpressionStatement);
@@ -7827,6 +7882,333 @@ switch (e)
                 N(SyntaxKind.CloseBraceToken);
             }
             EOF();
+        }
+
+        [Fact, WorkItem(34482, "https://github.com/dotnet/roslyn/issues/34482")]
+        public void SwitchCaseArmErrorRecovery_01()
+        {
+            UsingExpression("e switch { 1 => 1; 2 => 2 }",
+                // (1,18): error CS1003: Syntax error, ',' expected
+                // e switch { 1 => 1; 2 => 2 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 18)
+                );
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                M(SyntaxKind.CommaToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(34482, "https://github.com/dotnet/roslyn/issues/34482")]
+        public void SwitchCaseArmErrorRecovery_02()
+        {
+            UsingExpression("e switch { 1 => 1, 2 => 2; }",
+                // (1,26): error CS1003: Syntax error, ',' expected
+                // e switch { 1 => 1, 2 => 2; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 26)
+                );
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                M(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(38121, "https://github.com/dotnet/roslyn/issues/38121")]
+        public void GenericPropertyPattern()
+        {
+            UsingExpression("e is A<B> {}");
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void PrecedenceInversionWithDeclarationPattern()
+        {
+            UsingExpression("o is C c + d",
+                // (1,10): error CS1073: Unexpected token '+'
+                // o is C c + d
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 10)
+                );
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                    }
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void PrecedenceInversionWithRecursivePattern()
+        {
+            UsingExpression("o is {} + d",
+                // (1,9): error CS1073: Unexpected token '+'
+                // o is {} + d
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 9)
+                );
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PropertyPatternClause);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void PrecedenceInversionWithTypeTest()
+        {
+            UsingExpression("o is int + d",
+                // (1,6): error CS1525: Invalid expression term 'int'
+                // o is int + d
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 6)
+                );
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "o");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "d");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void PrecedenceInversionWithBlockLambda()
+        {
+            UsingExpression("() => {} + d",
+                TestOptions.Regular.WithStrictFeature(),
+                // (1,10): error CS1073: Unexpected token '+'
+                // () => {} + d
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 10)
+                );
+            verify();
+
+            UsingExpression("()=>{} + d");
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "d");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
+        public void PrecedenceInversionWithAnonymousMethod()
+        {
+            UsingExpression("delegate {} + d",
+                TestOptions.Regular.WithStrictFeature(),
+                // (1,13): error CS1073: Unexpected token '+'
+                // delegate {} + d
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 13)
+                );
+            verify();
+
+            UsingExpression("delegate {} + d");
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.AnonymousMethodExpression);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "d");
+                    }
+                }
+                EOF();
+            }
         }
     }
 }

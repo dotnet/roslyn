@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 extern alias InteractiveHost;
 
 using System;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         private InteractiveHost CreateProcess()
         {
-            var p = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: 1);
+            var p = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: 1, joinOutputWritingThreadsOnDisposal: true);
             _processes.Add(p);
             return p;
         }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,15 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitFieldType(IFieldSymbol symbol)
         {
-            var fieldSymbol = symbol as FieldSymbol;
-            if ((object)fieldSymbol == null)
-            {
-                symbol.Type.Accept(this.NotFirstVisitor);
-            }
-            else
-            {
-                VisitTypeWithAnnotations(fieldSymbol.TypeWithAnnotations);
-            }
+            symbol.Type.Accept(this.NotFirstVisitor);
         }
 
         public override void VisitField(IFieldSymbol symbol)
@@ -108,14 +102,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (method is SourcePropertyAccessorSymbol sourceAccessor && propertyOpt is SourcePropertySymbol sourceProperty)
+            if ((method as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol is SourcePropertyAccessorSymbol sourceAccessor &&
+                (propertyOpt as Symbols.PublicModel.PropertySymbol)?.UnderlyingSymbol is SourcePropertySymbol sourceProperty)
             {
                 // only display if the accessor is explicitly readonly
                 return sourceAccessor.LocalDeclaredReadOnly || sourceProperty.HasReadOnlyModifier;
             }
-            else if (method is MethodSymbol m)
+            else if (method is Symbols.PublicModel.MethodSymbol m)
             {
-                return m.IsDeclaredReadOnly;
+                return m.UnderlyingMethodSymbol.IsDeclaredReadOnly;
             }
 
             return false;
@@ -144,16 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
 
-                var propertySymbol = symbol as PropertySymbol;
-                if ((object)propertySymbol == null)
-                {
-                    symbol.Type.Accept(this.NotFirstVisitor);
-                }
-                else
-                {
-                    VisitTypeWithAnnotations(propertySymbol.TypeWithAnnotations);
-                }
-
+                symbol.Type.Accept(this.NotFirstVisitor);
                 AddSpace();
 
                 AddCustomModifiersIfRequired(symbol.TypeCustomModifiers);
@@ -231,17 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
             {
-                var eventSymbol = symbol as EventSymbol;
-
-                if ((object)eventSymbol == null)
-                {
-                    symbol.Type.Accept(this.NotFirstVisitor);
-                }
-                else
-                {
-                    VisitTypeWithAnnotations(eventSymbol.TypeWithAnnotations);
-                }
-
+                symbol.Type.Accept(this.NotFirstVisitor);
                 AddSpace();
             }
 
@@ -279,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(CreatePart(SymbolDisplayPartKind.NumericLiteral, symbol, "lambda expression"));
                 return;
             }
-            else if (symbol is SynthesizedGlobalMethodSymbol) // It would be nice to handle VB symbols too, but it's not worth the effort.
+            else if ((symbol as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol is SynthesizedGlobalMethodSymbol) // It would be nice to handle VB symbols too, but it's not worth the effort.
             {
                 // Represents a compiler generated synthesized method symbol with a null containing
                 // type.
@@ -572,16 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddReturnType(IMethodSymbol symbol)
         {
-            var methodSymbol = symbol as MethodSymbol;
-
-            if ((object)methodSymbol == null)
-            {
-                symbol.ReturnType.Accept(this.NotFirstVisitor);
-            }
-            else
-            {
-                VisitTypeWithAnnotations(methodSymbol.ReturnTypeWithAnnotations);
-            }
+            symbol.ReturnType.Accept(this.NotFirstVisitor);
         }
 
         private void AddTypeParameterConstraints(IMethodSymbol symbol)
@@ -633,15 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSpace();
                 }
 
-                var parameter = symbol as ParameterSymbol;
-                if ((object)parameter != null)
-                {
-                    VisitTypeWithAnnotations(parameter.TypeWithAnnotations);
-                }
-                else
-                {
-                    symbol.Type.Accept(this.NotFirstVisitor);
-                }
+                symbol.Type.Accept(this.NotFirstVisitor);
                 AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
             }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -76,8 +78,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
                             .ToImmutableArray();
             }
 
-            protected IEnumerable<TypeInferenceInfo> CreateResult(SpecialType type)
-                => CreateResult(Compilation.GetSpecialType(type));
+            protected IEnumerable<TypeInferenceInfo> CreateResult(SpecialType type, NullableAnnotation nullableAnnotation = NullableAnnotation.None)
+                => CreateResult(Compilation.GetSpecialType(type).WithNullableAnnotation(nullableAnnotation));
 
             protected IEnumerable<TypeInferenceInfo> CreateResult(ITypeSymbol type)
                 => type == null

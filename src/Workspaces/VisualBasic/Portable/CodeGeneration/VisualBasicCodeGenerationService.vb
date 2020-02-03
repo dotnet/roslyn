@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -21,10 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overloads Overrides Function GetDestination(containerNode As SyntaxNode) As CodeGenerationDestination
             Return VisualBasicCodeGenerationHelpers.GetDestination(containerNode)
-        End Function
-
-        Protected Overrides Function CreateImportsAdder(document As Document) As AbstractImportsAdder
-            Return New ImportsStatementsAdder(document)
         End Function
 
         Protected Overrides Function GetMemberComparer() As IComparer(Of SyntaxNode)

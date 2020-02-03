@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public static TextSpan GetWordSpan(SourceText text, int position,
             Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter, bool alwaysExtendEndSpan = false)
         {
-            int start = position;
+            var start = position;
             while (start > 0 && isWordStartCharacter(text[start - 1]))
             {
                 start--;
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // text).  However, if they bring up completion in the "middle" of a word, then they will
             // "overwrite" the text. Useful for correcting misspellings or just replacing unwanted
             // code with new code.
-            int end = position;
+            var end = position;
             if (start != position || alwaysExtendEndSpan)
             {
                 while (end < text.Length && isWordCharacter(text[end]))
@@ -201,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // etc.
             characterPosition = characterPosition - value.Length + 1;
 
-            for (int i = 0; i < value.Length; i++, characterPosition++)
+            for (var i = 0; i < value.Length; i++, characterPosition++)
             {
                 if (characterPosition < 0 || characterPosition >= text.Length)
                 {

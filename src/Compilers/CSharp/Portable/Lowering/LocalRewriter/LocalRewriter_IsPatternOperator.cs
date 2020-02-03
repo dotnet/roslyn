@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private class IsPatternExpressionLocalRewriter : PatternLocalRewriter
+        private sealed class IsPatternExpressionLocalRewriter : PatternLocalRewriter
         {
             /// <summary>
             /// Accumulates side-effects that come before the next conjunct.
@@ -35,9 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public IsPatternExpressionLocalRewriter(SyntaxNode node, LocalRewriter localRewriter)
                 : base(node, localRewriter)
             {
-                this._conjunctBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-                this._sideEffectBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+                _conjunctBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+                _sideEffectBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             }
+
+            protected override bool IsSwitchStatement => false;
 
             public new void Free()
             {

@@ -60,7 +60,7 @@
       <trans-unit id="CopyRefAssembly_BadSource3">
         <source>Failed to check the content hash of the source ref assembly '{0}': {1}
 {2}</source>
-        <target state="new">Failed to check the content hash of the source ref assembly '{0}': {1}
+        <target state="translated">Kaynak ürün kodu derleme '{0}' içerik karma denetlemek başarısız oldu: {1}
 {2}</target>
         <note />
       </trans-unit>
@@ -96,7 +96,7 @@
       </trans-unit>
       <trans-unit id="General_UnableToReadFile">
         <source>File "{0}" could not be read: {1}</source>
-        <target state="new">File "{0}" could not be read: {1}</target>
+        <target state="translated">"{0}" dosyası okunamadı: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="SharedCompilationFallback">

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,11 +10,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 {
     // Dictionary that can be recycled via an object pool
     // NOTE: these dictionaries always have the default comparer.
-    internal class PooledDictionary<K, V> : Dictionary<K, V>
+    internal sealed class PooledDictionary<K, V> : Dictionary<K, V>
     {
         private readonly ObjectPool<PooledDictionary<K, V>> _pool;
 
-        private PooledDictionary(ObjectPool<PooledDictionary<K, V>> pool)
+        private PooledDictionary(ObjectPool<PooledDictionary<K, V>> pool, IEqualityComparer<K> keyComparer)
+            : base(keyComparer)
         {
             _pool = pool;
         }
@@ -31,13 +34,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         // global pool
-        private static readonly ObjectPool<PooledDictionary<K, V>> s_poolInstance = CreatePool();
+        private static readonly ObjectPool<PooledDictionary<K, V>> s_poolInstance = CreatePool(EqualityComparer<K>.Default);
 
         // if someone needs to create a pool;
-        public static ObjectPool<PooledDictionary<K, V>> CreatePool()
+        public static ObjectPool<PooledDictionary<K, V>> CreatePool(IEqualityComparer<K> keyComparer)
         {
             ObjectPool<PooledDictionary<K, V>> pool = null;
-            pool = new ObjectPool<PooledDictionary<K, V>>(() => new PooledDictionary<K, V>(pool), 128);
+            pool = new ObjectPool<PooledDictionary<K, V>>(() => new PooledDictionary<K, V>(pool, keyComparer), 128);
             return pool;
         }
 

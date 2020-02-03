@@ -1,17 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// Represents a namespace.
     /// </summary>
-    internal abstract partial class NamespaceSymbol : NamespaceOrTypeSymbol, INamespaceSymbol
+    internal abstract partial class NamespaceSymbol : NamespaceOrTypeSymbol, INamespaceSymbolInternal
     {
         // PERF: initialization of the following fields will allocate, so we make them lazy
         private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensionMethods;
@@ -361,44 +364,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        #region INamespaceSymbol Members
-
-        IEnumerable<INamespaceOrTypeSymbol> INamespaceSymbol.GetMembers()
-        {
-            return this.GetMembers().OfType<INamespaceOrTypeSymbol>();
-        }
-
-        IEnumerable<INamespaceOrTypeSymbol> INamespaceSymbol.GetMembers(string name)
-        {
-            return this.GetMembers(name).OfType<INamespaceOrTypeSymbol>();
-        }
-
-        IEnumerable<INamespaceSymbol> INamespaceSymbol.GetNamespaceMembers()
-        {
-            return this.GetNamespaceMembers();
-        }
-
-        NamespaceKind INamespaceSymbol.NamespaceKind
-        {
-            get { return this.NamespaceKind; }
-        }
-
-        Compilation INamespaceSymbol.ContainingCompilation
-        {
-            get
-            {
-                return this.ContainingCompilation;
-            }
-        }
-
-        ImmutableArray<INamespaceSymbol> INamespaceSymbol.ConstituentNamespaces
-        {
-            get
-            {
-                return StaticCast<INamespaceSymbol>.From(this.ConstituentNamespaces);
-            }
-        }
-
         internal string QualifiedName
         {
             get
@@ -408,20 +373,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
+        protected sealed override ISymbol CreateISymbol()
         {
-            visitor.VisitNamespace(this);
+            return new PublicModel.NamespaceSymbol(this);
         }
 
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitNamespace(this);
-        }
-
-        #endregion
+        bool INamespaceSymbolInternal.IsGlobalNamespace => this.IsGlobalNamespace;
     }
 }

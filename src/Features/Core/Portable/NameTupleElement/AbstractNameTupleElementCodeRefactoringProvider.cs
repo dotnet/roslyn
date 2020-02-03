@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -21,11 +23,8 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-
-            var (_, _, elementName) = await TryGetArgumentInfo(document, span, cancellationToken).ConfigureAwait(false);
+            var (document, span, cancellationToken) = context;
+            var (_, argument, elementName) = await TryGetArgumentInfo(document, span, cancellationToken).ConfigureAwait(false);
 
             if (elementName == null)
             {
@@ -35,7 +34,8 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             context.RegisterRefactoring(
                 new MyCodeAction(
                     string.Format(FeaturesResources.Add_tuple_element_name_0, elementName),
-                    c => AddNamedElementAsync(document, span, cancellationToken)));
+                    c => AddNamedElementAsync(document, span, cancellationToken)),
+                argument.Span);
         }
 
         private async Task<(SyntaxNode root, TArgumentSyntax argument, string argumentName)> TryGetArgumentInfo(
@@ -46,29 +46,9 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 return default;
             }
 
-            if (span.Length > 0)
-            {
-                return default;
-            }
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var position = span.Start;
-            var token = root.FindToken(position);
-            if (token.Span.Start == position &&
-                IsCloseParenOrComma(token))
-            {
-                token = token.GetPreviousToken();
-                if (token.Span.End != position)
-                {
-                    return default;
-                }
-            }
-
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var argument = root.FindNode(token.Span)
-                .GetAncestorsOrThis<TArgumentSyntax>()
-                .FirstOrDefault(node => syntaxFacts.IsTupleExpression(node.Parent));
-
+            var potentialArguments = await document.GetRelevantNodesAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
+            var argument = potentialArguments.FirstOrDefault(n => n?.Parent is TTupleExpressionSyntax);
             if (argument == null || !syntaxFacts.IsSimpleArgument(argument))
             {
                 return default;
@@ -77,8 +57,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             var tuple = (TTupleExpressionSyntax)argument.Parent;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var tupleType = semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType as INamedTypeSymbol;
-            if (tupleType == null)
+            if (!(semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType is INamedTypeSymbol tupleType))
             {
                 return default;
             }
@@ -97,6 +76,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 return default;
             }
 
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return (root, argument, element.Name);
         }
 

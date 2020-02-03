@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,7 +13,9 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-#if !CODE_STYLE
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
 using Microsoft.CodeAnalysis.Options;
 #endif
 
@@ -65,19 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private InitializerExpressionSyntax GetInitializerNode(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case ObjectCreationExpressionSyntax objectCreationNode:
-                    return objectCreationNode.Initializer;
-                case ArrayCreationExpressionSyntax arrayCreationNode:
-                    return arrayCreationNode.Initializer;
-                case ImplicitArrayCreationExpressionSyntax implicitArrayNode:
-                    return implicitArrayNode.Initializer;
-            }
-
-            return null;
-        }
+                ObjectCreationExpressionSyntax objectCreationNode => objectCreationNode.Initializer,
+                ArrayCreationExpressionSyntax arrayCreationNode => arrayCreationNode.Initializer,
+                ImplicitArrayCreationExpressionSyntax implicitArrayNode => implicitArrayNode.Initializer,
+                _ => null,
+            };
 
         private SyntaxToken? GetLastTokenOfType(SyntaxNode node)
         {
@@ -239,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 // current implementation of engine gives higher priority on new line operations over space operations if
                 // two are conflicting.
-                // ex) new line operation says add 1 line between tokens, and 
+                // ex) new line operation says add 1 line between tokens, and
                 //     space operation says give 1 space between two tokens (basically means remove new lines)
                 //     then, engine will pick new line operation and ignore space operation
 
@@ -282,21 +280,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         || currentToken.Kind() == SyntaxKind.OpenBraceToken) ? 1 : 0;
 
                 case SyntaxKind.CloseBracketToken:
-                    // Assembly and module-level attributes followed by non-attributes should have
-                    // a blank line after them.
+                    // Assembly and module-level attributes followed by non-attributes should have a blank line after
+                    // them, unless it's the end of the file which will already have a blank line.
                     if (previousToken.Parent is AttributeListSyntax parent)
                     {
                         if (parent.Target != null &&
                             (parent.Target.Identifier.IsKindOrHasMatchingText(SyntaxKind.AssemblyKeyword) ||
                              parent.Target.Identifier.IsKindOrHasMatchingText(SyntaxKind.ModuleKeyword)))
                         {
-                            if (!(currentToken.Parent is AttributeListSyntax))
+                            if (!currentToken.IsKind(SyntaxKind.EndOfFileToken) && !(currentToken.Parent is AttributeListSyntax))
                             {
                                 return 2;
                             }
                         }
 
-                        if (previousToken.GetAncestor<ParameterSyntax>() == null)
+                        if (previousToken.GetAncestor<ParameterSyntax>() == null
+                            && previousToken.GetAncestor<TypeParameterSyntax>() == null)
                         {
                             return 1;
                         }
@@ -423,6 +422,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             else if (previousToken.Parent is ExternAliasDirectiveSyntax)
             {
                 return currentToken.Parent is ExternAliasDirectiveSyntax ? 1 : 2;
+            }
+            else if (currentToken.Parent is LocalFunctionStatementSyntax)
+            {
+                return 2;
             }
             else
             {

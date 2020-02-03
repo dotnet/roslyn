@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             // Formatter uses FindToken on the position, which returns token to left, if there is nothing to the right and returns token to the right
             // if there exists one. If the shape is "{|}", we're including '}' in the formatting range. Avoid doing that to improve verbatim typing
             // in the following special scenarios.  
-            int adjustedEndPosition = token.Span.End;
+            var adjustedEndPosition = token.Span.End;
             if (token.IsKind(SyntaxKind.OpenBraceToken) &&
                 (token.Parent.IsInitializerForArrayOrCollectionCreationExpression() ||
                     token.Parent is AnonymousObjectCreationExpressionSyntax))

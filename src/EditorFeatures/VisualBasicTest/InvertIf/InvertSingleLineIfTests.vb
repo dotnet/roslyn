@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeRefactorings
@@ -440,14 +442,16 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
-        Public Async Function TestMissingOnNonEmptyTextSpan() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"Module Program
-    Sub Main()
-        [|If a Th|]en aMethod() Else bMethod()
-    End Sub
-End Module")
+        Public Async Function TestSelection() As Task
+            Await TestFixOneAsync(
+"
+        [|If a And b Then aMethod() Else bMethod()|]
+",
+"
+        If Not a Or Not b Then bMethod() Else aMethod()
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>

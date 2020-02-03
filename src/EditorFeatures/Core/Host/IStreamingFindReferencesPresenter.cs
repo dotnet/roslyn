@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -28,6 +30,16 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// If false, the presenter will not group by definitions, and will show the definition
         /// items in isolation.</param>
         FindUsagesContext StartSearch(string title, bool supportsReferences);
+
+        /// <summary>
+        /// Call this method to display the Containing Type, Containing Member, or Kind columns
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="supportsReferences"></param>
+        /// <param name="includeContainingTypeAndMemberColumns"></param>
+        /// <param name="includeKindColumn"></param>
+        /// /// <returns></returns>
+        FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn);
 
         /// <summary>
         /// Clears all the items from the presenter.
@@ -85,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // Note: we don't need to put this in a finally.  The only time we might not hit
                 // this is if cancellation or another error gets thrown.  In the former case,
                 // that means that a new search has started.  We don't care about telling the
-                // context it has completed.  In the latter case somethign wrong has happened
+                // context it has completed.  In the latter case something wrong has happened
                 // and we don't want to run any more code code in this particular context.
                 await context.OnCompletedAsync().ConfigureAwait(false);
             }
