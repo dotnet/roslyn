@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -259,35 +261,48 @@ class C { }";
         }
 
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        public void TestExceptionFromSuppressor()
+        public void TestExceptionFromSupportedSuppressions()
         {
-            string source = @"
-class C { }";
+            string source = "class C { }";
 
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
-            testCore(new DiagnosticSuppressorThrowsExceptionFromSupportedSuppressions());
-            testCore(new DiagnosticSuppressorThrowsExceptionFromReportedSuppressions(analyzer.Descriptor.Id));
-            return;
+            var suppressor = new DiagnosticSuppressorThrowsExceptionFromSupportedSuppressions();
+            var analyzersAndSuppresors = new DiagnosticAnalyzer[] { analyzer, suppressor };
 
-            // Local functions.
-            void testCore(DiagnosticSuppressor suppressor)
-            {
-                var analyzersAndSuppresors = new DiagnosticAnalyzer[] { analyzer, suppressor };
-                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
-                    Diagnostic("AD0001").WithArguments(suppressor.ToString(),
-                                                       typeof(NotImplementedException).FullName,
-                                                       new NotImplementedException().Message)
-                                        .WithLocation(1, 1),
-                    Diagnostic("ID1000", "class C { }").WithLocation(2, 1));
+            VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
+                Diagnostic("AD0001").WithArguments(suppressor.ToString(), typeof(NotImplementedException).FullName, new NotImplementedException().Message).WithLocation(1, 1),
+                Diagnostic("ID1000", "class C { }").WithLocation(1, 1));
 
-                VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
-            }
+            VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
         }
 
-        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41212")]
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem(41212, "https://github.com/dotnet/roslyn/issues/41212")]
+        public void TestExceptionFromSuppressor()
+        {
+            string source = "class C { }";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
+            var suppressor = new DiagnosticSuppressorThrowsExceptionFromReportedSuppressions(analyzer.Descriptor.Id);
+            var analyzersAndSuppresors = new DiagnosticAnalyzer[] { analyzer, suppressor };
+
+            VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
+                Diagnostic("AD0001").WithArguments(suppressor.ToString(), typeof(NotImplementedException).FullName, new NotImplementedException().Message).WithLocation(1, 1),
+                Diagnostic("ID1000", "class C { }").WithLocation(1, 1));
+
+            VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41212")]
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem(41212, "https://github.com/dotnet/roslyn/issues/41212")]
         public void TestUnsupportedSuppressionReported()
         {
             string source = @"
@@ -315,7 +330,9 @@ class C { }";
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
         }
 
-        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41212")]
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem(41212, "https://github.com/dotnet/roslyn/issues/41212")]
         public void TestInvalidDiagnosticSuppressionReported()
         {
             string source = @"
@@ -341,7 +358,9 @@ class C { }";
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
         }
 
-        [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41212")]
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [WorkItem(41212, "https://github.com/dotnet/roslyn/issues/41212")]
         public void TestNonReportedDiagnosticCannotBeSuppressed()
         {
             string source = @"

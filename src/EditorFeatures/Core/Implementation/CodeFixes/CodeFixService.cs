@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -34,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     [Export(typeof(ICodeFixService)), Shared]
     internal partial class CodeFixService : ForegroundThreadAffinitizedObject, ICodeFixService
     {
+        private static readonly Comparison<DiagnosticData> s_diagnosticDataComparisonById =
+            new Comparison<DiagnosticData>((d1, d2) => DiagnosticId.CompareOrdinal(d1.Id, d2.Id));
+
         private readonly IDiagnosticAnalyzerService _diagnosticService;
 
         private readonly ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>> _workspaceFixersMap;
@@ -160,8 +165,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // group diagnostics by their diagnostics span
             // invariant: later code gathers & runs CodeFixProviders for diagnostics with one identical diagnostics span (that gets set later as CodeFixCollection's TextSpan)
-            // order diagnostics by span and then diagnostic ID.
-            SortedDictionary<TextSpan, SortedList<DiagnosticId, DiagnosticData>>? aggregatedDiagnostics = null;
+            // order diagnostics by span.
+            SortedDictionary<TextSpan, List<DiagnosticData>>? aggregatedDiagnostics = null;
             foreach (var diagnostic in await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, diagnosticIdOpt: null, includeConfigurationFixes, addOperationScope, cancellationToken).ConfigureAwait(false))
             {
                 if (diagnostic.IsSuppressed)
@@ -171,8 +176,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                aggregatedDiagnostics ??= new SortedDictionary<TextSpan, SortedList<string, DiagnosticData>>();
-                aggregatedDiagnostics.GetOrAdd(diagnostic.GetTextSpan(), _ => new SortedList<DiagnosticId, DiagnosticData>()).Add(diagnostic.Id, diagnostic);
+                aggregatedDiagnostics ??= new SortedDictionary<TextSpan, List<DiagnosticData>>();
+                aggregatedDiagnostics.GetOrAdd(diagnostic.GetTextSpan(), _ => new List<DiagnosticData>()).Add(diagnostic);
             }
 
             if (aggregatedDiagnostics == null)
@@ -180,12 +185,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<CodeFixCollection>.Empty;
             }
 
+            // Order diagnostics by DiagnosticId so the fixes are in a deterministic order.
+            foreach (var diagnosticsWithSpan in aggregatedDiagnostics.Values)
+            {
+                diagnosticsWithSpan.Sort(s_diagnosticDataComparisonById);
+            }
+
             // append fixes for all diagnostics with the same diagnostics span
             using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
             foreach (var spanAndDiagnostic in aggregatedDiagnostics)
             {
                 await AppendFixesAsync(
-                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value.Values, fixAllForInSpan: false, isBlocking,
+                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan: false, isBlocking,
                     result, addOperationScope, cancellationToken).ConfigureAwait(false);
             }
 
@@ -205,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 foreach (var spanAndDiagnostic in aggregatedDiagnostics)
                 {
                     await AppendConfigurationsAsync(
-                        document, spanAndDiagnostic.Key, spanAndDiagnostic.Value.Values,
+                        document, spanAndDiagnostic.Key, spanAndDiagnostic.Value,
                         result, cancellationToken).ConfigureAwait(false);
                 }
             }
