@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Text
                     actualEncoding = encoding;
                     return string.Empty;
                 }
-                bufferSize = Math.Min(4096, length);
+                bufferSize = Math.Min(minBufferSize, length);
             }
 
             // Note: We are setting the buffer size to 4KB instead of the default 1KB. That's
