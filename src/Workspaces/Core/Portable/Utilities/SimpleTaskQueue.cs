@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,9 +51,8 @@ namespace Roslyn.Utilities
         [PerformanceSensitive(
             "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
             AllowCaptures = false)]
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public Task ScheduleTask(Action taskAction, CancellationToken cancellationToken = default)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return ScheduleTaskWorker(
                 (delay, arg) => arg.Item1._latestTask.ContinueWithAfterDelay(arg.taskAction, arg.cancellationToken, delay, TaskContinuationOptions.None, arg.Item1._taskScheduler),
@@ -62,9 +62,8 @@ namespace Roslyn.Utilities
         [PerformanceSensitive(
             "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
             AllowCaptures = false)]
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public Task<T> ScheduleTask<T>(Func<T> taskFunc, CancellationToken cancellationToken = default)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return ScheduleTaskWorker(
                 (delay, arg) => arg.Item1._latestTask.ContinueWithAfterDelay(arg.taskFunc, arg.cancellationToken, delay, TaskContinuationOptions.None, arg.Item1._taskScheduler),
@@ -74,9 +73,8 @@ namespace Roslyn.Utilities
         [PerformanceSensitive(
             "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
             AllowCaptures = false)]
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public Task ScheduleTask(Func<Task> taskFuncAsync, CancellationToken cancellationToken = default)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return ScheduleTaskWorker(
                 (delay, arg) => arg.Item1._latestTask.ContinueWithAfterDelayFromAsync(arg.taskFuncAsync, arg.cancellationToken, delay, TaskContinuationOptions.None, arg.Item1._taskScheduler),
@@ -86,9 +84,8 @@ namespace Roslyn.Utilities
         [PerformanceSensitive(
             "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
             AllowCaptures = false)]
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public Task<T> ScheduleTask<T>(Func<Task<T>> taskFuncAsync, CancellationToken cancellationToken = default)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return ScheduleTaskWorker(
                 (delay, arg) => arg.Item1._latestTask.ContinueWithAfterDelayFromAsync(arg.taskFuncAsync, arg.cancellationToken, delay, TaskContinuationOptions.None, arg.Item1._taskScheduler),

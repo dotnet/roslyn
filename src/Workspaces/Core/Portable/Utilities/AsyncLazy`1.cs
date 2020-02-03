@@ -480,9 +480,8 @@ namespace Roslyn.Utilities
             }
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         private Task<T> GetCachedValueAndCacheThisValueIfNoneCached_NoLock(Task<T> task)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             if (_cachedResult != null)
             {

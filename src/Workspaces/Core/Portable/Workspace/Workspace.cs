@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -233,9 +234,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Executes an action as a background task, as part of a sequential queue of tasks.
         /// </summary>
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         protected internal Task ScheduleTask(Action action, string taskName = "Workspace.Task")
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return _taskQueue.ScheduleTask(action, taskName);
         }
@@ -243,9 +243,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Execute a function as a background task, as part of a sequential queue of tasks.
         /// </summary>
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         protected internal Task<T> ScheduleTask<T>(Func<T> func, string taskName = "Workspace.Task")
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             return _taskQueue.ScheduleTask(func, taskName);
         }
