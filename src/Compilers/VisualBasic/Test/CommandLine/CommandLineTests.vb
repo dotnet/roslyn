@@ -690,7 +690,7 @@ End Class | {s_basicCompilerExecutable} /nologo /t:library /out:{name} -""", wor
         End Sub
 
         <Fact>
-        Public Sub VbcCompile_WithRedirectedInputIndicatorAndStandardInputNotRedirected_ThrowsBC56032()
+        Public Sub VbcCompile_WithRedirectedInputIndicatorAndStandardInputNotRedirected_ReportsBC56032()
             If Console.IsInputRedirected Then
                 ' [applicable to both Windows and Unix]
                 ' if our parent (xunit) process itself has input redirected, we cannot test this

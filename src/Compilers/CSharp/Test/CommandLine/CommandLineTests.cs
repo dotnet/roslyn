@@ -5747,7 +5747,7 @@ class A                                                               \
         }
 
         [Fact]
-        public void CscCompile_WithRedirectedInputIndicatorAndStandardInputNotRedirected_ThrowsCS8782()
+        public void CscCompile_WithRedirectedInputIndicatorAndStandardInputNotRedirected_ReportsCS8782()
         {
             if (Console.IsInputRedirected)
             {
