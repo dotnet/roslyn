@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -52,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal sealed class ReferenceManager : CommonReferenceManager<CSharpCompilation, AssemblySymbol>
         {
-            public ReferenceManager(string simpleAssemblyName, AssemblyIdentityComparer identityComparer, Dictionary<MetadataReference, MetadataOrDiagnostic> observedMetadata)
+            public ReferenceManager(string simpleAssemblyName, AssemblyIdentityComparer identityComparer, Dictionary<MetadataReference, MetadataOrDiagnostic>? observedMetadata)
                 : base(simpleAssemblyName, identityComparer, observedMetadata)
             {
             }
@@ -64,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override AssemblyData CreateAssemblyDataForFile(
                 PEAssembly assembly,
-                WeakList<IAssemblySymbol> cachedSymbols,
+                WeakList<IAssemblySymbolInternal> cachedSymbols,
                 DocumentationProvider documentationProvider,
                 string sourceAssemblySimpleName,
                 MetadataImportOptions importOptions,
@@ -88,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var result = new AssemblyDataForCompilation(csReference.Compilation, csReference.Properties.EmbedInteropTypes);
-                Debug.Assert((object)csReference.Compilation._lazyAssemblySymbol != null);
+                Debug.Assert(csReference.Compilation._lazyAssemblySymbol is object);
                 return result;
             }
 
@@ -119,9 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return AssemblyIdentityComparer.CultureComparer.Equals(identity1.CultureName, identity2.CultureName);
             }
 
-            protected override AssemblySymbol[] GetActualBoundReferencesUsedBy(AssemblySymbol assemblySymbol)
+            protected override AssemblySymbol?[] GetActualBoundReferencesUsedBy(AssemblySymbol assemblySymbol)
             {
-                var refs = new List<AssemblySymbol>();
+                var refs = new List<AssemblySymbol?>();
 
                 foreach (var module in assemblySymbol.Modules)
                 {
@@ -130,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 0; i < refs.Count; i++)
                 {
-                    if (refs[i].IsMissing)
+                    if (refs[i]!.IsMissing)
                     {
                         refs[i] = null; // Do not expose missing assembly symbols to ReferenceManager.Binder
                     }
@@ -157,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return candidateAssembly.IsLinked;
             }
 
-            protected override AssemblySymbol GetCorLibrary(AssemblySymbol candidateAssembly)
+            protected override AssemblySymbol? GetCorLibrary(AssemblySymbol candidateAssembly)
             {
                 AssemblySymbol corLibrary = candidateAssembly.CorLibrary;
 
@@ -210,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 AssertBound();
-                Debug.Assert((object)compilation._lazyAssemblySymbol != null);
+                Debug.Assert(compilation._lazyAssemblySymbol is object);
             }
 
             /// <summary>
@@ -287,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (map.TryGetValue(identity, out symbol, (v1, v2, s) => true))
                 {
                     // TODO: https://github.com/dotnet/roslyn/issues/9004
-                    throw new NotSupportedException($"Changing the version of an assembly reference is not allowed during debugging: '{identity}' changed version to {symbol.Identity.Version}");
+                    throw new NotSupportedException(string.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging, identity, symbol.Identity.Version));
                 }
 
                 return new MissingAssemblySymbol(identity);
@@ -305,11 +310,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 InitializeAssemblyReuseData(assemblySymbol, this.ReferencedAssemblies, this.UnifiedAssemblies);
 
-                if ((object)compilation._lazyAssemblySymbol == null)
+                if (compilation._lazyAssemblySymbol is null)
                 {
                     lock (SymbolCacheAndReferenceManagerStateGuard)
                     {
-                        if ((object)compilation._lazyAssemblySymbol == null)
+                        if (compilation._lazyAssemblySymbol is null)
                         {
                             compilation._lazyAssemblySymbol = assemblySymbol;
                             Debug.Assert(ReferenceEquals(compilation._referenceManager, this));
@@ -362,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         out modules,
                         resolutionDiagnostics);
 
-                    var assemblyBeingBuiltData = new AssemblyDataForAssemblyBeingBuilt(new AssemblyIdentity(name: SimpleAssemblyName, noThrow:true), referencedAssemblies, modules);
+                    var assemblyBeingBuiltData = new AssemblyDataForAssemblyBeingBuilt(new AssemblyIdentity(name: SimpleAssemblyName, noThrow: true), referencedAssemblies, modules);
                     var explicitAssemblyData = referencedAssemblies.Insert(0, assemblyBeingBuiltData);
 
                     // Let's bind all the references and resolve missing one (if resolver is available)
@@ -371,6 +376,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<MetadataReference> implicitlyResolvedReferences;
                     ImmutableArray<ResolvedReference> implicitlyResolvedReferenceMap;
                     ImmutableArray<AssemblyData> allAssemblyData;
+
+                    // Avoid resolving previously resolved missing references. If we call to the resolver again we would create new assembly symbols for them,
+                    // which would not match the previously created ones. As a result we would get duplicate PE types and conversion errors.
+                    var implicitReferenceResolutions = compilation.ScriptCompilationInfo?.PreviousScriptCompilation?.GetBoundReferenceManager().ImplicitReferenceResolutions ??
+                        ImmutableDictionary<AssemblyIdentity, PortableExecutableReference>.Empty;
 
                     BoundInputAssembly[] bindingResult = Bind(
                         compilation,
@@ -385,6 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         out allAssemblyData,
                         out implicitlyResolvedReferences,
                         out implicitlyResolvedReferenceMap,
+                        ref implicitReferenceResolutions,
                         resolutionDiagnostics,
                         out hasCircularReference,
                         out corLibraryIndex);
@@ -444,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Setup bound references for newly created AssemblySymbols
                     // This should be done after we created/found all AssemblySymbols 
-                    Dictionary<AssemblyIdentity, MissingAssemblySymbol> missingAssemblies = null;
+                    Dictionary<AssemblyIdentity, MissingAssemblySymbol>? missingAssemblies = null;
 
                     // -1 for assembly being built:
                     int totalReferencedAssemblyCount = allAssemblyData.Length - 1;
@@ -471,11 +482,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         InitializeNewSymbols(newSymbols, assemblySymbol, allAssemblyData, bindingResult, missingAssemblies);
                     }
 
-                    if ((object)compilation._lazyAssemblySymbol == null)
+                    if (compilation._lazyAssemblySymbol is null)
                     {
                         lock (SymbolCacheAndReferenceManagerStateGuard)
                         {
-                            if ((object)compilation._lazyAssemblySymbol == null)
+                            if (compilation._lazyAssemblySymbol is null)
                             {
                                 if (IsBound)
                                 {
@@ -492,10 +503,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     boundReferenceDirectiveMap,
                                     boundReferenceDirectives,
                                     explicitReferences,
-                                    implicitlyResolvedReferences,
+                                    implicitReferenceResolutions,
                                     hasCircularReference,
                                     resolutionDiagnostics.ToReadOnly(),
-                                    ReferenceEquals(corLibrary, assemblySymbol) ? null : corLibrary,
+                                    ReferenceEquals(corLibrary, assemblySymbol) ? null! : corLibrary, // https://github.com/dotnet/roslyn/issues/40751 Unnecessary suppression
                                     modules,
                                     moduleReferences,
                                     assemblySymbol.SourceModule.GetReferencedAssemblySymbols(),
@@ -527,12 +538,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SourceAssemblySymbol sourceAssembly,
                 ImmutableArray<AssemblyData> assemblies,
                 BoundInputAssembly[] bindingResult,
-                Dictionary<AssemblyIdentity, MissingAssemblySymbol> missingAssemblies)
+                Dictionary<AssemblyIdentity, MissingAssemblySymbol>? missingAssemblies)
             {
                 Debug.Assert(newSymbols.Count > 0);
 
                 var corLibrary = sourceAssembly.CorLibrary;
-                Debug.Assert((object)corLibrary != null);
+                RoslynDebug.Assert((object)corLibrary != null);
 
                 foreach (int i in newSymbols)
                 {
@@ -621,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private static void SetupReferencesForRetargetingAssembly(
                 BoundInputAssembly[] bindingResult,
                 int bindingIndex,
-                ref Dictionary<AssemblyIdentity, MissingAssemblySymbol> missingAssemblies,
+                ref Dictionary<AssemblyIdentity, MissingAssemblySymbol>? missingAssemblies,
                 SourceAssemblySymbol sourceAssemblyDebugOnly)
             {
                 var retargetingAssemblySymbol = (RetargetingAssemblySymbol)bindingResult[bindingIndex].AssemblySymbol;
@@ -670,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     int refsCount = referencedAssemblies.Length;
                     AssemblySymbol[] symbols = new AssemblySymbol[refsCount];
-                    ArrayBuilder<UnifiedAssembly<AssemblySymbol>> unifiedAssemblies = null;
+                    ArrayBuilder<UnifiedAssembly<AssemblySymbol>>? unifiedAssemblies = null;
 
                     for (int k = 0; k < refsCount; k++)
                     {
@@ -696,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AssemblyDataForFile fileData,
                 BoundInputAssembly[] bindingResult,
                 int bindingIndex,
-                ref Dictionary<AssemblyIdentity, MissingAssemblySymbol> missingAssemblies,
+                ref Dictionary<AssemblyIdentity, MissingAssemblySymbol>? missingAssemblies,
                 SourceAssemblySymbol sourceAssemblyDebugOnly)
             {
                 var portableExecutableAssemblySymbol = (PEAssemblySymbol)bindingResult[bindingIndex].AssemblySymbol;
@@ -713,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     fileData.AssemblyReferences.CopyTo(refsUsed, identities, 0, moduleReferenceCount);
 
-                    ArrayBuilder<UnifiedAssembly<AssemblySymbol>> unifiedAssemblies = null;
+                    ArrayBuilder<UnifiedAssembly<AssemblySymbol>>? unifiedAssemblies = null;
                     for (int k = 0; k < moduleReferenceCount; k++)
                     {
                         var boundReference = bindingResult[bindingIndex].ReferenceBinding[refsUsed + k];
@@ -739,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<PEModule> modules,
                 int totalReferencedAssemblyCount,
                 BoundInputAssembly[] bindingResult,
-                ref Dictionary<AssemblyIdentity, MissingAssemblySymbol> missingAssemblies,
+                ref Dictionary<AssemblyIdentity, MissingAssemblySymbol>? missingAssemblies,
                 out ImmutableArray<ModuleReferences<AssemblySymbol>> moduleReferences)
             {
                 var moduleSymbols = sourceAssembly.Modules;
@@ -755,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var identities = new AssemblyIdentity[refsCount];
                     var symbols = new AssemblySymbol[refsCount];
 
-                    ArrayBuilder<UnifiedAssembly<AssemblySymbol>> unifiedAssemblies = null;
+                    ArrayBuilder<UnifiedAssembly<AssemblySymbol>>? unifiedAssemblies = null;
 
                     for (int k = 0; k < refsCount; k++)
                     {
@@ -779,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (moduleIndex > 0)
                     {
-                        moduleReferencesBuilder.Add(references);
+                        moduleReferencesBuilder!.Add(references);
                     }
 
                     moduleSymbols[moduleIndex].SetReferences(references, sourceAssembly);
@@ -793,12 +804,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             private static AssemblySymbol GetAssemblyDefinitionSymbol(
                 BoundInputAssembly[] bindingResult,
                 AssemblyReferenceBinding referenceBinding,
-                ref ArrayBuilder<UnifiedAssembly<AssemblySymbol>> unifiedAssemblies)
+                ref ArrayBuilder<UnifiedAssembly<AssemblySymbol>>? unifiedAssemblies)
             {
                 Debug.Assert(referenceBinding.IsBound);
 
                 var assembly = bindingResult[referenceBinding.DefinitionIndex].AssemblySymbol;
-                Debug.Assert((object)assembly != null);
+                RoslynDebug.Assert((object)assembly != null);
 
                 if (referenceBinding.VersionDifference != 0)
                 {
@@ -815,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static MissingAssemblySymbol GetOrAddMissingAssemblySymbol(
                 AssemblyIdentity assemblyIdentity,
-                ref Dictionary<AssemblyIdentity, MissingAssemblySymbol> missingAssemblies)
+                ref Dictionary<AssemblyIdentity, MissingAssemblySymbol>? missingAssemblies)
             {
                 MissingAssemblySymbol missingAssembly;
 
@@ -836,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private abstract class AssemblyDataForMetadataOrCompilation : AssemblyData
             {
-                private List<AssemblySymbol> _assemblies;
+                private List<AssemblySymbol>? _assemblies;
                 private readonly AssemblyIdentity _identity;
                 private readonly ImmutableArray<AssemblyIdentity> _referencedAssemblies;
                 private readonly bool _embedInteropTypes;
@@ -846,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<AssemblyIdentity> referencedAssemblies,
                     bool embedInteropTypes)
                 {
-                    Debug.Assert(identity != null);
+                    RoslynDebug.Assert(identity != null);
                     Debug.Assert(!referencedAssemblies.IsDefault);
 
                     _embedInteropTypes = embedInteropTypes;
@@ -914,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// <summary>
                 /// Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
                 /// </summary>
-                public readonly WeakList<IAssemblySymbol> CachedSymbols;
+                public readonly WeakList<IAssemblySymbolInternal> CachedSymbols;
 
                 public readonly DocumentationProvider DocumentationProvider;
 
@@ -934,15 +945,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public AssemblyDataForFile(
                     PEAssembly assembly,
-                    WeakList<IAssemblySymbol> cachedSymbols,
+                    WeakList<IAssemblySymbolInternal> cachedSymbols,
                     bool embedInteropTypes,
                     DocumentationProvider documentationProvider,
                     string sourceAssemblySimpleName,
                     MetadataImportOptions compilationImportOptions)
                     : base(assembly.Identity, assembly.AssemblyReferences, embedInteropTypes)
                 {
-                    Debug.Assert(documentationProvider != null);
-                    Debug.Assert(cachedSymbols != null);
+                    RoslynDebug.Assert(documentationProvider != null);
+                    RoslynDebug.Assert(cachedSymbols != null);
 
                     CachedSymbols = cachedSymbols;
                     Assembly = assembly;
@@ -994,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var peAssembly = assembly as PEAssemblySymbol;
                             if (IsMatchingAssembly(peAssembly))
                             {
-                                assemblies.Add(peAssembly);
+                                assemblies.Add(peAssembly!);
                             }
                         }
                     }
@@ -1005,9 +1016,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return IsMatchingAssembly(candidateAssembly as PEAssemblySymbol);
                 }
 
-                private bool IsMatchingAssembly(PEAssemblySymbol peAssembly)
+                private bool IsMatchingAssembly(PEAssemblySymbol? peAssembly)
                 {
-                    if ((object)peAssembly == null)
+                    if (peAssembly is null)
                     {
                         return false;
                     }
@@ -1050,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                public override Compilation SourceCompilation => null;
+                public override Compilation? SourceCompilation => null;
             }
 
             private sealed class AssemblyDataForCompilation : AssemblyDataForMetadataOrCompilation
@@ -1111,9 +1122,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override bool IsMatchingAssembly(AssemblySymbol candidateAssembly)
                 {
                     var retargeting = candidateAssembly as RetargetingAssemblySymbol;
-                    AssemblySymbol asm;
+                    AssemblySymbol? asm;
 
-                    if ((object)retargeting != null)
+                    if (retargeting is object)
                     {
                         asm = retargeting.UnderlyingAssembly;
                     }
@@ -1151,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             internal static bool IsSourceAssemblySymbolCreated(CSharpCompilation compilation)
             {
-                return (object)compilation._lazyAssemblySymbol != null;
+                return compilation._lazyAssemblySymbol is object;
             }
 
             /// <summary>

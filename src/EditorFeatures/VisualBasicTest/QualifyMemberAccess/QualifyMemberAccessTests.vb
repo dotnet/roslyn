@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
@@ -727,6 +729,25 @@ Class C
     Private Shared Field As String = NameOf([|Value|])
 End Class
 ",
+CodeStyleOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(32093, "https://github.com/dotnet/roslyn/issues/32093")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_IfInBaseConstructor() As Task
+            Await TestMissingAsyncWithOption("
+Public Class Base
+    Public ReadOnly Property Foo As String
+    Public Sub New(ByVal foo As String)
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+    Public Sub New()
+        MyBase.New(NameOf([|Foo|]))
+    End Sub
+End Class",
 CodeStyleOptions.QualifyFieldAccess)
         End Function
 

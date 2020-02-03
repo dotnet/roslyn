@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseExpression(text, options: (options ?? TestOptions.Regular).WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
-        [Fact]
+        [Fact, WorkItem(32318, "https://github.com/dotnet/roslyn/issues/32318")]
         public void AwaitUsingDeclaration_WithCSharp73()
         {
             string source = @"
@@ -39,9 +41,9 @@ class C
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
             tree.GetDiagnostics().Verify(
-                // (6,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,9): error CS8652: The feature 'asynchronous using' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         await using (var x = this)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("asynchronous using", "8.0").WithLocation(6, 9)
                 );
 
             UsingTree(source);
@@ -287,29 +289,38 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.UsingStatement);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
                                 N(SyntaxKind.UsingKeyword);
-                                M(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.AwaitExpression);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
-                                    N(SyntaxKind.AwaitKeyword);
-                                    N(SyntaxKind.ParenthesizedExpression);
+                                    N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.ThisExpression);
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.BracketedArgumentList);
                                         {
-                                            N(SyntaxKind.ThisKeyword);
+                                            M(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.ThisExpression);
+                                                {
+                                                    N(SyntaxKind.ThisKeyword);
+                                                }
+                                            }
+                                            M(SyntaxKind.CloseBracketToken);
                                         }
-                                        N(SyntaxKind.CloseParenToken);
                                     }
                                 }
-                                M(SyntaxKind.CloseParenToken);
-                                N(SyntaxKind.Block);
-                                {
-                                    N(SyntaxKind.OpenBraceToken);
-                                    N(SyntaxKind.CloseBraceToken);
-                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }
@@ -337,7 +348,7 @@ class C
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
             tree.GetDiagnostics().Verify(
-                // (6,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,9): error CS8652: The feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         await foreach (var i in collection)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(6, 9)
                 );
@@ -575,7 +586,7 @@ class C
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
             tree.GetDiagnostics().Verify(
-                // (6,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,9): error CS8652: The feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         await foreach (var (i, j) in collection)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(6, 9)
                 );

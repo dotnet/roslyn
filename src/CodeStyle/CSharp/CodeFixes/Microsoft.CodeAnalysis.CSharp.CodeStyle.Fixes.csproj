@@ -1,12 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
     <!-- NuGet -->
@@ -17,21 +16,20 @@
       .NET Compiler Platform ("Roslyn") code style analyzers for C#.
     </PackageDescription>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <!-- Remove once https://github.com/NuGet/Home/issues/8583 is fixed -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
 
   <Target Name="_GetFilesToPackage">
     <ItemGroup>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle\Microsoft.CodeAnalysis.CodeStyle.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle.Fixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.resources.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.resources.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll"/>
-
-      <!-- .editorconfig support prior to new support in the compiler -->
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\Microsoft.VisualStudio.CodingConventions.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.resources.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.resources.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll"/>
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
@@ -44,8 +42,6 @@
     <ProjectReference Include="..\..\Core\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
   </ItemGroup>

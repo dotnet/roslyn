@@ -1,14 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Setup.Dependencies</RootNamespace>
     <TargetFramework>net472</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
-    <RoslynProjectType>Vsix</RoslynProjectType>
     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
 
     <!-- VSIX -->
@@ -16,11 +12,9 @@
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
+    <ExtensionInstallationRoot>$(CommonExtensionInstallationRoot)</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\Dependencies</ExtensionInstallationFolder>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <!-- 
     Roslyn dependencies that are installed by other VS components. 
@@ -46,6 +40,8 @@
   <ItemGroup>
     <!-- Needed to use RegistrationAttribute -->
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <!-- Work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/725508 -->
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataVersion)" />
     <!-- All packages that we depend on, either as facades or implementations -->
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(MicrosoftDiaSymReaderPortablePdbVersion)" />

@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -19,21 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             || node is LocalFunctionStatementSyntax
             || node is AnonymousFunctionExpressionSyntax;
 
-        public static IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            var bodyOpt = GetBody(functionDeclaration);
-            if (bodyOpt == null)
-            {
-                return null;
-            }
-
-            // body might be an expression in a lambda - in that case we wouldn't get a block operation out of that
-            return functionDeclaration is AnonymousFunctionExpressionSyntax
-                ? ((IAnonymousFunctionOperation)semanticModel.GetOperation(functionDeclaration, cancellationToken)).Body
-                : (IBlockOperation)semanticModel.GetOperation(bodyOpt, cancellationToken);
-        }
-
-        private static SyntaxNode GetBody(SyntaxNode functionDeclaration)
+        public static SyntaxNode GetBody(SyntaxNode functionDeclaration)
         {
             switch (functionDeclaration)
             {

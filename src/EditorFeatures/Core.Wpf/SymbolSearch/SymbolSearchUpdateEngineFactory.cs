@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,8 +26,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             ISymbolSearchProgressService progressService,
             CancellationToken cancellationToken)
         {
-            var client = await workspace.TryGetRemoteHostClientAsync(
-                RemoteFeatureOptions.SymbolSearchEnabled, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var callbackObject = new CallbackObject(logService, progressService);
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
                     new object[] { source, name, arity }, cancellationToken).ConfigureAwait(false);
 
-                return results.ToImmutableArrayOrEmpty();
+                return results.HasValue ? results.Value.ToImmutableArray() : ImmutableArray<PackageWithTypeResult>.Empty;
             }
 
             public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
@@ -70,7 +73,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
                     new object[] { source, assemblyName }, cancellationToken).ConfigureAwait(false);
 
-                return results.ToImmutableArrayOrEmpty();
+                return results.HasValue ? results.Value.ToImmutableArray() : ImmutableArray<PackageWithAssemblyResult>.Empty;
             }
 
             public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
@@ -80,13 +83,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
                     new object[] { name, arity }, cancellationToken).ConfigureAwait(false);
 
-                return results.ToImmutableArrayOrEmpty();
+                return results.HasValue ? results.Value.ToImmutableArray() : ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty;
             }
 
             public async Task UpdateContinuouslyAsync(
                 string sourceName, string localSettingsDirectory)
             {
-                await _session.TryInvokeAsync(
+                _ = await _session.TryInvokeAsync(
                     nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
                     new object[] { sourceName, localSettingsDirectory }, CancellationToken.None).ConfigureAwait(false);
             }

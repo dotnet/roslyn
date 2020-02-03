@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -29,12 +33,14 @@ namespace Microsoft.CodeAnalysis
         DateTime,
     }
 
-    internal abstract partial class ConstantValue : IEquatable<ConstantValue>
+    internal abstract partial class ConstantValue : IEquatable<ConstantValue?>
     {
         public abstract ConstantValueTypeDiscriminator Discriminator { get; }
         internal abstract SpecialType SpecialType { get; }
 
-        public virtual string StringValue { get { throw new InvalidOperationException(); } }
+        public virtual string? StringValue { get { throw new InvalidOperationException(); } }
+        internal virtual Rope? RopeValue { get { throw new InvalidOperationException(); } }
+
         public virtual bool BooleanValue { get { throw new InvalidOperationException(); } }
 
         public virtual sbyte SByteValue { get { throw new InvalidOperationException(); } }
@@ -94,6 +100,12 @@ namespace Microsoft.CodeAnalysis
                 return Null;
             }
 
+            return new ConstantValueString(value);
+        }
+
+        internal static ConstantValue CreateFromRope(Rope value)
+        {
+            RoslynDebug.Assert(value != null);
             return new ConstantValueString(value);
         }
 
@@ -429,7 +441,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public object Value
+        public object? Value
         {
             get
             {
@@ -718,19 +730,19 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString()
         {
-            string valueToDisplay = this.GetValueToDisplay();
+            string? valueToDisplay = this.GetValueToDisplay();
             return String.Format("{0}({1}: {2})", this.GetType().Name, valueToDisplay, this.Discriminator);
         }
 
-        internal virtual string GetValueToDisplay()
+        internal virtual string? GetValueToDisplay()
         {
-            return this.Value.ToString();
+            return this.Value?.ToString();
         }
 
         // equal constants must have matching discriminators
         // derived types override this if equivalence is more than just discriminators match. 
         // singletons also override this since they only need a reference compare.
-        public virtual bool Equals(ConstantValue other)
+        public virtual bool Equals(ConstantValue? other)
         {
             if (ReferenceEquals(other, this))
             {
@@ -745,7 +757,7 @@ namespace Microsoft.CodeAnalysis
             return this.Discriminator == other.Discriminator;
         }
 
-        public static bool operator ==(ConstantValue left, ConstantValue right)
+        public static bool operator ==(ConstantValue? left, ConstantValue? right)
         {
             if (ReferenceEquals(right, left))
             {
@@ -760,7 +772,7 @@ namespace Microsoft.CodeAnalysis
             return left.Equals(right);
         }
 
-        public static bool operator !=(ConstantValue left, ConstantValue right)
+        public static bool operator !=(ConstantValue? left, ConstantValue? right)
         {
             return !(left == right);
         }

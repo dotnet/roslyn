@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         // An explicit name cannot be removed if some other position would produce it as inferred name
         private static bool RemovalCausesAmbiguity(SeparatedSyntaxList<ArgumentSyntax> arguments, ArgumentSyntax toRemove)
         {
-            string name = toRemove.NameColon.Name.Identifier.ValueText;
+            var name = toRemove.NameColon.Name.Identifier.ValueText;
             foreach (var argument in arguments)
             {
                 if (argument == toRemove)
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         // An explicit name cannot be removed if some other position would produce it as inferred name
         private static bool RemovalCausesAmbiguity(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, AnonymousObjectMemberDeclaratorSyntax toRemove)
         {
-            string name = toRemove.NameEquals.Name.Identifier.ValueText;
+            var name = toRemove.NameEquals.Name.Identifier.ValueText;
             foreach (var initializer in initializers)
             {
                 if (initializer == toRemove)

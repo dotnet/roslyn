@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17,19 +21,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryParenthesesCodeFixProvider());
 
-        private async Task TestAsync(string initial, string expected, bool offeredWhenRequireForClarityIsEnabled)
+        private async Task TestAsync(string initial, string expected, bool offeredWhenRequireForClarityIsEnabled, int index = 0)
         {
-            await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses);
+            await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, index: index);
 
             if (offeredWhenRequireForClarityIsEnabled)
             {
-                await TestInRegularAndScriptAsync(initial, expected, options: RequireAllParenthesesForClarity);
+                await TestInRegularAndScriptAsync(initial, expected, options: RequireAllParenthesesForClarity, index: index);
             }
             else
             {
                 await TestMissingAsync(initial, parameters: new TestParameters(options: RequireAllParenthesesForClarity));
             }
         }
+
+        internal override bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
+        {
+            return descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary) && descriptor.DefaultSeverity == DiagnosticSeverity.Hidden;
+        }
+
+        private DiagnosticDescription GetRemoveUnnecessaryParenthesesDiagnostic(string text, int line, int column)
+            => TestHelpers.Diagnostic(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, text, startLocation: new LinePosition(line, column));
+
+        private DiagnosticDescription GetRemoveUnnecessaryParenthesesDiagnostic(string text, int line, int column, DiagnosticSeverity severity)
+            => GetRemoveUnnecessaryParenthesesDiagnostic(text, line, column).WithEffectiveSeverity(severity);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestVariableInitializer_TestWithAllOptionsSetToIgnore()
@@ -388,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int i = ( 1 + 2 );
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: true, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -2064,7 +2079,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 #endif
     }
 }",
-offeredWhenRequireForClarityIsEnabled: true);
+offeredWhenRequireForClarityIsEnabled: true, index: 1);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
@@ -2228,6 +2243,182 @@ offeredWhenRequireForClarityIsEnabled: true);
         var v = x+$$(+x);
     }
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [WorkItem(31103, "https://github.com/dotnet/roslyn/issues/31103")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestMissingForConditionalRefAsLeftHandSideValue()
+        {
+            await TestMissingAsync(
+@"class Bar
+{
+    void Foo(bool cond, double a, double b)
+    {
+        [||](cond ? ref a : ref b) = 6.67e-11;
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [WorkItem(31103, "https://github.com/dotnet/roslyn/issues/31103")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestConditionalExpressionAsRightHandSideValue()
+        {
+            await TestInRegularAndScript1Async(
+@"class Bar
+{
+    void Foo(bool cond, double a, double b)
+    {
+        double c = $$(cond ? a : b);
+    }
+}",
+@"class Bar
+{
+    void Foo(bool cond, double a, double b)
+    {
+        double c = cond ? a : b;
+    }
+}",
+parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [WorkItem(32085, "https://github.com/dotnet/roslyn/issues/32085")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestMissingForNestedConditionalExpressionInLambda()
+        {
+            await TestMissingAsync(
+@"class Bar
+{
+    void Test(bool a)
+    {
+        Func<int, string> lambda =
+            number => number + $""{ ($$a ? ""foo"" : ""bar"") }"";
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestUnnecessaryParenthesisDiagnosticSingleLineExpression()
+        {
+            var parentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2)", 4, 16);
+            await TestDiagnosticsAsync(
+@"class C
+{
+    void M()
+    {
+        int x = [|(1 + 2)|];
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses), parentheticalExpressionDiagnostic);
+        }
+
+        [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestUnnecessaryParenthesisDiagnosticInMultiLineExpression()
+        {
+            var firstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 +", 4, 16);
+            await TestDiagnosticsAsync(
+@"class C
+{
+    void M()
+    {
+        int x = [|(1 +
+            2)|];
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses), firstLineParentheticalExpressionDiagnostic);
+        }
+
+        [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestUnnecessaryParenthesisDiagnosticInNestedExpression()
+        {
+            var outerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + (2 + 3) + 4)", 4, 16);
+            var innerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(2 + 3)", 4, 21);
+            var expectedDiagnostics = new DiagnosticDescription[] { outerParentheticalExpressionDiagnostic, innerParentheticalExpressionDiagnostic };
+            await TestDiagnosticsAsync(
+@"class C
+{
+    void M()
+    {
+        int x = [|(1 + (2 + 3) + 4)|];
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses), expectedDiagnostics);
+        }
+
+        [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestUnnecessaryParenthesisDiagnosticInNestedMultiLineExpression()
+        {
+            var outerFirstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2 +", 4, 16);
+            var innerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(3 + 4)", 5, 12);
+            var expectedDiagnostics = new DiagnosticDescription[] { outerFirstLineParentheticalExpressionDiagnostic, innerParentheticalExpressionDiagnostic };
+            await TestDiagnosticsAsync(
+@"class C
+{
+    void M()
+    {
+        int x = [|(1 + 2 +
+            (3 + 4) +
+            5 + 6)|];
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses), expectedDiagnostics);
+        }
+
+        [WorkItem(39529, "https://github.com/dotnet/roslyn/issues/39529")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestUnnecessaryParenthesisIncludesFadeLocations()
+        {
+            var input = @"class C
+{
+    void M()
+    {
+        int x = [|{|expression:{|fade:(|}1 + 2{|fade:)|}|}|];
+    }
+}";
+
+            var parameters = new TestParameters(options: RemoveAllUnnecessaryParentheses);
+            using var workspace = CreateWorkspaceFromOptions(input, parameters);
+            var expectedSpans = workspace.Documents.First().AnnotatedSpans;
+
+            var diagnostics = await GetDiagnosticsAsync(workspace, parameters).ConfigureAwait(false);
+            var diagnostic = diagnostics.Single();
+
+            Assert.Equal(3, diagnostic.AdditionalLocations.Count);
+            Assert.Equal(expectedSpans["expression"].Single(), diagnostic.AdditionalLocations[0].SourceSpan);
+            Assert.Equal(expectedSpans["fade"][0], diagnostic.AdditionalLocations[1].SourceSpan);
+            Assert.Equal(expectedSpans["fade"][1], diagnostic.AdditionalLocations[2].SourceSpan);
+
+            Assert.Equal("[1,2]", diagnostic.Properties[WellKnownDiagnosticTags.Unnecessary]);
+        }
+
+        [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/39363")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestUnnecessaryParenthesesInSwitchExpression()
+        {
+            await TestAsync(
+    @"class C
+{
+    void M(int x)
+    {
+            var result = x switch
+            {
+                1 => $$(5),
+                2 => 10 + 5,
+                _ => 100,
+            }
+    };
+}",
+    @"class C
+{
+    void M(int x)
+    {
+            var result = x switch
+            {
+                1 => 5,
+                2 => 10 + 5,
+                _ => 100,
+            }
+    };
+}", offeredWhenRequireForClarityIsEnabled: true);
         }
     }
 }

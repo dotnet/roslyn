@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -9,6 +11,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -19,8 +22,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         private InlineRenameDialog_OutOfProc InlineRenameDialog => VisualStudio.InlineRenameDialog;
 
-        public BasicRename(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicRename))
+        public BasicRename(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicRename))
         {
         }
 
@@ -213,8 +216,8 @@ End Class";
             VisualStudio.Editor.Verify.TextContains(@"
 Import System;
 
-Public Class CustomAttribute 
-        Inherits Attribute
+Public Class CustomAttribute
+    Inherits Attribute
 End Class");
         }
 
@@ -333,7 +336,7 @@ End Class";
 Import System;
 
 Public Class CustomAttribute
-        Inherits Attribute
+    Inherits Attribute
 End Class");
         }
 
@@ -359,7 +362,7 @@ End Class";
 Import System;
 
 Public Class CustomAttribute
-        Inherits Attribute
+    Inherits Attribute
 End Class");
         }
     }

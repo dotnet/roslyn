@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
@@ -8439,6 +8441,98 @@ End Module
 ]]>,
     Diagnostic(ERRID.ERR_LineContWithCommentOrNoPrecSpace, "_").WithLocation(6, 1)
 )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithNoSpaceBeforeCommentV16()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic16)
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithMultipleSpacesBeforeCommentV16()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _   ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic16)
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithCommentV16()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _ ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic16)
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithCommentV15()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _ ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic15),
+            Diagnostic(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, "' Comment").WithLocation(4, 36).WithArguments("16")
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithCommentV15_5()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _ ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic15_5),
+            Diagnostic(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, "' Comment").WithLocation(4, 36).WithArguments("16")
+        )
+    End Sub
+
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithoutComment()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _
+                    = 1
+            End Sub
+     End Module
+    ]]>
+        )
     End Sub
 
     <Fact>

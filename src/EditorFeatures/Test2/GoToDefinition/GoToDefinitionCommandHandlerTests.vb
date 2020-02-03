@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
@@ -96,12 +98,11 @@ class C
 
                 Dim navigatedTo = False
                 Dim presenter = New MockStreamingFindUsagesPresenter(Sub() navigatedTo = True)
-                Dim presenters = {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)}
 
-                Dim cursorBuffer = cursorDocument.TextBuffer
+                Dim cursorBuffer = cursorDocument.GetTextBuffer()
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim goToDefService = New CSharpGoToDefinitionService(presenters)
+                Dim goToDefService = New CSharpGoToDefinitionService(New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter))
 
                 Dim waitContext = New TestUIThreadOperationContext(updatesBeforeCancel)
                 Dim commandHandler = New GoToDefinitionCommandHandler()

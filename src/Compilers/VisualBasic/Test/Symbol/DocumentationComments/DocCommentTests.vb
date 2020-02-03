@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -36,8 +38,8 @@ End Class
 ]]>
     </file>
 </compilation>
-            Using(new EnsureEnglishUICulture()) 
-            
+            Using (new EnsureEnglishUICulture())
+
                 Dim comp = CreateCompilationWithMscorlib40(sources)
                 Dim diags = New DiagnosticBag()
                 Dim badStream = New BrokenStream()
@@ -51,7 +53,7 @@ End Class
                     cancellationToken:=Nothing)
 
                 AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
-									   <errors><![CDATA[
+                                       <errors><![CDATA[
 BC37258: Error writing to XML documentation file: I/O error occurred.
                                    ]]></errors>)
             End Using
@@ -9435,7 +9437,7 @@ AssemblyName
 Imports System
 
 Public Structure TestStruct(Of X)
-    ''' <see cref="Global.TestStruct(Of KKK).  operator+(integer, TestStruct(Of kkk))"/>
+    ''' <see cref="Global.TestStruct(Of ZZZ).  operator+(integer, TestStruct(Of zzz))"/>
     Public Shared field As Integer
 
     Public Shared Operator +(a As Integer, b As TestStruct(Of X)) As String
@@ -9472,17 +9474,17 @@ AssemblyName
 
             Dim info = model.GetSymbolInfo(crefNodes(0))
             Assert.NotNull(info.Symbol)
-            Assert.Equal("Function TestStruct(Of KKK).op_Addition(a As System.Int32, b As TestStruct(Of KKK)) As System.String", info.Symbol.ToTestDisplayString())
+            Assert.Equal("Function TestStruct(Of ZZZ).op_Addition(a As System.Int32, b As TestStruct(Of ZZZ)) As System.String", info.Symbol.ToTestDisplayString())
 
             CheckAllNames(model, crefNodes(0),
-                          New NameSyntaxInfo("Global.TestStruct(Of KKK).  operator+", {"Function TestStruct(Of KKK).op_Addition(a As System.Int32, b As TestStruct(Of KKK)) As System.String"}, {}),
-                          New NameSyntaxInfo("Global.TestStruct(Of KKK)", {"TestStruct(Of KKK)"}, {"TestStruct(Of KKK)"}),
+                          New NameSyntaxInfo("Global.TestStruct(Of ZZZ).  operator+", {"Function TestStruct(Of ZZZ).op_Addition(a As System.Int32, b As TestStruct(Of ZZZ)) As System.String"}, {}),
+                          New NameSyntaxInfo("Global.TestStruct(Of ZZZ)", {"TestStruct(Of ZZZ)"}, {"TestStruct(Of ZZZ)"}),
                           New NameSyntaxInfo("Global", {"Global"}, {}),
-                          New NameSyntaxInfo("TestStruct(Of KKK)", {"TestStruct(Of KKK)"}, {"TestStruct(Of KKK)"}),
-                          New NameSyntaxInfo("KKK", {"KKK"}, {"KKK"}),
-                          New NameSyntaxInfo("operator+", {"Function TestStruct(Of KKK).op_Addition(a As System.Int32, b As TestStruct(Of KKK)) As System.String"}, {}),
-                          New NameSyntaxInfo("TestStruct(Of kkk)", {"TestStruct(Of KKK)"}, {"TestStruct(Of KKK)"}),
-                          New NameSyntaxInfo("kkk", {"KKK"}, {"KKK"}))
+                          New NameSyntaxInfo("TestStruct(Of ZZZ)", {"TestStruct(Of ZZZ)"}, {"TestStruct(Of ZZZ)"}),
+                          New NameSyntaxInfo("ZZZ", {"ZZZ"}, {"ZZZ"}),
+                          New NameSyntaxInfo("operator+", {"Function TestStruct(Of ZZZ).op_Addition(a As System.Int32, b As TestStruct(Of ZZZ)) As System.String"}, {}),
+                          New NameSyntaxInfo("TestStruct(Of zzz)", {"TestStruct(Of ZZZ)"}, {"TestStruct(Of ZZZ)"}),
+                          New NameSyntaxInfo("zzz", {"ZZZ"}, {"ZZZ"}))
         End Sub
 
         <Fact>
@@ -12505,6 +12507,117 @@ End Class
             Dim cref = xml.Descendants("see").Single().Attribute("cref").Value
 
             Assert.Equal("F:System.ValueTuple`2.Item1", cref)
+        End Sub
+
+        <Fact>
+        <WorkItem(39315, "https://github.com/dotnet/roslyn/issues/39315")>
+        Public Sub WriteDocumentationCommentXml_01()
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+''' <summary> a.vb
+''' </summary>
+]]>
+    </file>
+    <file name="b.vb">
+        <![CDATA[
+''' <summary> b.vb
+''' </summary>
+]]>
+    </file>
+</compilation>
+            Using (New EnsureEnglishUICulture())
+
+                Dim comp = CreateCompilationWithMscorlib40(sources, parseOptions:=s_optionsDiagnoseDocComments)
+                Dim diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=comp.SyntaxTrees(0))
+
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                                       <errors><![CDATA[
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> a.vb
+   ~~~~~~~~~~~~~~~~
+                                   ]]></errors>)
+
+                diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=comp.SyntaxTrees(0),
+                    filterSpanWithinTree:=New Text.TextSpan(0, 0))
+
+                Assert.Empty(diags.ToReadOnlyAndFree())
+
+                diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=comp.SyntaxTrees(1))
+
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                                       <errors><![CDATA[
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> b.vb
+   ~~~~~~~~~~~~~~~~
+                                   ]]></errors>)
+
+                diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=Nothing)
+
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                                       <errors><![CDATA[
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> a.vb
+   ~~~~~~~~~~~~~~~~
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> b.vb
+   ~~~~~~~~~~~~~~~~
+                                   ]]></errors>)
+
+                diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=Nothing,
+                    filterSpanWithinTree:=New Text.TextSpan(0, 0))
+
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                                       <errors><![CDATA[
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> a.vb
+   ~~~~~~~~~~~~~~~~
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> b.vb
+   ~~~~~~~~~~~~~~~~
+                                   ]]></errors>)
+            End Using
         End Sub
 
     End Class

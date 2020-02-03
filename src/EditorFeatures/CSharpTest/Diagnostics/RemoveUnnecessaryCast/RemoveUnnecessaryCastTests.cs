@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -2011,6 +2013,90 @@ class Program
 }");
         }
 
+        [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastToByteFromIntInConditionalExpression()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    object M1(bool b)
+    {
+        return [|b ? (byte)1 : (byte)0|];
+    }
+}");
+        }
+
+        [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastToDoubleFromIntWithTwoInConditionalExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    object M1(bool b)
+    {
+        return [|b ? (double)1 : (double)0|];
+    }
+}",
+@"class C
+{
+    object M1(bool b)
+    {
+        return b ? 1 : (double)0;
+    }
+}");
+        }
+
+        [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastToDoubleFromIntInConditionalExpression()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    object M1(bool b)
+    {
+        return [|b ? 1 : (double)0|];
+    }
+}");
+        }
+
+        [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastToUIntFromCharInConditionalExpression()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    object M1(bool b)
+    {
+        return [|b ? '1' : (uint)'0'|];
+    }
+}");
+        }
+
+        [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveUnnecessaryNumericCastToSameTypeInConditionalExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    object M1(bool b)
+    {
+        return [|b ? (int)1 : 0|];
+    }
+}",
+@"class C
+{
+    object M1(bool b)
+    {
+        return b ? 1 : 0;
+    }
+}");
+        }
+
         [WorkItem(545894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastInAttribute()
@@ -2023,6 +2109,22 @@ class A : Attribute
 {
     public A(object x)
     {
+    }
+}");
+        }
+
+        [WorkItem(39042, "https://github.com/dotnet/roslyn/issues/39042")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveNecessaryCastForImplicitNumericCastsThatLoseInformation()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class A
+{
+    public A(long x)
+    {
+        long y = (long)[|(double)x|];
     }
 }");
         }
@@ -4604,6 +4706,69 @@ class Tester
     {
         var a = new Apple();
         ([|(Fruit)a|]).Properties[""Color""] = ""Red"";
+    }
+}");
+        }
+
+        [WorkItem(31963, "https://github.com/dotnet/roslyn/issues/31963")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontOfferToRemoveCastInConstructorWhenItNeeded()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class IntegerWrapper
+{
+    public IntegerWrapper(int value)
+    {
+    }
+}
+enum Goo
+{
+    First,
+    Second
+}
+class Tester
+{
+    public void Test()
+    {
+        var a = new IntegerWrapper([|(int)Goo.First|]);
+    }
+}");
+        }
+
+        [WorkItem(31963, "https://github.com/dotnet/roslyn/issues/31963")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontOfferToRemoveCastInBaseConstructorInitializerWhenItNeeded()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class B
+{
+    B(int a)
+    {
+    }
+}
+class C : B
+{
+    C(double a) : base([|(int)a|])
+    {
+    }
+}");
+        }
+
+        [WorkItem(31963, "https://github.com/dotnet/roslyn/issues/31963")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontOfferToRemoveCastInConstructorInitializerWhenItNeeded()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class B
+{
+    B(int a)
+    {
+    }
+
+    B(double a) : this([|(int)a|])
+    {
     }
 }");
         }

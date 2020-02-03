@@ -1,12 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -36,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="items">The sequence to convert.</param>
         /// <returns>An immutable copy of the contents of the sequence.</returns>
         /// <remarks>If the sequence is null, this will return an empty array.</remarks>
-        public static ImmutableArray<T> AsImmutableOrEmpty<T>(this IEnumerable<T> items)
+        public static ImmutableArray<T> AsImmutableOrEmpty<T>(this IEnumerable<T>? items)
         {
             if (items == null)
             {
@@ -53,7 +60,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="items">The sequence to convert.</param>
         /// <returns>An immutable copy of the contents of the sequence.</returns>
         /// <remarks>If the sequence is null, this will return the default (null) array.</remarks>
-        public static ImmutableArray<T> AsImmutableOrNull<T>(this IEnumerable<T> items)
+        public static ImmutableArray<T> AsImmutableOrNull<T>(this IEnumerable<T>? items)
         {
             if (items == null)
             {
@@ -82,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="items">The sequence to convert</param>
         /// <returns></returns>
         /// <remarks>If the sequence is null, this will return the default (null) array.</remarks>
-        public static ImmutableArray<T> AsImmutableOrNull<T>(this T[] items)
+        public static ImmutableArray<T> AsImmutableOrNull<T>(this T[]? items)
         {
             if (items == null)
             {
@@ -98,7 +105,7 @@ namespace Microsoft.CodeAnalysis
         /// <typeparam name="T"></typeparam>
         /// <param name="items">The sequence to convert</param>
         /// <returns>If the array is null, this will return an empty immutable array.</returns>
-        public static ImmutableArray<T> AsImmutableOrEmpty<T>(this T[] items)
+        public static ImmutableArray<T> AsImmutableOrEmpty<T>(this T[]? items)
         {
             if (items == null)
             {
@@ -187,6 +194,34 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Maps a subset of immutable array to another immutable array.
+        /// </summary>
+        /// <typeparam name="TItem">Type of the source array items</typeparam>
+        /// <typeparam name="TResult">Type of the transformed array items</typeparam>
+        /// <param name="array">The array to transform</param>
+        /// <param name="predicate">The condition to use for filtering the array content.</param>
+        /// <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, TResult> selector)
+        {
+            if (array.Length == 0)
+            {
+                return ImmutableArray<TResult>.Empty;
+            }
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in array)
+            {
+                if (predicate(item))
+                {
+                    builder.Add(selector(item));
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
         /// Zips two immutable arrays together through a mapping function, producing another immutable array.
         /// </summary>
         /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
@@ -232,7 +267,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(!array.IsDefault);
 
-            ArrayBuilder<T> builder = null;
+            ArrayBuilder<T>? builder = null;
             bool none = true;
             bool all = true;
 
@@ -363,7 +398,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns an array of distinct elements, preserving the order in the original array.
         /// If the array has no duplicates, the original array is returned. The original array must not be null.
         /// </summary>
-        public static ImmutableArray<T> Distinct<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer = null)
+        public static ImmutableArray<T> Distinct<T>(this ImmutableArray<T> array, IEqualityComparer<T>? comparer = null)
         {
             Debug.Assert(!array.IsDefault);
 
@@ -420,7 +455,8 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<TValue> Flatten<TKey, TValue>(
             this Dictionary<TKey, ImmutableArray<TValue>> dictionary,
-            IComparer<TValue> comparer = null)
+            IComparer<TValue>? comparer = null)
+            where TKey : notnull
         {
             if (dictionary.Count == 0)
             {
@@ -497,7 +533,28 @@ namespace Microsoft.CodeAnalysis
             return count;
         }
 
-        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ImmutableArrayProxy<T>
+        {
+            internal T[] MutableArray;
+        }
+
+        // TODO(https://github.com/dotnet/corefx/issues/34126): Remove when System.Collections.Immutable
+        // provides a Span API
+        internal static T[] DangerousGetUnderlyingArray<T>(this ImmutableArray<T> array)
+            => Unsafe.As<ImmutableArray<T>, ImmutableArrayProxy<T>>(ref array).MutableArray;
+
+        internal static ReadOnlySpan<T> AsSpan<T>(this ImmutableArray<T> array)
+            => array.DangerousGetUnderlyingArray();
+
+        internal static ImmutableArray<T> DangerousCreateFromUnderlyingArray<T>([MaybeNull] ref T[] array)
+        {
+            var proxy = new ImmutableArrayProxy<T> { MutableArray = array };
+            array = null!;
+            return Unsafe.As<ImmutableArrayProxy<T>, ImmutableArray<T>>(ref proxy);
+        }
+
+        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
         {
             if (items.Length == 1)
             {
@@ -542,6 +599,36 @@ namespace Microsoft.CodeAnalysis
         internal static Location FirstOrNone(this ImmutableArray<Location> items)
         {
             return items.IsEmpty ? Location.None : items[0];
+        }
+
+        internal static bool SequenceEqual<TElement, TArg>(this ImmutableArray<TElement> array1, ImmutableArray<TElement> array2, TArg arg, Func<TElement, TElement, TArg, bool> predicate)
+        {
+            // The framework implementation of SequenceEqual forces a NullRef for default array1 and 2, so we
+            // maintain the same behavior in this extension
+            if (array1.IsDefault)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (array2.IsDefault)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (array1.Length != array2.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (!predicate(array1[i], array2[i], arg))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

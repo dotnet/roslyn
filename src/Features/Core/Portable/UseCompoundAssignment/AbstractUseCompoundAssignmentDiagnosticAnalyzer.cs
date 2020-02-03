@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             ISyntaxFactsService syntaxFacts,
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
             : base(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                   CodeStyleOptions.PreferCompoundAssignment,
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_compound_assignment), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -47,9 +48,6 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         protected abstract TSyntaxKind GetKind(int rawKind);
         protected abstract TSyntaxKind GetAnalysisKind();
         protected abstract bool IsSupported(TSyntaxKind assignmentKind, ParseOptions options);
-
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -76,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 return;
             }
 
-            _syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(assignment, 
+            _syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(assignment,
                 out var assignmentLeft, out var assignmentToken, out var assignmentRight);
 
             // has to be of the form:  a = b op c
@@ -99,10 +97,23 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             }
 
             _syntaxFacts.GetPartsOfBinaryExpression(binaryExpression,
-                out var binaryLeft, out _);
-            
+                out var binaryLeft, out var binaryRight);
+
             // has to be of the form:   expr = expr op ...
             if (!_syntaxFacts.AreEquivalent(assignmentLeft, binaryLeft))
+            {
+                return;
+            }
+
+            // Don't offer if this is `x = x + 1` inside an obj initializer like:
+            // `new Point { x = x + 1 }`
+            if (_syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(assignmentLeft))
+            {
+                return;
+            }
+
+            // Don't offer if this is `x = x ?? throw new Exception()`
+            if (_syntaxFacts.IsThrowExpression(binaryRight))
             {
                 return;
             }

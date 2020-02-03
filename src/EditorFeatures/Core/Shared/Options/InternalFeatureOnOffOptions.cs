@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly Option<bool> DesignerAttributes = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(DesignerAttributes), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Designer Attribute"));
 
-        public static readonly Option<bool> FullSolutionAnalysisMemoryMonitor = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(FullSolutionAnalysisMemoryMonitor), defaultValue: true,
+        public static readonly Option<bool> BackgroundAnalysisMemoryMonitor = new Option<bool>(nameof(InternalFeatureOnOffOptions), "FullSolutionAnalysisMemoryMonitor", defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Full Solution Analysis Memory Monitor"));
 
         public static readonly Option<bool> ProjectReferenceConversion = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(ProjectReferenceConversion), defaultValue: true,
@@ -74,6 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     [ExportOptionProvider, Shared]
     internal class InternalFeatureOnOffOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public InternalFeatureOnOffOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             InternalFeatureOnOffOptions.BraceMatching,
             InternalFeatureOnOffOptions.Classification,
@@ -92,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             InternalFeatureOnOffOptions.Snippets,
             InternalFeatureOnOffOptions.TodoComments,
             InternalFeatureOnOffOptions.DesignerAttributes,
-            InternalFeatureOnOffOptions.FullSolutionAnalysisMemoryMonitor,
+            InternalFeatureOnOffOptions.BackgroundAnalysisMemoryMonitor,
             InternalFeatureOnOffOptions.ProjectReferenceConversion);
     }
 }

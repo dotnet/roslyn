@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Reflection;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -78,6 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets the identity of this assembly.
         /// </summary>
         public abstract AssemblyIdentity Identity { get; }
+
+        AssemblyIdentity IAssemblySymbolInternal.Identity => Identity;
 
         /// <summary>
         /// Assembly version pattern with wildcards represented by <see cref="ushort.MaxValue"/>,
@@ -405,6 +410,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Figure out if the target runtime supports default interface implementation.
+        /// </summary>
+        internal bool RuntimeSupportsDefaultInterfaceImplementation
+        {
+            get => !(GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) is null);
+        }
+
+        /// <summary>
         /// Return an array of assemblies involved in canonical type resolution of
         /// NoPia local types defined within this assembly. In other words, all 
         /// references used by previous compilation referencing this assembly.
@@ -612,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 int rank = typeInfo.GetArrayRank();
 
-                return ArrayTypeSymbol.CreateCSharpArray(this, TypeSymbolWithAnnotations.Create(symbol), rank);
+                return ArrayTypeSymbol.CreateCSharpArray(this, TypeWithAnnotations.Create(symbol), rank);
             }
             else if (typeInfo.IsPointer)
             {
@@ -622,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(symbol));
+                return new PointerTypeSymbol(TypeWithAnnotations.Create(symbol));
             }
             else if (typeInfo.DeclaringType != null)
             {
@@ -712,8 +725,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return symbol;
             }
 
-            var length = symbol.TypeArgumentsNoUseSiteDiagnostics.Length;
-            var typeArgumentSymbols = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(length);
+            var length = symbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length;
+            var typeArgumentSymbols = ArrayBuilder<TypeWithAnnotations>.GetInstance(length);
             for (int i = 0; i < length; i++)
             {
                 var argSymbol = GetTypeByReflectionType(typeArguments[currentTypeArgument++], includeReferences);
@@ -721,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return null;
                 }
-                typeArgumentSymbols.Add(TypeSymbolWithAnnotations.Create(argSymbol));
+                typeArgumentSymbols.Add(TypeWithAnnotations.Create(argSymbol));
             }
 
             return symbol.ConstructIfGeneric(typeArgumentSymbols.ToImmutableAndFree());
@@ -790,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                Debug.Assert(candidate != result);
+                Debug.Assert(!TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything2));
 
                 if ((object)result != null)
                 {
@@ -889,24 +902,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ImmutableArray<byte> PublicKey { get; }
 
-        #region IAssemblySymbol Members
-
-        INamespaceSymbol IAssemblySymbol.GlobalNamespace
-        {
-            get
-            {
-                return this.GlobalNamespace;
-            }
-        }
-
-        IEnumerable<IModuleSymbol> IAssemblySymbol.Modules
-        {
-            get
-            {
-                return this.Modules;
-            }
-        }
-
         /// <summary>
         /// If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
         /// 
@@ -914,60 +909,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract AssemblyMetadata GetMetadata();
 
-        INamedTypeSymbol IAssemblySymbol.ResolveForwardedType(string fullyQualifiedMetadataName)
+        protected override ISymbol CreateISymbol()
         {
-            return ResolveForwardedType(fullyQualifiedMetadataName);
+            return new PublicModel.NonSourceAssemblySymbol(this);
         }
-
-        bool IAssemblySymbol.GivesAccessTo(IAssemblySymbol assemblyWantingAccess)
-        {
-            if (Equals(this, assemblyWantingAccess))
-            {
-                return true;
-            }
-
-            var myKeys = GetInternalsVisibleToPublicKeys(assemblyWantingAccess.Name);
-
-            // We have an easy out here. Suppose the assembly wanting access is 
-            // being compiled as a module. You can only strong-name an assembly. So we are going to optimistically 
-            // assume that it is going to be compiled into an assembly with a matching strong name, if necessary.
-            if (myKeys.Any() && assemblyWantingAccess.IsNetModule())
-            {
-                return true;
-            }
-
-            foreach (var key in myKeys)
-            {
-                IVTConclusion conclusion = this.Identity.PerformIVTCheck(assemblyWantingAccess.Identity.PublicKey, key);
-                Debug.Assert(conclusion != IVTConclusion.NoRelationshipClaimed);
-                if (conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        INamedTypeSymbol IAssemblySymbol.GetTypeByMetadataName(string metadataName)
-        {
-            return this.GetTypeByMetadataName(metadataName);
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitAssembly(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitAssembly(this);
-        }
-
-        #endregion
     }
 }

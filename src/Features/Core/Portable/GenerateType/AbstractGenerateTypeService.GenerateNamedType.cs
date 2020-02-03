@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // caller.
                 if (_state.IsException &&
                     _state.BaseTypeOrInterfaceOpt.InstanceConstructors.Any(
-                        c => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes)))
+                        c => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes, SymbolEqualityComparer.Default)))
                 {
                     return;
                 }
@@ -203,7 +205,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 IList<TArgumentSyntax> argumentList, ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
             {
                 var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
-                var syntaxFactsService = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
 
                 var availableTypeParameters = _service.GetAvailableTypeParameters(_state, _semanticDocument.SemanticModel, _intoNamespace, _cancellationToken);
                 var parameterTypes = GetArgumentTypes(argumentList);
@@ -243,11 +244,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (!(parameters.Count == 0 && options != null && (options.TypeKind == TypeKind.Struct || options.TypeKind == TypeKind.Structure)))
                 {
                     var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
-                        _semanticDocument.SemanticModel.Compilation,
+                        _semanticDocument.SemanticModel,
                         DetermineName(), null, parameters.ToImmutable(),
                         parameterToExistingFieldMap, parameterToNewFieldMap,
-                        addNullChecks: false, preferThrowExpression: false,
-                        cancellationToken: _cancellationToken);
+                        addNullChecks: false, preferThrowExpression: false);
                     members.AddRange(fields);
                     members.Add(constructor);
                 }

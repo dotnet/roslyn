@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNamedArguments
 {
     public class UseNamedArgumentsTests : AbstractCSharpCodeActionTest
     {
-        private static ParseOptions CSharp72 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
+        private static readonly ParseOptions CSharp72 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpUseNamedArgumentsCodeRefactoringProvider();
@@ -249,6 +251,23 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }");
         }
 
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestAvailableOnSelectionOfArgument1()
+        {
+            await TestWithCSharp7(
+@"class C
+{
+    void M(int arg1, int arg2) 
+        => M([|1 + 2|], 2);
+}",
+@"class C
+{
+    void M(int arg1, int arg2) 
+        => M(arg1: 1 + 2, arg2: 2);
+}");
+        }
+
         [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestAvailableOnFirstTokenOfArgument1()
@@ -445,13 +464,19 @@ class C
 
         [WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
-        public async Task TestMissingOnTuple()
+        public async Task TestOnTuple()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Linq;
 class C
 {
-    void M(int[] arr) => arr.Zip(arr, (p1, p2) =>  ([||]p1, p2));
+    void M(int[] arr) => arr.Zip(arr, (p1, p2) => ([||]p1, p2));
+}
+",
+@"using System.Linq;
+class C
+{
+    void M(int[] arr) => arr.Zip(arr, resultSelector: (p1, p2) => (p1, p2));
 }
 ");
         }

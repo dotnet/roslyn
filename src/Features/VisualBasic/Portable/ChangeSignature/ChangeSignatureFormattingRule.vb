@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
@@ -9,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     Friend NotInheritable Class ChangeSignatureFormattingRule
         Inherits BaseFormattingRule
 
-        Public Overrides Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of IndentBlockOperation))
-            nextOperation.Invoke(list)
+        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextIndentBlockOperationAction)
+            nextOperation.Invoke()
 
             If node.IsKind(SyntaxKind.ParameterList) OrElse node.IsKind(SyntaxKind.ArgumentList) Then
 
@@ -32,13 +34,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End If
         End Sub
 
-        Public Overrides Function GetAdjustNewLinesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If previousToken.IsKind(SyntaxKind.CommaToken) AndAlso
                (previousToken.Parent.IsKind(SyntaxKind.ParameterList) OrElse previousToken.Parent.IsKind(SyntaxKind.ArgumentList)) Then
                 Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)
             End If
 
-            Return MyBase.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, nextOperation)
+            Return MyBase.GetAdjustNewLinesOperationSlow(previousToken, currentToken, optionSet, nextOperation)
         End Function
     End Class
 End Namespace

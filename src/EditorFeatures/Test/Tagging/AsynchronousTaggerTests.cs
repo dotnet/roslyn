@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         [WorkItem(530368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530368")]
         public async Task LargeNumberOfSpans()
         {
-            using (var workspace = TestWorkspace.CreateCSharp(@"class Program
+            using var workspace = TestWorkspace.CreateCSharp(@"class Program
 {
     void M()
     {
@@ -50,75 +52,67 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             z + z + z + z + z + z + z + z + z + z +
             z + z + z + z + z + z + z + z + z + z;
     }
-}"))
+}");
+            static List<ITagSpan<TestTag>> tagProducer(SnapshotSpan span, CancellationToken cancellationToken)
             {
-                List<ITagSpan<TestTag>> tagProducer(SnapshotSpan span, CancellationToken cancellationToken)
-                {
-                    return new List<ITagSpan<TestTag>>() { new TagSpan<TestTag>(span, new TestTag()) };
-                }
-
-                var asyncListener = new AsynchronousOperationListener();
-
-                WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
-
-                var notificationService = workspace.GetService<IForegroundNotificationService>();
-
-                var eventSource = CreateEventSource();
-                var taggerProvider = new TestTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                    tagProducer,
-                    eventSource,
-                    workspace,
-                    asyncListener,
-                    notificationService);
-
-                var document = workspace.Documents.First();
-                var textBuffer = document.TextBuffer;
-                var snapshot = textBuffer.CurrentSnapshot;
-                var tagger = taggerProvider.CreateTagger<TestTag>(textBuffer);
-
-                using (IDisposable disposable = (IDisposable)tagger)
-                {
-                    var spans = Enumerable.Range(0, 101).Select(i => new Span(i * 4, 1));
-                    var snapshotSpans = new NormalizedSnapshotSpanCollection(snapshot, spans);
-
-                    eventSource.SendUpdateEvent();
-
-                    await asyncListener.CreateWaitTask();
-
-                    var tags = tagger.GetTags(snapshotSpans);
-
-                    Assert.Equal(1, tags.Count());
-                }
+                return new List<ITagSpan<TestTag>>() { new TagSpan<TestTag>(span, new TestTag()) };
             }
+
+            var asyncListener = new AsynchronousOperationListener();
+
+            WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
+
+            var notificationService = workspace.GetService<IForegroundNotificationService>();
+
+            var eventSource = CreateEventSource();
+            var taggerProvider = new TestTaggerProvider(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                tagProducer,
+                eventSource,
+                workspace,
+                asyncListener,
+                notificationService);
+
+            var document = workspace.Documents.First();
+            var textBuffer = document.GetTextBuffer();
+            var snapshot = textBuffer.CurrentSnapshot;
+            var tagger = taggerProvider.CreateTagger<TestTag>(textBuffer);
+
+            using var disposable = (IDisposable)tagger;
+            var spans = Enumerable.Range(0, 101).Select(i => new Span(i * 4, 1));
+            var snapshotSpans = new NormalizedSnapshotSpanCollection(snapshot, spans);
+
+            eventSource.SendUpdateEvent();
+
+            await asyncListener.CreateExpeditedWaitTask();
+
+            var tags = tagger.GetTags(snapshotSpans);
+
+            Assert.Equal(1, tags.Count());
         }
 
         [WpfFact]
         public void TestSynchronousOutlining()
         {
-            using (var workspace = TestWorkspace.CreateCSharp("class Program {\r\n\r\n}"))
-            {
-                WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
+            using var workspace = TestWorkspace.CreateCSharp("class Program {\r\n\r\n}");
+            WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
 
-                var tagProvider = new VisualStudio14StructureTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                    workspace.GetService<IForegroundNotificationService>(),
-                    workspace.GetService<ITextEditorFactoryService>(),
-                    workspace.GetService<IEditorOptionsFactoryService>(),
-                    workspace.GetService<IProjectionBufferFactoryService>(),
-                    workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+            var tagProvider = new VisualStudio14StructureTaggerProvider(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                workspace.GetService<IForegroundNotificationService>(),
+                workspace.GetService<ITextEditorFactoryService>(),
+                workspace.GetService<IEditorOptionsFactoryService>(),
+                workspace.GetService<IProjectionBufferFactoryService>(),
+                workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
-                var document = workspace.Documents.First();
-                var textBuffer = document.TextBuffer;
-                var tagger = tagProvider.CreateTagger<IOutliningRegionTag>(textBuffer);
+            var document = workspace.Documents.First();
+            var textBuffer = document.GetTextBuffer();
+            var tagger = tagProvider.CreateTagger<IOutliningRegionTag>(textBuffer);
 
-                using (var disposable = (IDisposable)tagger)
-                {
-                    // The very first all to get tags should return the single outlining span.
-                    var tags = tagger.GetAllTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()), CancellationToken.None);
-                    Assert.Equal(1, tags.Count());
-                }
-            }
+            using var disposable = (IDisposable)tagger;
+            // The very first all to get tags should return the single outlining span.
+            var tags = tagger.GetAllTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()), CancellationToken.None);
+            Assert.Equal(1, tags.Count());
         }
 
         private static TestTaggerEventSource CreateEventSource()
@@ -128,8 +122,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
         private sealed class TestTag : TextMarkerTag
         {
-            public TestTag() :
-                base("Test")
+            public TestTag()
+                : base("Test")
             {
             }
         }
@@ -181,8 +175,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
         private sealed class TestTaggerEventSource : AbstractTaggerEventSource
         {
-            public TestTaggerEventSource() :
-                base(delay: TaggerDelay.NearImmediate)
+            public TestTaggerEventSource()
+                : base(delay: TaggerDelay.NearImmediate)
             {
             }
 

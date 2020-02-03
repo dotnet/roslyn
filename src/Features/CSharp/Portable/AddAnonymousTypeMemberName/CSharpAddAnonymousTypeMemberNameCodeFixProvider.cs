@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,13 +13,18 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpAddAnonymousTypeMemberNameCodeFixProvider 
+    internal class CSharpAddAnonymousTypeMemberNameCodeFixProvider
         : AbstractAddAnonymousTypeMemberNameCodeFixProvider<
-            ExpressionSyntax, 
+            ExpressionSyntax,
             AnonymousObjectCreationExpressionSyntax,
             AnonymousObjectMemberDeclaratorSyntax>
     {
         private const string CS0746 = nameof(CS0746); // Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+
+        [ImportingConstructor]
+        public CSharpAddAnonymousTypeMemberNameCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(CS0746);

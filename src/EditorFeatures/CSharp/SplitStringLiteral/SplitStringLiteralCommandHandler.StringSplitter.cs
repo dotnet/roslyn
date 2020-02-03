@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,6 +9,8 @@ using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
+    using Microsoft.CodeAnalysis.Indentation;
+
     internal partial class SplitStringLiteralCommandHandler
     {
         private abstract class StringSplitter
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             public StringSplitter(
                 Document document, int position,
                 SyntaxNode root, SourceText sourceText,
-                bool useTabs, int tabSize, 
+                bool useTabs, int tabSize,
                 IndentStyle indentStyle, CancellationToken cancellationToken)
             {
                 Document = document;
@@ -150,17 +151,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             {
                 var newDocument = Document.WithSyntaxRoot(newRoot);
 
-                var indentationService = (IBlankLineIndentationService)newDocument.GetLanguageService<ISynchronousIndentationService>();
+                var indentationService = newDocument.GetLanguageService<IIndentationService>();
                 var originalLineNumber = SourceText.Lines.GetLineFromPosition(CursorPosition).LineNumber;
 
-                var desiredIndentation = indentationService.GetBlankLineIndentation(
+                var desiredIndentation = indentationService.GetIndentation(
                     newDocument, originalLineNumber + 1, _indentStyle, CancellationToken);
 
                 var newSourceText = newDocument.GetSyntaxRootSynchronously(CancellationToken).SyntaxTree.GetText(CancellationToken);
                 var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
-                var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
 
-                var indent = baseOffsetInLine + desiredIndentation.Offset;
+                var baseOffsetInLineInPositions = desiredIndentation.BasePosition - baseLine.Start;
+                var baseOffsetInLineInColumns = baseLine.GetColumnFromLineOffset(baseOffsetInLineInPositions, TabSize);
+
+                var indent = baseOffsetInLineInColumns + desiredIndentation.Offset;
                 var indentString = indent.CreateIndentationString(UseTabs, TabSize);
                 return indentString;
             }

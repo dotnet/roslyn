@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -15,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// of an error. For example, if a field is declared "Goo x;", and the type "Goo" cannot be
     /// found, an ErrorSymbol is returned when asking the field "x" what it's type is.
     /// </summary>
-    internal abstract partial class ErrorTypeSymbol : NamedTypeSymbol, IErrorTypeSymbol
+    internal abstract partial class ErrorTypeSymbol : NamedTypeSymbol
     {
         internal static readonly ErrorTypeSymbol UnknownResultType = new UnsupportedMetadataTypeSymbol();
 
@@ -24,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The underlying error.
         /// </summary>
-        internal abstract DiagnosticInfo ErrorInfo { get; }
+        internal abstract DiagnosticInfo? ErrorInfo { get; }
 
         /// <summary>
         /// Summary of the reason why the type is bad.
@@ -37,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// to perform substitution on the wrapped type, if any, and then construct a new
         /// error type symbol from the result (if there was a change).
         /// </summary>
-        internal TypeSymbolWithAnnotations Substitute(AbstractTypeMap typeMap)
+        internal TypeWithAnnotations Substitute(AbstractTypeMap typeMap)
         {
-            return TypeSymbolWithAnnotations.Create(typeMap.SubstituteNamedType(this));
+            return TypeWithAnnotations.Create(typeMap.SubstituteNamedType(this));
         }
 
         /// <summary>
@@ -77,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             return this.ErrorInfo;
         }
@@ -103,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get
             {
@@ -111,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsReadOnly
+        public sealed override bool IsReadOnly
         {
             get
             {
@@ -137,6 +141,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// returns an empty ImmutableArray. Never returns Null.</returns>
         public override ImmutableArray<Symbol> GetMembers()
         {
+            if (IsTupleType)
+            {
+                var result = AddOrWrapTupleMembers(ImmutableArray<Symbol>.Empty);
+                RoslynDebug.Assert(result is object);
+                return result.ToImmutableAndFree();
+            }
+
             return ImmutableArray<Symbol>.Empty;
         }
 
@@ -227,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Get the symbol that logically contains this symbol. 
         /// </summary>
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -285,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If nothing has been substituted for a give type parameters,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get
             {
@@ -351,7 +362,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Only the compiler should create error symbols.
-        internal ErrorTypeSymbol()
+        internal ErrorTypeSymbol(TupleExtraData? tupleData = null)
+            : base(tupleData)
         {
         }
 
@@ -419,11 +431,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => null;
+        internal override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => null;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -433,17 +445,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        internal override NamedTypeSymbol? GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
             return null;
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        protected override NamedTypeSymbol ConstructCore(ImmutableArray<TypeSymbolWithAnnotations> typeArguments, bool unbound)
+        protected override NamedTypeSymbol ConstructCore(ImmutableArray<TypeWithAnnotations> typeArguments, bool unbound)
         {
             return new ConstructedErrorTypeSymbol(this, typeArguments);
         }
@@ -451,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override NamedTypeSymbol AsMember(NamedTypeSymbol newOwner)
         {
             Debug.Assert(this.IsDefinition);
-            Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
+            Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol?.OriginalDefinition));
             return newOwner.IsDefinition ? this : new SubstitutedNestedErrorTypeSymbol(newOwner, this);
         }
 
@@ -490,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -515,17 +527,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        #region IErrorTypeSymbol Members
-
-        ImmutableArray<ISymbol> IErrorTypeSymbol.CandidateSymbols
+        public sealed override bool AreLocalsZeroed
         {
-            get
-            {
-                return StaticCast<ISymbol>.From(CandidateSymbols);
-            }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
-        #endregion IErrorTypeSymbol Members
+        protected sealed override ISymbol CreateISymbol()
+        {
+            return new PublicModel.ErrorTypeSymbol(this, DefaultNullableAnnotation);
+        }
+
+        protected sealed override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
+        {
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.ErrorTypeSymbol(this, nullableAnnotation);
+        }
     }
 
     internal abstract class SubstitutedErrorTypeSymbol : ErrorTypeSymbol
@@ -533,7 +549,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ErrorTypeSymbol _originalDefinition;
         private int _hashCode;
 
-        protected SubstitutedErrorTypeSymbol(ErrorTypeSymbol originalDefinition)
+        protected SubstitutedErrorTypeSymbol(ErrorTypeSymbol originalDefinition, TupleExtraData? tupleData = null)
+            : base(tupleData)
         {
             _originalDefinition = originalDefinition;
         }
@@ -548,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.MangleName; }
         }
 
-        internal override DiagnosticInfo ErrorInfo
+        internal override DiagnosticInfo? ErrorInfo
         {
             get { return _originalDefinition.ErrorInfo; }
         }
@@ -578,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.ResultKind; }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             return _originalDefinition.GetUseSiteDiagnostic();
         }
@@ -591,22 +608,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return _hashCode;
         }
-
-        public override bool? NonNullTypes => false;
     }
 
     internal sealed class ConstructedErrorTypeSymbol : SubstitutedErrorTypeSymbol
     {
         private readonly ErrorTypeSymbol _constructedFrom;
-        private readonly ImmutableArray<TypeSymbolWithAnnotations> _typeArguments;
+        private readonly ImmutableArray<TypeWithAnnotations> _typeArgumentsWithAnnotations;
         private readonly TypeMap _map;
 
-        public ConstructedErrorTypeSymbol(ErrorTypeSymbol constructedFrom, ImmutableArray<TypeSymbolWithAnnotations> typeArguments) :
-            base((ErrorTypeSymbol)constructedFrom.OriginalDefinition)
+        public ConstructedErrorTypeSymbol(ErrorTypeSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, TupleExtraData? tupleData = null) :
+            base((ErrorTypeSymbol)constructedFrom.OriginalDefinition, tupleData)
         {
             _constructedFrom = constructedFrom;
-            _typeArguments = typeArguments;
-            _map = new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArguments);
+            _typeArgumentsWithAnnotations = typeArgumentsWithAnnotations;
+            _map = new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArgumentsWithAnnotations);
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            return new ConstructedErrorTypeSymbol(_constructedFrom, _typeArgumentsWithAnnotations, tupleData: newData);
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -614,9 +634,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _constructedFrom.TypeParameters; }
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
-            get { return _typeArguments; }
+            get { return _typeArgumentsWithAnnotations; }
         }
 
         public override NamedTypeSymbol ConstructedFrom
@@ -624,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _constructedFrom; }
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get { return _constructedFrom.ContainingSymbol; }
         }
@@ -653,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get { return GetTypeParametersAsTypeArguments(); }
         }
@@ -672,5 +692,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _map; }
         }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            => throw ExceptionUtilities.Unreachable;
     }
 }

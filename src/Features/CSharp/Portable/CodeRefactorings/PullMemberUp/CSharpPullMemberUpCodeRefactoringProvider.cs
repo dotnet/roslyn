@@ -1,53 +1,43 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.PullMemberUp)), Shared]
     internal class CSharpPullMemberUpCodeRefactoringProvider : AbstractPullMemberUpRefactoringProvider
     {
-        protected override bool IsSelectionValid(TextSpan span, SyntaxNode selectedNode)
+        /// <summary>
+        /// Test purpose only.
+        /// </summary>
+        public CSharpPullMemberUpCodeRefactoringProvider(IPullMemberUpOptionsService service) : base(service)
         {
-            var identifier = GetIdentifier(selectedNode);
-            if (identifier == default)
-            {
-                return false;
-            }
-            else if (identifier.FullSpan.Contains(span) && span.Contains(identifier.Span))
-            {
-                // Selection lies within the identifier's span
-                return true;
-            }
-            else if (identifier.Span.Contains(span) && span.Length == 0)
-            {
-                // Cursor stands on the identifier
-                return true;
-            }
-            else
-            {
-                return false;
-            }
         }
 
-        private SyntaxToken GetIdentifier(SyntaxNode selectedNode)
+        [ImportingConstructor]
+        public CSharpPullMemberUpCodeRefactoringProvider() : base(null)
         {
-            switch (selectedNode)
-            {
-                case MemberDeclarationSyntax memberDeclarationSyntax:
-                    // Nested type is checked in before this method is called.
-                    return memberDeclarationSyntax.GetNameToken();
-                case VariableDeclaratorSyntax variableDeclaratorSyntax:
-                    // It handles multiple fields or events declared in one line
-                    return variableDeclaratorSyntax.Identifier;
-                default:
-                    return default;
-            }
+        }
+
+        protected override async Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context)
+        {
+            // Consider:
+            // MemberDeclaration: member that can be declared in type (those are the ones we can pull up) 
+            // VariableDeclaratorSyntax: for fields the MemberDeclaration can actually represent multiple declarations, e.g. `int a = 0, b = 1;`.
+            // ..Since the user might want to select & pull up only one of them (e.g. `int a = 0, [|b = 1|];` we also look for closest VariableDeclaratorSyntax.
+            return await context.TryGetRelevantNodeAsync<MemberDeclarationSyntax>().ConfigureAwait(false) as SyntaxNode ??
+                await context.TryGetRelevantNodeAsync<VariableDeclaratorSyntax>().ConfigureAwait(false);
         }
     }
 }

@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 EnsureSubscribedToRunningDocumentTableEvents();
             }
         }
-       
+
         public void StopTrackingProject(VisualStudioProject project)
         {
             AssertIsForeground();
@@ -68,9 +68,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             AssertIsForeground();
 
-            foreach (var scope in _fullSolutionLoadScopes)
+            foreach (var (_, _, batchScope) in _fullSolutionLoadScopes)
             {
-                scope.batchScope.Dispose();
+                batchScope.Dispose();
             }
 
             _fullSolutionLoadScopes.Clear();
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             AssertIsForeground();
 
-            for (int i = 0; i < _fullSolutionLoadScopes.Count; i++)
+            for (var i = 0; i < _fullSolutionLoadScopes.Count; i++)
             {
                 if (_fullSolutionLoadScopes[i].hierarchy == hierarchy)
                 {
@@ -109,9 +109,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             var solution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
 
             // We never unsubscribe from these, so we just throw out the cookie. We could consider unsubscribing if/when all our
-            // projects are unloaded, but it seems fairly unecessary -- it'd only be useful if somebody closed one solution but then
+            // projects are unloaded, but it seems fairly unnecessary -- it'd only be useful if somebody closed one solution but then
             // opened other solutions in entirely different languages from there.
-            solution.AdviseSolutionEvents(new SolutionEventsEventSink(this), out _);
+            if (ErrorHandler.Succeeded(solution.AdviseSolutionEvents(new SolutionEventsEventSink(this), out _)))
+            {
+                _isSubscribedToSolutionEvents = true;
+            }
 
             // It's possible that we're loading after the solution has already fully loaded, so see if we missed the event 
             var shellMonitorSelection = (IVsMonitorSelection)_serviceProvider.GetService(typeof(SVsShellMonitorSelection));
@@ -188,14 +191,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return VSConstants.S_OK;
             }
 
-            int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
+            int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
             {
+                _scopeCreator._solutionLoaded = true;
                 _scopeCreator.StopTrackingAllProjects();
 
                 return VSConstants.S_OK;
             }
 
             #region Unimplemented Members
+
+            int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
+            {
+                return VSConstants.E_NOTIMPL;
+            }
 
             int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
             {
@@ -223,11 +232,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
-
-            int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
             {
                 return VSConstants.E_NOTIMPL;
             }

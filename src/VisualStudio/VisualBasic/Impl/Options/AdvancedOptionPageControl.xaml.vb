@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
@@ -7,21 +9,25 @@ Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Fading
 Imports Microsoft.CodeAnalysis.ImplementType
-Imports Microsoft.CodeAnalysis.Remote
+Imports Microsoft.CodeAnalysis.Options.EditorConfig
+Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.ValidateFormatString
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPageControl
-        Public Sub New(serviceProvider As IServiceProvider)
-            MyBase.New(serviceProvider)
+        Public Sub New(optionStore As OptionStore)
+            MyBase.New(optionStore)
 
             InitializeComponent()
 
-            BindToFullSolutionAnalysisOption(Enable_full_solution_analysis, LanguageNames.VisualBasic)
-            BindToOption(Perform_editor_feature_analysis_in_external_process, RemoteFeatureOptions.OutOfProcessAllowed)
+            BindToOption(Background_analysis_scope_active_file, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.ActiveFile, LanguageNames.VisualBasic)
+            BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.VisualBasic)
+            BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.VisualBasic)
+            BindToOption(Use_editorconfig_compatibility_mode, EditorConfigDocumentOptionsProviderFactory.UseLegacyEditorConfigSupport)
 
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic)
             BindToOption(SeparateImportGroups, GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic)
@@ -63,6 +69,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Colorize_regular_expressions, RegularExpressionsOptions.ColorizeRegexPatterns, LanguageNames.VisualBasic)
             BindToOption(Report_invalid_regular_expressions, RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic)
             BindToOption(Highlight_related_components_under_cursor, RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.VisualBasic)
+            BindToOption(Show_completion_list, RegularExpressionsOptions.ProvideRegexCompletions, LanguageNames.VisualBasic)
+
+            BindToOption(Use_enhanced_colors, FeatureOnOffOptions.UseEnhancedColors)
         End Sub
     End Class
 End Namespace

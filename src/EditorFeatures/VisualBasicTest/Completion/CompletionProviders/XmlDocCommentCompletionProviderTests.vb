@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 
 Namespace Tests
     Public Class XmlDocCommentCompletionProviderTests
@@ -18,14 +21,15 @@ Namespace Tests
             Return New XmlDocCommentCompletionProvider()
         End Function
 
-        Protected Overrides Async Function VerifyWorkerAsync(
+        Private Protected Overrides Async Function VerifyWorkerAsync(
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
-                hasSuggestionItem As Boolean?, displayTextSuffix As String) As Task
-            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix)
-            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix)
+                hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String,
+                matchingFilters As List(Of CompletionFilter)) As Task
+            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription, matchingFilters)
+            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription, matchingFilters)
         End Function
 
         Private Async Function VerifyItemsExistAsync(markup As String, ParamArray items() As String) As Task

@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -17,7 +20,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.SigningTestHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -484,7 +486,7 @@ public class C : Base
 
                 VerifyMethods(output, "C", new[] { "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
                 // A getter is synthesized on C.Property so that it can be marked as sealed. It is emitted despite being internal because it is virtual.
-                VerifyMethods(metadataOutput, "C", new[] {  "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
+                VerifyMethods(metadataOutput, "C", new[] { "void C.Property.set", "C..ctor()", "System.Int32 C.Property.get", "System.Int32 C.Property { internal get; set; }" });
             }
         }
 
@@ -688,7 +690,7 @@ public class D : ITest1
                 var method = (PEMethodSymbol)itest1.GetMember("M");
                 Assert.Equal("S ITest1.M()", method.ToTestDisplayString());
 
-                var s = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
+                var s = (NamedTypeSymbol)method.ReturnType;
                 Assert.Equal("S", s.ToTestDisplayString());
                 Assert.NotNull(s.GetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute"));
 
@@ -777,7 +779,7 @@ public class D
                 var method = (PEMethodSymbol)itest1.GetMember("M");
                 Assert.Equal("S ITest1.M()", method.ToTestDisplayString());
 
-                var s = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
+                var s = (NamedTypeSymbol)method.ReturnType;
                 Assert.Equal("S", s.ToTestDisplayString());
 
                 var field = s.GetMember("field");
@@ -814,7 +816,7 @@ public class C
         /// Are the metadata-only assemblies identical with two source code modifications?
         /// Metadata-only assemblies can either include private/internal members or not.
         /// </summary>
-        private void CompareAssemblies(string sourceTemplate, string change1, string change2, Match expectedMatch, bool includePrivateMembers)
+        private static void CompareAssemblies(string sourceTemplate, string change1, string change2, Match expectedMatch, bool includePrivateMembers)
         {
             bool expectMatch = includePrivateMembers ?
                 expectedMatch == Match.BothMetadataAndRefOut :
@@ -851,6 +853,112 @@ public class C
                 Assert.Equal(Guid.Empty, mvid1);
                 Assert.Equal(Guid.Empty, mvid2);
             }
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
+        public void RefAssembly_InvariantToResourceChanges()
+        {
+            var arrayOfEmbeddedData1 = new byte[] { 1, 2, 3, 4, 5 };
+            var arrayOfEmbeddedData2 = new byte[] { 1, 2, 3, 4, 5, 6 };
+
+            IEnumerable<ResourceDescription> manifestResources1 = new[] {
+                new ResourceDescription(resourceName: "A", fileName: "x.goo", () => new MemoryStream(arrayOfEmbeddedData1), isPublic: true)};
+            IEnumerable<ResourceDescription> manifestResources2 = new[] {
+                new ResourceDescription(resourceName: "A", fileName: "x.goo", () => new MemoryStream(arrayOfEmbeddedData2), isPublic: true)};
+            verify();
+
+            manifestResources1 = new[] {
+                new ResourceDescription(resourceName: "A", () => new MemoryStream(arrayOfEmbeddedData1), isPublic: true)}; // embedded
+            manifestResources2 = new[] {
+                new ResourceDescription(resourceName: "A", () => new MemoryStream(arrayOfEmbeddedData2), isPublic: true)}; // embedded
+            verify();
+
+            void verify()
+            {
+                // Verify refout
+                string name = GetUniqueName();
+                var (image1, metadataImage1) = emitRefOut(manifestResources1, name);
+                var (image2, metadataImage2) = emitRefOut(manifestResources2, name);
+                AssertEx.NotEqual(image1, image2, message: "Expecting different main assemblies produced by refout");
+                AssertEx.Equal(metadataImage1, metadataImage2, message: "Expecting identical ref assemblies produced by refout");
+
+                var refAssembly1 = Assembly.ReflectionOnlyLoad(metadataImage1.ToArray());
+                Assert.DoesNotContain("A", refAssembly1.GetManifestResourceNames());
+
+                // Verify refonly
+                string name2 = GetUniqueName();
+                var refOnlyMetadataImage1 = emitRefOnly(manifestResources1, name2);
+                var refOnlyMetadataImage2 = emitRefOnly(manifestResources2, name2);
+                AssertEx.Equal(refOnlyMetadataImage1, refOnlyMetadataImage2, message: "Expecting identical ref assemblies produced by refonly");
+
+                var refOnlyAssembly1 = Assembly.ReflectionOnlyLoad(refOnlyMetadataImage1.ToArray());
+                Assert.DoesNotContain("A", refOnlyAssembly1.GetManifestResourceNames());
+            }
+
+            (ImmutableArray<byte>, ImmutableArray<byte>) emitRefOut(IEnumerable<ResourceDescription> manifestResources, string name)
+            {
+                var source = Parse("");
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+                comp.VerifyDiagnostics();
+
+                var metadataPEStream = new MemoryStream();
+                var refoutOptions = EmitOptions.Default.WithEmitMetadataOnly(false).WithIncludePrivateMembers(false);
+                var peStream = comp.EmitToArray(refoutOptions, metadataPEStream: metadataPEStream, manifestResources: manifestResources);
+
+                return (peStream, metadataPEStream.ToImmutable());
+            }
+
+            ImmutableArray<byte> emitRefOnly(IEnumerable<ResourceDescription> manifestResources, string name)
+            {
+                var source = Parse("");
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+                comp.VerifyDiagnostics();
+
+                var refonlyOptions = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+                return comp.EmitToArray(refonlyOptions, metadataPEStream: null, manifestResources: manifestResources);
+            }
+        }
+
+        [Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
+        public void RefAssembly_CryptoHashFailedIsOnlyReportedOnce()
+        {
+            var hash_resources = new[] {new ResourceDescription("hash_resource", "snKey.snk",
+                () => new MemoryStream(TestResources.General.snKey, writable: false),
+                true)};
+
+            CSharpCompilation moduleComp = CreateEmptyCompilation("",
+                options: TestOptions.DebugDll.WithDeterministic(true).WithOutputKind(OutputKind.NetModule));
+
+            var reference = ModuleMetadata.CreateFromImage(moduleComp.EmitToArray()).GetReference();
+
+            CSharpCompilation compilation = CreateCompilation(
+@"
+[assembly: System.Reflection.AssemblyAlgorithmIdAttribute(12345)]
+
+class Program
+{
+    void M() {}
+}
+", references: new[] { reference }, options: TestOptions.ReleaseDll);
+
+            // refonly
+            var refonlyOptions = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+            var refonlyDiagnostics = compilation.Emit(new MemoryStream(), pdbStream: null,
+                options: refonlyOptions, manifestResources: hash_resources).Diagnostics;
+
+            refonlyDiagnostics.Verify(
+                // error CS8013: Cryptographic failure while creating hashes.
+                Diagnostic(ErrorCode.ERR_CryptoHashFailed));
+
+            // refout
+            var refoutOptions = EmitOptions.Default.WithEmitMetadataOnly(false).WithIncludePrivateMembers(false);
+            var refoutDiagnostics = compilation.Emit(peStream: new MemoryStream(), metadataPEStream: new MemoryStream(), pdbStream: null,
+                options: refoutOptions, manifestResources: hash_resources).Diagnostics;
+
+            refoutDiagnostics.Verify(
+                // error CS8013: Cryptographic failure while creating hashes.
+                Diagnostic(ErrorCode.ERR_CryptoHashFailed));
         }
 
         [Fact]
@@ -1208,7 +1316,7 @@ comp =>
   IL_0008:  nop
   IL_0009:  ret
 }");
-    });
+});
         }
 
         [Fact]
@@ -1521,12 +1629,11 @@ comp => comp.VerifyDiagnostics(
             VerifyIdentitiesMatch(image, refOnlyImage, expectPublicKey: true);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void RefAssembly_StrongNameProvider()
         {
-            var signedDllOptions = TestOptions.ReleaseDll.
-                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                 WithStrongNameProvider(s_defaultDesktopProvider);
+            var signedDllOptions = TestOptions.SigningReleaseDll.
+                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
 
             var comp = CreateCompilation("public class C{}", options: signedDllOptions);
 
@@ -1540,12 +1647,11 @@ comp => comp.VerifyDiagnostics(
             VerifyIdentitiesMatch(image, refOnlyImage, expectPublicKey: true);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void RefAssembly_StrongNameProvider_Arm64()
         {
-            var signedDllOptions = TestOptions.ReleaseDll.
+            var signedDllOptions = TestOptions.SigningReleaseDll.
                  WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                 WithStrongNameProvider(s_defaultDesktopProvider).
                  WithPlatform(Platform.Arm64).
                  WithDeterministic(true);
 
@@ -1561,13 +1667,12 @@ comp => comp.VerifyDiagnostics(
             VerifyIdentitiesMatch(image, refOnlyImage, expectPublicKey: true);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void RefAssembly_StrongNameProviderAndDelaySign()
         {
-            var signedDllOptions = TestOptions.ReleaseDll
+            var signedDllOptions = TestOptions.SigningReleaseDll
                 .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile)
-                .WithDelaySign(true)
-                .WithStrongNameProvider(s_defaultDesktopProvider);
+                .WithDelaySign(true);
 
             var comp = CreateCompilation("public class C{}", options: signedDllOptions);
 
@@ -1974,9 +2079,24 @@ internal struct InternalStruct
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateEmptyCompilation("", references: new[] { MscorlibRef, refImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var globalNamespace = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace;
+
             AssertEx.Equal(
-                new[] { "<Module>", "InternalStruct" },
-                compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
+                new[] { "<Module>", "InternalStruct", "Microsoft", "System" },
+                globalNamespace.GetMembers().Select(m => m.ToDisplayString()));
+
+            AssertEx.Equal(new[] { "Microsoft.CodeAnalysis" }, globalNamespace.GetMember<NamespaceSymbol>("Microsoft").GetMembers().Select(m => m.ToDisplayString()));
+            AssertEx.Equal(
+                new[] { "Microsoft.CodeAnalysis.EmbeddedAttribute" },
+                globalNamespace.GetMember<NamespaceSymbol>("Microsoft.CodeAnalysis").GetMembers().Select(m => m.ToDisplayString()));
+
+            AssertEx.Equal(
+                new[] { "System.Runtime.CompilerServices" },
+                globalNamespace.GetMember<NamespaceSymbol>("System.Runtime").GetMembers().Select(m => m.ToDisplayString()));
+            AssertEx.Equal(
+                new[] { "System.Runtime.CompilerServices.IsReadOnlyAttribute" },
+                globalNamespace.GetMember<NamespaceSymbol>("System.Runtime.CompilerServices").GetMembers().Select(m => m.ToDisplayString()));
 
             AssertEx.Equal(
                 new[] { "System.Int32 InternalStruct.<P>k__BackingField", "InternalStruct..ctor()" },
@@ -4650,7 +4770,7 @@ class C
             result.Diagnostics.Verify(
                 // error CS8104: An error occurred while writing the Portable Executable file.
                 Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(output.ThrownException.ToString()).WithLocation(1, 1));
-          
+
             // Stream.Position is not called:
             output.BreakHow = BrokenStream.BreakHowType.ThrowOnSetPosition;
             result = compilation.Emit(output);
@@ -5043,6 +5163,96 @@ public class DerivingClass<T> : BaseClass<T>
                 Assert.False(a.IsErrorType());
                 Assert.Equal("refMod.netmodule", a.ContainingModule.Name);
             });
+        }
+
+        [Fact]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void WarnAsErrorDoesNotEmit_GeneralDiagnosticOption()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
+            TestWarnAsErrorDoesNotEmitCore(options);
+        }
+
+        [Fact]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void WarnAsErrorDoesNotEmit_SpecificDiagnosticOption()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithSpecificDiagnosticOptions("CS0169", ReportDiagnostic.Error);
+            TestWarnAsErrorDoesNotEmitCore(options);
+        }
+
+        private void TestWarnAsErrorDoesNotEmitCore(CSharpCompilationOptions options)
+        {
+            string source = @"
+class X
+{
+    int _f;
+}";
+            var compilation = CreateCompilation(source, options: options);
+
+            using var output = new MemoryStream();
+            using var pdbStream = new MemoryStream();
+            using var xmlDocumentationStream = new MemoryStream();
+            using var win32ResourcesStream = compilation.CreateDefaultWin32Resources(versionResource: true, noManifest: false, manifestContents: null, iconInIcoFormat: null);
+
+            var emitResult = compilation.Emit(output, pdbStream, xmlDocumentationStream, win32ResourcesStream);
+            Assert.False(emitResult.Success);
+
+            Assert.Equal(0, output.Length);
+            Assert.Equal(0, pdbStream.Length);
+
+            // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting the below behavior.
+            Assert.True(xmlDocumentationStream.Length > 0);
+
+            emitResult.Diagnostics.Verify(
+                // (4,9): error CS0169: The field 'X._f' is never used
+                //     int _f;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "_f").WithArguments("X._f").WithLocation(4, 9).WithWarningAsError(true));
+        }
+
+        [Fact]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void WarnAsErrorWithMetadataOnlyImageDoesEmit_GeneralDiagnosticOption()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
+            TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(options);
+        }
+
+        [Fact]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void WarnAsErrorWithMetadataOnlyImageDoesEmit_SpecificDiagnosticOptions()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithSpecificDiagnosticOptions("CS0612", ReportDiagnostic.Error);
+            TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(options);
+        }
+
+        private void TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(CSharpCompilationOptions options)
+        {
+            string source = @"
+public class X
+{
+    public void M(Y y)
+    {
+    }
+}
+
+[System.Obsolete]
+public class Y { }
+";
+            var compilation = CreateCompilation(source, options: options);
+
+            using var output = new MemoryStream();
+            var emitOptions = new EmitOptions(metadataOnly: true);
+
+            var emitResult = compilation.Emit(output, options: emitOptions);
+            Assert.True(emitResult.Success);
+
+            Assert.True(output.Length > 0);
+
+            emitResult.Diagnostics.Verify(
+                // (4,19): error CS0612: 'Y' is obsolete
+                //     public void M(Y y)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Y").WithArguments("Y").WithLocation(4, 19).WithWarningAsError(true));
         }
     }
 }

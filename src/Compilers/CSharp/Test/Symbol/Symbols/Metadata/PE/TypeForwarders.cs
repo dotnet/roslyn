@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -1143,10 +1145,10 @@ namespace N1
                 //         N1.N2.N3.T t4 { get; set; }
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T").WithArguments("T", "N1.N2.N3", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
 
-            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns => 
-                !ns.StartsWith("System", StringComparison.Ordinal) && 
-                !ns.StartsWith("Windows", StringComparison.Ordinal) && 
-                !ns.StartsWith("FxResources", StringComparison.Ordinal) && 
+            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns =>
+                !ns.StartsWith("System", StringComparison.Ordinal) &&
+                !ns.StartsWith("Windows", StringComparison.Ordinal) &&
+                !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
                 !ns.StartsWith("Microsoft", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
@@ -1607,7 +1609,7 @@ public class CF1
             EntityHandle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            // Exported types in .Net module cause PEVerify to fail.
+            // Exported types in .NET module cause PEVerify to fail.
             CompileAndVerify(appCompilation, verify: Verification.Fails,
                 symbolValidator: m =>
                 {

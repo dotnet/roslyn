@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -35,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace, ITextBuffer subjectBuffer,
-            object provider, CodeAction codeAction, 
-            SuggestedActionSet additionalFlavors = null) 
-            : base(threadingContext, sourceProvider, workspace, subjectBuffer, 
+            object provider, CodeAction codeAction,
+            SuggestedActionSet additionalFlavors = null)
+            : base(threadingContext, sourceProvider, workspace, subjectBuffer,
                    provider, codeAction)
         {
             _additionalFlavors = additionalFlavors;
@@ -150,9 +152,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             // GetPreviewPane() needs to run on the UI thread.
             AssertIsForeground();
-            Workspace.GetLanguageAndProjectType(preferredProjectId, out var language, out var projectType);
 
-            return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContents);
+            return previewPaneService.GetPreviewPane(GetDiagnostic(), previewContents);
         }
 
         protected virtual DiagnosticData GetDiagnostic() => null;

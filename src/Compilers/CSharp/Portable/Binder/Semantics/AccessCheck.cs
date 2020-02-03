@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -51,9 +53,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteDiagnostics, basesBeingResolved);
+        }
+
+        /// <summary>
+        /// Returns true if the symbol is effectively public or internal based on
+        /// the declared accessibility of the symbol and any containing symbols.
+        /// </summary>
+        internal static bool IsEffectivelyPublicOrInternal(Symbol symbol, out bool isInternal)
+        {
+            Debug.Assert(symbol is object);
+
+            switch (symbol.Kind)
+            {
+                case SymbolKind.NamedType:
+                case SymbolKind.Event:
+                case SymbolKind.Field:
+                case SymbolKind.Method:
+                case SymbolKind.Property:
+                    break;
+                case SymbolKind.TypeParameter:
+                    symbol = symbol.ContainingSymbol;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
+
+            isInternal = false;
+
+            do
+            {
+                switch (symbol.DeclaredAccessibility)
+                {
+                    case Accessibility.Public:
+                    case Accessibility.Protected:
+                    case Accessibility.ProtectedOrInternal:
+                        break;
+                    case Accessibility.Internal:
+                    case Accessibility.ProtectedAndInternal:
+                        isInternal = true;
+                        break;
+                    case Accessibility.Private:
+                        return false;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
+                }
+
+                symbol = symbol.ContainingType;
+            }
+            while (symbol is object);
+
+            return true;
         }
 
         /// <summary>
@@ -83,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert((object)symbol != null);
             Debug.Assert((object)within != null);
@@ -95,10 +147,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.Kind)
             {
                 case SymbolKind.ArrayType:
-                    return IsSymbolAccessibleCore(((ArrayTypeSymbol)symbol).ElementType.TypeSymbol, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((ArrayTypeSymbol)symbol).ElementType, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.PointerType:
-                    return IsSymbolAccessibleCore(((PointerTypeSymbol)symbol).PointedAtType.TypeSymbol, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((PointerTypeSymbol)symbol).PointedAtType, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.NamedType:
                     return IsNamedTypeAccessible((NamedTypeSymbol)symbol, within, ref useSiteDiagnostics, basesBeingResolved);
@@ -107,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return IsSymbolAccessibleCore(((AliasSymbol)symbol).Target, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.Discard:
-                    return IsSymbolAccessibleCore(((DiscardSymbol)symbol).Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((DiscardSymbol)symbol).TypeWithAnnotations.Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.ErrorType:
                     // Always assume that error types are accessible.
@@ -129,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                 case SymbolKind.Event:
                 case SymbolKind.Field:
-                    if (symbol.IsStatic)
+                    if (!symbol.RequiresInstanceReceiver())
                     {
                         // static members aren't accessed "through" an "instance" of any type.  So we
                         // null out the "through" instance here.  This ensures that we'll understand
@@ -148,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Is the named type <paramref name="type"/> accessible from within <paramref name="within"/>,
         /// which must be a named type or an assembly.
         /// </summary>
-        private static bool IsNamedTypeAccessible(NamedTypeSymbol type, Symbol within, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
+        private static bool IsNamedTypeAccessible(NamedTypeSymbol type, Symbol within, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(within is NamedTypeSymbol || within is AssemblySymbol);
             Debug.Assert((object)type != null);
@@ -164,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // type parameters are always accessible, so don't check those (so common it's
                     // worth optimizing this).
-                    if (typeArg.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.TypeSymbol, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    if (typeArg.Type.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.Type, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
                     {
                         return false;
                     }
@@ -230,17 +282,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(within is NamedTypeSymbol || within is AssemblySymbol);
             Debug.Assert((object)containingType != null);
 
             failedThroughTypeCheck = false;
-
-            if (containingType.IsTupleType)
-            {
-                containingType = containingType.TupleUnderlyingType;
-            }
 
             // easy case - members of containing type are accessible.
             if ((object)containingType == (object)within)
@@ -279,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             failedThroughTypeCheck = false;
 
@@ -353,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             failedThroughTypeCheck = false;
 
@@ -396,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(current.IsDefinition);
 
-                    if (current.InheritsFromIgnoringConstruction(originalContainingType, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    if (current.InheritsFromOrImplementsIgnoringConstruction(originalContainingType, compilation, ref useSiteDiagnostics, basesBeingResolved))
                     {
                         // NOTE(cyrusn): We're continually walking up the 'throughType's inheritance
                         // chain.  We could compute it up front and cache it in a set.  However, we
@@ -405,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // slower to create and check inside the set versus just walking the
                         // inheritance chain.
                         if ((object)originalThroughTypeOpt == null ||
-                            originalThroughTypeOpt.InheritsFromIgnoringConstruction(current, compilation, ref useSiteDiagnostics))
+                            originalThroughTypeOpt.InheritsFromOrImplementsIgnoringConstruction(current, compilation, ref useSiteDiagnostics))
                         {
                             return true;
                         }
@@ -450,6 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)withinType != null);
             Debug.Assert((object)originalContainingType != null);
+            Debug.Assert(originalContainingType.IsDefinition);
 
             // Walk up my parent chain and see if I eventually hit the owner.  If so then I'm a
             // nested type of that owner and I'm allowed access to everything inside of it.
@@ -457,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while ((object)current != null)
             {
                 Debug.Assert(current.IsDefinition);
-                if (current.Equals(originalContainingType))
+                if (current == (object)originalContainingType)
                 {
                     return true;
                 }
@@ -470,18 +518,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Determine if "type" inherits from "baseType", ignoring constructed types, and dealing
+        /// Determine if "type" inherits from or implements "baseType", ignoring constructed types, and dealing
         /// only with original types.
         /// </summary>
-        private static bool InheritsFromIgnoringConstruction(
+        private static bool InheritsFromOrImplementsIgnoringConstruction(
             this TypeSymbol type,
             NamedTypeSymbol baseType,
             CSharpCompilation compilation,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(type.IsDefinition);
             Debug.Assert(baseType.IsDefinition);
+
+            PooledHashSet<NamedTypeSymbol> interfacesLookedAt = null;
+            ArrayBuilder<NamedTypeSymbol> baseInterfaces = null;
+
+            bool baseTypeIsInterface = baseType.IsInterface;
+            if (baseTypeIsInterface)
+            {
+                interfacesLookedAt = PooledHashSet<NamedTypeSymbol>.GetInstance();
+                baseInterfaces = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            }
 
             PooledHashSet<NamedTypeSymbol> visited = null;
             var current = type;
@@ -489,10 +547,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while ((object)current != null)
             {
-                if (current.Equals(baseType))
+                Debug.Assert(current.IsDefinition);
+                if (baseTypeIsInterface == current.IsInterfaceType() &&
+                    current == (object)baseType)
                 {
                     result = true;
                     break;
+                }
+
+                if (baseTypeIsInterface)
+                {
+                    getBaseInterfaces(current, baseInterfaces, interfacesLookedAt, basesBeingResolved);
                 }
 
                 // NOTE(cyrusn): The base type of an 'original' type may not be 'original'. i.e. 
@@ -511,7 +576,76 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             visited?.Free();
+
+            if (!result && baseTypeIsInterface)
+            {
+                Debug.Assert(!result);
+
+                while (baseInterfaces.Count != 0)
+                {
+                    NamedTypeSymbol currentBase = baseInterfaces.Pop();
+
+                    if (!currentBase.IsInterface)
+                    {
+                        continue;
+                    }
+
+                    Debug.Assert(currentBase.IsDefinition);
+                    if (currentBase == (object)baseType)
+                    {
+                        result = true;
+                        break;
+                    }
+
+                    getBaseInterfaces(currentBase, baseInterfaces, interfacesLookedAt, basesBeingResolved);
+                }
+
+                if (!result)
+                {
+                    foreach (var candidate in interfacesLookedAt)
+                    {
+                        candidate.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                    }
+                }
+            }
+
+            interfacesLookedAt?.Free();
+            baseInterfaces?.Free();
             return result;
+
+            static void getBaseInterfaces(TypeSymbol derived, ArrayBuilder<NamedTypeSymbol> baseInterfaces, PooledHashSet<NamedTypeSymbol> interfacesLookedAt, ConsList<TypeSymbol> basesBeingResolved)
+            {
+                if (basesBeingResolved != null && basesBeingResolved.ContainsReference(derived))
+                {
+                    return;
+                }
+
+                ImmutableArray<NamedTypeSymbol> declaredInterfaces;
+
+                switch (derived)
+                {
+                    case TypeParameterSymbol typeParameter:
+                        declaredInterfaces = typeParameter.AllEffectiveInterfacesNoUseSiteDiagnostics;
+                        break;
+
+                    case NamedTypeSymbol namedType:
+                        declaredInterfaces = namedType.GetDeclaredInterfaces(basesBeingResolved);
+                        break;
+
+                    default:
+                        declaredInterfaces = derived.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
+                        break;
+                }
+
+                foreach (var @interface in declaredInterfaces)
+                {
+                    NamedTypeSymbol definition = @interface.OriginalDefinition;
+                    if (interfacesLookedAt.Add(definition))
+                    {
+                        baseInterfaces.Add(definition);
+                    }
+                }
+            }
         }
 
         /// <summary>

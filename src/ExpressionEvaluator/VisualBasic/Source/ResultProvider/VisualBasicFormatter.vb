@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -39,6 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return SyntaxFacts.IsWhitespace(c)
         End Function
 
+        ' TODO https://github.com/dotnet/roslyn/issues/37536 
+        ' This parsing is imprecise and may result in bad expressions.
         Friend Overrides Function TrimAndGetFormatSpecifiers(expression As String, ByRef formatSpecifiers As ReadOnlyCollection(Of String)) As String
             expression = RemoveComments(expression)
             expression = RemoveFormatSpecifiers(expression, formatSpecifiers)
@@ -46,7 +50,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function RemoveComments(expression As String) As String
-            Dim index = expression.IndexOf("'"c)
+            ' Workaround for https://dev.azure.com/devdiv/DevDiv/_workitems/edit/847849
+            ' Do not remove any comments that might be in a string. 
+            ' This won't work when there are quotes in the comment, but that's not that common.
+            Dim lastQuote As Integer = expression.LastIndexOf(""""c) + 1
+
+            Dim index = expression.IndexOf("'"c, lastQuote)
             If index < 0 Then
                 Return expression
             End If

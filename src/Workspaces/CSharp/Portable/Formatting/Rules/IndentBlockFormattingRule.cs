@@ -1,13 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -15,11 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp IndentBlock Formatting Rule";
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
-            AddAlignmentBlockOperation(list, node, optionSet);
+            AddAlignmentBlockOperation(list, node);
 
             AddBlockIndentationOperation(list, node, optionSet);
 
@@ -44,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)
         {
-            var section = node as SwitchSectionSyntax;
-            if (section == null)
+            if (!(node is SwitchSectionSyntax section))
             {
                 return;
             }
@@ -125,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)
+        private void AddAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             switch (node)
             {
@@ -149,6 +157,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return;
                 case ImplicitArrayCreationExpressionSyntax implicitArrayCreation when implicitArrayCreation.Initializer != null:
                     SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
+                case CSharpSyntaxNode syntaxNode when syntaxNode.IsKind(SyntaxKind.SwitchExpression):
+                    SetAlignmentBlockOperation(
+                        list,
+                        syntaxNode.GetFirstToken(),
+                        syntaxNode.ChildNodesAndTokens().First(child => child.IsKind(SyntaxKind.OpenBraceToken)).AsToken(),
+                        syntaxNode.ChildNodesAndTokens().Last(child => child.IsKind(SyntaxKind.CloseBraceToken)).AsToken(),
+                        IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
             }
         }
@@ -175,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // for lambda, set alignment around braces so that users can put brace wherever they want
-            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock())
+            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock() || node.IsKind(SyntaxKind.PropertyPatternClause) || node.IsKind(SyntaxKind.SwitchExpression))
             {
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
             }

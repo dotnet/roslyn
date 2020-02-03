@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -19,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         /// Cannot await void.
         /// </summary>
         private const string CS4008 = nameof(CS4008);
+
+        [ImportingConstructor]
+        public CSharpConvertToAsyncMethodCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {
@@ -63,8 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 return null;
             }
 
-            var methodSymbol = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol as IMethodSymbol;
-            if (methodSymbol == null)
+            if (!(semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol is IMethodSymbol methodSymbol))
             {
                 return null;
             }
@@ -75,8 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 return null;
             }
 
-            var methodDeclaration = (await methodReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false)) as MethodDeclarationSyntax;
-            if (methodDeclaration == null)
+            if (!((await methodReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false)) is MethodDeclarationSyntax methodDeclaration))
             {
                 return null;
             }

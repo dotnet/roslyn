@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -199,6 +201,34 @@ namespace Microsoft.CodeAnalysis
                 var version = doc.GetTextVersionSynchronously(CancellationToken.None);
                 var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
                 this.OnAdditionalDocumentClosed(documentId, loader);
+            }
+        }
+
+        /// <summary>
+        /// Puts the specified analyzer config document into the open state.
+        /// </summary>
+        public override void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
+        {
+            var doc = this.CurrentSolution.GetAnalyzerConfigDocument(documentId);
+            if (doc != null)
+            {
+                var text = doc.GetTextSynchronously(CancellationToken.None);
+                this.OnAnalyzerConfigDocumentOpened(documentId, text.Container, activate);
+            }
+        }
+
+        /// <summary>
+        /// Puts the specified analyzer config document into the closed state
+        /// </summary>
+        public override void CloseAnalyzerConfigDocument(DocumentId documentId)
+        {
+            var doc = this.CurrentSolution.GetAnalyzerConfigDocument(documentId);
+            if (doc != null)
+            {
+                var text = doc.GetTextSynchronously(CancellationToken.None);
+                var version = doc.GetTextVersionSynchronously(CancellationToken.None);
+                var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
+                this.OnAnalyzerConfigDocumentClosed(documentId, loader);
             }
         }
     }

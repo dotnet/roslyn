@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
@@ -20,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
     ''' i.e. both branches will be on a newline, indented once from the parent indentation.
     ''' </summary>
     Friend Class MultiLineConditionalExpressionFormattingRule
-        Inherits AbstractFormattingRule
+        Inherits CompatAbstractFormattingRule
 
         Public Shared ReadOnly Instance As New MultiLineConditionalExpressionFormattingRule()
 
@@ -36,8 +38,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
             Return False
         End Function
 
-        Public Overrides Function GetAdjustNewLinesOperation(
-                previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperationSlow(
+                previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If IsCommaOfNewConditional(previousToken) Then
                 ' We want to force the expressions after the commas to be put on the 
                 ' next line.
@@ -47,8 +49,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
             Return nextOperation.Invoke()
         End Function
 
-        Public Overrides Sub AddIndentBlockOperations(
-                list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of IndentBlockOperation))
+        Public Overrides Sub AddIndentBlockOperationsSlow(
+                list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextIndentBlockOperationAction)
 
             If node.HasAnnotation(UseConditionalExpressionHelpers.SpecializedFormattingAnnotation) AndAlso
                TypeOf node Is TernaryConditionalExpressionSyntax Then
@@ -70,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
                 End If
             End If
 
-            nextOperation.Invoke(list)
+            nextOperation.Invoke()
         End Sub
     End Class
 

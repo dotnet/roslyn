@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(originalText[0] == '$' || originalText[0] == '@');
 
             var isAltInterpolatedVerbatim = originalText.Length > 2 && originalText[0] == '@'; // @$
-            var isVerbatim = isAltInterpolatedVerbatim || (originalText.Length > 2 &&  originalText[1] == '@');
+            var isVerbatim = isAltInterpolatedVerbatim || (originalText.Length > 2 && originalText[1] == '@');
 
             Debug.Assert(originalToken.Kind == SyntaxKind.InterpolatedStringToken);
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var openQuoteText = isAltInterpolatedVerbatim
                 ? "@$\""
                 : isVerbatim
-                    ?  "$@\""
+                    ? "$@\""
                     : "$\"";
             var openQuote = SyntaxFactory.Token(originalToken.GetLeadingTrivia(), openQuoteKind, openQuoteText, openQuoteText, trailing: null);
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -43,10 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
 
         private bool PossibleTypeArgument(ITextSnapshot snapshot, SyntaxToken token, CancellationToken cancellationToken)
         {
-            var node = token.Parent as BinaryExpressionSyntax;
-
             // type argument can be easily ambiguous with normal < operations
-            if (node == null || node.Kind() != SyntaxKind.LessThanExpression || node.OperatorToken != token)
+            if (!(token.Parent is BinaryExpressionSyntax node) || node.Kind() != SyntaxKind.LessThanExpression || node.OperatorToken != token)
             {
                 return false;
             }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -18,25 +20,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
     {
         private readonly IPeekableItemFactory _peekableItemFactory;
         private readonly IPeekResultFactory _peekResultFactory;
-        private readonly IMetadataAsSourceFileService _metadataAsSourceService;
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         public PeekableItemSourceProvider(
             IPeekableItemFactory peekableItemFactory,
             IPeekResultFactory peekResultFactory,
-            IMetadataAsSourceFileService metadataAsSourceService,
             IWaitIndicator waitIndicator)
         {
             _peekableItemFactory = peekableItemFactory;
             _peekResultFactory = peekResultFactory;
-            _metadataAsSourceService = metadataAsSourceService;
             _waitIndicator = waitIndicator;
         }
 
         public IPeekableItemSource TryCreatePeekableItemSource(ITextBuffer textBuffer)
         {
-            return textBuffer.Properties.GetOrCreateSingletonProperty(() => new PeekableItemSource(textBuffer, _peekableItemFactory, _peekResultFactory, _metadataAsSourceService, _waitIndicator));
+            return textBuffer.Properties.GetOrCreateSingletonProperty(() => new PeekableItemSource(textBuffer, _peekableItemFactory, _peekResultFactory, _waitIndicator));
         }
     }
 }

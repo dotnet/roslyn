@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -70,13 +72,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation, trueAssignment.Parent, falseAssignment.Parent,
-                trueAssignment.Value, falseAssignment.Value, 
+                trueAssignment.Value, falseAssignment.Value,
                 trueAssignment.IsRef, cancellationToken).ConfigureAwait(false);
 
             // See if we're assigning to a variable declared directly above the if statement. If so,
             // try to inline the conditional directly into the initializer for that variable.
             if (!TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
-                    syntaxFacts, editor, ifOperation, 
+                    syntaxFacts, editor, ifOperation,
                     trueAssignment, falseAssignment, conditionalExpression))
             {
                 // If not, just replace the if-statement with a single assignment of the new
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             editor.ReplaceNode(
                 ifOperation.Syntax,
-                this.WrapWithBlockIfAppropriate(ifStatement, expressionStatement));
+                WrapWithBlockIfAppropriate(ifStatement, expressionStatement));
         }
 
         private bool TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
@@ -150,8 +152,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             // If so, see if that local was declared immediately above the if-statement.
-            var parentBlock = ifOperation.Parent as IBlockOperation;
-            if (parentBlock == null)
+            if (!(ifOperation.Parent is IBlockOperation parentBlock))
             {
                 return false;
             }

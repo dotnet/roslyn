@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -44,7 +48,7 @@ namespace Microsoft.Cci
             get { return 0; }
         }
 
-        public ITypeReference GetBaseClass(EmitContext context)
+        public ITypeReference? GetBaseClass(EmitContext context)
         {
             return null;
         }
@@ -95,6 +99,11 @@ namespace Microsoft.Cci
         }
 
         public bool IsInterface
+        {
+            get { return false; }
+        }
+
+        public bool IsDelegate
         {
             get { return false; }
         }
@@ -225,7 +234,7 @@ namespace Microsoft.Cci
             }
         }
 
-        IGenericMethodParameterReference ITypeReference.AsGenericMethodParameterReference
+        IGenericMethodParameterReference? ITypeReference.AsGenericMethodParameterReference
         {
             get
             {
@@ -233,7 +242,7 @@ namespace Microsoft.Cci
             }
         }
 
-        IGenericTypeInstanceReference ITypeReference.AsGenericTypeInstanceReference
+        IGenericTypeInstanceReference? ITypeReference.AsGenericTypeInstanceReference
         {
             get
             {
@@ -241,7 +250,7 @@ namespace Microsoft.Cci
             }
         }
 
-        IGenericTypeParameterReference ITypeReference.AsGenericTypeParameterReference
+        IGenericTypeParameterReference? ITypeReference.AsGenericTypeParameterReference
         {
             get
             {
@@ -262,12 +271,12 @@ namespace Microsoft.Cci
             }
         }
 
-        INestedTypeDefinition ITypeReference.AsNestedTypeDefinition(EmitContext context)
+        INestedTypeDefinition? ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             return null;
         }
 
-        INestedTypeReference ITypeReference.AsNestedTypeReference
+        INestedTypeReference? ITypeReference.AsNestedTypeReference
         {
             get
             {
@@ -275,7 +284,7 @@ namespace Microsoft.Cci
             }
         }
 
-        ISpecializedNestedTypeReference ITypeReference.AsSpecializedNestedTypeReference
+        ISpecializedNestedTypeReference? ITypeReference.AsSpecializedNestedTypeReference
         {
             get
             {

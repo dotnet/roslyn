@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System.Collections.Immutable;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -18,15 +23,15 @@ namespace Microsoft.CodeAnalysis.Host
         ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
 
         // new tree from root node
-        SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root);
+        SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, Encoding? encoding, SyntaxNode root, AnalyzerConfigOptionsResult analyzerConfigOptionsResult);
 
         // new tree from text
-        SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
+        SyntaxTree ParseSyntaxTree(string? filePath, ParseOptions options, SourceText text, AnalyzerConfigOptionsResult? analyzerConfigOptionsResult, CancellationToken cancellationToken);
 
         bool CanCreateRecoverableTree(SyntaxNode root);
 
         // new recoverable tree from root node
-        SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, SyntaxNode root);
+        SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string? filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding? encoding, SyntaxNode root, ImmutableDictionary<string, ReportDiagnostic>? treeDiagnosticReportingOptions);
 
         SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
     }

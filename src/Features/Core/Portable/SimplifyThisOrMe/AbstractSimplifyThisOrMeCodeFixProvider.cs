@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -17,7 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 {
     internal abstract partial class AbstractSimplifyThisOrMeCodeFixProvider<
-        TMemberAccessExpressionSyntax> 
+        TMemberAccessExpressionSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TMemberAccessExpressionSyntax : SyntaxNode
     {
@@ -30,14 +32,16 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.RemoveQualificationDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
             var diagnostic = context.Diagnostics[0];
 
             context.RegisterCodeFix(new MyCodeAction(
-                GetTitle(), 
-                c => this.FixAsync(document, diagnostic, c),
+                GetTitle(),
+                c => FixAsync(document, diagnostic, c),
                 IDEDiagnosticIds.RemoveQualificationDiagnosticId), context.Diagnostics);
 
             return Task.CompletedTask;

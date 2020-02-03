@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -116,7 +118,7 @@ End Class"
         End Function
 
         Private Function ExtractSymbol(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task(Of INavigableSymbol)
-            Dim presenter = {New Lazy(Of IStreamingFindUsagesPresenter)(Function() New MockStreamingFindUsagesPresenter(Sub() Return))}
+            Dim presenter = New MockStreamingFindUsagesPresenter(Sub() Return)
             Dim service = New NavigableSymbolService(TestWaitIndicator.Default, presenter)
             Dim view = workspace.Documents.First().GetTextView()
             Dim buffer = workspace.Documents.First().GetTextBuffer()

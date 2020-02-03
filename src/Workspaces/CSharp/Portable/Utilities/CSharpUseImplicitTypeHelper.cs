@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Linq;
@@ -23,15 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         public override TypeStyleResult AnalyzeTypeName(
-            TypeSyntax typeName, SemanticModel semanticModel, 
+            TypeSyntax typeName, SemanticModel semanticModel,
             OptionSet optionSet, CancellationToken cancellationToken)
         {
             if (typeName.StripRefIfNeeded().IsVar)
-            {
-                return default;
-            }
-
-            if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration))
             {
                 return default;
             }
@@ -71,23 +68,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return base.ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken);
         }
 
-        protected override bool IsStylePreferred(
-            SemanticModel semanticModel, OptionSet optionSet,
-            State state, CancellationToken cancellationToken)
+        protected override bool IsStylePreferred(in State state)
         {
             var stylePreferences = state.TypeStylePreference;
 
             if (state.IsInIntrinsicTypeContext)
             {
-                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeForIntrinsicTypes);
+                return stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
             }
             else if (state.IsTypeApparentInContext)
             {
-                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWhereApparent);
+                return stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent);
             }
             else
             {
-                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWherePossible);
+                return stylePreferences.HasFlag(UseVarPreference.Elsewhere);
             }
         }
 
@@ -259,10 +254,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
+            if (IsSwitchExpressionAndCannotUseVar(typeName, initializer, semanticModel))
+            {
+                return false;
+            }
+
             // variables declared using var cannot be used further in the same initialization expression.
             if (initializer.DescendantNodesAndSelf()
                 .Where(n => n is IdentifierNameSyntax id && id.Identifier.ValueText.Equals(identifier.ValueText))
-                .Any(n => 
+                .Any(n =>
                 {
                     // case of variable direct use: int x = x * 2;
                     if (semanticModel.GetSymbolInfo(n, cancellationToken).Symbol.IsKind(SymbolKind.Local) == true)
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return false;
         }
 
-        internal static ExpressionSyntax GetInitializerExpression(ExpressionSyntax initializer) 
+        internal static ExpressionSyntax GetInitializerExpression(ExpressionSyntax initializer)
             => initializer is CheckedExpressionSyntax
                 ? ((CheckedExpressionSyntax)initializer).Expression.WalkDownParentheses()
                 : initializer.WalkDownParentheses();
@@ -314,6 +314,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // The base analyzer may impose further limitations
             return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
+        }
+
+        private bool IsSwitchExpressionAndCannotUseVar(TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel)
+        {
+            if (initializer.IsKind(SyntaxKind.SwitchExpression))
+            {
+                // We compare the variable declaration type to each arm's type to see if there is an exact match, or if the
+                // arm type inherits from the variable declaration type. If not, we must use the explicit type instead of var.
+                // Even if 'true' is returned from this method, it is not guaranteed that we can use var. Further checks should occur
+                // after this method is called, such as checking if multiple implicit coversions exist.
+                var declarationType = semanticModel.GetTypeInfo(typeName).Type;
+                var noValidTypeExpressions = true;
+                if (declarationType != null)
+                {
+                    foreach (var arm in ((SwitchExpressionSyntax)initializer).Arms)
+                    {
+                        var expression = arm.Expression;
+                        if (expression.IsKind(SyntaxKind.ParenthesizedExpression))
+                        {
+                            expression = ((ParenthesizedExpressionSyntax)expression).WalkDownParentheses();
+                        }
+
+                        if (!expression.IsKind(SyntaxKind.ThrowExpression) && !expression.IsKind(SyntaxKind.NullLiteralExpression) && !expression.IsKind(SyntaxKind.DefaultLiteralExpression))
+                        {
+                            noValidTypeExpressions = false;
+                            var expressionType = semanticModel.GetTypeInfo(expression).Type;
+                            if (expressionType != null && !expressionType.InheritsFromOrEquals(declarationType))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                // If all arms are either throw statements, null literal expressions, or default literal expressions, return true.
+                if (noValidTypeExpressions)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

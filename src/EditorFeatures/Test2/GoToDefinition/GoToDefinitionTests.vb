@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
@@ -14,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionTests
         Friend Sub Test(workspaceDefinition As XElement,
                                         expectedResult As Boolean,
-                                        executeOnDocument As Func(Of Document, Integer, IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)), Boolean))
+                                        executeOnDocument As Func(Of Document, Integer, IStreamingFindUsagesPresenter, Boolean))
             Using workspace = TestWorkspace.Create(
                     workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProviderFactory.CreateExportProvider())
                 Dim solution = workspace.CurrentSolution
@@ -30,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 Dim textBuffer = textView.TextBuffer
                 textView.Caret.MoveTo(New SnapshotPoint(textBuffer.CurrentSnapshot, cursorPosition))
 
-                Dim cursorBuffer = cursorDocument.TextBuffer
+                Dim cursorBuffer = cursorDocument.GetTextBuffer()
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
                 Dim mockDocumentNavigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
@@ -38,8 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                 Dim presenterCalled As Boolean = False
                 Dim presenter = New MockStreamingFindUsagesPresenter(Sub() presenterCalled = True)
-                Dim presenters = {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)}
-                Dim actualResult = executeOnDocument(document, cursorPosition, presenters)
+                Dim actualResult = executeOnDocument(document, cursorPosition, presenter)
 
                 Assert.Equal(expectedResult, actualResult)
 
@@ -104,10 +105,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
         Private Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
             Test(workspaceDefinition, expectedResult,
-                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)))
+                Function(document As Document, cursorPosition As Integer, presenter As IStreamingFindUsagesPresenter)
+                    Dim lazyPresenter = New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(presenters), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(presenters))
+                        DirectCast(New CSharpGoToDefinitionService(lazyPresenter), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(lazyPresenter))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)
@@ -1019,7 +1021,7 @@ namespace System
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
-        <!-- intentionally not including tuple2, shoudl still work -->
+        <!-- intentionally not including tuple2, should still work -->
         <Document>
     class Program
     {

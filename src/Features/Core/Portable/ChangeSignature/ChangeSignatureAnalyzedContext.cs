@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
@@ -15,17 +17,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public ChangeSignatureAnalyzedContext(
             Project project, ISymbol symbol, ParameterConfiguration parameterConfiguration)
         {
-            this.CanChangeSignature = true;
-            this.Project = project;
-            this.Symbol = symbol;
-            this.ParameterConfiguration = parameterConfiguration;
-            this.CannotChangeSignatureReason = CannotChangeSignatureReason.None;
+            CanChangeSignature = true;
+            Project = project;
+            Symbol = symbol;
+            ParameterConfiguration = parameterConfiguration;
+            CannotChangeSignatureReason = CannotChangeSignatureReason.None;
         }
 
         public ChangeSignatureAnalyzedContext(CannotChangeSignatureReason reason)
         {
-            this.CanChangeSignature = false;
-            this.CannotChangeSignatureReason = reason;
+            CanChangeSignature = false;
+            CannotChangeSignatureReason = reason;
         }
     }
 }

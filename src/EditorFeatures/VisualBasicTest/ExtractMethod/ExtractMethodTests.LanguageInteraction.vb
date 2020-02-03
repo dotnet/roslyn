@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
@@ -3367,7 +3370,7 @@ End Namespace"
             <Trait(Traits.Feature, Traits.Features.Interactive)>
             Public Sub TestExtractMethodCommandDisabledInSubmission()
                 Dim exportProvider = ExportProviderCache _
-                    .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService))) _
+                    .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService))) _
                     .CreateExportProvider()
 
                 Using workspace = TestWorkspace.Create(
@@ -3385,8 +3388,8 @@ End Namespace"
                     Dim textView = workspace.Documents.Single().GetTextView()
 
                     Dim handler = New ExtractMethodCommandHandler(
+                        workspace.GetService(Of IThreadingContext)(),
                         workspace.GetService(Of ITextBufferUndoManagerProvider)(),
-                        workspace.GetService(Of IEditorOperationsFactoryService)(),
                         workspace.GetService(Of IInlineRenameService)())
 
                     Dim state = handler.GetCommandState(New ExtractMethodCommandArgs(textView, textView.TextBuffer))

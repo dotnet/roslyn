@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -81,14 +83,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             LocalizableString messageFormat,
             bool isUnneccessary = false,
             bool isConfigurable = true,
+            LocalizableString description = null,
             params string[] customTags)
             => new DiagnosticDescriptor(
                     id, title, messageFormat,
                     DiagnosticCategory.Style,
                     DiagnosticSeverity.Hidden,
                     isEnabledByDefault: true,
+                    description: description,
                     customTags: DiagnosticCustomTags.Create(isUnneccessary, isConfigurable, customTags));
-        
+
         public sealed override void Initialize(AnalysisContext context)
         {
             // Code style analyzers should not run on generated code.

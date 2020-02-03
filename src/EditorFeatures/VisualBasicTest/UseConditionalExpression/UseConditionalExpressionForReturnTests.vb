@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -18,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseConditionalExpr
         Public Async Function TestOnSimpleReturn() As Task
             Await TestInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as integer
         [||]if true
             return 0
@@ -28,7 +30,7 @@ class
     end function
 end class",
 "
-class 
+class C
     function M() as integer
         Return If(true, 0, 1)
     end function
@@ -39,7 +41,7 @@ end class")
         Public Async Function TestOnSimpleReturnNoBlocks() As Task
             Await TestInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as integer
         [||]if true
             return 0
@@ -49,7 +51,7 @@ class
     end function
 end class",
 "
-class 
+class C
     function M() as integer
         Return If(true, 0, 1)
     end function
@@ -60,7 +62,7 @@ end class")
         Public Async Function TestOnSimpleReturnNoBlocks_NotInBlock() As Task
             Await TestInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as integer
         if true
             [||]if true
@@ -72,7 +74,7 @@ class
     end function
 end class",
 "
-class 
+class C
     function M() as integer
         if true
             Return If(true, 0, 1)
@@ -85,7 +87,7 @@ end class")
         Public Async Function TestMissingReturnValue1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as integer
         [||]if true
             return 0
@@ -100,7 +102,7 @@ end class")
         Public Async Function TestMissingReturnValue2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as integer
         [||]if true
             return
@@ -115,7 +117,7 @@ end class")
         Public Async Function TestMissingReturnValue3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as integer
         [||]if true
             return
@@ -130,7 +132,7 @@ end class")
         Public Async Function TestWithNoElseBlockButFollowingReturn() As Task
             Await TestInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as integer
         [||]if true
             return 0
@@ -140,7 +142,7 @@ class
     end function
 end class",
 "
-class 
+class C
     function M() as integer
         Return If(true, 0, 1)
     end function
@@ -151,7 +153,7 @@ end class")
         Public Async Function TestMissingWithoutElse() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as integer
         [||]if true
             return 0
@@ -164,7 +166,7 @@ end class")
         Public Async Function TestConversion1() As Task
             Await TestInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as object
         [||]if true
             return ""a""
@@ -174,7 +176,7 @@ class
     end function
 end class",
 "
-class 
+class C
     function M() as object
         Return If(true, ""a"", ""b"")
     end function
@@ -185,7 +187,7 @@ end class")
         Public Async Function TestConversion2() As Task
             Await TestInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as string
         [||]if true
             return ""a""
@@ -195,7 +197,7 @@ class
     end function
 end class",
 "
-class 
+class C
     function M() as string
         Return If(true, ""a"", nothing)
     end function
@@ -206,7 +208,7 @@ end class")
         Public Async Function TestConversion3() As Task
             Await TestInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as string
         [||]if true
             return nothing
@@ -216,7 +218,7 @@ class
     end function
 end class",
 "
-class 
+class C
     function M() as string
         Return If(true, nothing, DirectCast(nothing, String))
     end function
@@ -227,7 +229,7 @@ end class")
         Public Async Function TestKeepTriviaAroundIf() As Task
             Await TestInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as integer
         ' leading
         [||]if true
@@ -238,7 +240,7 @@ class
     end function
 end class",
 "
-class 
+class C
     function M() as integer
         ' leading
         Return If(true, 0, 1) ' trailing
@@ -250,7 +252,7 @@ end class")
         Public Async Function TestFixAll1() As Task
             Await TestInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as integer
         {|FixAllInDocument:if|} true
             return 0
@@ -266,7 +268,7 @@ class
     end function
 end class",
 "
-class 
+class C
     function M() as integer
         Return If(true, 0, 1)
 
@@ -279,7 +281,7 @@ end class")
         Public Async Function TestMultiLine1() As Task
             Await TestInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as integer
         [||]if true
             return Foo(
@@ -290,7 +292,7 @@ class
     end function
 end class",
 "
-class 
+class C
     function M() as integer
         Return If(true,
             Foo(
@@ -304,7 +306,7 @@ end class")
         Public Async Function TestMultiLine2() As Task
             Await TestInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as integer
         [||]if true
             return 0
@@ -315,7 +317,7 @@ class
     end function
 end class",
 "
-class 
+class C
     function M() as integer
         Return If(true,
             0,
@@ -329,7 +331,7 @@ end class")
         Public Async Function TestMultiLine3() As Task
             Await TestInRegularAndScriptAsync(
 "
-class 
+class C
     function M() as integer
         [||]if true
             return Foo(
@@ -341,7 +343,7 @@ class
     end function
 end class",
 "
-class 
+class C
     function M() as integer
         Return If(true,
             Foo(
@@ -357,7 +359,7 @@ end class")
         Public Async Function TestOnYield() As Task
             Await TestInRegularAndScriptAsync(
 "
-class 
+class C
     iterator function M() as integer
         [||]if true
             yield 0
@@ -367,7 +369,7 @@ class
     end function
 end class",
 "
-class 
+class C
     iterator function M() as integer
         Yield If(true, 0, 1)
     end function
@@ -381,7 +383,7 @@ end class")
 "
 imports system.collections.generic
 
-class 
+class C
     iterator function M() as IEnumerable(of integer)
         [||]if true
             yield 0
@@ -393,9 +395,44 @@ end class",
 "
 imports system.collections.generic
 
-class 
+class C
     iterator function M() as IEnumerable(of integer)
         Yield If(true, 0, 1)
+    end function
+end class")
+        End Function
+
+        <WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        Public Async Function TestMissingWhenCrossingPreprocessorDirective1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+class C
+    function M() as integer
+        dim check as boolean = true
+#if true
+        [||]if check
+            return 3
+#end if
+        return 2
+    end function
+end class")
+        End Function
+
+        <WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        Public Async Function TestMissingWhenCrossingPreprocessorDirective2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+class C
+    function M() as integer
+        dim check as boolean = true
+#if true
+        [||]if check
+            return 3
+        end if
+#end if
+        return 2
     end function
 end class")
         End Function

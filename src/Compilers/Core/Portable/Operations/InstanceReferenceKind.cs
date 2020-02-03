@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -17,5 +19,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// anonymous type creation initializer, or to the object being referred to in a VB With statement.
         /// </summary>
         ImplicitReceiver,
+        /// <summary>
+        /// Reference to the value being matching in a property subpattern.
+        /// </summary>
+        PatternInput,
     }
 }

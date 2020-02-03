@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -136,7 +138,7 @@ namespace System.Threading.Tasks {
                 source: @"interface I {}",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
-                references: new MetadataReference[] { TaskFacadeAssembly()});
+                references: new MetadataReference[] { TaskFacadeAssembly() });
             script.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -401,7 +403,7 @@ G();
 
             Assert.Equal(1, members.Length);
             Assert.Equal("Goo", members[0].Name);
-            Assert.IsAssignableFrom(typeof(NamespaceSymbol), members[0]);
+            Assert.IsAssignableFrom<NamespaceSymbol>(members[0]);
             var ns = (NamespaceSymbol)members[0];
             members = ns.GetMembers();
 
@@ -595,7 +597,7 @@ this[1]
                     var type = (NamedTypeSymbol)symbol;
                     Assert.False(type.IsScriptClass);
                     Assert.False(type.IsSubmissionClass);
-                    Assert.NotEqual(type.TypeKind, TypeKind.Submission);
+                    Assert.NotEqual(TypeKind.Submission, type.TypeKind);
                 }
             }
 
@@ -1207,7 +1209,7 @@ goto Label;");
             Assert.Equal("WriteLine", node5.Name.ToString());
             Assert.Equal("void System.Console.WriteLine(System.Int32 value)", semanticModel.GetSymbolInfo(node5.Name).Symbol.ToTestDisplayString());
 
-            CompileAndVerify(compilation, expectedOutput:"1").VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "1").VerifyDiagnostics();
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
             compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));

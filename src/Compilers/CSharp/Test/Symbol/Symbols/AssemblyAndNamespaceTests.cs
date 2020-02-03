@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -433,6 +435,39 @@ class App
             // When we look in a single assembly, we don't consider referenced assemblies.
             Assert.Null(comp.Assembly.GetTypeByMetadataName("System.Threading.Tasks.Task"));
             Assert.Equal(taskType, comp.Assembly.CorLibrary.GetTypeByMetadataName("System.Threading.Tasks.Task"));
+        }
+
+        [WorkItem(863435, "DevDiv/Personal")]
+        [Fact]
+        public void CS1671ERR_BadModifiersOnNamespace01()
+        {
+            var test = @"
+public namespace NS // CS1671
+{
+    class Test
+    {
+        public static int Main()
+        {
+            return 1;
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
+                // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void CS1671ERR_BadModifiersOnNamespace02()
+        {
+            var test = @"[System.Obsolete]
+namespace N { }
+";
+
+            CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
+                // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "[System.Obsolete]").WithLocation(1, 1));
         }
     }
 }

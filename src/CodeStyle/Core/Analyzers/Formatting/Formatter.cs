@@ -1,13 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <summary>
         /// Gets the formatting rules that would be applied if left unspecified.
         /// </summary>
-        internal static IEnumerable<IFormattingRule> GetDefaultFormattingRules(ISyntaxFormattingService syntaxFormattingService)
+        internal static IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules(ISyntaxFormattingService syntaxFormattingService)
         {
             if (syntaxFormattingService != null)
             {
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
             else
             {
-                return SpecializedCollections.EmptyEnumerable<IFormattingRule>();
+                return SpecializedCollections.EmptyEnumerable<AbstractFormattingRule>();
             }
         }
 
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return FormatAsync(syntaxTree, syntaxFormattingService, spans, options, rules: null, cancellationToken);
         }
 
-        internal static async Task<SyntaxTree> FormatAsync(SyntaxTree syntaxTree, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        internal static async Task<SyntaxTree> FormatAsync(SyntaxTree syntaxTree, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken)
         {
             if (syntaxTree == null)
             {
@@ -77,21 +79,21 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static SyntaxNode Format(SyntaxNode node, ISyntaxFormattingService syntaxFormattingService, OptionSet options, CancellationToken cancellationToken)
             => Format(node, syntaxFormattingService, SpecializedCollections.SingletonEnumerable(node.FullSpan), options, rules: null, cancellationToken: cancellationToken);
 
-        internal static SyntaxNode Format(SyntaxNode node, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        internal static SyntaxNode Format(SyntaxNode node, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken)
         {
             var formattingResult = GetFormattingResult(node, syntaxFormattingService, spans, options, rules, cancellationToken);
             return formattingResult == null ? node : formattingResult.GetFormattedRoot(cancellationToken);
         }
 
-        internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken)
         {
             var formattingResult = GetFormattingResult(node, syntaxFormattingService, spans, options, rules, cancellationToken);
-            return formattingResult == null 
+            return formattingResult == null
                 ? SpecializedCollections.EmptyList<TextChange>()
                 : formattingResult.GetTextChanges(cancellationToken);
         }
 
-        internal static IFormattingResult GetFormattingResult(SyntaxNode node, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        internal static IFormattingResult GetFormattingResult(SyntaxNode node, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken)
         {
             if (node == null)
             {
@@ -103,9 +105,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return null;
             }
 
-            options = options ?? CompilerAnalyzerConfigOptions.Empty;
-            rules = rules ?? GetDefaultFormattingRules(syntaxFormattingService);
-            spans = spans ?? SpecializedCollections.SingletonEnumerable(node.FullSpan);
+            options ??= CompilerAnalyzerConfigOptions.Empty;
+            rules ??= GetDefaultFormattingRules(syntaxFormattingService);
+            spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
             return syntaxFormattingService.Format(node, spans, options, rules, cancellationToken);
         }
 

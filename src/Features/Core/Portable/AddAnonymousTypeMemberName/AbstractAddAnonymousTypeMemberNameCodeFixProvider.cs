@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -31,6 +33,8 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
         protected abstract TExpressionSyntax GetExpression(TAnonymousObjectMemberDeclaratorSyntax declarator);
         protected abstract TAnonymousObjectMemberDeclaratorSyntax WithName(TAnonymousObjectMemberDeclaratorSyntax declarator, SyntaxToken name);
         protected abstract IEnumerable<string> GetAnonymousObjectMemberNames(TAnonymousObjectInitializer initializer);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -91,13 +95,13 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
             foreach (var diagnostic in diagnostics)
             {
                 await FixOneAsync(
-                    document, semanticModel, diagnostic, 
+                    document, semanticModel, diagnostic,
                     editor, annotation, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task FixOneAsync(
-            Document document, SemanticModel semanticModel, Diagnostic diagnostic, 
+            Document document, SemanticModel semanticModel, Diagnostic diagnostic,
             SyntaxEditor editor, SyntaxAnnotation annotation, CancellationToken cancellationToken)
         {
             var declarator = await GetMemberDeclaratorAsync(document, diagnostic, cancellationToken).ConfigureAwait(false);
@@ -136,7 +140,7 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Add_member_name, createChangedDocument)
             {
             }

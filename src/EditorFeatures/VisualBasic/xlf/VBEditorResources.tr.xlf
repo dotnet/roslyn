@@ -49,12 +49,12 @@
       </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
-        <target state="translated">Belge Biçimlendiriliyor...</target>
+        <target state="translated">Belge biçimlendiriliyor...</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_new_line">
         <source>Insert new line</source>
-        <target state="translated">Yeni satır ekle</target>
+        <target state="translated">Yeni Satır Ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_Paste">

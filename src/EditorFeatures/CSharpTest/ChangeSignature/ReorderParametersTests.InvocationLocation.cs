@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
@@ -33,7 +35,8 @@ class MyClass
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
+                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -57,7 +60,8 @@ class MyClass
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
+                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -541,7 +545,8 @@ class Program
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
+                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -567,7 +572,8 @@ class Program
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
+                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -593,7 +599,8 @@ class Program
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
+                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -691,7 +698,8 @@ class Program
     }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
+                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
 
         #endregion
@@ -723,7 +731,8 @@ public class C
     public delegate void D(int y, int x);
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
+                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -857,7 +866,7 @@ class Program
     }
 }";
             await TestChangeSignatureViaCommandAsync(
-                LanguageNames.CSharp, markup, updatedSignature: permutation, 
+                LanguageNames.CSharp, markup, updatedSignature: permutation,
                 expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 

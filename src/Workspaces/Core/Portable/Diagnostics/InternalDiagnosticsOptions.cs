@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Options;
 
@@ -7,9 +9,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal static class InternalDiagnosticsOptions
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\Diagnostics\";
-
-        public static readonly Option<bool> BlueSquiggleForBuildDiagnostic = new Option<bool>(nameof(InternalDiagnosticsOptions), "Blue Squiggle For Build Diagnostic", defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Blue Squiggle For Build Diagnostic"));
 
         public static readonly Option<bool> CompilationEndCodeFix = new Option<bool>(nameof(InternalDiagnosticsOptions), "Enable Compilation End Code Fix", defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Enable Compilation End Code Fix"));

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -65,16 +67,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private System.Threading.Tasks.Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
         {
+            List<OptionKey> optionsToRefresh = null;
+
             lock (_optionsToMonitorForChangesGate)
             {
-                if (_optionsToMonitorForChanges.TryGetValue(args.PropertyName, out var optionsToRefresh))
+                if (_optionsToMonitorForChanges.TryGetValue(args.PropertyName, out var optionsToRefreshInsideLock))
                 {
-                    foreach (var optionToRefresh in optionsToRefresh)
+                    // Make a copy of the list so we aren't using something that might mutate underneath us.
+                    optionsToRefresh = optionsToRefreshInsideLock.ToList();
+                }
+            }
+
+            if (optionsToRefresh != null)
+            {
+                // Refresh the actual options outside of our _optionsToMonitorForChangesGate so we avoid any deadlocks by calling back
+                // into the global option service under our lock. There isn't some race here where if we were fetching an option for the first time
+                // while the setting was changed we might not refresh it. Why? We call RecordObservedValueToWatchForChanges before we fetch the value
+                // and since this event is raised after the setting is modified, any new setting would have already been observed in GetFirstOrDefaultValue.
+                // And if it wasn't, this event will then refresh it.
+                foreach (var optionToRefresh in optionsToRefresh)
+                {
+                    if (TryFetch(optionToRefresh, out var optionValue))
                     {
-                        if (TryFetch(optionToRefresh, out var optionValue))
-                        {
-                            _globalOptionService.RefreshOption(optionToRefresh, optionValue);
-                        }
+                        _globalOptionService.RefreshOption(optionToRefresh, optionValue);
                     }
                 }
             }
@@ -143,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     value = Enum.ToObject(optionKey.Option.Type, value);
                 }
             }
-            else if (typeof(ICodeStyleOption).IsAssignableFrom (optionKey.Option.Type))
+            else if (typeof(ICodeStyleOption).IsAssignableFrom(optionKey.Option.Type))
             {
                 return DeserializeCodeStyleOption(ref value, optionKey.Option.Type);
             }

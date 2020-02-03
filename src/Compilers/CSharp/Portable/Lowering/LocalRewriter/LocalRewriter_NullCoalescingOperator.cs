@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, rewrittenConversion, resultKind, rewrittenResultType);
             }
 
-            var isUnconstrainedTypeParameter = rewrittenLeft.Type != null && !rewrittenLeft.Type.IsReferenceType && !rewrittenLeft.Type.IsValueType;
+            var isUnconstrainedTypeParameter = (object)rewrittenLeft.Type != null && !rewrittenLeft.Type.IsReferenceType && !rewrittenLeft.Type.IsValueType;
 
             // first we can make a small optimization:
             // If left is a constant then we already know whether it is null or not. If it is null then we
@@ -168,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsStringConcat(BoundExpression expression)
         {
-            if  (expression.Kind != BoundKind.Call)
+            if (expression.Kind != BoundKind.Call)
             {
                 return false;
             }
@@ -226,12 +228,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // before performing the leftConversion.
             // See comments in Binder.BindNullCoalescingOperator referring to GetConvertedLeftForNullCoalescingOperator for more details.
 
-            if (rewrittenLeftType != rewrittenResultType && rewrittenLeftType.IsNullableType())
+            if (!TypeSymbol.Equals(rewrittenLeftType, rewrittenResultType, TypeCompareKind.ConsiderEverything2) && rewrittenLeftType.IsNullableType())
             {
                 TypeSymbol strippedLeftType = rewrittenLeftType.GetNullableUnderlyingType();
                 MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeftType, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 rewrittenLeft = BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, getValueOrDefault);
-                if (strippedLeftType == rewrittenResultType)
+                if (TypeSymbol.Equals(strippedLeftType, rewrittenResultType, TypeCompareKind.ConsiderEverything2))
                 {
                     return rewrittenLeft;
                 }

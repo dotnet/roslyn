@@ -1,11 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>Vsix</RoslynProjectType>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.DiagnosticsWindow</RootNamespace>
 
@@ -45,8 +42,6 @@
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -70,12 +65,16 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Telemetry\TelemetryPanel.xaml.cs">
+      <DependentUpon>TelemetryPanel.xaml</DependentUpon>
     </Compile>
     <Compile Update="VenusMargin\ProjectionBufferMargin.xaml.cs">
       <DependentUpon>ProjectionBufferMargin.xaml</DependentUpon>
@@ -107,6 +106,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Telemetry\TelemetryPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="VenusMargin\ProjectionBufferMargin.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

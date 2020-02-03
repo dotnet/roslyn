@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports CompilationCreationTestHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -31,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
         <Fact()>
         Public Sub PresentCorLib()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.NetFx.v4_0_21006.mscorlib})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.NetCoreApp30.SystemRuntimeRef})
             Dim msCorLibRef As MetadataOrSourceAssemblySymbol = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
 
             For i As Integer = 1 To SpecialType.Count
@@ -42,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences({MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17626.mscorlib)})
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences({MetadataReference.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Runtime)})
             msCorLibRef = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
             Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
 

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -639,13 +641,34 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(32488, "https://github.com/dotnet/roslyn/issues/32488")>
         Public Async Function FieldInNameOf() As Task
-            Await TestDiagnosticsAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private [|_goo|] As Integer
     Private _goo2 As String = NameOf(_goo)
-End Class", parameters:=Nothing,
-    Diagnostic("IDE0052"))
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")>
+        Public Async Function MethodInNameOf() As Task
+            Await TestDiagnosticMissingAsync(
+"Class C
+    Private Sub [|M|]()
+    End Sub
+    Private _goo2 As String = NameOf(M)
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")>
+        Public Async Function PropertyInNameOf() As Task
+            Await TestDiagnosticMissingAsync(
+"Class C
+    Private ReadOnly Property [|P|] As Integer
+    Private _goo2 As String = NameOf(P)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -1336,7 +1359,7 @@ End Class")
 "Class C
     Private {|FixAllInDocument:_goo|}, _goo2 As Integer, _goo3 As Integer = 0, _goo4, _goo5 As Char
     Private _goo6, _goo7 As Integer, _goo8 As Integer = 0
-    Private _goo9, _goo10 As New String("""") ' Non constant intializer
+    Private _goo9, _goo10 As New String("""") ' Non constant initializer
     Private _goo11 = 0  ' Implicit conversion to Object type in the initializer, hence it is a non constant initializer.
 
     Public Sub M()
@@ -1345,7 +1368,7 @@ End Class")
 End Class",
 "Class C
     Private _goo4 As Char
-    Private _goo9, _goo10 As New String("""") ' Non constant intializer
+    Private _goo9, _goo10 As New String("""") ' Non constant initializer
     Private _goo11 = 0  ' Implicit conversion to Object type in the initializer, hence it is a non constant initializer.
 
     Public Sub M()
@@ -1514,6 +1537,85 @@ End Class
 End Module",
 "Module C
 End Module")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function RedimStatement_NoPreserve() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Public Class C
+    Private [|intArray|](10, 10, 10) As Integer
+
+    Public Sub M()
+        ReDim intArray(10, 10, 20)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function RedimStatement_Preserve() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Public Class C
+    Private [|intArray|](10, 10, 10) As Integer
+
+    Public Sub M()
+        ReDim Preserve intArray(10, 10, 20)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(37213, "https://github.com/dotnet/roslyn/issues/37213")>
+        Public Async Function UsedPrivateExtensionMethod() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Imports System.Runtime.CompilerServices
+
+Public Module B
+    <Extension()>
+    Sub PublicExtensionMethod(s As String)
+        s.PrivateExtensionMethod()
+    End Sub
+
+    <Extension()>
+    Private Sub [|PrivateExtensionMethod|](s As String)
+    End Sub
+End Module")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(33142, "https://github.com/dotnet/roslyn/issues/33142")>
+        Public Async Function XmlLiteral_NoDiagnostic() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Public Class C
+    Public Sub Foo()
+        Dim xml = <tag><%= Me.M() %></tag>
+    End Sub
+
+    Private Function [|M|]() As Integer
+        Return 42
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(33142, "https://github.com/dotnet/roslyn/issues/33142")>
+        Public Async Function Attribute_Diagnostic() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class C
+    <MyAttribute>
+    Private Function [|M|]() As Integer
+        Return 42
+    End Function
+End Class
+
+Public Class MyAttribute
+    Inherits System.Attribute
+End Class",
+"Public Class C
+End Class
+
+Public Class MyAttribute
+    Inherits System.Attribute
+End Class")
         End Function
     End Class
 End Namespace

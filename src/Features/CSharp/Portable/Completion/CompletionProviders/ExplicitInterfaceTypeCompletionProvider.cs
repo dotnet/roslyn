@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -101,8 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return SpecializedTasks.EmptyImmutableArray<ISymbol>();
             }
 
-            // Looks syntactically good.  See what interfaces our containing class/struct has
-            Debug.Assert(IsClassOrStruct(typeDeclaration));
+            // Looks syntactically good.  See what interfaces our containing class/struct/interface has
+            Debug.Assert(IsClassOrStructOrInterface(typeDeclaration));
 
             var semanticModel = context.SemanticModel;
             var namedType = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
@@ -121,23 +123,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             if (tokenBeforeType.Kind() == SyntaxKind.OpenBraceToken)
             {
-                // Show us after the open brace for a class/struct
-                return IsClassOrStruct(tokenBeforeType.Parent);
+                // Show us after the open brace for a class/struct/interface
+                return IsClassOrStructOrInterface(tokenBeforeType.Parent);
             }
 
             if (tokenBeforeType.Kind() == SyntaxKind.CloseBraceToken ||
                 tokenBeforeType.Kind() == SyntaxKind.SemicolonToken)
             {
-                // Check that we're after a class/struct member.
+                // Check that we're after a class/struct/interface member.
                 var memberDeclaration = tokenBeforeType.GetAncestor<MemberDeclarationSyntax>();
                 return memberDeclaration?.GetLastToken() == tokenBeforeType &&
-                       IsClassOrStruct(memberDeclaration.Parent);
+                       IsClassOrStructOrInterface(memberDeclaration.Parent);
             }
 
             return false;
         }
 
-        private static bool IsClassOrStruct(SyntaxNode node)
-            => node.Kind() == SyntaxKind.ClassDeclaration || node.Kind() == SyntaxKind.StructDeclaration;
+        private static bool IsClassOrStructOrInterface(SyntaxNode node)
+            => node.Kind() == SyntaxKind.ClassDeclaration || node.Kind() == SyntaxKind.StructDeclaration || node.Kind() == SyntaxKind.InterfaceDeclaration;
     }
 }

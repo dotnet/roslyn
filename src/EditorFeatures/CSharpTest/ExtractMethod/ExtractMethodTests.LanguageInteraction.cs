@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -1067,7 +1069,7 @@ unsafe class C
             }
 
             [WorkItem(545180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545180")]
-            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37210"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
             public async Task NodeHasSyntacticErrors()
             {
                 var code = @"using System;

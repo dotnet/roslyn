@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -11,9 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyThisOrMe), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)]
-    internal partial class CSharpSimplifyThisOrMeCodeFixProvider 
+    internal partial class CSharpSimplifyThisOrMeCodeFixProvider
         : AbstractSimplifyThisOrMeCodeFixProvider<MemberAccessExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpSimplifyThisOrMeCodeFixProvider()
+        {
+        }
+
         protected override string GetTitle()
             => CSharpFeaturesResources.Remove_this_qualification;
 
@@ -32,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
                 => this.memberAccessNodes = memberAccessNodes;
 
             public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-                => memberAccessNodes.Contains(node) 
+                => memberAccessNodes.Contains(node)
                     ? node.GetNameWithTriviaMoved()
                     : base.VisitMemberAccessExpression(node);
         }

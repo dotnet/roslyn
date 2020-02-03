@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
@@ -19,14 +20,14 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             private readonly ImmutableArray<DefinitionItem> _definitions;
             private readonly SnapshotSpan _span;
             private readonly Document _document;
-            private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _presenters;
+            private readonly IStreamingFindUsagesPresenter _presenter;
             private readonly IWaitIndicator _waitIndicator;
 
             public NavigableSymbol(
                 ImmutableArray<DefinitionItem> definitions,
                 SnapshotSpan span,
                 Document document,
-                IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+                IStreamingFindUsagesPresenter streamingPresenter,
                 IWaitIndicator waitIndicator)
             {
                 Contract.ThrowIfFalse(definitions.Length > 0);
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 _definitions = definitions;
                 _span = span;
                 _document = document;
-                _presenters = streamingPresenters;
+                _presenter = streamingPresenter;
                 _waitIndicator = waitIndicator;
             }
 
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                         _definitions,
                         _document.Project,
                         _definitions[0].NameDisplayParts.GetFullText(),
-                        _presenters,
+                        _presenter,
                         context.CancellationToken)
                     );
         }

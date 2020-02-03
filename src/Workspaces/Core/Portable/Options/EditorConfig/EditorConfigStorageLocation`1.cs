@@ -1,9 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#endif
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -18,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly Func<T, OptionSet, string> _getEditorConfigStringForValue;
 
         public EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<T, string> getEditorConfigStringForValue)
-            : this (keyName, parseValue, (value, optionSet) => getEditorConfigStringForValue(value))
+            : this(keyName, parseValue, (value, optionSet) => getEditorConfigStringForValue(value))
         {
             if (getEditorConfigStringForValue == null)
             {
@@ -50,25 +56,32 @@ namespace Microsoft.CodeAnalysis.Options
             _getEditorConfigStringForValue = getEditorConfigStringForValue ?? throw new ArgumentNullException(nameof(getEditorConfigStringForValue));
         }
 
-        public bool TryGetOption(object underlyingOption, IReadOnlyDictionary<string, object> allRawConventions, Type type, out object result)
+        public bool TryGetOption(IReadOnlyDictionary<string, string> rawOptions, Type type, out object result)
         {
-            if (allRawConventions.TryGetValue(KeyName, out object value))
+            if (rawOptions.TryGetValue(KeyName, out var value))
             {
-                var optionalValue = _parseValue(value.ToString(), type);
-                if (optionalValue.HasValue)
-                {
-                    result = optionalValue.Value;
-                }
-                else
-                {
-                    result = null;
-                }
-
-                return result != null;
+                var ret = TryGetOption(value, type, out var typedResult);
+                result = typedResult;
+                return ret;
             }
 
             result = null;
             return false;
+        }
+
+        internal bool TryGetOption(string value, Type type, out T result)
+        {
+            var optionalValue = _parseValue(value, type);
+            if (optionalValue.HasValue)
+            {
+                result = optionalValue.Value;
+                return result != null;
+            }
+            else
+            {
+                result = default;
+                return false;
+            }
         }
 
         /// <summary>

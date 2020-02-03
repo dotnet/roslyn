@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -13,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             Contract.ThrowIfNull(line);
 
-            for (int i = 0; i < line.Length; i++)
+            for (var i = 0; i < line.Length; i++)
             {
                 if (!char.IsWhiteSpace(line[i]))
                 {
@@ -51,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Debug.Assert(tabSize > 0);
             Debug.Assert(endPosition >= 0 && endPosition <= textSnippet.Length);
 
-            int column = initialColumn;
+            var column = initialColumn;
 
             // now this will calculate indentation regardless of actual content on the buffer except TAB
-            for (int i = 0; i < endPosition; i++)
+            for (var i = 0; i < endPosition; i++)
             {
                 if (textSnippet[i] == '\t')
                 {
@@ -69,14 +73,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return column - initialColumn;
         }
 
-        public static int IndexOf(this string text, Func<char, bool> predicate)
+        public static int IndexOf(this string? text, Func<char, bool> predicate)
         {
             if (text == null)
             {
                 return -1;
             }
 
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (predicate(text[i]))
                 {
@@ -111,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool ContainsLineBreak(this string text)
         {
-            foreach (char ch in text)
+            foreach (var ch in text)
             {
                 if (ch == '\n' || ch == '\r')
                 {
@@ -124,8 +128,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static int GetNumberOfLineBreaks(this string text)
         {
-            int lineBreaks = 0;
-            for (int i = 0; i < text.Length; i++)
+            var lineBreaks = 0;
+            for (var i = 0; i < text.Length; i++)
             {
                 if (text[i] == '\n')
                 {
@@ -146,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool ContainsTab(this string text)
         {
             // PERF: Tried replacing this with "text.IndexOf('\t')>=0", but that was actually slightly slower
-            foreach (char ch in text)
+            foreach (var ch in text)
             {
                 if (ch == '\t')
                 {
@@ -194,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var currentColumn = 0;
 
-            for (int i = 0; i < line.Length; i++)
+            for (var i = 0; i < line.Length; i++)
             {
                 if (currentColumn >= column)
                 {
@@ -215,9 +219,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return line.Length;
         }
 
-        public static void AppendToAliasNameSet(this string alias, ImmutableHashSet<string>.Builder builder)
+        public static void AppendToAliasNameSet(this string? alias, ImmutableHashSet<string>.Builder builder)
         {
-            if (string.IsNullOrWhiteSpace(alias))
+            if (RoslynString.IsNullOrWhiteSpace(alias))
             {
                 return;
             }

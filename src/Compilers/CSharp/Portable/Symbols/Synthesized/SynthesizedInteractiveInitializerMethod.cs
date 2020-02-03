@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
 using System.Collections.Generic;
@@ -132,22 +134,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return _returnType.SpecialType == SpecialType.System_Void; }
+            get { return _returnType.IsVoidType(); }
         }
 
-        public override TypeSymbolWithAnnotations ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
-            get { return TypeSymbolWithAnnotations.Create(nonNullTypesContext: ContainingSymbol, _returnType); }
+            get { return TypeWithAnnotations.Create(_returnType); }
         }
+
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
+            get { return ImmutableArray<TypeWithAnnotations>.Empty; }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -251,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             resultType = (object)submissionReturnTypeOpt == null
                 ? compilation.GetSpecialType(SpecialType.System_Object)
                 : compilation.GetTypeByReflectionType(submissionReturnTypeOpt, diagnostics);
-            returnType = taskT.Construct(nonNullTypesContext: containingType, resultType);
+            returnType = taskT.Construct(resultType);
         }
     }
 }

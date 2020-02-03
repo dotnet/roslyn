@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -21,28 +23,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioProjectFactory _projectFactory;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IProjectCodeModelFactory _projectCodeModelFactory;
-        private readonly ExternalErrorDiagnosticUpdateSource _externalErrorDiagnosticUpdateSource;
-
-        private static readonly ImmutableDictionary<string, string> s_projectLanguageToErrorCodePrefixMap =
-            ImmutableDictionary.CreateRange(StringComparer.OrdinalIgnoreCase, new[]
-            {
-                new KeyValuePair<string, string> (LanguageNames.CSharp, "CS"),
-                new KeyValuePair<string, string> (LanguageNames.VisualBasic, "BC"),
-                new KeyValuePair<string, string> (LanguageNames.FSharp, "FS"),
-            });
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CPSProjectFactory(
             VisualStudioProjectFactory projectFactory,
             VisualStudioWorkspaceImpl workspace,
-            IProjectCodeModelFactory projectCodeModelFactory,
-            [Import(AllowDefault = true)] /* not present in unit tests */ ExternalErrorDiagnosticUpdateSource externalErrorDiagnosticUpdateSource)
+            IProjectCodeModelFactory projectCodeModelFactory)
         {
             _projectFactory = projectFactory;
             _workspace = workspace;
             _projectCodeModelFactory = projectCodeModelFactory;
-            _externalErrorDiagnosticUpdateSource = externalErrorDiagnosticUpdateSource;
         }
 
         IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(
@@ -53,30 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             object hierarchy,
             string binOutputPath)
         {
-            var visualStudioProject = CreateVisualStudioProject(languageName, projectUniqueName, projectFilePath, (IVsHierarchy)hierarchy, projectGuid);
-
-            ProjectExternalErrorReporter errorReporter = null;
-
-            if (s_projectLanguageToErrorCodePrefixMap.TryGetKey(languageName, out var prefix))
-            {
-                errorReporter = new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, _workspace, _externalErrorDiagnosticUpdateSource);
-            }
-
-            return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, errorReporter, projectGuid, binOutputPath);
-        }
-
-        // TODO: this is a workaround. Factory has to be refactored so that all callers supply their own error reporters
-        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(
-            string languageName,
-            string projectUniqueName,
-            string projectFilePath,
-            Guid projectGuid,
-            object hierarchy,
-            string binOutputPath,
-            ProjectExternalErrorReporter errorReporter)
-        {
-            var visualStudioProject = CreateVisualStudioProject(languageName, projectUniqueName, projectFilePath, (IVsHierarchy)hierarchy, projectGuid);
-            return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, errorReporter, projectGuid, binOutputPath);
+            var visualStudioProject = CreateVisualStudioProject(languageName, projectUniqueName, projectFilePath, hierarchy as IVsHierarchy, projectGuid);
+            return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, projectGuid, binOutputPath);
         }
 
         private VisualStudioProject CreateVisualStudioProject(string languageName, string projectUniqueName, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid)
@@ -99,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 // so we're caught in the middle doing this.
                 shell.LoadPackage(Guids.FSharpPackageId, out var unused);
             }
-            
+
             return visualStudioProject;
         }
     }

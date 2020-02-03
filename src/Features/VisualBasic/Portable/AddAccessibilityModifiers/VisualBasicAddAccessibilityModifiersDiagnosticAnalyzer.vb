@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
@@ -73,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                     ' We have to keep this here.
                     Return
                 End If
-           
+
             Else ' Require all, flag missing modidifers
                 If Accessibility <> Accessibility.NotApplicable Then
                     Return
@@ -94,13 +96,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             ' Top level items in a namespace or file
             If member.IsParentKind(SyntaxKind.CompilationUnit) OrElse
                member.IsParentKind(SyntaxKind.NamespaceBlock) Then
-               ' default is Friend
+                ' default is Friend
                 Return accessibility = Accessibility.Friend
             End If
 
             ' default for const and field in a class is private
-            If member.IsParentKind(SyntaxKind.ClassBlock) OrElse 
-               member.IsParentKind(SyntaxKind.ModuleBlock) Then                
+            If member.IsParentKind(SyntaxKind.ClassBlock) OrElse
+               member.IsParentKind(SyntaxKind.ModuleBlock) Then
                 If member.IsKind(SyntaxKind.FieldDeclaration) Then
                     Return accessibility = Accessibility.Private
                 End If

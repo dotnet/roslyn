@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         private readonly List<Task> _tasks = new List<Task>();
         private readonly SimpleTaskQueue _queue = new SimpleTaskQueue(TaskScheduler.Default);
 
-        public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken = default(CancellationToken))
+        public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             RegisterNotification(action, 0, asyncToken, cancellationToken);
         }
 
-        public void RegisterNotification(Func<bool> action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken = default(CancellationToken))
+        public void RegisterNotification(Func<bool> action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             Task task;
             lock (_gate)
@@ -44,12 +46,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             }
         }
 
-        public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default(CancellationToken))
+        public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             RegisterNotification(action, 0, asyncToken, cancellationToken);
         }
 
-        public void RegisterNotification(Action action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken = default(CancellationToken))
+        public void RegisterNotification(Action action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             Task task;
             lock (_gate)

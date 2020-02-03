@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -10,6 +13,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -21,8 +25,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private InlineRenameDialog_OutOfProc InlineRenameDialog => VisualStudio.InlineRenameDialog;
 
-        public CSharpRename(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpRename))
+        public CSharpRename(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpRename))
         {
         }
 
@@ -133,7 +137,7 @@ using System;
 class Custom$$Attribute : Attribute
 {
 }
-",true);
+", true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
@@ -462,7 +466,7 @@ class y
 }");
 
             VisualStudio.Editor.SendKeys(VirtualKey.Escape);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Rename);
 
             VisualStudio.Editor.Verify.TextContains(@"
 class Program
@@ -575,6 +579,37 @@ class Program
     {
         var y = 1;
         y = 2;
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WorkItem(39617, "https://github.com/dotnet/roslyn/issues/39617")]
+        public void VerifyRenameCaseChange()
+        {
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddFile(project, "Program.cs",
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}");
+
+            VisualStudio.SolutionExplorer.OpenFile(project, "Program.cs");
+            VisualStudio.Editor.PlaceCaret("Program");
+
+            InlineRenameDialog.Invoke();
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Home, VirtualKey.Delete, VirtualKey.P, VirtualKey.Enter);
+
+            VisualStudio.SolutionExplorer.Verify.FileContents(project, "program.cs",
+@"
+class program
+{
+    static void Main(string[] args)
+    {
     }
 }");
         }

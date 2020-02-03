@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -70,6 +72,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public ImmutableArray<DocumentFileInfo> AdditionalDocuments { get; }
 
         /// <summary>
+        /// The analyzer config documents.
+        /// </summary>
+        public ImmutableArray<DocumentFileInfo> AnalyzerConfigDocuments { get; }
+
+        /// <summary>
         /// References to other projects.
         /// </summary>
         public ImmutableArray<ProjectFileReference> ProjectReferences { get; }
@@ -96,6 +103,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
+            ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
             DiagnosticLog log)
         {
@@ -111,6 +119,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.CommandLineArgs = commandLineArgs;
             this.Documents = documents;
             this.AdditionalDocuments = additionalDocuments;
+            this.AnalyzerConfigDocuments = analyzerConfigDocuments;
             this.ProjectReferences = projectReferences;
             this.Log = log;
         }
@@ -125,6 +134,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
+            ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
             DiagnosticLog log)
             => new ProjectFileInfo(
@@ -138,6 +148,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 commandLineArgs,
                 documents,
                 additionalDocuments,
+                analyzerConfigDocuments,
                 projectReferences,
                 log);
 
@@ -153,6 +164,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 commandLineArgs: ImmutableArray<string>.Empty,
                 documents: ImmutableArray<DocumentFileInfo>.Empty,
                 additionalDocuments: ImmutableArray<DocumentFileInfo>.Empty,
+                analyzerConfigDocuments: ImmutableArray<DocumentFileInfo>.Empty,
                 projectReferences: ImmutableArray<ProjectFileReference>.Empty,
                 log);
     }

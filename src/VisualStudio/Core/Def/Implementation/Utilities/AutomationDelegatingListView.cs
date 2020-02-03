@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 extern alias slowautomation;
 
@@ -66,8 +68,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                     }
                 }
             }
-            
+
             return results;
+        }
+
+        protected override AutomationControlType GetAutomationControlTypeCore()
+        {
+            return AutomationControlType.List;
         }
     }
 
@@ -81,12 +88,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
     internal class AutomationDelegatingListViewItemAutomationPeer : ListBoxItemWrapperAutomationPeer
     {
-        private CheckBoxAutomationPeer checkBoxItem;
-        private RadioButtonAutomationPeer radioButtonItem;
-        private TextBlockAutomationPeer textBlockItem;
+        private readonly CheckBoxAutomationPeer checkBoxItem;
+        private readonly RadioButtonAutomationPeer radioButtonItem;
+        private readonly TextBlockAutomationPeer textBlockItem;
 
         public AutomationDelegatingListViewItemAutomationPeer(AutomationDelegatingListViewItem listViewItem)
-            : base(listViewItem) 
+            : base(listViewItem)
         {
             checkBoxItem = this.GetChildren().OfType<CheckBoxAutomationPeer>().SingleOrDefault();
             if (checkBoxItem != null)
@@ -101,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             if (radioButtonItem != null)
             {
                 var toggleButton = ((RadioButton)radioButtonItem.Owner);
-                toggleButton.Checked +=   RadioButton_CheckChanged;
+                toggleButton.Checked += RadioButton_CheckChanged;
                 toggleButton.Unchecked += RadioButton_CheckChanged;
                 return;
             }
@@ -113,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         {
             var checkBox = (CheckBox)sender;
             RaisePropertyChangedEvent(
-                TogglePatternIdentifiers.ToggleStateProperty, 
+                TogglePatternIdentifiers.ToggleStateProperty,
                 oldValue: ConvertToToggleState(!checkBox.IsChecked),
                 newValue: ConvertToToggleState(checkBox.IsChecked));
         }

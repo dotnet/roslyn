@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), WorkspaceKind.Test), Shared]
     internal sealed class TestFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
         public TestFormattingRuleFactoryServiceFactory()
         {
         }
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public sealed class Factory : IHostDependentFormattingRuleFactoryService
         {
             public int BaseIndentation = 0;
-            public TextSpan TextSpan = default(TextSpan);
+            public TextSpan TextSpan = default;
             public bool UseBaseIndentation = false;
 
             public bool ShouldUseBaseIndentation(Document document)
@@ -34,11 +37,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 return UseBaseIndentation;
             }
 
-            public IFormattingRule CreateRule(Document document, int position)
+            public AbstractFormattingRule CreateRule(Document document, int position)
             {
                 if (BaseIndentation == 0)
                 {
-                    return new NoOpFormattingRule();
+                    return NoOpFormattingRule.Instance;
                 }
 
                 var root = document.GetSyntaxRootAsync().Result;

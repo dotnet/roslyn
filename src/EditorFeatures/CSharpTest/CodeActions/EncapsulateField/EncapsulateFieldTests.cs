@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Globalization;
@@ -62,6 +64,48 @@ class goo
     private int bar;
 
     public int Bar
+    {
+        get
+        {
+            return bar;
+        }
+
+        set
+        {
+            bar = value;
+        }
+    }
+
+    void baz()
+    {
+        var q = bar;
+    }
+}
+";
+            await TestAllOptionsOffAsync(text, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task PrivateNullableFieldToPropertyIgnoringReferences()
+        {
+            var text = @"#nullable enable
+class goo
+{
+    private string? b[|a|]r;
+
+    void baz()
+    {
+        var q = bar;
+    }
+}
+";
+
+            var expected = @"#nullable enable
+class goo
+{
+    private string? bar;
+
+    public string? Bar
     {
         get
         {
@@ -164,7 +208,7 @@ class goo
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, 
+            await TestInRegularAndScriptAsync(text, expected,
                 options: OptionsSet(
                     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent),
                     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.Silent)));
@@ -1112,7 +1156,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|iyi|];
-}", 
+}",
 @"class C
 {
     int iyi;
@@ -1143,7 +1187,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|ırak|];
-}", 
+}",
 @"class C
 {
     int ırak;
@@ -1174,7 +1218,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|بيت|];
-}", 
+}",
 @"class C
 {
     int بيت;
@@ -1205,7 +1249,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|árbol|];
-}", 
+}",
 @"class C
 {
     int árbol;
@@ -1236,7 +1280,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|σκύλος|];
-}", 
+}",
 @"class C
 {
     int σκύλος;
@@ -1323,7 +1367,7 @@ class C
 @"class C
 {
     int [|i|];
-}", 
+}",
 @"class C
 {
     int i;

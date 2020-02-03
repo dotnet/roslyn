@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -170,20 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static bool SpansPreprocessorDirective<TSyntaxNode>(
-            this IEnumerable<TSyntaxNode> list)
-            where TSyntaxNode : SyntaxNode
-        {
-            if (list == null || list.IsEmpty())
-            {
-                return false;
-            }
-
-            var tokens = list.SelectMany(n => n.DescendantTokens());
-
-            // todo: we need to dive into trivia here.
-            return tokens.SpansPreprocessorDirective();
-        }
+        public static bool SpansPreprocessorDirective<TSyntaxNode>(this IEnumerable<TSyntaxNode> list) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.SpansPreprocessorDirective(list);
 
         public static TNode ConvertToSingleLine<TNode>(this TNode node, bool useElasticTrivia = false)
             where TNode : SyntaxNode
@@ -253,6 +243,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// </summary>
         public static bool ContainsInterleavedDirective(this SyntaxNode syntaxNode, CancellationToken cancellationToken)
             => CSharpSyntaxFactsService.Instance.ContainsInterleavedDirective(syntaxNode, cancellationToken);
+
+        /// <summary>
+        /// Similar to <see cref="ContainsInterleavedDirective(SyntaxNode, CancellationToken)"/> except that the span to check
+        /// for interleaved directives can be specified separately to the node passed in.
+        /// </summary>
+        public static bool ContainsInterleavedDirective(this SyntaxNode syntaxNode, TextSpan span, CancellationToken cancellationToken)
+            => CSharpSyntaxFactsService.Instance.ContainsInterleavedDirective(span, syntaxNode, cancellationToken);
 
         public static bool ContainsInterleavedDirective(
             this SyntaxToken token,
@@ -423,6 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             switch (node.Kind())
             {
+                case SyntaxKind.CoalesceAssignmentExpression:
                 case SyntaxKind.AddAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
                 case SyntaxKind.MultiplyAssignmentExpression:
@@ -456,6 +454,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return node.Parent.IsAnyAssignExpression() &&
                 ((AssignmentExpressionSyntax)node.Parent).Right == node;
+        }
+
+        public static bool IsLeftSideOfCompoundAssignExpression(this SyntaxNode node)
+        {
+            return node != null &&
+                node.Parent.IsCompoundAssignExpression() &&
+                ((AssignmentExpressionSyntax)node.Parent).Left == node;
         }
 
         public static bool IsVariableDeclaratorValue(this SyntaxNode node)
@@ -495,13 +500,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var childList = self.ChildNodesAndTokens();
 
-            int left = 0;
-            int right = childList.Count - 1;
+            var left = 0;
+            var right = childList.Count - 1;
 
             while (left <= right)
             {
-                int middle = left + ((right - left) / 2);
-                SyntaxNodeOrToken node = childList[middle];
+                var middle = left + ((right - left) / 2);
+                var node = childList[middle];
 
                 var span = node.FullSpan;
                 if (position < span.Start)
@@ -523,11 +528,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // but we wan to optimize for the common case where position is valid.
             Debug.Assert(!self.FullSpan.Contains(position), "Position is valid. How could we not find a child?");
             throw new ArgumentOutOfRangeException(nameof(position));
-        }
-
-        public static SyntaxNode GetParent(this SyntaxNode node)
-        {
-            return node != null ? node.Parent : null;
         }
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetParentheses(this SyntaxNode node)
@@ -552,7 +552,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case FixedStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case LockStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case IfStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case SwitchStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
+                case SwitchStatementSyntax n when n.OpenParenToken != default: return (n.OpenParenToken, n.CloseParenToken);
+                case TupleExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case CatchDeclarationSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case AttributeArgumentListSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case ConstructorConstraintSyntax n: return (n.OpenParenToken, n.CloseParenToken);
@@ -576,44 +577,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static SyntaxTokenList GetModifiers(this SyntaxNode member)
         {
-            if (member != null)
+            switch (member)
             {
-                switch (member.Kind())
-                {
-                    case SyntaxKind.EnumDeclaration:
-                        return ((EnumDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                        return ((TypeDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.DelegateDeclaration:
-                        return ((DelegateDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.FieldDeclaration:
-                        return ((FieldDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.EventFieldDeclaration:
-                        return ((EventFieldDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.ConstructorDeclaration:
-                        return ((ConstructorDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.DestructorDeclaration:
-                        return ((DestructorDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.PropertyDeclaration:
-                        return ((PropertyDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.EventDeclaration:
-                        return ((EventDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.IndexerDeclaration:
-                        return ((IndexerDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.OperatorDeclaration:
-                        return ((OperatorDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                        return ((ConversionOperatorDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.MethodDeclaration:
-                        return ((MethodDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.AddAccessorDeclaration:
-                    case SyntaxKind.RemoveAccessorDeclaration:
-                        return ((AccessorDeclarationSyntax)member).Modifiers;
-                }
+                case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
+                case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
             }
 
             return default;
@@ -621,44 +588,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static SyntaxNode WithModifiers(this SyntaxNode member, SyntaxTokenList modifiers)
         {
-            if (member != null)
+            switch (member)
             {
-                switch (member.Kind())
-                {
-                    case SyntaxKind.EnumDeclaration:
-                        return ((EnumDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                        return ((TypeDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.DelegateDeclaration:
-                        return ((DelegateDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.FieldDeclaration:
-                        return ((FieldDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.EventFieldDeclaration:
-                        return ((EventFieldDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.ConstructorDeclaration:
-                        return ((ConstructorDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.DestructorDeclaration:
-                        return ((DestructorDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.PropertyDeclaration:
-                        return ((PropertyDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.EventDeclaration:
-                        return ((EventDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.IndexerDeclaration:
-                        return ((IndexerDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.OperatorDeclaration:
-                        return ((OperatorDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                        return ((ConversionOperatorDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.MethodDeclaration:
-                        return ((MethodDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.AddAccessorDeclaration:
-                    case SyntaxKind.RemoveAccessorDeclaration:
-                        return ((AccessorDeclarationSyntax)member).WithModifiers(modifiers);
-                }
+                case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
+                case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
             }
 
             return null;
@@ -825,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInDeconstructionLeft(this SyntaxNode node, out SyntaxNode deconstructionLeft)
         {
             SyntaxNode previous = null;
-            for (var current = node; current != null; current = current.GetParent())
+            for (var current = node; current != null; current = current.Parent)
             {
                 if ((current is AssignmentExpressionSyntax assignment && previous == assignment.Left && assignment.IsDeconstruction()) ||
                     (current is ForEachVariableStatementSyntax @foreach && previous == @foreach.Variable))
@@ -849,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static T WithCommentsFrom<T>(this T node, SyntaxToken leadingToken, SyntaxToken trailingToken)
             where T : SyntaxNode
             => node.WithCommentsFrom(
-                SyntaxNodeOrTokenExtensions.GetTrivia(leadingToken), 
+                SyntaxNodeOrTokenExtensions.GetTrivia(leadingToken),
                 SyntaxNodeOrTokenExtensions.GetTrivia(trailingToken));
 
         public static T WithCommentsFrom<T>(

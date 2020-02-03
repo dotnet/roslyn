@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -146,9 +148,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 typeParameters: default,
                 parameters: default);
 
+            var codeGenerationOptions = GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options);
+            if (destination == CodeGenerationDestination.InterfaceType)
+            {
+                // Generating method with body is allowed when targeting an interface,
+                // so we have to explicitly disable it here.
+                codeGenerationOptions = codeGenerationOptions.With(generateMethodBodies: false);
+            }
+
             return CodeGenerationService.CreateMethodDeclaration(
                 newMethodSymbol, destination,
-                options: GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options));
+                options: codeGenerationOptions);
         }
 
         protected SyntaxNode CreatePropertyDeclaration(SyntaxNode containerNode, string name, bool generateGetter, bool generateSetter, EnvDTE.vsCMAccess access, ITypeSymbol type)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -49,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DocumentationMode documentationMode = DocumentationMode.Parse,
             SourceCodeKind kind = SourceCodeKind.Regular,
             IEnumerable<string> preprocessorSymbols = null)
-            : this(languageVersion, 
-                  documentationMode, 
+            : this(languageVersion,
+                  documentationMode,
                   kind,
                   preprocessorSymbols.ToImmutableArrayOrEmpty(),
                   ImmutableDictionary<string, string>.Empty)
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             features: other.Features)
         {
         }
-        
+
         public override string Language => LanguageNames.CSharp;
 
         public new CSharpParseOptions WithKind(SourceCodeKind kind)
@@ -183,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadLanguageVersion, LanguageVersion.ToString()));
             }
-            
+
             if (!PreprocessorSymbols.IsDefaultOrEmpty)
             {
                 foreach (var symbol in PreprocessorSymbols)

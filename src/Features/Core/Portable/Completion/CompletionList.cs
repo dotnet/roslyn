@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -11,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public sealed class CompletionList
     {
+        private readonly bool _isExclusive;
+
         /// <summary>
         /// The completion items to present to the user.
         /// </summary>
@@ -47,11 +51,6 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem SuggestionModeItem { get; }
 
-        /// <summary>
-        /// For testing purposes only.
-        /// </summary>
-        internal bool IsExclusive { get; }
-
         private CompletionList(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Items = items.NullToEmpty();
             Rules = rules ?? CompletionRules.Default;
             SuggestionModeItem = suggestionModeItem;
-            IsExclusive = isExclusive;
+            _isExclusive = isExclusive;
 
             foreach (var item in Items)
             {
@@ -105,15 +104,15 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<CompletionRules> rules = default,
             Optional<CompletionItem> suggestionModeItem = default)
         {
-            var newSpan = span.HasValue ? span.Value : this.Span;
-            var newItems = items.HasValue ? items.Value : this.Items;
-            var newRules = rules.HasValue ? rules.Value : this.Rules;
-            var newSuggestionModeItem = suggestionModeItem.HasValue ? suggestionModeItem.Value : this.SuggestionModeItem;
+            var newSpan = span.HasValue ? span.Value : Span;
+            var newItems = items.HasValue ? items.Value : Items;
+            var newRules = rules.HasValue ? rules.Value : Rules;
+            var newSuggestionModeItem = suggestionModeItem.HasValue ? suggestionModeItem.Value : SuggestionModeItem;
 
-            if (newSpan == this.Span &&
-                newItems == this.Items &&
-                newRules == this.Rules &&
-                newSuggestionModeItem == this.SuggestionModeItem)
+            if (newSpan == Span &&
+                newItems == Items &&
+                newRules == Rules &&
+                newSuggestionModeItem == SuggestionModeItem)
             {
                 return this;
             }
@@ -167,5 +166,20 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly CompletionList Empty = new CompletionList(
             default, default, CompletionRules.Default,
             suggestionModeItem: null, isExclusive: false);
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly CompletionList _completionList;
+
+            public TestAccessor(CompletionList completionList)
+            {
+                _completionList = completionList;
+            }
+
+            internal bool IsExclusive => _completionList._isExclusive;
+        }
     }
 }

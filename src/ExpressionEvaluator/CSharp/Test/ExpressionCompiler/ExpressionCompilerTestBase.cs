@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -168,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             AppDomain appDomain,
             ImmutableArray<MetadataBlock> blocks,
             (Guid ModuleVersionId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) state,
-            MakeAssemblyReferencesKind kind =  MakeAssemblyReferencesKind.AllReferences)
+            MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllReferences)
         {
             return CreateMethodContext(
                 appDomain,
@@ -304,10 +306,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             string methodName,
             string expr,
             int atLineNumber = -1,
-            bool includeSymbols = true,
-            LanguageVersion langVersion = LanguageVersion.Default)
+            bool includeSymbols = true)
         {
-            var result = Evaluate(source, outputKind, methodName, expr, out _, out string error, atLineNumber, includeSymbols, langVersion);
+            var result = Evaluate(source, outputKind, methodName, expr, out _, out string error, atLineNumber, includeSymbols);
             Assert.Null(error);
             return result;
         }
@@ -332,12 +333,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             out ResultProperties resultProperties,
             out string error,
             int atLineNumber = -1,
-            bool includeSymbols = true,
-            LanguageVersion langVersion = LanguageVersion.Default)
+            bool includeSymbols = true)
         {
             var compilation = CreateCompilation(
                 source,
-                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(langVersion),
+                parseOptions: SyntaxHelpers.ParseOptions,
                 options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe);
 
             return Evaluate(compilation, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols);
@@ -376,10 +376,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// </summary>
         internal static void VerifyTypeParameters(MethodSymbol method)
         {
-            Assert.True(method.IsContainingSymbolOfAllTypeParameters(method.ReturnType.TypeSymbol));
+            Assert.True(method.IsContainingSymbolOfAllTypeParameters(method.ReturnType));
             AssertEx.All(method.TypeParameters, typeParameter => method.IsContainingSymbolOfAllTypeParameters(typeParameter));
-            AssertEx.All(method.TypeArguments, typeArgument => method.IsContainingSymbolOfAllTypeParameters(typeArgument.TypeSymbol));
-            AssertEx.All(method.Parameters, parameter => method.IsContainingSymbolOfAllTypeParameters(parameter.Type.TypeSymbol));
+            AssertEx.All(method.TypeArgumentsWithAnnotations, typeArgument => method.IsContainingSymbolOfAllTypeParameters(typeArgument.Type));
+            AssertEx.All(method.Parameters, parameter => method.IsContainingSymbolOfAllTypeParameters(parameter.Type));
             VerifyTypeParameters(method.ContainingType);
         }
 
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var candidates = compilation.GetMembers(methodOrTypeName);
             var methodOrType = (parameterTypeNames == null) ?
                 candidates.FirstOrDefault() :
-                candidates.FirstOrDefault(c => parameterTypeNames.SequenceEqual(((MethodSymbol)c).Parameters.Select(p => p.Type.Name)));
+                candidates.FirstOrDefault(c => parameterTypeNames.SequenceEqual(((MethodSymbol)c).Parameters.Select(p => p.TypeWithAnnotations.Type.Name)));
 
             Assert.False(methodOrType == null, "Could not find method or type with signature '" + signature + "'.");
             return methodOrType;
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader3)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
         }
 
-        internal static void CheckAttribute(IEnumerable<byte> assembly, IMethodSymbol method, AttributeDescription description, bool expected)
+        internal static void CheckAttribute(IEnumerable<byte> assembly, MethodSymbol method, AttributeDescription description, bool expected)
         {
             var module = AssemblyMetadata.CreateFromImage(assembly).GetModules().Single().Module;
 

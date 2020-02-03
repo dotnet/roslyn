@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -65,7 +67,7 @@ End Class
         Using Workspace = TestWorkspace.CreateVisualBasic(source)
             Dim document = Workspace.CurrentSolution.Projects.Single().Documents.Single()
             Await ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(
-                Async Function(analyzer) Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length), logAnalyzerExceptionAsDiagnostics:=True))
+                Async Function(analyzer) Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length)))
         End Using
     End Function
 
@@ -79,7 +81,7 @@ End Class
 
     Private Sub AccessSupportedDiagnostics(analyzer As DiagnosticAnalyzer)
         Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.VisualBasic, analyzer)
-        diagnosticService.CreateDiagnosticDescriptorsPerReference(projectOpt:=Nothing)
+        diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference()
     End Sub
 
     <Fact>
@@ -92,7 +94,7 @@ End Class
             currentProject = newSln.Projects.Single()
             Dim additionalDocument = currentProject.GetAdditionalDocument(additionalDocId)
 
-            Dim additionalStream As AdditionalText = New AdditionalTextDocument(additionalDocument.State)
+            Dim additionalStream As AdditionalText = New AdditionalTextWithState(additionalDocument.State)
             Dim options = New AnalyzerOptions(ImmutableArray.Create(additionalStream))
             Dim analyzer = New OptionsDiagnosticAnalyzer(Of SyntaxKind)(expectedOptions:=options)
 

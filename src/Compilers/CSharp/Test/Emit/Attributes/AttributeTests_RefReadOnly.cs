@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Reflection;
@@ -1359,7 +1361,7 @@ class User
 public delegate int D (in int x);
 ").VerifyEmitDiagnostics();
 
-            Assert.True(reference.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.True(NeedsGeneratedIsReadOnlyAttribute(reference));
 
             var compilation = CreateCompilation(@"
 public class Test
@@ -1372,7 +1374,7 @@ public class Test
 }", references: new[] { reference.ToMetadataReference() });
 
             compilation.VerifyEmitDiagnostics();
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -1386,7 +1388,7 @@ public class Test
             Assert.Equal(CandidateReason.None, result.CandidateReason);
             Assert.Empty(result.CandidateSymbols);
 
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
         }
 
         [Fact]
@@ -1396,7 +1398,7 @@ public class Test
 public delegate ref readonly int D ();
 ").VerifyEmitDiagnostics();
 
-            Assert.True(reference.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.True(NeedsGeneratedIsReadOnlyAttribute(reference));
 
             var compilation = CreateCompilation(@"
 public class Test
@@ -1414,7 +1416,7 @@ public class Test
 }", references: new[] { reference.ToMetadataReference() });
 
             compilation.VerifyEmitDiagnostics();
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -1428,7 +1430,7 @@ public class Test
             Assert.Equal(CandidateReason.None, result.CandidateReason);
             Assert.Empty(result.CandidateSymbols);
 
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
         }
 
         [Fact]
@@ -1443,7 +1445,7 @@ public class Test
 }");
 
             compilation.VerifyEmitDiagnostics();
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -1455,7 +1457,7 @@ public class Test
             Assert.True(model.TryGetSpeculativeSemanticModel(position, localfunction, out var newModel));
             var localFunctionSymbol = newModel.GetDeclaredSymbol(localfunction);
             Assert.NotNull(localFunctionSymbol);
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
         }
 
         [Fact]
@@ -1470,7 +1472,7 @@ public class Test
 }");
 
             compilation.VerifyEmitDiagnostics();
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -1482,7 +1484,7 @@ public class Test
             Assert.True(model.TryGetSpeculativeSemanticModel(position, localfunction, out var newModel));
             var localFunctionSymbol = newModel.GetDeclaredSymbol(localfunction);
             Assert.NotNull(localFunctionSymbol);
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
         }
 
         [Fact]
@@ -1493,7 +1495,7 @@ public delegate ref readonly int D1 ();
 public delegate ref int D2 ();
 ").VerifyEmitDiagnostics();
 
-            Assert.True(reference.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.True(NeedsGeneratedIsReadOnlyAttribute(reference));
 
             var compilation = CreateCompilation(@"
 public class Test
@@ -1509,7 +1511,7 @@ public class Test
 }", references: new[] { reference.ToMetadataReference() });
 
             compilation.VerifyEmitDiagnostics();
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
         }
 
         [Fact]
@@ -2343,6 +2345,11 @@ public class Test
 
             Assert.Equal(WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_CompilerGeneratedAttribute), attributes[0].AttributeClass.ToDisplayString());
             Assert.Equal(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName, attributes[1].AttributeClass.ToDisplayString());
+        }
+
+        private static bool NeedsGeneratedIsReadOnlyAttribute(CSharpCompilation compilation)
+        {
+            return (compilation.GetNeedsGeneratedAttributes() & EmbeddableAttributes.IsReadOnlyAttribute) != 0;
         }
     }
 }

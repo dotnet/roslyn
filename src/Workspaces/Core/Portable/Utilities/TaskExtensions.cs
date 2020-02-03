@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -36,7 +38,7 @@ namespace Roslyn.Utilities
                 return expression.Compile();
             });
 
-        private static bool IsThreadPoolThread(Thread thread)
+        public static bool IsThreadPoolThread(Thread thread)
         {
             if (s_isThreadPoolThread.Value is null)
             {
@@ -89,7 +91,7 @@ namespace Roslyn.Utilities
             return task.Result;
         }
 
-        // NOTE(cyrusn): Once we switch over to .Net 4.5 we can make our SafeContinueWith overloads
+        // NOTE(cyrusn): Once we switch over to .NET Framework 4.5 we can make our SafeContinueWith overloads
         // simply call into task.ContinueWith(..., TaskContinuationOptions.LazyCancellation, ...) as
         // that will have the semantics that we want.  From the TPL guys:
         //
@@ -290,6 +292,24 @@ namespace Roslyn.Utilities
         public static Task<TNResult> ContinueWithAfterDelay<TNResult>(
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             this Task task,
+            Func<TNResult> continuationFunction,
+            CancellationToken cancellationToken,
+            int millisecondsDelay,
+            TaskContinuationOptions taskContinuationOptions,
+            TaskScheduler scheduler)
+        {
+            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
+
+            return task.SafeContinueWith(t =>
+                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWith(
+                    _ => continuationFunction(), cancellationToken, TaskContinuationOptions.None, scheduler),
+                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
+        }
+
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        public static Task<TNResult> ContinueWithAfterDelay<TNResult>(
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            this Task task,
             Func<Task, TNResult> continuationFunction,
             CancellationToken cancellationToken,
             int millisecondsDelay,
@@ -450,6 +470,22 @@ namespace Roslyn.Utilities
 
         public static Task<TNResult> ContinueWithAfterDelayFromAsync<TNResult>(
             this Task task,
+            Func<Task<TNResult>> continuationFunction,
+            CancellationToken cancellationToken,
+            int millisecondsDelay,
+            TaskContinuationOptions taskContinuationOptions,
+            TaskScheduler scheduler)
+        {
+            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
+
+            return task.SafeContinueWith(t =>
+                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
+                    _ => continuationFunction(), cancellationToken, TaskContinuationOptions.None, scheduler),
+                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
+        }
+
+        public static Task<TNResult> ContinueWithAfterDelayFromAsync<TNResult>(
+            this Task task,
             Func<Task, Task<TNResult>> continuationFunction,
             CancellationToken cancellationToken,
             int millisecondsDelay,
@@ -461,6 +497,22 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
+                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
+        }
+
+        public static Task ContinueWithAfterDelayFromAsync(
+            this Task task,
+            Func<Task> continuationFunction,
+            CancellationToken cancellationToken,
+            int millisecondsDelay,
+            TaskContinuationOptions taskContinuationOptions,
+            TaskScheduler scheduler)
+        {
+            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
+
+            return task.SafeContinueWith(t =>
+                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
+                    _ => continuationFunction(), cancellationToken, TaskContinuationOptions.None, scheduler),
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
@@ -503,6 +555,16 @@ namespace Roslyn.Utilities
             // > ~67s     // switch to thread 67
             // > !dso     // dump stack objects
             FatalError.Report(exception);
+        }
+
+        public static Task ReportNonFatalErrorAsync(this Task task)
+        {
+            task.ContinueWith(p => FatalError.ReportWithoutCrashUnlessCanceled(p.Exception),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+
+            return task;
         }
     }
 }

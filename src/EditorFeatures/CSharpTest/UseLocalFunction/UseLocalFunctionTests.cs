@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -16,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseLocalFunction
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseLocalFunctionDiagnosticAnalyzer(), new CSharpUseLocalFunctionCodeFixProvider());
+
+        private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestMissingBeforeCSharp7()
@@ -181,7 +185,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -221,7 +225,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -261,7 +265,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -301,7 +305,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -336,7 +340,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -366,7 +370,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -396,7 +400,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -431,7 +435,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -471,7 +475,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -511,7 +515,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -551,7 +555,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -591,7 +595,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -626,7 +630,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -656,7 +660,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -686,7 +690,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -770,7 +774,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -811,7 +815,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -862,7 +866,10 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}");
+}",
+            // 7.1 is required for default literals, so 7.2 should be sufficient
+            // and is used in other tests
+            parseOptions: CSharp72ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -893,7 +900,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -934,7 +941,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -975,7 +982,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -1016,7 +1023,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -1057,7 +1064,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -1093,7 +1100,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -1124,7 +1131,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -1155,7 +1162,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v) =>
+        static int fibonacci(int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -1187,7 +1194,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             bool isTrue(bool b) => b;
 
@@ -1221,7 +1228,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             bool isTrue(bool b) => b;
 
@@ -1257,7 +1264,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             bool isTrue(bool b) => b;
             return fibonacci(v - 1, v - 2);
@@ -1292,7 +1299,7 @@ class C
 {
     void M()
     {
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             int fibonacciHelper(int n) => fibonacci(n - 1) + fibonacci(v: n - 2);
             return fibonacciHelper(v);
@@ -1330,7 +1337,7 @@ class C
     void M()
     {
         // Leading trivia
-        int fibonacci(int v)
+        static int fibonacci(int v)
         {
             if (v <= 1)
             {
@@ -1364,7 +1371,9 @@ class C
     {
         void lambda(in int p) => throw null;
     }
-}");
+}",
+            // Run with 7.2 to get read-only references
+            parseOptions: CSharp72ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -1386,7 +1395,7 @@ class C
 {
     void M()
     {
-        ref readonly int lambda() => throw null;
+        static ref readonly int lambda() => throw null;
     }
 }");
         }
@@ -1438,7 +1447,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Task f(string x) { return Task.CompletedTask; }
+        static Task f(string x) { return Task.CompletedTask; }
         Func<string, Task> actual = null;
         AssertSame(f, actual);
     }
@@ -1508,7 +1517,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string f(object x) => """";
+        static string f(object x) => """";
         M(f);
     }
 
@@ -1539,7 +1548,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string f(object x) => """";
+        static string f(object x) => """";
         M(f);
     }
 
@@ -1570,7 +1579,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string f(string x) => """";
+        static string f(string x) => """";
         M(f);
     }
 
@@ -1601,7 +1610,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        object f(object x) => """";
+        static object f(object x) => """";
         M(f);
     }
 
@@ -1758,7 +1767,7 @@ class Enclosing<T> where T : class
     {
         public void Caller()
         {
-            T local(T x = null) => x;
+            static T local(T x = null) => x;
 
             local();
         }
@@ -1797,7 +1806,7 @@ class Enclosing<T> where T : class
     {
         public void Caller(T t)
         {
-            T local(T x = null) => x;
+            static T local(T x = null) => x;
 
             Console.Write(local(t));
         }
@@ -1839,7 +1848,7 @@ class Enclosing<T> where T : class
     {
         public void Caller(T t)
         {
-            T local(T x = null) => x;
+            static T local(T x = null) => x;
 
             Console.Write(local(t));
 
@@ -1884,7 +1893,7 @@ class Enclosing<T> where T : class
     {
         public void Caller(T t)
         {
-            T local(T x = null) => x;
+            static T local(T x = null) => x;
 
             Console.Write(local(t));
 
@@ -1916,7 +1925,7 @@ class C
 {
     void M()
     {
-        void local() => local();
+        static void local() => local();
     }
 }");
         }
@@ -1942,7 +1951,7 @@ class C
 {
     void M()
     {
-        void local() { local(); }
+        static void local() { local(); }
     }
 }");
         }
@@ -1968,7 +1977,7 @@ class C
 {
     void M()
     {
-        string a(string s) => s;
+        static string a(string s) => s;
         a(a(null));
     }
 }");
@@ -1994,7 +2003,7 @@ class C
 {
     void M()
     {
-        string a(string s) => a(a(s));
+        static string a(string s) => a(a(s));
     }
 }");
         }
@@ -2002,8 +2011,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestWithDefaultParameter1()
         {
-           await TestInRegularAndScript1Async(
-@"class C
+            await TestInRegularAndScript1Async(
+ @"class C
 {
     delegate string MyDelegate(string arg = ""hello"");
 
@@ -2012,13 +2021,13 @@ class C
         MyDelegate [||]local = (s) => s;
     }
 }",
-@"class C
+ @"class C
 {
     delegate string MyDelegate(string arg = ""hello"");
 
     void M()
     {
-        string local(string s = ""hello"") => s;
+        static string local(string s = ""hello"") => s;
     }
 }");
         }
@@ -2043,7 +2052,7 @@ class C
 
     void M()
     {
-        string local(string s = ""hello"") => s;
+        static string local(string s = ""hello"") => s;
     }
 }");
         }
@@ -2067,7 +2076,7 @@ class C
 
     void M()
     {
-        string local(string s = ""hello"") { return s; }
+        static string local(string s = ""hello"") { return s; }
     }
 }");
         }
@@ -2092,7 +2101,7 @@ class C
 {
     void M()
     {
-        void x(object a, object b) { }
+        static void x(object a, object b) { }
     }
 }");
         }
@@ -2116,7 +2125,7 @@ class C
 {
     void M()
     {
-        void x(string a, int b) { }
+        static void x(string a, int b) { }
     }
 }");
         }
@@ -2142,7 +2151,7 @@ class C
 {
     void M()
     {
-        async Task f() => await Task.Yield();
+        static async Task f() => await Task.Yield();
     }
 }");
         }
@@ -2168,7 +2177,7 @@ class C
 {
     void M()
     {
-        async Task<int> f() { return 0; }
+        static async Task<int> f() { return 0; }
     }
 }");
         }
@@ -2196,7 +2205,7 @@ class C
 {
     void M()
     {
-        void handler(object sender, EventArgs e) { }
+        static void handler(object sender, EventArgs e) { }
 
         E += handler;
     }
@@ -2228,7 +2237,7 @@ class C
 {
     void M()
     {
-        void x(string a1, int a2, int a3) { }
+        static void x(string a1, int a2, int a3) { }
 
         x(a1: null, 0, 0);
         x(a1: null, 0, 0);
@@ -2260,7 +2269,7 @@ class C
 {
     void M()
     {
-        void x(string a1, int a2, int a3)
+        static void x(string a1, int a2, int a3)
         {
             x(null, a3: 0, a2: 0);
             x(null, a3: 0, a2: 0);
@@ -2292,7 +2301,7 @@ class C
 {
     void M()
     {
-        void x(int a1, string a2, string a3, object a4) { }
+        static void x(int a1, string a2, string a3, object a4) { }
 
         x(null, a3: 0, a2: 0, arg4: 0);
         x(null, a3: 0, a2: 0, arg4: 0);
@@ -2325,7 +2334,7 @@ class C
 {
     void M()
     {
-        void x(string a1, int a2)
+        static void x(string a1, int a2)
         {
             x(null, arg3: 0, a2: 0);
             x(null, arg3: 0, a2: 0);
@@ -2359,7 +2368,7 @@ class C
 
     void M()
     {
-        string x(string a1, int a2 = 2, int a3 = 3)
+        static string x(string a1, int a2 = 2, int a3 = 3)
         {
             x(null, a3: 42);
             return x(null, a3: 42);
@@ -2514,7 +2523,7 @@ class C
 {
     void Goo()
     {
-        int[] onUpdateSolutionCancel(int a) { return null; }
+        static int[] onUpdateSolutionCancel(int a) { return null; }
     }
 }");
         }
@@ -2539,7 +2548,7 @@ class C
 {
     void Goo()
     {
-        async Task<int[]> onUpdateSolutionCancel(int a) { return null; }
+        static async Task<int[]> onUpdateSolutionCancel(int a) { return null; }
     }
 }");
         }
@@ -3056,7 +3065,7 @@ class Enclosing<T> : DelegateEnclosing<T>
 
     public void Caller()
     {
-        T local(T x) => x;
+        static T local(T x) => x;
         Callee(local);
     }
 }");
@@ -3097,7 +3106,7 @@ class Enclosing<U> : DelegateEnclosing<U>
 
     public void Caller()
     {
-        U local(U x) => x;
+        static U local(U x) => x;
         Callee(local);
     }
 }");
@@ -3125,7 +3134,7 @@ class C
 {
     void M()
     {
-        string f() => null;
+        static string f() => null;
 
         var f2 = (Func<string>)f;
     }
@@ -3158,7 +3167,7 @@ class C
 {
     void M()
     {
-        string f(int _) => null;
+        static string f(int _) => null;
 
         Method((Func<int, string>)f);
     }
@@ -3199,7 +3208,7 @@ class C
 {
     void M()
     {
-        string f(int _) => null;
+        static string f(int _) => null;
 
         Method((Func<int, string>)f);
     }
@@ -3247,7 +3256,7 @@ class C
 {
     void M()
     {
-        string f() => null;
+        static string f() => null;
 
         Method((Func<string>)f);
     }
@@ -3295,7 +3304,7 @@ class C
 {
     void M()
     {
-        string f() => null;
+        static string f() => null;
 
         Method(f);
     }
@@ -3306,6 +3315,399 @@ class C
 
     void Method(CustomDelegate o)
     {
+    }
+}");
+        }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestNotAvailableWithInvalidDeclaration()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<string> [||]f = () => null);
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+}
+
+");
+        }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestNotAvailableWithInvalidDeclaration2()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<string> [||]f) = () => null;
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+}
+
+");
+        }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestNotAvailableWithInvalidDeclaration3()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<string>) [||]f = () => null;
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+}
+
+");
+        }
+
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithInvalidUnrelatedCode()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, string> [||]f = _ => null;
+
+        Method(f);
+    }
+
+    void Method<T>(Func<T, string> o))
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        static string f(int _) => null;
+
+        Method((Func<int, string>)f);
+    }
+
+    void Method<T>(Func<T, string> o))
+    {
+    }
+}");
+        }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithInvalidUnrelatedCode2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, string> [||]f = _ => null;
+
+        (Method(f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        static string f(int _) => null;
+
+        (Method((Func<int, string>)f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}");
+        }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithObsoleteCode()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, string> [||]f = _ => S();
+
+        Method(f);
+    }
+
+    [System.Obsolete]
+    string S()
+    {
+        return null;
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        string f(int _) => S();
+
+        Method((Func<int, string>)f);
+    }
+
+    [System.Obsolete]
+    string S()
+    {
+        return null;
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}");
+        }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithDeclarationWarning()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+#warning Declaration Warning
+        Func<int, string> [||]f = _ => null;
+
+        Method(f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+#warning Declaration Warning
+        static string f(int _) => null;
+
+        Method((Func<int, string>)f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestMakeStaticIfNoCaptures()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> [||]fibonacci = v =>
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        static int fibonacci(int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestDoNotMakeStaticIfCaptures()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> [||]fibonacci = v =>
+        {
+            M();
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            M();
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithAsyncLambdaExpression_MakeStatic()
+        {
+            await TestInRegularAndScriptAsync(
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Func<Task> [||]f = async () => await Task.Yield();
+    }
+}",
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        static async Task f() => await Task.Yield();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithNullableParameterAndReturn()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<string?, string?> [||]f = s => s;
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        static string? f(string? s) => s;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithDiscardParameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Func<int, string, int, long> [||]f = (_, _, a) => 1;
+    }
+}",
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        static long f(int _, string _, int a) => 1;
     }
 }");
         }

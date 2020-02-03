@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
@@ -20,6 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     [Order(Before = Priority.Default)]
     internal class FindUsagesTableControlEventProcessorProvider : ITableControlEventProcessorProvider
     {
+        [ImportingConstructor]
+        public FindUsagesTableControlEventProcessorProvider()
+        {
+        }
+
         public ITableControlEventProcessor GetAssociatedEventProcessor(
             IWpfTableControl tableControl)
         {
@@ -33,6 +40,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 if (entry.Identity is ISupportsNavigation supportsNavigation)
                 {
                     if (supportsNavigation.TryNavigateTo(e.IsPreview))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                }
+
+                if (entry.TryGetValue(StreamingFindUsagesPresenter.SelfKeyName, out var item) && item is ISupportsNavigation itemSupportsNavigation)
+                {
+                    if (itemSupportsNavigation.TryNavigateTo(e.IsPreview))
                     {
                         e.Handled = true;
                         return;

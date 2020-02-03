@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -18,62 +22,57 @@ namespace Roslyn.Utilities
         public static readonly Task EmptyTask = Task.CompletedTask;
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public static Task<T> Default<T>()
+        public static Task<T?> AsNullable<T>(this Task<T> task) where T : class
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-        {
-            return Empty<T>.Default;
-        }
+            => task!;
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public static Task<T> DefaultOrResult<T>(T value)
+        public static Task<T> Default<T>() where T : struct
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-        {
-            if (EqualityComparer<T>.Default.Equals(value, default))
-            {
-                return Default<T>();
-            }
+            => TasksOfStruct<T>.Default;
 
-            return Task.FromResult(value);
-        }
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        public static Task<T?> Null<T>() where T : class
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            => TasksOfClass<T>.Null;
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<IReadOnlyList<T>> EmptyReadOnlyList<T>()
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-        {
-            return Empty<T>.EmptyReadOnlyList;
-        }
+            => EmptyTasks<T>.EmptyReadOnlyList;
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<IList<T>> EmptyList<T>()
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-        {
-            return Empty<T>.EmptyList;
-        }
+            => EmptyTasks<T>.EmptyList;
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<ImmutableArray<T>> EmptyImmutableArray<T>()
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-        {
-            return Empty<T>.EmptyImmutableArray;
-        }
+            => EmptyTasks<T>.EmptyImmutableArray;
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<IEnumerable<T>> EmptyEnumerable<T>()
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-        {
-            return Empty<T>.EmptyEnumerable;
-        }
+            => EmptyTasks<T>.EmptyEnumerable;
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task<T> FromResult<T>(T t) where T : class
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-        {
-            return FromResultCache<T>.FromResult(t);
-        }
+            => FromResultCache<T>.FromResult(t);
 
-        private static class Empty<T>
+        private static class TasksOfStruct<T> where T : struct
         {
             public static readonly Task<T> Default = Task.FromResult<T>(default);
+        }
+
+        private static class TasksOfClass<T> where T : class
+        {
+            public static readonly Task<T?> Null = Task.FromResult<T?>(null);
+        }
+
+        private static class EmptyTasks<T>
+        {
             public static readonly Task<IEnumerable<T>> EmptyEnumerable = Task.FromResult<IEnumerable<T>>(SpecializedCollections.EmptyEnumerable<T>());
             public static readonly Task<ImmutableArray<T>> EmptyImmutableArray = Task.FromResult(ImmutableArray<T>.Empty);
             public static readonly Task<IList<T>> EmptyList = Task.FromResult(SpecializedCollections.EmptyList<T>());

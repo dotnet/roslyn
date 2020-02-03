@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -23,7 +25,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         private IThreadingContext _threadingContext;
         private IRemoteHostClientService _remoteService;
 
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
             if (_optionService == null)
             {
@@ -36,7 +38,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 _remoteService = workspace.Services.GetService<IRemoteHostClientService>();
             }
 
-            return new InternalOptionsControl(nameof(LoggerOptions), serviceProvider);
+            return new InternalOptionsControl(nameof(LoggerOptions), optionStore);
         }
 
         protected override void OnApply(PageApplyEventArgs e)
@@ -67,10 +69,12 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
             var functionIds = GetFunctionIds(options).ToList();
 
-            _ = threadingContext.JoinableTaskFactory.Run(() => client.TryRunRemoteAsync(
+            threadingContext.JoinableTaskFactory.Run(() => client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SetLoggingFunctionIds),
                 new object[] { loggerTypes, functionIds },
+                solution: null,
+                callbackTarget: null,
                 CancellationToken.None));
         }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -43,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            var nameSyntax = typeSyntax as NameSyntax;
-            if (nameSyntax == null)
+            if (!(typeSyntax is NameSyntax nameSyntax))
             {
                 return false;
             }
@@ -93,33 +94,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static TypeSyntax GenerateReturnTypeSyntax(this IMethodSymbol method)
         {
+            var returnType = method.ReturnType;
+
             if (method.ReturnsByRef)
             {
-                return method.ReturnType.GenerateRefTypeSyntax();
+                return returnType.GenerateRefTypeSyntax();
             }
             else if (method.ReturnsByRefReadonly)
             {
-                return method.ReturnType.GenerateRefReadOnlyTypeSyntax();
+                return returnType.GenerateRefReadOnlyTypeSyntax();
             }
             else
             {
-                return method.ReturnType.GenerateTypeSyntax();
-            }
-        }
-
-        public static TypeSyntax GenerateTypeSyntax(this IPropertySymbol property)
-        {
-            if (property.ReturnsByRef)
-            {
-                return property.Type.GenerateRefTypeSyntax();
-            }
-            else if (property.ReturnsByRefReadonly)
-            {
-                return property.Type.GenerateRefReadOnlyTypeSyntax();
-            }
-            else
-            {
-                return property.Type.GenerateTypeSyntax();
+                return returnType.GenerateTypeSyntax();
             }
         }
 

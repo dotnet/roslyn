@@ -1,9 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 Imports Microsoft.CodeAnalysis.PickMembers
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructorFromMembers
     Public Class GenerateEqualsAndGetHashCodeFromMembersTests
@@ -267,12 +271,12 @@ Class Program
                s = program.s
     End Function
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
-        Return EqualityComparer(Of Program).Default.Equals(program1, program2)
+    Public Shared Operator =(left As Program, right As Program) As Boolean
+        Return EqualityComparer(Of Program).Default.Equals(left, right)
     End Operator
 
-    Public Shared Operator <>(program1 As Program, program2 As Program) As Boolean
-        Return Not program1 = program2
+    Public Shared Operator <>(left As Program, right As Program) As Boolean
+        Return Not left = right
     End Operator
 End Class",
 chosenSymbols:=Nothing,
@@ -289,7 +293,7 @@ Class Program
     Public s As String
     [||]
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
+    Public Shared Operator =(left As Program, right As Program) As Boolean
         Return True
     End Operator
 End Class",
@@ -305,7 +309,7 @@ Class Program
                s = program.s
     End Function
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
+    Public Shared Operator =(left As Program, right As Program) As Boolean
         Return True
     End Operator
 End Class",
@@ -338,12 +342,12 @@ Structure Program
         Return s = program.s
     End Function
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
-        Return program1.Equals(program2)
+    Public Shared Operator =(left As Program, right As Program) As Boolean
+        Return left.Equals(right)
     End Operator
 
-    Public Shared Operator <>(program1 As Program, program2 As Program) As Boolean
-        Return Not program1 = program2
+    Public Shared Operator <>(left As Program, right As Program) As Boolean
+        Return Not left = right
     End Operator
 End Structure",
 chosenSymbols:=Nothing,
@@ -434,10 +438,7 @@ Class Z
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return CType(hashCode, Integer)
+        Return (a, b).GetHashCode()
     End Function
 End Class",
 index:=1, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, checkOverflow:=True))
@@ -467,12 +468,19 @@ index:=1, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.Dynam
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestMultipleValuesWithoutValueTuple() As Task
-            Await TestInRegularAndScriptAsync(
-"Class Z
+
+            Await TestInRegularAndScriptAsync("
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferencesWithoutValueTuple=""true"">
+        <Document>
+Class Z
     [|Private a As Integer
     Private b As Integer|]
-End Class",
-"Class Z
+End Class
+        </Document>
+    </Project>
+</Workspace>", "
+Class Z
     Private a As Integer
     Private b As Integer
 
@@ -484,13 +492,15 @@ End Class",
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
+        Dim hashCode = 2118541809
+        hashCode = hashCode * -1521134295 + a.GetHashCode()
+        hashCode = hashCode * -1521134295 + b.GetHashCode()
         Return hashCode
     End Function
-End Class",
+End Class
+        ",
 index:=1)
+
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
@@ -562,6 +572,15 @@ Class Z
     End Function
 End Class",
 index:=1)
+        End Function
+
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestPartialSelection() As Task
+            Await TestMissingAsync(
+"Class Z
+    Private [|a|] As Integer
+End Class")
         End Function
     End Class
 End Namespace

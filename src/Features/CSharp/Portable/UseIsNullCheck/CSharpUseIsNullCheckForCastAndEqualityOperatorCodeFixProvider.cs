@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -20,8 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         private static bool IsSupportedDiagnostic(Diagnostic diagnostic)
             => diagnostic.Properties[UseIsNullConstants.Kind] == UseIsNullConstants.CastAndEqualityKey;
@@ -54,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 var binary = (BinaryExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
 
                 editor.ReplaceNode(
-                    binary, 
+                    binary,
                     (current, g) => Rewrite((BinaryExpressionSyntax)current));
             }
 
@@ -69,10 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 return isPattern;
             }
 
-            // convert:  (object)expr != null   to    !(expr is null)
-            return SyntaxFactory.PrefixUnaryExpression(
-                SyntaxKind.LogicalNotExpression,
-                SyntaxFactory.ParenthesizedExpression(isPattern.WithoutTrivia())).WithTriviaFrom(isPattern);
+            // convert:  (object)expr != null   to    expr is object
+            return SyntaxFactory
+                .BinaryExpression(
+                    SyntaxKind.IsExpression,
+                    isPattern.Expression,
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
+                .WithTriviaFrom(isPattern);
         }
 
         private static IsPatternExpressionSyntax RewriteWorker(BinaryExpressionSyntax binary)

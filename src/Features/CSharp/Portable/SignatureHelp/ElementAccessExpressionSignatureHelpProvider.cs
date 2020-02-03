@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     [ExportSignatureHelpProvider("ElementAccessExpressionSignatureHelpProvider", LanguageNames.CSharp), Shared]
     internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
+        [ImportingConstructor]
+        public ElementAccessExpressionSignatureHelpProvider()
+        {
+        }
+
         public override bool IsTriggerCharacter(char ch)
         {
             return IsTriggerCharacterInternal(ch);
@@ -87,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             var accessibleIndexers = indexers.WhereAsArray(
-                m => m.IsAccessibleWithin(within, throughTypeOpt: expressionType));
+                m => m.IsAccessibleWithin(within, throughType: expressionType));
             if (!accessibleIndexers.Any())
             {
                 return null;
@@ -165,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 //   <expression>[
                 // or
                 //   <identifier>?[
-                ElementAccessExpressionSyntax elementAccessExpression = SyntaxFactory.ElementAccessExpression(expression, newBracketedArgumentList);
+                var elementAccessExpression = SyntaxFactory.ElementAccessExpression(expression, newBracketedArgumentList);
                 offset = expression.SpanStart - elementAccessExpression.SpanStart;
                 argumentList = elementAccessExpression.ArgumentList;
             }
@@ -175,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         private bool TryGetComIndexers(
-            SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken, 
+            SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken,
             out ImmutableArray<IPropertySymbol> indexers, out ITypeSymbol expressionType)
         {
             indexers = semanticModel.GetMemberGroup(expression, cancellationToken)
@@ -193,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         private bool TryGetIndexers(
-            int position, SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken, 
+            int position, SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken,
             out ImmutableArray<IPropertySymbol> indexers, out ITypeSymbol expressionType)
         {
             expressionType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;

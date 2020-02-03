@@ -1,10 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseNullPropagationDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -69,7 +71,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
                 var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
                 editor.ReplaceNode(conditionalExpression,
-                    (c, g) => {
+                    (c, g) =>
+                    {
                         syntaxFacts.GetPartsOfConditionalExpression(
                             c, out var currentCondition, out var currentWhenTrue, out var currentWhenFalse);
 
@@ -124,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         }
 
         private SyntaxNode CreateConditionalAccessExpression(
-            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, 
+            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator,
             SyntaxNode whenPart, SyntaxNode match, SyntaxNode matchParent, SyntaxNode currentConditional)
         {
             if (matchParent is TMemberAccessExpression memberAccess)

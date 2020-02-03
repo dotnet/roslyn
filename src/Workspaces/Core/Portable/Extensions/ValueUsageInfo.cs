@@ -1,9 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,32 +12,32 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Represents default value indicating no usage.
         /// </summary>
-        None = 0x0000,
+        None = 0x0,
 
         /// <summary>
         /// Represents a value read.
         /// For example, reading the value of a local/field/parameter.
         /// </summary>
-        Read = 0x0001,
+        Read = 0x1,
 
         /// <summary>
         /// Represents a value write.
         /// For example, assigning a value to a local/field/parameter.
         /// </summary>
-        Write = 0x0010,
+        Write = 0x2,
 
         /// <summary>
         /// Represents a reference being taken for the symbol.
         /// For example, passing an argument to an "in", "ref" or "out" parameter.
         /// </summary>
-        Reference = 0x0100,
+        Reference = 0x4,
 
         /// <summary>
         /// Represents a name-only reference that neither reads nor writes the underlying value.
         /// For example, 'nameof(x)' or reference to a symbol 'x' in a documentation comment
         /// does not read or write the underlying value stored in 'x'.
         /// </summary>
-        NameOnly = 0x1000,
+        Name = 0x8,
 
         /// <summary>
         /// Represents a value read and/or write.
@@ -74,53 +73,9 @@ namespace Microsoft.CodeAnalysis
             => (valueUsageInfo & ValueUsageInfo.Write) != 0;
 
         public static bool IsNameOnly(this ValueUsageInfo valueUsageInfo)
-            => (valueUsageInfo & ValueUsageInfo.NameOnly) != 0;
+            => (valueUsageInfo & ValueUsageInfo.Name) != 0;
 
-        public static string ToLocalizableString(this ValueUsageInfo value)
-        {
-            // We don't support localizing value combinations.
-            Debug.Assert(value.IsSingleBitSet());
-
-            switch (value)
-            {
-                case ValueUsageInfo.Read:
-                    return WorkspacesResources.ValueUsageInfo_Read;
-
-                case ValueUsageInfo.Write:
-                    return WorkspacesResources.ValueUsageInfo_Write;
-
-                case ValueUsageInfo.Reference:
-                    return WorkspacesResources.ValueUsageInfo_Reference;
-
-                case ValueUsageInfo.NameOnly:
-                    return WorkspacesResources.ValueUsageInfo_NameOnly;
-
-                default:
-                    Debug.Fail($"Unhandled value: '{value.ToString()}'");
-                    return value.ToString();
-            }
-        }
-
-        public static bool IsSingleBitSet(this ValueUsageInfo valueUsageInfo)
-            => valueUsageInfo != ValueUsageInfo.None && (valueUsageInfo & (valueUsageInfo - 1)) == 0;
-
-        public static ImmutableArray<string> ToLocalizableValues(this ValueUsageInfo valueUsageInfo)
-        {
-            if (valueUsageInfo == ValueUsageInfo.None)
-            {
-                return ImmutableArray<string>.Empty;
-            }
-
-            var builder = ArrayBuilder<string>.GetInstance();
-            foreach (ValueUsageInfo value in Enum.GetValues(typeof(ValueUsageInfo)))
-            {
-                if (value.IsSingleBitSet() && (valueUsageInfo & value) != 0)
-                {
-                    builder.Add(value.ToLocalizableString());
-                }
-            }
-
-            return builder.ToImmutableAndFree();
-        }
+        public static bool IsReference(this ValueUsageInfo valueUsageInfo)
+            => (valueUsageInfo & ValueUsageInfo.Reference) != 0;
     }
 }

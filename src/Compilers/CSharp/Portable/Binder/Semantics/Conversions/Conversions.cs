@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -62,8 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // An interpolated string expression may be converted to the types
             // System.IFormattable and System.FormattableString
-            return (destination == Compilation.GetWellKnownType(WellKnownType.System_IFormattable) ||
-                    destination == Compilation.GetWellKnownType(WellKnownType.System_FormattableString))
+            return (TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_IFormattable), TypeCompareKind.ConsiderEverything2) ||
+                    TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_FormattableString), TypeCompareKind.ConsiderEverything2))
                 ? Conversion.InterpolatedString : Conversion.NoConversion;
         }
 
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 GetDelegateArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
                 var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteDiagnostics: ref useSiteDiagnostics, inferWithDynamic: true,
-                    isMethodGroupConversion: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType.TypeSymbol);
+                    isMethodGroupConversion: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType);
                 analyzedArguments.Free();
                 return resolution;
             }
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     ErrorCode.ERR_ValueTypeExtDelegate,
                                     expr.Syntax.Location,
                                     method,
-                                    thisParameter.Type.TypeSymbol);
+                                    thisParameter.Type);
                                 hasErrors = true;
                             }
                         }
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteDiagnostics: ref useSiteDiagnostics,
                 isMethodGroupConversion: true,
                 returnRefKind: delegateInvokeMethod.RefKind,
-                returnType: delegateInvokeMethod.ReturnType.TypeSymbol);
+                returnType: delegateInvokeMethod.ReturnType);
             var conversion = ToConversion(result, methodGroup, delegateType);
 
             analyzedArguments.Free();
@@ -237,10 +239,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If we don't have System.Object, then we'll get an error type, which will cause overload resolution to fail, 
                     // which will cause some error to be reported.  That's sufficient (i.e. no need to specifically report its absence here).
                     parameter = new SignatureOnlyParameterSymbol(
-                        TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), customModifiers: parameter.Type.CustomModifiers), parameter.RefCustomModifiers, parameter.IsParams, parameter.RefKind);
-            }
+                        TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), customModifiers: parameter.TypeWithAnnotations.CustomModifiers), parameter.RefCustomModifiers, parameter.IsParams, parameter.RefKind);
+                }
 
-            analyzedArguments.Arguments.Add(new BoundParameter(syntax, parameter) { WasCompilerGenerated = true });
+                analyzedArguments.Arguments.Add(new BoundParameter(syntax, parameter) { WasCompilerGenerated = true });
                 analyzedArguments.RefKinds.Add(parameter.RefKind);
             }
         }
@@ -276,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             //cannot capture stack-only types.
-            if (!method.IsStatic && methodGroup.Receiver?.Type?.IsRestrictedType() == true)
+            if (method.RequiresInstanceReceiver && methodGroup.Receiver?.Type?.IsRestrictedType() == true)
             {
                 return Conversion.NoConversion;
             }
@@ -304,12 +306,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (sourceExpression.Syntax.IsVariableDeclarationInitialization())
+            if (sourceExpression.NeedsToBeConverted())
             {
                 Debug.Assert((object)sourceExpression.Type == null);
-                Debug.Assert(sourceExpression.ElementType != null);
+                Debug.Assert((object)sourceExpression.ElementType != null);
 
-                var sourceAsPointer = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(sourceExpression.ElementType));
+                var sourceAsPointer = new PointerTypeSymbol(TypeWithAnnotations.Create(sourceExpression.ElementType));
                 var pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
 
                 if (pointerConversion.IsValid)
@@ -319,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var spanType = _binder.GetWellKnownType(WellKnownType.System_Span_T, ref useSiteDiagnostics);
-                    if (spanType.TypeKind == TypeKind.Struct && spanType.IsByRefLikeType)
+                    if (spanType.TypeKind == TypeKind.Struct && spanType.IsRefLikeType)
                     {
                         var spanType_T = spanType.Construct(sourceExpression.ElementType);
                         var spanConversion = ClassifyImplicitConversionFromType(spanType_T, destination, ref useSiteDiagnostics);

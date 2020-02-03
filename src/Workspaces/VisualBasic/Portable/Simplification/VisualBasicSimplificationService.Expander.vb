@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -58,9 +60,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return AddCast(expression, targetType, semanticModel)
             End Function
 
-            Private Shared Function AddCast(expression As ExpressionSyntax, targetType As ITypeSymbol, semanticModel As SemanticModel) As ExpressionSyntax
+            Private Function AddCast(expression As ExpressionSyntax, targetType As ITypeSymbol, semanticModel As SemanticModel) As ExpressionSyntax
                 Dim wasCastAdded As Boolean = False
-                Dim result = expression.CastIfPossible(targetType, expression.SpanStart, semanticModel, wasCastAdded)
+                Dim result = expression.CastIfPossible(targetType, expression.SpanStart, semanticModel, wasCastAdded, _cancellationToken)
 
                 If wasCastAdded Then
                     result = result.Parenthesize()
@@ -653,7 +655,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                             replaceNode:=False)
                     Else
                         Dim left As ExpressionSyntax
-                        If _semanticModel.GetEnclosingNamedType(originalSimpleName.SpanStart, _cancellationToken) IsNot symbol.ContainingType Then
+                        If Not Equals(_semanticModel.GetEnclosingNamedType(originalSimpleName.SpanStart, _cancellationToken), symbol.ContainingType) Then
                             left = SyntaxFactory.MyBaseExpression()
                         Else
                             left = SyntaxFactory.MeExpression()

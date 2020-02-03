@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -1009,11 +1012,9 @@ class Program $$: ISomeInterface<object>
             TypeDiscoveryRule typeDiscoveryRule,
             bool expectedExtractable)
         {
-            using (var testState = ExtractInterfaceTestState.Create(markup, LanguageNames.CSharp, compilationOptions: null))
-            {
-                var result = await testState.GetTypeAnalysisResultAsync(typeDiscoveryRule);
-                Assert.Equal(expectedExtractable, result.CanExtractInterface);
-            }
+            using var testState = ExtractInterfaceTestState.Create(markup, LanguageNames.CSharp, compilationOptions: null);
+            var result = await testState.GetTypeAnalysisResultAsync(typeDiscoveryRule);
+            Assert.Equal(expectedExtractable, result.CanExtractInterface);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
@@ -1061,10 +1062,10 @@ class $$Test<T, U>
         public void ExtractInterfaceCommandDisabledInSubmission()
         {
             var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)))
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
                 .CreateExportProvider();
 
-            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
+            using var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         public class $$C
@@ -1074,18 +1075,16 @@ class $$Test<T, U>
                     </Submission>
                 </Workspace> "),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider))
-            {
-                // Force initialization.
-                workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+                exportProvider: exportProvider);
+            // Force initialization.
+            workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
-                var textView = workspace.Documents.Single().GetTextView();
+            var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new ExtractInterfaceCommandHandler();
+            var handler = new ExtractInterfaceCommandHandler(exportProvider.GetExportedValue<IThreadingContext>());
 
-                var state = handler.GetCommandState(new ExtractInterfaceCommandArgs(textView, textView.TextBuffer));
-                Assert.True(state.IsUnspecified);
-            }
+            var state = handler.GetCommandState(new ExtractInterfaceCommandArgs(textView, textView.TextBuffer));
+            Assert.True(state.IsUnspecified);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
@@ -1205,6 +1204,122 @@ class $$TestClass
 {
     void M<T>() where T : unmanaged;
 }");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestNotNullConstraint_Type()
+        {
+            var markup = @"
+class $$TestClass<T> where T : notnull
+{
+    public void M(T arg) => throw null;
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode:
+@"interface ITestClass<T> where T : notnull
+{
+    void M(T arg);
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestNotNullConstraint_Method()
+        {
+            var markup = @"
+class $$TestClass
+{
+    public void M<T>() where T : notnull => throw null;
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode:
+@"interface ITestClass
+{
+    void M<T>() where T : notnull;
+}");
+        }
+
+        [WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestExtractInterface_WithCopyright1()
+        {
+            var markup =
+@"// Copyright
+
+public class $$Goo
+{
+    public void Test()
+    {
+    }
+}";
+
+            var updatedMarkup =
+@"// Copyright
+
+public class Goo : IGoo
+{
+    public void Test()
+    {
+    }
+}";
+
+            var expectedInterfaceCode =
+@"// Copyright
+
+public interface IGoo
+{
+    void Test();
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedUpdatedOriginalDocumentCode: updatedMarkup,
+                expectedInterfaceCode: expectedInterfaceCode);
+        }
+
+        [WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestExtractInterface_WithCopyright2()
+        {
+            var markup =
+@"// Copyright
+
+public class Goo
+{
+    public class $$A
+    {
+        public void Test()
+        {
+        }
+    }
+}";
+
+            var updatedMarkup =
+@"// Copyright
+
+public class Goo
+{
+    public class A : IA
+    {
+        public void Test()
+        {
+        }
+    }
+}";
+
+            var expectedInterfaceCode =
+@"// Copyright
+
+public interface IA
+{
+    void Test();
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedUpdatedOriginalDocumentCode: updatedMarkup,
+                expectedInterfaceCode: expectedInterfaceCode);
         }
     }
 }

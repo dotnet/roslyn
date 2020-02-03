@@ -1,23 +1,26 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.ComponentModelHost;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     [System.ComponentModel.DesignerCategory("code")] // this must be fully qualified
     public abstract class AbstractOptionPageControl : UserControl
     {
-        internal readonly IOptionService OptionService;
+        internal readonly OptionStore OptionStore;
         private readonly List<BindingExpressionBase> _bindingExpressions = new List<BindingExpressionBase>();
 
-        public AbstractOptionPageControl(IServiceProvider serviceProvider)
+        public AbstractOptionPageControl(OptionStore optionStore)
         {
             InitializeStyles();
 
@@ -26,9 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return;
             }
 
-            var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
-            var workspace = componentModel.GetService<VisualStudioWorkspace>();
-            this.OptionService = workspace.Services.GetService<IOptionService>();
+            this.OptionStore = optionStore;
         }
 
         private void InitializeStyles()
@@ -59,9 +60,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             var binding = new Binding()
             {
-                Source = new OptionBinding<bool>(OptionService, optionKey),
+                Source = new OptionBinding<bool>(OptionStore, optionKey),
                 Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Explicit
+                UpdateSourceTrigger = UpdateSourceTrigger.Default
+            };
+
+            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
+        protected void BindToOption(CheckBox checkbox, Option<int> optionKey)
+        {
+            var binding = new Binding()
+            {
+                Source = new OptionBinding<int>(OptionStore, optionKey),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Default,
+                Converter = new CheckBoxCheckedToIntConverter(),
             };
 
             var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
@@ -72,9 +87,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             var binding = new Binding()
             {
-                Source = new PerLanguageOptionBinding<bool>(OptionService, optionKey, languageName),
+                Source = new PerLanguageOptionBinding<bool>(OptionStore, optionKey, languageName),
                 Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Explicit
+                UpdateSourceTrigger = UpdateSourceTrigger.Default
             };
 
             var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
@@ -85,9 +100,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             var binding = new Binding()
             {
-                Source = new OptionBinding<int>(OptionService, optionKey),
+                Source = new OptionBinding<int>(OptionStore, optionKey),
                 Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Explicit
+                UpdateSourceTrigger = UpdateSourceTrigger.Default
             };
 
             var bindingExpression = textBox.SetBinding(TextBox.TextProperty, binding);
@@ -98,9 +113,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             var binding = new Binding()
             {
-                Source = new PerLanguageOptionBinding<int>(OptionService, optionKey, languageName),
+                Source = new PerLanguageOptionBinding<int>(OptionStore, optionKey, languageName),
                 Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Explicit
+                UpdateSourceTrigger = UpdateSourceTrigger.Default
             };
 
             var bindingExpression = textBox.SetBinding(TextBox.TextProperty, binding);
@@ -111,9 +126,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             var binding = new Binding()
             {
-                Source = new PerLanguageOptionBinding<T>(OptionService, optionKey, languageName),
+                Source = new PerLanguageOptionBinding<T>(OptionStore, optionKey, languageName),
                 Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Explicit,
+                UpdateSourceTrigger = UpdateSourceTrigger.Default,
                 Converter = new RadioButtonCheckedConverter(),
                 ConverterParameter = optionValue
             };
@@ -122,22 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToFullSolutionAnalysisOption(CheckBox checkbox, string languageName)
-        {
-            checkbox.Visibility = Visibility.Visible;
-
-            var binding = new Binding()
-            {
-                Source = new FullSolutionAnalysisOptionBinding(OptionService, languageName),
-                Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Explicit
-            };
-
-            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
-
-        internal virtual void LoadSettings()
+        internal virtual void OnLoad()
         {
             foreach (var bindingExpression in _bindingExpressions)
             {
@@ -145,17 +145,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        internal virtual void SaveSettings()
+        internal virtual void OnSave()
         {
-            foreach (var bindingExpression in _bindingExpressions)
-            {
-                if (!bindingExpression.IsDirty)
-                {
-                    continue;
-                }
-
-                bindingExpression.UpdateSource();
-            }
         }
 
         internal virtual void Close()
@@ -175,6 +166,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             System.Globalization.CultureInfo culture)
         {
             return value.Equals(true) ? parameter : Binding.DoNothing;
+        }
+    }
+
+    public class CheckBoxCheckedToIntConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter,
+            System.Globalization.CultureInfo culture)
+        {
+            return !value.Equals(-1);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter,
+            System.Globalization.CultureInfo culture)
+        {
+            return value.Equals(true) ? 1 : -1;
         }
     }
 }

@@ -1,11 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -16,19 +16,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SynthesizedParameterSymbolBase : ParameterSymbol
     {
         private readonly MethodSymbol _container;
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
         private readonly int _ordinal;
         private readonly string _name;
         private readonly RefKind _refKind;
 
         public SynthesizedParameterSymbolBase(
             MethodSymbol container,
-            TypeSymbolWithAnnotations type,
+            TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
             string name = "")
         {
-            Debug.Assert(!type.IsNull);
+            Debug.Assert(type.HasType);
             Debug.Assert(name != null);
             Debug.Assert(ordinal >= 0);
 
@@ -39,15 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = name;
         }
 
-        public override TypeSymbolWithAnnotations Type
-        {
-            get { return _type; }
-        }
+        public override TypeWithAnnotations TypeWithAnnotations => _type;
 
-        public override RefKind RefKind
-        {
-            get { return _refKind; }
-        }
+        public override RefKind RefKind => _refKind;
+
+        public sealed override bool IsDiscard => false;
 
         internal override bool IsMetadataIn => RefKind == RefKind.In;
 
@@ -120,6 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return FlowAnalysisAnnotations.None; }
         }
 
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get { return ImmutableHashSet<string>.Empty; }
+        }
+
         public override Symbol ContainingSymbol
         {
             get { return _container; }
@@ -145,23 +146,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // this is a no-op.  Emitting an error here, or when the original parameter was bound, would
             // adversely effect the compilation or potentially change overload resolution.  
             var compilation = this.DeclaringCompilation;
-            var type = this.Type;
-            if (type.TypeSymbol.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
+            var type = this.TypeWithAnnotations;
+            if (type.Type.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.TypeSymbol, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
-            if (type.TypeSymbol.ContainsTupleNames() &&
+            if (type.Type.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
+                    compilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
-            if (Type.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, Type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, GetNullableContextValue(), type));
             }
 
             if (this.RefKind == RefKind.RefReadOnly)
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private SynthesizedParameterSymbol(
             MethodSymbol container,
-            TypeSymbolWithAnnotations type,
+            TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
             string name)
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static ParameterSymbol Create(
             MethodSymbol container,
-            TypeSymbolWithAnnotations type,
+            TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
             string name = "",
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var oldParam in sourceMethod.Parameters)
             {
                 //same properties as the old one, just change the owner
-                builder.Add(SynthesizedParameterSymbol.Create(destinationMethod, oldParam.Type, oldParam.Ordinal,
+                builder.Add(SynthesizedParameterSymbol.Create(destinationMethod, oldParam.TypeWithAnnotations, oldParam.Ordinal,
                     oldParam.RefKind, oldParam.Name, oldParam.RefCustomModifiers));
             }
 
@@ -231,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public SynthesizedParameterSymbolWithCustomModifiers(
                 MethodSymbol container,
-                TypeSymbolWithAnnotations type,
+                TypeWithAnnotations type,
                 int ordinal,
                 RefKind refKind,
                 string name,

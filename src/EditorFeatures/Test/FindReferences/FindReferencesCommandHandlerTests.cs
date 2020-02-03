@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -52,32 +54,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             public void ClearAll()
             {
             }
+
+            public FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+                => _context;
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public async Task TestFindReferencesAsynchronousCall()
         {
-            using (var workspace = TestWorkspace.CreateCSharp("class C { C() { new C(); } }"))
-            {
-                var context = new MockFindUsagesContext();
-                var presenter = new MockStreamingFindUsagesPresenter(context);
+            using var workspace = TestWorkspace.CreateCSharp("class C { C() { new C(); } }");
+            var context = new MockFindUsagesContext();
+            var presenter = new MockStreamingFindUsagesPresenter(context);
 
-                var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
-                var handler = new FindReferencesCommandHandler(
-                    SpecializedCollections.SingletonEnumerable(new Lazy<IStreamingFindUsagesPresenter>(() => presenter)),
-                    listenerProvider);
+            var handler = new FindReferencesCommandHandler(
+                presenter,
+                listenerProvider);
 
-                var textView = workspace.Documents[0].GetTextView();
-                textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, 7));
-                handler.ExecuteCommand(new FindReferencesCommandArgs(
-                    textView,
-                    textView.TextBuffer), TestCommandExecutionContext.Create());
+            var textView = workspace.Documents[0].GetTextView();
+            textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, 7));
+            handler.ExecuteCommand(new FindReferencesCommandArgs(
+                textView,
+                textView.TextBuffer), TestCommandExecutionContext.Create());
 
-                var waiter = listenerProvider.GetWaiter(FeatureAttribute.FindReferences);
-                await waiter.CreateWaitTask();
-                AssertResult(context.Result, "C.C()", "class C");
-            }
+            var waiter = listenerProvider.GetWaiter(FeatureAttribute.FindReferences);
+            await waiter.CreateExpeditedWaitTask();
+            AssertResult(context.Result, "C.C()", "class C");
         }
 
         private void AssertResult(

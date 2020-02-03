@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -59,44 +61,39 @@ namespace Microsoft.CodeAnalysis.Remote
             await SynchronizeProjectsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
 
             // get children of document checksum objects at once
-            using (var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
+            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+            var checksums = pooledObject.Object;
+
+            foreach (var projectChecksum in projectChecksums)
             {
-                var checksums = pooledObject.Object;
+                var projectChecksumObject = await _assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
 
-                foreach (var projectChecksum in projectChecksums)
-                {
-                    var projectChecksumObject = await _assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
-
-                    await CollectChecksumChildrenAsync(checksums, projectChecksumObject.Documents, cancellationToken).ConfigureAwait(false);
-                    await CollectChecksumChildrenAsync(checksums, projectChecksumObject.AdditionalDocuments, cancellationToken).ConfigureAwait(false);
-                }
-
-                await _assetService.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+                await CollectChecksumChildrenAsync(checksums, projectChecksumObject.Documents, cancellationToken).ConfigureAwait(false);
+                await CollectChecksumChildrenAsync(checksums, projectChecksumObject.AdditionalDocuments, cancellationToken).ConfigureAwait(false);
+                await CollectChecksumChildrenAsync(checksums, projectChecksumObject.AnalyzerConfigDocuments, cancellationToken).ConfigureAwait(false);
             }
+
+            await _assetService.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task SynchronizeProjectsAsync(IEnumerable<Checksum> projectChecksums, CancellationToken cancellationToken)
         {
             // get children of project checksum objects at once
-            using (var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
-            {
-                var checksums = pooledObject.Object;
+            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+            var checksums = pooledObject.Object;
 
-                await CollectChecksumChildrenAsync(checksums, projectChecksums, cancellationToken).ConfigureAwait(false);
-                await _assetService.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
-            }
+            await CollectChecksumChildrenAsync(checksums, projectChecksums, cancellationToken).ConfigureAwait(false);
+            await _assetService.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task SynchronizeAssets_NoLockAsync(IEnumerable<object> checksumOrCollections, CancellationToken cancellationToken)
         {
             // get children of solution checksum object at once
-            using (var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
-            {
-                var checksums = pooledObject.Object;
+            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+            var checksums = pooledObject.Object;
 
-                AddIfNeeded(checksums, checksumOrCollections);
-                await _assetService.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
-            }
+            AddIfNeeded(checksums, checksumOrCollections);
+            await _assetService.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task CollectChecksumChildrenAsync(HashSet<Checksum> set, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)

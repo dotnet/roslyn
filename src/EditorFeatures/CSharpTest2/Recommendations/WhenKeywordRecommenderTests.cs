@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -426,6 +428,39 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar()
+        {
+            await VerifyAbsenceAsync(@"
+using var = System.String;
+class C
+{
+    void M() { switch (new object()) { case var $$ } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar_BeforeBreak()
+        {
+            await VerifyAbsenceAsync(@"
+using var = System.String;
+class C
+{
+    void M() { switch (new object()) { case var $$ break; } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar_BeforeWhen()
+        {
+            await VerifyAbsenceAsync(@"
+using var = System.String;
+class C
+{
+    void M() { switch (new object()) { case var $$ when } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstantVar() =>
             await VerifyKeywordAsync(AddInsideMethod(@"const object var = null; switch (new object()) { case var $$ }"));
 
@@ -463,5 +498,41 @@ class C
 {
     void M() { const object var = null; switch (new object()) { case var $$ when } }
 }");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar()
+        {
+            await VerifyKeywordAsync(@"
+using var = System.String;
+class C
+{
+    const object var = null;
+    void M() { switch (new object()) { case var $$ } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar_BeforeBreak()
+        {
+            await VerifyKeywordAsync(@"
+using var = System.String;
+class C
+{
+    const object var = null;
+    void M() { switch (new object()) { case var $$ break; } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar_BeforeWhen()
+        {
+            await VerifyKeywordAsync(@"
+using var = System.String;
+class C
+{
+    const object var = null;
+    void M() { switch (new object()) { case var $$ when } }
+}");
+        }
     }
 }

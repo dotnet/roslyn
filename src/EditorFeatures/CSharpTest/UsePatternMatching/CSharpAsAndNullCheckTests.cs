@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -22,14 +24,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [InlineData("null != x", "o is string x")]
         [InlineData("(object)x != null", "o is string x")]
         [InlineData("null != (object)x", "o is string x")]
+        [InlineData("x is object", "o is string x")]
         [InlineData("x == null", "!(o is string x)")]
         [InlineData("null == x", "!(o is string x)")]
         [InlineData("(object)x == null", "!(o is string x)")]
         [InlineData("null == (object)x", "!(o is string x)")]
+        [InlineData("x is null", "!(o is string x)")]
         [InlineData("(x = o as string) != null", "o is string x")]
         [InlineData("null != (x = o as string)", "o is string x")]
+        [InlineData("(x = o as string) is object", "o is string x")]
         [InlineData("(x = o as string) == null", "!(o is string x)")]
         [InlineData("null == (x = o as string)", "!(o is string x)")]
+        [InlineData("(x = o as string) is null", "!(o is string x)")]
         public async Task InlineTypeCheck1(string input, string output)
         {
             await TestStatement($"if ({input}) {{ }}", $"if ({output}) {{ }}");
@@ -40,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         [InlineData("(x = o as string) != null", "o is string x")]
         [InlineData("null != (x = o as string)", "o is string x")]
+        [InlineData("(x = o as string) is object", "o is string x")]
         [InlineData("(x = o as string) == null", "!(o is string x)")]
         [InlineData("null == (x = o as string)", "!(o is string x)")]
         public async Task InlineTypeCheck2(string input, string output)
@@ -94,6 +101,76 @@ $@"class C
         [|var|] y = o as string;
         if (x != null)
         {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestInSwitchSection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            default:
+                [|var|] x = o as string;
+                if (x != null)
+                {
+                }
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            default:
+                if (o is string x)
+                {
+                }
+        }
+    }
+}");
+        }
+
+        [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestRemoveNewLinesInSwitchStatement()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            default:
+                [|var|] x = o as string;
+
+                //a comment
+                if (x != null)
+                {
+                }
+        }
+    }
+}",
+                @"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            default:
+                //a comment
+                if (o is string x)
+                {
+                }
         }
     }
 }");
@@ -275,6 +352,96 @@ $@"class C
     {
         // prefix comment
         // suffix comment
+        if (o is string x)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestRemoveNewLines()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+
+        //suffix comment
+        if (x != null)
+        {
+        }
+    }
+}",
+                @"class C
+{
+    void M()
+    {
+        //suffix comment
+        if (o is string x)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestRemoveNewLinesWhereBlankLineIsNotEmpty()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+         
+        //suffix comment
+        if (x != null)
+        {
+        }
+    }
+}",
+                @"class C
+{
+    void M()
+    {
+        //suffix comment
+        if (o is string x)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestRemoveNewLines2()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C
+{
+    void M()
+    {
+        int a = 0;
+        [|var|] x = o as string;
+
+        //suffix comment
+        if (x != null)
+        {
+        }
+    }
+}",
+                @"class C
+{
+    void M()
+    {
+        int a = 0;
+
+        //suffix comment
         if (o is string x)
         {
         }
@@ -1373,6 +1540,27 @@ public static class C
         System.Func<C> f = () => c == null ? null : c;
         return c;
     }
+}");
+        }
+
+        [WorkItem(31388, "https://github.com/dotnet/roslyn/issues/31388")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestUseBetweenAssignmentAndIfCondition()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [|var|] c = o as C;
+        M2(c != null);
+        if (c == null)
+        {
+            return;
+        }
+    }
+
+    void M2(bool b) { }
 }");
         }
     }

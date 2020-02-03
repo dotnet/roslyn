@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -34,27 +36,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             }
         }
 
-        protected Task TestMissingInRegularAndScriptAsync(string initialMarkup, IDictionary<OptionKey, object> options)
-            => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
-        protected Task TestMissingInRegularAndScriptAsync(string initialMarkup, string optionName)
-             => TestMissingInRegularAndScriptAsync(initialMarkup, GetOptions(optionName));
-        protected Task TestInRegularAndScriptAsync(string initialMarkup, string expectedMarkup, string optionName)
-            => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: GetOptions(optionName));
+        protected Task TestMissingInRegularAndScriptAsync(string initialMarkup, IDictionary<OptionKey, object> options, ParseOptions parseOptions = null)
+            => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options, parseOptions: parseOptions));
+        protected Task TestMissingInRegularAndScriptAsync(string initialMarkup, string optionName, ParseOptions parseOptions = null)
+             => TestMissingInRegularAndScriptAsync(initialMarkup, GetOptions(optionName), parseOptions);
+        protected Task TestInRegularAndScriptAsync(string initialMarkup, string expectedMarkup, string optionName, ParseOptions parseOptions = null)
+            => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: GetOptions(optionName), parseOptions: parseOptions);
 
         // Helpers to test all options - only used by tests which already have InlineData for custom input test code snippets.
-        protected async Task TestInRegularAndScriptWithAllOptionsAsync(string initialMarkup, string expectedMarkup)
+        protected async Task TestInRegularAndScriptWithAllOptionsAsync(string initialMarkup, string expectedMarkup, ParseOptions parseOptions = null)
         {
             foreach (var options in new[] { PreferDiscard, PreferUnusedLocal })
             {
-                await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
+                await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options, parseOptions: parseOptions);
             }
         }
 
-        protected async Task TestMissingInRegularAndScriptWithAllOptionsAsync(string initialMarkup)
+        protected async Task TestMissingInRegularAndScriptWithAllOptionsAsync(string initialMarkup, ParseOptions parseOptions = null)
         {
             foreach (var options in new[] { PreferDiscard, PreferUnusedLocal })
             {
-                await TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
+                await TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options, parseOptions: parseOptions));
             }
         }
     }

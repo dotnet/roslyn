@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel
@@ -36,9 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
             Path.Combine("dependency", "vbc.exe"))
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
-        Private Shared ReadOnly s_compilerVersion As String = FileVersionInfo.GetVersionInfo(GetType(CommandLineTests).Assembly.Location).FileVersion
-        Private Shared ReadOnly s_compilerShortCommitHash As String =
-            CommonCompiler.ExtractShortCommitHash(GetType(CommandLineTests).Assembly.GetCustomAttribute(Of CommitHashAttribute).Hash)
+        Private Shared ReadOnly s_compilerVersion As String = CommonCompiler.GetProductVersion(GetType(CommandLineTests))
 
         Private Shared Function DefaultParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
@@ -55,6 +55,188 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
             Return VisualBasicCommandLineParser.Script.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
         End Function
+
+        <Fact>
+        Public Sub SimpleAnalyzerConfig()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim additionalFile = dir.CreateFile("file.txt")
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.bc42024.severity = none")
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path})
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths))
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Assert.Equal("", outWriter.ToString())
+
+            Assert.Null(cmd.AnalyzerOptions)
+        End Sub
+
+        <Fact>
+        Public Sub AnalyzerConfigWithOptions()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim additionalFile = dir.CreateFile("file.txt")
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.bc42024.severity = none
+dotnet_diagnostic.warning01.severity = none
+dotnet_diagnostic.Warning03.severity = none
+my_option = my_val
+
+[*.txt]
+dotnet_diagnostic.bc42024.severity = none
+my_option2 = my_val2")
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                "/analyzer:" + Assembly.GetExecutingAssembly().Location,
+                "/nowarn:42376",
+                "/additionalfile:" + additionalFile.Path,
+                src.Path})
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths))
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Assert.Equal("", outWriter.ToString())
+
+            Dim comp = cmd.Compilation
+            Dim tree = comp.SyntaxTrees.Single()
+            AssertEx.SetEqual({
+                KeyValuePairUtil.Create("bc42024", ReportDiagnostic.Suppress),
+                KeyValuePairUtil.Create("warning01", ReportDiagnostic.Suppress),
+                KeyValuePairUtil.Create("warning03", ReportDiagnostic.Suppress)
+                }, tree.DiagnosticOptions)
+
+            Dim provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider
+            Dim options = provider.GetOptions(tree)
+            Assert.NotNull(options)
+            Dim val As String = Nothing
+            Assert.True(options.TryGetValue("my_option", val))
+            Assert.Equal("my_val", val)
+            Assert.False(options.TryGetValue("my_option2", Nothing))
+            Assert.False(options.TryGetValue("dotnet_diagnostic.bc42024.severity", Nothing))
+
+            options = provider.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single())
+            Assert.NotNull(options)
+            Assert.True(options.TryGetValue("my_option2", val))
+            Assert.Equal("my_val2", val)
+            Assert.False(options.TryGetValue("my_option", Nothing))
+            Assert.False(options.TryGetValue("dotnet_diagnostic.bc42024.severity", Nothing))
+        End Sub
+
+        <Fact>
+        Public Sub AnalyzerConfigBadSeverity()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.BC42024.severity = garbage")
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path})
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths))
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Assert.Equal(
+$"vbc : warning InvalidSeverityInAnalyzerConfig: The diagnostic 'bc42024' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
+{src.Path}(4) : warning BC42024: Unused local variable: 'x'.
+
+        Dim x As Integer
+            ~           
+", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub AnalyzerConfigsInSameDir()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.cs").WriteAllText("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim configText = "
+[*.cs]
+dotnet_diagnostic.cs0169.severity = suppress"
+
+            Dim analyzerConfig1 = dir.CreateFile("analyzerconfig1").WriteAllText(configText)
+            Dim analyzerConfig2 = dir.CreateFile("analyzerconfig2").WriteAllText(configText)
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig1.Path,
+                "/analyzerconfig:" + analyzerConfig2.Path,
+                src.Path
+            })
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(1, exitCode)
+            Assert.Equal(
+                $"vbc : error BC42500: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
+                outWriter.ToString().TrimEnd())
+        End Sub
+
+        <Fact>
+        <WorkItem(34101, "https://github.com/dotnet/roslyn/issues/34101")>
+        Public Sub SuppressedWarnAsErrorsStillEmit()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb").WriteAllText("
+#Disable Warning BC42302
+Module Module1
+    Sub Main()
+        Dim x = 42 ''' <test />
+    End Sub
+End Module")
+            Const docName As String = "doc.xml"
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/errorlog:errorlog", $"/doc:{docName}", "/warnaserror", src.Path})
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal("", outWriter.ToString())
+            Assert.Equal(0, exitCode)
+
+            Dim exePath = Path.Combine(dir.Path, "temp.exe")
+            Assert.True(File.Exists(exePath))
+        End Sub
 
         <Fact>
         Public Sub XmlMemoryMapped()
@@ -163,7 +345,7 @@ End Class"
             file.WriteAllText(source)
 
             Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/keyfile:key.snk"})
-            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
 
             Assert.IsType(Of DesktopStrongNameProvider)(comp.Options.StrongNameProvider)
         End Sub
@@ -182,7 +364,7 @@ End Class"
             file.WriteAllText(source)
 
             Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/keycontainer:aaa"})
-            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
 
             Assert.True(TypeOf comp.Options.StrongNameProvider Is DesktopStrongNameProvider)
         End Sub
@@ -201,7 +383,7 @@ End Class"
             file.WriteAllText(source)
 
             Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/features:UseLegacyStrongNameProvider"})
-            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
 
             Assert.True(TypeOf comp.Options.StrongNameProvider Is DesktopStrongNameProvider)
         End Sub
@@ -332,28 +514,26 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
-            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D")
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\d\w]+)*", "version A.B.C-d")
             patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
-Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)
+Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 </text>.Value.Replace(vbLf, vbCrLf).Trim,
                 patched)
-            ' Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
-            ' making the last part optional will fix this.
 
             CleanupAllGeneratedFiles(src)
         End Sub
 
         <Theory,
-            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (<developer build>)",
-                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (ABCDEF01)",
-                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (abcdef90)",
-                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (12345678)",
-                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)")>
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C-d (<developer build>)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C-d (ABCDEF01)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C-d (abcdef90)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C-d (12345678)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)")>
         Public Sub TestReplaceCommitHash(orig As String, expected As String)
             Assert.Equal(expected, ReplaceCommitHash(orig))
         End Sub
@@ -375,15 +555,13 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
-            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D")
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\w\d]+)*", "version A.B.C-d")
             patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
-Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)
+Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 </text>.Value.Replace(vbLf, vbCrLf).Trim,
                 patched)
-            ' Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
-            ' making the last part optional will fix this.
 
             CleanupAllGeneratedFiles(src)
         End Sub
@@ -1594,7 +1772,7 @@ End Module").Path
 
             parsedArgs = DefaultParse({"a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm)
             Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             ' error
@@ -1780,11 +1958,8 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic15_3, LanguageVersion.VisualBasic15_3.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.VisualBasic15_5.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.VisualBasic16.MapSpecifiedToEffectiveVersion())
-
-            Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
-
-            ' https//github.com/dotnet/roslyn/issues/29819 Once we are ready to remove the beta tag from VB 16 we should update Default/Latest accordingly
+            Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
@@ -2934,6 +3109,30 @@ End Class")
                 parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
 
             parsedArgs = DefaultParse({"/embed:a.vb;b.vb", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a.vb", "b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:a.vb,b.vb", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a.vb", "b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:""a,b.vb""", "/debug:portable", "a,b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a,b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:\""a,b.vb\""", "/debug:portable", "a,b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a,b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:\""""a.vb,b.vb""\""", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertEx.Equal(
                 {"a.vb", "b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
@@ -4185,26 +4384,26 @@ End Class
 
             Dim parsedArgs = DefaultParse({"/errorlog:", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("errorlog", ":<file>"))
-            Assert.Null(parsedArgs.ErrorLogPath)
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
             parsedArgs = DefaultParse({"/errorlog", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("errorlog", ":<file>"))
-            Assert.Null(parsedArgs.ErrorLogPath)
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
             ' Should preserve fully qualified paths
             parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("C:\MyFolder\MyBinary.xml", parsedArgs.ErrorLogPath)
+            Assert.Equal("C:\MyFolder\MyBinary.xml", parsedArgs.ErrorLogOptions.Path)
             Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
             ' Should handle quotes
             parsedArgs = DefaultParse({"/errorlog:""C:\My Folder\MyBinary.xml""", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("C:\My Folder\MyBinary.xml", parsedArgs.ErrorLogPath)
+            Assert.Equal("C:\My Folder\MyBinary.xml", parsedArgs.ErrorLogOptions.Path)
             Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
             ' Quote after a \ is treated as an escape
@@ -4215,12 +4414,12 @@ End Class
             ' Should expand partially qualified paths
             parsedArgs = DefaultParse({"/errorlog:MyBinary.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(Path.Combine(baseDirectory, "MyBinary.xml"), parsedArgs.ErrorLogPath)
+            Assert.Equal(Path.Combine(baseDirectory, "MyBinary.xml"), parsedArgs.ErrorLogOptions.Path)
 
             ' Should expand partially qualified paths
             parsedArgs = DefaultParse({"/errorlog:..\MyBinary.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("C:\abc\def\MyBinary.xml", parsedArgs.ErrorLogPath)
+            Assert.Equal("C:\abc\def\MyBinary.xml", parsedArgs.ErrorLogOptions.Path)
             Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
             ' drive-relative path:
@@ -4230,15 +4429,43 @@ End Class
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(filePath))
 
-            Assert.Null(parsedArgs.ErrorLogPath)
+            Assert.Null(parsedArgs.ErrorLogOptions)
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
             ' UNC
             parsedArgs = DefaultParse({"/errorlog:\\server\share\file.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
 
-            Assert.Equal("\\server\share\file.xml", parsedArgs.ErrorLogPath)
+            Assert.Equal("\\server\share\file.xml", parsedArgs.ErrorLogOptions.Path)
             Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' Parses SARIF version.
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=2", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal("C:\MyFolder\MyBinary.xml", parsedArgs.ErrorLogOptions.Path)
+            Assert.Equal(SarifVersion.Sarif2, parsedArgs.ErrorLogOptions.SarifVersion)
+            Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' Invalid SARIF version.
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=42", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,version=42", "errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' Invalid errorlog qualifier.
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,invalid=42", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,invalid=42", "errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' Too many errorlog qualifiers.
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=2,version=2", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,version=2,version=2", "errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
         End Sub
 
         <Fact>
@@ -4249,7 +4476,7 @@ End Class
             Dim parsedArgs = DefaultParse({"/errorlog:a\b.xml", "/out:c\d.exe", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
 
-            Assert.Equal("C:\abc\def\baz\a\b.xml", parsedArgs.ErrorLogPath)
+            Assert.Equal("C:\abc\def\baz\a\b.xml", parsedArgs.ErrorLogOptions.Path)
 
             Assert.Equal("C:\abc\def\baz\c", parsedArgs.OutputDirectory)
             Assert.Equal("d.exe", parsedArgs.OutputFileName)
@@ -4258,7 +4485,7 @@ End Class
             parsedArgs = DefaultParse({"/errorlog:b.xml", "/out:c\d.exe", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
 
-            Assert.Equal("C:\abc\def\baz\b.xml", parsedArgs.ErrorLogPath)
+            Assert.Equal("C:\abc\def\baz\b.xml", parsedArgs.ErrorLogOptions.Path)
 
             Assert.Equal("C:\abc\def\baz\c", parsedArgs.OutputDirectory)
             Assert.Equal("d.exe", parsedArgs.OutputFileName)
@@ -5850,7 +6077,7 @@ PATH(6) : error BC30203: Identifier expected.
         End Sub
 
         Private Shared Function ReplacePathAndVersionAndHash(result As XElement, file As TempFile) As String
-            Return result.Value.Replace("PATH", file.Path).Replace("VERSION", s_compilerVersion).Replace("HASH", s_compilerShortCommitHash).Replace(vbLf, vbCrLf)
+            Return result.Value.Replace("PATH", file.Path).Replace("VERSION (HASH)", s_compilerVersion).Replace(vbLf, vbCrLf)
         End Function
 
         <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
@@ -7294,6 +7521,22 @@ C:\*.vb(100) : error BC30451: 'Goo' is not declared. It may be inaccessible due 
             Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalFiles(0).Path)
             Assert.Equal(Path.Combine(_baseDirectory, "app.manifest"), args.AdditionalFiles(1).Path)
 
+            args = DefaultParse({"/additionalfile:""web.config,app.manifest""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(1, args.AdditionalFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, "web.config,app.manifest"), args.AdditionalFiles(0).Path)
+
+            args = DefaultParse({"/additionalfile:\""web.config,app.manifest\""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(1, args.AdditionalFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, "web.config,app.manifest"), args.AdditionalFiles(0).Path)
+
+            args = DefaultParse({"/additionalfile:\""""web.config,app.manifest""\""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(2, args.AdditionalFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalFiles(0).Path)
+            Assert.Equal(Path.Combine(_baseDirectory, "app.manifest"), args.AdditionalFiles(1).Path)
+
             args = DefaultParse({"/additionalfile:web.config:app.manifest", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(1, args.AdditionalFiles.Length)
@@ -7306,6 +7549,61 @@ C:\*.vb(100) : error BC30451: 'Goo' is not declared. It may be inaccessible due 
             args = DefaultParse({"/additionalfile:", "a.vb"}, _baseDirectory)
             args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("additionalfile", ":<file_list>"))
             Assert.Equal(0, args.AdditionalFiles.Length)
+        End Sub
+
+        <Fact>
+        Public Sub ParseEditorConfig()
+            Dim args = DefaultParse({"/analyzerconfig:.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths.Single())
+
+            args = DefaultParse({"/analyzerconfig:.editorconfig", "a.vb", "/analyzerconfig:subdir\.editorconfig"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths(0))
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\.editorconfig"), args.AnalyzerConfigPaths(1))
+
+            args = DefaultParse({"/analyzerconfig:.editorconfig", "a.vb", "/analyzerconfig:.editorconfig"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths(0))
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths(1))
+
+            args = DefaultParse({"/analyzerconfig:..\.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(Path.Combine(_baseDirectory, "..\.editorconfig"), args.AnalyzerConfigPaths.Single())
+
+            args = DefaultParse({"/analyzerconfig:.editorconfig;subdir\.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths(0))
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\.editorconfig"), args.AnalyzerConfigPaths(1))
+
+            args = DefaultParse({"/analyzerconfig:.editorconfig,subdir\.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths(0))
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\.editorconfig"), args.AnalyzerConfigPaths(1))
+
+            args = DefaultParse({"/analyzerconfig:.editorconfig:.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(1, args.AnalyzerConfigPaths.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig:.editorconfig"), args.AnalyzerConfigPaths(0))
+
+            args = DefaultParse({"/analyzerconfig", "a.vb"}, _baseDirectory)
+            args.Errors.AssertTheseDiagnostics(
+                <errors><![CDATA[
+                    BC2006: option 'analyzerconfig' requires ':<file_list>'
+                    ]]>
+                </errors>)
+            Assert.Equal(0, args.AnalyzerConfigPaths.Length)
+
+            args = DefaultParse({"/analyzerconfig:", "a.vb"}, _baseDirectory)
+            args.Errors.AssertTheseDiagnostics(
+                <errors><![CDATA[
+BC2006: option 'analyzerconfig' requires ':<file_list>']]>
+                </errors>)
+            Assert.Equal(0, args.AnalyzerConfigPaths.Length)
         End Sub
 
         Private Shared Sub Verify(actual As IEnumerable(Of Diagnostic), ParamArray expected As DiagnosticDescription())
@@ -7330,7 +7628,8 @@ C:\*.vb(100) : error BC30451: 'Goo' is not declared. It may be inaccessible due 
                                              Optional additionalFlags As String() = Nothing,
                                              Optional expectedInfoCount As Integer = 0,
                                              Optional expectedWarningCount As Integer = 0,
-                                             Optional expectedErrorCount As Integer = 0) As String
+                                             Optional expectedErrorCount As Integer = 0,
+                                             Optional analyzers As ImmutableArray(Of DiagnosticAnalyzer) = Nothing) As String
             Dim args = {
                             "/nologo", "/preferreduilang:en", "/t:library",
                             sourceFile.Path
@@ -7342,7 +7641,7 @@ C:\*.vb(100) : error BC30451: 'Goo' is not declared. It may be inaccessible due 
                 args = args.Append(additionalFlags)
             End If
 
-            Dim vbc = New MockVisualBasicCompiler(Nothing, sourceDir.Path, args)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, sourceDir.Path, args, analyzers)
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = vbc.Run(outWriter, Nothing)
             Dim output = outWriter.ToString()
@@ -8637,7 +8936,6 @@ End Class
         <Fact()>
         Public Sub Version()
             Dim folderName = Temp.CreateDirectory().ToString()
-            Dim expected As String = $"{s_compilerVersion} ({s_compilerShortCommitHash})"
 
             Dim argss = {
                 "/version",
@@ -8647,7 +8945,7 @@ End Class
 
             For Each args In argss
                 Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, args, startFolder:=folderName)
-                Assert.Equal(expected, output.Trim())
+                Assert.Equal(s_compilerVersion, output.Trim())
             Next
         End Sub
 
@@ -9038,11 +9336,8 @@ End Module
 
             Dim vbc = New MockVisualBasicCompiler(Nothing, New BuildPaths("", workingDir.Path, Nothing, tempDir.Path),
                               {"/features:UseLegacyStrongNameProvider", "/nostdlib", "a.vb"})
-            Dim comp = vbc.CreateCompilation(New StringWriter(), New TouchedFileLogger(), errorLogger:=Nothing)
-            Dim desktopProvider = Assert.IsType(Of DesktopStrongNameProvider)(comp.Options.StrongNameProvider)
-            Using inputStream = Assert.IsType(Of DesktopStrongNameProvider.TempFileStream)(desktopProvider.CreateInputStream())
-                Assert.Equal(tempDir.Path, Path.GetDirectoryName(inputStream.Path))
-            End Using
+            Dim comp = vbc.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
+            Assert.False(comp.SignUsingBuilder)
         End Sub
 
         Private Function MakeTrivialExe(Optional directory As String = Nothing) As String
@@ -9070,6 +9365,411 @@ End Class").Path
             Dim exitCode = compiler.Run(outWriter)
             Assert.Equal(1, exitCode)
             Assert.Contains("vbc : error BC37253: The pathmap option was incorrectly formatted.", outWriter.ToString(), StringComparison.Ordinal)
+        End Sub
+
+        <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/38454")>
+        Public Sub TestSuppression_CompilerWarning()
+            ' warning BC40008 : 'C' is obsolete
+            Dim source = "
+Imports System
+
+<Obsolete>
+Class C
+End Class
+
+Class D
+    Inherits C
+End Class"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText(source)
+
+            ' Verify that compiler warning BC40008 is reported.
+            Dim output = VerifyOutput(dir, file, expectedWarningCount:=1,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False)
+            Assert.Contains("warning BC40008", output, StringComparison.Ordinal)
+
+            ' Verify that compiler warning BC40008 is suppressed with diagnostic suppressor
+            ' and info diagnostic is logged with programmatic suppression information.
+            Dim suppressor = New DiagnosticSuppressorForId("BC40008")
+
+            ' Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
+            Dim suppressionMessage = String.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "C"), Location.None).GetMessage(CultureInfo.InvariantCulture),
+                suppressor.SuppressionDescriptor.Id,
+                suppressor.SuppressionDescriptor.Justification)
+
+            Dim suppressors = ImmutableArray.Create(Of DiagnosticAnalyzer)(suppressor)
+            output = VerifyOutput(dir, file, expectedInfoCount:=1, expectedWarningCount:=0,
+                                  includeCurrentAssemblyAsAnalyzerReference:=False,
+                                  analyzers:=suppressors)
+            Assert.DoesNotContain("warning BC40008", output, StringComparison.Ordinal)
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal)
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal)
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
+        <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/38454")>
+        Public Sub TestSuppression_CompilerWarningAsError()
+            ' warning BC40008 : 'C' is obsolete
+            Dim source = "
+Imports System
+
+<Obsolete>
+Class C
+End Class
+
+Class D
+    Inherits C
+End Class"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText(source)
+
+            ' Verify that compiler warning BC40008 is reported.
+            Dim output = VerifyOutput(dir, file, expectedWarningCount:=1,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False)
+            Assert.Contains("warning BC40008", output, StringComparison.Ordinal)
+
+            ' Verify that compiler warning BC40008 is reported as error for /warnaserror.
+            output = VerifyOutput(dir, file, expectedErrorCount:=1, additionalFlags:={"/warnaserror+"},
+                                  includeCurrentAssemblyAsAnalyzerReference:=False)
+            Assert.Contains("error BC40008", output, StringComparison.Ordinal)
+
+            ' Verify that compiler warning BC40008 is suppressed with diagnostic suppressor even with /warnaserror
+            ' and info diagnostic is logged with programmatic suppression information.
+            Dim suppressor = New DiagnosticSuppressorForId("BC40008")
+
+            Dim suppressors = ImmutableArray.Create(Of DiagnosticAnalyzer)(suppressor)
+            output = VerifyOutput(dir, file, expectedInfoCount:=1, expectedWarningCount:=0, expectedErrorCount:=0,
+                                  additionalFlags:={"/warnaserror+"},
+                                  includeCurrentAssemblyAsAnalyzerReference:=False,
+                                  analyzers:=suppressors)
+            Assert.DoesNotContain($"warning BC40008", output, StringComparison.Ordinal)
+            Assert.DoesNotContain($"error BC40008", output, StringComparison.Ordinal)
+
+            ' Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
+            Dim suppressionMessage = String.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "C"), Location.None).GetMessage(CultureInfo.InvariantCulture),
+                suppressor.SuppressionDescriptor.Id,
+                suppressor.SuppressionDescriptor.Justification)
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal)
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal)
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
+        <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
+        <Fact>
+        Public Sub TestNoSuppression_CompilerError()
+            ' warning BC30203 : Identifier expected
+            Dim source = "
+Class
+End Class"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText(source)
+
+            ' Verify that compiler error BC30203 is reported.
+            Dim output = VerifyOutput(dir, file, expectedErrorCount:=1,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False)
+            Assert.Contains("error BC30203", output, StringComparison.Ordinal)
+
+            ' Verify that compiler error BC30203 cannot be suppressed with diagnostic suppressor.
+            Dim analyzers = ImmutableArray.Create(Of DiagnosticAnalyzer)(New DiagnosticSuppressorForId("BC30203"))
+            output = VerifyOutput(dir, file, expectedErrorCount:=1,
+                                  includeCurrentAssemblyAsAnalyzerReference:=False,
+                                  analyzers:=analyzers)
+            Assert.Contains("error BC30203", output, StringComparison.Ordinal)
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
+        <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/38454")>
+        Public Sub TestSuppression_AnalyzerWarning()
+            Dim source = "
+Class C
+End Class"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText(source)
+
+            ' Verify that analyzer warning is reported.
+            Dim analyzer = New CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable:=True)
+            Dim analyzers = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)
+            Dim output = VerifyOutput(dir, file, expectedWarningCount:=1,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False,
+                                      analyzers:=analyzers)
+            Assert.Contains($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
+
+            ' Verify that analyzer warning is suppressed with diagnostic suppressor
+            ' and info diagnostic is logged with programmatic suppression information.
+            Dim suppressor = New DiagnosticSuppressorForId(analyzer.Descriptor.Id)
+
+            ' Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
+            Dim suppressionMessage = String.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                analyzer.Descriptor.MessageFormat,
+                suppressor.SuppressionDescriptor.Id,
+                suppressor.SuppressionDescriptor.Justification)
+
+            Dim analyzerAndSuppressor = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer, suppressor)
+            output = VerifyOutput(dir, file, expectedInfoCount:=1, expectedWarningCount:=0,
+                                  includeCurrentAssemblyAsAnalyzerReference:=False,
+                                  analyzers:=analyzerAndSuppressor)
+            Assert.DoesNotContain($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal)
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal)
+
+            ' Verify that analyzer warning is reported as error for /warnaserror.
+            output = VerifyOutput(dir, file, expectedErrorCount:=1,
+                                  additionalFlags:={"/warnaserror+"},
+                                  includeCurrentAssemblyAsAnalyzerReference:=False,
+                                  analyzers:=analyzers)
+            Assert.Contains($"error {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
+
+            ' Verify that analyzer warning is suppressed with diagnostic suppressor even with /warnaserror
+            ' and info diagnostic is logged with programmatic suppression information.
+            output = VerifyOutput(dir, file, expectedInfoCount:=1, expectedWarningCount:=0, expectedErrorCount:=0,
+                                  additionalFlags:={"/warnaserror+"},
+                                  includeCurrentAssemblyAsAnalyzerReference:=False,
+                                  analyzers:=analyzerAndSuppressor)
+            Assert.DoesNotContain($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal)
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal)
+
+            ' Verify that "NotConfigurable" analyzer warning cannot be suppressed with diagnostic suppressor even with /warnaserror.
+            analyzer = New CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable:=False)
+            suppressor = New DiagnosticSuppressorForId(analyzer.Descriptor.Id)
+            analyzerAndSuppressor = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer, suppressor)
+            output = VerifyOutput(dir, file, expectedWarningCount:=1,
+                                  includeCurrentAssemblyAsAnalyzerReference:=False,
+                                  analyzers:=analyzerAndSuppressor)
+            Assert.Contains($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
+        <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
+        <Fact>
+        Public Sub TestNoSuppression_AnalyzerError()
+            Dim source = "
+Class C
+End Class"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText(source)
+
+            ' Verify that analyzer error is reported.
+            Dim analyzer = New CompilationAnalyzerWithSeverity(DiagnosticSeverity.Error, configurable:=True)
+            Dim analyzers = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)
+            Dim output = VerifyOutput(dir, file, expectedErrorCount:=1,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False,
+                                      analyzers:=analyzers)
+            Assert.Contains($"error {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
+
+            ' Verify that analyzer error cannot be suppressed with diagnostic suppressor.
+            Dim suppressor = New DiagnosticSuppressorForId(analyzer.Descriptor.Id)
+            Dim analyzerAndSuppressor = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer, suppressor)
+            output = VerifyOutput(dir, file, expectedErrorCount:=1,
+                                  includeCurrentAssemblyAsAnalyzerReference:=False,
+                                  analyzers:=analyzerAndSuppressor)
+            Assert.Contains($"error {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        <WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")>
+        Public Sub CompilerWarnAsErrorDoesNotEmit(ByVal warnAsError As Boolean)
+            ' warning BC40008 : 'C' is obsolete
+            Dim source = "
+Imports System
+
+<Obsolete>
+Class C
+End Class
+
+Class D
+    Inherits C
+End Class"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("temp.vb")
+            file.WriteAllText(source)
+
+            Dim docName As String = "doc.xml"
+            Dim additionalFlags = {$"/doc:{docName}", "/debug:full"}
+            If warnAsError Then
+                additionalFlags = additionalFlags.Append("/warnaserror").AsArray()
+            End If
+
+            Dim expectedErrorCount = If(warnAsError, 1, 0)
+            Dim expectedWarningCount = If(Not warnAsError, 1, 0)
+            Dim output = VerifyOutput(dir, file,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False,
+                                      additionalFlags,
+                                      expectedErrorCount:=expectedErrorCount,
+                                      expectedWarningCount:=expectedWarningCount)
+
+            Dim expectedOutput = If(warnAsError, "error BC40008", "warning BC40008")
+            Assert.Contains(expectedOutput, output)
+
+            Dim binaryPath As String = Path.Combine(dir.Path, "temp.dll")
+            Assert.True(IO.File.Exists(binaryPath) = Not warnAsError)
+
+            Dim pdbPath As String = Path.Combine(dir.Path, "temp.pdb")
+            Assert.True(IO.File.Exists(pdbPath) = Not warnAsError)
+
+            Dim docPath As String = Path.Combine(dir.Path, docName)
+            Assert.True(IO.File.Exists(docPath) = Not warnAsError)
+        End Sub
+
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        <WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")>
+        Public Sub AnalyzerConfigSeverityEscalationToErrorDoesNotEmit(ByVal analyzerConfigSetToError As Boolean)
+            ' warning BC40008 : 'C' is obsolete
+            Dim source = "
+Imports System
+
+<Obsolete>
+Class C
+End Class
+
+Class D
+    Inherits C
+End Class"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("temp.vb")
+            file.WriteAllText(source)
+
+            Dim docName As String = "doc.xml"
+            Dim additionalFlags = {$"/doc:{docName}", "/debug:full"}
+
+            If analyzerConfigSetToError Then
+                Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.bc40008.severity = error")
+
+                additionalFlags = additionalFlags.Append("/analyzerconfig:" + analyzerConfig.Path).ToArray()
+            End If
+
+            Dim expectedErrorCount = If(analyzerConfigSetToError, 1, 0)
+            Dim expectedWarningCount = If(Not analyzerConfigSetToError, 1, 0)
+            Dim output = VerifyOutput(dir, file,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False,
+                                      additionalFlags,
+                                      expectedErrorCount:=expectedErrorCount,
+                                      expectedWarningCount:=expectedWarningCount)
+
+            Dim expectedOutput = If(analyzerConfigSetToError, "error BC40008", "warning BC40008")
+            Assert.Contains(expectedOutput, output)
+
+            Dim binaryPath As String = Path.Combine(dir.Path, "temp.dll")
+            Assert.True(IO.File.Exists(binaryPath) = Not analyzerConfigSetToError)
+
+            Dim pdbPath As String = Path.Combine(dir.Path, "temp.pdb")
+            Assert.True(IO.File.Exists(pdbPath) = Not analyzerConfigSetToError)
+
+            Dim docPath As String = Path.Combine(dir.Path, docName)
+            Assert.True(IO.File.Exists(docPath) = Not analyzerConfigSetToError)
+        End Sub
+
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        <WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")>
+        Public Sub RulesetSeverityEscalationToErrorDoesNotEmit(ByVal rulesetSetToError As Boolean)
+            ' warning BC40008 : 'C' is obsolete
+            Dim source = "
+Imports System
+
+<Obsolete>
+Class C
+End Class
+
+Class D
+    Inherits C
+End Class"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("temp.vb")
+            file.WriteAllText(source)
+
+            Dim docName As String = "doc.xml"
+            Dim additionalFlags = {$"/doc:{docName}", "/debug:full"}
+
+            If rulesetSetToError Then
+                Dim rulesetSource = <?xml version="1.0" encoding="utf-8"?>
+                                    <RuleSet Name="Ruleset1" Description="Test" ToolsVersion="12.0">
+                                        <Rules AnalyzerId="Microsoft.CodeAnalysis" RuleNamespace="Microsoft.CodeAnalysis">
+                                            <Rule Id="BC40008" Action="Error"/>
+                                        </Rules>
+                                    </RuleSet>
+
+                Dim ruleSetFile = CreateRuleSetFile(rulesetSource)
+
+                additionalFlags = additionalFlags.Append("/ruleset:" + ruleSetFile.Path).ToArray()
+            End If
+
+            Dim expectedErrorCount = If(rulesetSetToError, 1, 0)
+            Dim expectedWarningCount = If(Not rulesetSetToError, 1, 0)
+            Dim output = VerifyOutput(dir, file,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False,
+                                      additionalFlags,
+                                      expectedErrorCount:=expectedErrorCount,
+                                      expectedWarningCount:=expectedWarningCount)
+
+            Dim expectedOutput = If(rulesetSetToError, "error BC40008", "warning BC40008")
+            Assert.Contains(expectedOutput, output)
+
+            Dim binaryPath As String = Path.Combine(dir.Path, "temp.dll")
+            Assert.True(IO.File.Exists(binaryPath) = Not rulesetSetToError)
+
+            Dim pdbPath As String = Path.Combine(dir.Path, "temp.pdb")
+            Assert.True(IO.File.Exists(pdbPath) = Not rulesetSetToError)
+
+            Dim docPath As String = Path.Combine(dir.Path, docName)
+            Assert.True(IO.File.Exists(docPath) = Not rulesetSetToError)
+        End Sub
+
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        <WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")>
+        Public Sub AnalyzerWarnAsErrorDoesNotEmit(ByVal warnAsError As Boolean)
+            Dim source = "
+Class C
+End Class"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("temp.vb")
+            file.WriteAllText(source)
+
+            Dim expectedErrorCount = If(warnAsError, 2, 0)
+            Dim expectedWarningCount = If(Not warnAsError, 2, 0)
+            Dim analyzer As DiagnosticAnalyzer = New WarningDiagnosticAnalyzer() ' Reports 2 warnings for each named type.
+            Dim additionalFlags = If(warnAsError, {"/warnaserror"}, Nothing)
+            Dim output = VerifyOutput(dir, file,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False,
+                                      additionalFlags,
+                                      expectedErrorCount:=expectedErrorCount,
+                                      expectedWarningCount:=expectedWarningCount,
+                                      analyzers:=ImmutableArray.Create(analyzer))
+
+            Dim expectedODiagnosticSeverity = If(warnAsError, "error", "warning")
+            Assert.Contains($"{expectedODiagnosticSeverity} {WarningDiagnosticAnalyzer.Warning01.Id}", output)
+            Assert.Contains($"{expectedODiagnosticSeverity} {WarningDiagnosticAnalyzer.Warning03.Id}", output)
+
+            Dim binaryPath As String = Path.Combine(dir.Path, "temp.dll")
+            Assert.True(IO.File.Exists(binaryPath) = Not warnAsError)
         End Sub
     End Class
 

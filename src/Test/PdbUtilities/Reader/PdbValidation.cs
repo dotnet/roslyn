@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -135,11 +137,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: diff.NextGeneration.InitialBaseline.HasPortablePdb, actualIsConverted: false);
 
             AssertEx.AssertLinesEqual(
-                expected, 
-                actual, 
+                expected,
+                actual,
                 $"PDB format: {format}{Environment.NewLine}",
-                expectedValueSourcePath, 
-                expectedValueSourceLine, 
+                expectedValueSourcePath,
+                expectedValueSourceLine,
                 escapeQuotes: !expectedIsXmlLiteral);
         }
 
@@ -231,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
-            bool testWindowsPdb = format == 0 || format == DebugInformationFormat.Pdb;
+            bool testWindowsPdb = (format == 0 || format == DebugInformationFormat.Pdb) && ExecutionConditionUtil.IsWindows;
             bool testPortablePdb = format == 0 || format == DebugInformationFormat.PortablePdb;
             bool testConversion = (options & PdbValidationOptions.SkipConversionValidation) == 0;
             var pdbToXmlOptions = options.ToPdbToXmlOptions();
@@ -278,11 +280,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: isPortable, actualIsConverted: false);
 
             AssertEx.AssertLinesEqual(
-                expected, 
-                actual, 
-                $"PDB format: {(isPortable ? "Portable" : "Windows")}{Environment.NewLine}", 
+                expected,
+                actual,
+                $"PDB format: {(isPortable ? "Portable" : "Windows")}{Environment.NewLine}",
                 expectedValueSourcePath,
-                expectedValueSourceLine, 
+                expectedValueSourceLine,
                 escapeQuotes: !expectedIsXmlLiteral);
         }
 
@@ -382,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 RemoveElementsWithSpecifiedFormat(expectedXml, "windows");
             }
-            else 
+            else
             {
                 RemoveElementsWithSpecifiedFormat(expectedXml, "portable");
             }
@@ -419,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             while (RemoveElements(from e in pdb.DescendantsAndSelf()
                                   where e.Name == "scope" && !e.HasElements
-                                  select e));
+                                  select e)) ;
         }
 
         private static void RemoveEmptySequencePoints(XElement pdb)
@@ -481,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             PdbValidationOptions options = PdbValidationOptions.Default,
             string qualifiedMethodName = "",
-            bool portable = false)
+            bool portable = true)
         {
             var peStream = new MemoryStream();
             var pdbStream = new MemoryStream();

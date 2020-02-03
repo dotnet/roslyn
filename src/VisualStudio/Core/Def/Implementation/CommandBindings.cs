@@ -12,6 +12,10 @@ namespace Microsoft.VisualStudio.Editor.Implementation
         internal CommandBindingDefinition gotoImplementationCommandBinding;
 
         [Export]
+        [CommandBinding(Guids.CSharpGroupIdString, ID.CSharpCommands.OrganizeSortUsings, typeof(SortImportsCommandArgs))]
+        internal CommandBindingDefinition organizeSortCommandBinding;
+
+        [Export]
         [CommandBinding(Guids.CSharpGroupIdString, ID.CSharpCommands.OrganizeRemoveAndSort, typeof(SortAndRemoveUnnecessaryImportsCommandArgs))]
         internal CommandBindingDefinition organizeRemoveAndSortCommandBinding;
 

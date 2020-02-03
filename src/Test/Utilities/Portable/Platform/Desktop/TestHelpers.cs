@@ -1,4 +1,11 @@
-﻿#if NET472
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+#if NET472
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -48,7 +55,7 @@ namespace Roslyn.Test.Utilities
                     where type.IsAssignableFrom(t)
                     select t).ToList();
         }
- 
+
         public static TempFile CreateCSharpAnalyzerAssemblyWithTestAnalyzer(TempDirectory dir, string assemblyName)
         {
             var analyzerSource = @"
@@ -84,7 +91,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
             return dir.CreateFile(assemblyName + ".dll").WriteAllBytes(analyzerCompilation.EmitToArray());
         }
-        
+
         public static ImmutableArray<byte> CreateCSharpAnalyzerNetStandard13(string analyzerAssemblyName)
         {
             var minSystemCollectionsImmutableSource = @"
@@ -275,7 +282,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             return analyzerImage;
         }
 
-        public static string GetMSBuildDirectory()
+        public static string? GetMSBuildDirectory()
         {
             var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
             using (var key = Registry.LocalMachine.OpenSubKey($@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}", false))

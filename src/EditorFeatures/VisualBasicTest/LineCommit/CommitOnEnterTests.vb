@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -49,6 +51,25 @@ End Class
 Class C
     Sub M()
         M() _$$
+    End Sub
+End Class
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            AssertCommitsStatement(test, expectCommit:=False)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
+        Public Sub TestNoCommitAfterExplicitLineContinuationCommentsAfterLineContinuation()
+            Dim test = <Workspace>
+                           <Project Language="Visual Basic" CommonReferences="true">
+                               <Document>
+Class C
+    Sub M()
+        M() _ ' Test$$
     End Sub
 End Class
                                </Document>

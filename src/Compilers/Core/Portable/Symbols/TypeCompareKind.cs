@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 
@@ -11,23 +15,21 @@ namespace Microsoft.CodeAnalysis
     internal enum TypeCompareKind
     {
         ConsiderEverything = 0,
+
+        // This comparison option is temporary. All usages should be reviewed, and it should be removed. https://github.com/dotnet/roslyn/issues/31742
+        ConsiderEverything2 = ConsiderEverything,
         IgnoreCustomModifiersAndArraySizesAndLowerBounds = 1,
         IgnoreDynamic = 2,
         IgnoreTupleNames = 4,
         IgnoreDynamicAndTupleNames = IgnoreDynamic | IgnoreTupleNames,
 
         IgnoreNullableModifiersForReferenceTypes = 8,
-        UnknownNullableModifierMatchesAny = 16,
+        ObliviousNullableModifierMatchesAny = 16,
 
-        /// <summary>
-        /// Different flavors of Nullable are equivalent,
-        /// different flavors of Not-Nullable are equivalent unless the type is possibly nullable reference type parameter.
-        /// This option can cause cycles in binding if used too early!
-        /// </summary>
-        IgnoreInsignificantNullableModifiersDifference = 32,
-
-        AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | UnknownNullableModifierMatchesAny | IgnoreInsignificantNullableModifiersDifference,
+        AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | ObliviousNullableModifierMatchesAny,
         AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames | AllNullableIgnoreOptions,
-        AllIgnoreOptionsForVB = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreTupleNames
+        AllIgnoreOptionsForVB = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreTupleNames,
+
+        CLRSignatureCompareOptions = TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds,
     }
 }

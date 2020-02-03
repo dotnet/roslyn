@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -15,10 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
             }
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // for extract method case, for a hybrid case, don't force rule, but preserve user style
-                var operation = base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, nextOperation);
+                var operation = base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
                 if (operation == null)
                 {
                     return null;
@@ -53,14 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return operation;
             }
 
-            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AnchorIndentationOperation> nextOperation)
+            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, in NextAnchorIndentationOperationAction nextOperation)
             {
                 if (node.IsKind(SyntaxKind.SimpleLambdaExpression) || node.IsKind(SyntaxKind.ParenthesizedLambdaExpression) || node.IsKind(SyntaxKind.AnonymousMethodExpression))
                 {
                     return;
                 }
 
-                nextOperation.Invoke(list);
+                nextOperation.Invoke();
             }
         }
     }

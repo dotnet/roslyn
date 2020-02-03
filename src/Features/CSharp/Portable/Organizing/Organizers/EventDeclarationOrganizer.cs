@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using System.Threading;
@@ -10,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
     [ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
     internal class EventDeclarationOrganizer : AbstractSyntaxNodeOrganizer<EventDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public EventDeclarationOrganizer()
+        {
+        }
+
         protected override EventDeclarationSyntax Organize(
             EventDeclarationSyntax syntax,
             CancellationToken cancellationToken)
@@ -20,7 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                 syntax.Type,
                 syntax.ExplicitInterfaceSpecifier,
                 syntax.Identifier,
-                syntax.AccessorList);
+                syntax.AccessorList,
+                syntax.SemicolonToken);
         }
     }
 }

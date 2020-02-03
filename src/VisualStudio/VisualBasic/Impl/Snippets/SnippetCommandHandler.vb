@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
@@ -11,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Editor
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
@@ -22,8 +25,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <Export(GetType(Commanding.ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name("VB Snippets")>
-    <Order(After:=PredefinedCommandHandlerNames.Completion)>
-    <Order(After:=PredefinedCommandHandlerNames.IntelliSense)>
+    <Order(After:=PredefinedCompletionNames.CompletionCommandHandler)>
+    <Order(After:=PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)>
     Friend NotInheritable Class SnippetCommandHandler
         Inherits AbstractSnippetCommandHandler
 

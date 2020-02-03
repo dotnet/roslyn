@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using System.Threading;
@@ -16,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
     [ExportLanguageService(typeof(IGenerateDefaultConstructorsService), LanguageNames.CSharp), Shared]
     internal class CSharpGenerateDefaultConstructorsService : AbstractGenerateDefaultConstructorsService<CSharpGenerateDefaultConstructorsService>
     {
+        [ImportingConstructor]
+        public CSharpGenerateDefaultConstructorsService()
+        {
+        }
+
         protected override bool TryInitializeState(
             SemanticDocument semanticDocument, TextSpan textSpan, CancellationToken cancellationToken,
             out INamedTypeSymbol classType)
@@ -26,10 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
             // first base-type of a class.
 
             var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start))
+            if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, out var typeDeclaration))
             {
-                classType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
-                    semanticDocument.SemanticModel, semanticDocument.Root, textSpan.Start, cancellationToken);
+                classType = semanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
                 return classType?.TypeKind == TypeKind.Class;
             }
 

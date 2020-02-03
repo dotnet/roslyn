@@ -1,10 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Text;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
 using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -12,9 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Suppress Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
+
+            AddFormatSuppressOperations(list, node);
 
             AddInitializerSuppressOperations(list, node);
 
@@ -34,6 +48,87 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (ifStatementNode.Else != null)
                 {
                     AddSuppressWrappingIfOnSingleLineOperation(list, ifStatementNode.Else.ElseKeyword, ifStatementNode.Else.Statement.GetLastToken(includeZeroWidth: true));
+                }
+
+                return;
+            }
+
+            // ex: `e is Type ( /* positional */ )`
+            if (node.IsKind(SyntaxKind.RecursivePattern))
+            {
+                var positional = ((RecursivePatternSyntax)node).PositionalPatternClause;
+                var property = ((RecursivePatternSyntax)node).PropertyPatternClause;
+                if (positional != null)
+                {
+                    var openParenToken = positional.OpenParenToken;
+                    var closeParenToken = positional.CloseParenToken;
+                    // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                    AddSuppressWrappingIfOnSingleLineOperation(list, openParenToken, closeParenToken);
+                    if (property != null)
+                    {
+                        AddSuppressWrappingIfOnSingleLineOperation(list, openParenToken, property.GetLastToken());
+                    }
+                }
+
+                // ex: `Property: <pattern>` inside a recursive pattern, such as `e is { Property: <pattern>, ... }`
+                else if (property != null)
+                {
+                    var openBraceToken = property.OpenBraceToken;
+                    var closeBraceToken = property.CloseBraceToken;
+                    // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                    AddSuppressWrappingIfOnSingleLineOperation(list, openBraceToken, closeBraceToken);
+                }
+
+                return;
+            }
+
+            // ex: `<pattern>: expression` inside a switch expression, such as `e switch { <pattern>: expression, ... }`
+            if (node.IsKind(SyntaxKind.SwitchExpressionArm))
+            {
+                // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                AddSuppressWrappingIfOnSingleLineOperation(list, node.GetFirstToken(), node.GetLastToken());
+                return;
+            }
+
+            // ex: `e switch { <pattern>: expression, ... }`
+            if (node.IsKind(SyntaxKind.SwitchExpression))
+            {
+                // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                AddSuppressWrappingIfOnSingleLineOperation(list, node.GetFirstToken(), node.GetLastToken());
+                return;
+            }
+
+            // ex: `case <pattern>:` inside a switch statement
+            if (node is CasePatternSwitchLabelSyntax casePattern)
+            {
+                // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                AddSuppressWrappingIfOnSingleLineOperation(list, casePattern.GetFirstToken(), casePattern.GetLastToken());
+                return;
+            }
+
+            // ex: `expression is <pattern>`
+            if (node is IsPatternExpressionSyntax isPattern)
+            {
+                // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.GetFirstToken(), isPattern.GetLastToken());
+
+                if (isPattern.Pattern.IsKind(SyntaxKind.RecursivePattern))
+                {
+                    // ex:
+                    // ```
+                    // _ = expr is (1, 2) { }$$
+                    // M();
+                    // ```
+                    // or:
+                    // ```
+                    // _ = expr is { }$$
+                    // M();
+                    // ```
+                    var propertyPatternClause = ((RecursivePatternSyntax)isPattern.Pattern).PropertyPatternClause;
+                    if (propertyPatternClause != null)
+                    {
+                        AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.IsKeyword, propertyPatternClause.GetLastToken());
+                    }
                 }
 
                 return;
@@ -102,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 else
                 {
                     // Add Separate suppression for each Label and for the last label, add the <> 
-                    for (int i = 0; i < switchSection.Labels.Count - 1; ++i)
+                    for (var i = 0; i < switchSection.Labels.Count - 1; ++i)
                     {
                         if (switchSection.Labels[i] != null)
                         {
@@ -126,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 AddSuppressWrappingIfOnSingleLineOperation(list,
                     node.GetFirstToken(includeZeroWidth: true),
                     node.GetLastToken(includeZeroWidth: true),
-                    SuppressOption.IgnoreElastic);
+                    SuppressOption.IgnoreElasticWrapping);
                 return;
             }
 
@@ -174,8 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
-            var statementNode = node as StatementSyntax;
-            if (statementNode == null || statementNode.Kind() == SyntaxKind.Block)
+            if (!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block)
             {
                 return;
             }
@@ -184,6 +278,99 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var lastToken = statementNode.GetLastToken(includeZeroWidth: true);
 
             AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
+        }
+
+        private void AddFormatSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        {
+            if (!node.ContainsDirectives)
+            {
+                return;
+            }
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (!child.IsToken)
+                {
+                    continue;
+                }
+
+                ProcessTriviaList(list, child.AsToken().LeadingTrivia);
+                ProcessTriviaList(list, child.AsToken().TrailingTrivia);
+            }
+
+            return;
+
+            // Local functions
+            static void ProcessTriviaList(List<SuppressOperation> list, SyntaxTriviaList triviaList)
+            {
+                foreach (var trivia in triviaList)
+                {
+                    ProcessTrivia(list, trivia);
+                }
+            }
+
+            static void ProcessTrivia(List<SuppressOperation> list, SyntaxTrivia trivia)
+            {
+                if (!(trivia.HasStructure))
+                {
+                    return;
+                }
+
+                ProcessStructuredTrivia(list, trivia.GetStructure());
+            }
+
+            static void ProcessStructuredTrivia(List<SuppressOperation> list, SyntaxNode structure)
+            {
+                if (!(structure is PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia))
+                {
+                    return;
+                }
+
+                if (!IsFormatDirective(pragmaWarningDirectiveTrivia, SyntaxKind.DisableKeyword))
+                {
+                    return;
+                }
+
+                var startToken = pragmaWarningDirectiveTrivia.GetLastToken(includeZeroWidth: true, includeDirectives: true);
+
+                var endDirective = pragmaWarningDirectiveTrivia.GetNextDirective(trivia => IsFormatDirective(trivia, SyntaxKind.RestoreKeyword));
+                var endToken = endDirective is null
+                    ? ((CompilationUnitSyntax)structure.SyntaxTree.GetRoot(CancellationToken.None)).EndOfFileToken
+                    : endDirective.GetFirstToken(includeDirectives: true);
+
+                Debug.Assert(!startToken.IsKind(SyntaxKind.None) && !endToken.IsKind(SyntaxKind.None));
+                var textSpan = TextSpan.FromBounds(startToken.Span.End, endToken.SpanStart);
+                list.Add(new SuppressOperation(startToken, endToken, textSpan, SuppressOption.DisableFormatting));
+            }
+        }
+
+        private static bool IsFormatDirective(DirectiveTriviaSyntax trivia, SyntaxKind disableOrRestoreKeyword)
+        {
+            if (!(trivia is PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia))
+            {
+                return false;
+            }
+
+            if (!pragmaWarningDirectiveTrivia.DisableOrRestoreKeyword.IsKind(disableOrRestoreKeyword))
+            {
+                return false;
+            }
+
+            foreach (var errorCode in pragmaWarningDirectiveTrivia.ErrorCodes)
+            {
+                if (!(errorCode is IdentifierNameSyntax identifierName))
+                {
+                    continue;
+                }
+
+                if (identifierName.Identifier.ValueText.Equals(FormattingDiagnosticIds.FormatDocumentControlDiagnosticId)
+                    || identifierName.Identifier.ValueText.Equals(FormattingDiagnosticIds.FormattingDiagnosticId))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
@@ -229,18 +416,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private InitializerExpressionSyntax GetInitializerNode(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case ObjectCreationExpressionSyntax objectCreationNode:
-                    return objectCreationNode.Initializer;
-                case ArrayCreationExpressionSyntax arrayCreationNode:
-                    return arrayCreationNode.Initializer;
-                case ImplicitArrayCreationExpressionSyntax implicitArrayNode:
-                    return implicitArrayNode.Initializer;
-            }
-
-            return null;
-        }
+                ObjectCreationExpressionSyntax objectCreationNode => objectCreationNode.Initializer,
+                ArrayCreationExpressionSyntax arrayCreationNode => arrayCreationNode.Initializer,
+                ImplicitArrayCreationExpressionSyntax implicitArrayNode => implicitArrayNode.Initializer,
+                _ => null,
+            };
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -15,29 +17,30 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
     {
         protected PreferFrameworkTypeDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
+                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        private static PerLanguageOption<CodeStyleOption<bool>> GetOptionForDeclarationContext 
+        private static PerLanguageOption<CodeStyleOption<bool>> GetOptionForDeclarationContext
             => CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration;
 
-        private static PerLanguageOption<CodeStyleOption<bool>> GetOptionForMemberAccessContext 
+        private static PerLanguageOption<CodeStyleOption<bool>> GetOptionForMemberAccessContext
             => CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
 
-        public override bool OpenFileOnly(Workspace workspace)
+        public override bool OpenFileOnly(OptionSet options)
         {
-            var preferTypeKeywordInDeclarationOption = workspace.Options.GetOption(
+            var preferTypeKeywordInDeclarationOption = options.GetOption(
                 CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
-            var preferTypeKeywordInMemberAccessOption = workspace.Options.GetOption(
+            var preferTypeKeywordInMemberAccessOption = options.GetOption(
                 CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
 
             return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
                      preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract string GetLanguageName();
@@ -77,8 +80,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             }
 
             // check we have a symbol so that the fixer can generate the right type syntax from it.
-            var typeSymbol = semanticModel.GetSymbolInfo(predefinedTypeNode, cancellationToken).Symbol as ITypeSymbol;
-            if (typeSymbol == null)
+            if (!(semanticModel.GetSymbolInfo(predefinedTypeNode, cancellationToken).Symbol is ITypeSymbol typeSymbol))
             {
                 return;
             }
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
                     out var diagnosticSeverity))
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor, predefinedTypeNode.GetLocation(), 
+                    Descriptor, predefinedTypeNode.GetLocation(),
                     diagnosticSeverity, additionalLocations: null,
                     PreferFrameworkTypeConstants.Properties));
             }
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             return OptionSettingPrefersFrameworkType(optionValue, severity);
         }
 
-        private bool IsStylePreferred(OptionSet optionSet, string language) 
+        private bool IsStylePreferred(OptionSet optionSet, string language)
             => IsFrameworkTypePreferred(optionSet, GetOptionForDeclarationContext, language) ||
                IsFrameworkTypePreferred(optionSet, GetOptionForMemberAccessContext, language);
 

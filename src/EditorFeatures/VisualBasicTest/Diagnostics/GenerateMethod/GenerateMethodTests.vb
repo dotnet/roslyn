@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
@@ -3902,7 +3904,7 @@ Module M
         Dim x As Boolean = Await [|F|]().ConfigureAwait(False)
     End Sub 
 End Module",
-"Imports System
+"Imports System 
 Imports System.Linq
 Imports System.Threading.Tasks
 
@@ -4191,10 +4193,10 @@ Class Program
 End Class")
         End Function
 
-            <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestWithSameMethodNameAsTypeName1() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName1() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub Bar()
@@ -4219,12 +4221,12 @@ End Class
 Enum Goo
     One
 End Enum")
-            End Function
+        End Function
 
-            <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestWithSameMethodNameAsTypeName2() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName2() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub Bar()
@@ -4245,12 +4247,12 @@ Class C
 End Class
 
 Delegate Sub Goo()")
-            End Function
+        End Function
 
-            <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestWithSameMethodNameAsTypeName3() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName3() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub Bar()
@@ -4276,12 +4278,12 @@ End Class
 Class Goo
     
 End Class")
-            End Function
+        End Function
 
-            <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestWithSameMethodNameAsTypeName4() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName4() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub Bar()
@@ -4306,12 +4308,12 @@ End Class
 Structure Goo
 
 End Structure")
-            End Function
+        End Function
 
-            <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestWithSameMethodNameAsTypeName5() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName5() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub Bar()
@@ -4336,12 +4338,12 @@ End Class
 Interface Goo
     
 End Interface")
-            End Function
+        End Function
 
-            <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestWithSameMethodNameAsTypeName6() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName6() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub Bar()
@@ -4366,7 +4368,7 @@ End Class
 Namespace Goo
 
 End Namespace")
-            End Function
+        End Function
 
         Public Class GenerateConversionTests
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest

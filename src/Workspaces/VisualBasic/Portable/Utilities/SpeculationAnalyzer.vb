@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -379,6 +381,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Dim newInterpolation = DirectCast(currentReplacedNode, InterpolationSyntax)
 
                 Return ReplacementBreaksInterpolation(orignalInterpolation, newInterpolation)
+            ElseIf currentOriginalNode.Kind = SyntaxKind.WithStatement Then
+                Dim originalWithStatement = DirectCast(currentOriginalNode, WithStatementSyntax)
+                Dim newWithStatement = DirectCast(currentReplacedNode, WithStatementSyntax)
+
+                Return ReplacementBreaksWithStatement(originalWithStatement, newWithStatement)
             Else
                 Dim originalCollectionRangeVariableSyntax = TryCast(currentOriginalNode, CollectionRangeVariableSyntax)
                 If originalCollectionRangeVariableSyntax IsNot Nothing Then
@@ -418,6 +425,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             End If
 
             Return False
+        End Function
+
+        Private Function ReplacementBreaksWithStatement(originalWithStatement As WithStatementSyntax, replacedWithStatement As WithStatementSyntax) As Boolean
+            Dim originalTypeInfo = Me.OriginalSemanticModel.GetTypeInfo(originalWithStatement.Expression)
+            Dim replacedTypeInfo = Me.SpeculativeSemanticModel.GetTypeInfo(replacedWithStatement.Expression)
+            Return Not originalTypeInfo.Equals(replacedTypeInfo)
         End Function
 
         Private Function ReplacementBreaksCollectionInitializerAddMethod(originalInitializer As ExpressionSyntax, newInitializer As ExpressionSyntax) As Boolean

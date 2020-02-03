@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ExplicitInterfaceMember()
+        public async Task ExplicitInterfaceMember_01()
         {
             var markup = @"
 interface IGoo
@@ -33,6 +35,69 @@ interface IGoo
 }
 
 class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            await VerifyItemExistsAsync(markup, "Goo()");
+            await VerifyItemExistsAsync(markup, "Goo(int x)");
+            await VerifyItemExistsAsync(markup, "Prop");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExplicitInterfaceMember_02()
+        {
+            var markup = @"
+interface IGoo
+{
+    void Goo();
+    void Goo(int x);
+    int Prop { get; }
+}
+
+interface IBar : IGoo
+{
+     void IGoo.$$
+}";
+
+            await VerifyItemExistsAsync(markup, "Goo()");
+            await VerifyItemExistsAsync(markup, "Goo(int x)");
+            await VerifyItemExistsAsync(markup, "Prop");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExplicitInterfaceMember_03()
+        {
+            var markup = @"
+interface IGoo
+{
+    virtual void Goo() {}
+    virtual void Goo(int x) {}
+    virtual int Prop { get => 0; }
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            await VerifyItemExistsAsync(markup, "Goo()");
+            await VerifyItemExistsAsync(markup, "Goo(int x)");
+            await VerifyItemExistsAsync(markup, "Prop");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExplicitInterfaceMember_04()
+        {
+            var markup = @"
+interface IGoo
+{
+    virtual void Goo() {}
+    virtual void Goo(int x) {}
+    virtual int Prop { get => 0; }
+}
+
+interface IBar : IGoo
 {
      void IGoo.$$
 }";
@@ -156,6 +221,192 @@ class Bar : I1
             await VerifyItemExistsAsync(markup, "Foo()");
             await VerifyItemExistsAsync(markup, "Prop");
             await VerifyItemExistsAsync(markup, "TestEvent");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotStaticMember_01()
+        {
+            var markup = @"
+interface IGoo
+{
+    static void Goo() {}
+    static int Prop { get => 0; }
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "Goo()");
+            await VerifyItemIsAbsentAsync(markup, "Prop");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotStaticMember_02()
+        {
+            var markup = @"
+interface IGoo
+{
+    static void Goo() {}
+    static int Prop { get => 0; }
+}
+
+interface IBar : IGoo
+{
+     void IGoo.$$
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "Goo()");
+            await VerifyItemIsAbsentAsync(markup, "Prop");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotSealedMember_01()
+        {
+            var markup = @"
+interface IGoo
+{
+    sealed void Goo() {}
+    sealed int Prop { get => 0; }
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "Goo()");
+            await VerifyItemIsAbsentAsync(markup, "Prop");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotSealedMember_02()
+        {
+            var markup = @"
+interface IGoo
+{
+    sealed void Goo() {}
+    sealed int Prop { get => 0; }
+}
+
+interface IBar : IGoo
+{
+     void IGoo.$$
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "Goo()");
+            await VerifyItemIsAbsentAsync(markup, "Prop");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotNestedType_01()
+        {
+            var markup = @"
+interface IGoo
+{
+    public abstract class Goo
+    {
+    }
+}
+
+class Bar : IGoo
+{
+     void IGoo.$$
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "Goo");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotNestedType_02()
+        {
+            var markup = @"
+interface IGoo
+{
+    public abstract class Goo
+    {
+    }
+}
+
+interface IBar : IGoo
+{
+     void IGoo.$$
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "Goo");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(34456, "https://github.com/dotnet/roslyn/issues/34456")]
+        public async Task NotInaccessibleMember_01()
+        {
+            var markup =
+@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <ProjectReference>Assembly2</ProjectReference>
+        <Document FilePath=""Test1.cs"">
+<![CDATA[
+class Bar : IGoo
+{
+     void IGoo.$$
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" LanguageVersion=""Preview"">
+        <Document FilePath=""Test2.cs"">
+public interface IGoo
+{
+    internal void Goo1() {}
+    internal int Prop1 { get => 0; }
+    protected void Goo2() {}
+    protected int Prop2 { get => 0; }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await VerifyItemIsAbsentAsync(markup, "Goo1()");
+            await VerifyItemIsAbsentAsync(markup, "Prop1");
+            await VerifyItemExistsAsync(markup, "Goo2()");
+            await VerifyItemExistsAsync(markup, "Prop2");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(34456, "https://github.com/dotnet/roslyn/issues/34456")]
+        public async Task NotInaccessibleMember_02()
+        {
+            var markup =
+@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <ProjectReference>Assembly2</ProjectReference>
+        <Document FilePath=""Test1.cs"">
+<![CDATA[
+interface IBar : IGoo
+{
+     void IGoo.$$
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" LanguageVersion=""Preview"">
+        <Document FilePath=""Test2.cs"">
+public interface IGoo
+{
+    internal void Goo1() {}
+    internal int Prop1 { get => 0; }
+    protected void Goo2() {}
+    protected int Prop2 { get => 0; }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await VerifyItemIsAbsentAsync(markup, "Goo1()");
+            await VerifyItemIsAbsentAsync(markup, "Prop1");
+            await VerifyItemExistsAsync(markup, "Goo2()");
+            await VerifyItemExistsAsync(markup, "Prop2");
         }
     }
 }

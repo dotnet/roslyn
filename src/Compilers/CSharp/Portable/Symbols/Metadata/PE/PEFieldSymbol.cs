@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +14,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -21,6 +22,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEFieldSymbol : FieldSymbol
     {
+        private struct PackedFlags
+        {
+            // Layout:
+            // |..............................|vvvvv|
+            //
+            // f = FlowAnalysisAnnotations. 5 bits (4 value bits + 1 completion bit).
+
+            private const int HasDisallowNullAttribute = 0x1 << 0;
+            private const int HasAllowNullAttribute = 0x1 << 1;
+            private const int HasMaybeNullAttribute = 0x1 << 2;
+            private const int HasNotNullAttribute = 0x1 << 3;
+            private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 4;
+
+            private int _bits;
+
+            public bool SetFlowAnalysisAnnotations(FlowAnalysisAnnotations value)
+            {
+                Debug.Assert((value & ~(FlowAnalysisAnnotations.DisallowNull | FlowAnalysisAnnotations.AllowNull | FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.NotNull)) == 0);
+
+                int bitsToSet = FlowAnalysisAnnotationsCompletionBit;
+                if ((value & FlowAnalysisAnnotations.DisallowNull) != 0) bitsToSet |= PackedFlags.HasDisallowNullAttribute;
+                if ((value & FlowAnalysisAnnotations.AllowNull) != 0) bitsToSet |= PackedFlags.HasAllowNullAttribute;
+                if ((value & FlowAnalysisAnnotations.MaybeNull) != 0) bitsToSet |= PackedFlags.HasMaybeNullAttribute;
+                if ((value & FlowAnalysisAnnotations.NotNull) != 0) bitsToSet |= PackedFlags.HasNotNullAttribute;
+
+                return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
+
+            public bool TryGetFlowAnalysisAnnotations(out FlowAnalysisAnnotations value)
+            {
+                int theBits = _bits; // Read this.bits once to ensure the consistency of the value and completion flags.
+                value = FlowAnalysisAnnotations.None;
+                if ((theBits & PackedFlags.HasDisallowNullAttribute) != 0) value |= FlowAnalysisAnnotations.DisallowNull;
+                if ((theBits & PackedFlags.HasAllowNullAttribute) != 0) value |= FlowAnalysisAnnotations.AllowNull;
+                if ((theBits & PackedFlags.HasMaybeNullAttribute) != 0) value |= FlowAnalysisAnnotations.MaybeNull;
+                if ((theBits & PackedFlags.HasNotNullAttribute) != 0) value |= FlowAnalysisAnnotations.NotNull;
+
+                var result = (theBits & FlowAnalysisAnnotationsCompletionBit) != 0;
+                Debug.Assert(value == 0 || result);
+                return result;
+            }
+        }
+
         private readonly FieldDefinitionHandle _handle;
         private readonly string _name;
         private readonly FieldAttributes _flags;
@@ -33,10 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
-        private TypeSymbolWithAnnotations.Builder _lazyType;
+        private TypeWithAnnotations.Boxed _lazyType;
         private int _lazyFixedSize;
         private NamedTypeSymbol _lazyFixedImplementationType;
         private PEEventSymbol _associatedEventOpt;
+        private PackedFlags _packedFlags;
 
         internal PEFieldSymbol(
             PEModuleSymbol moduleSymbol,
@@ -49,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             _handle = fieldDef;
             _containingType = containingType;
+            _packedFlags = new PackedFlags();
 
             try
             {
@@ -188,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal void SetAssociatedEvent(PEEventSymbol eventSymbol)
         {
             Debug.Assert((object)eventSymbol != null);
-            Debug.Assert(eventSymbol.ContainingType == _containingType);
+            Debug.Assert(TypeSymbol.Equals(eventSymbol.ContainingType, _containingType, TypeCompareKind.ConsiderEverything2));
 
             // This should always be true in valid metadata - there should only
             // be one event with a given name in a given type.
@@ -203,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private void EnsureSignatureIsLoaded()
         {
-            if (_lazyType.IsNull)
+            if (_lazyType == null)
             {
                 var moduleSymbol = _containingType.ContainingPEModule;
                 bool isVolatile;
@@ -214,11 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 typeSymbol = DynamicTypeDecoder.TransformType(typeSymbol, customModifiersArray.Length, _handle, moduleSymbol);
 
                 // We start without annotations
-                var type = TypeSymbolWithAnnotations.Create(typeSymbol, customModifiers: customModifiersArray);
+                var type = TypeWithAnnotations.Create(typeSymbol, customModifiers: customModifiersArray);
 
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-                type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol);
+                type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol, accessSymbol: this, nullableContext: _containingType);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol);
 
                 _lazyIsVolatile = isVolatile;
@@ -228,11 +274,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (customModifiersArray.IsEmpty && IsFixedBuffer(out fixedSize, out fixedElementType))
                 {
                     _lazyFixedSize = fixedSize;
-                    _lazyFixedImplementationType = type.TypeSymbol as NamedTypeSymbol;
-                    type = TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(fixedElementType)));
+                    _lazyFixedImplementationType = type.Type as NamedTypeSymbol;
+                    type = TypeWithAnnotations.Create(new PointerTypeSymbol(TypeWithAnnotations.Create(fixedElementType)));
                 }
 
-                _lazyType.InterlockedInitialize(type);
+                Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
             }
         }
 
@@ -267,10 +313,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             EnsureSignatureIsLoaded();
-            return _lazyType.ToType();
+            return _lazyType.Value;
+        }
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get
+            {
+                FlowAnalysisAnnotations value;
+                if (!_packedFlags.TryGetFlowAnalysisAnnotations(out value))
+                {
+                    value = DecodeFlowAnalysisAttributes(_containingType.ContainingPEModule.Module, _handle);
+                    _packedFlags.SetFlowAnalysisAnnotations(value);
+                }
+                return value;
+            }
+        }
+
+        private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(PEModule module, FieldDefinitionHandle handle)
+        {
+            FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None;
+            if (module.HasAttribute(handle, AttributeDescription.AllowNullAttribute)) annotations |= FlowAnalysisAnnotations.AllowNull;
+            if (module.HasAttribute(handle, AttributeDescription.DisallowNullAttribute)) annotations |= FlowAnalysisAnnotations.DisallowNull;
+            if (module.HasAttribute(handle, AttributeDescription.MaybeNullAttribute)) annotations |= FlowAnalysisAnnotations.MaybeNull;
+            if (module.HasAttribute(handle, AttributeDescription.NotNullAttribute)) annotations |= FlowAnalysisAnnotations.NotNull;
+            return annotations;
         }
 
         public override bool IsFixedSizeBuffer
@@ -505,14 +575,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
         }
     }
 }

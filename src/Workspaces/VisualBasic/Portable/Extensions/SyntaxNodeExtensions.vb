@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
@@ -138,6 +140,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return ifBlock.Statements
             End If
 
+            Dim elseIfBlock = TryCast(node, ElseIfBlockSyntax)
+            If elseIfBlock IsNot Nothing Then
+                Return elseIfBlock.Statements
+            End If
+
             Dim elseBlock = TryCast(node, ElseBlockSyntax)
             If elseBlock IsNot Nothing Then
                 Return elseBlock.Statements
@@ -230,13 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function SpansPreprocessorDirective(Of TSyntaxNode As SyntaxNode)(list As IEnumerable(Of TSyntaxNode)) As Boolean
-            If list Is Nothing OrElse Not list.Any() Then
-                Return False
-            End If
-
-            Dim tokens = list.SelectMany(Function(n) n.DescendantTokens())
-
-            Return tokens.SpansPreprocessorDirective()
+            Return VisualBasicSyntaxFactsService.Instance.SpansPreprocessorDirective(list)
         End Function
 
         <Extension()>
@@ -471,6 +472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                          SyntaxKind.SingleLineElseClause,
                          SyntaxKind.SingleLineSubLambdaExpression,
                          SyntaxKind.MultiLineIfBlock,
+                         SyntaxKind.ElseIfBlock,
                          SyntaxKind.ElseBlock,
                          SyntaxKind.TryBlock,
                          SyntaxKind.CatchBlock,
@@ -540,6 +542,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         Return SyntaxFactory.SingletonList(DirectCast(DirectCast(node, SingleLineLambdaExpressionSyntax).Body, StatementSyntax))
                     Case SyntaxKind.MultiLineIfBlock
                         Return DirectCast(node, MultiLineIfBlockSyntax).Statements
+                    Case SyntaxKind.ElseIfBlock
+                        Return DirectCast(node, ElseIfBlockSyntax).Statements
                     Case SyntaxKind.ElseBlock
                         Return DirectCast(node, ElseBlockSyntax).Statements
                     Case SyntaxKind.TryBlock
@@ -606,6 +610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Function(x As SingleLineElseClauseSyntax) x.WithStatements(statements),
                 Function(x As SingleLineLambdaExpressionSyntax) ReplaceSingleLineLambdaExpressionStatements(x, statements, annotations),
                 Function(x As MultiLineIfBlockSyntax) x.WithStatements(statements),
+                Function(x As ElseIfBlockSyntax) x.WithStatements(statements),
                 Function(x As ElseBlockSyntax) x.WithStatements(statements),
                 Function(x As TryBlockSyntax) x.WithStatements(statements),
                 Function(x As CatchBlockSyntax) x.WithStatements(statements),
@@ -794,9 +799,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension>
-        Public Function IsLeftSideOfAnyAssignStatement(node As SyntaxNode) As Boolean
+        Public Function IsLeftSideOfSimpleAssignmentStatement(node As SyntaxNode) As Boolean
             Return node.IsParentKind(SyntaxKind.SimpleAssignmentStatement) AndAlso
                 DirectCast(node.Parent, AssignmentStatementSyntax).Left Is node
+        End Function
+
+        <Extension>
+        Public Function IsLeftSideOfAnyAssignmentStatement(node As SyntaxNode) As Boolean
+            Return node IsNot Nothing AndAlso
+                node.Parent.IsAnyAssignmentStatement() AndAlso
+                DirectCast(node.Parent, AssignmentStatementSyntax).Left Is node
+        End Function
+
+        <Extension>
+        Public Function IsAnyAssignmentStatement(node As SyntaxNode) As Boolean
+            Return node IsNot Nothing AndAlso
+                SyntaxFacts.IsAssignmentStatement(node.Kind)
+        End Function
+
+        <Extension>
+        Public Function IsLeftSideOfCompoundAssignmentStatement(node As SyntaxNode) As Boolean
+            Return node IsNot Nothing AndAlso
+                node.Parent.IsCompoundAssignmentStatement() AndAlso
+                DirectCast(node.Parent, AssignmentStatementSyntax).Left Is node
+        End Function
+
+        <Extension>
+        Public Function IsCompoundAssignmentStatement(node As SyntaxNode) As Boolean
+            If node IsNot Nothing Then
+                Select Case node.Kind
+                    Case SyntaxKind.AddAssignmentStatement,
+                         SyntaxKind.SubtractAssignmentStatement,
+                         SyntaxKind.MultiplyAssignmentStatement,
+                         SyntaxKind.DivideAssignmentStatement,
+                         SyntaxKind.IntegerDivideAssignmentStatement,
+                         SyntaxKind.ExponentiateAssignmentStatement,
+                         SyntaxKind.LeftShiftAssignmentStatement,
+                         SyntaxKind.RightShiftAssignmentStatement,
+                         SyntaxKind.ConcatenateAssignmentStatement
+                        Return True
+                End Select
+            End If
+
+            Return False
         End Function
 
         <Extension>

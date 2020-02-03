@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -11,15 +13,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         Cci.ITypeReference Cci.IPointerTypeReference.GetTargetType(EmitContext context)
         {
-            var type = ((PEModuleBuilder)context.Module).Translate(this.PointedAtType.TypeSymbol, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            var type = ((PEModuleBuilder)context.Module).Translate(this.PointedAtType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
 
-            if (this.PointedAtType.CustomModifiers.Length == 0)
+            if (this.PointedAtTypeWithAnnotations.CustomModifiers.Length == 0)
             {
                 return type;
             }
             else
             {
-                return new Cci.ModifiedTypeReference(type, this.PointedAtType.CustomModifiers.As<Cci.ICustomModifier>());
+                return new Cci.ModifiedTypeReference(type, this.PointedAtTypeWithAnnotations.CustomModifiers.As<Cci.ICustomModifier>());
             }
         }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -563,7 +565,7 @@ class Program
 }";
             var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
-            var comp2 = CompileAndVerify(s2,
+            var comp2 = (CSharpCompilation)CompileAndVerify(s2,
                 options: TestOptions.UnsafeReleaseExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 expectedOutput: "12", verify: Verification.Fails).Compilation;
@@ -571,7 +573,7 @@ class Program
             var f = (FieldSymbol)comp2.GlobalNamespace.GetTypeMembers("S")[0].GetMembers("x")[0];
             Assert.Equal("x", f.Name);
             Assert.True(f.IsFixedSizeBuffer);
-            Assert.Equal("int*", f.Type.ToString());
+            Assert.Equal("int*", f.TypeWithAnnotations.ToString());
             Assert.Equal(10, f.FixedSize);
         }
 
@@ -970,7 +972,7 @@ public unsafe struct Test
     " + (layout == LayoutKind.Explicit ? "[FieldOffset(0)]" : "") + @"public fixed UInt32 Field[ 16 ];
 }
 ";
-                    CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes, 
+                    CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes,
                         symbolValidator: (m) =>
                         {
                             var test = m.GlobalNamespace.GetTypeMember("Test");

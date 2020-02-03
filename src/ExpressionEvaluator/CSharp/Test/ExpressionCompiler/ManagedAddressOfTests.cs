@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Null(error);
 
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                AssertIsIntPtrPointer(methodData.Method.ReturnType);
+                AssertIsIntPtrPointer(((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        4 (0x4)
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Null(error);
 
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                AssertIsIntPtrPointer(methodData.Method.ReturnType);
+                AssertIsIntPtrPointer(((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        4 (0x4)
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Null(error);
 
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                AssertIsIntPtrPointer(methodData.Method.ReturnType);
+                AssertIsIntPtrPointer(((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        8 (0x8)
@@ -141,10 +143,6 @@ enum E
 {
     A
 }
-
-struct Generic<T>
-{
-}
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
@@ -158,7 +156,6 @@ struct Generic<T>
                     "I", // interface
                     "T", // type parameter
                     "int[]",
-                    "Generic<int>",
                     "dynamic",
                 };
 
@@ -244,7 +241,7 @@ struct Generic<T>
             });
         }
 
-        private static void AssertIsIntPtrPointer(ITypeSymbol returnType)
+        private static void AssertIsIntPtrPointer(TypeSymbol returnType)
         {
             Assert.Equal(TypeKind.Pointer, returnType.TypeKind);
             Assert.Equal(SpecialType.System_IntPtr, ((PointerTypeSymbol)returnType).PointedAtType.SpecialType);

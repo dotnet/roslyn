@@ -1,8 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -26,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             this.TreeInfo = treeInfo;
             this.OptionSet = optionSet;
 
-            for (int i = 0; i < SpaceCacheSize; i++)
+            for (var i = 0; i < SpaceCacheSize; i++)
             {
                 _spaces[i] = new Whitespace(this.OptionSet, space: i, elastic: false, language: treeInfo.Root.Language);
             }
@@ -69,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (canUseCache)
             {
-                int indentationLevel = indentation / this.OptionSet.GetOption(FormattingOptions.IndentationSize, this.TreeInfo.Root.Language);
+                var indentationLevel = indentation / this.OptionSet.GetOption(FormattingOptions.IndentationSize, this.TreeInfo.Root.Language);
                 if (indentationLevel < IndentationLevelCacheSize)
                 {
                     var lineIndex = lineBreaks - 1;

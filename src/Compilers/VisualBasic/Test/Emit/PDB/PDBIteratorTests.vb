@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Reflection.Metadata
@@ -108,7 +110,7 @@ End Module
             compilation.VerifyPdb("Program+_Closure$__+VB$StateMachine___Lambda$__0-0.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>
@@ -334,7 +336,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_Lambda_NotHoisted.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_NotHoisted" name="MoveNext">
@@ -442,7 +444,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted" name="MoveNext">
@@ -502,7 +504,7 @@ End Module
             compilation.VerifyPdb("Module1+VB$StateMachine_1_Goo.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static bool IsRefOrOut(this IParameterSymbol symbol)
         {
-            switch(symbol.RefKind)
+            switch (symbol.RefKind)
             {
                 case RefKind.Ref:
                 case RefKind.Out:
@@ -36,10 +40,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         parameter.HasExplicitDefaultValue ? parameter.ExplicitDefaultValue : null);
         }
 
-        public static ImmutableArray<IParameterSymbol> RenameParameters(this IList<IParameterSymbol> parameters, IList<string> parameterNames)
+        public static IParameterSymbol WithAttributes(this IParameterSymbol parameter, ImmutableArray<AttributeData> attributes)
+        {
+            return parameter.GetAttributes() == attributes
+                ? parameter
+                : CodeGenerationSymbolFactory.CreateParameterSymbol(
+                        attributes,
+                        parameter.RefKind,
+                        parameter.IsParams,
+                        parameter.Type,
+                        parameter.Name,
+                        parameter.IsOptional,
+                        parameter.HasExplicitDefaultValue,
+                        parameter.HasExplicitDefaultValue ? parameter.ExplicitDefaultValue : null);
+        }
+
+        public static ImmutableArray<IParameterSymbol> RenameParameters(this IList<IParameterSymbol> parameters, ImmutableArray<string> parameterNames)
         {
             var result = ArrayBuilder<IParameterSymbol>.GetInstance();
-            for (var i = 0; i < parameterNames.Count; i++)
+            for (var i = 0; i < parameterNames.Length; i++)
             {
                 result.Add(parameters[i].RenameParameter(parameterNames[i]));
             }

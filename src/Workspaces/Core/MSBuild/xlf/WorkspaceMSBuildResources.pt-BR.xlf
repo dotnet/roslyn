@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Found_project_reference_without_a_matching_metadata_reference_0">
         <source>Found project reference without a matching metadata reference: {0}</source>
-        <target state="new">Found project reference without a matching metadata reference: {0}</target>
+        <target state="translated">Referência de projeto encontrada sem uma referência de metadados correspondentes: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Unresolved_metadata_reference_removed_from_project_0">
         <source>Unresolved metadata reference removed from project: {0}</source>
-        <target state="new">Unresolved metadata reference removed from project: {0}</target>
+        <target state="translated">Referência de metadados não resolvidos removida do projeto: {0}</target>
         <note />
       </trans-unit>
     </body>

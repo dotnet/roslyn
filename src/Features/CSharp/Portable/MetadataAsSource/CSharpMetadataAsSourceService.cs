@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
@@ -16,7 +17,6 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -24,18 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 {
     internal class CSharpMetadataAsSourceService : AbstractMetadataAsSourceService
     {
-        private static readonly IFormattingRule s_memberSeparationRule = new FormattingRule();
+        private static readonly AbstractFormattingRule s_memberSeparationRule = new FormattingRule();
 
         public CSharpMetadataAsSourceService(HostLanguageServices languageServices)
             : base(languageServices.GetService<ICodeGenerationService>())
         {
         }
 
-        protected override async Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
+        protected override async Task<Document> AddAssemblyInfoRegionAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
-            string assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly);
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            string assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(compilation, symbol.ContainingAssembly);
+            var assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly);
+            var assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(symbolCompilation, symbol.ContainingAssembly);
 
             var regionTrivia = SyntaxFactory.RegionDirectiveTrivia(true)
                 .WithTrailingTrivia(new[] { SyntaxFactory.Space, SyntaxFactory.PreprocessingMessage(assemblyInfo) });
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             return document.WithSyntaxRoot(newRoot);
         }
 
-        protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
+        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
             return s_memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document));
         }
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 new CSharpParenthesesReducer(),
                 new CSharpDefaultExpressionReducer());
 
-        private class FormattingRule : AbstractFormattingRule
+        private class FormattingRule : AbstractMetadataFormattingRule
         {
             protected override AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2)
             {
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines);
             }
 
-            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AnchorIndentationOperation> nextOperation)
+            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, in NextAnchorIndentationOperationAction nextOperation)
             {
                 return;
             }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
@@ -7,11 +9,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class SpacingFormattingRule : BaseFormattingRule
     {
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustSpacesOperation nextOperation)
         {
             if (optionSet == null)
             {
@@ -38,7 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Case: public static implicit operator string(Program p) { return null; }
-            if (previousToken.IsKeyword() && currentToken.IsOpenParenInParameterListOfAConversionOperatorDeclaration())
+            // Case: public static implicit operator int?(Program p) { return null; }
+            // Case: public static implicit operator int*(Program p) { return null; }
+            // Case: public static implicit operator int[](Program p) { return null; }
+            // Case: public static implicit operator (int, int)(Program p) { return null; }
+            // Case: public static implicit operator Action<int>(Program p) { return null; }
+            if ((previousToken.IsKeyword() || previousToken.IsKind(SyntaxKind.QuestionToken, SyntaxKind.AsteriskToken, SyntaxKind.CloseBracketToken, SyntaxKind.CloseParenToken, SyntaxKind.GreaterThanToken))
+                && currentToken.IsOpenParenInParameterListOfAConversionOperatorDeclaration())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
             }
@@ -65,22 +77,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For Method Call
-            if (currentToken.IsOpenParenInArgumentList())
+            //   MethodName ( args )
+            // Or Positional Pattern
+            //   x is TypeName ( args )
+            if (currentToken.IsOpenParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceAfterMethodCallName);
             }
 
-            if (previousToken.IsOpenParenInArgumentList() && currentToken.IsCloseParenInArgumentList())
+            if (previousToken.IsOpenParenInArgumentListOrPositionalPattern() && currentToken.IsCloseParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses);
             }
 
-            if (previousToken.IsOpenParenInArgumentList())
+            if (previousToken.IsOpenParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }
 
-            if (currentToken.IsCloseParenInArgumentList())
+            if (currentToken.IsCloseParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }
@@ -105,7 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentKind == SyntaxKind.OpenParenToken &&
                 (previousKind == SyntaxKind.IfKeyword || previousKind == SyntaxKind.WhileKeyword || previousKind == SyntaxKind.SwitchKeyword ||
                 previousKind == SyntaxKind.ForKeyword || previousKind == SyntaxKind.ForEachKeyword || previousKind == SyntaxKind.CatchKeyword ||
-                previousKind == SyntaxKind.UsingKeyword || previousKind == SyntaxKind.WhenKeyword || previousKind == SyntaxKind.LockKeyword))
+                previousKind == SyntaxKind.UsingKeyword || previousKind == SyntaxKind.WhenKeyword || previousKind == SyntaxKind.LockKeyword ||
+                previousKind == SyntaxKind.FixedKeyword))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceAfterControlFlowStatementKeyword);
             }
@@ -326,21 +342,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Index expressions
-            if (previousKind == SyntaxKind.CaretToken && previousParentKind == SyntaxKindEx.IndexExpression)
+            if (previousKind == SyntaxKind.CaretToken && previousParentKind == SyntaxKind.IndexExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }
 
             // Right of Range expressions
-            if (previousKind == SyntaxKindEx.DotDotToken && previousParentKind == SyntaxKindEx.RangeExpression)
+            if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.RangeExpression)
             {
-#if !CODE_STYLE
                 var rangeExpression = (RangeExpressionSyntax)previousToken.Parent;
                 var hasRightOperand = rangeExpression.RightOperand != null;
-#else
-                var childSyntax = previousToken.Parent.ChildNodesAndTokens();
-                var hasRightOperand = childSyntax.Count > 1 && childSyntax[childSyntax.Count - 2].IsKind(SyntaxKindEx.DotDotToken);
-#endif
                 if (hasRightOperand)
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
@@ -348,15 +359,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Left of Range expressions
-            if (currentKind == SyntaxKindEx.DotDotToken && currentParentKind == SyntaxKindEx.RangeExpression)
+            if (currentKind == SyntaxKind.DotDotToken && currentParentKind == SyntaxKind.RangeExpression)
             {
-#if !CODE_STYLE
                 var rangeExpression = (RangeExpressionSyntax)currentToken.Parent;
                 var hasLeftOperand = rangeExpression.LeftOperand != null;
-#else
-                var childSyntax = currentToken.Parent.ChildNodesAndTokens();
-                var hasLeftOperand = childSyntax.Count > 1 && childSyntax[1].IsKind(SyntaxKindEx.DotDotToken);
-#endif
                 if (hasLeftOperand)
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
@@ -366,9 +372,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke();
         }
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
             SuppressVariableDeclaration(list, node, optionSet);
         }
@@ -382,7 +388,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private void SuppressVariableDeclaration(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet)
         {
             if (node.IsKind(SyntaxKind.FieldDeclaration) || node.IsKind(SyntaxKind.EventDeclaration) ||
-                node.IsKind(SyntaxKind.EventFieldDeclaration) || node.IsKind(SyntaxKind.LocalDeclarationStatement))
+                node.IsKind(SyntaxKind.EventFieldDeclaration) || node.IsKind(SyntaxKind.LocalDeclarationStatement) ||
+                node.IsKind(SyntaxKind.EnumMemberDeclaration))
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration))
                 {

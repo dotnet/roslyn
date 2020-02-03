@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -37,30 +39,10 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var textSpan = context.Span;
-            if (!textSpan.IsEmpty)
-            {
-                return;
-            }
+            var (document, _, cancellationToken) = context;
 
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(textSpan.Start);
-
-            var ifNode = token.GetAncestor<TIfStatementSyntax>();
+            var ifNode = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
             if (ifNode == null)
-            {
-                return;
-            }
-
-            if (ifNode.OverlapsHiddenPosition(cancellationToken))
-            {
-                return;
-            }
-
-            var headerSpan = GetHeaderSpan(ifNode);
-            if (!headerSpan.IntersectsWith(textSpan))
             {
                 return;
             }
@@ -70,8 +52,10 @@ namespace Microsoft.CodeAnalysis.InvertIf
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(GetTitle(),
-                c => InvertIfAsync(root, document, ifNode, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(GetTitle(),
+                    c => InvertIfAsync(document, ifNode, c)),
+                ifNode.Span);
         }
 
         private InvertIfStyle GetInvertIfStyle(
@@ -260,11 +244,11 @@ namespace Microsoft.CodeAnalysis.InvertIf
         }
 
         private async Task<Document> InvertIfAsync(
-            SyntaxNode root,
             Document document,
             TIfStatementSyntax ifNode,
             CancellationToken cancellationToken)
         {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var invertIfStyle = GetInvertIfStyle(ifNode, semanticModel, out var subsequentSingleExitPointOpt);
@@ -417,7 +401,6 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
         protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
         protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
-        protected abstract TextSpan GetHeaderSpan(TIfStatementSyntax ifNode);
 
         protected abstract IEnumerable<TStatementSyntax> UnwrapBlock(TEmbeddedStatement ifBody);
         protected abstract TEmbeddedStatement GetIfBody(TIfStatementSyntax ifNode);
@@ -530,7 +513,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
                             currentParent,
                             statementsBeforeIf.Concat(updatedIf).Concat(UnwrapBlock(ifBody)));
 
-                        return root.ReplaceNode(currentParent, updatedParent .WithAdditionalAnnotations(Formatter.Annotation));
+                        return root.ReplaceNode(currentParent, updatedParent.WithAdditionalAnnotations(Formatter.Annotation));
                     }
 
                 case InvertIfStyle.IfWithoutElse_WithSubsequentExitPointStatement:

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -170,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <exception cref="BadImageFormatException">Module metadata is invalid.</exception>
         /// <exception cref="ObjectDisposedException">Module has been disposed.</exception>
         public static EmitBaseline CreateInitialBaseline(
-            ModuleMetadata module, 
+            ModuleMetadata module,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
             bool hasPortableDebugInformation)
@@ -215,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 userStringStreamLengthAdded: 0,
                 guidStreamLengthAdded: 0,
                 anonymousTypeMap: null, // Unset for initial metadata
-                synthesizedMembers: ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>.Empty,
+                synthesizedMembers: ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
                 methodsAddedOrChanged: new Dictionary<int, AddedOrChangedMethodInfo>(),
                 debugInformationProvider: debugInformationProvider,
                 localSignatureProvider: localSignatureProvider,
@@ -295,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<int, int> TypeToPropertyMap;
         internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImpls;
         private readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> _anonymousTypeMap;
-        internal readonly ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> SynthesizedMembers;
+        internal readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> SynthesizedMembers;
 
         private EmitBaseline(
             EmitBaseline initialBaseline,
@@ -320,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int userStringStreamLengthAdded,
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
-            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> synthesizedMembers,
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> methodsAddedOrChanged,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
@@ -409,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int userStringStreamLengthAdded,
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
-            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> synthesizedMembers,
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> addedOrChangedMethods,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider)

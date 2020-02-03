@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
@@ -16,17 +20,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         protected CSharpTypeStyleDiagnosticAnalyzerBase(
             string diagnosticId, LocalizableString title, LocalizableString message)
-            : base(diagnosticId, title, message)
+            : base(diagnosticId,
+                   ImmutableHashSet.Create<ILanguageSpecificOption>(CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpCodeStyleOptions.VarElsewhere),
+                   LanguageNames.CSharp,
+                   title, message)
         {
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public override bool OpenFileOnly(Workspace workspace)
+        public override bool OpenFileOnly(OptionSet options)
         {
-            var forIntrinsicTypesOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Notification;
-            var whereApparentOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Notification;
-            var wherePossibleOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Notification;
+            var forIntrinsicTypesOption = options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Notification;
+            var whereApparentOption = options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent).Notification;
+            var wherePossibleOption = options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Notification;
 
             return !(forIntrinsicTypesOption == NotificationOption.Warning || forIntrinsicTypesOption == NotificationOption.Error ||
                      whereApparentOption == NotificationOption.Warning || whereApparentOption == NotificationOption.Error ||
@@ -68,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Severity));
         }
 
-        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity) 
+        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity)
             => DiagnosticHelper.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), severity, additionalLocations: null, properties: null);
     }
 }

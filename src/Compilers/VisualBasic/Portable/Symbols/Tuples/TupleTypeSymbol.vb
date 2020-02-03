@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -972,7 +974,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim otherUnderlying = otherTuple.TupleUnderlyingType
-            If (Me.TupleUnderlyingType <> otherUnderlying) Then
+            If (Not TypeSymbol.Equals(Me.TupleUnderlyingType, otherUnderlying, TypeCompareKind.ConsiderEverything)) Then
                 Return False
             End If
 
@@ -1064,11 +1066,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New TypeWithModifiers(tupleType, Nothing)
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
             Return Me._underlyingType.MakeDeclaredBase(basesBeingResolved, diagnostics)
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return Me._underlyingType.MakeDeclaredInterfaces(basesBeingResolved, diagnostics)
         End Function
 

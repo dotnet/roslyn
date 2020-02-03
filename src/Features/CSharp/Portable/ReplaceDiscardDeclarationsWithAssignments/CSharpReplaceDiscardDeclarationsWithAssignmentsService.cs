@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
@@ -22,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
     [ExportLanguageService(typeof(IReplaceDiscardDeclarationsWithAssignmentsService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : IReplaceDiscardDeclarationsWithAssignmentsService
     {
+        [ImportingConstructor]
+        public CSharpReplaceDiscardDeclarationsWithAssignmentsService()
+        {
+        }
+
         public Task<SyntaxNode> ReplaceAsync(SyntaxNode memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var editor = new SyntaxEditor(memberDeclaration, CSharpSyntaxGenerator.Instance);
@@ -119,10 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
                 LocalDeclarationStatementSyntax localDeclarationStatement,
                 SyntaxEditor editor)
             {
-                using (var helper = new RemoveDiscardHelper(localDeclarationStatement, editor))
-                {
-                    helper.ProcessDeclarationStatement();
-                }
+                using var helper = new RemoveDiscardHelper(localDeclarationStatement, editor);
+                helper.ProcessDeclarationStatement();
             }
 
             public void Dispose() => _statementsBuilder.Free();

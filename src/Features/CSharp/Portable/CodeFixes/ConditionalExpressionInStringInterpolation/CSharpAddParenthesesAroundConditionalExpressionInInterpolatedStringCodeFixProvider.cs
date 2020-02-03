@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -19,11 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
     {
         private const string CS8361 = nameof(CS8361); //A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation.Parenthesize the conditional expression.
 
+        [ImportingConstructor]
+        public CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStringCodeFixProvider()
+        {
+        }
+
         // CS8361 is a syntax error and it is unlikely that there is more than one CS8361 at a time.
         public override FixAllProvider GetFixAllProvider() => null;
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS8361);
-        
+
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);

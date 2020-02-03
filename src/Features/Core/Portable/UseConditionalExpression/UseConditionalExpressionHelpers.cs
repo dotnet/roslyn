@@ -1,17 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
@@ -20,12 +13,24 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public static readonly SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
 
         public static bool CanConvert(
-            ISyntaxFactsService syntaxFacts, IConditionalOperation ifOperation, 
+            ISyntaxFactsService syntaxFacts, IConditionalOperation ifOperation,
             IOperation whenTrue, IOperation whenFalse)
         {
-            // Will likely screw things up if the if directive spans any preprocessor directives.
-            // So do not offer for now.
-            if (syntaxFacts.SpansPreprocessorDirective(ifOperation.Syntax))
+            // Will likely screw things up if the if directive spans any preprocessor directives. So
+            // do not offer for now.  Note: we pass in both the node for the ifOperation and the
+            // whenFalse portion.  The whenFalse portion isn't necessary under the ifOperation.  For
+            // example in:
+            //
+            //  ```c#
+            //  #if DEBUG
+            //  if (check)
+            //      return 3;
+            //  #endif  
+            //  return 2;
+            //  ```
+            //
+            // In this case, we want to see that this cross the `#endif`
+            if (syntaxFacts.SpansPreprocessorDirective(ifOperation.Syntax, whenFalse.Syntax))
             {
                 return false;
             }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -320,15 +322,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     if (errorText.Equals("version", StringComparison.Ordinal))
                     {
-                        Assembly assembly = typeof(CSharpCompiler).GetTypeInfo().Assembly;
-                        string version = CommonCompiler.GetAssemblyFileVersion(assembly);
+                        string version = CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
                         eod = this.AddError(eod, triviaOffset, triviaWidth, ErrorCode.ERR_CompilerAndLanguageVersion, version,
                             this.Options.SpecifiedLanguageVersion.ToDisplayString());
                     }
                     else
                     {
                         const string versionMarker = "version:";
-                        if (errorText.StartsWith(versionMarker, StringComparison.Ordinal) &&
+                        if (this.Options.LanguageVersion != LanguageVersion.Preview &&
+                            errorText.StartsWith(versionMarker, StringComparison.Ordinal) &&
                             LanguageVersionFacts.TryParse(errorText.Substring(versionMarker.Length), out var languageVersion))
                         {
                             ErrorCode error = this.Options.LanguageVersion.GetErrorCode();
@@ -430,17 +432,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseNullableDirective(SyntaxToken hash, SyntaxToken token, bool isActive)
         {
-            token = CheckFeatureAvailability(token, MessageID.IDS_FeatureNullableReferenceTypes);
-            var setting = (this.CurrentToken.Kind == SyntaxKind.EnableKeyword || this.CurrentToken.Kind == SyntaxKind.DisableKeyword) ?
-                EatToken() :
-                EatToken(SyntaxKind.DisableKeyword, ErrorCode.ERR_NullableDirectiveQualifierExpected, reportError: isActive);
-            var end = this.ParseEndOfDirective(ignoreErrors: setting.IsMissing || !isActive);
-            return SyntaxFactory.NullableDirectiveTrivia(hash, token, setting, end, isActive);
+            if (isActive)
+            {
+                token = CheckFeatureAvailability(token, MessageID.IDS_FeatureNullableReferenceTypes);
+            }
+
+            SyntaxToken setting = this.CurrentToken.Kind switch
+            {
+                SyntaxKind.EnableKeyword => EatToken(),
+                SyntaxKind.DisableKeyword => EatToken(),
+                SyntaxKind.RestoreKeyword => EatToken(),
+                _ => EatToken(SyntaxKind.DisableKeyword, ErrorCode.ERR_NullableDirectiveQualifierExpected, reportError: isActive)
+            };
+
+            SyntaxToken target = this.CurrentToken.Kind switch
+            {
+                SyntaxKind.WarningsKeyword => EatToken(),
+                SyntaxKind.AnnotationsKeyword => EatToken(),
+                SyntaxKind.EndOfDirectiveToken => null,
+                SyntaxKind.EndOfFileToken => null,
+                _ => EatToken(SyntaxKind.WarningsKeyword, ErrorCode.ERR_NullableDirectiveTargetExpected, reportError: !setting.IsMissing && isActive)
+            };
+
+            var end = this.ParseEndOfDirective(ignoreErrors: setting.IsMissing || target?.IsMissing == true || !isActive);
+            return SyntaxFactory.NullableDirectiveTrivia(hash, token, setting, target, end, isActive);
         }
 
         private DirectiveTriviaSyntax ParsePragmaDirective(SyntaxToken hash, SyntaxToken pragma, bool isActive)
         {
-            pragma = CheckFeatureAvailability(pragma, MessageID.IDS_FeaturePragma);
+            if (isActive)
+            {
+                pragma = CheckFeatureAvailability(pragma, MessageID.IDS_FeaturePragma);
+            }
 
             bool hasError = false;
             if (this.CurrentToken.ContextualKind == SyntaxKind.WarningKeyword)
@@ -450,6 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.CurrentToken.Kind == SyntaxKind.DisableKeyword || this.CurrentToken.Kind == SyntaxKind.RestoreKeyword)
                 {
                     style = this.EatToken();
+
                     var ids = new SeparatedSyntaxListBuilder<ExpressionSyntax>(10);
                     while (this.CurrentToken.Kind != SyntaxKind.EndOfDirectiveToken)
                     {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var submissionResultType = (method as SynthesizedInteractiveInitializerMethod)?.ResultType;
                 if (!hasTrailingExpression && ((object)submissionResultType != null))
                 {
-                    Debug.Assert(submissionResultType.SpecialType != SpecialType.System_Void);
+                    Debug.Assert(!submissionResultType.IsVoidType());
 
                     var trailingExpression = new BoundDefaultExpression(method.GetNonNullSyntaxNode(), submissionResultType);
                     var newStatements = block.Statements.Add(new BoundReturnStatement(trailingExpression.Syntax, RefKind.None, trailingExpression));
@@ -111,8 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SyntaxNode syntax = body.Syntax;
 
-            Debug.Assert(body.WasCompilerGenerated || 
-                         syntax.IsKind(SyntaxKind.Block) || 
+            Debug.Assert(body.WasCompilerGenerated ||
+                         syntax.IsKind(SyntaxKind.Block) ||
                          syntax.IsKind(SyntaxKind.ArrowExpressionClause) ||
                          syntax.IsKind(SyntaxKind.ConstructorDeclaration));
 

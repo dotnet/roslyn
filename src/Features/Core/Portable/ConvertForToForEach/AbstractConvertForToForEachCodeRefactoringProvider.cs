@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -13,7 +15,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertForToForEach
@@ -34,7 +35,6 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
     {
         protected abstract string GetTitle();
 
-        protected abstract bool IsValidCursorPosition(TForStatementSyntax forStatement, int cursorPos);
         protected abstract SyntaxList<TStatementSyntax> GetBodyStatements(TForStatementSyntax forStatement);
         protected abstract bool IsValidVariableDeclarator(TVariableDeclaratorSyntax firstVariable);
 
@@ -50,33 +50,11 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(context.Span.Start);
-
-            var forStatement = token.Parent.GetAncestorOrThis<TForStatementSyntax>();
+            var (document, textSpan, cancellationToken) = context;
+            var forStatement = await context.TryGetRelevantNodeAsync<TForStatementSyntax>().ConfigureAwait(false);
             if (forStatement == null)
             {
                 return;
-            }
-
-            if (!context.Span.IsEmpty)
-            {
-                // if there is a selection, it must match the 'for' span exactly.
-                if (context.Span != forStatement.GetFirstToken().Span)
-                {
-                    return;
-                }
-            }
-            else
-            {
-                // if there's no selection, defer to the language to decide if it's in an ok location.
-                if (!IsValidCursorPosition(forStatement, context.Span.Start))
-                {
-                    return;
-                }
             }
 
             if (!TryGetForStatementComponents(forStatement,
@@ -110,8 +88,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             // NOTE: we could potentially update this if we saw that the variable was not used
             // after the for-loop.  But, for now, we'll just be conservative and assume this means
             // the user wanted the 'i' for some other purpose and we should keep things as is.
-            var operation = semanticModel.GetOperation(forStatement, cancellationToken) as ILoopOperation;
-            if (operation == null || operation.Locals.Length != 1)
+            if (!(semanticModel.GetOperation(forStatement, cancellationToken) is ILoopOperation operation) || operation.Locals.Length != 1)
             {
                 return;
             }
@@ -139,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return;
             }
 
-            var containingType = semanticModel.GetEnclosingNamedType(context.Span.Start, cancellationToken);
+            var containingType = semanticModel.GetEnclosingNamedType(textSpan.Start, cancellationToken);
             if (containingType == null)
             {
                 return;
@@ -168,10 +145,12 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
 
             // Looks good.  We can convert this.
-            context.RegisterRefactoring(new MyCodeAction(GetTitle(),
-                c => ConvertForToForEachAsync(
-                    document, forStatement, iterationVariable, collectionExpression,
-                    containingType, collectionType.Type, iterationType, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(GetTitle(),
+                    c => ConvertForToForEachAsync(
+                        document, forStatement, iterationVariable, collectionExpression,
+                        containingType, collectionType.Type, iterationType, c)),
+                forStatement.Span);
 
             return;
 
@@ -242,7 +221,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
         }
 
         private bool TryGetIterationElementType(
-            INamedTypeSymbol containingType, ITypeSymbol collectionType, 
+            INamedTypeSymbol containingType, ITypeSymbol collectionType,
             INamedTypeSymbol ienumerableType, INamedTypeSymbol ienumeratorType,
             out ITypeSymbol iterationType)
         {
@@ -278,7 +257,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
         }
 
         private bool TryGetIterationElementTypeFromGetEnumerator(
-            INamedTypeSymbol containingType, IMethodSymbol getEnumeratorMethod, 
+            INamedTypeSymbol containingType, IMethodSymbol getEnumeratorMethod,
             INamedTypeSymbol ienumeratorType, out ITypeSymbol iterationType)
         {
             var getEnumeratorReturnType = getEnumeratorMethod.ReturnType;
@@ -370,7 +349,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(
                 forStatement,
-                (currentFor, _) => this.ConvertForNode(
+                (currentFor, _) => ConvertForNode(
                     (TForStatementSyntax)currentFor, typeNode, foreachIdentifier,
                     collectionExpression, iterationType, options));
 
@@ -517,7 +496,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument, title)
             {
             }

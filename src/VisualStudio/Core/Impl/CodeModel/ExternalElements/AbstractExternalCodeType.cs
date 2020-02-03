@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -43,8 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             }
 
             var compilation = GetCompilation();
-            var metadataReference = compilation.GetMetadataReference(assembly) as PortableExecutableReference;
-            if (metadataReference == null)
+            if (!(compilation.GetMetadataReference(assembly) is PortableExecutableReference metadataReference))
             {
                 return string.Empty;
             }
@@ -68,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
                     builder.Add(typeSymbol.BaseType);
                 }
 
-                return ExternalTypeCollection.Create(this.State, this, this.ProjectId, 
+                return ExternalTypeCollection.Create(this.State, this, this.ProjectId,
                     builder.ToImmutableAndFree());
             }
         }

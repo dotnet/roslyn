@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +17,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public static partial class RuntimeUtilities
     {
+        internal static bool IsDesktopRuntime =>
+#if NET472
+            true;
+#elif NETCOREAPP3_1
+            false;
+#elif NETSTANDARD2_0
+            throw new PlatformNotSupportedException();
+#else
+#error Unsupported configuration
+#endif
+        internal static bool IsCoreClrRuntime => !IsDesktopRuntime;
+
         internal static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null, string tempDirectory = null)
         {
             tempDirectory = tempDirectory ?? Path.GetTempPath();
@@ -37,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
 #if NET472
             return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
-#elif NETCOREAPP2_1
+#elif NETCOREAPP3_1
             return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
 #elif NETSTANDARD2_0
             throw new PlatformNotSupportedException();
@@ -50,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
 #if NET472
             return new DesktopAnalyzerAssemblyLoader();
-#elif NETCOREAPP2_1
+#elif NETCOREAPP3_1
             return new CoreClrAnalyzerAssemblyLoader();
 #elif NETSTANDARD2_0
             return new ThrowingAnalyzerAssemblyLoader();

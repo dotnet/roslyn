@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -262,9 +264,9 @@ struct S
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
-                // (3,9): error CS8035: Auto-implemented properties inside interfaces cannot have initializers.
+                // (3,9): error CS8050: Only auto-implemented properties can have initializers.
                 //     int P { get; } = 0;
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P").WithArguments("I.P").WithLocation(3, 9));
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("I.P").WithLocation(3, 9));
         }
 
         [Fact]
@@ -447,7 +449,7 @@ class C1
             PropertySymbol ein = (PropertySymbol)c1.GetMembers("in").Single();
             Assert.Equal("in", ein.Name);
             Assert.Equal("C1.@in", ein.ToString());
-            NamedTypeSymbol dout = (NamedTypeSymbol)ein.Type.TypeSymbol;
+            NamedTypeSymbol dout = (NamedTypeSymbol)ein.Type;
             Assert.Equal("out", dout.Name);
             Assert.Equal("@out", dout.ToString());
         }
@@ -560,21 +562,21 @@ class C : B<string>
             {
                 // Non-generic type.
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-                Assert.Equal(type.TypeParameters.Length, 0);
+                Assert.Equal(0, type.TypeParameters.Length);
                 Assert.Same(type, type.ConstructedFrom);
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("P"));
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("Q"));
 
                 // Generic type.
                 type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
-                Assert.Equal(type.TypeParameters.Length, 1);
+                Assert.Equal(1, type.TypeParameters.Length);
                 Assert.Same(type, type.ConstructedFrom);
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("P"));
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("Q"));
 
                 // Generic type with parameter substitution.
                 type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").BaseType();
-                Assert.Equal(type.TypeParameters.Length, 1);
+                Assert.Equal(1, type.TypeParameters.Length);
                 Assert.NotSame(type, type.ConstructedFrom);
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("P"));
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("Q"));
@@ -706,7 +708,7 @@ class Program
   IL_001a:  ret       
 }
 ");
-            var type = (PENamedTypeSymbol)verifier.Compilation.GlobalNamespace.GetMembers("Signatures").Single();
+            var type = (PENamedTypeSymbol)verifier.Compilation.GlobalNamespace.GetMembers("Signatures").Single().GetSymbol();
 
             // Valid static property, property with signature that does not match accessors,
             // and property with accessors that do not match each other.
@@ -1856,7 +1858,7 @@ class Program
             {
                 var program = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program");
                 var field = program.GetMember<FieldSymbol>("testClass");
-                var type = field.Type.TypeSymbol;
+                var type = field.Type;
                 // Non-generic type.
                 //var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("WithParameterizedProps");
                 var getters = type.GetMembers("get_P").OfType<MethodSymbol>();
@@ -1909,7 +1911,7 @@ public class A : Attribute
             Assert.Equal(2, xs.Length);
             foreach (var x in xs)
             {
-                Assert.Equal(a, (x as PropertySymbol).Type.TypeSymbol); // duplicate, but all the same.
+                Assert.Equal(a, (x as PropertySymbol).Type); // duplicate, but all the same.
             }
 
             var errors = comp.GetDeclarationDiagnostics();
@@ -2873,10 +2875,10 @@ unsafe class Test
     }
 }
 ";
-            CreateCompilation(text, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
-                // (4,30): error CS1525: Invalid expression term 'stackalloc'
+            CreateCompilationWithMscorlibAndSpan(text, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (4,30): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //     int* property { get; } = stackalloc int[256];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 30)
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[256]").WithArguments("int", "int*").WithLocation(4, 30)
                 );
         }
         [Fact]
@@ -2943,6 +2945,32 @@ interface I1
     //     public string Prop1 { get; }
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Prop1").WithArguments("readonly automatically implemented properties", "6").WithLocation(9, 19)
                 );
+        }
+
+        [Fact]
+        public void StaticPropertyDoesNotRequireInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public static int P { get; }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var property = compilation.GetMember<PropertySymbol>("C.P");
+            Assert.False(property.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void InstancePropertyRequiresInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public int P { get; }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var property = compilation.GetMember<PropertySymbol>("C.P");
+            Assert.True(property.RequiresInstanceReceiver);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -227,9 +229,9 @@ class C
                     SignatureHeader signatureHeader;
                     BadImageFormatException metadataException;
                     var parameters = metadataDecoder.GetSignatureForMethod(methodHandle, out signatureHeader, out metadataException);
-                    Assert.Equal(parameters.Length, 5);
+                    Assert.Equal(5, parameters.Length);
                     var actualReturnType = parameters[0].Type;
-                    Assert.Equal(actualReturnType.TypeKind, TypeKind.Class); // not error
+                    Assert.Equal(TypeKind.Class, actualReturnType.TypeKind); // not error
                     var expectedReturnType = compilation.GetMember("Windows.Storage.StorageFolder");
                     Assert.Equal(expectedReturnType, actualReturnType);
                     Assert.Equal(storageAssemblyName, actualReturnType.ContainingAssembly.Name);
@@ -242,7 +244,7 @@ class C
         /// and referencing runtime assembly.
         /// </summary>
         [WorkItem(1116143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116143")]
-        [ConditionalFact(typeof(OSVersionWin8))]
+        [ConditionalFact(typeof(OSVersionWin8), typeof(IsRelease))] // https://github.com/dotnet/roslyn/issues/25702
         public void AssemblyQualifiedName()
         {
             var source =

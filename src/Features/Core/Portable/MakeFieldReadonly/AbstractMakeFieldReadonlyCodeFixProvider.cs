@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -22,6 +24,8 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
 
         protected abstract SyntaxNode GetInitializerNode(TSymbolSyntax declaration);
         protected abstract ImmutableList<TSymbolSyntax> GetVariableDeclarators(TFieldDeclarationSyntax declaration);
@@ -69,7 +73,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 {
                     var model = await document.GetSemanticModelAsync().ConfigureAwait(false);
                     var generator = editor.Generator;
-                    
+
                     foreach (var declarator in declarationDeclarators.Reverse())
                     {
                         var symbol = (IFieldSymbol)model.GetDeclaredSymbol(declarator);
@@ -87,15 +91,15 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         editor.InsertAfter(fieldDeclarators.Key, newDeclaration);
                     }
 
-                    editor.RemoveNode(fieldDeclarators.Key);
+                    editor.RemoveNode(fieldDeclarators.Key, SyntaxRemoveOptions.KeepLeadingTrivia);
                 }
             }
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Add_readonly_modifier, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Add_readonly_modifier, createChangedDocument)
             {
             }
         }

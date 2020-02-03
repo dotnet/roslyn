@@ -1,15 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 {
-    internal abstract partial class AbstractTypeInferenceService<TExpressionSyntax> : ITypeInferenceService
-        where TExpressionSyntax : SyntaxNode
+    internal abstract partial class AbstractTypeInferenceService : ITypeInferenceService
     {
         protected abstract AbstractTypeInferrer CreateTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken);
 
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
         }
 
         private static readonly ImmutableArray<string> s_booleanPrefixes =
-            ImmutableArray.Create("Is", "Has", "Contains", "Supports"); 
+            ImmutableArray.Create("Is", "Has", "Contains", "Supports");
 
         private ImmutableArray<ITypeSymbol> InferTypeBasedOnName(
             SemanticModel semanticModel, string name)
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
         }
 
         public ImmutableArray<ITypeSymbol> InferTypes(
-            SemanticModel semanticModel, int position, 
+            SemanticModel semanticModel, int position,
             string nameOpt, CancellationToken cancellationToken)
         {
             var result = CreateTypeInferrer(semanticModel, cancellationToken)
@@ -91,11 +90,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 
 
         public ImmutableArray<ITypeSymbol> InferTypes(
-            SemanticModel semanticModel, SyntaxNode expression, 
+            SemanticModel semanticModel, SyntaxNode expression,
             string nameOpt, CancellationToken cancellationToken)
         {
             var result = CreateTypeInferrer(semanticModel, cancellationToken)
-                .InferTypes(expression as TExpressionSyntax)
+                .InferTypes(expression)
                 .Select(info => info.InferredType)
                 .ToImmutableArray();
 
@@ -103,7 +102,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
         }
 
         public ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(
-            SemanticModel semanticModel, int position, 
+            SemanticModel semanticModel, int position,
             string nameOpt, CancellationToken cancellationToken)
         {
             var result = CreateTypeInferrer(semanticModel, cancellationToken).InferTypes(position);
@@ -111,10 +110,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
         }
 
         public ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(
-            SemanticModel semanticModel, SyntaxNode expression, 
+            SemanticModel semanticModel, SyntaxNode expression,
             string nameOpt, CancellationToken cancellationToken)
         {
-            var result = CreateTypeInferrer(semanticModel, cancellationToken).InferTypes(expression as TExpressionSyntax);
+            var result = CreateTypeInferrer(semanticModel, cancellationToken).InferTypes(expression);
             return InferTypeBasedOnNameIfEmpty(semanticModel, result, nameOpt);
         }
     }

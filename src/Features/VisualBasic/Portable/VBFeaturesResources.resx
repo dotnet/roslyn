@@ -300,9 +300,6 @@
   <data name="new_variable" xml:space="preserve">
     <value>&lt;new variable&gt;</value>
   </data>
-  <data name="Remove_and_Sort_Imports" xml:space="preserve">
-    <value>R&amp;emove and Sort Imports</value>
-  </data>
   <data name="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName" xml:space="preserve">
     <value>Creates a delegate procedure instance that references the specified procedure.
 AddressOf &lt;procedureName&gt;</value>
@@ -1260,6 +1257,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="If_statement_can_be_simplified" xml:space="preserve">
     <value>'If' statement can be simplified</value>
   </data>
+  <data name="Add_Obsolete" xml:space="preserve">
+    <value>Add &lt;Obsolete&gt;</value>
+  </data>
   <data name="Add_missing_Imports" xml:space="preserve">
     <value>Add missing Imports</value>
     <comment>{Locked="Import"} "Import" is a VB keyword and should not be localized.</comment>
@@ -1271,5 +1271,8 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Introduce_Using_statement" xml:space="preserve">
     <value>Introduce 'Using' statement</value>
     <comment>{Locked="Using"} "Using" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Make_0_inheritable" xml:space="preserve">
+    <value>Make '{0}' inheritable</value>
   </data>
 </root>

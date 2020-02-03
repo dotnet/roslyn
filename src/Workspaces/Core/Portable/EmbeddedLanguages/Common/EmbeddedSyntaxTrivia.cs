@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
     internal struct EmbeddedSyntaxTrivia<TSyntaxKind> where TSyntaxKind : struct
     {
         public readonly TSyntaxKind Kind;
-        public readonly ImmutableArray<VirtualChar> VirtualChars;
+        public readonly VirtualCharSequence VirtualChars;
 
         /// <summary>
         /// A place for diagnostics to be stored during parsing.  Not intended to be accessed 
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         /// </summary> 
         internal readonly ImmutableArray<EmbeddedDiagnostic> Diagnostics;
 
-        public EmbeddedSyntaxTrivia(TSyntaxKind kind, ImmutableArray<VirtualChar> virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
+        public EmbeddedSyntaxTrivia(TSyntaxKind kind, VirtualCharSequence virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
         {
             Debug.Assert(virtualChars.Length > 0);
             Kind = kind;

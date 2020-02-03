@@ -1,12 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -44,7 +50,10 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             }
 
             // Find fixes for the diagnostic where there is only a single fix.
-            var usableFixes = await GetUnambiguousFixesAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
+            var unambiguousFixes = await GetUnambiguousFixesAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
+
+            // We do not want to add project or framework references without the user's input, so filter those out.
+            var usableFixes = unambiguousFixes.WhereAsArray(fixData => DoesNotAddReference(fixData, document.Project.Id));
             if (usableFixes.IsEmpty)
             {
                 return document.Project;
@@ -53,6 +62,13 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // Apply those fixes to the document.
             var newDocument = await ApplyFixesAsync(document, usableFixes, cancellationToken).ConfigureAwait(false);
             return newDocument.Project;
+        }
+
+        private bool DoesNotAddReference(AddImportFixData fixData, ProjectId currentProjectId)
+        {
+            return (fixData.ProjectReferenceToAdd is null || fixData.ProjectReferenceToAdd == currentProjectId)
+                && (fixData.PortableExecutableReferenceProjectId is null || fixData.PortableExecutableReferenceProjectId == currentProjectId)
+                && string.IsNullOrEmpty(fixData.AssemblyReferenceAssemblyName);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -76,7 +92,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var packageSources = ImmutableArray<PackageSource>.Empty;
             var addImportService = document.GetLanguageService<IAddImportFeatureService>();
 
-            // We only need to recieve 2 results back per diagnostic to determine that the fix is ambiguous.
+            // We only need to receive 2 results back per diagnostic to determine that the fix is ambiguous.
             var getFixesForDiagnosticsTasks = diagnostics
                 .GroupBy(diagnostic => diagnostic.Location.SourceSpan)
                 .Select(diagnosticsForSourceSpan => addImportService
@@ -91,7 +107,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 foreach (var fixesForDiagnostic in fixesForDiagnostics)
                 {
                     // When there is more than one potential fix for a missing import diagnostic,
-                    // which is possible when the same class name is present in mutliple namespaces,
+                    // which is possible when the same class name is present in multiple namespaces,
                     // we do not want to choose for the user and be wrong. We will not attempt to
                     // fix this diagnostic and instead leave it for the user to resolve since they
                     // will have more context for determining the proper fix.
@@ -150,15 +166,69 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var orderedTextInserts = allTextChanges.Where(change => change.Span.IsEmpty)
                 .OrderBy(change => change.NewText);
 
+            // Capture each location where we are inserting imports as well as the total
+            // length of the text we are inserting so that we can format the span afterwards.
+            var insertSpans = allTextChanges
+                .GroupBy(change => change.Span)
+                .Select(changes => new TextSpan(changes.Key.Start, changes.Sum(change => change.NewText.Length)));
+
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(orderedTextInserts);
             var newDocument = newProject.GetDocument(document.Id).WithText(newText);
 
+            // When imports are added to a code file that has no previous imports, extra
+            // newlines are generated between each import because the fix is expecting to
+            // separate the imports from the rest of the code file. We need to format the
+            // imports to remove these extra newlines.
+            return await CleanUpNewLinesAsync(newDocument, insertSpans, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<Document> CleanUpNewLinesAsync(Document document, IEnumerable<TextSpan> insertSpans, CancellationToken cancellationToken)
+        {
+            var languageFormatter = document.GetLanguageService<ISyntaxFormattingService>();
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var newDocument = document;
+
+            // Since imports can be added at both the CompilationUnit and the Namespace level,
+            // format each span individually so that we can retain each newline that was intended
+            // to separate the import section from the other content.
+            foreach (var insertSpan in insertSpans)
+            {
+                newDocument = await CleanUpNewLinesAsync(newDocument, insertSpan, languageFormatter, options, cancellationToken).ConfigureAwait(false);
+            }
+
             return newDocument;
         }
 
+        private async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, ISyntaxFormattingService languageFormatter, OptionSet options, CancellationToken cancellationToken)
+        {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges();
+
+            // If there are no changes then, do less work.
+            if (textChanges.Count == 0)
+            {
+                return document;
+            }
+
+            // The last text change should include where the insert span ends
+            Debug.Assert(textChanges.Last().Span.IntersectsWith(insertSpan.End));
+
+            // If there are changes then, this was a case where there were no
+            // previous imports statements. We need to retain the final extra
+            // newline because that separates the imports section from the rest
+            // of the code.
+            textChanges.RemoveAt(textChanges.Count - 1);
+
+            var newText = text.WithChanges(textChanges);
+            return document.WithText(newText);
+        }
+
         private async Task<(ProjectChanges, IEnumerable<TextChange>)> GetChangesForCodeActionAsync(
-            Document document, 
+            Document document,
             CodeAction codeAction,
             ProgressTracker progressTracker,
             IDocumentTextDifferencingService textDiffingService,
@@ -174,6 +244,32 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var projectChanges = newDocument.Project.GetChanges(document.Project);
 
             return (projectChanges, textChanges);
+        }
+
+        private sealed class CleanUpNewLinesFormatter : AbstractFormattingRule
+        {
+            private readonly SourceText _text;
+
+            public CleanUpNewLinesFormatter(SourceText text)
+            {
+                _text = text;
+            }
+
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
+            {
+                // Since we know the general shape of these new import statements, we simply look for where
+                // tokens are not on the same line and force them to only be separated by a single newline.
+
+                _text.GetLineAndOffset(previousToken.Span.Start, out var previousLine, out _);
+                _text.GetLineAndOffset(currentToken.Span.Start, out var currentLine, out _);
+
+                if (previousLine != currentLine)
+                {
+                    return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
+                }
+
+                return null;
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         Binder parentBinder = binderFactory.GetBinder(initializerNode);
-                        Debug.Assert(parentBinder.ContainingMemberOrLambda == fieldSymbol.ContainingType || //should be the binder for the type
+                        Debug.Assert((parentBinder.ContainingMemberOrLambda is TypeSymbol containing && TypeSymbol.Equals(containing, fieldSymbol.ContainingType, TypeCompareKind.ConsiderEverything2)) || //should be the binder for the type
                                 fieldSymbol.ContainingType.IsImplicitClass); //however, we also allow fields in namespaces to help support script scenarios
 
                         if (firstDebugImports == null)
@@ -219,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // insert an implicit conversion for the submission return type (if needed):
                     var expression = InitializerRewriter.GetTrailingScriptExpression(statement);
                     if (expression != null &&
-                        ((object)expression.Type == null || expression.Type.SpecialType != SpecialType.System_Void))
+                        ((object)expression.Type == null || !expression.Type.IsVoidType()))
                     {
                         var submissionResultType = scriptInitializer.ResultType;
                         expression = binder.GenerateConversionForAssignment(submissionResultType, expression, diagnostics);

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -163,7 +165,7 @@ namespace N
             public function M5() as integer
             end function
 
-            Public partial sub M6()
+            partial Public sub M6()
             end sub
 
             Public property P1 as integer
@@ -213,7 +215,7 @@ namespace N
 end namespace")
         End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
         Public Async Function TestAllConstructsWithOmit() As Task
             Await TestInRegularAndScriptAsync(
 "

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,7 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBodyForLambdas
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
     public class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeActionTest
     {
@@ -19,28 +21,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBodyForLam
             => new UseExpressionBodyForLambdaCodeRefactoringProvider();
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
 
         private IDictionary<OptionKey, object> UseExpressionBodyDisabledDiagnostic =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.None));
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
 
         private IDictionary<OptionKey, object> UseBlockBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement);
 
         private IDictionary<OptionKey, object> UseBlockBodyDisabledDiagnostic =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.None));
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
+
 class C
 {
     void Goo()
     {
-        Func<int, string> f = x [||]=>
+        Func<int, string> f = x [|=>|]
         {
             return x.ToString();
         }
@@ -52,35 +54,8 @@ class C
         public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
         {
             await TestInRegularAndScript1Async(
-@"
-using System;
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x [||]=> x.ToString();
-    }
-}",
-@"
-using System;
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x =>
-        {
-            return x.ToString();
-        };
-    }
-}", parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
-        }
+@"using System;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-        {
-            await TestInRegularAndScript1Async(
-@"
-using System;
 class C
 {
     void Goo()
@@ -91,8 +66,35 @@ class C
         };
     }
 }",
-@"
-using System;
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, string> f = x => x.ToString();
+    }
+}", parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, string> f = x [||]=>
+        {
+            return x.ToString();
+        };
+    }
+}",
+@"using System;
+
 class C
 {
     void Goo()
@@ -103,11 +105,24 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestNotOfferedInMethod()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    int [|Goo|]()
+    {
+        return 1;
+    }
+}", parameters: new TestParameters(options: UseBlockBody));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
+
 class C
 {
     void Goo()
@@ -121,8 +136,8 @@ class C
         public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
         {
             await TestInRegularAndScript1Async(
-@"
-using System;
+@"using System;
+
 class C
 {
     void Goo()
@@ -130,8 +145,8 @@ class C
         Func<int, string> f = x [||]=> x.ToString();
     }
 }",
-@"
-using System;
+@"using System;
+
 class C
 {
     void Goo()
@@ -148,8 +163,8 @@ class C
         public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
         {
             await TestInRegularAndScript1Async(
-@"
-using System;
+@"using System;
+
 class C
 {
     void Goo()
@@ -157,8 +172,8 @@ class C
         Func<int, string> f = x [||]=> x.ToString();
     }
 }",
-@"
-using System;
+@"using System;
+
 class C
 {
     void Goo()

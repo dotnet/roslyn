@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,13 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             bool isConstant,
             CancellationToken cancellationToken)
         {
-            var containerToGenerateInto = GetContainerToGenerateInto(document, expression, cancellationToken);
+            var containerToGenerateInto = expression.Ancestors().FirstOrDefault(s =>
+                s is BlockSyntax || s is ArrowExpressionClauseSyntax || s is LambdaExpressionSyntax);
 
             var newLocalNameToken = GenerateUniqueLocalName(
                 document, expression, isConstant, containerToGenerateInto, cancellationToken);
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
                     // both of which are a shorthand for the getter and always return a value
                     var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent) as IMethodSymbol;
-                    bool createReturnStatement = !method?.ReturnsVoid ?? true;
+                    var createReturnStatement = !method?.ReturnsVoid ?? true;
 
                     return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
                         document, arrowExpression, expression, newLocalName,
@@ -67,35 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
                 case LambdaExpressionSyntax lambda:
                     return IntroduceLocalDeclarationIntoLambda(
-                        document, lambda, expression, newLocalName, declarationStatement, 
+                        document, lambda, expression, newLocalName, declarationStatement,
                         allOccurrences, cancellationToken);
             }
 
             throw new InvalidOperationException();
-        }
-
-        private SyntaxNode GetContainerToGenerateInto(
-            SemanticDocument document, ExpressionSyntax expression, CancellationToken cancellationToken)
-        {
-            var anonymousMethodParameters = GetAnonymousMethodParameters(document, expression, cancellationToken);
-            var lambdas = anonymousMethodParameters.SelectMany(p => p.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).AsEnumerable())
-                                                   .OfType<LambdaExpressionSyntax>()
-                                                   .ToSet();
-
-            var parentLambda = GetParentLambda(expression, lambdas);
-
-            if (parentLambda != null)
-            {
-                return parentLambda;
-            }
-            else if (IsInExpressionBodiedMember(expression))
-            {
-                return expression.GetAncestorOrThis<ArrowExpressionClauseSyntax>();
-            }
-            else
-            {
-                return expression.GetAncestorsOrThis<BlockSyntax>().LastOrDefault();
-            }
         }
 
         private Document IntroduceLocalDeclarationIntoLambda(
@@ -112,11 +89,13 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var rewrittenBody = Rewrite(
                 document, expression, newLocalName, document, oldBody, allOccurrences, cancellationToken);
 
-            var delegateType = document.SemanticModel.GetTypeInfo(oldLambda, cancellationToken).ConvertedType as INamedTypeSymbol;
 
-            var newBody = delegateType != null && delegateType.DelegateInvokeMethod != null && delegateType.DelegateInvokeMethod.ReturnsVoid
-                ? SyntaxFactory.Block(declarationStatement)
-                : SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
+            var newBody =
+                document.SemanticModel.GetTypeInfo(oldLambda, cancellationToken).ConvertedType is INamedTypeSymbol delegateType
+                && delegateType.DelegateInvokeMethod != null
+                && delegateType.DelegateInvokeMethod.ReturnsVoid
+                    ? SyntaxFactory.Block(declarationStatement)
+                    : SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
 
             // Add an elastic newline so that the formatter will place this new lambda body across multiple lines.
             newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed))
@@ -126,22 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var newRoot = document.Root.ReplaceNode(oldLambda, newLambda);
             return document.Document.WithSyntaxRoot(newRoot);
-        }
-
-        private LambdaExpressionSyntax GetParentLambda(ExpressionSyntax expression, ISet<LambdaExpressionSyntax> lambdas)
-        {
-            var current = expression;
-            while (current != null)
-            {
-                if (lambdas.Contains(current.Parent))
-                {
-                    return (LambdaExpressionSyntax)current.Parent;
-                }
-
-                current = current.Parent as ExpressionSyntax;
-            }
-
-            return null;
         }
 
         private TypeSyntax GetTypeSyntax(SemanticDocument document, DocumentOptionSet options, ExpressionSyntax expression, bool isConstant, CancellationToken cancellationToken)
@@ -236,8 +199,16 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
             declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
-            var oldOutermostBlock = block;
-            var matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, cancellationToken);
+            SyntaxNode scope = block;
+
+            // If we're within a non-static local function, our scope for the new local declaration is expanded to include the enclosing member.
+            var localFunction = block.GetAncestor<LocalFunctionStatementSyntax>();
+            if (localFunction != null && !localFunction.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.StaticKeyword)))
+            {
+                scope = block.GetAncestor<MemberDeclarationSyntax>();
+            }
+
+            var matches = FindMatches(document, expression, document, scope, allOccurrences, cancellationToken);
             Debug.Assert(matches.Contains(expression));
 
             (document, matches) = await ComplexifyParentingStatements(document, matches, cancellationToken).ConfigureAwait(false);
@@ -246,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             // of complexification, so we can retrieve the latest version of the expression here.
             expression = document.Root.GetCurrentNode(expression);
 
-            SyntaxNode root = document.Root;
+            var root = document.Root;
             ISet<StatementSyntax> allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(expr => expr.GetAncestorsOrThis<StatementSyntax>()));
 
             SyntaxNode innermostCommonBlock;
@@ -278,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 innermostCommonBlock = innermostStatements.FindInnermostCommonNode(IsBlockLike);
             }
 
-            var firstStatementAffectedIndex = GetStatements(innermostCommonBlock).IndexOf(allAffectedStatements.Contains);
+            var firstStatementAffectedIndex = GetFirstStatementAffectedIndex(innermostCommonBlock, matches, GetStatements(innermostCommonBlock).IndexOf(allAffectedStatements.Contains));
 
             var newInnerMostBlock = Rewrite(
                 document, expression, newLocalName, document, innermostCommonBlock, allOccurrences, cancellationToken);
@@ -288,6 +259,46 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var newRoot = root.ReplaceNode(innermostCommonBlock, finalInnerMostBlock);
             return document.Document.WithSyntaxRoot(newRoot);
+        }
+
+        private int GetFirstStatementAffectedIndex(SyntaxNode innermostCommonBlock, ISet<ExpressionSyntax> matches, int firstStatementAffectedIndex)
+        {
+            // If a local function is involved, we have to make sure the new declaration is placed:
+            //     1. Before all calls to local functions that use the variable.
+            //     2. Before the local function(s) themselves.
+            //     3. Before all matches, i.e. places in the code where the new declaration will replace existing code.
+            // Cases (2) and (3) are already covered by the 'firstStatementAffectedIndex' parameter. Thus, all we have to do is ensure we consider (1) when
+            // determining where to place our new declaration.
+
+            // Find all the local functions within the scope that will use the new declaration.
+            var localFunctions = innermostCommonBlock.DescendantNodes().Where(node => node.IsKind(SyntaxKind.LocalFunctionStatement) && matches.Any(match => match.Span.OverlapsWith(node.Span)));
+
+            if (localFunctions.IsEmpty())
+            {
+                return firstStatementAffectedIndex;
+            }
+
+            var localFunctionIdentifiers = localFunctions.Select(node => ((LocalFunctionStatementSyntax)node).Identifier.ValueText);
+
+            // Find all calls to the applicable local functions within the scope.
+            var localFunctionCalls = innermostCommonBlock.DescendantNodes().Where(node => node is InvocationExpressionSyntax invocationExpression &&
+                                                                                  invocationExpression.Expression.GetRightmostName() != null &&
+                                                                                  !invocationExpression.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) &&
+                                                                                  localFunctionIdentifiers.Contains(invocationExpression.Expression.GetRightmostName().Identifier.ValueText));
+
+            if (localFunctionCalls.IsEmpty())
+            {
+                return firstStatementAffectedIndex;
+            }
+
+            // Find which call is the earliest.
+            var earliestLocalFunctionCall = localFunctionCalls.Min(node => node.SpanStart);
+
+            var statementsInBlock = GetStatements(innermostCommonBlock);
+
+            // Check if our earliest call is before all local function declarations and all matches, and if so, place our new declaration there.
+            var earliestLocalFunctionCallIndex = statementsInBlock.IndexOf(s => s.Span.Contains(earliestLocalFunctionCall));
+            return Math.Min(earliestLocalFunctionCallIndex, firstStatementAffectedIndex);
         }
 
         private static SyntaxList<StatementSyntax> InsertWithinTriviaOfNext(

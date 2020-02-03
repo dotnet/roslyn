@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
@@ -1540,7 +1542,7 @@ class B
         End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameSymbolConflictWithLocals()
+        Public Sub RenameSymbolDoesNotConflictWithNestedLocals()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1560,6 +1562,30 @@ class C
                     </Project>
                 </Workspace>, renameTo:="x")
 
+                result.AssertLabeledSpansAre("Stmt1", "x();", RelatedLocationType.ResolvedReferenceConflict)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameSymbolConflictWithLocals()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs">
+using System;
+class C
+{
+    void Foo()
+    {
+        int x;
+        {|Stmt1:Bar|}();
+    }
+ 
+    void [|$$Bar|]() { }
+}
+                            </Document>
+                    </Project>
+                </Workspace>, renameTo:="x")
 
                 result.AssertLabeledSpansAre("Stmt1", "this.x();", RelatedLocationType.ResolvedReferenceConflict)
             End Using
@@ -2812,7 +2838,7 @@ class C
                 </Workspace>, renameTo:="Zoo")
 
 
-                result.AssertLabeledSpansAre("cref1", "C.Zoo{T}", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("cref1", "Zoo{T}", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 

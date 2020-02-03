@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -29,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
+        private bool _needsSpilling;
         private readonly DiagnosticBag _diagnostics;
         private readonly Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilation = compilation;
             _factory = factory;
             _factory.CurrentFunction = containingMethod;
-            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
+            Debug.Assert(TypeSymbol.Equals(factory.CurrentType, (containingType ?? containingMethod.ContainingType), TypeCompareKind.ConsiderEverything2));
             _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
@@ -94,10 +97,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
                                                       dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
 
+                statement.CheckLocalsDefined();
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
+                loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
+
+                if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
+                {
+                    // Move spill sequences to a top-level statement. This handles "lifting" await and the switch expression.
+                    var spilledStatement = SpillSequenceSpiller.Rewrite(loweredStatement, method, compilationState, diagnostics);
+                    spilledStatement.CheckLocalsDefined();
+                    loweredStatement = spilledStatement;
+                }
+
                 if (dynamicInstrumenter != null)
                 {
                     dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
@@ -190,7 +204,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) ||
                     IsUnusedDeconstruction(node));
 
-            if (visited != null && visited != node)
+            if (visited != null &&
+                visited != node &&
+                node.Kind != BoundKind.ImplicitReceiver &&
+                node.Kind != BoundKind.ObjectOrCollectionValuePlaceholder)
             {
                 if (!CanBePassedByReference(node) && CanBePassedByReference(visited))
                 {
@@ -236,31 +253,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             _sawLocalFunctions = true;
-            CheckRefReadOnlySymbols(node.Symbol);
 
-            var typeParameters = node.Symbol.TypeParameters;
+            var localFunction = node.Symbol;
+            CheckRefReadOnlySymbols(localFunction);
+
+            var typeParameters = localFunction.TypeParameters;
             if (typeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
             }
 
-            bool constraintsNeedNullableAttribute = typeParameters.Any(
-               typeParameter => (typeParameter.HasReferenceTypeConstraint && typeParameter.ReferenceTypeConstraintIsNullable != null) ||
-                                typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
-                                    typeConstraint => typeConstraint.NeedsNullableAttribute()));
-
-            bool returnTypeNeedsNullableAttribute = node.Symbol.ReturnType.NeedsNullableAttribute();
-            bool parametersNeedNullableAttribute = node.Symbol.ParameterTypes.Any(parameter => parameter.NeedsNullableAttribute());
-
-            if (constraintsNeedNullableAttribute || returnTypeNeedsNullableAttribute || parametersNeedNullableAttribute)
+            if (_factory.CompilationState.Compilation.ShouldEmitNullableAttributes(localFunction))
             {
-                _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
+                bool constraintsNeedNullableAttribute = typeParameters.Any(
+                   typeParameter => ((SourceTypeParameterSymbolBase)typeParameter).ConstraintsNeedNullableAttribute());
+
+                bool returnTypeNeedsNullableAttribute = localFunction.ReturnTypeWithAnnotations.NeedsNullableAttribute();
+                bool parametersNeedNullableAttribute = localFunction.ParameterTypesWithAnnotations.Any(parameter => parameter.NeedsNullableAttribute());
+
+                if (constraintsNeedNullableAttribute || returnTypeNeedsNullableAttribute || parametersNeedNullableAttribute)
+                {
+                    _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
+                }
             }
 
             var oldContainingSymbol = _factory.CurrentFunction;
             try
             {
-                _factory.CurrentFunction = node.Symbol;
+                _factory.CurrentFunction = localFunction;
                 return base.VisitLocalFunctionStatement(node);
             }
             finally
@@ -269,8 +289,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
+            return PlaceholderReplacement(node);
+        }
+
+        public override BoundNode VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node)
+        {
+            if (_inExpressionLambda)
+            {
+                // Expression trees do not include the 'this' argument for members.
+                return node;
+            }
             return PlaceholderReplacement(node);
         }
 
@@ -527,130 +562,68 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
         {
-            // https://github.com/dotnet/roslyn/issues/30620
-            // If the array access index is of type System.Index or System.Range
-            // we need to emit code as if there were a real indexer, instead
-            // of a simple array element access.
+            // An array access expression can be indexed using any of the following types:
+            //   * an integer primitive
+            //   * a System.Index
+            //   * a System.Range
+            // The last two are only supported on SZArrays. For those cases we need to
+            // lower into the appropriate helper methods.
 
             if (node.Indices.Length != 1)
             {
                 return base.VisitArrayAccess(node);
             }
 
-            TypeSymbol rawIndexType = node.Indices[0].Type;
-            if (!(rawIndexType == _compilation.GetWellKnownType(WellKnownType.System_Index) ||
-                  rawIndexType == _compilation.GetWellKnownType(WellKnownType.System_Range)))
-            {
-                return base.VisitArrayAccess(node);
-            }
-
-            var syntax = node.Syntax;
-            var F = _factory;
-            var indexLocal = F.StoreToTemp(
-                VisitExpression(node.Indices[0]),
-                out BoundAssignmentOperator indexAssign);
-            var arrayLocal = F.StoreToTemp(
-                VisitExpression(node.Expression),
-                out BoundAssignmentOperator arrayAssign);
             var indexType = VisitType(node.Indices[0].Type);
+            var F = _factory;
 
-            var indexValueSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__Value);
-            var indexFromEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__FromEnd);
-
-            BoundExpression resultExpr;
-            if (indexType == _compilation.GetWellKnownType(WellKnownType.System_Index))
+            BoundNode resultExpr;
+            if (TypeSymbol.Equals(
+                indexType,
+                _compilation.GetWellKnownType(WellKnownType.System_Index),
+                TypeCompareKind.ConsiderEverything))
             {
+                // array[Index] is treated like a pattern-based System.Index indexing
+                // expression, except that array indexers don't actually exist (they
+                // don't have symbols)
 
-                // array[Index] is translated to:
-                // index.FromEnd ? array[array.Length - index.Value] : array[index.Value]
+                var arrayLocal = F.StoreToTemp(
+                    VisitExpression(node.Expression),
+                    out BoundAssignmentOperator arrayAssign);
 
-                var indexValueExpr = F.Property(indexLocal, indexValueSymbol);
+                var indexOffsetExpr = MakePatternIndexOffsetExpression(
+                    node.Indices[0],
+                    F.ArrayLength(arrayLocal),
+                    out _);
 
                 resultExpr = F.Sequence(
-                    ImmutableArray.Create<LocalSymbol>(
-                        indexLocal.LocalSymbol,
-                        arrayLocal.LocalSymbol),
-                    ImmutableArray.Create<BoundExpression>(
-                        indexAssign,
-                        arrayAssign),
-                    F.Conditional(
-                        F.Property(indexLocal, indexFromEndSymbol),
-                        F.ArrayAccess(arrayLocal, ImmutableArray.Create<BoundExpression>(F.Binary(
-                            BinaryOperatorKind.Subtraction,
-                            F.SpecialType(SpecialType.System_Int32),
-                            F.ArrayLength(arrayLocal),
-                            indexValueExpr))),
-                        F.ArrayAccess(arrayLocal, ImmutableArray.Create(indexValueExpr)),
-                        node.Type));
+                    ImmutableArray.Create(arrayLocal.LocalSymbol),
+                    ImmutableArray.Create<BoundExpression>(arrayAssign),
+                    F.ArrayAccess(
+                        arrayLocal,
+                        ImmutableArray.Create(indexOffsetExpr)));
             }
-            else if (indexType == _compilation.GetWellKnownType(WellKnownType.System_Range))
+            else if (TypeSymbol.Equals(
+                indexType,
+                _compilation.GetWellKnownType(WellKnownType.System_Range),
+                TypeCompareKind.ConsiderEverything))
             {
-                // array[Range] is translated to:
-                // var start = range.Start.FromEnd ? array.Length - range.Start.Value : range.Start.Value;
-                // var end = range.End.FromEnd ? array.Length - range.End.Value : range.End.Value;
-                // var length = end - start;
-                // var newArr = new T[length];
-                // Array.Copy(array, start, newArr, 0, length);
-                // push newArray
+                // array[Range] is compiled to:
+                // System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray(array, Range)
 
-                var rangeStartSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__Start);
-                var rangeEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__End);
-                var arrayCopySymbol = F.WellKnownMethod(WellKnownMember.System_Array__Copy);
+                var elementType = ((ArrayTypeSymbol)node.Expression.Type).ElementTypeWithAnnotations;
 
-                var startLocal = F.StoreToTemp(
-                    F.Conditional(
-                        F.Property(F.Property(indexLocal, rangeStartSymbol), indexFromEndSymbol),
-                        F.Binary(
-                            BinaryOperatorKind.Subtraction,
-                            F.SpecialType(SpecialType.System_Int32),
-                            F.ArrayLength(arrayLocal),
-                            F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol)),
-                        F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol),
-                        F.SpecialType(SpecialType.System_Int32)),
-                    out BoundAssignmentOperator startAssign);
-                var endLocal = F.StoreToTemp(
-                    F.Conditional(
-                        F.Property(F.Property(indexLocal, rangeEndSymbol), indexFromEndSymbol),
-                        F.Binary(
-                            BinaryOperatorKind.Subtraction,
-                            F.SpecialType(SpecialType.System_Int32),
-                            F.ArrayLength(arrayLocal),
-                            F.Property(F.Property(indexLocal, rangeEndSymbol), indexValueSymbol)),
-                        F.Property(F.Property(indexLocal, rangeEndSymbol), indexValueSymbol),
-                        F.SpecialType(SpecialType.System_Int32)),
-                    out BoundAssignmentOperator endAssign);
-                var lengthLocal = F.StoreToTemp(
-                    F.Binary(BinaryOperatorKind.Subtraction, F.SpecialType(SpecialType.System_Int32), endLocal, startLocal),
-                    out BoundAssignmentOperator lengthAssign);
-                var elementType = ((ArrayTypeSymbol)node.Type).ElementType.TypeSymbol;
-                var newArrLocal = F.StoreToTemp(F.Array(elementType, lengthLocal), out BoundAssignmentOperator newArrAssign);
-                var copyExpr = F.Call(null, arrayCopySymbol, ImmutableArray.Create<BoundExpression>(
-                    arrayLocal,
-                    startLocal,
-                    newArrLocal,
-                    F.Literal(0),
-                    lengthLocal));
-                resultExpr = F.Sequence(
+                resultExpr = F.Call(
+                    receiver: null,
+                    F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T)
+                        .Construct(ImmutableArray.Create(elementType)),
                     ImmutableArray.Create(
-                        indexLocal.LocalSymbol,
-                        arrayLocal.LocalSymbol,
-                        startLocal.LocalSymbol,
-                        endLocal.LocalSymbol,
-                        lengthLocal.LocalSymbol,
-                        newArrLocal.LocalSymbol),
-                    ImmutableArray.Create<BoundExpression>(
-                        indexAssign,
-                        arrayAssign,
-                        startAssign,
-                        endAssign,
-                        lengthAssign,
-                        newArrAssign,
-                        copyExpr),
-                    newArrLocal);
+                        VisitExpression(node.Expression),
+                        VisitExpression(node.Indices[0])));
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                resultExpr = base.VisitArrayAccess(node);
             }
             return resultExpr;
         }
@@ -849,6 +822,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     return ((BoundIndexerAccess)expr).Indexer.RefKind != RefKind.None;
+
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    var refKind = patternIndexer.PatternSymbol switch
+                    {
+                        PropertySymbol p => p.RefKind,
+                        MethodSymbol m => m.RefKind,
+                        _ => throw ExceptionUtilities.UnexpectedValue(patternIndexer.PatternSymbol)
+                    };
+                    return refKind != RefKind.None;
             }
 
             return false;
@@ -884,13 +867,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public override BoundNode VisitUsingStatement(BoundUsingStatement node)
+            public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
             {
                 Fail(node);
                 return null;
             }
 
-            public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+            public override BoundNode VisitUsingStatement(BoundUsingStatement node)
             {
                 Fail(node);
                 return null;
@@ -909,6 +892,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
             {
                 Fail(node);
                 return null;

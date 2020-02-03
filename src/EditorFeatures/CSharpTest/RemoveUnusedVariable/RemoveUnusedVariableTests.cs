@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -311,6 +313,73 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task TestWhitespaceBetweenStatementsInSwitchSection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        switch (true)
+        {
+            case true:
+                bool used = true;
+                int [|unused|];
+
+                return used;
+        }
+    }
+}",
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        switch (true)
+        {
+            case true:
+                bool used = true;
+
+                return used;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task TestWhitespaceBetweenStatementsInSwitchSection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        switch (true)
+        {
+            case true:
+                int [|unused|];
+
+                return used;
+        }
+    }
+}",
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        switch (true)
+        {
+            case true:
+                return used;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
         public async Task RemoveVariableAndComment()
         {
             await TestInRegularAndScriptAsync(
@@ -579,6 +648,60 @@ class C
 ";
 
             await TestInRegularAndScriptAsync(input, expected);
+        }
+
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableDeclaredInForStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        for([|int i = 0|]; ; )
+        {
+
+        }
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+        for(; ; )
+        {
+
+        }
+    }
+}");
+        }
+
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableJointDeclaredInForStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        for(int i = 0[|, j = 0|]; i < 1; i++)
+        {
+
+        }
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+        for(int i = 0; i < 1; i++)
+        {
+
+        }
+    }
+}");
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -30,14 +32,14 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
     {
         protected static SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds 
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseAutoPropertyDiagnosticId);
 
         public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
         protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
 
-        protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
+        protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
         protected abstract Task<SyntaxNode> UpdatePropertyAsync(
             Document propertyDocument, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol,
@@ -264,7 +266,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return newRoot;
             }
 
-            return await Formatter.FormatAsync(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace, options: null, rules: formattingRules, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace, options, formattingRules, cancellationToken);
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(
@@ -353,7 +356,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, CodeActionPriority priority)
                 : base(title, createChangedSolution, title)
             {
-                this.Priority = priority;
+                Priority = priority;
             }
 
             internal override CodeActionPriority Priority { get; }

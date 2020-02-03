@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -91,12 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag unusedDiagnostics = DiagnosticBag.GetInstance();
             NamespaceOrTypeSymbol namespaceOrTypeSymbol = BindNamespaceOrTypeSymbol(syntax, unusedDiagnostics).NamespaceOrTypeSymbol;
             unusedDiagnostics.Free();
-
-            // BindNamespaceOrTypeSymbol will wrap any tuple types in a TupleTypeSymbol. We unwrap it here, as doc comments don't consider the (T,T) form of tuples
-            if(namespaceOrTypeSymbol is TupleTypeSymbol t)
-            {
-                namespaceOrTypeSymbol = t.UnderlyingNamedType;
-            }
 
             Debug.Assert((object)namespaceOrTypeSymbol != null);
             return namespaceOrTypeSymbol;
@@ -282,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Filter out methods with the wrong return type, since overload resolution won't catch these.
             sortedSymbols = sortedSymbols.WhereAsArray(symbol =>
-                symbol.Kind != SymbolKind.Method || ((MethodSymbol)symbol).ReturnType.TypeSymbol == returnType);
+                symbol.Kind != SymbolKind.Method || TypeSymbol.Equals(((MethodSymbol)symbol).ReturnType, returnType, TypeCompareKind.ConsiderEverything2));
 
             if (!sortedSymbols.Any())
             {
@@ -388,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // constructor (unless the type is generic, the cref is on/in the type (but not 
                             // on/in a nested type), and there were no parens after the member name).
 
-                            if (containerType.Name == memberName && (hasParameterList || containerType.Arity == 0 || this.ContainingType != containerType.OriginalDefinition))
+                            if (containerType.Name == memberName && (hasParameterList || containerType.Arity == 0 || !TypeSymbol.Equals(this.ContainingType, containerType.OriginalDefinition, TypeCompareKind.ConsiderEverything2)))
                             {
                                 constructorType = containerType;
                             }
@@ -473,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < parameterSymbols.Length; i++)
                 {
-                    if (ContainsNestedTypeOfUnconstructedGenericType(parameterSymbols[i].Type.TypeSymbol))
+                    if (ContainsNestedTypeOfUnconstructedGenericType(parameterSymbols[i].Type))
                     {
                         // This warning is new in Roslyn, because our better-defined semantics for
                         // cref lookup disallow some things that were possible in dev12.
@@ -524,9 +520,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (type.TypeKind)
             {
                 case TypeKind.Array:
-                    return ContainsNestedTypeOfUnconstructedGenericType(((ArrayTypeSymbol)type).ElementType.TypeSymbol);
+                    return ContainsNestedTypeOfUnconstructedGenericType(((ArrayTypeSymbol)type).ElementType);
                 case TypeKind.Pointer:
-                    return ContainsNestedTypeOfUnconstructedGenericType(((PointerTypeSymbol)type).PointedAtType.TypeSymbol);
+                    return ContainsNestedTypeOfUnconstructedGenericType(((PointerTypeSymbol)type).PointedAtType);
                 case TypeKind.Delegate:
                 case TypeKind.Class:
                 case TypeKind.Interface:
@@ -539,9 +535,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
 
-                    foreach (TypeSymbolWithAnnotations typeArgument in namedType.TypeArgumentsNoUseSiteDiagnostics)
+                    foreach (TypeWithAnnotations typeArgument in namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                     {
-                        if (ContainsNestedTypeOfUnconstructedGenericType(typeArgument.TypeSymbol))
+                        if (ContainsNestedTypeOfUnconstructedGenericType(typeArgument.Type))
                         {
                             return true;
                         }
@@ -836,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arity > 0)
             {
                 SeparatedSyntaxList<TypeSyntax> typeArgumentSyntaxes = typeArgumentListSyntax.Arguments;
-                var typeArgumentSymbols = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(arity);
+                var typeArgumentsWithAnnotations = ArrayBuilder<TypeWithAnnotations>.GetInstance(arity);
 
                 DiagnosticBag unusedDiagnostics = DiagnosticBag.GetInstance();
                 for (int i = 0; i < arity; i++)
@@ -844,11 +840,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSyntax typeArgumentSyntax = typeArgumentSyntaxes[i];
 
                     var typeArgument = BindType(typeArgumentSyntax, unusedDiagnostics);
-                    typeArgumentSymbols.Add(typeArgument);
+                    typeArgumentsWithAnnotations.Add(typeArgument);
 
                     // Should be in a WithCrefTypeParametersBinder.
                     Debug.Assert(typeArgumentSyntax.ContainsDiagnostics || !typeArgumentSyntax.SyntaxTree.ReportDocumentationCommentDiagnostics() ||
-                        (!unusedDiagnostics.HasAnyErrors() && typeArgument.TypeSymbol is CrefTypeParameterSymbol));
+                        (!unusedDiagnostics.HasAnyErrors() && typeArgument.Type is CrefTypeParameterSymbol));
 
                     unusedDiagnostics.Clear();
                 }
@@ -856,12 +852,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (symbol.Kind == SymbolKind.Method)
                 {
-                    symbol = ((MethodSymbol)symbol).Construct(typeArgumentSymbols.ToImmutableAndFree());
+                    symbol = ((MethodSymbol)symbol).Construct(typeArgumentsWithAnnotations.ToImmutableAndFree());
                 }
                 else
                 {
                     Debug.Assert(symbol is NamedTypeSymbol);
-                    symbol = ((NamedTypeSymbol)symbol).Construct(typeArgumentSymbols.ToImmutableAndFree());
+                    symbol = ((NamedTypeSymbol)symbol).Construct(typeArgumentsWithAnnotations.ToImmutableAndFree());
                 }
             }
 
@@ -878,14 +874,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbol type = BindCrefParameterOrReturnType(parameter.Type, (MemberCrefSyntax)parameterListSyntax.Parent, diagnostics);
 
-                parameterBuilder.Add(new SignatureOnlyParameterSymbol(TypeSymbolWithAnnotations.Create(type), ImmutableArray<CustomModifier>.Empty, isParams: false, refKind: refKind));
+                parameterBuilder.Add(new SignatureOnlyParameterSymbol(TypeWithAnnotations.Create(type), ImmutableArray<CustomModifier>.Empty, isParams: false, refKind: refKind));
             }
 
             return parameterBuilder.ToImmutableAndFree();
         }
 
         /// <remarks>
-        /// Keep in sync with CSharpSemanticModel.GetSpeculativelyBoundExpression.
+        /// Keep in sync with CSharpSemanticModel.GetSpeculativelyBoundExpressionWithoutNullability.
         /// </remarks>
         private TypeSymbol BindCrefParameterOrReturnType(TypeSyntax typeSyntax, MemberCrefSyntax memberCrefSyntax, DiagnosticBag diagnostics)
         {
@@ -905,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Compilation.GetBinderFactory(typeSyntax.SyntaxTree).GetBinder(typeSyntax).Flags ==
                 (parameterOrReturnTypeBinder.Flags & ~BinderFlags.SemanticModel));
 
-            TypeSymbol type = parameterOrReturnTypeBinder.BindType(typeSyntax, unusedDiagnostics).TypeSymbol;
+            TypeSymbol type = parameterOrReturnTypeBinder.BindType(typeSyntax, unusedDiagnostics).Type;
 
             if (unusedDiagnostics.HasAnyErrors())
             {

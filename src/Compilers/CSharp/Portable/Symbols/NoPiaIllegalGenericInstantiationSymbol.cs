@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -21,6 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _exposingModule = exposingModule;
             _underlyingSymbol = underlyingSymbol;
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            return new NoPiaIllegalGenericInstantiationSymbol(_exposingModule, _underlyingSymbol);
         }
 
         internal override bool MangleName
@@ -46,9 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_underlyingSymbol.IsErrorType())
                 {
-                    DiagnosticInfo underlyingInfo = ((ErrorTypeSymbol)_underlyingSymbol).ErrorInfo;
+                    DiagnosticInfo? underlyingInfo = ((ErrorTypeSymbol)_underlyingSymbol).ErrorInfo;
 
-                    if ((object)underlyingInfo != null)
+                    if ((object?)underlyingInfo != null)
                     {
                         return underlyingInfo;
                     }
@@ -63,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
         {
             return ReferenceEquals(this, t2);
         }

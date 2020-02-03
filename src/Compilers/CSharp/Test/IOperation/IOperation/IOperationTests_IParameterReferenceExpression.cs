@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -116,7 +118,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'Message = ""Hello"" + y')
         Left: 
-          IPropertyReferenceOperation: System.String? <anonymous type: System.Int32 Amount, System.String Message>.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Message')
+          IPropertyReferenceOperation: System.String <anonymous type: System.Int32 Amount, System.String Message>.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Message')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 Amount, System.String Message>, IsImplicit) (Syntax: 'new { Amoun ... ello"" + y }')
         Right: 
@@ -810,15 +812,18 @@ internal class Class
 ";
             string expectedOperationTree = @"
 IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw new A ... (nameof(x))')
-  IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException) (Syntax: 'new Argumen ... (nameof(x))')
-    Arguments(1):
-        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null) (Syntax: 'nameof(x)')
-          INameOfOperation (OperationKind.NameOf, Type: System.String, Constant: ""x"") (Syntax: 'nameof(x)')
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
-          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    Initializer: 
-      null
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, IsImplicit) (Syntax: 'new Argumen ... (nameof(x))')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException) (Syntax: 'new Argumen ... (nameof(x))')
+        Arguments(1):
+            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null) (Syntax: 'nameof(x)')
+              INameOfOperation (OperationKind.NameOf, Type: System.String, Constant: ""x"") (Syntax: 'nameof(x)')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -848,8 +853,8 @@ ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, T
     Clauses:
         IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case var y  ...  (x >= 10):')
           Pattern: 
-            IDeclarationPatternOperation (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
-          Guard Expression: 
+            IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y') (InputType: System.Int32, DeclaredSymbol: System.Int32 y, MatchesNull: True)
+          Guard: 
             IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x >= 10')
               Left: 
                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
@@ -1037,10 +1042,10 @@ class Class1
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is int y')
-  Expression: 
+  Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y') (InputType: System.Object, DeclaredSymbol: System.Int32 y, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

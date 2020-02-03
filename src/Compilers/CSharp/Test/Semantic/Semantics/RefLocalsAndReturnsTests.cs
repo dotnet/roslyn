@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Xunit;
@@ -1625,7 +1627,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "s.x").WithArguments("s").WithLocation(19, 34)
             );
         }
-        
+
         [Fact]
         public void RefMethodGroup()
         {
@@ -1682,7 +1684,7 @@ public class Test
     Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "MR").WithArguments("MR", "method group").WithLocation(23, 24)
             );
         }
-        
+
         [Fact]
         public void RefReadonlyField()
         {
@@ -2329,58 +2331,46 @@ public delegate ref TR RefFunc<T1, T2, TR>(T1 t1, T2 t2);
                 .Verify(
                 // (9,39): error CS1525: Invalid expression term 'ref'
                 //         { var za = from x in a select ref x; } // error 1
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(9, 39),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref x").WithArguments("ref").WithLocation(9, 39),
                 // (10,42): error CS1525: Invalid expression term 'ref'
                 //         { var zc = from x in a from y in ref a select x; } // error2
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(10, 42),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a").WithArguments("ref").WithLocation(10, 42),
                 // (11,46): error CS1525: Invalid expression term 'ref'
                 //         { var zd = from x in a from int y in ref a select x; } // error 3
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(11, 46),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a").WithArguments("ref").WithLocation(11, 46),
                 // (12,42): error CS1525: Invalid expression term 'ref'
                 //         { var ze = from x in a from y in ref a where true select x; } // error 4
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(12, 42),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a").WithArguments("ref").WithLocation(12, 42),
                 // (13,46): error CS1525: Invalid expression term 'ref'
                 //         { var zf = from x in a from int y in ref a where true select x; } // error 5
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(13, 46),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a").WithArguments("ref").WithLocation(13, 46),
                 // (14,40): error CS1525: Invalid expression term 'ref'
                 //         { var zg = from x in a let y = ref a select x; } // error 6
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(14, 40),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a").WithArguments("ref").WithLocation(14, 40),
                 // (15,38): error CS1525: Invalid expression term 'ref'
                 //         { var zh = from x in a where ref b select x; } // error 7
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(15, 38),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref b").WithArguments("ref").WithLocation(15, 38),
                 // (16,42): error CS1525: Invalid expression term 'ref'
                 //         { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(16, 42),
-                // (16,42): error CS1525: Invalid expression term 'ref'
-                //         { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(16, 42),
-                // (16,42): error CS1525: Invalid expression term 'ref'
-                //         { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(16, 42),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a").WithArguments("ref").WithLocation(16, 42),
                 // (17,47): error CS1525: Invalid expression term 'ref'
                 //         { var zj = from x in a join y in a on ref i equals y select x; } // error 9
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(17, 47),
-                // (17,47): error CS1525: Invalid expression term 'ref'
-                //         { var zj = from x in a join y in a on ref i equals y select x; } // error 9
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(17, 47),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(17, 47),
                 // (18,56): error CS1525: Invalid expression term 'ref'
                 //         { var zk = from x in a join y in a on x equals ref i select x; } // error 10
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(18, 56),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(18, 56),
                 // (19,40): error CS1525: Invalid expression term 'ref'
                 //         { var zl = from x in a orderby ref i select x; } // error 11
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(19, 40),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(19, 40),
                 // (20,43): error CS1525: Invalid expression term 'ref'
                 //         { var zm = from x in a orderby x, ref i select x; } // error 12
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(20, 43),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(20, 43),
                 // (21,38): error CS1525: Invalid expression term 'ref'
                 //         { var zn = from x in a group ref i by x; } // error 13
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(21, 38),
-                // (21,38): error CS1525: Invalid expression term 'ref'
-                //         { var zn = from x in a group ref i by x; } // error 13
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(21, 38),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(21, 38),
                 // (22,43): error CS1525: Invalid expression term 'ref'
                 //         { var zo = from x in a group x by ref i; } // error 14
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(22, 43)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(22, 43)
                 );
         }
 
@@ -2408,6 +2398,41 @@ class TestClass
                 // (9,17): error CS8154: The body of 'localFunction()' cannot be an iterator block because 'localFunction()' returns by reference
                 //         ref int localFunction()
                 Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "localFunction").WithArguments("localFunction()").WithLocation(9, 17),
+                // (5,13): error CS8154: The body of 'TestClass.TestFunction()' cannot be an iterator block because 'TestClass.TestFunction()' returns by reference
+                //     ref int TestFunction()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "TestFunction").WithArguments("TestClass.TestFunction()").WithLocation(5, 13));
+        }
+
+        [Fact]
+        public void CannotUseYieldReturnInAReturnByRefFunction_InIfBlock()
+        {
+            var code = @"
+class TestClass
+{
+    int x = 0;
+    ref int TestFunction()
+    {
+        if (true)
+        {
+            yield return x;
+        }
+
+        ref int localFunction()
+        {
+            if (true)
+            {
+                yield return x;
+            }
+        }
+
+        yield return localFunction();
+    }
+}";
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (12,17): error CS8154: The body of 'localFunction()' cannot be an iterator block because 'localFunction()' returns by reference
+                //         ref int localFunction()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "localFunction").WithArguments("localFunction()").WithLocation(12, 17),
                 // (5,13): error CS8154: The body of 'TestClass.TestFunction()' cannot be an iterator block because 'TestClass.TestFunction()' returns by reference
                 //     ref int TestFunction()
                 Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "TestFunction").WithArguments("TestClass.TestFunction()").WithLocation(5, 13));
@@ -2673,9 +2698,9 @@ class TestClass
     }
 }";
             CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics(
-                // (26,51): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
+                // (26,19): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
                 //         Write(ref Save(await Task.FromResult(0)), await Task.FromResult(1));
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(1)").WithArguments("TestClass.Save(int)").WithLocation(26, 51)
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "Save(await Task.FromResult(0))").WithArguments("TestClass.Save(int)").WithLocation(26, 19)
             );
         }
 
@@ -3407,10 +3432,7 @@ class Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (6,9): error CS8150: By-value returns may only be used in methods that return by value
                 //         return;
-                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9),
-                // (6,9): error CS0126: An object of a type convertible to 'int' is required
-                //         return;
-                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("int").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9)
             );
         }
 
@@ -3569,12 +3591,13 @@ class C
 ";
 
             CreateCompilationWithMscorlib45(text).VerifyEmitDiagnostics(
-                // (32,33): error CS8933: 'await' cannot be used in an expression containing a call to 'S.Instance.get' because it returns by reference
+                // (32,17): error CS8178: 'await' cannot be used in an expression containing a call to 'S.Instance.get' because it returns by reference
                 //         var a = S.Instance.Echo(await Do(i - 1));
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Do(i - 1)").WithArguments("S.Instance.get").WithLocation(32, 33),
-                // (33,49): error CS8933: 'await' cannot be used in an expression containing a call to 'C.Assign(ref int, int)' because it returns by reference
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "S.Instance").WithArguments("S.Instance.get").WithLocation(32, 17),
+                // (33,28): error CS8178: 'await' cannot be used in an expression containing a call to 'C.Assign(ref int, int)' because it returns by reference
                 //         var b = Assign(ref Assign(ref temp, 0), await Do(i - 1));
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Do(i - 1)").WithArguments("C.Assign(ref int, int)").WithLocation(33, 49));
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "Assign(ref temp, 0)").WithArguments("C.Assign(ref int, int)").WithLocation(33, 28)
+                );
         }
 
         [Fact]
@@ -3619,12 +3642,12 @@ class TestClass
     }
 }";
             CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics(
-                    // (28,19): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
-                    //         Save(1) = await Task.FromResult(0);
-                    Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(0)").WithArguments("TestClass.Save(int)").WithLocation(28, 19),
-                    // (36,22): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.this[int, int].get' because it returns by reference
-                    //         inst[1, 2] = await Task.FromResult(1);
-                    Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(1)").WithArguments("TestClass.this[int, int].get").WithLocation(36, 22)
+                // (28,9): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
+                //         Save(1) = await Task.FromResult(0);
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "Save(1)").WithArguments("TestClass.Save(int)").WithLocation(28, 9),
+                // (36,9): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.this[int, int].get' because it returns by reference
+                //         inst[1, 2] = await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "inst[1, 2]").WithArguments("TestClass.this[int, int].get").WithLocation(36, 9)
             );
         }
 
@@ -3876,7 +3899,7 @@ public class C
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var left = ((ElementAccessExpressionSyntax)assignment.Left).Expression;
-            Assert.Equal(SpecialType.System_Int32, ((ArrayTypeSymbol)model.GetTypeInfo(left).Type).ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, ((IArrayTypeSymbol)model.GetTypeInfo(left).Type).ElementType.SpecialType);
 
             var right = ((RefExpressionSyntax)assignment.Right).Expression;
             Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
@@ -3904,7 +3927,7 @@ public unsafe class C
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var left = ((PrefixUnaryExpressionSyntax)assignment.Left).Operand;
-            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)model.GetTypeInfo(left).Type).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)model.GetTypeInfo(left).Type).PointedAtType.SpecialType);
 
             var right = ((RefExpressionSyntax)assignment.Right).Expression;
             Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
@@ -3932,7 +3955,7 @@ public unsafe class C
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var left = ((ElementAccessExpressionSyntax)assignment.Left).Expression;
-            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)model.GetTypeInfo(left).Type).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)model.GetTypeInfo(left).Type).PointedAtType.SpecialType);
 
             var right = ((RefExpressionSyntax)assignment.Right).Expression;
             Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);

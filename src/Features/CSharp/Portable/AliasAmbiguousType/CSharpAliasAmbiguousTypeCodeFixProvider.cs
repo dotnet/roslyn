@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -17,10 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AliasAmbiguousType
         /// </summary>
         private const string CS0104 = nameof(CS0104);
 
+        [ImportingConstructor]
+        public CSharpAliasAmbiguousTypeCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS0104);
 
-        protected override string GetTextPreviewOfChange(string alias, ITypeSymbol typeSymbol) 
+        protected override string GetTextPreviewOfChange(string alias, ITypeSymbol typeSymbol)
             => $"using { alias } = { typeSymbol.ToNameDisplayString() };";
     }
 }

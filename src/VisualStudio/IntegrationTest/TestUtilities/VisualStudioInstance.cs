@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -55,6 +57,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
 
         public LocalsWindow_OutOfProc LocalsWindow { get; set; }
+        public MoveToNamespaceDialog_OutOfProc MoveToNamespaceDialog { get; }
+        public PickMembersDialog_OutOfProc PickMembersDialog { get; set; }
 
         public PreviewChangesDialog_OutOfProc PreviewChangesDialog { get; }
 
@@ -65,6 +69,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
 
         public VisualStudioWorkspace_OutOfProc Workspace { get; }
+
+        public StartPage_OutOfProc StartPage { get; }
 
         internal DTE Dte { get; }
 
@@ -87,6 +93,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Dte = dte;
             SupportedPackageIds = supportedPackageIds;
             InstallationPath = installationPath;
+
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                // If a Visual Studio debugger is attached to the test process, attach it to the instance running
+                // integration tests as well.
+                var debuggerHostDte = GetDebuggerHostDte();
+                int targetProcessId = Process.GetCurrentProcess().Id;
+                var localProcess = debuggerHostDte?.Debugger.LocalProcesses.OfType<EnvDTE80.Process2>().FirstOrDefault(p => p.ProcessID == hostProcess.Id);
+                if (localProcess != null)
+                {
+                    localProcess.Attach2("Managed");
+                }
+            }
 
             StartRemoteIntegrationService(dte);
 
@@ -120,10 +139,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
             ImmediateWindow = new ImmediateWindow_OutOfProc(this);
             LocalsWindow = new LocalsWindow_OutOfProc(this);
+            MoveToNamespaceDialog = new MoveToNamespaceDialog_OutOfProc(this);
+            PickMembersDialog = new PickMembersDialog_OutOfProc(this);
             PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);
+            StartPage = new StartPage_OutOfProc(this);
 
             SendKeys = new SendKeys(this);
 
@@ -160,12 +182,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
         }
 
-        public void ActivateMainWindow(bool skipAttachingThreads = false)
-            => _inProc.ActivateMainWindow(skipAttachingThreads);
+        public void ActivateMainWindow()
+            => _inProc.ActivateMainWindow();
 
         public void WaitForApplicationIdle(CancellationToken cancellationToken)
         {
-            var task = Task.Factory.StartNew(() => _inProc.WaitForApplicationIdle(), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            var task = Task.Factory.StartNew(() => _inProc.WaitForApplicationIdle(Helper.HangMitigatingTimeout), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             task.Wait(cancellationToken);
         }
 
@@ -191,6 +213,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Workspace.CleanUpWaitingService();
             Workspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
+            Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout);
 
             // Close any windows leftover from previous (failed) tests
             InteractiveWindow.CloseInteractiveWindow();
@@ -198,6 +221,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ChangeSignatureDialog.CloseWindow();
             GenerateTypeDialog.CloseWindow();
             ExtractInterfaceDialog.CloseWindow();
+            MoveToNamespaceDialog.CloseWindow();
+            PickMembersDialog.CloseWindow();
+            StartPage.CloseWindow();
+
+            // Prevent the start page from showing after each solution closes
+            StartPage.SetEnabled(false);
         }
 
         public void Close(bool exitHostProcess = true)
@@ -227,10 +256,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
+        private static DTE GetDebuggerHostDte()
+        {
+            var currentProcessId = Process.GetCurrentProcess().Id;
+            foreach (var process in Process.GetProcessesByName("devenv"))
+            {
+                var dte = IntegrationHelper.TryLocateDteForProcess(process);
+                if (dte?.Debugger?.DebuggedProcesses?.OfType<EnvDTE.Process>().Any(p => p.ProcessID == currentProcessId) ?? false)
+                {
+                    return dte;
+                }
+            }
+
+            return null;
+        }
+
         private void CloseHostProcess()
         {
             _inProc.Quit();
-            IntegrationHelper.KillProcess(HostProcess);
+            if (!HostProcess.WaitForExit(milliseconds: 10000))
+            {
+                IntegrationHelper.KillProcess(HostProcess);
+            }
         }
 
         private void CloseRemotingService(bool allowInProcCalls)
@@ -255,7 +302,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private void StartRemoteIntegrationService(DTE dte)
         {
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
-
             if (dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_Start).IsAvailable)
             {
                 dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Start);

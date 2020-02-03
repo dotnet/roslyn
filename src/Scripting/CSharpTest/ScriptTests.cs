@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -88,34 +90,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             pdbStream.Position = 0;
 
             PdbValidation.ValidateDebugDirectory(
-                peStream, 
-                portablePdbStreamOpt: (format == DebugInformationFormat.PortablePdb) ? pdbStream : null, 
-                pdbPath: compilation.AssemblyName + ".pdb", 
-                hashAlgorithm: default, 
-                hasEmbeddedPdb: false, 
+                peStream,
+                portablePdbStreamOpt: (format == DebugInformationFormat.PortablePdb) ? pdbStream : null,
+                pdbPath: compilation.AssemblyName + ".pdb",
+                hashAlgorithm: default,
+                hasEmbeddedPdb: false,
                 isDeterministic: false);
         }
 
         [Fact]
-        public void TestCreateScriptDelegate()
+        public async Task TestCreateScriptDelegate()
         {
             // create a delegate for the entire script
             var script = CSharpScript.Create("1 + 2");
             var fn = script.CreateDelegate();
 
             Assert.Equal(3, fn().Result);
-            Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
         }
 
         [Fact]
-        public void TestCreateScriptDelegateWithGlobals()
+        public async Task TestCreateScriptDelegateWithGlobals()
         {
             // create a delegate for the entire script
             var script = CSharpScript.Create<int>("X + Y", globalsType: typeof(Globals));
             var fn = script.CreateDelegate();
 
-            Assert.ThrowsAsync<ArgumentException>("globals", () => fn());
-            Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => fn());
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
             Assert.Equal(4, fn(new Globals { X = 1, Y = 3 }).Result);
         }
 
@@ -178,9 +180,9 @@ F();");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/170")]
-        public void TestRunDynamicVoidScriptWithTerminatingSemicolon()
+        public async Task TestRunDynamicVoidScriptWithTerminatingSemicolon()
         {
-            var result = CSharpScript.RunAsync(@"
+            await CSharpScript.RunAsync(@"
 class SomeClass
 {
     public void Do()
@@ -193,9 +195,9 @@ d.Do();"
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/170")]
-        public void TestRunDynamicVoidScriptWithoutTerminatingSemicolon()
+        public async Task TestRunDynamicVoidScriptWithoutTerminatingSemicolon()
         {
-            var result = CSharpScript.RunAsync(@"
+            await CSharpScript.RunAsync(@"
 class SomeClass
 {
     public void Do()
@@ -227,7 +229,7 @@ d.Do()"
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 32));
             }
 
-             Assert.True(exceptionThrown);
+            Assert.True(exceptionThrown);
         }
 
         [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
@@ -300,30 +302,30 @@ throw e;", globals: new ScriptTests());
         }
 
         [Fact]
-        public void TestRunCreatedScriptWithUnexpectedGlobals()
+        public async Task TestRunCreatedScriptWithUnexpectedGlobals()
         {
             var script = CSharpScript.Create("X + Y");
 
             // Global variables passed to a script without a global type
-            Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new Globals { X = 1, Y = 2 }));
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new Globals { X = 1, Y = 2 }));
         }
 
         [Fact]
-        public void TestRunCreatedScriptWithoutGlobals()
+        public async Task TestRunCreatedScriptWithoutGlobals()
         {
             var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
 
             //  The script requires access to global variables but none were given
-            Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync());
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync());
         }
 
         [Fact]
-        public void TestRunCreatedScriptWithMismatchedGlobals()
+        public async Task TestRunCreatedScriptWithMismatchedGlobals()
         {
             var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
 
             //  The globals of type 'System.Object' is not assignable to 'Microsoft.CodeAnalysis.CSharp.Scripting.Test.ScriptTests+Globals'
-            Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new object()));
+            await Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new object()));
         }
 
         [Fact]
@@ -354,7 +356,7 @@ throw e;", globals: new ScriptTests());
         [Fact]
         public async Task TestRepl()
         {
-            string[] submissions = new[]
+            var submissions = new[]
             {
                 "int x = 100;",
                 "int y = x * x;",
@@ -407,7 +409,7 @@ throw e;", globals: new ScriptTests());
             Assert.Equal(5m, state.GetVariable("x").Value);
             Assert.Equal(20, state.GetVariable("X").Value);
 
-            Assert.Equal(null, state.GetVariable("A"));
+            Assert.Null(state.GetVariable("A"));
             Assert.Same(state.GetVariable("X"), state.GetVariable("X"));
         }
 
@@ -827,7 +829,7 @@ i", options);
             catch (CompilationErrorException ex)
             {
                 //  CS8055: Cannot emit debug information for a source text without encoding.
-                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, code).WithLocation(1,1));
+                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, code).WithLocation(1, 1));
             }
         }
 
@@ -921,6 +923,31 @@ i", options);
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
             var script = CSharpScript.Create(@"#load ""a.csx""", options);
             ScriptingTestHelpers.EvaluateScriptWithOutput(script, "Hello World!");
+        }
+
+        [Fact]
+        public void CreateScriptWithFeatureThatIsNotSupportedInTheSelectedLanguageVersion()
+        {
+            var script = CSharpScript.Create(@"string x = default;", ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7));
+            var compilation = script.GetCompilation();
+
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").
+                    WithArguments("default literal", "7.1").
+                    WithLocation(1, 12)
+            );
+        }
+
+        [Fact]
+        public void CreateScriptWithNullableContextWithCSharp8()
+        {
+            var script = CSharpScript.Create(@"#nullable enable
+                string x = null;", ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+            var compilation = script.GetCompilation();
+
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 28)
+            );
         }
 
         private class StreamOffsetResolver : SourceReferenceResolver

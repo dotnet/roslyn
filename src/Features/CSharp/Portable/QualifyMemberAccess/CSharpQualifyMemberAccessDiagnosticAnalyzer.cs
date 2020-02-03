@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -10,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer 
+    internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer
         : AbstractQualifyMemberAccessDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, SimpleNameSyntax>
     {
         protected override string GetLanguageName()
@@ -21,10 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 
         // If the member is already qualified with `base.`,
         // or member is in object initialization context,
-        // or member in property or field initialization, it cannot be qualified.
+        // or member in property or field initialization,
+        // or member in constructor initializer, it cannot be qualified.
         protected override bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node)
         {
             if (node.GetAncestorOrThis<AttributeSyntax>() != null)
+            {
+                return false;
+            }
+
+            if (node.GetAncestorOrThis<ConstructorInitializerSyntax>() != null)
             {
                 return false;
             }

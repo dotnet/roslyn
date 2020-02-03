@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections;
 using System.Collections.Generic;
@@ -30,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         /// </summary>
         private const string CS0266 = nameof(CS0266);
 
+        [ImportingConstructor]
+        public CSharpAddYieldCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(CS0029, CS0266); }
@@ -58,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             var typeArguments = methodReturnType.GetAllTypeArguments();
 
             var shouldOfferYieldReturn = typeArguments.Length != 1 ?
-                IsCorrectTypeForYieldReturn(returnExpressionType, methodReturnType, model) :
+                IsCorrectTypeForYieldReturn(methodReturnType, model) :
                 IsCorrectTypeForYieldReturn(typeArguments.Single(), returnExpressionType, methodReturnType, model);
 
             if (!shouldOfferYieldReturn)
@@ -86,8 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         {
             methodReturnType = null;
             var symbol = model.GetEnclosingSymbol(node.Span.Start, cancellationToken);
-            var method = symbol as IMethodSymbol;
-            if (method == null || method.ReturnsVoid)
+            if (!(symbol is IMethodSymbol method) || method.ReturnsVoid)
             {
                 return false;
             }
@@ -143,7 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             var rightArguments = returnExpressionType.GetTypeArguments();
 
             // If we have a mismatch in the number of type arguments we can immediately return as there is no way the types are convertible
-            if ((leftArguments != null && rightArguments != null) &&
+            if (leftArguments != null &&
+                rightArguments != null &&
                 leftArguments.Length != rightArguments.Length)
             {
                 return false;
@@ -156,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             }
 
             // Check if all the type arguments are convertible
-            for (int i = 0; i < leftArguments.Length; i++)
+            for (var i = 0; i < leftArguments.Length; i++)
             {
                 if (!CanConvertTypes(leftArguments[i], rightArguments[i], model))
                 {
@@ -168,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return true;
         }
 
-        private bool IsCorrectTypeForYieldReturn(ITypeSymbol returnExpressionType, ITypeSymbol methodReturnType, SemanticModel model)
+        private bool IsCorrectTypeForYieldReturn(ITypeSymbol methodReturnType, SemanticModel model)
         {
             var ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
             var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator).FullName);
@@ -203,8 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Document newDocument) :
-                base(title, c => Task.FromResult(newDocument))
+            public MyCodeAction(string title, Document newDocument)
+                : base(title, c => Task.FromResult(newDocument))
             {
             }
         }

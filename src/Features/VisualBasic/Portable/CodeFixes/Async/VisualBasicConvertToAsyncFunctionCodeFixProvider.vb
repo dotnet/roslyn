@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -17,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
         Friend Const BC37001 As String = "BC37001" ' error BC37001: 'Blah' Does not return a Task and is not awaited consider changing to an Async Function.
 
         Friend ReadOnly Ids As ImmutableArray(Of String) = ImmutableArray.Create(Of String)(BC37001)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get

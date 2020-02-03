@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
     /// </summary>
     internal class MultiLineConditionalExpressionFormattingRule : AbstractFormattingRule
     {
-        public static readonly IFormattingRule Instance = new MultiLineConditionalExpressionFormattingRule();
+        public static readonly AbstractFormattingRule Instance = new MultiLineConditionalExpressionFormattingRule();
 
         private MultiLineConditionalExpressionFormattingRule()
         {
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         }
 
         public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
-            SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+            SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (IsQuestionOrColonOfNewConditional(currentToken))
             {
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         }
 
         public override void AddIndentBlockOperations(
-            List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+            List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
         {
             if (node.HasAnnotation(SpecializedFormattingAnnotation) &&
                 node is ConditionalExpressionSyntax conditional)
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
                 }
             }
 
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
         }
     }
 }

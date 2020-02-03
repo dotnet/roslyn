@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -347,7 +349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each v In node.Locals
                 If Me.PreserveOriginalLocals OrElse Not Me.Proxies.ContainsKey(v) Then
                     Dim vType = VisitType(v.Type)
-                    If vType = v.Type Then
+                    If TypeSymbol.Equals(vType, v.Type, TypeCompareKind.ConsiderEverything) Then
 
                         Dim replacement As LocalSymbol = Nothing
                         Dim wasReplaced As Boolean = False
@@ -460,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each v In origLocals
                 If Not Me.Proxies.ContainsKey(v) Then
                     Dim vType = VisitType(v.Type)
-                    If vType = v.Type Then
+                    If TypeSymbol.Equals(vType, v.Type, TypeCompareKind.ConsiderEverything) Then
                         newLocals.Add(v)
                     Else
                         Dim replacement = CreateReplacementLocalOrReturnSelf(v, vType)

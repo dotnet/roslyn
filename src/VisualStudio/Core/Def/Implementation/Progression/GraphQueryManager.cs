@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -95,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             var delay = _delay;
             if (delay == null)
             {
-                var newDelay = new ResettableDelay(WorkspaceUpdateDelay);
+                var newDelay = new ResettableDelay(WorkspaceUpdateDelay, _asyncListener);
                 if (Interlocked.CompareExchange(ref _delay, newDelay, null) == null)
                 {
                     var asyncToken = _asyncListener.BeginAsyncOperation("WorkspaceGraphQueryManager.EnqueueUpdate");
@@ -163,22 +165,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private static void ProcessGraphTasks(GraphBuilder[] graphBuilders, IGraphContext context)
         {
             // Perform the actual graph transaction 
-            using (var transaction = new GraphTransactionScope())
+            using var transaction = new GraphTransactionScope();
+            // Remove any links that may have been added by a previous population. We don't
+            // remove nodes to maintain node identity, matching the behavior of the old
+            // providers.
+            context.Graph.Links.Clear();
+
+            foreach (var graphBuilder in graphBuilders)
             {
-                // Remove any links that may have been added by a previous population. We don't
-                // remove nodes to maintain node identity, matching the behavior of the old
-                // providers.
-                context.Graph.Links.Clear();
+                graphBuilder.ApplyToGraph(context.Graph);
 
-                foreach (var graphBuilder in graphBuilders)
-                {
-                    graphBuilder.ApplyToGraph(context.Graph);
-
-                    context.OutputNodes.AddAll(graphBuilder.CreatedNodes);
-                }
-
-                transaction.Complete();
+                context.OutputNodes.AddAll(graphBuilder.CreatedNodes);
             }
+
+            transaction.Complete();
         }
     }
 }

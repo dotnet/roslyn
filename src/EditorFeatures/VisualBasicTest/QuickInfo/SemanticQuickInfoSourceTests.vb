@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
@@ -25,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             ' speculative semantic model
             Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
             If Await CanUseSpeculativeSemanticModelAsync(document, position) Then
-                Dim buffer = workspace.Documents.Single().TextBuffer
+                Dim buffer = workspace.Documents.Single().GetTextBuffer()
                 Using edit = buffer.CreateEdit()
                     edit.Replace(0, buffer.CurrentSnapshot.Length, buffer.CurrentSnapshot.GetText())
                     edit.Apply()
@@ -1419,10 +1421,7 @@ End Class
 
             Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.goo() As Task</File>.ConvertTestSourceTag()
 
-            Dim doc = StringFromLines("", WorkspacesResources.Usage_colon, $"  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} goo()")
-
-            Await TestFromXmlAsync(markup,
-                 MainDescription(description), Usage(doc))
+            Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
 
         <WorkItem(7100, "https://github.com/dotnet/roslyn/issues/7100")>
@@ -1752,6 +1751,12 @@ End Class]]></text>.NormalizedValue(),
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestDateLiteral() As Task
+            Await TestInMethodAsync("Dim f = #8/23/1970 $$3:45:39 AM#",
+                                    MainDescription("Structure System.DateTime"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTrueKeyword() As Task
             Await TestInMethodAsync("Dim f = True$$",
                                     MainDescription("Structure System.Boolean"))
@@ -1768,6 +1773,22 @@ End Class]]></text>.NormalizedValue(),
         Public Async Function TestNothingLiteral() As Task
             Await TestInMethodAsync("Dim f As String = Nothing$$",
                                     MainDescription("Class System.String"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNothingLiteralWithNoType() As Task
+            Await TestInMethodAsync("Dim f = Nothing$$",
+                                    MainDescription("Class System.Object"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNothingLiteralFieldDimOptionStrict() As Task
+            Await TestAsync("
+Option Strict On
+Class C
+    Dim f = Nothing$$
+End Class",
+                            MainDescription("Class System.Object"))
         End Function
 
         ''' <Remarks>
@@ -1794,7 +1815,7 @@ End Class
                     </Project>
                 </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %><%= " " %><%= FeaturesResources.no_value %></File>.ConvertTestSourceTag()
+            Dim description = <File><%= FeaturesResources.Awaited_task_returns_no_value %></File>.ConvertTestSourceTag()
 
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
@@ -1817,7 +1838,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %> Structure System.Int32</File>.ConvertTestSourceTag()
+            Dim description = <File><%= String.Format(FeaturesResources.Awaited_task_returns_0, "Structure System.Int32") %></File>.ConvertTestSourceTag()
 
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
@@ -1839,7 +1860,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %><%= " " %><%= FeaturesResources.no_value %></File>.ConvertTestSourceTag()
+            Dim description = <File><%= FeaturesResources.Awaited_task_returns_no_value %></File>.ConvertTestSourceTag()
 
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
@@ -1876,7 +1897,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; <%= FeaturesResources.Awaited_task_returns %> Class System.Threading.Tasks.Task(Of TResult)</File>.ConvertTestSourceTag()
+            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; <%= String.Format(FeaturesResources.Awaited_task_returns_0, "Class System.Threading.Tasks.Task(Of TResult)") %></File>.ConvertTestSourceTag()
             Await TestFromXmlAsync(markup, MainDescription(description), TypeParameterMap(vbCrLf & $"TResult {FeaturesResources.is_} Integer"))
         End Function
 
@@ -1912,7 +1933,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %> Structure System.Int32</File>.ConvertTestSourceTag()
+            Dim description = <File><%= String.Format(FeaturesResources.Awaited_task_returns_0, "Structure System.Int32") %></File>.ConvertTestSourceTag()
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
 
@@ -2416,6 +2437,69 @@ Class C
     End Property
 End Class",
             Documentation("Summary for property Goo"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")>
+        Public Async Function QuickInfoOnIndexerOpenParen() As Task
+            Await TestAsync("
+Class C
+    Default Public ReadOnly Property Item(ByVal index As Integer) As Integer
+        Get
+            Return 1
+        End Get
+    End Property
+
+    Sub M()
+        Dim x = New C()
+        Dim y = x$$(4)
+    End Sub
+End Class",
+            MainDescription("ReadOnly Property C.Item(index As Integer) As Integer"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")>
+        Public Async Function QuickInfoOnIndexerCloseParen() As Task
+            Await TestAsync("
+Class C
+    Default Public ReadOnly Property Item(ByVal index As Integer) As Integer
+        Get
+            Return 1
+        End Get
+    End Property
+
+    Sub M()
+        Dim x = New C()
+        Dim y = x(4$$)
+    End Sub
+End Class",
+            MainDescription("ReadOnly Property C.Item(index As Integer) As Integer"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")>
+        Public Async Function QuickInfoOnIndexer_MissingOnRegularMethodCall() As Task
+            Await TestAsync("
+Class C
+    Sub M()
+        M($$)
+    End Sub
+End Class",
+                Nothing)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")>
+        Public Async Function QuickInfoOnIndexer_MissingOnArrayAccess() As Task
+            Await TestAsync("
+Class C
+    Sub M()
+        Dim x(4) As Integer
+        Dim y = x(3$$)
+    End Sub
+End Class",
+                MainDescription("Structure System.Int32"))
         End Function
     End Class
 End Namespace

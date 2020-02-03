@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -21,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             return task.CompletesTrackingOperation(asyncToken);
         }
 
+        [PerformanceSensitive(
+            "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
+            AllowCaptures = false)]
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task CompletesTrackingOperation(this Task task, IDisposable token)
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
@@ -30,11 +35,16 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 return task;
             }
 
-            return task.SafeContinueWith(
-                t => token.Dispose(),
-                CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
+            return CompletesTrackingOperationSlow(task, token);
+
+            static Task CompletesTrackingOperationSlow(Task task, IDisposable token)
+            {
+                return task.SafeContinueWith(
+                    t => token.Dispose(),
+                    CancellationToken.None,
+                    TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default);
+            }
         }
     }
 }

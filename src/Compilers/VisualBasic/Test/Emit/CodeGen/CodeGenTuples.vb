@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Text
@@ -7,9 +9,9 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.SigningTestHelpers
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -24,7 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                                                                                                 SystemRef,
                                                                                                 SystemCoreRef,
                                                                                                 MsvbRef}
-
 
         ReadOnly s_trivial2uple As String = "
 Namespace System
@@ -50,7 +51,6 @@ namespace System.Runtime.CompilerServices
 	    End Sub
     End Class
 End Namespace
-
 "
 
         ReadOnly s_tupleattributes As String = "
@@ -61,7 +61,6 @@ namespace System.Runtime.CompilerServices
 	    End Sub
     End Class
 End Namespace
-
 "
 
         ReadOnly s_trivial3uple As String = "
@@ -78,7 +77,6 @@ Namespace System
         End Sub
     End Structure
 End Namespace
-
 "
         ReadOnly s_trivialRemainingTuples As String = "
 Namespace System
@@ -108,6 +106,31 @@ Namespace System
     End Structure
 End Namespace
 "
+
+        <Fact>
+        Public Sub TupleNamesInArrayInAttribute()
+
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+<My(New (String, bob As String)() { })>
+Public Class MyAttribute
+    Inherits System.Attribute
+
+    Public Sub New(x As (alice As String, String)())
+    End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30045: Attribute constructor has a parameter of type '(alice As String, String)()', which is not an integral, floating-point or Enum type or one of Object, Char, String, Boolean, System.Type or 1-dimensional array of these types.
+<My(New (String, bob As String)() { })>
+ ~~
+                                        ]]></errors>)
+
+        End Sub
 
         <Fact>
         Public Sub TupleTypeBinding()
@@ -751,7 +774,6 @@ BC42104: Variable 'uninitialized1' is used before it has been assigned a value. 
 BC42104: Variable 'uninitialized2' is used before it has been assigned a value. A null reference exception could result at runtime.
         dim converted_literal as (Object, Object)  = (uninitialized2, uninitialized2)
                                                       ~~~~~~~~~~~~~~
-
 </errors>)
 
         End Sub
@@ -5643,7 +5665,7 @@ End Class
 
             Dim b = New StringBuilder()
             b.Append("(")
-            For i As Integer = 0 To 3000
+            For i As Integer = 0 To 2000
                 b.Append("1, ")
             Next
             b.Append("1)")
@@ -6840,21 +6862,13 @@ End Class
 
             Assert.Throws(Of ArgumentNullException)(Sub() comp.CreateTupleTypeSymbol(underlyingType:=Nothing, elementNames:=Nothing))
             Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType)
-            Try
-                comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("Item1"))
-                Assert.True(False)
-            Catch ex As ArgumentException
-                Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, ex.Message)
-            End Try
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("Item1")))
+            Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, ex.Message)
 
             Dim tree = VisualBasicSyntaxTree.ParseText("Class C")
             Dim loc1 = Location.Create(tree, New TextSpan(0, 1))
-            Try
-                comp.CreateTupleTypeSymbol(vt2, elementLocations:=ImmutableArray.Create(loc1))
-                Assert.True(False)
-            Catch ex As ArgumentException
-                Assert.Contains(CodeAnalysisResources.TupleElementLocationCountMismatch, ex.Message)
-            End Try
+            ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(vt2, elementLocations:=ImmutableArray.Create(loc1)))
+            Assert.Contains(CodeAnalysisResources.TupleElementLocationCountMismatch, ex.Message)
         End Sub
 
         <Fact>
@@ -7160,12 +7174,8 @@ End Class
             Dim tuple3 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("return", "class"))
             Assert.Equal({"return", "class"}, GetTupleElementNames(tuple3))
 
-            Try
-                comp.CreateTupleTypeSymbol(underlyingType:=intType)
-                Assert.True(False)
-            Catch ex As ArgumentException
-                Assert.Contains(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, ex.Message)
-            End Try
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(underlyingType:=intType))
+            Assert.Contains(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, ex.Message)
 
         End Sub
 
@@ -7177,14 +7187,10 @@ End Class
             Dim intType As NamedTypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
             Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType)
 
-            Try
-                ' Illegal VB identifier and empty
-                Dim tuple2 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", ""))
-                Assert.True(False)
-            Catch ex As ArgumentException
-                Assert.Contains(CodeAnalysisResources.TupleElementNameEmpty, ex.Message)
-                Assert.Contains("1", ex.Message)
-            End Try
+            ' Illegal VB identifier and empty
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", "")))
+            Assert.Contains(CodeAnalysisResources.TupleElementNameEmpty, ex.Message)
+            Assert.Contains("1", ex.Message)
 
         End Sub
 
@@ -7198,13 +7204,8 @@ End Class
             Dim csType = DirectCast(csComp.GlobalNamespace.GetMembers("C").Single(), INamedTypeSymbol)
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef})
-            Try
-                comp.CreateTupleTypeSymbol(csType, Nothing)
-                Assert.True(False)
-            Catch ex As ArgumentException
-                Assert.Contains(VBResources.NotAVbSymbol, ex.Message)
-            End Try
-
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(csType, Nothing))
+            Assert.Contains(VBResources.NotAVbSymbol, ex.Message)
         End Sub
 
         <Fact>
@@ -7529,6 +7530,200 @@ additionalRefs:=s_valueTupleRefs)
             Assert.True(intType.TupleElementTypes.IsDefault)
 
         End Sub
+
+        <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateTupleTypeSymbol_UnderlyingType_DefaultArgs()
+            Dim comp = CreateCompilation(
+"Module Program
+    Private F As (Integer, String)
+End Module")
+            Dim tuple1 = DirectCast(DirectCast(comp.GetMember("Program.F"), IFieldSymbol).Type, INamedTypeSymbol)
+            Dim underlyingType = tuple1.TupleUnderlyingType
+
+            Dim tuple2 = comp.CreateTupleTypeSymbol(underlyingType)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, Nothing, Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, Nothing, Nothing, Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNames:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementLocations:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+        End Sub
+
+        <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateTupleTypeSymbol_ElementTypes_DefaultArgs()
+            Dim comp = CreateCompilation(
+"Module Program
+    Private F As (Integer, String)
+End Module")
+            Dim tuple1 = DirectCast(DirectCast(comp.GetMember("Program.F"), IFieldSymbol).Type, INamedTypeSymbol)
+            Dim elementTypes = tuple1.TupleElements.SelectAsArray(Function(e) e.Type)
+
+            Dim tuple2 = comp.CreateTupleTypeSymbol(elementTypes)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, Nothing, Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, Nothing, Nothing, Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNames:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementLocations:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+        End Sub
+
+        <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_01()
+            Dim comp = CreateCompilation(
+"Module Program
+    Private F As (Integer, String)
+End Module")
+            Dim tuple1 = DirectCast(DirectCast(comp.GetMember("Program.F"), IFieldSymbol).Type, INamedTypeSymbol)
+            Dim underlyingType = tuple1.TupleUnderlyingType
+
+            Dim tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=ImmutableArray(Of NullableAnnotation).Empty))
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, ex.Message)
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                underlyingType,
+                elementNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None))
+            Assert.True(tuple1.Equals(tuple2))
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString())
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                underlyingType,
+                elementNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated))
+            Assert.True(tuple1.Equals(tuple2))
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString())
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                underlyingType,
+                elementNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.None))
+            Assert.True(tuple1.Equals(tuple2))
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_02()
+            Dim comp = CreateCompilation(
+"Module Program
+    Private F As (_1 As Object, _2 As Object, _3 As Object, _4 As Object, _5 As Object, _6 As Object, _7 As Object, _8 As Object, _9 As Object)
+End Module")
+            Dim tuple1 = DirectCast(DirectCast(comp.GetMember("Program.F"), IFieldSymbol).Type, INamedTypeSymbol)
+            Dim underlyingType = tuple1.TupleUnderlyingType
+
+            Dim tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=Nothing)
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString())
+
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=CreateAnnotations(CodeAnalysis.NullableAnnotation.NotAnnotated, 8)))
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, ex.Message)
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=CreateAnnotations(CodeAnalysis.NullableAnnotation.None, 9))
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString())
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations:=CreateAnnotations(CodeAnalysis.NullableAnnotation.Annotated, 9))
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_01()
+            Dim comp = CreateCompilation(
+"Module Program
+    Private F As (Integer, String)
+End Module")
+            Dim tuple1 = DirectCast(DirectCast(comp.GetMember("Program.F"), IFieldSymbol).Type, INamedTypeSymbol)
+            Dim elementTypes = tuple1.TupleElements.SelectAsArray(Function(e) e.Type)
+
+            Dim tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=Nothing)
+            Assert.True(tuple1.Equals(tuple2))
+
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=ImmutableArray(Of NullableAnnotation).Empty))
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, ex.Message)
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                elementTypes,
+                elementNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None))
+            Assert.True(tuple1.Equals(tuple2))
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString())
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                elementTypes,
+                elementNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated))
+            Assert.True(tuple1.Equals(tuple2))
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString())
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                elementTypes,
+                elementNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.None))
+            Assert.True(tuple1.Equals(tuple2))
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_02()
+            Dim comp = CreateCompilation(
+"Module Program
+    Private F As (_1 As Object, _2 As Object, _3 As Object, _4 As Object, _5 As Object, _6 As Object, _7 As Object, _8 As Object, _9 As Object)
+End Module")
+            Dim tuple1 = DirectCast(DirectCast(comp.GetMember("Program.F"), IFieldSymbol).Type, INamedTypeSymbol)
+            Dim elementTypes = tuple1.TupleElements.SelectAsArray(Function(e) e.Type)
+
+            Dim tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=Nothing)
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString())
+
+            Dim ex = Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=CreateAnnotations(CodeAnalysis.NullableAnnotation.NotAnnotated, 8)))
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, ex.Message)
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=CreateAnnotations(CodeAnalysis.NullableAnnotation.None, 9))
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString())
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations:=CreateAnnotations(CodeAnalysis.NullableAnnotation.Annotated, 9))
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString())
+        End Sub
+
+        Private Shared Function CreateAnnotations(annotation As CodeAnalysis.NullableAnnotation, n As Integer) As ImmutableArray(Of CodeAnalysis.NullableAnnotation)
+            Return ImmutableArray.CreateRange(Enumerable.Range(0, n).Select(Function(i) annotation))
+        End Function
+
+        Private Shared Function TypeEquals(a As ITypeSymbol, b As ITypeSymbol, compareKind As TypeCompareKind) As Boolean
+            Return TypeSymbol.Equals(DirectCast(a, TypeSymbol), DirectCast(b, TypeSymbol), compareKind)
+        End Function
 
         <Fact>
         Public Sub TupleTargetTypeAndConvert01()
@@ -16856,7 +17051,7 @@ BC40003: function 'MR1' shadows an overloadable member declared in the base inte
         End Sub
 
         <Fact>
-        Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames()
+        Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames_01()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -16895,9 +17090,9 @@ BC31033: Interface 'I0(Of Integer)' can be implemented only once by this type.
 
             Dim c1 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().ElementAt(1))
             Assert.Equal("C1", c1.Name)
-            Assert.Equal(1, c1.AllInterfaces.Count)
-            ' Note: the second set of names is the one listed in AllInterfaces
-            Assert.Equal("I0(Of (notA As System.Int32, notB As System.Int32))", c1.AllInterfaces(0).ToTestDisplayString())
+            Assert.Equal(2, c1.AllInterfaces.Count)
+            Assert.Equal("I0(Of (a As System.Int32, b As System.Int32))", c1.AllInterfaces(0).ToTestDisplayString())
+            Assert.Equal("I0(Of (notA As System.Int32, notB As System.Int32))", c1.AllInterfaces(1).ToTestDisplayString())
 
             Dim c2 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().ElementAt(2))
             Assert.Equal("C2", c2.Name)
@@ -16908,6 +17103,531 @@ BC31033: Interface 'I0(Of Integer)' can be implemented only once by this type.
             Assert.Equal("C3", c3.Name)
             Assert.Equal(1, c3.AllInterfaces.Count)
             Assert.Equal("I0(Of System.Int32)", c3.AllInterfaces(0).ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames_02()
+
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+public interface I1(Of T) 
+    Sub M()
+end interface
+
+public interface I2
+    Inherits I1(Of (a As Integer, b As Integer))
+end interface
+
+public interface I3
+    Inherits I1(Of (c As Integer, d As Integer))
+end interface
+
+public class C1 
+    Implements I2, I1(Of (c As Integer, d As Integer)) 
+
+    Sub M_1() Implements I1(Of (a As Integer, b As Integer)).M
+    End Sub
+    Sub M_2() Implements I1(Of (c As Integer, d As Integer)).M ' C1
+    End Sub
+End class
+
+public class C2
+    Implements I1(Of (c As Integer, d As Integer)), I2 
+
+    Sub M_1() Implements I1(Of (a As Integer, b As Integer)).M
+    End Sub
+    Sub M_2() Implements I1(Of (c As Integer, d As Integer)).M ' C2
+    End Sub
+End class
+
+public class C3
+    Implements I1(Of (a As Integer, b As Integer)), I1(Of (c As Integer, d As Integer))
+
+    Sub M_1() Implements I1(Of (a As Integer, b As Integer)).M
+    End Sub
+    Sub M_2() Implements I1(Of (c As Integer, d As Integer)).M ' C3
+    End Sub
+End class
+
+public class C4
+    Implements I2, I3 
+
+    Sub M_1() Implements I1(Of (a As Integer, b As Integer)).M
+    End Sub
+    Sub M_2() Implements I1(Of (c As Integer, d As Integer)).M ' C4
+    End Sub
+End class
+    </file>
+</compilation>
+            )
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37273: Interface 'I1(Of (c As Integer, d As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I1(Of (a As Integer, b As Integer))' (via 'I2').
+    Implements I2, I1(Of (c As Integer, d As Integer)) 
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30583: 'I1(Of (c As Integer, d As Integer)).M' cannot be implemented more than once.
+    Sub M_2() Implements I1(Of (c As Integer, d As Integer)).M ' C1
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37274: Interface 'I1(Of (a As Integer, b As Integer))' (via 'I2') can be implemented only once by this type, but already appears with different tuple element names, as 'I1(Of (c As Integer, d As Integer))'.
+    Implements I1(Of (c As Integer, d As Integer)), I2 
+                                                    ~~
+BC30583: 'I1(Of (c As Integer, d As Integer)).M' cannot be implemented more than once.
+    Sub M_2() Implements I1(Of (c As Integer, d As Integer)).M ' C2
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37272: Interface 'I1(Of (c As Integer, d As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I1(Of (a As Integer, b As Integer))'.
+    Implements I1(Of (a As Integer, b As Integer)), I1(Of (c As Integer, d As Integer))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30583: 'I1(Of (c As Integer, d As Integer)).M' cannot be implemented more than once.
+    Sub M_2() Implements I1(Of (c As Integer, d As Integer)).M ' C3
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37275: Interface 'I1(Of (c As Integer, d As Integer))' (via 'I3') can be implemented only once by this type, but already appears with different tuple element names, as 'I1(Of (a As Integer, b As Integer))' (via 'I2').
+    Implements I2, I3 
+                   ~~
+BC30583: 'I1(Of (c As Integer, d As Integer)).M' cannot be implemented more than once.
+    Sub M_2() Implements I1(Of (c As Integer, d As Integer)).M ' C4
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+            Dim c1 As INamedTypeSymbol = comp.GetTypeByMetadataName("C1")
+            Dim c1Interfaces = c1.Interfaces
+            Dim c1AllInterfaces = c1.AllInterfaces
+            Assert.Equal(2, c1Interfaces.Length)
+            Assert.Equal(3, c1AllInterfaces.Length)
+            Assert.Equal("I2", c1Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As System.Int32, d As System.Int32))", c1Interfaces(1).ToTestDisplayString())
+            Assert.Equal("I2", c1AllInterfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (a As System.Int32, b As System.Int32))", c1AllInterfaces(1).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As System.Int32, d As System.Int32))", c1AllInterfaces(2).ToTestDisplayString())
+            DuplicateInterfaceDetectionWithDifferentTupleNames_02_AssertExplicitInterfaceImplementations(c1)
+
+            Dim c2 As INamedTypeSymbol = comp.GetTypeByMetadataName("C2")
+            Dim c2Interfaces = c2.Interfaces
+            Dim c2AllInterfaces = c2.AllInterfaces
+            Assert.Equal(2, c2Interfaces.Length)
+            Assert.Equal(3, c2AllInterfaces.Length)
+            Assert.Equal("I1(Of (c As System.Int32, d As System.Int32))", c2Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I2", c2Interfaces(1).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As System.Int32, d As System.Int32))", c2AllInterfaces(0).ToTestDisplayString())
+            Assert.Equal("I2", c2AllInterfaces(1).ToTestDisplayString())
+            Assert.Equal("I1(Of (a As System.Int32, b As System.Int32))", c2AllInterfaces(2).ToTestDisplayString())
+            DuplicateInterfaceDetectionWithDifferentTupleNames_02_AssertExplicitInterfaceImplementations(c2)
+
+            Dim c3 As INamedTypeSymbol = comp.GetTypeByMetadataName("C3")
+            Dim c3Interfaces = c3.Interfaces
+            Dim c3AllInterfaces = c3.AllInterfaces
+            Assert.Equal(2, c3Interfaces.Length)
+            Assert.Equal(2, c3AllInterfaces.Length)
+            Assert.Equal("I1(Of (a As System.Int32, b As System.Int32))", c3Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As System.Int32, d As System.Int32))", c3Interfaces(1).ToTestDisplayString())
+            Assert.Equal("I1(Of (a As System.Int32, b As System.Int32))", c3AllInterfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As System.Int32, d As System.Int32))", c3AllInterfaces(1).ToTestDisplayString())
+            DuplicateInterfaceDetectionWithDifferentTupleNames_02_AssertExplicitInterfaceImplementations(c3)
+
+            Dim c4 As INamedTypeSymbol = comp.GetTypeByMetadataName("C4")
+            Dim c4Interfaces = c4.Interfaces
+            Dim c4AllInterfaces = c4.AllInterfaces
+            Assert.Equal(2, c4Interfaces.Length)
+            Assert.Equal(4, c4AllInterfaces.Length)
+            Assert.Equal("I2", c4Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I3", c4Interfaces(1).ToTestDisplayString())
+            Assert.Equal("I2", c4AllInterfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (a As System.Int32, b As System.Int32))", c4AllInterfaces(1).ToTestDisplayString())
+            Assert.Equal("I3", c4AllInterfaces(2).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As System.Int32, d As System.Int32))", c4AllInterfaces(3).ToTestDisplayString())
+            DuplicateInterfaceDetectionWithDifferentTupleNames_02_AssertExplicitInterfaceImplementations(c4)
+        End Sub
+
+        Private Shared Sub DuplicateInterfaceDetectionWithDifferentTupleNames_02_AssertExplicitInterfaceImplementations(c As INamedTypeSymbol)
+            Dim cMabImplementations = DirectCast(DirectCast(c, TypeSymbol).GetMember("M_1"), IMethodSymbol).ExplicitInterfaceImplementations
+            Assert.Equal(1, cMabImplementations.Length)
+            Assert.Equal("Sub I1(Of (a As System.Int32, b As System.Int32)).M()", cMabImplementations(0).ToTestDisplayString())
+            Dim cMcdImplementations = DirectCast(DirectCast(c, TypeSymbol).GetMember("M_2"), IMethodSymbol).ExplicitInterfaceImplementations
+            Assert.Equal(1, cMcdImplementations.Length)
+            Assert.Equal("Sub I1(Of (c As System.Int32, d As System.Int32)).M()", cMcdImplementations(0).ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames_03()
+
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+public interface I1(Of T) 
+    Sub M()
+end interface
+
+public class C1 
+    Implements I1(Of (a As Integer, b As Integer)) 
+
+    Sub M() Implements I1(Of (a As Integer, b As Integer)).M
+        System.Console.WriteLine("C1.M")
+    End Sub
+End class
+
+public class C2
+    Inherits C1
+    Implements I1(Of (c As Integer, d As Integer)) 
+
+    Overloads Sub M() Implements I1(Of (c As Integer, d As Integer)).M
+        System.Console.WriteLine("C2.M")
+    End Sub
+
+    Shared Sub Main()
+        Dim x As C1 = new C2()
+        Dim y As I1(Of (a As Integer, b As Integer)) = x
+        y.M()
+    End Sub
+End class
+    </file>
+</compilation>,
+            options:=TestOptions.DebugExe)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim validate As Action(Of ModuleSymbol) =
+            Sub(m)
+                Dim isMetadata As Boolean = TypeOf m Is PEModuleSymbol
+
+                Dim c1 As INamedTypeSymbol = m.GlobalNamespace.GetTypeMember("C1")
+                Dim c1Interfaces = c1.Interfaces
+                Dim c1AllInterfaces = c1.AllInterfaces
+                Assert.Equal(1, c1Interfaces.Length)
+                Assert.Equal(1, c1AllInterfaces.Length)
+                Assert.Equal("I1(Of (a As System.Int32, b As System.Int32))", c1Interfaces(0).ToTestDisplayString())
+                Assert.Equal("I1(Of (a As System.Int32, b As System.Int32))", c1AllInterfaces(0).ToTestDisplayString())
+
+                Dim c2 As INamedTypeSymbol = m.GlobalNamespace.GetTypeMember("C2")
+                Dim c2Interfaces = c2.Interfaces
+                Dim c2AllInterfaces = c2.AllInterfaces
+                Assert.Equal(1, c2Interfaces.Length)
+                Assert.Equal(2, c2AllInterfaces.Length)
+                Assert.Equal("I1(Of (c As System.Int32, d As System.Int32))", c2Interfaces(0).ToTestDisplayString())
+                Assert.Equal("I1(Of (a As System.Int32, b As System.Int32))", c2AllInterfaces(0).ToTestDisplayString())
+                Assert.Equal("I1(Of (c As System.Int32, d As System.Int32))", c2AllInterfaces(1).ToTestDisplayString())
+
+                Dim m2 = DirectCast(DirectCast(c2, TypeSymbol).GetMember("M"), IMethodSymbol)
+                Dim m2Implementations = m2.ExplicitInterfaceImplementations
+                Assert.Equal(1, m2Implementations.Length)
+                Assert.Equal(If(isMetadata,
+                                 "Sub I1(Of (System.Int32, System.Int32)).M()",
+                                 "Sub I1(Of (c As System.Int32, d As System.Int32)).M()"),
+                             m2Implementations(0).ToTestDisplayString())
+
+                Assert.Same(m2, c2.FindImplementationForInterfaceMember(DirectCast(c2Interfaces(0), TypeSymbol).GetMember("M")))
+                Assert.Same(m2, c2.FindImplementationForInterfaceMember(DirectCast(c1Interfaces(0), TypeSymbol).GetMember("M")))
+            End Sub
+
+            CompileAndVerify(comp, sourceSymbolValidator:=validate, symbolValidator:=validate, expectedOutput:="C2.M")
+        End Sub
+
+        <Fact>
+        Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames_04()
+
+            Dim csSource = "
+public interface I1<T> 
+{
+    void M();
+}
+public class C1 : I1<(int a, int b)> 
+{ 
+    public void M() => System.Console.WriteLine(""C1.M"");
+}
+
+public class C2 : C1, I1<(int c, int d)> 
+{ 
+    new public void M() => System.Console.WriteLine(""C2.M""); 
+}
+"
+            Dim csComp = CreateCSharpCompilation(csSource,
+                                                 compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                 referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.StandardAndVBRuntime))
+            csComp.VerifyDiagnostics()
+
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+public class C3
+    Shared Sub Main()
+        Dim x As C1 = new C2()
+        Dim y As I1(Of (a As Integer, b As Integer)) = x
+        y.M()
+    End Sub
+End class
+    </file>
+</compilation>,
+            options:=TestOptions.DebugExe, references:={csComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics()
+
+            CompileAndVerify(comp, expectedOutput:="C2.M")
+
+            Dim c1 As INamedTypeSymbol = comp.GlobalNamespace.GetTypeMember("C1")
+            Dim c1Interfaces = c1.Interfaces
+            Dim c1AllInterfaces = c1.AllInterfaces
+            Assert.Equal(1, c1Interfaces.Length)
+            Assert.Equal(1, c1AllInterfaces.Length)
+            Assert.Equal("I1(Of (a As System.Int32, b As System.Int32))", c1Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (a As System.Int32, b As System.Int32))", c1AllInterfaces(0).ToTestDisplayString())
+
+            Dim c2 As INamedTypeSymbol = comp.GlobalNamespace.GetTypeMember("C2")
+            Dim c2Interfaces = c2.Interfaces
+            Dim c2AllInterfaces = c2.AllInterfaces
+            Assert.Equal(1, c2Interfaces.Length)
+            Assert.Equal(2, c2AllInterfaces.Length)
+            Assert.Equal("I1(Of (c As System.Int32, d As System.Int32))", c2Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (a As System.Int32, b As System.Int32))", c2AllInterfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As System.Int32, d As System.Int32))", c2AllInterfaces(1).ToTestDisplayString())
+
+            Dim m2 = DirectCast(DirectCast(c2, TypeSymbol).GetMember("M"), IMethodSymbol)
+            Dim m2Implementations = m2.ExplicitInterfaceImplementations
+            Assert.Equal(0, m2Implementations.Length)
+
+            Assert.Same(m2, c2.FindImplementationForInterfaceMember(DirectCast(c2Interfaces(0), TypeSymbol).GetMember("M")))
+            Assert.Same(m2, c2.FindImplementationForInterfaceMember(DirectCast(c1Interfaces(0), TypeSymbol).GetMember("M")))
+        End Sub
+
+        <Fact>
+        Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames_05()
+
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+public interface I1(Of T) 
+    Sub M()
+end interface
+
+public interface I2(Of I2T)
+    Inherits I1(Of (a As I2T, b As I2T))
+end interface
+
+public interface I3(Of I3T)
+    Inherits I1(Of (c As I3T, d As I3T))
+end interface
+
+public class C1(Of T) 
+    Implements I2(Of T), I1(Of (c As T, d As T)) 
+
+    Sub M_1() Implements I1(Of (a As T, b As T)).M
+    End Sub
+    Sub M_2() Implements I1(Of (c As T, d As T)).M ' C1
+    End Sub
+End class
+
+public class C2(Of T)
+    Implements I1(Of (c As T, d As T)), I2(Of T) 
+
+    Sub M_1() Implements I1(Of (a As T, b As T)).M
+    End Sub
+    Sub M_2() Implements I1(Of (c As T, d As T)).M ' C2
+    End Sub
+End class
+
+public class C3(Of T)
+    Implements I1(Of (a As T, b As T)), I1(Of (c As T, d As T))
+
+    Sub M_1() Implements I1(Of (a As T, b As T)).M
+    End Sub
+    Sub M_2() Implements I1(Of (c As T, d As T)).M ' C3
+    End Sub
+End class
+
+public class C4(Of T)
+    Implements I2(Of T), I3(Of T) 
+
+    Sub M_1() Implements I1(Of (a As T, b As T)).M
+    End Sub
+    Sub M_2() Implements I1(Of (c As T, d As T)).M ' C4
+    End Sub
+End class
+    </file>
+</compilation>
+            )
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37273: Interface 'I1(Of (c As T, d As T))' can be implemented only once by this type, but already appears with different tuple element names, as 'I1(Of (a As T, b As T))' (via 'I2(Of T)').
+    Implements I2(Of T), I1(Of (c As T, d As T)) 
+                         ~~~~~~~~~~~~~~~~~~~~~~~
+BC30583: 'I1(Of (c As T, d As T)).M' cannot be implemented more than once.
+    Sub M_2() Implements I1(Of (c As T, d As T)).M ' C1
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37274: Interface 'I1(Of (a As T, b As T))' (via 'I2(Of T)') can be implemented only once by this type, but already appears with different tuple element names, as 'I1(Of (c As T, d As T))'.
+    Implements I1(Of (c As T, d As T)), I2(Of T) 
+                                        ~~~~~~~~
+BC30583: 'I1(Of (c As T, d As T)).M' cannot be implemented more than once.
+    Sub M_2() Implements I1(Of (c As T, d As T)).M ' C2
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37272: Interface 'I1(Of (c As T, d As T))' can be implemented only once by this type, but already appears with different tuple element names, as 'I1(Of (a As T, b As T))'.
+    Implements I1(Of (a As T, b As T)), I1(Of (c As T, d As T))
+                                        ~~~~~~~~~~~~~~~~~~~~~~~
+BC30583: 'I1(Of (c As T, d As T)).M' cannot be implemented more than once.
+    Sub M_2() Implements I1(Of (c As T, d As T)).M ' C3
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37275: Interface 'I1(Of (c As T, d As T))' (via 'I3(Of T)') can be implemented only once by this type, but already appears with different tuple element names, as 'I1(Of (a As T, b As T))' (via 'I2(Of T)').
+    Implements I2(Of T), I3(Of T) 
+                         ~~~~~~~~
+BC30583: 'I1(Of (c As T, d As T)).M' cannot be implemented more than once.
+    Sub M_2() Implements I1(Of (c As T, d As T)).M ' C4
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+            Dim c1 As INamedTypeSymbol = comp.GetTypeByMetadataName("C1`1")
+            Dim c1Interfaces = c1.Interfaces
+            Dim c1AllInterfaces = c1.AllInterfaces
+            Assert.Equal(2, c1Interfaces.Length)
+            Assert.Equal(3, c1AllInterfaces.Length)
+            Assert.Equal("I2(Of T)", c1Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As T, d As T))", c1Interfaces(1).ToTestDisplayString())
+            Assert.Equal("I2(Of T)", c1AllInterfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (a As T, b As T))", c1AllInterfaces(1).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As T, d As T))", c1AllInterfaces(2).ToTestDisplayString())
+            DuplicateInterfaceDetectionWithDifferentTupleNames_05_AssertExplicitInterfaceImplementations(c1)
+
+            Dim c2 As INamedTypeSymbol = comp.GetTypeByMetadataName("C2`1")
+            Dim c2Interfaces = c2.Interfaces
+            Dim c2AllInterfaces = c2.AllInterfaces
+            Assert.Equal(2, c2Interfaces.Length)
+            Assert.Equal(3, c2AllInterfaces.Length)
+            Assert.Equal("I1(Of (c As T, d As T))", c2Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I2(Of T)", c2Interfaces(1).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As T, d As T))", c2AllInterfaces(0).ToTestDisplayString())
+            Assert.Equal("I2(Of T)", c2AllInterfaces(1).ToTestDisplayString())
+            Assert.Equal("I1(Of (a As T, b As T))", c2AllInterfaces(2).ToTestDisplayString())
+            DuplicateInterfaceDetectionWithDifferentTupleNames_05_AssertExplicitInterfaceImplementations(c2)
+
+            Dim c3 As INamedTypeSymbol = comp.GetTypeByMetadataName("C3`1")
+            Dim c3Interfaces = c3.Interfaces
+            Dim c3AllInterfaces = c3.AllInterfaces
+            Assert.Equal(2, c3Interfaces.Length)
+            Assert.Equal(2, c3AllInterfaces.Length)
+            Assert.Equal("I1(Of (a As T, b As T))", c3Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As T, d As T))", c3Interfaces(1).ToTestDisplayString())
+            Assert.Equal("I1(Of (a As T, b As T))", c3AllInterfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As T, d As T))", c3AllInterfaces(1).ToTestDisplayString())
+            DuplicateInterfaceDetectionWithDifferentTupleNames_05_AssertExplicitInterfaceImplementations(c3)
+
+            Dim c4 As INamedTypeSymbol = comp.GetTypeByMetadataName("C4`1")
+            Dim c4Interfaces = c4.Interfaces
+            Dim c4AllInterfaces = c4.AllInterfaces
+            Assert.Equal(2, c4Interfaces.Length)
+            Assert.Equal(4, c4AllInterfaces.Length)
+            Assert.Equal("I2(Of T)", c4Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I3(Of T)", c4Interfaces(1).ToTestDisplayString())
+            Assert.Equal("I2(Of T)", c4AllInterfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (a As T, b As T))", c4AllInterfaces(1).ToTestDisplayString())
+            Assert.Equal("I3(Of T)", c4AllInterfaces(2).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As T, d As T))", c4AllInterfaces(3).ToTestDisplayString())
+            DuplicateInterfaceDetectionWithDifferentTupleNames_05_AssertExplicitInterfaceImplementations(c4)
+        End Sub
+
+        Private Shared Sub DuplicateInterfaceDetectionWithDifferentTupleNames_05_AssertExplicitInterfaceImplementations(c As INamedTypeSymbol)
+            Dim cMabImplementations = DirectCast(DirectCast(c, TypeSymbol).GetMember("M_1"), IMethodSymbol).ExplicitInterfaceImplementations
+            Assert.Equal(1, cMabImplementations.Length)
+            Assert.Equal("Sub I1(Of (a As T, b As T)).M()", cMabImplementations(0).ToTestDisplayString())
+            Dim cMcdImplementations = DirectCast(DirectCast(c, TypeSymbol).GetMember("M_2"), IMethodSymbol).ExplicitInterfaceImplementations
+            Assert.Equal(1, cMcdImplementations.Length)
+            Assert.Equal("Sub I1(Of (c As T, d As T)).M()", cMcdImplementations(0).ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames_06()
+
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+public interface I1(Of T) 
+    Sub M()
+end interface
+
+public class C3(Of T, U)
+    Implements I1(Of (a As T, b As T)), I1(Of (c As U, d As U))
+
+    Sub M_1() Implements I1(Of (a As T, b As T)).M
+    End Sub
+    Sub M_2() Implements I1(Of (c As U, d As U)).M
+    End Sub
+End class
+    </file>
+</compilation>
+            )
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC32072: Cannot implement interface 'I1(Of (c As U, d As U))' because its implementation could conflict with the implementation of another implemented interface 'I1(Of (a As T, b As T))' for some type arguments.
+    Implements I1(Of (a As T, b As T)), I1(Of (c As U, d As U))
+                                        ~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+            Dim c3 As INamedTypeSymbol = comp.GetTypeByMetadataName("C3`2")
+            Dim c3Interfaces = c3.Interfaces
+            Dim c3AllInterfaces = c3.AllInterfaces
+            Assert.Equal(2, c3Interfaces.Length)
+            Assert.Equal(2, c3AllInterfaces.Length)
+            Assert.Equal("I1(Of (a As T, b As T))", c3Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As U, d As U))", c3Interfaces(1).ToTestDisplayString())
+            Assert.Equal("I1(Of (a As T, b As T))", c3AllInterfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (c As U, d As U))", c3AllInterfaces(1).ToTestDisplayString())
+
+            Dim cMabImplementations = DirectCast(DirectCast(c3, TypeSymbol).GetMember("M_1"), IMethodSymbol).ExplicitInterfaceImplementations
+            Assert.Equal(1, cMabImplementations.Length)
+            Assert.Equal("Sub I1(Of (a As T, b As T)).M()", cMabImplementations(0).ToTestDisplayString())
+            Dim cMcdImplementations = DirectCast(DirectCast(c3, TypeSymbol).GetMember("M_2"), IMethodSymbol).ExplicitInterfaceImplementations
+            Assert.Equal(1, cMcdImplementations.Length)
+            Assert.Equal("Sub I1(Of (c As U, d As U)).M()", cMcdImplementations(0).ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames_07()
+
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+public interface I1(Of T) 
+    Sub M()
+end interface
+
+public class C3
+    Implements I1(Of (a As Integer, b As Integer))
+
+    Sub M() Implements I1(Of (c As Integer, d As Integer)).M
+    End Sub
+End class
+
+public class C4
+    Implements I1(Of (c As Integer, d As Integer))
+
+    Sub M() Implements I1(Of (c As Integer, d As Integer)).M
+    End Sub
+End class
+    </file>
+</compilation>
+            )
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC31035: Interface 'I1(Of (c As Integer, d As Integer))' is not implemented by this class.
+    Sub M() Implements I1(Of (c As Integer, d As Integer)).M
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+            Dim c3 As INamedTypeSymbol = comp.GetTypeByMetadataName("C3")
+            Dim c3Interfaces = c3.Interfaces
+            Dim c3AllInterfaces = c3.AllInterfaces
+            Assert.Equal(1, c3Interfaces.Length)
+            Assert.Equal(1, c3AllInterfaces.Length)
+            Assert.Equal("I1(Of (a As System.Int32, b As System.Int32))", c3Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I1(Of (a As System.Int32, b As System.Int32))", c3AllInterfaces(0).ToTestDisplayString())
+
+            Dim mImplementations = DirectCast(DirectCast(c3, TypeSymbol).GetMember("M"), IMethodSymbol).ExplicitInterfaceImplementations
+            Assert.Equal(1, mImplementations.Length)
+            Assert.Equal("Sub I1(Of (c As System.Int32, d As System.Int32)).M()", mImplementations(0).ToTestDisplayString())
+
+            Assert.Equal("Sub C3.M()",
+                         c3.FindImplementationForInterfaceMember(DirectCast(c3Interfaces(0), TypeSymbol).GetMember("M")).ToTestDisplayString())
+            Assert.Equal("Sub C3.M()",
+                         c3.FindImplementationForInterfaceMember(comp.GetTypeByMetadataName("C4").InterfacesNoUseSiteDiagnostics()(0).GetMember("M")).ToTestDisplayString())
         End Sub
 
         <Fact>
@@ -17880,6 +18600,9 @@ additionalRefs:=s_valueTupleRefs)
             Assert.True(underlying1.IsSameType(tuple1, TypeCompareKind.IgnoreTupleNames))
             Assert.True(underlying1.IsSameType(underlying1, TypeCompareKind.IgnoreTupleNames))
 
+            Assert.False(tuple1.IsSameType(Nothing, TypeCompareKind.ConsiderEverything))
+            Assert.False(tuple1.IsSameType(Nothing, TypeCompareKind.IgnoreTupleNames))
+
             Dim m2 = comp.GetMember(Of MethodSymbol)("C.M2")
             Dim tuple2 As TypeSymbol = m2.Parameters(0).Type
             Dim underlying2 As NamedTypeSymbol = tuple2.TupleUnderlyingType
@@ -18700,9 +19423,8 @@ BC30652: Reference required to assembly '5a03232e-1a0f-4d1b-99ba-5d7b40ea931e, V
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub ValueTupleBase_AssemblyUnification()
-            Dim signedDllOptions = TestOptions.ReleaseDll.
-                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(s_defaultDesktopProvider)
+            Dim signedDllOptions = TestOptions.SigningReleaseDll.
+                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile)
             Dim comp0v1 = CreateCompilationWithMscorlib40(
 <compilation name="A">
     <file name="a.vb"><![CDATA[
@@ -18805,7 +19527,7 @@ BC41009: The tuple element name 'c' is ignored because a different name or no na
 
         <Fact>
         <WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")>
-        Public Sub NullCoalesingOperatorWithTupleNames()
+        Public Sub NullCoalescingOperatorWithTupleNames()
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Tuples">
@@ -20133,7 +20855,9 @@ End Class
             Dim derivedSymbol = model.GetDeclaredSymbol(derived)
             Assert.Equal("Derived", derivedSymbol.ToTestDisplayString())
 
-            Assert.Equal(New String() {"ITest(Of (notA As System.Int32, notB As System.Int32))"},
+            Assert.Equal(New String() {
+                         "ITest(Of (a As System.Int32, b As System.Int32))",
+                         "ITest(Of (notA As System.Int32, notB As System.Int32))"},
                 derivedSymbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
 
         End Sub
@@ -20275,7 +20999,9 @@ End Module
             Dim instance1Symbol = DirectCast(model.GetDeclaredSymbol(instance1), LocalSymbol).Type
             Assert.Equal("Derived(Of (notA As Integer, notB As Integer))", instance1Symbol.ToString())
 
-            Assert.Equal(New String() {"ITest(Of (notA As System.Int32, notB As System.Int32))"},
+            Assert.Equal(New String() {
+                         "ITest(Of (a As System.Int32, b As System.Int32))",
+                         "ITest(Of (notA As System.Int32, notB As System.Int32))"},
                 instance1Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
 
             Dim instance2 = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(1).Names(0)
@@ -20545,7 +21271,7 @@ End Class
 
         <Fact()>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
-        Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames()
+        Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_01()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -20578,6 +21304,198 @@ BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB
                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
 
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_02()
+
+            Dim csSource = "
+public interface ITest<T>
+{
+    T M();
+}
+public class Base : ITest<(int a, int b)>
+{
+    (int a, int b) ITest<(int a, int b)>.M() { return (1, 2); } // explicit implementation
+    public virtual (int notA, int notB) M() { return (1, 2); }
+}
+"
+            Dim csComp = CreateCSharpCompilation(csSource,
+                                                 compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                 referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.StandardAndVBRuntime))
+            csComp.VerifyDiagnostics()
+
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class Derived1
+    Inherits Base
+    Implements ITest(Of (notA As Integer, notB As Integer))
+End Class
+Class Derived2
+    Inherits Base
+    Implements ITest(Of (a As Integer, b As Integer))
+End Class
+]]></file>
+</compilation>, references:={csComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(<errors>
+BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB As Integer)' for interface 'ITest(Of (notA As Integer, notB As Integer))'.
+    Implements ITest(Of (notA As Integer, notB As Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+            Dim derived1 As INamedTypeSymbol = comp.GetTypeByMetadataName("Derived1")
+            Assert.Equal("ITest(Of (notA As System.Int32, notB As System.Int32))", derived1.Interfaces(0).ToTestDisplayString())
+
+            Dim derived2 As INamedTypeSymbol = comp.GetTypeByMetadataName("Derived2")
+            Assert.Equal("ITest(Of (a As System.Int32, b As System.Int32))", derived2.Interfaces(0).ToTestDisplayString())
+
+            Dim m = comp.GetTypeByMetadataName("Base").GetMembers("ITest<(System.Int32a,System.Int32b)>.M").Single()
+            Dim mImplementations = DirectCast(m, IMethodSymbol).ExplicitInterfaceImplementations
+            Assert.Equal(1, mImplementations.Length)
+            Assert.Equal("Function ITest(Of (System.Int32, System.Int32)).M() As (System.Int32, System.Int32)", mImplementations(0).ToTestDisplayString())
+
+            Assert.Same(m, derived1.FindImplementationForInterfaceMember(DirectCast(derived1.Interfaces(0), TypeSymbol).GetMember("M")))
+            Assert.Same(m, derived1.FindImplementationForInterfaceMember(DirectCast(derived2.Interfaces(0), TypeSymbol).GetMember("M")))
+            Assert.Same(m, derived2.FindImplementationForInterfaceMember(DirectCast(derived1.Interfaces(0), TypeSymbol).GetMember("M")))
+            Assert.Same(m, derived2.FindImplementationForInterfaceMember(DirectCast(derived2.Interfaces(0), TypeSymbol).GetMember("M")))
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_03()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface ITest(Of T)
+    Function M() As T
+End Interface
+
+Class Base
+    Implements ITest(Of (a As Integer, b As Integer))
+End Class
+
+Class Derived1
+    Inherits Base
+    Implements ITest(Of (notA As Integer, notB As Integer))
+End Class
+Class Derived2
+    Inherits Base
+    Implements ITest(Of (a As Integer, b As Integer))
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics(<errors>
+BC30149: Class 'Base' must implement 'Function M() As (a As Integer, b As Integer)' for interface 'ITest(Of (a As Integer, b As Integer))'.
+    Implements ITest(Of (a As Integer, b As Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB As Integer)' for interface 'ITest(Of (notA As Integer, notB As Integer))'.
+    Implements ITest(Of (notA As Integer, notB As Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                               </errors>)
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_04()
+            Dim compilation1 = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Interface ITest(Of T)
+    Function M() As T
+End Interface
+
+Public Class Base
+    Implements ITest(Of (a As Integer, b As Integer))
+End Class
+]]></file>
+</compilation>)
+
+            compilation1.AssertTheseDiagnostics(<errors>
+BC30149: Class 'Base' must implement 'Function M() As (a As Integer, b As Integer)' for interface 'ITest(Of (a As Integer, b As Integer))'.
+    Implements ITest(Of (a As Integer, b As Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                </errors>)
+
+            Dim compilation2 = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class Derived1
+    Inherits Base
+    Implements ITest(Of (notA As Integer, notB As Integer))
+End Class
+Class Derived2
+    Inherits Base
+    Implements ITest(Of (a As Integer, b As Integer))
+End Class
+]]></file>
+</compilation>, references:={compilation1.ToMetadataReference()})
+
+            compilation2.AssertTheseDiagnostics(<errors>
+BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB As Integer)' for interface 'ITest(Of (notA As Integer, notB As Integer))'.
+    Implements ITest(Of (notA As Integer, notB As Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                </errors>)
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_05()
+
+            Dim csSource = "
+public interface ITest<T>
+{
+    T M();
+}
+public class Base : ITest<(int a, int b)>
+{
+    public virtual (int a, int b) M() { return (1, 2); }
+}
+"
+            Dim csComp = CreateCSharpCompilation(csSource,
+                                                 compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                 referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.StandardAndVBRuntime))
+            csComp.VerifyDiagnostics()
+
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class Derived1
+    Inherits Base
+    Implements ITest(Of (notA As Integer, notB As Integer))
+End Class
+Class Derived2
+    Inherits Base
+    Implements ITest(Of (a As Integer, b As Integer))
+End Class
+]]></file>
+</compilation>, references:={csComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(<errors>
+BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB As Integer)' for interface 'ITest(Of (notA As Integer, notB As Integer))'.
+    Implements ITest(Of (notA As Integer, notB As Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+            Dim derived1 As INamedTypeSymbol = comp.GetTypeByMetadataName("Derived1")
+            Assert.Equal("ITest(Of (notA As System.Int32, notB As System.Int32))", derived1.Interfaces(0).ToTestDisplayString())
+
+            Dim derived2 As INamedTypeSymbol = comp.GetTypeByMetadataName("Derived2")
+            Assert.Equal("ITest(Of (a As System.Int32, b As System.Int32))", derived2.Interfaces(0).ToTestDisplayString())
+
+            Dim m = comp.GetTypeByMetadataName("Base").GetMember("M")
+            Dim mImplementations = DirectCast(m, IMethodSymbol).ExplicitInterfaceImplementations
+            Assert.Equal(0, mImplementations.Length)
+
+            Assert.Same(m, derived1.FindImplementationForInterfaceMember(DirectCast(derived1.Interfaces(0), TypeSymbol).GetMember("M")))
+            Assert.Same(m, derived1.FindImplementationForInterfaceMember(DirectCast(derived2.Interfaces(0), TypeSymbol).GetMember("M")))
+            Assert.Same(m, derived2.FindImplementationForInterfaceMember(DirectCast(derived1.Interfaces(0), TypeSymbol).GetMember("M")))
+            Assert.Same(m, derived2.FindImplementationForInterfaceMember(DirectCast(derived2.Interfaces(0), TypeSymbol).GetMember("M")))
         End Sub
 
         <Fact()>
@@ -21703,11 +22621,296 @@ End Class
                 Assert.True(tuple.IsTupleType)
                 Assert.False(tuple.TupleUnderlyingType.IsErrorType())
             Else
-                Assert.Equal("System.Collections.Generic.IEnumerable(Of Container(Of System.ValueTuple(Of System.Int32, System.Int32))[missing].Contained(Of System.ValueTuple(Of System.Int32, System.Int32))[missing])", IEnumerable.ToTestDisplayString())
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of Container(Of System.ValueTuple(Of System.Int32, System.Int32))[missing].Contained(Of System.ValueTuple(Of System.Int32, System.Int32))[missing])", iEnumerable.ToTestDisplayString())
                 Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32)", tuple.ToTestDisplayString())
                 Assert.False(tuple.IsTupleType)
             End If
         End Sub
+
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        <WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")>
+        Public Sub SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_IndirectInterfaces(ByVal useImageReferences As Boolean)
+
+            Dim getReference As Func(Of Compilation, MetadataReference) = Function(c) If(useImageReferences, c.EmitToImageReference(), c.ToMetadataReference())
+
+            Dim valueTuple_source = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return ""{"" + Item1?.ToString() + "", "" + Item2?.ToString() + ""}""
+        End Function
+    End Structure
+End Namespace
+"
+            Dim valueTuple_comp = CreateCompilationWithMscorlib40(valueTuple_source)
+
+            Dim tupleElementNamesAttribute_comp = CreateCompilationWithMscorlib40(s_tupleattributes)
+            tupleElementNamesAttribute_comp.AssertNoDiagnostics()
+
+            Dim lib1_source = "
+Imports System.Threading.Tasks
+
+Public Interface I2(Of T, TResult)
+    Function ExecuteAsync(parameter As T) As Task(Of TResult)
+End Interface
+
+Public Interface I1(Of T)
+    Inherits I2(Of T, (a As Object, b As Object))
+End Interface
+"
+            Dim lib1_comp = CreateCompilationWithMscorlib40(lib1_source, references:={getReference(valueTuple_comp), getReference(tupleElementNamesAttribute_comp)})
+            lib1_comp.AssertNoDiagnostics()
+
+            Dim lib2_source = "
+Public interface I0
+    Inherits I1(Of string)
+End Interface
+"
+            Dim lib2_comp = CreateCompilationWithMscorlib40(lib2_source, references:={getReference(lib1_comp), getReference(valueTuple_comp)}) ' Missing TupleElementNamesAttribute
+            lib2_comp.AssertNoDiagnostics()
+            lib2_comp.AssertTheseEmitDiagnostics()
+
+            Dim imc1 = CType(lib2_comp.GlobalNamespace.GetMember("I0"), TypeSymbol)
+            AssertEx.SetEqual({"I1(Of System.String)"}, imc1.InterfacesNoUseSiteDiagnostics().Select(Function(i) i.ToTestDisplayString()))
+            AssertEx.SetEqual({"I1(Of System.String)", "I2(Of System.String, (a As System.Object, b As System.Object))"}, imc1.AllInterfacesNoUseSiteDiagnostics.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim client_source = "
+Public Class C
+    Public Sub M(imc As I0)
+        imc.ExecuteAsync("""")
+    End Sub
+End Class
+"
+            Dim client_comp = CreateCompilationWithMscorlib40(client_source, references:={getReference(lib1_comp), getReference(lib2_comp), getReference(valueTuple_comp)})
+            client_comp.AssertNoDiagnostics()
+
+            Dim imc2 = CType(client_comp.GlobalNamespace.GetMember("I0"), TypeSymbol)
+            AssertEx.SetEqual({"I1(Of System.String)"}, imc2.InterfacesNoUseSiteDiagnostics().Select(Function(i) i.ToTestDisplayString()))
+            AssertEx.SetEqual({"I1(Of System.String)", "I2(Of System.String, (a As System.Object, b As System.Object))"}, imc2.AllInterfacesNoUseSiteDiagnostics.Select(Function(i) i.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact, WorkItem(40033, "https://github.com/dotnet/roslyn/issues/40033")>
+        Public Sub SynthesizeTupleElementNamesAttributeBasedOnInterfacesToEmit_BaseAndDirectInterface()
+
+            Dim source = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return ""{"" + Item1?.ToString() + "", "" + Item2?.ToString() + ""}""
+        End Function
+    End Structure
+End Namespace
+
+Namespace System.Runtime.CompilerServices
+    Public Class TupleElementNamesAttribute
+        Inherits Attribute
+
+        Public Sub New() ' Note: bad signature
+	    End Sub
+    End Class
+End Namespace
+
+Public Interface I(Of T)
+End Interface
+
+Public Class Base(Of T)
+End Class
+
+Public Class C1
+    Implements I(Of (a As Object, b As Object))
+End Class
+
+Public Class C2
+    Inherits Base(Of (a As Object, b As Object))
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseEmitDiagnostics(<errors><![CDATA[
+BC37268: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+    Implements I(Of (a As Object, b As Object))
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37268: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+    Inherits Base(Of (a As Object, b As Object))
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~
+                ]]></errors>)
+
+        End Sub
+
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        <WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")>
+        Public Sub MissingTypeArgumentInBase_ValueTuple(useImageReference As Boolean)
+            Dim lib_vb = "
+Public Class ClassWithTwoTypeParameters(Of T1, T2)
+End Class
+
+Public Class SelfReferencingClassWithTuple
+    Inherits ClassWithTwoTypeParameters(Of SelfReferencingClassWithTuple, (A As String, B As Integer))
+
+    Sub New()
+        System.Console.Write(""ran"")
+    End Sub
+End Class
+"
+            Dim library = CreateCompilationWithMscorlib40(lib_vb, references:=s_valueTupleRefs)
+            library.VerifyDiagnostics()
+            Dim libraryRef = If(useImageReference, library.EmitToImageReference(), library.ToMetadataReference())
+
+            Dim source_vb = "
+Public Class TriggerStackOverflowException
+    Public Shared Sub Method()
+        Dim x = New SelfReferencingClassWithTuple()
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib40(source_vb, references:={libraryRef})
+            comp.VerifyEmitDiagnostics()
+
+            Dim executable_vb = "
+Public Class C
+    Public Shared Sub Main()
+        TriggerStackOverflowException.Method()
+    End Sub
+End Class
+"
+            Dim executableComp = CreateCompilationWithMscorlib40(executable_vb,
+                references:={comp.EmitToImageReference(), libraryRef, SystemRuntimeFacadeRef, ValueTupleRef},
+                options:=TestOptions.DebugExe)
+            CompileAndVerify(executableComp, expectedOutput:="ran")
+
+        End Sub
+
+        <Fact>
+        <WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")>
+        <WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")>
+        Public Sub CustomFields_01()
+            Dim source0 = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Shared F1 As Integer = 123
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return F1.ToString()
+        End Function
+    End Structure
+End Namespace
+"
+
+            Dim source1 = "
+class Program
+    public Shared Sub Main()
+        System.Console.WriteLine((1,2).ToString())
+    End Sub
+End Class
+"
+
+            Dim source2 = "
+class Program
+    public Shared Sub Main()
+        System.Console.WriteLine(System.ValueTuple(Of Integer, Integer).F1)
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="123")
+
+            Dim comp1Ref = {comp1.ToMetadataReference()}
+            Dim comp1ImageRef = {comp1.EmitToImageReference()}
+
+            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp4, expectedOutput:="123")
+
+            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp5, expectedOutput:="123")
+
+            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1ImageRef)
+            CompileAndVerify(comp6, expectedOutput:="123")
+        End Sub
+
+        <Fact>
+        <WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")>
+        <WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")>
+        Public Sub CustomFields_02()
+            Dim source0 = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Dim F1 As Integer
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+            me.F1 = 123
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return F1.ToString()
+        End Function
+    End Structure
+End Namespace
+"
+
+            Dim source1 = "
+class Program
+    public Shared Sub Main()
+        System.Console.WriteLine((1,2).ToString())
+    End Sub
+End Class
+"
+
+            Dim source2 = "
+class Program
+    public Shared Sub Main()
+        System.Console.WriteLine((1,2).F1)
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="123")
+
+            Dim comp1Ref = {comp1.ToMetadataReference()}
+            Dim comp1ImageRef = {comp1.EmitToImageReference()}
+
+            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp4, expectedOutput:="123")
+
+            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp5, expectedOutput:="123")
+
+            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1ImageRef)
+            CompileAndVerify(comp6, expectedOutput:="123")
+        End Sub
+
     End Class
 
 End Namespace

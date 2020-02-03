@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,17 +15,12 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
-    [Export(typeof(ExternalErrorDiagnosticUpdateSource))]
-    internal class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
+    internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
@@ -33,20 +29,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly SimpleTaskQueue _taskQueue;
         private readonly IAsynchronousOperationListener _listener;
 
-        private readonly object _gate;
-        private InprogressState _stateDoNotAccessDirectly = null;
+        private readonly object _gate = new object();
+        private InProgressState _stateDoNotAccessDirectly = null;
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
-        [ImportingConstructor]
         public ExternalErrorDiagnosticUpdateSource(
-            VisualStudioWorkspaceImpl workspace,
+            VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListenerProvider listenerProvider) :
-                this(workspace, diagnosticService, registrationService, listenerProvider.GetListener(FeatureAttribute.ErrorList))
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : this(workspace, diagnosticService, listenerProvider.GetListener(FeatureAttribute.ErrorList))
         {
-            Debug.Assert(!KnownUIContexts.SolutionBuildingContext.IsActive);
-            KnownUIContexts.SolutionBuildingContext.UIContextChanged += OnSolutionBuild;
+            registrationService.Register(this);
         }
 
         /// <summary>
@@ -55,7 +49,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         internal ExternalErrorDiagnosticUpdateSource(
             Workspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
-            IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListener listener)
         {
             // use queue to serialize work. no lock needed
@@ -68,14 +61,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _diagnosticService = diagnosticService;
 
             _notificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
-
-            _gate = new object();
-
-            registrationService.Register(this);
         }
 
-        public event EventHandler<bool> BuildStarted;
+        public event EventHandler<BuildProgress> BuildProgressChanged;
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        public event EventHandler DiagnosticsCleared { add { } remove { } }
 
         public bool IsInProgress => BuildInprogressState != null;
 
@@ -84,9 +74,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             return _lastBuiltResult;
         }
 
-        public bool SupportedDiagnosticId(ProjectId projectId, string id)
+        public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
         {
-            return BuildInprogressState?.SupportedDiagnosticId(projectId, id) ?? false;
+            return BuildInprogressState?.IsSupportedDiagnosticId(projectId, id) ?? false;
         }
 
         public void ClearErrors(ProjectId projectId)
@@ -97,8 +87,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var asyncToken = _listener.BeginAsyncOperation("ClearErrors");
             _taskQueue.ScheduleTask(() =>
             {
-                // record the project as built only if we are in build.
-                // otherwise (such as closing solution or removing project), no need to record it
+                // this will get called if the project is actually built by "build" command.
+                // we track what project has been built, so that later we can clear any stale live errors
+                // if build give us no errors for this project
                 state?.Built(projectId);
 
                 ClearProjectErrors(state?.Solution ?? _workspace.CurrentSolution, projectId);
@@ -113,27 +104,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 case WorkspaceChangeKind.SolutionRemoved:
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
-                {
-                    var asyncToken = _listener.BeginAsyncOperation("OnSolutionChanged");
-                    _taskQueue.ScheduleTask(() => e.OldSolution.ProjectIds.Do(p => ClearProjectErrors(e.OldSolution, p))).CompletesAsyncOperation(asyncToken);
-                    break;
-                }
+                    {
+                        var asyncToken = _listener.BeginAsyncOperation("OnSolutionChanged");
+                        _taskQueue.ScheduleTask(() => e.OldSolution.ProjectIds.Do(p => ClearProjectErrors(e.OldSolution, p))).CompletesAsyncOperation(asyncToken);
+                        break;
+                    }
 
                 case WorkspaceChangeKind.ProjectRemoved:
                 case WorkspaceChangeKind.ProjectReloaded:
-                {
-                    var asyncToken = _listener.BeginAsyncOperation("OnProjectChanged");
-                    _taskQueue.ScheduleTask(() => ClearProjectErrors(e.OldSolution, e.ProjectId)).CompletesAsyncOperation(asyncToken);
-                    break;
-                }
+                    {
+                        var asyncToken = _listener.BeginAsyncOperation("OnProjectChanged");
+                        _taskQueue.ScheduleTask(() => ClearProjectErrors(e.OldSolution, e.ProjectId)).CompletesAsyncOperation(asyncToken);
+                        break;
+                    }
 
                 case WorkspaceChangeKind.DocumentRemoved:
                 case WorkspaceChangeKind.DocumentReloaded:
-                {
-                    var asyncToken = _listener.BeginAsyncOperation("OnDocumentRemoved");
-                    _taskQueue.ScheduleTask(() => ClearDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId)).CompletesAsyncOperation(asyncToken);
-                    break;
-                }
+                    {
+                        var asyncToken = _listener.BeginAsyncOperation("OnDocumentRemoved");
+                        _taskQueue.ScheduleTask(() => ClearDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId)).CompletesAsyncOperation(asyncToken);
+                        break;
+                    }
 
                 case WorkspaceChangeKind.ProjectAdded:
                 case WorkspaceChangeKind.DocumentAdded:
@@ -144,6 +135,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 case WorkspaceChangeKind.AdditionalDocumentRemoved:
                 case WorkspaceChangeKind.AdditionalDocumentReloaded:
                 case WorkspaceChangeKind.AdditionalDocumentChanged:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     break;
                 default:
                     Contract.Fail("Unknown workspace events");
@@ -151,56 +146,61 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        internal void OnSolutionBuild(object sender, UIContextChangedEventArgs e)
+        internal void OnSolutionBuildStarted()
         {
-            if (e.Activated)
-            {
-                // build just started, create the state and fire build in progress event.
-                var state = GetOrCreateInprogressState();
-                return;
-            }
+            // build just started, create the state and fire build in progress event.
+            // build just started, create the state and fire build in progress event.
+            _ = GetOrCreateInProgressState();
+        }
 
+        internal void OnSolutionBuildCompleted()
+        {
             // building is done. reset the state
-            // and get local copy of inprogress state
-            var inprogressState = ClearInprogressState();
+            // and get local copy of in-progress state
+            var inProgressState = ClearInProgressState();
 
             // enqueue build/live sync in the queue.
             var asyncToken = _listener.BeginAsyncOperation("OnSolutionBuild");
             _taskQueue.ScheduleTask(async () =>
             {
                 // nothing to do
-                if (inprogressState == null)
+                if (inProgressState == null)
                 {
                     return;
                 }
 
-                _lastBuiltResult = inprogressState.GetBuildDiagnostics();
+                // explicitly start solution crawler if it didn't start yet. since solution crawler is lazy, 
+                // user might have built solution before workspace fires its first event yet (which is when solution crawler is initialized)
+                // here we give initializeLazily: false so that solution crawler is fully initialized when we do de-dup live and build errors,
+                // otherwise, we will think none of error we have here belong to live errors since diagnostic service is not initialized yet.
+                var registrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+                registrationService.EnsureRegistration(_workspace, initializeLazily: false);
+
+                _lastBuiltResult = inProgressState.GetBuildDiagnostics();
 
                 // we are about to update live analyzer data using one from build.
                 // pause live analyzer
-                using (var operation = _notificationService.Start("BuildDone"))
+                using var operation = _notificationService.Start("BuildDone");
+                if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
                 {
-                    if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
-                    {
-                        await CleanupAllLiveErrorsAsync(diagnosticService, inprogressState.GetProjectsWithoutErrors()).ConfigureAwait(false);
-                        await SyncBuildErrorsAndReportAsync(diagnosticService, inprogressState).ConfigureAwait(false);
-                    }
-
-                    inprogressState.Done();
+                    await CleanupAllLiveErrorsAsync(diagnosticService, inProgressState.GetProjectsWithoutErrors()).ConfigureAwait(false);
+                    await SyncBuildErrorsAndReportAsync(diagnosticService, inProgressState).ConfigureAwait(false);
                 }
+
+                inProgressState.Done();
             }).CompletesAsyncOperation(asyncToken);
         }
 
-        private System.Threading.Tasks.Task CleanupAllLiveErrorsAsync(DiagnosticAnalyzerService diagnosticService, IEnumerable<ProjectId> projects)
+        private Task CleanupAllLiveErrorsAsync(DiagnosticAnalyzerService diagnosticService, IEnumerable<ProjectId> projects)
         {
             var map = projects.ToImmutableDictionary(p => p, _ => ImmutableArray<DiagnosticData>.Empty);
             return diagnosticService.SynchronizeWithBuildAsync(_workspace, map);
         }
 
-        private async System.Threading.Tasks.Task SyncBuildErrorsAndReportAsync(DiagnosticAnalyzerService diagnosticService, InprogressState inprogressState)
+        private async Task SyncBuildErrorsAndReportAsync(DiagnosticAnalyzerService diagnosticService, InProgressState inProgressState)
         {
-            var solution = inprogressState.Solution;
-            var map = await inprogressState.GetLiveDiagnosticsPerProjectAsync().ConfigureAwait(false);
+            var solution = inProgressState.Solution;
+            var map = await inProgressState.GetLiveDiagnosticsPerProjectAsync().ConfigureAwait(false);
 
             // make those errors live errors
             await diagnosticService.SynchronizeWithBuildAsync(_workspace, map).ConfigureAwait(false);
@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public void AddNewErrors(ProjectId projectId, DiagnosticData diagnostic)
         {
             // capture state that will be processed in background thread.
-            var state = GetOrCreateInprogressState();
+            var state = GetOrCreateInProgressState();
 
             var asyncToken = _listener.BeginAsyncOperation("Project New Errors");
             _taskQueue.ScheduleTask(() =>
@@ -275,7 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public void AddNewErrors(DocumentId documentId, DiagnosticData diagnostic)
         {
             // capture state that will be processed in background thread.
-            var state = GetOrCreateInprogressState();
+            var state = GetOrCreateInProgressState();
 
             var asyncToken = _listener.BeginAsyncOperation("Document New Errors");
             _taskQueue.ScheduleTask(() =>
@@ -288,7 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             ProjectId projectId, HashSet<DiagnosticData> projectErrors, Dictionary<DocumentId, HashSet<DiagnosticData>> documentErrorMap)
         {
             // capture state that will be processed in background thread
-            var state = GetOrCreateInprogressState();
+            var state = GetOrCreateInProgressState();
 
             var asyncToken = _listener.BeginAsyncOperation("Project New Errors");
             _taskQueue.ScheduleTask(() =>
@@ -302,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }).CompletesAsyncOperation(asyncToken);
         }
 
-        private InprogressState BuildInprogressState
+        private InProgressState BuildInprogressState
         {
             get
             {
@@ -313,7 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private InprogressState ClearInprogressState()
+        private InProgressState ClearInProgressState()
         {
             lock (_gate)
             {
@@ -324,7 +324,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private InprogressState GetOrCreateInprogressState()
+        private InProgressState GetOrCreateInProgressState()
         {
             lock (_gate)
             {
@@ -333,7 +333,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // here, we take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
                     // since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
                     // between build and diagnostic service, but this at least make us to consistent inside of our code.
-                    _stateDoNotAccessDirectly = new InprogressState(this, _workspace.CurrentSolution);
+                    _stateDoNotAccessDirectly = new InProgressState(this, _workspace.CurrentSolution);
                 }
 
                 return _stateDoNotAccessDirectly;
@@ -354,9 +354,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private static ArgumentKey CreateArgumentKey(object id) => new ArgumentKey(id);
 
-        private void RaiseBuildStarted(bool started)
+        private void RaiseBuildProgressChanged(BuildProgress progress)
         {
-            BuildStarted?.Invoke(this, started);
+            BuildProgressChanged?.Invoke(this, progress);
         }
 
         #region not supported
@@ -369,12 +369,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         }
         #endregion
 
-        private class InprogressState
+        internal enum BuildProgress
+        {
+            Started,
+            Updated,
+            Done
+        }
+
+        private sealed class InProgressState
         {
             private int _incrementDoNotAccessDirectly = 0;
 
             private readonly ExternalErrorDiagnosticUpdateSource _owner;
-            private readonly HashSet<ProjectId> _builtProjects = new HashSet<ProjectId>();
+            private readonly HashSet<ProjectId> _projectsBuilt = new HashSet<ProjectId>();
+            private readonly HashSet<ProjectId> _projectsWithErrors = new HashSet<ProjectId>();
 
             private readonly Dictionary<ProjectId, ImmutableHashSet<string>> _allDiagnosticIdMap = new Dictionary<ProjectId, ImmutableHashSet<string>>();
             private readonly Dictionary<ProjectId, ImmutableHashSet<string>> _liveDiagnosticIdMap = new Dictionary<ProjectId, ImmutableHashSet<string>>();
@@ -382,23 +390,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             private readonly Dictionary<ProjectId, Dictionary<DiagnosticData, int>> _projectMap = new Dictionary<ProjectId, Dictionary<DiagnosticData, int>>();
             private readonly Dictionary<DocumentId, Dictionary<DiagnosticData, int>> _documentMap = new Dictionary<DocumentId, Dictionary<DiagnosticData, int>>();
 
-            public InprogressState(ExternalErrorDiagnosticUpdateSource owner, Solution solution)
+            public InProgressState(ExternalErrorDiagnosticUpdateSource owner, Solution solution)
             {
                 _owner = owner;
                 Solution = solution;
 
                 // let people know build has started
-                _owner.RaiseBuildStarted(started: true);
+                _owner.RaiseBuildProgressChanged(BuildProgress.Started);
             }
 
             public Solution Solution { get; }
 
             public void Done()
             {
-                _owner.RaiseBuildStarted(started: false);
+                _owner.RaiseBuildProgressChanged(BuildProgress.Done);
             }
 
-            public bool SupportedDiagnosticId(ProjectId projectId, string id)
+            public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
             {
                 lock (_allDiagnosticIdMap)
                 {
@@ -417,7 +425,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     // set ids set
                     var builder = ImmutableHashSet.CreateBuilder<string>();
-                    var descriptorMap = _owner._diagnosticService.CreateDiagnosticDescriptorsPerReference(project);
+                    var descriptorMap = _owner._diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project);
                     builder.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
 
                     var set = builder.ToImmutable();
@@ -436,22 +444,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public void Built(ProjectId projectId)
             {
-                _builtProjects.Add(projectId);
-            }
-
-            public IEnumerable<ProjectId> GetProjectsBuilt()
-            {
-                return Solution.ProjectIds.Where(p => _builtProjects.Contains(p));
+                _projectsBuilt.Add(projectId);
             }
 
             public IEnumerable<ProjectId> GetProjectsWithErrors()
             {
-                return GetProjectIds().Where(p => Solution.GetProject(p) != null);
+                // filter out project that is no longer exist in IDE
+                // this can happen if user started a "build" and then remove a project from IDE
+                // before build finishes
+                return _projectsWithErrors.Where(p => Solution.GetProject(p) != null);
             }
 
             public IEnumerable<ProjectId> GetProjectsWithoutErrors()
             {
                 return GetProjectsBuilt().Except(GetProjectsWithErrors());
+
+                IEnumerable<ProjectId> GetProjectsBuilt()
+                {
+                    // filter out project that is no longer exist in IDE
+                    // this can happen if user started a "build" and then remove a project from IDE
+                    // before build finishes
+                    return Solution.ProjectIds.Where(p => _projectsBuilt.Contains(p));
+                }
             }
 
             public async Task<ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>> GetLiveDiagnosticsPerProjectAsync()
@@ -499,7 +513,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // REVIEW: current design is that we special case compiler analyzer case and we accept only document level
                 //         diagnostic as live. otherwise, we let them be build errors. we changed compiler analyzer accordingly as well
                 //         so that it doesn't report project level diagnostic as live errors.
-                if (_owner._diagnosticService.IsCompilerDiagnostic(project.Language, diagnosticData) && diagnosticData.DocumentId == null)
+                if (_owner._diagnosticService.AnalyzerInfoCache.IsCompilerDiagnostic(project.Language, diagnosticData) &&
+                    !IsDocumentLevelDiagnostic(diagnosticData))
                 {
                     // compiler error but project level error
                     return false;
@@ -511,6 +526,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
 
                 return false;
+
+                static bool IsDocumentLevelDiagnostic(DiagnosticData diagnoaticData)
+                {
+                    if (diagnoaticData.DocumentId != null)
+                    {
+                        return true;
+                    }
+
+                    // due to mapped file such as
+                    //
+                    // A.cs having
+                    // #line 2 RandomeFile.txt
+                    //       ErrorHere
+                    // #line default
+                    //
+                    // we can't simply say it is not document level diagnostic since
+                    // file path is not part of solution. build output will just tell us 
+                    // mapped span not original span, so any code like above will not
+                    // part of solution.
+                    // 
+                    // but also we can't simply say it is a document level error because it has file path
+                    // since project level error can have a file path pointing to a file such as dll
+                    // , pdb, embedded files and etc.
+                    // 
+                    // unfortunately, there is no 100% correct way to do this.
+                    // so we will use a heuristic that will most likely work for most of common cases.
+                    return !string.IsNullOrEmpty(diagnoaticData.DataLocation.OriginalFilePath) &&
+                            (diagnoaticData.DataLocation.OriginalStartLine > 0 ||
+                             diagnoaticData.DataLocation.OriginalStartColumn > 0);
+                }
             }
 
             private bool SupportedLiveDiagnosticId(Project project, Compilation compilation, string id)
@@ -524,24 +569,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         return ids.Contains(id);
                     }
 
-                    var fullSolutionAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project);
+                    var fullSolutionAnalysis = SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution;
                     if (!project.SupportsCompilation || fullSolutionAnalysis)
                     {
-                        return SupportedDiagnosticId(project.Id, id);
+                        return IsSupportedDiagnosticId(project.Id, id);
                     }
 
                     // set ids set
                     var builder = ImmutableHashSet.CreateBuilder<string>();
                     var diagnosticService = _owner._diagnosticService;
-                    foreach (var analyzer in diagnosticService.GetDiagnosticAnalyzers(project))
-                    {
-                        if (diagnosticService.IsCompilationEndAnalyzer(analyzer, project, compilation))
-                        {
-                            continue;
-                        }
+                    var infoCache = diagnosticService.AnalyzerInfoCache;
 
-                        var diagnosticIds = diagnosticService.GetDiagnosticDescriptors(analyzer).Select(d => d.Id);
-                        builder.UnionWith(diagnosticIds);
+                    foreach (var analyzersPerReference in infoCache.CreateDiagnosticAnalyzersPerReference(project))
+                    {
+                        foreach (var analyzer in analyzersPerReference.Value)
+                        {
+                            if (diagnosticService.IsCompilationEndAnalyzer(analyzer, project, compilation))
+                            {
+                                continue;
+                            }
+
+                            var diagnosticIds = infoCache.GetDiagnosticDescriptors(analyzer).Select(d => d.Id);
+                            builder.UnionWith(diagnosticIds);
+                        }
                     }
 
                     var set = builder.ToImmutable();
@@ -556,18 +606,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 var errors = GetErrorSet(map, key);
                 foreach (var diagnostic in diagnostics)
                 {
-                    AddError(errors, diagnostic);
+                    AddError(errors, diagnostic, key);
                 }
             }
 
             private void AddError<T>(Dictionary<T, Dictionary<DiagnosticData, int>> map, T key, DiagnosticData diagnostic)
             {
                 var errors = GetErrorSet(map, key);
-                AddError(errors, diagnostic);
+                AddError(errors, diagnostic, key);
             }
 
-            private void AddError(Dictionary<DiagnosticData, int> errors, DiagnosticData diagnostic)
+            private void AddError<T>(Dictionary<DiagnosticData, int> errors, DiagnosticData diagnostic, T key)
             {
+                RecordProjectContainsErrors();
+
                 // add only new errors
                 if (!errors.TryGetValue(diagnostic, out _))
                 {
@@ -575,16 +627,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     errors.Add(diagnostic, GetNextIncrement());
                 }
-            }
 
-            private int GetNextIncrement()
-            {
-                return _incrementDoNotAccessDirectly++;
-            }
+                int GetNextIncrement()
+                {
+                    return _incrementDoNotAccessDirectly++;
+                }
 
-            private IEnumerable<ProjectId> GetProjectIds()
-            {
-                return _documentMap.Keys.Select(k => k.ProjectId).Concat(_projectMap.Keys).Distinct();
+                void RecordProjectContainsErrors()
+                {
+                    var projectId = (key is DocumentId documentId) ? documentId.ProjectId : (ProjectId)(object)key;
+
+                    if (!_projectsWithErrors.Add(projectId))
+                    {
+                        return;
+                    }
+
+                    // this will make build only error list to be updated per project rather than per solution.
+                    // basically this will make errors up to last project to show up in error list
+                    _owner._lastBuiltResult = GetBuildDiagnostics();
+                    _owner.RaiseBuildProgressChanged(BuildProgress.Updated);
+                }
             }
 
             private Dictionary<DiagnosticData, int> GetErrorSet<T>(Dictionary<T, Dictionary<DiagnosticData, int>> map, T key)
@@ -593,7 +655,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private class ArgumentKey : BuildToolId.Base<object>
+        private sealed class ArgumentKey : BuildToolId.Base<object>
         {
             public ArgumentKey(object key) : base(key)
             {
@@ -605,15 +667,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             public override bool Equals(object obj)
-            {
-                var other = obj as ArgumentKey;
-                if (other == null)
-                {
-                    return false;
-                }
-
-                return base.Equals(obj);
-            }
+                => obj is ArgumentKey &&
+                   base.Equals(obj);
 
             public override int GetHashCode()
             {
@@ -621,88 +676,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private class DiagnosticDataComparer : IEqualityComparer<DiagnosticData>
+        private sealed class DiagnosticDataComparer : IEqualityComparer<DiagnosticData>
         {
             public static readonly DiagnosticDataComparer Instance = new DiagnosticDataComparer();
 
             public bool Equals(DiagnosticData item1, DiagnosticData item2)
             {
-                // crash if any one of them is NULL
-                if ((IsNull(item1.DocumentId) ^ IsNull(item2.DocumentId)) ||
-                    (IsNull(item1.ProjectId) ^ IsNull(item2.ProjectId)))
+                if ((item1.DocumentId == null) != (item2.DocumentId == null) ||
+                    item1.Id != item2.Id ||
+                    item1.ProjectId != item2.ProjectId ||
+                    item1.Severity != item2.Severity ||
+                    item1.Message != item2.Message ||
+                    (item1.DataLocation?.MappedStartLine ?? 0) != (item2.DataLocation?.MappedStartLine ?? 0) ||
+                    (item1.DataLocation?.MappedStartColumn ?? 0) != (item2.DataLocation?.MappedStartColumn ?? 0) ||
+                    (item1.DataLocation?.OriginalStartLine ?? 0) != (item2.DataLocation?.OriginalStartLine ?? 0) ||
+                    (item1.DataLocation?.OriginalStartColumn ?? 0) != (item2.DataLocation?.OriginalStartColumn ?? 0))
                 {
                     return false;
                 }
 
-                var lineColumn1 = GetOriginalOrMappedLineColumn(item1);
-                var lineColumn2 = GetOriginalOrMappedLineColumn(item2);
-
-                if (item1.DocumentId != null && item2.DocumentId != null)
-                {
-                    return item1.Id == item2.Id &&
-                           item1.Message == item2.Message &&
-                           item1.ProjectId == item2.ProjectId &&
-                           item1.DocumentId == item2.DocumentId &&
-                           lineColumn1.Item1 == lineColumn2.Item1 &&
-                           lineColumn1.Item2 == lineColumn2.Item2 &&
-                           item1.Severity == item2.Severity;
-                }
-
-                return item1.Id == item2.Id &&
-                       item1.Message == item2.Message &&
-                       item1.ProjectId == item2.ProjectId &&
-                       item1.DataLocation?.OriginalFilePath == item2.DataLocation?.OriginalFilePath &&
-                       lineColumn1.Item1 == lineColumn2.Item1 &&
-                       lineColumn1.Item2 == lineColumn2.Item2 &&
-                       item1.Severity == item2.Severity;
+                return (item1.DocumentId != null) ?
+                    item1.DocumentId == item2.DocumentId :
+                    item1.DataLocation?.OriginalFilePath == item2.DataLocation?.OriginalFilePath;
             }
 
             public int GetHashCode(DiagnosticData obj)
             {
-                var lineColumn = GetOriginalOrMappedLineColumn(obj);
+                var result =
+                    Hash.Combine(obj.Id,
+                    Hash.Combine(obj.Message,
+                    Hash.Combine(obj.ProjectId,
+                    Hash.Combine(obj.DataLocation?.MappedStartLine ?? 0,
+                    Hash.Combine(obj.DataLocation?.MappedStartColumn ?? 0,
+                    Hash.Combine(obj.DataLocation?.OriginalStartLine ?? 0,
+                    Hash.Combine(obj.DataLocation?.OriginalStartColumn ?? 0, (int)obj.Severity)))))));
 
-                if (obj.DocumentId != null)
-                {
-                    return Hash.Combine(obj.Id,
-                           Hash.Combine(obj.Message,
-                           Hash.Combine(obj.ProjectId,
-                           Hash.Combine(obj.DocumentId,
-                           Hash.Combine(lineColumn.Item1,
-                           Hash.Combine(lineColumn.Item2, (int)obj.Severity))))));
-                }
-
-                return Hash.Combine(obj.Id,
-                       Hash.Combine(obj.Message,
-                       Hash.Combine(obj.ProjectId,
-                       Hash.Combine(obj.DataLocation?.OriginalFilePath?.GetHashCode() ?? 0,
-                       Hash.Combine(lineColumn.Item1,
-                       Hash.Combine(lineColumn.Item2, (int)obj.Severity))))));
-            }
-
-            private static ValueTuple<int, int> GetOriginalOrMappedLineColumn(DiagnosticData data)
-            {
-                var workspace = data.Workspace as VisualStudioWorkspaceImpl;
-                if (workspace == null)
-                {
-                    return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
-                }
-
-                if (data.DocumentId == null)
-                {
-                    return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
-                }
-
-                if (workspace.TryGetContainedDocument(data.DocumentId) == null)
-                {
-                    return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
-                }
-
-                return ValueTuple.Create(data.DataLocation?.OriginalStartLine ?? 0, data.DataLocation?.OriginalStartColumn ?? 0);
-            }
-
-            private bool IsNull<T>(T item) where T : class
-            {
-                return item == null;
+                return obj.DocumentId != null ?
+                    Hash.Combine(obj.DocumentId, result) :
+                    Hash.Combine(obj.DataLocation?.OriginalFilePath?.GetHashCode() ?? 0, result);
             }
         }
     }

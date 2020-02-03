@@ -1,13 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.InitializeParameter;
-using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
@@ -20,14 +21,19 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             ExpressionSyntax,
             BinaryExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpAddParameterCheckCodeRefactoringProvider()
+        {
+        }
+
         protected override bool IsFunctionDeclaration(SyntaxNode node)
             => InitializeParameterHelpers.IsFunctionDeclaration(node);
 
         protected override SyntaxNode GetTypeBlock(SyntaxNode node)
             => node;
 
-        protected override IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => InitializeParameterHelpers.GetBlockOperation(functionDeclaration, semanticModel, cancellationToken);
+        protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
+            => InitializeParameterHelpers.GetBody(functionDeclaration);
 
         protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
             => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, method, statementToAddAfterOpt, statement);
@@ -47,5 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             return true;
         }
+
+        protected override bool PrefersThrowExpression(DocumentOptionSet options)
+            => options.GetOption(CSharpCodeStyleOptions.PreferThrowExpression).Value;
     }
 }

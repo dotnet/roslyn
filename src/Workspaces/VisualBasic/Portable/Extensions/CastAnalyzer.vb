@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
 Imports System.Threading
@@ -217,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
             ' in order to call string.Format(...) anyway.
-            If castType?.SpecialType = SpecialType.System_Object AndAlso
+            If (castType?.SpecialType = SpecialType.System_Object).GetValueOrDefault() AndAlso
                 _castNode.WalkUpParentheses().IsParentKind(SyntaxKind.Interpolation) Then
                 Return True
             End If
@@ -292,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                         Return True
                     ElseIf expressionToCastTypeIsWideningRefOrDefault OrElse expressionToOuterTypeIsWideningRefOrDefault Then
-                        Return castType Is speculatedExpressionOuterType
+                        Return Equals(castType, speculatedExpressionOuterType)
                     End If
 
                     If expressionToCastType.IsWidening AndAlso expressionToCastType.IsLambda AndAlso

@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -40,7 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private readonly MethodSymbol _topLevelMethod;
             private readonly int _topLevelMethodOrdinal;
-            private readonly MethodSymbol _substitutedSourceMethod; 
             private readonly VariableSlotAllocator _slotAllocatorOpt;
             private readonly TypeCompilationState _compilationState;
 
@@ -49,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PooledHashSet<MethodSymbol> methodsConvertedToDelegates,
                 MethodSymbol topLevelMethod,
                 int topLevelMethodOrdinal,
-                MethodSymbol substitutedSourceMethod,
                 VariableSlotAllocator slotAllocatorOpt,
                 TypeCompilationState compilationState)
             {
@@ -57,7 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodsConvertedToDelegates = methodsConvertedToDelegates;
                 _topLevelMethod = topLevelMethod;
                 _topLevelMethodOrdinal = topLevelMethodOrdinal;
-                _substitutedSourceMethod = substitutedSourceMethod;
                 _slotAllocatorOpt = slotAllocatorOpt;
                 _compilationState = compilationState;
             }
@@ -85,12 +84,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodsConvertedToDelegates,
                     method,
                     topLevelMethodOrdinal,
-                    substitutedSourceMethod,
                     slotAllocatorOpt,
                     compilationState);
 
                 analysis.MakeAndAssignEnvironments();
-                analysis.ComputeLambdaScopesAndFrameCaptures(method.ThisParameter);
+                analysis.ComputeLambdaScopesAndFrameCaptures();
+                if (compilationState.Compilation.Options.OptimizationLevel == OptimizationLevel.Release)
+                {
+                    // This can affect when a variable is in scope whilst debugging, so only do this in release mode.
+                    analysis.MergeEnvironments();
+                }
                 analysis.InlineThisOnlyEnvironments();
                 return analysis;
             }
@@ -134,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// the number of indirections we may have to traverse to access captured
             /// variables.
             /// </summary>
-            private void ComputeLambdaScopesAndFrameCaptures(ParameterSymbol thisParam)
+            private void ComputeLambdaScopesAndFrameCaptures()
             {
                 VisitClosures(ScopeTree, (scope, closure) =>
                 {
@@ -147,22 +150,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var curScope = scope;
                         while (curScope != null)
                         {
-                            if (capturedEnvs.RemoveAll(curScope.DeclaredEnvironments))
+                            var env = curScope.DeclaredEnvironment;
+                            if (!(env is null) && capturedEnvs.Remove(env) && !env.IsStruct)
                             {
-                                // Right now we only create one environment per scope
-                                Debug.Assert(curScope.DeclaredEnvironments.Count == 1);
-                                var env = curScope.DeclaredEnvironments[0];
-                                if (!env.IsStruct)
-                                {
-                                    closure.ContainingEnvironmentOpt = env;
-                                    break;
-                                }
+                                closure.ContainingEnvironmentOpt = env;
+                                break;
                             }
                             curScope = curScope.Parent;
                         }
 
                         // Now we need to walk up the scopes to find environment captures
-                        var oldEnv = curScope?.DeclaredEnvironments[0];
+                        var oldEnv = curScope?.DeclaredEnvironment;
+                        curScope = curScope?.Parent;
                         while (curScope != null)
                         {
                             if (capturedEnvs.Count == 0)
@@ -170,17 +169,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                             }
 
-                            var envs = curScope.DeclaredEnvironments.Where(e => !e.IsStruct);
-                            if (!envs.IsEmpty())
+                            var env = curScope.DeclaredEnvironment;
+                            if (!(env is null))
                             {
-                                // Right now we only create one environment per scope
-                                Debug.Assert(envs.IsSingle());
-                                var env = envs.First();
-                                Debug.Assert(!oldEnv.IsStruct);
-                                oldEnv.CapturesParent = true;
-                                oldEnv = env;
+                                if (!env.IsStruct)
+                                {
+                                    Debug.Assert(!oldEnv.IsStruct);
+                                    oldEnv.CapturesParent = true;
+                                    oldEnv = env;
+                                }
+                                capturedEnvs.Remove(env);
                             }
-                            capturedEnvs.RemoveAll(curScope.DeclaredEnvironments);
                             curScope = curScope.Parent;
                         }
 
@@ -211,19 +210,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                var topLevelEnvs = ScopeTree.DeclaredEnvironments;
+                var env = ScopeTree.DeclaredEnvironment;
 
                 // If it does exist, 'this' is always in the top-level environment
-                if (topLevelEnvs.Count == 0)
+                if (env is null)
                 {
                     return;
                 }
 
-                Debug.Assert(topLevelEnvs.Count == 1);
-                var env = topLevelEnvs[0];
-
                 // The environment must contain only 'this' to be inlined
-                if (env.CapturedVariables.Count > 1 || 
+                if (env.CapturedVariables.Count > 1 ||
                     !env.CapturedVariables.Contains(thisParam))
                 {
                     return;
@@ -238,13 +234,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return closure.CapturedEnvironments.Contains(env) &&
                             closure.ContainingEnvironmentOpt != null;
                     });
-                    
+
                     if (!cantRemove)
                     {
                         RemoveEnv();
                     }
                 }
-                else
+                // If we are in a variant interface, runtime might not consider the 
+                // method synthesized directly within the interface as variant safe.
+                // For simplicity we do not perform precise analysis whether this would
+                // definitely be the case. If we are in a variant interface, we always force
+                // creation of a display class.
+                else if (VarianceSafety.GetEnclosingVariantInterface(_topLevelMethod) is null)
                 {
                     // Class-based 'this' closures can move member functions to
                     // the top-level type and environments which capture the 'this'
@@ -265,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 void RemoveEnv()
                 {
-                    topLevelEnvs.RemoveAt(topLevelEnvs.IndexOf(env));
+                    ScopeTree.DeclaredEnvironment = null;
                     VisitClosures(ScopeTree, (scope, closure) =>
                     {
                         var index = closure.CapturedEnvironments.IndexOf(env);
@@ -297,7 +298,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // functions that capture those variables, so multiple passes may
                     // be needed. This will also decide if the environment is a struct
                     // or a class.
-                    bool isStruct = true;
+
+                    // If we are in a variant interface, runtime might not consider the 
+                    // method synthesized directly within the interface as variant safe.
+                    // For simplicity we do not perform precise analysis whether this would
+                    // definitely be the case. If we are in a variant interface, we always force
+                    // creation of a display class.
+                    bool isStruct = VarianceSafety.GetEnclosingVariantInterface(_topLevelMethod) is null;
                     var closures = new SetWithInsertionOrder<Closure>();
                     bool addedItem;
 
@@ -328,7 +335,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Next create the environment and add it to the declaration scope
                     var env = new ClosureEnvironment(variablesInEnvironment, isStruct);
-                    scope.DeclaredEnvironments.Add(env);
+                    Debug.Assert(scope.DeclaredEnvironment is null);
+                    scope.DeclaredEnvironment = env;
 
                     _topLevelMethod.TryGetThisParameter(out var thisParam);
                     foreach (var closure in closures)
@@ -340,6 +348,172 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 });
+            }
+
+            /// <summary>
+            /// Calculates all closures which directly or indirectly capture a scopes variables.
+            /// </summary>
+            /// <returns></returns>
+            private PooledDictionary<Scope, PooledHashSet<Closure>> CalculateClosuresCapturingScopeVariables()
+            {
+                var closuresCapturingScopeVariables = PooledDictionary<Scope, PooledHashSet<Closure>>.GetInstance();
+
+                // calculate closures which directly capture a scope
+
+                var environmentsToScopes = PooledDictionary<ClosureEnvironment, Scope>.GetInstance();
+
+                VisitScopeTree(ScopeTree, scope =>
+                {
+                    if (!(scope.DeclaredEnvironment is null))
+                    {
+                        closuresCapturingScopeVariables[scope] = PooledHashSet<Closure>.GetInstance();
+                        environmentsToScopes[scope.DeclaredEnvironment] = scope;
+                    }
+
+                    foreach (var closure in scope.Closures)
+                    {
+                        foreach (var env in closure.CapturedEnvironments)
+                        {
+                            // A closure should only ever capture a scope which is an ancestor of its own,
+                            // which we should have already visited
+                            Debug.Assert(environmentsToScopes.ContainsKey(env));
+
+                            closuresCapturingScopeVariables[environmentsToScopes[env]].Add(closure);
+                        }
+                    }
+                });
+
+                environmentsToScopes.Free();
+
+                // if a closure captures a scope, which captures its parent, then the closure also captures the parents scope.
+                // we update closuresCapturingScopeVariables to reflect this.
+                foreach (var (scope, capturingClosures) in closuresCapturingScopeVariables)
+                {
+                    if (scope.DeclaredEnvironment is null)
+                        continue;
+
+                    var currentScope = scope;
+                    while (currentScope.DeclaredEnvironment is null || currentScope.DeclaredEnvironment.CapturesParent)
+                    {
+                        currentScope = currentScope.Parent;
+
+                        if (currentScope == null)
+                        {
+                            throw ExceptionUtilities.Unreachable;
+                        }
+
+                        if (currentScope.DeclaredEnvironment is null ||
+                            currentScope.DeclaredEnvironment.IsStruct)
+                        {
+                            continue;
+                        }
+
+                        closuresCapturingScopeVariables[currentScope].AddAll(capturingClosures);
+                    }
+                }
+
+                return closuresCapturingScopeVariables;
+            }
+
+            /// <summary>
+            /// Must be called only after <see cref="MakeAndAssignEnvironments"/> and <see cref="ComputeLambdaScopesAndFrameCaptures"/>.
+            /// 
+            /// In order to reduce allocations, merge environments into a parent environment when it is safe to do so.
+            /// This must be done whilst preserving semantics.
+            /// 
+            /// We also have to make sure not to extend the life of any variable.
+            /// This means that we can only merge an environment into its parent if exactly the same closures directly or indirectly reference both environments.
+            /// </summary>
+            private void MergeEnvironments()
+            {
+                var closuresCapturingScopeVariables = CalculateClosuresCapturingScopeVariables();
+
+                // now we merge environments into their parent environments if it is safe to do so
+                foreach (var (scope, closuresCapturingScope) in closuresCapturingScopeVariables)
+                {
+                    if (closuresCapturingScope.Count == 0)
+                        continue;
+
+                    var scopeEnv = scope.DeclaredEnvironment;
+
+                    // structs don't allocate, so no point merging them
+                    if (scopeEnv.IsStruct)
+                        continue;
+
+                    var bestScope = scope;
+                    var currentScope = scope;
+
+                    // Walk up the scope tree, checking at each point if it is:
+                    // a) semantically safe to merge the scope's environment into it's parent scope's environment
+                    // b) doing so would not change GC behaviour
+                    // Once either of these conditions fails, we merge into the closure environment furthest up the scope tree we've found so far
+                    while (currentScope.Parent != null)
+                    {
+                        if (!currentScope.CanMergeWithParent)
+                            break;
+
+                        var parentScope = currentScope.Parent;
+
+                        // we skip any scopes which do not have any captured variables, and try to merge into the parent scope instead.
+                        // We also skip any struct environments as they don't allocate, so no point merging them
+                        var env = parentScope.DeclaredEnvironment;
+                        if (env is null || env.IsStruct)
+                        {
+                            currentScope = parentScope;
+                            continue;
+                        }
+
+                        var closuresCapturingParentScope = closuresCapturingScopeVariables[parentScope];
+
+                        // if more closures reference one scope's environments than the other scope's environments,
+                        // then merging the two environments would increase the number of objects referencing some variables, 
+                        // which may prevent the variables being garbage collected.
+                        if (!closuresCapturingParentScope.SetEquals(closuresCapturingScope))
+                            break;
+
+                        bestScope = parentScope;
+
+                        currentScope = parentScope;
+                    }
+
+
+                    if (bestScope == scope) // no better scope was found, so continue
+                        continue;
+
+                    // do the actual work of merging the closure environments
+
+                    var targetEnv = bestScope.DeclaredEnvironment;
+
+                    foreach (var variable in scopeEnv.CapturedVariables)
+                    {
+                        targetEnv.CapturedVariables.Add(variable);
+                    }
+
+                    scope.DeclaredEnvironment = null;
+
+                    foreach (var closure in closuresCapturingScope)
+                    {
+                        closure.CapturedEnvironments.Remove(scopeEnv);
+
+                        if (!closure.CapturedEnvironments.Contains(targetEnv))
+                        {
+                            closure.CapturedEnvironments.Add(targetEnv);
+                        }
+
+                        if (closure.ContainingEnvironmentOpt == scopeEnv)
+                        {
+                            closure.ContainingEnvironmentOpt = targetEnv;
+                        }
+                    }
+                }
+
+                // cleanup
+                foreach (var set in closuresCapturingScopeVariables.Values)
+                {
+                    set.Free();
+                }
+
+                closuresCapturingScopeVariables.Free();
             }
 
             internal DebugId GetTopLevelMethodId()
@@ -362,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureId = new DebugId(closureDebugInfo.Count, _compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
                 }
 
-                int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
+                int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(syntax), syntax.SyntaxTree);
                 closureDebugInfo.Add(new ClosureDebugInfo(syntaxOffset, closureId));
 
                 return closureId;

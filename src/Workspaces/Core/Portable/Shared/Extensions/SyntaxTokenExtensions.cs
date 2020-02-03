@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -10,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SyntaxTokenExtensions
     {
-        public static SyntaxNode GetAncestor(this SyntaxToken token, Func<SyntaxNode, bool> predicate)
+        public static SyntaxNode? GetAncestor(this SyntaxToken token, Func<SyntaxNode, bool>? predicate)
         {
             return token.GetAncestor<SyntaxNode>(predicate);
         }
 
-        public static T GetAncestor<T>(this SyntaxToken token, Func<T, bool> predicate = null)
+        public static T? GetAncestor<T>(this SyntaxToken token, Func<T, bool>? predicate = null)
             where T : SyntaxNode
         {
             return token.Parent != null
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
 
-        public static SyntaxNode GetCommonRoot(this SyntaxToken token1, SyntaxToken token2)
+        public static SyntaxNode? GetCommonRoot(this SyntaxToken token1, SyntaxToken token2)
         {
             Contract.ThrowIfTrue(token1.RawKind == 0 || token2.RawKind == 0);
 
@@ -54,8 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool CheckParent<T>(this SyntaxToken token, Func<T, bool> valueChecker) where T : SyntaxNode
         {
-            var parentNode = token.Parent as T;
-            if (parentNode == null)
+            if (!(token.Parent is T parentNode))
             {
                 return false;
             }
@@ -99,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var nextToken = token.GetNextToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
 
             return nextToken.RawKind == 0
-                ? ((ICompilationUnitSyntax)token.Parent.SyntaxTree.GetRoot(CancellationToken.None)).EndOfFileToken
+                ? ((ICompilationUnitSyntax)token.Parent!.SyntaxTree!.GetRoot(CancellationToken.None)).EndOfFileToken
                 : nextToken;
         }
 

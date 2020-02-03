@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CSharp
@@ -7,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Utilities
 
@@ -277,10 +280,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 ' turn off diagnostic
                 If Not enabled Then
-                    workspace.Options = workspace.Options _
+                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                                                   .WithChangedOption(ServiceComponentOnOffOptions.DiagnosticProvider, False) _
-                                                  .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, False) _
-                                                  .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, False)
+                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.Default) _
+                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.Default)))
                 End If
 
                 Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()
@@ -341,9 +344,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 documentId = GetDocumentId(workspace, originalFile)
 
                 If diagnostic.Name.LocalName.Equals(s_errorElementName) Then
-                    result.Add(SourceError(Id, message, workspace, documentId, documentId.ProjectId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile))
+                    result.Add(SourceError(Id, message, documentId, documentId.ProjectId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile))
                 Else
-                    result.Add(SourceWarning(Id, message, workspace, documentId, documentId.ProjectId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile))
+                    result.Add(SourceWarning(Id, message, documentId, documentId.ProjectId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile))
                 End If
             Next
             Return result
@@ -361,24 +364,34 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                     Select doc.Id).Single()
         End Function
 
-        Private Function SourceError(id As String, message As String, workspace As Workspace, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer,
-                                      mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
-            Return CreateDiagnostic(id, message, DiagnosticSeverity.Error, workspace, docId, projId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
+        Private Function SourceError(id As String, message As String, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
+            originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
+            Return CreateDiagnostic(id, message, DiagnosticSeverity.Error, docId, projId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
         End Function
 
-        Private Function SourceWarning(id As String, message As String, workspace As Workspace, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer,
-                                       mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
-            Return CreateDiagnostic(id, message, DiagnosticSeverity.Warning, workspace, docId, projId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
+        Private Function SourceWarning(id As String, message As String, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
+            originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
+            Return CreateDiagnostic(id, message, DiagnosticSeverity.Warning, docId, projId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
         End Function
 
-        Private Function CreateDiagnostic(id As String, message As String, severity As DiagnosticSeverity, workspace As Workspace, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer,
-                                       mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
-            Return New DiagnosticData(id, "test", message, message, severity, severity, True, 0,
-                                      ImmutableArray(Of String).Empty, ImmutableDictionary(Of String, String).Empty,
-                                      workspace, projId, New DiagnosticDataLocation(docId, Nothing,
-                                        originalFile, originalLine, originalColumn, originalLine, originalColumn,
-                                        mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
-                                      Nothing, Nothing, Nothing)
+        Private Function CreateDiagnostic(id As String, message As String, severity As DiagnosticSeverity, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
+            originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
+            Return New DiagnosticData(
+                id:=id,
+                category:="test",
+                message:=message,
+                enuMessageForBingSearch:=message,
+                severity:=severity,
+                defaultSeverity:=severity,
+                isEnabledByDefault:=True,
+                warningLevel:=0,
+                customTags:=ImmutableArray(Of String).Empty,
+                properties:=ImmutableDictionary(Of String, String).Empty,
+                projectId:=projId,
+                location:=New DiagnosticDataLocation(docId, Nothing, originalFile, originalLine, originalColumn, originalLine, originalColumn, mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
+                additionalLocations:=Nothing,
+                language:=LanguageNames.VisualBasic,
+                title:=Nothing)
         End Function
 
         Private Class Comparer

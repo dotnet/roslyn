@@ -1,4 +1,6 @@
-﻿' Copyright(c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt In the project root For license information
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
@@ -11,38 +13,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider)), [Shared]>
     Friend Class VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider
-        Inherits AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider
+        Inherits AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider(Of PropertyStatementSyntax, TypeBlockSyntax)
 
         Private Const Underscore As String = "_"
 
-        Friend Overrides Function GetProperty(token As SyntaxToken) As SyntaxNode
-            Dim containingProperty = token.Parent.FirstAncestorOrSelf(Of PropertyStatementSyntax)
-            If containingProperty Is Nothing Then
-                Return Nothing
-            End If
-
-            ' see whether property is on right place
-            If TypeOf containingProperty.Parent IsNot TypeBlockSyntax Then
-                Return Nothing
-            End If
-
-            Dim start = If(containingProperty.AttributeLists.Count > 0,
-                containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart,
-                containingProperty.SpanStart)
-
-            ' Offer this refactoring anywhere in the signature of the property.
-            Dim position = token.SpanStart
-            If position < start Then
-                Return Nothing
-            End If
-
-            If containingProperty.HasReturnType() AndAlso
-                position > containingProperty.GetReturnType().Span.End Then
-                Return Nothing
-            End If
-
-            Return containingProperty
-        End Function
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         ''' <summary>
         ''' In VB, auto properties have an implicit backing field that is named using the property 

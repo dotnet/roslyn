@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> _localSemanticDiagnosticsOpt = null;
         private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> _localSyntaxDiagnosticsOpt = null;
         private Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> _nonLocalDiagnosticsOpt = null;
-        
+
         internal AnalysisResultBuilder(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             _analyzerExecutionTimeOpt = logAnalyzerExecutionTime ? CreateAnalyzerExecutionTimeMap(analyzers) : null;
@@ -73,16 +75,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal void StoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation, Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts, bool fullAnalysisResultForAnalyzersInScope)
+        internal void ApplySuppressionsAndStoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation, Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts, bool fullAnalysisResultForAnalyzersInScope)
         {
             Debug.Assert(!fullAnalysisResultForAnalyzersInScope || analysisScope.FilterTreeOpt == null, "Full analysis result cannot come from partial (tree) analysis.");
 
             foreach (var analyzer in analysisScope.Analyzers)
             {
                 // Dequeue reported analyzer diagnostics from the driver and store them in our maps.
-                var syntaxDiagnostics = driver.DequeueLocalDiagnostics(analyzer, syntax: true, compilation: compilation);
-                var semanticDiagnostics = driver.DequeueLocalDiagnostics(analyzer, syntax: false, compilation: compilation);
-                var compilationDiagnostics = driver.DequeueNonLocalDiagnostics(analyzer, compilation);
+                var syntaxDiagnostics = driver.DequeueLocalDiagnosticsAndApplySuppressions(analyzer, syntax: true, compilation: compilation);
+                var semanticDiagnostics = driver.DequeueLocalDiagnosticsAndApplySuppressions(analyzer, syntax: false, compilation: compilation);
+                var compilationDiagnostics = driver.DequeueNonLocalDiagnosticsAndApplySuppressions(analyzer, compilation);
 
                 lock (_gate)
                 {
@@ -348,8 +350,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var analyzer in analyzers)
                 {
                     var actionCounts = _analyzerActionCounts[analyzer];
+                    var suppressionActionCounts = analyzer is DiagnosticSuppressor ? 1 : 0;
                     var executionTime = _analyzerExecutionTimeOpt != null ? _analyzerExecutionTimeOpt[analyzer] : default(TimeSpan);
-                    var telemetryInfo = new AnalyzerTelemetryInfo(actionCounts, executionTime);
+                    var telemetryInfo = new AnalyzerTelemetryInfo(actionCounts, suppressionActionCounts, executionTime);
                     builder.Add(analyzer, telemetryInfo);
                 }
             }

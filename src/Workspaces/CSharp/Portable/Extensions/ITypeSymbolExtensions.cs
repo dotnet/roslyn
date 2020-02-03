@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -98,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public static async Task<ISymbol> FindApplicableAlias(this ITypeSymbol type, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public static async Task<ISymbol?> FindApplicableAlias(this ITypeSymbol type, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             try
@@ -111,11 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-                IEnumerable<UsingDirectiveSyntax> applicableUsings = GetApplicableUsings(position, root as CompilationUnitSyntax);
+                var applicableUsings = GetApplicableUsings(position, (CompilationUnitSyntax)root);
                 foreach (var applicableUsing in applicableUsings)
                 {
                     var alias = semanticModel.GetOriginalSemanticModel().GetDeclaredSymbol(applicableUsing, cancellationToken);
-                    if (alias != null && alias.Target == type)
+                    if (alias != null && Equals(alias.Target, type))
                     {
                         return alias;
                     }
@@ -131,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static IEnumerable<UsingDirectiveSyntax> GetApplicableUsings(int position, SyntaxNode root)
         {
-            var namespaceUsings = root.FindToken(position).Parent.GetAncestors<NamespaceDeclarationSyntax>().SelectMany(n => n.Usings);
+            var namespaceUsings = root.FindToken(position).Parent!.GetAncestors<NamespaceDeclarationSyntax>().SelectMany(n => n.Usings);
             var allUsings = root is CompilationUnitSyntax
                 ? ((CompilationUnitSyntax)root).Usings.Concat(namespaceUsings)
                 : namespaceUsings;

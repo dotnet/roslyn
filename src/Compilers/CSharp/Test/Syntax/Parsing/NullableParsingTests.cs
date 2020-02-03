@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -79,22 +81,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             N(SyntaxKind.CastExpression);
             {
                 N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.ArrayType);
+                N(SyntaxKind.NullableType);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.ArrayType);
                     {
-                        N(SyntaxKind.ObjectKeyword);
-                    }
-                    N(SyntaxKind.ArrayRankSpecifier);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.OmittedArraySizeExpression);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            N(SyntaxKind.ObjectKeyword);
                         }
-                        N(SyntaxKind.CloseBracketToken);
-                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
                     }
+                    N(SyntaxKind.QuestionToken);
                 }
                 N(SyntaxKind.CloseParenToken);
                 N(SyntaxKind.NullLiteralExpression);
@@ -203,20 +208,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.NullableType);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.ArrayType);
                         {
-                            N(SyntaxKind.ObjectKeyword);
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
                         }
-                        N(SyntaxKind.QuestionToken);
-                    }
-                    N(SyntaxKind.ArrayRankSpecifier);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.OmittedArraySizeExpression);
-                        {
-                            N(SyntaxKind.OmittedArraySizeExpressionToken);
-                        }
-                        N(SyntaxKind.CloseBracketToken);
                         N(SyntaxKind.QuestionToken);
                     }
                     N(SyntaxKind.ArrayRankSpecifier);
@@ -246,41 +257,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             N(SyntaxKind.CastExpression);
             {
                 N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.ArrayType);
+                N(SyntaxKind.NullableType);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.ArrayType);
                     {
-                        N(SyntaxKind.ObjectKeyword);
-                    }
-                    N(SyntaxKind.ArrayRankSpecifier);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.OmittedArraySizeExpression);
+                        N(SyntaxKind.NullableType);
                         {
-                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.QuestionToken);
                         }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                    N(SyntaxKind.ArrayRankSpecifier);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.OmittedArraySizeExpression);
+                        N(SyntaxKind.ArrayRankSpecifier);
                         {
-                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
                         }
-                        N(SyntaxKind.CloseBracketToken);
-                        N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.ArrayRankSpecifier);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.OmittedArraySizeExpression);
-                        {
-                            N(SyntaxKind.OmittedArraySizeExpressionToken);
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                        N(SyntaxKind.QuestionToken);
-                    }
+                    N(SyntaxKind.QuestionToken);
                 }
                 N(SyntaxKind.CloseParenToken);
                 N(SyntaxKind.NullLiteralExpression);
@@ -416,22 +436,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.IdentifierToken, "x");
                     }
                     N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.ArrayType);
+                    N(SyntaxKind.NullableType);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ArrayType);
                         {
-                            N(SyntaxKind.IdentifierToken, "T");
-                        }
-                        N(SyntaxKind.ArrayRankSpecifier);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.OmittedArraySizeExpression);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.CloseBracketToken);
-                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
                         }
+                        N(SyntaxKind.QuestionToken);
                     }
                 }
                 N(SyntaxKind.QuestionToken);
@@ -449,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullCoalesingOperator_NotNullableType()
+        public void NullCoalescingOperator_NotNullableType()
         {
             UsingExpression("x as T?? y");
             N(SyntaxKind.CoalesceExpression);
@@ -476,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullCoalesingOperator_NullableType()
+        public void NullCoalescingOperator_NullableType()
         {
             UsingExpression("x as T? ?? y");
             N(SyntaxKind.CoalesceExpression);
@@ -507,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullCoalesingOperator_NullableType_Invalid()
+        public void NullCoalescingOperator_NullableType_Invalid()
         {
             UsingExpression("x as T??? y",
                 // (1,9): error CS1525: Invalid expression term '?'
@@ -536,9 +559,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         }
                     }
                     N(SyntaxKind.QuestionQuestionToken);
-                    N(SyntaxKind.IdentifierName);
+                    M(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        M(SyntaxKind.IdentifierToken);
                     }
                 }
                 N(SyntaxKind.QuestionToken);
@@ -546,17 +569,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.IdentifierToken, "y");
                 }
-                N(SyntaxKind.ColonToken);
-                N(SyntaxKind.IdentifierName);
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierToken);
+                    M(SyntaxKind.IdentifierToken);
                 }
             }
             EOF();
         }
 
         [Fact]
-        public void NullCoalesingOperator_NotNullableArray()
+        public void NullCoalescingOperator_NotNullableArray()
         {
             UsingExpression("x as T[] ?? y");
             N(SyntaxKind.CoalesceExpression);
@@ -595,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullCoalesingOperator_NullableArray()
+        public void NullCoalescingOperator_NullableArray()
         {
             UsingExpression("x as T[] ? ?? y");
             N(SyntaxKind.CoalesceExpression);
@@ -607,22 +630,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.IdentifierToken, "x");
                     }
                     N(SyntaxKind.AsKeyword);
-                    N(SyntaxKind.ArrayType);
+                    N(SyntaxKind.NullableType);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ArrayType);
                         {
-                            N(SyntaxKind.IdentifierToken, "T");
-                        }
-                        N(SyntaxKind.ArrayRankSpecifier);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.OmittedArraySizeExpression);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.CloseBracketToken);
-                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
                         }
+                        N(SyntaxKind.QuestionToken);
                     }
                 }
                 N(SyntaxKind.QuestionQuestionToken);
@@ -671,12 +697,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.IdentifierToken, "t");
                             }
                             N(SyntaxKind.ColonToken);
-                            N(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
-                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.ColonToken);
                     }
                     N(SyntaxKind.BreakStatement);
                     {
@@ -728,11 +754,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.BracketedArgumentList);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Argument);
+                                    M(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.IdentifierName);
+                                        M(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierToken);
                                         }
                                     }
                                     N(SyntaxKind.CloseBracketToken);
@@ -744,12 +770,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.IdentifierToken, "t");
                             }
                             N(SyntaxKind.ColonToken);
-                            N(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
-                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.ColonToken);
                     }
                     N(SyntaxKind.BreakStatement);
                     {
@@ -844,18 +870,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             N(SyntaxKind.ArrayType);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.NullableType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "T");
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    N(SyntaxKind.ArrayType);
                                     {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "T");
+                                        }
+                                        N(SyntaxKind.ArrayRankSpecifier);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.OmittedArraySizeExpression);
+                                            {
+                                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
                                     }
-                                    N(SyntaxKind.CloseBracketToken);
                                     N(SyntaxKind.QuestionToken);
                                 }
                                 N(SyntaxKind.ArrayRankSpecifier);
@@ -898,40 +930,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.TypeArgumentList);
                     {
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.ArrayType);
+                        N(SyntaxKind.NullableType);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.ArrayType);
                             {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
-                            N(SyntaxKind.ArrayRankSpecifier);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.OmittedArraySizeExpression);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    N(SyntaxKind.IdentifierToken, "A");
                                 }
-                                N(SyntaxKind.CloseBracketToken);
-                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
                             }
+                            N(SyntaxKind.QuestionToken);
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.ArrayType);
+                        N(SyntaxKind.NullableType);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.ArrayType);
                             {
-                                N(SyntaxKind.ObjectKeyword);
-                            }
-                            N(SyntaxKind.ArrayRankSpecifier);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.OmittedArraySizeExpression);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    N(SyntaxKind.ObjectKeyword);
                                 }
-                                N(SyntaxKind.CloseBracketToken);
-                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
                             }
+                            N(SyntaxKind.QuestionToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -958,43 +996,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.TupleElement);
                         {
-                            N(SyntaxKind.ArrayType);
+                            N(SyntaxKind.NullableType);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.ArrayType);
                                 {
-                                    N(SyntaxKind.ObjectKeyword);
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    N(SyntaxKind.PredefinedType);
                                     {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        N(SyntaxKind.ObjectKeyword);
                                     }
-                                    N(SyntaxKind.CloseBracketToken);
-                                    N(SyntaxKind.QuestionToken);
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                        {
+                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
                                 }
+                                N(SyntaxKind.QuestionToken);
                             }
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.TupleElement);
                         {
-                            N(SyntaxKind.ArrayType);
+                            N(SyntaxKind.NullableType);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ArrayType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        N(SyntaxKind.IdentifierToken, "A");
                                     }
-                                    N(SyntaxKind.CloseBracketToken);
-                                    N(SyntaxKind.QuestionToken);
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                        {
+                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
                                 }
+                                N(SyntaxKind.QuestionToken);
                             }
                         }
                         N(SyntaxKind.CloseParenToken);
@@ -1019,22 +1063,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.OpenParenToken);
                 N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.ArrayType);
+                    N(SyntaxKind.NullableType);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ArrayType);
                         {
-                            N(SyntaxKind.IdentifierToken, "A");
-                        }
-                        N(SyntaxKind.ArrayRankSpecifier);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.OmittedArraySizeExpression);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
-                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
                         }
+                        N(SyntaxKind.QuestionToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -1068,22 +1115,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.FromClause);
                 {
                     N(SyntaxKind.FromKeyword);
-                    N(SyntaxKind.ArrayType);
+                    N(SyntaxKind.NullableType);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ArrayType);
                         {
-                            N(SyntaxKind.IdentifierToken, "A");
-                        }
-                        N(SyntaxKind.ArrayRankSpecifier);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.OmittedArraySizeExpression);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
-                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
                         }
+                        N(SyntaxKind.QuestionToken);
                     }
                     N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.InKeyword);
@@ -1129,22 +1179,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.Parameter);
                                 {
-                                    N(SyntaxKind.ArrayType);
+                                    N(SyntaxKind.NullableType);
                                     {
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.ArrayType);
                                         {
-                                            N(SyntaxKind.ObjectKeyword);
-                                        }
-                                        N(SyntaxKind.ArrayRankSpecifier);
-                                        {
-                                            N(SyntaxKind.OpenBracketToken);
-                                            N(SyntaxKind.OmittedArraySizeExpression);
+                                            N(SyntaxKind.PredefinedType);
                                             {
-                                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                                N(SyntaxKind.ObjectKeyword);
                                             }
-                                            N(SyntaxKind.CloseBracketToken);
-                                            N(SyntaxKind.QuestionToken);
+                                            N(SyntaxKind.ArrayRankSpecifier);
+                                            {
+                                                N(SyntaxKind.OpenBracketToken);
+                                                N(SyntaxKind.OmittedArraySizeExpression);
+                                                {
+                                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                                }
+                                                N(SyntaxKind.CloseBracketToken);
+                                            }
                                         }
+                                        N(SyntaxKind.QuestionToken);
                                     }
                                     N(SyntaxKind.IdentifierToken, "a");
                                 }
@@ -1181,22 +1234,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.MethodDeclaration);
                     {
                         N(SyntaxKind.PartialKeyword);
-                        N(SyntaxKind.ArrayType);
+                        N(SyntaxKind.NullableType);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.ArrayType);
                             {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
-                            N(SyntaxKind.ArrayRankSpecifier);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.OmittedArraySizeExpression);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    N(SyntaxKind.IdentifierToken, "A");
                                 }
-                                N(SyntaxKind.CloseBracketToken);
-                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
                             }
+                            N(SyntaxKind.QuestionToken);
                         }
                         N(SyntaxKind.IdentifierToken, "F");
                         N(SyntaxKind.ParameterList);
@@ -1209,6 +1265,412 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CreateNullableArray_01()
+        {
+            UsingExpression("new object[,][]?",
+                // (1,17): error CS1733: Expected expression
+                // new object[,][]?
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 17),
+                // (1,17): error CS1003: Syntax error, ':' expected
+                // new object[,][]?
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 17),
+                // (1,17): error CS1733: Expected expression
+                // new object[,][]?
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 17)
+                );
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.ArrayCreationExpression);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CreateNullableArray_02()
+        {
+            UsingExpression("new object[,][]? { 1, 2 }");
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.NullableType);
+                {
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.QuestionToken);
+                }
+                N(SyntaxKind.CollectionInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CreateNullableArray_03()
+        {
+            UsingExpression("new object[1,2]?[3]?[4]");
+            N(SyntaxKind.ArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.ArrayType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "2");
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "4");
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CreateNullableArray_04()
+        {
+            UsingExpression("new object[,]?[]?[]");
+            N(SyntaxKind.ArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.ArrayType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                        {
+                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                        {
+                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
+                        {
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CreateNullableArray_05()
+        {
+            UsingExpression("new object[1,2]?[3]?[]");
+            N(SyntaxKind.ArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.ArrayType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "2");
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
+                        {
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CreateNullableArray_06()
+        {
+            UsingExpression("new object[]");
+            N(SyntaxKind.ArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.ObjectKeyword);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
+                        {
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CreateNullableArray_07()
+        {
+            UsingExpression("new object[1]?[2,3]?[]");
+            N(SyntaxKind.ArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.ArrayType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
+                        {
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
             }
             EOF();
         }

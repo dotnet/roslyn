@@ -64,6 +64,14 @@
                     <CheckBox x:Uid="Show_name_suggestions"
                                   x:Name="Show_name_suggestions"
                                   Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_name_suggestions}" />
+
+                    <CheckBox x:Uid="Show_items_from_unimported_namespaces"
+                                  x:Name="Show_items_from_unimported_namespaces"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_items_from_unimported_namespaces}" 
+                              Checked="Show_items_from_unimported_namespaces_CheckedChanged"       
+                              Unchecked="Show_items_from_unimported_namespaces_CheckedChanged"
+                              Indeterminate="Show_items_from_unimported_namespaces_CheckedChanged"
+                              IsThreeState="True"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

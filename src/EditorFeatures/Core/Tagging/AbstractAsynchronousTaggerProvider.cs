@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 #if DEBUG
@@ -176,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // For a standard tagger, the spans to tag is the span of the entire snapshot.
-            return new[] { subjectBuffer.CurrentSnapshot.GetFullSpan() };
+            return SpecializedCollections.SingletonEnumerable(subjectBuffer.CurrentSnapshot.GetFullSpan());
         }
 
         /// <summary>
@@ -217,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
                 ProduceTagsSynchronously(
-                    context, spanToTag, 
+                    context, spanToTag,
                     GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan));
             }
         }
@@ -253,8 +255,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public NormalizedSnapshotSpanCollection Added { get; }
             public NormalizedSnapshotSpanCollection Removed { get; }
 
-            public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed) :
-                this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)removed)
+            public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed)
+                : this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)removed)
             {
             }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -33,11 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int i = 0;
                 goto start;
 
-            again:
+again:
                 hashCode = unchecked((text[i] ^ hashCode) * 16777619);
                 i = i + 1;
 
-            start:
+start:
                 if (i < text.Length)
                     goto again;
             }
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         F.If(
                             F.Binary(BinaryOperatorKind.ObjectNotEqual, F.SpecialType(SpecialType.System_Boolean),
                                 F.Parameter(text),
-                                F.Null(text.Type.TypeSymbol)),
+                                F.Null(text.Type)),
                             F.Block(
                                 F.Assignment(F.Local(hashCode), F.Literal((uint)2166136261)),
                                 F.Assignment(F.Local(i), F.Literal(0)),
@@ -93,9 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 F.Label(again),
                                 F.Assignment(
                                     F.Local(hashCode),
-                                    F.Binary(BinaryOperatorKind.Multiplication, hashCode.Type.TypeSymbol,
-                                        F.Binary(BinaryOperatorKind.Xor, hashCode.Type.TypeSymbol,
-                                            F.Convert(hashCode.Type.TypeSymbol,
+                                    F.Binary(BinaryOperatorKind.Multiplication, hashCode.Type,
+                                        F.Binary(BinaryOperatorKind.Xor, hashCode.Type,
+                                            F.Convert(hashCode.Type,
                                                 F.Call(
                                                     F.Parameter(text),
                                                     F.SpecialMethod(SpecialMember.System_String__Chars),
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         F.Literal(16777619))),
                                 F.Assignment(
                                     F.Local(i),
-                                    F.Binary(BinaryOperatorKind.Addition, i.Type.TypeSymbol,
+                                    F.Binary(BinaryOperatorKind.Addition, i.Type,
                                         F.Local(i),
                                         F.Literal(1))),
                                 F.Label(start),
@@ -269,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //refKindBuilder.Add(param.RefKind);
             }
 
-            BoundExpression invocation = F.Call(useBaseReference ? (BoundExpression)F.Base() : F.This(),
+            BoundExpression invocation = F.Call(useBaseReference ? (BoundExpression)F.Base(baseType: methodToInvoke.ContainingType) : F.This(),
                                                 methodToInvoke,
                                                 argBuilder.ToImmutableAndFree());
 

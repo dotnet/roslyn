@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -89,20 +91,14 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 var modifiers = new DeclarationModifiers(isOverride: true, isUnsafe: addUnsafe);
                 var accessibility = member.ComputeResultantAccessibility(_state.ClassType);
 
-                switch (member)
+                return member switch
                 {
-                    case IMethodSymbol method:
-                        return GenerateMethod(method, modifiers, accessibility, cancellationToken);
-
-                    case IPropertySymbol property:
-                        return GenerateProperty(property, modifiers, accessibility, propertyGenerationBehavior, cancellationToken);
-
-                    case IEventSymbol @event:
-                        return CodeGenerationSymbolFactory.CreateEventSymbol(
-                            @event, accessibility: accessibility, modifiers: modifiers);
-                }
-
-                return null;
+                    IMethodSymbol method => GenerateMethod(method, modifiers, accessibility, cancellationToken),
+                    IPropertySymbol property => GenerateProperty(property, modifiers, accessibility, propertyGenerationBehavior),
+                    IEventSymbol @event => CodeGenerationSymbolFactory.CreateEventSymbol(
+                        @event, accessibility: accessibility, modifiers: modifiers),
+                    _ => null,
+                };
             }
 
             private ISymbol GenerateMethod(
@@ -113,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 var throwingBody = syntaxFactory.CreateThrowNotImplementedStatementBlock(
                     _model.Compilation);
 
-                method = method.EnsureNonConflictingNames(_state.ClassType, syntaxFacts, cancellationToken);
+                method = method.EnsureNonConflictingNames(_state.ClassType, syntaxFacts);
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     method,
@@ -126,8 +122,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 IPropertySymbol property,
                 DeclarationModifiers modifiers,
                 Accessibility accessibility,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 if (property.GetMethod == null)
                 {

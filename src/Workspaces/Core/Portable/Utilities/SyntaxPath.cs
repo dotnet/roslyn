@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -61,8 +63,8 @@ namespace Roslyn.Utilities
                 // the location of a node, a linear walk is still needed to find it in its parent
                 // collection.
 
-                int ordinal = 0;
-                int kind = nodeOrToken.RawKind;
+                var ordinal = 0;
+                var kind = nodeOrToken.RawKind;
                 foreach (var child in parent.ChildNodesAndTokens())
                 {
                     if (nodeOrToken == child)
@@ -199,7 +201,7 @@ namespace Roslyn.Utilities
         {
             var hash = 1;
 
-            for (int i = 0; i < _segments.Count; i++)
+            for (var i = 0; i < _segments.Count; i++)
             {
                 var segment = _segments[i];
                 hash = Hash.Combine(Hash.Combine(segment.Kind, segment.Ordinal), hash);

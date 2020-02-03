@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -27,13 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task NothingToInitialize()
         {
             var markup = @"
-class c { }
+class C { }
 
-class d
+class D
 {
     void goo()
     {
-       c goo = new c { $$
+       C goo = new C { $$
     }
 }";
 
@@ -45,13 +47,13 @@ class d
         public async Task OneItem1()
         {
             var markup = @"
-class c { public int value {set; get; }}
+class C { public int value {set; get; }}
 
-class d
+class D
 {
     void goo()
     {
-       c goo = new c { v$$
+       C goo = new C { v$$
     }
 }";
 
@@ -64,13 +66,13 @@ class d
         public async Task ShowWithEqualsSign()
         {
             var markup = @"
-class c { public int value {set; get; }}
+class C { public int value {set; get; }}
 
-class d
+class D
 {
     void goo()
     {
-       c goo = new c { v$$=
+       C goo = new C { v$$=
     }
 }";
 
@@ -83,13 +85,13 @@ class d
         public async Task OneItem2()
         {
             var markup = @"
-class c
+class C
 {
     public int value {set; get; }
 
     void goo()
     {
-       c goo = new c { v$$
+       C goo = new C { v$$
     }
 }";
 
@@ -102,17 +104,17 @@ class c
         public async Task FieldAndProperty()
         {
             var markup = @"
-class c 
+class C 
 { 
     public int value {set; get; }
     public int otherValue;
 }
 
-class d
+class D
 {
     void goo()
     {
-       c goo = new c { v$$
+       C goo = new C { v$$
     }
 }";
 
@@ -125,17 +127,17 @@ class d
         public async Task HidePreviouslyTyped()
         {
             var markup = @"
-class c 
+class C 
 { 
     public int value {set; get; }
     public int otherValue;
 }
 
-class d
+class D
 {
     void goo()
     {
-       c goo = new c { value = 3, o$$
+       C goo = new C { value = 3, o$$
     }
 }";
 
@@ -148,17 +150,17 @@ class d
         public async Task NotInEqualsValue()
         {
             var markup = @"
-class c 
+class C 
 { 
     public int value {set; get; }
     public int otherValue;
 }
 
-class d
+class D
 {
     void goo()
     {
-       c goo = new c { value = v$$
+       C goo = new C { value = v$$
     }
 }";
 
@@ -169,17 +171,17 @@ class d
         public async Task NothingLeftToShow()
         {
             var markup = @"
-class c 
+class C 
 { 
     public int value {set; get; }
     public int otherValue;
 }
 
-class d
+class D
 {
     void goo()
     {
-       c goo = new c { value = 3, otherValue = 4, $$
+       C goo = new C { value = 3, otherValue = 4, $$
     }
 }";
 
@@ -191,22 +193,22 @@ class d
         public async Task NestedObjectInitializers()
         {
             var markup = @"
-class c 
+class C 
 { 
     public int value {set; get; }
     public int otherValue;
 }
 
-class d
+class D
 {
-    public c myValue {set; get;}
+    public C myValue {set; get;}
 }
 
-class e
+class E
 {
     void goo()
     {
-       d bar = new d { myValue = new c { $$
+       D bar = new D { myValue = new C { $$
     }
 }";
             await VerifyItemIsAbsentAsync(markup, "myValue");
@@ -219,18 +221,18 @@ class e
         public async Task NotExclusive1()
         {
             var markup = @"using System.Collections.Generic;
-class c : IEnumerable<int>
+class C : IEnumerable<int>
 { 
     public void Add(int a) { }
     public int value {set; get; }
     public int otherValue;
 }
 
-class d
+class D
 {
     void goo()
     {
-       c bar = new c { v$$
+       C bar = new C { v$$
     }
 }";
             await VerifyExclusiveAsync(markup, false);
@@ -240,18 +242,18 @@ class d
         public async Task NotExclusive2()
         {
             var markup = @"using System.Collections;
-class c : IEnumerable
+class C : IEnumerable
 { 
     public void Add(object a) { }
     public int value {set; get; }
     public int otherValue;
 }
 
-class d
+class D
 {
     void goo()
     {
-       c bar = new c { v$$
+       C bar = new C { v$$
     }
 }";
             await VerifyExclusiveAsync(markup, false);
@@ -346,8 +348,8 @@ class C
         {
             var markup = @"using System.Collections.Generic;
 
-class b {}
-class d : b
+class B {}
+class D : B
 {
     public int goo;
 }
@@ -356,7 +358,7 @@ class C
 {
     void stuff()
     {
-        b a = new d { $$
+        B a = new D { $$
     }
 }
 ";
@@ -543,13 +545,13 @@ public class Goo
         public async Task TestCommitCharacter()
         {
             const string markup = @"
-class c { public int value {set; get; }}
+class C { public int value {set; get; }}
 
-class d
+class D
 {
     void goo()
     {
-       c goo = new c { v$$
+       C goo = new C { v$$
     }
 }";
 
@@ -560,29 +562,27 @@ class d
         public async Task TestEnter()
         {
             const string markup = @"
-class c { public int value {set; get; }}
+class C { public int value {set; get; }}
 
-class d
+class D
 {
     void goo()
     {
-       c goo = new c { v$$
+       C goo = new C { v$$
     }
 }";
 
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
-            {
-                var hostDocument = workspace.Documents.Single();
-                var position = hostDocument.CursorPosition.Value;
-                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
+            using var workspace = TestWorkspace.CreateCSharp(markup);
+            var hostDocument = workspace.Documents.Single();
+            var position = hostDocument.CursorPosition.Value;
+            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
-                var service = GetCompletionService(workspace);
-                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
-                var item = completionList.Items.First();
+            var service = GetCompletionService(workspace);
+            var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
+            var item = completionList.Items.First();
 
-                Assert.False(Controller.SendEnterThroughToEditor(service.GetRules(), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
-            }
+            Assert.False(CommitManager.SendEnterThroughToEditor(service.GetRules(), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -907,14 +907,14 @@ internal class Example
 }";
 
             await VerifyNoItemsExistAsync(markup);
-		}
+        }
 
         [WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ObjectInitializerEscapeKeywords()
         {
             var markup = @"
-class c
+class C
 {
     public int @new { get; set; }
 
@@ -923,11 +923,11 @@ class c
     public int now { get; set; }
 }
 
-class d
+class D
 {
     static void Main(string[] args)
     {
-        var t = new c() { $$ };
+        var t = new C() { $$ };
     }
 }";
 
@@ -1107,22 +1107,51 @@ class Program
             await VerifyItemExistsAsync(markup, "PropB");
         }
 
+        [WorkItem(36702, "https://github.com/dotnet/roslyn/issues/36702")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NestedPropertyInitializers6()
+        {
+            var markup = @"
+class A
+{
+    public B PropB { get; }
+}
+
+class B
+{
+    public C PropC { get; }
+}
+
+class C
+{
+    public int P { get; }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new A { PropB = { $$ } }
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "PropC");
+        }
+
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
+            using var workspace = TestWorkspace.CreateCSharp(markup);
+            var hostDocument = workspace.Documents.Single();
+            var position = hostDocument.CursorPosition.Value;
+            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
+
+            var service = GetCompletionService(workspace);
+            var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
+
+            if (completionList != null)
             {
-                var hostDocument = workspace.Documents.Single();
-                var position = hostDocument.CursorPosition.Value;
-                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
-
-                var service = GetCompletionService(workspace);
-                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
-
-                if (completionList != null)
-                {
-                    Assert.True(exclusive == completionList.IsExclusive, "group.IsExclusive == " + completionList.IsExclusive);
-                }
+                Assert.True(exclusive == completionList.GetTestAccessor().IsExclusive, "group.IsExclusive == " + completionList.GetTestAccessor().IsExclusive);
             }
         }
     }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -87,6 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                     async () =>
                     {
                         await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         action();
                     },
                     cancellationToken,
@@ -107,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
             // The return value of GetQueueStatus is HIWORD:LOWORD.
             // A non-zero value in HIWORD indicates some input message in the queue.
-            uint result = NativeMethods.GetQueueStatus(NativeMethods.QS_INPUT);
+            var result = NativeMethods.GetQueueStatus(NativeMethods.QS_INPUT);
 
             const uint InputMask = NativeMethods.QS_INPUT | (NativeMethods.QS_INPUT << 16);
             return (result & InputMask) != 0;

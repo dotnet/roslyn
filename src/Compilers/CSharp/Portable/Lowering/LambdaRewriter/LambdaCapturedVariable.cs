@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -13,17 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class LambdaCapturedVariable : SynthesizedFieldSymbolBase
     {
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
         private readonly bool _isThis;
 
-        private LambdaCapturedVariable(SynthesizedContainer frame, TypeSymbolWithAnnotations type, string fieldName, bool isThisParameter)
+        private LambdaCapturedVariable(SynthesizedContainer frame, TypeWithAnnotations type, string fieldName, bool isThisParameter)
             : base(frame,
                    fieldName,
                    isPublic: true,
                    isReadOnly: false,
                    isStatic: false)
         {
-            Debug.Assert(!type.IsNull);
+            Debug.Assert(type.HasType);
 
             // lifted fields do not need to have the CompilerGeneratedAttribute attached to it, the closure is already 
             // marked as being compiler generated.
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             string fieldName = GetCapturedVariableFieldName(captured, ref uniqueId);
             TypeSymbol type = GetCapturedVariableFieldType(frame, captured);
-            return new LambdaCapturedVariable(frame, TypeSymbolWithAnnotations.Create(type), fieldName, IsThis(captured));
+            return new LambdaCapturedVariable(frame, TypeWithAnnotations.Create(type), fieldName, IsThis(captured));
         }
 
         private static bool IsThis(Symbol captured)
@@ -71,8 +73,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GeneratedNames.MakeSynthesizedInstrumentationPayloadLocalFieldName(uniqueId++);
                 }
 
-                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined && local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection)
+                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
+                    (local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection ||
+                     local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchExpressionArm))
                 {
+                    // The programmer can use the same identifier for pattern variables in different
+                    // sections of a switch statement, but they are all hoisted into
+                    // the same frame for the enclosing switch statement and must be given
+                    // unique field names.
                     return GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, uniqueId++, local.Name);
                 }
             }
@@ -87,11 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)local != null)
             {
                 // if we're capturing a generic frame pointer, construct it with the new frame's type parameters
-                var lambdaFrame = local.Type.TypeSymbol.OriginalDefinition as SynthesizedClosureEnvironment;
+                var lambdaFrame = local.Type.OriginalDefinition as SynthesizedClosureEnvironment;
                 if ((object)lambdaFrame != null)
                 {
                     // lambdaFrame may have less generic type parameters than frame, so trim them down (the first N will always match)
-                    var typeArguments = frame.TypeArgumentsNoUseSiteDiagnostics;
+                    var typeArguments = frame.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
                     if (typeArguments.Length > lambdaFrame.Arity)
                     {
                         typeArguments = ImmutableArray.Create(typeArguments, 0, lambdaFrame.Arity);
@@ -101,10 +109,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return frame.TypeMap.SubstituteType(((object)local != null ? local.Type : ((ParameterSymbol)variable).Type).TypeSymbol).TypeSymbol;
+            return frame.TypeMap.SubstituteType(((object)local != null ? local.TypeWithAnnotations : ((ParameterSymbol)variable).TypeWithAnnotations).Type).Type;
         }
 
-        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             return _type;
         }

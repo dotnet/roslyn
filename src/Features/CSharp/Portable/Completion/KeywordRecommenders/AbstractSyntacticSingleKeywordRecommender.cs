@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -44,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (syntaxKind.HasValue)
             {
                 return SpecializedCollections.SingletonEnumerable(
-                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), 
-                        shouldFormatOnCommit: this.ShouldFormatOnCommit, 
+                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value),
+                        shouldFormatOnCommit: this.ShouldFormatOnCommit,
                         matchPriority: ShouldPreselect(context, cancellationToken) ? SymbolMatchPriority.Keyword : MatchPriority.Default));
             }
 
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         internal async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync_Test(int position, CSharpSyntaxContext context)
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-        { 
+        {
             var syntaxKind = await this.RecommendKeywordAsync(position, context, CancellationToken.None).ConfigureAwait(false);
             if (syntaxKind.HasValue)
             {

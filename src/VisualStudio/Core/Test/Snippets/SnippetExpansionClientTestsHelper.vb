@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -16,8 +18,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             snippetExpansionClient.OnBeforeInsertion(mockExpansionSession)
 
             Dim snippetSpanInSurfaceBuffer = surfaceBufferDocument.SelectedSpans(0)
-            Dim snippetStartLine = surfaceBufferDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(snippetSpanInSurfaceBuffer.Start)
-            Dim snippetEndLine = surfaceBufferDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(snippetSpanInSurfaceBuffer.Start)
+            Dim snippetStartLine = surfaceBufferDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(snippetSpanInSurfaceBuffer.Start)
+            Dim snippetEndLine = surfaceBufferDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(snippetSpanInSurfaceBuffer.Start)
             Dim snippetTextSpanInSurfaceBuffer = New TextSpan() With
                     {
                         .iStartLine = snippetStartLine.LineNumber,
@@ -29,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             mockExpansionSession.snippetSpanInSurfaceBuffer = snippetTextSpanInSurfaceBuffer
 
             Dim endPositionInSurfaceBuffer = surfaceBufferDocument.CursorPosition.Value
-            Dim endPositionLine = surfaceBufferDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(endPositionInSurfaceBuffer)
+            Dim endPositionLine = surfaceBufferDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(endPositionInSurfaceBuffer)
             Dim endPositionIndex = endPositionInSurfaceBuffer - endPositionLine.Start.Position
 
             mockExpansionSession.endSpanInSurfaceBuffer = New TextSpan() With
@@ -42,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
             snippetExpansionClient.FormatSpan(Nothing, {snippetTextSpanInSurfaceBuffer})
 
-            Assert.Equal(expectedSurfaceBuffer.NormalizedValue, surfaceBufferDocument.TextBuffer.CurrentSnapshot.GetText)
+            Assert.Equal(expectedSurfaceBuffer.NormalizedValue, surfaceBufferDocument.GetTextBuffer().CurrentSnapshot.GetText)
         End Sub
 
         Friend Shared Sub TestFormattingAndCaretPosition(
@@ -54,7 +56,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Dim mockExpansionSession = New TestExpansionSession()
 
             Dim cursorPosition = document.CursorPosition.Value
-            Dim cursorLine = document.TextBuffer.CurrentSnapshot.GetLineFromPosition(cursorPosition)
+            Dim cursorLine = document.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(cursorPosition)
 
             mockExpansionSession.SetEndSpan(New TextSpan() With
                     {
@@ -67,8 +69,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             snippetExpansionClient.OnBeforeInsertion(mockExpansionSession)
 
             Dim snippetSpan = document.SelectedSpans(0)
-            Dim snippetStartLine = document.TextBuffer.CurrentSnapshot.GetLineFromPosition(snippetSpan.Start)
-            Dim snippetEndLine = document.TextBuffer.CurrentSnapshot.GetLineFromPosition(snippetSpan.End)
+            Dim snippetStartLine = document.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(snippetSpan.Start)
+            Dim snippetEndLine = document.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(snippetSpan.End)
             Dim snippetTextSpan = New TextSpan() With
                     {
                         .iStartLine = snippetStartLine.LineNumber,
@@ -80,7 +82,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             mockExpansionSession.snippetSpanInSurfaceBuffer = snippetTextSpan
 
             Dim endPosition = document.CursorPosition.Value
-            Dim endPositionLine = document.TextBuffer.CurrentSnapshot.GetLineFromPosition(endPosition)
+            Dim endPositionLine = document.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(endPosition)
             Dim endPositionIndex = endPosition - endPositionLine.Start.Position
 
             mockExpansionSession.endSpanInSurfaceBuffer = New TextSpan() With
@@ -95,12 +97,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
             Dim finalEndSpan(1) As TextSpan
             mockExpansionSession.GetEndSpan(finalEndSpan)
-            Dim formattedEndPositionLine = document.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(finalEndSpan(0).iStartLine)
+            Dim formattedEndPositionLine = document.GetTextBuffer().CurrentSnapshot.GetLineFromLineNumber(finalEndSpan(0).iStartLine)
 
             snippetExpansionClient.PositionCaretForEditingInternal(formattedEndPositionLine.GetText(), formattedEndPositionLine.Start.Position)
 
             Assert.Equal(expectedVirtualSpacing, document.GetTextView().Caret.Position.VirtualSpaces)
-            Assert.Equal(expectedResult.NormalizedValue, document.TextBuffer.CurrentSnapshot.GetText)
+            Assert.Equal(expectedResult.NormalizedValue, document.GetTextBuffer().CurrentSnapshot.GetText)
         End Sub
     End Class
 End Namespace

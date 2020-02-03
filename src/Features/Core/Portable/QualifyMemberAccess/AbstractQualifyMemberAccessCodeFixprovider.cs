@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -12,8 +14,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 {
-    internal abstract class AbstractQualifyMemberAccessCodeFixprovider<TSimpleNameSyntax, TInvocationSyntax> 
-        : SyntaxEditorBasedCodeFixProvider 
+    internal abstract class AbstractQualifyMemberAccessCodeFixprovider<TSimpleNameSyntax, TInvocationSyntax>
+        : SyntaxEditorBasedCodeFixProvider
         where TSimpleNameSyntax : SyntaxNode
         where TInvocationSyntax : SyntaxNode
     {
@@ -22,17 +24,19 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddQualificationDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
-                this.GetTitle(),
+                GetTitle(),
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

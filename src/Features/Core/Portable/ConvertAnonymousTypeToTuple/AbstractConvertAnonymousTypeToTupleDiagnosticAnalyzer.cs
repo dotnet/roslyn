@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -8,13 +9,14 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 {
     internal abstract class AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer<
         TSyntaxKind,
-        TAnonymousObjectCreationExpressionSyntax> 
+        TAnonymousObjectCreationExpressionSyntax>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TAnonymousObjectCreationExpressionSyntax : SyntaxNode
     {
         protected AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConvertAnonymousTypeToTupleDiagnosticId,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Convert_to_tuple), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Convert_to_tuple), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -24,10 +26,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         protected abstract int GetInitializerCount(TAnonymousObjectCreationExpressionSyntax anonymousType);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(

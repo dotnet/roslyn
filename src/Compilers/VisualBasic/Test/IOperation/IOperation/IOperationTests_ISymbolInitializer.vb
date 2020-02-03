@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -317,7 +319,7 @@ Class C
     End Function
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.i1 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
   IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
@@ -346,7 +348,7 @@ Class C
     End Function
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IPropertyInitializerOperation (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializer, Type: null) (Syntax: '= 1 + F()')
   IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: '1 + F()')
     Left: 

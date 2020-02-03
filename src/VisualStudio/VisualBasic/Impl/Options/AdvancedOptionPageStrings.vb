@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
@@ -18,11 +20,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Analysis As String =
             ServicesVSResources.Analysis
 
-        Public ReadOnly Property Option_Enable_full_solution_analysis As String =
-            ServicesVSResources.Enable_full_solution_analysis
+        Public ReadOnly Property Option_Background_analysis_scope As String =
+            ServicesVSResources.Background_analysis_scope_colon
 
-        Public ReadOnly Property Option_Perform_editor_feature_analysis_in_external_process As String =
-            ServicesVSResources.Perform_editor_feature_analysis_in_external_process
+        Public ReadOnly Property Option_Background_Analysis_Scope_Active_File As String =
+            ServicesVSResources.Current_document
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files_And_Projects As String =
+            ServicesVSResources.Open_documents
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution As String =
+            ServicesVSResources.Entire_solution
+
+        Public ReadOnly Property Option_use_editorconfig_compatibility_mode As String = ServicesVSResources.Use_editorconfig_compatibility_mode
 
         Public ReadOnly Property Option_DisplayLineSeparators As String
             Get
@@ -217,5 +227,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Highlight_related_components_under_cursor As String =
             ServicesVSResources.Highlight_related_components_under_cursor
+
+        Public ReadOnly Property Option_Show_completion_list As String =
+            ServicesVSResources.Show_completion_list
+
+        Public ReadOnly Property Option_Classifications As String =
+            ServicesVSResources.Classifications
+
+        Public ReadOnly Property Option_Use_enhanced_colors_for_C_and_Basic As String =
+            ServicesVSResources.Use_enhanced_colors_for_C_and_Basic
     End Module
 End Namespace

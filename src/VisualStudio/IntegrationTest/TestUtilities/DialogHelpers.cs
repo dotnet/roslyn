@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -144,8 +146,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             => FindDialogByPropertyWorker(visualStudioHWnd, dialogName, AutomationElementIdentifiers.NameProperty);
 
         private static IUIAutomationElement FindDialogByPropertyWorker(
-            IntPtr visualStudioHWnd, 
-            string propertyValue, 
+            IntPtr visualStudioHWnd,
+            string propertyValue,
             AutomationProperty nameProperty)
         {
             var vsAutomationElement = Helper.Automation.ElementFromHandle(visualStudioHWnd);
@@ -163,7 +165,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private static T Retry<T>(Func<CancellationToken, T> action, Func<T, CancellationToken, bool> stoppingCondition, TimeSpan delay, CancellationToken cancellationToken)
         {
             DateTime beginTime = DateTime.UtcNow;
-            T retval = default(T);
+            T retval = default;
 
             do
             {

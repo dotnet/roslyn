@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -34,14 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // for the emit phase. It is even doing harm to e.g. the stack depth calculation because this expression
             // would not need to be pushed to the stack.
             return null;
-        }
-
-        public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)
-        {
-            // we are removing the label expressions from the bound tree because this expression is no longer needed
-            // for the emit phase. It is even doing harm to e.g. the stack depth calculation because this expression
-            // would not need to be pushed to the stack. We do preserve the constant value, which is used in emit.
-            return node.Update(node.Label, expressionOpt: null, constantValueOpt: node.ConstantValueOpt);
         }
     }
 }

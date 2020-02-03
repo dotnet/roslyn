@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
@@ -243,8 +245,8 @@ recurse:
         End Function
 
         <Extension()>
-        Public Function GetMembersInSpan(root As SyntaxNode,
-                                         textSpan As TextSpan) As ImmutableArray(Of StatementSyntax)
+        Public Function GetSelectedFieldsAndPropertiesInSpan(root As SyntaxNode,
+                                         textSpan As TextSpan, allowPartialSelection As Boolean) As ImmutableArray(Of StatementSyntax)
 
             Dim token = root.FindTokenOnRightOfPosition(textSpan.Start)
             Dim firstMember = token.GetAncestors(Of StatementSyntax).
@@ -255,17 +257,18 @@ recurse:
                 If containingType IsNot Nothing AndAlso
                    firstMember IsNot containingType.BlockStatement AndAlso
                    firstMember IsNot containingType.EndBlockStatement Then
-                    Return GetMembersInSpan(textSpan, containingType, firstMember)
+                    Return GetFieldsAndPropertiesInSpan(textSpan, containingType, firstMember, allowPartialSelection)
                 End If
             End If
 
             Return ImmutableArray(Of StatementSyntax).Empty
         End Function
 
-        Private Function GetMembersInSpan(
+        Private Function GetFieldsAndPropertiesInSpan(
             textSpan As TextSpan,
             containingType As TypeBlockSyntax,
-            firstMember As StatementSyntax) As ImmutableArray(Of StatementSyntax)
+            firstMember As StatementSyntax,
+            allowPartialSelection As Boolean) As ImmutableArray(Of StatementSyntax)
             Dim selectedMembers = ArrayBuilder(Of StatementSyntax).GetInstance()
 
             Try
@@ -277,12 +280,8 @@ recurse:
 
                 For i = fieldIndex To members.Count - 1
                     Dim member = members(i)
-                    If textSpan.Contains(member.Span) Then
+                    If IsSelectedFieldOrProperty(textSpan, member, allowPartialSelection) Then
                         selectedMembers.Add(member)
-                    ElseIf (textSpan.OverlapsWith(member.Span)) Then
-                        Return ImmutableArray(Of StatementSyntax).Empty
-                    Else
-                        Exit For
                     End If
                 Next
 
@@ -290,6 +289,35 @@ recurse:
             Finally
                 selectedMembers.Free()
             End Try
+        End Function
+
+        Private Function IsSelectedFieldOrProperty(textSpan As TextSpan, member As StatementSyntax, allowPartialSelection As Boolean) As Boolean
+            If Not member.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.PropertyStatement) Then
+                Return False
+            End If
+
+            ' first, check if entire member is selected
+            If textSpan.Contains(member.Span) Then
+                Return True
+            End If
+
+            If Not allowPartialSelection Then
+                Return False
+            End If
+
+            ' next, check if identifier is at lease partially selected
+            If member.IsKind(SyntaxKind.FieldDeclaration) Then
+                Dim fieldDeclaration = DirectCast(member, FieldDeclarationSyntax)
+                For Each declarator In fieldDeclaration.Declarators
+                    If textSpan.Contains(member.Span) Or (allowPartialSelection And textSpan.OverlapsWith(declarator.Names.Span)) Then
+                        Return True
+                    End If
+                Next
+            ElseIf member.IsKind(SyntaxKind.PropertyStatement) Then
+                Return textSpan.OverlapsWith((DirectCast(member, PropertyStatementSyntax)).Identifier.Span)
+            End If
+
+            Return False
         End Function
 
         <Extension()>

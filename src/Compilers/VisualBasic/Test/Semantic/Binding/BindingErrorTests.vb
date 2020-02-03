@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -1168,7 +1170,7 @@ Imports System
         <Fact, WorkItem(3380, "DevDiv_Projects/Roslyn")>
         Public Sub BC30046ERR_ParamArrayWithOptArgs()
             CreateCompilationWithMscorlib40(<compilation name="ERR_ParamArrayWithOptArgs">
-                                              <file name="a.vb"><![CDATA[
+                                                <file name="a.vb"><![CDATA[
                 Class C1
                     Shared Sub Main()
                     End Sub
@@ -1176,7 +1178,7 @@ Imports System
                     End Sub
                 End Class
             ]]></file>
-                                          </compilation>).VerifyDiagnostics(
+                                            </compilation>).VerifyDiagnostics(
                                           Diagnostic(ERRID.ERR_ParamArrayWithOptArgs, "s"))
 
         End Sub
@@ -24127,8 +24129,7 @@ End Sub
 End Module
 ]]>
 
-            ' https://github.com/dotnet/roslyn/issues/29819 remove explicit options when VB 16 is latest
-            compilation = compilation.AddSyntaxTrees(Parse(text, options:=TestOptions.Regular))
+            compilation = compilation.AddSyntaxTrees(Parse(text))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>

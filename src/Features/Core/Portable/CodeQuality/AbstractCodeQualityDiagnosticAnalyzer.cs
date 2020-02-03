@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CodeQuality
 {
@@ -30,7 +33,9 @@ namespace Microsoft.CodeAnalysis.CodeQuality
         protected abstract void InitializeWorker(AnalysisContext context);
 
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
-        public abstract bool OpenFileOnly(Workspace workspace);
+
+        public bool OpenFileOnly(OptionSet options)
+            => false;
 
         protected static DiagnosticDescriptor CreateDescriptor(
             string id,
@@ -39,12 +44,14 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             bool isUnneccessary,
             bool isEnabledByDefault = true,
             bool isConfigurable = true,
+            LocalizableString description = null,
             params string[] customTags)
-            =>  new DiagnosticDescriptor(
+            => new DiagnosticDescriptor(
                     id, title, messageFormat,
                     DiagnosticCategory.CodeQuality,
                     DiagnosticSeverity.Info,
                     isEnabledByDefault,
+                    description,
                     customTags: DiagnosticCustomTags.Create(isUnneccessary, isConfigurable, customTags));
     }
 }

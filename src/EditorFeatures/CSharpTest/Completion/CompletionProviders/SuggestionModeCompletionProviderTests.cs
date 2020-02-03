@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class SuggestionModeCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public SuggestionModeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) 
+        public SuggestionModeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture)
             : base(workspaceFixture)
         {
         }
@@ -1113,19 +1115,17 @@ public static class Repro
         {
             MarkupTestFile.GetPosition(markup, out var code, out int position);
 
-            using (var workspaceFixture = new CSharpTestWorkspaceFixture())
+            using var workspaceFixture = new CSharpTestWorkspaceFixture();
+            var document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular);
+            await CheckResultsAsync(document1, position, isBuilder);
+
+            if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
-                var document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular);
-                await CheckResultsAsync(document1, position, isBuilder);
-
-                if (await CanUseSpeculativeSemanticModelAsync(document1, position))
-                {
-                    var document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
-                    await CheckResultsAsync(document2, position, isBuilder);
-                }
-
-                workspaceFixture.DisposeAfterTest();
+                var document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
+                await CheckResultsAsync(document2, position, isBuilder);
             }
+
+            workspaceFixture.DisposeAfterTest();
         }
 
         private async Task CheckResultsAsync(Document document, int position, bool isBuilder)
@@ -1139,8 +1139,8 @@ public static class Repro
 
             foreach (var triggerInfo in triggerInfos)
             {
-                var completionList = await service.GetContextAsync(
-                    service.ExclusiveProviders?[0], document, position, triggerInfo,
+                var completionList = await service.GetTestAccessor().GetContextAsync(
+                    service.GetTestAccessor().ExclusiveProviders?[0], document, position, triggerInfo,
                     options: null, cancellationToken: CancellationToken.None);
 
                 if (isBuilder)

@@ -1,13 +1,15 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -58,9 +60,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers)
             End If
 
-            _previousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
+            _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious)
             _previousGeneration = previousGeneration
-            _changes = New SymbolChanges(_previousDefinitions, edits, isAddedSymbol)
+            _changes = New VisualBasicSymbolChanges(_previousDefinitions, edits, isAddedSymbol)
 
             ' Workaround for https://github.com/dotnet/roslyn/issues/3192. 
             ' When compiling state machine we stash types of awaiters and state-machine hoisted variables,
@@ -160,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Dim propertyType = [property].Type
                 If propertyType.TypeKind = TypeKind.TypeParameter Then
                     Dim typeParameter = DirectCast(propertyType, TypeParameterSymbol)
-                    Debug.Assert(typeParameter.ContainingSymbol = type)
+                    Debug.Assert(TypeSymbol.Equals(DirectCast(typeParameter.ContainingSymbol, TypeSymbol), type, TypeCompareKind.ConsiderEverything))
                     Dim index = typeParameter.Ordinal
                     Debug.Assert(properties(index).Name Is Nothing)
                     ' ReadOnly anonymous type properties were 'Key' properties.
@@ -226,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _previousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
         End Function
 
-        Friend Overrides Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
+        Friend Overrides Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Debug.Assert(Compilation Is template.DeclaringCompilation)
             Return _previousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function
@@ -237,8 +239,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend Overrides Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
-            Return _changes.GetTopLevelTypes(context)
+        Public Overrides Iterator Function GetTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+            For Each typeDef In GetAnonymousTypeDefinitions(context)
+                Yield typeDef
+            Next
+
+            For Each typeDef In GetTopLevelTypeDefinitionsCore(context)
+                Yield typeDef
+            Next
+        End Function
+
+        Public Overrides Function GetTopLevelSourceTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+            Return _changes.GetTopLevelSourceTypeDefinitions(context)
         End Function
 
         Friend Sub OnCreatedIndices(diagnostics As DiagnosticBag) Implements IPEDeltaAssemblyBuilder.OnCreatedIndices

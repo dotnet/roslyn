@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -44,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var result = new CodeGenerationMethodSymbol(this.ContainingType,
                 this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
                 this.ReturnType, this.RefKind, this.ExplicitInterfaceImplementations,
-                this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes());
+                this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes(),
+                this.MethodKind);
 
             CodeGenerationMethodInfo.Attach(result,
                 CodeGenerationMethodInfo.GetIsNew(this),
@@ -84,6 +88,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             => this.TypeParameters.As<ITypeSymbol>();
 
         public override IMethodSymbol ConstructedFrom => this;
+
+        public override bool IsReadOnly => Modifiers.IsReadOnly;
 
         public override IMethodSymbol OverriddenMethod => null;
 

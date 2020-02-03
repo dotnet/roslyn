@@ -816,7 +816,7 @@
     <value>'Sub New' cannot be declared 'Partial'.</value>
   </data>
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
-    <value>Failed to emit module '{0}'.</value>
+    <value>Failed to emit module '{0}': {1}</value>
   </data>
   <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
     <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
@@ -1852,7 +1852,10 @@
     <value>Initializer expected.</value>
   </data>
   <data name="ERR_LineContWithCommentOrNoPrecSpace" xml:space="preserve">
-    <value>Line continuation character '_' must be preceded by at least one white space and must be the last character on the line.</value>
+    <value>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</value>
+  </data>
+  <data name="ERR_CommentsAfterLineContinuationNotAvailable1" xml:space="preserve">
+    <value>Please use language version {0} or greater to use comments after line continuation character.</value>
   </data>
   <data name="ERR_BadModuleFile1" xml:space="preserve">
     <value>Unable to load module file '{0}': {1}</value>
@@ -5127,8 +5130,11 @@
 -warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
 -ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
                                   diagnostics.
--errorlog:&lt;file&gt;                  Specify a file to log all compiler and analyzer
-                                  diagnostics.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Specify a file to log all compiler and analyzer
+                                  diagnostics in SARIF format.
+                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                                  both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
 
@@ -5169,7 +5175,7 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
                                   checksum stored in PDB. Supported values are:
-                                  SHA1 (default) or SHA256.
+                                  SHA1 or SHA256 (default).
 -codepage:&lt;number&gt;                Specifies the codepage to use when opening
                                   source files.
 -delaysign[+|-]                   Delay-sign the assembly using only the public
@@ -5328,7 +5334,7 @@
     <value>Unused import statement</value>
   </data>
   <data name="ERR_ConstantStringTooLong" xml:space="preserve">
-    <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
+    <value>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</value>
   </data>
   <data name="ERR_LanguageVersion" xml:space="preserve">
     <value>Visual Basic {0} does not support {1}.</value>
@@ -5353,6 +5359,9 @@
   </data>
   <data name="FEATURE_CollectionInitializers" xml:space="preserve">
     <value>collection initializers</value>
+  </data>
+  <data name="FEATURE_CommentsAfterLineContinuation" xml:space="preserve">
+    <value>comments after line continuation</value>
   </data>
   <data name="FEATURE_GlobalNamespace" xml:space="preserve">
     <value>declaring a Global namespace</value>
@@ -5536,5 +5545,29 @@
   </data>
   <data name="FEATURE_UnconstrainedTypeParameterInConditional" xml:space="preserve">
     <value>unconstrained type parameters in binary conditional expressions</value>
+  </data>
+  <data name="ERR_MultipleAnalyzerConfigsInSameDir" xml:space="preserve">
+    <value>Multiple analyzer config files cannot be in the same directory ('{0}').</value>
+  </data>
+  <data name="ERR_DefaultInterfaceImplementationInNoPIAType" xml:space="preserve">
+    <value>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</value>
+  </data>
+  <data name="ERR_ReAbstractionInNoPIAType" xml:space="preserve">
+    <value>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</value>
+  </data>
+  <data name="ERR_BadSwitchValue" xml:space="preserve">
+    <value>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation" xml:space="preserve">
+    <value>Target runtime doesn't support default interface implementation.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember" xml:space="preserve">
+    <value>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</value>
+  </data>
+  <data name="WRN_AttributeNotSupportedInVB" xml:space="preserve">
+    <value>'{0}' is not supported in VB.</value>
+  </data>
+  <data name="WRN_AttributeNotSupportedInVB_Title" xml:space="preserve">
+    <value>Attribute is not supported in VB</value>
   </data>
 </root>

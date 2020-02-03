@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -21,8 +23,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpIsAndCastCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpIsAndCastCheckCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineIsTypeCheckId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -33,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
@@ -67,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                                          .Where(t => t.IsSingleOrMultiLineComment())
                                          .SelectMany(t => ImmutableArray.Create(SyntaxFactory.Space, t, SyntaxFactory.ElasticCarriageReturnLineFeed))
                                          .ToImmutableArray();
-            
+
             editor.RemoveNode(localDeclaration);
             editor.ReplaceNode(ifStatement,
                 (i, g) =>

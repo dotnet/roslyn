@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     internal abstract class DataFlowAnalyzer<TBlockAnalysisData> : IDisposable
     {
         /// <summary>
-        /// Gets current analysis data for the given basic block.
+        /// Gets current analysis data for the given basic block, or an empty analysis data.
         /// </summary>
         public abstract TBlockAnalysisData GetCurrentAnalysisData(BasicBlock basicBlock);
 
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// Updates the current analysis data for the given basic block.
         /// </summary>
-        public abstract void SetCurrentAnalysisData(BasicBlock basicBlock, TBlockAnalysisData data);
+        public abstract void SetCurrentAnalysisData(BasicBlock basicBlock, TBlockAnalysisData data, CancellationToken cancellationToken);
 
         /// <summary>
         /// Analyze the given basic block and return the block analysis data at the end of the block for its successors.

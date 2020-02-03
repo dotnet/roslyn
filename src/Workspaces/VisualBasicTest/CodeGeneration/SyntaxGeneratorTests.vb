@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Editing
@@ -785,6 +787,39 @@ End Sub")
                 Generator.VoidReturningLambdaExpression({Generator.LambdaParameter("x", Generator.IdentifierName("y")), Generator.LambdaParameter("a", Generator.IdentifierName("b"))}, Generator.IdentifierName("z")),
                 "Sub(x As y, a As b) z")
         End Sub
+
+        <Fact, WorkItem(31720, "https://github.com/dotnet/roslyn/issues/31720")>
+        Sub TestGetAttributeOnMethodBodies()
+            Dim compilation = Compile("
+Imports System
+<AttributeUsage(System.AttributeTargets.All)>
+Public Class MyAttribute
+  Inherits Attribute
+End Class
+
+Public Class C
+    <MyAttribute>
+    Sub New()
+    End Sub
+
+    <MyAttribute>
+    Sub M1()
+    End Sub
+
+    <MyAttribute>
+    Function M1() As String
+        Return Nothing
+    End Sub
+End Class
+")
+
+            Dim syntaxTree = compilation.SyntaxTrees(0)
+            Dim declarations = syntaxTree.GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)
+
+            For Each decl In declarations
+                Assert.Equal("<MyAttribute>", Generator.GetAttributes(decl).Single().ToString())
+            Next
+        End Sub
 #End Region
 
 #Region "Declarations"
@@ -851,7 +886,7 @@ End Function")
 
             VerifySyntax(Of MethodBlockSyntax)(
                 Generator.MethodDeclaration("m", accessibility:=Accessibility.Private, modifiers:=DeclarationModifiers.Partial),
-"Private Partial Sub m()
+"Partial Private Sub m()
 End Sub")
 
         End Sub
@@ -1388,7 +1423,7 @@ End Structure")
 
             VerifySyntax(Of StructureBlockSyntax)(
                 Generator.StructDeclaration("s", accessibility:=Accessibility.Public, modifiers:=DeclarationModifiers.Partial),
-"Public Partial Structure s
+"Partial Public Structure s
 End Structure")
 
             VerifySyntax(Of StructureBlockSyntax)(

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -27,6 +29,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or
                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
             kindOptions:=SymbolDisplayKindOptions.IncludeNamespaceKeyword Or SymbolDisplayKindOptions.IncludeTypeKeyword Or SymbolDisplayKindOptions.IncludeMemberKeyword)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Overrides Function GetAnonymousTypeParts(anonymousType As INamedTypeSymbol, semanticModel As SemanticModel, position As Integer, displayService As ISymbolDisplayService) As IEnumerable(Of SymbolDisplayPart)
             If anonymousType.IsAnonymousDelegateType() Then
@@ -57,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             ' So ugly.  We remove the 'Invoke' name that was added by the symbol display service.
             Dim result = New List(Of SymbolDisplayPart)
             For Each part In parts
-                If part.Symbol Is delegateInvoke Then
+                If Equals(part.Symbol, delegateInvoke) Then
                     Continue For
                 End If
 

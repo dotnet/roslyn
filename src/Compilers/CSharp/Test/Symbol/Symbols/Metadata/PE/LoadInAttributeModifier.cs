@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -313,7 +315,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Method_Parameters_Override()
         {
             var reference = CompileIL(@"
@@ -466,7 +468,7 @@ class Test
             CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child");
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Method_Parameters_Override_ModOpt()
         {
             var reference = CompileIL(@"
@@ -1259,7 +1261,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9));
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override()
         {
             var reference = CompileIL(@"
@@ -1546,7 +1548,7 @@ Child Get
 Child Set");
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_Get()
         {
             var reference = CompileIL(@"
@@ -1768,7 +1770,7 @@ class Test
             CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Get");
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_Set()
         {
             var reference = CompileIL(@"
@@ -1970,7 +1972,7 @@ class Test
             CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Set");
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt()
         {
             var reference = CompileIL(@"
@@ -2257,7 +2259,7 @@ Child Get
 Child Set");
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Get()
         {
             var reference = CompileIL(@"
@@ -2479,7 +2481,7 @@ class Test
             CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Get");
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Set()
         {
             var reference = CompileIL(@"

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxNode _syntax;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private RefKind _refKind;
-        private TypeSymbolWithAnnotations _returnType;
+        private TypeWithAnnotations _returnType;
         private readonly bool _isSynthesized;
         private readonly bool _isAsync;
 
@@ -31,23 +33,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static readonly TypeSymbol InferenceFailureReturnType = new UnsupportedMetadataTypeSymbol();
 
-        private static readonly TypeSymbolWithAnnotations UnknownReturnType = TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType);
+        private static readonly TypeWithAnnotations UnknownReturnType = TypeWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType);
 
         public LambdaSymbol(
             CSharpCompilation compilation,
             Symbol containingSymbol,
             UnboundLambda unboundLambda,
-            ImmutableArray<TypeSymbolWithAnnotations> parameterTypes, 
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind,
-            TypeSymbolWithAnnotations returnType,
+            TypeWithAnnotations returnType,
             DiagnosticBag diagnostics)
         {
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
             _refKind = refKind;
-            _returnType = returnType.IsNull ? TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, ReturnTypeIsBeingInferred) : returnType;
+            _returnType = !returnType.HasType ? TypeWithAnnotations.Create(ReturnTypeIsBeingInferred) : returnType;
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
@@ -144,6 +146,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
             get { return null; }
@@ -166,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return !this.ReturnType.IsNull && this.ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return this.ReturnTypeWithAnnotations.HasType && this.ReturnType.IsVoidType(); }
         }
 
         public override RefKind RefKind
@@ -174,19 +181,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _refKind; }
         }
 
-        public override TypeSymbolWithAnnotations ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get { return _returnType; }
         }
+
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         // In error recovery and type inference scenarios we do not know the return type
         // until after the body is bound, but the symbol is created before the body
         // is bound.  Fill in the return type post hoc in these scenarios; the
         // IDE might inspect the symbol and want to know the return type.
-        internal void SetInferredReturnType(RefKind refKind, TypeSymbolWithAnnotations inferredReturnType)
+        internal void SetInferredReturnType(RefKind refKind, TypeWithAnnotations inferredReturnType)
         {
-            Debug.Assert(!inferredReturnType.IsNull);
-            Debug.Assert((object)_returnType.TypeSymbol == ReturnTypeIsBeingInferred);
+            Debug.Assert(inferredReturnType.HasType);
+            Debug.Assert(_returnType.Type.IsErrorType());
             _refKind = refKind;
             _returnType = inferredReturnType;
         }
@@ -211,9 +224,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
+            get { return ImmutableArray<TypeWithAnnotations>.Empty; }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -303,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> MakeParameters(
             CSharpCompilation compilation,
             UnboundLambda unboundLambda,
-            ImmutableArray<TypeSymbolWithAnnotations> parameterTypes,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             DiagnosticBag diagnostics)
         {
@@ -334,11 +347,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // can, then we use the lambda types. (Whatever you do, do not use the names 
                 // in the delegate parameters; they are not in scope!)
 
-                TypeSymbolWithAnnotations type;
+                TypeWithAnnotations type;
                 RefKind refKind;
                 if (hasExplicitlyTypedParameterList)
                 {
-                    type = unboundLambda.ParameterType(p);
+                    type = unboundLambda.ParameterTypeWithAnnotations(p);
                     refKind = unboundLambda.RefKind(p);
                 }
                 else if (p < numDelegateParameters)
@@ -348,14 +361,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    type = TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
+                    type = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
                     refKind = RefKind.None;
                 }
-                
+
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
-                var parameter = new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
+
+                var parameter = new SourceSimpleParameterSymbol(owner: this, type, ordinal: p, refKind, name, unboundLambda.ParameterIsDiscard(p), locations);
 
                 builder.Add(parameter);
             }
@@ -365,17 +379,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        public sealed override bool Equals(object symbol)
+        public sealed override bool Equals(Symbol symbol, TypeCompareKind compareKind)
         {
             if ((object)this == symbol) return true;
 
-            var lambda = symbol as LambdaSymbol;
-            return (object)lambda != null
+            return symbol is LambdaSymbol lambda
                 && lambda._syntax == _syntax
                 && lambda._refKind == _refKind
-                && lambda.ReturnType.TypeSymbol == this.ReturnType.TypeSymbol
-                && System.Linq.ImmutableArrayExtensions.SequenceEqual(lambda.ParameterTypes, this.ParameterTypes, (p1, p2) => p1.TypeSymbol.Equals(p2.TypeSymbol))
-                && Equals(lambda.ContainingSymbol, this.ContainingSymbol);
+                && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, compareKind)
+                && ParameterTypesWithAnnotations.SequenceEqual(lambda.ParameterTypesWithAnnotations, compareKind,
+                                                               (p1, p2, compareKind) => p1.Equals(p2, compareKind))
+                && lambda.ContainingSymbol.Equals(ContainingSymbol, compareKind);
         }
 
         public override int GetHashCode()
@@ -396,7 +410,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early) => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        internal override bool IsDeclaredReadOnly => false;
+
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses() => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

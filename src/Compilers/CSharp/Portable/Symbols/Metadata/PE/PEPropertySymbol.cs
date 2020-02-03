@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly PropertyDefinitionHandle _handle;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly RefKind _refKind;
-        private readonly TypeSymbolWithAnnotations _propertyType;
+        private readonly TypeWithAnnotations _propertyTypeWithAnnotations;
         private readonly PEMethodSymbol _getMethod;
         private readonly PEMethodSymbol _setMethod;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
@@ -168,14 +170,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             originalPropertyType = originalPropertyType.AsDynamicIfNoPia(_containingType);
 
             // We start without annotation (they will be decoded below)
-            var propertyType = TypeSymbolWithAnnotations.Create(originalPropertyType, customModifiers: typeCustomModifiers);
+            var propertyTypeWithAnnotations = TypeWithAnnotations.Create(originalPropertyType, customModifiers: typeCustomModifiers);
 
             // Decode nullable before tuple types to avoid converting between
             // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-            propertyType = NullableTypeDecoder.TransformType(propertyType, handle, moduleSymbol);
-            propertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyType, handle, moduleSymbol);
 
-            _propertyType = propertyType;
+            // The containing type is passed to NullableTypeDecoder.TransformType to determine access
+            // because the property does not have explicit accessibility in metadata.
+            propertyTypeWithAnnotations = NullableTypeDecoder.TransformType(propertyTypeWithAnnotations, handle, moduleSymbol, accessSymbol: _containingType, nullableContext: _containingType);
+            propertyTypeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyTypeWithAnnotations, handle, moduleSymbol);
+
+            _propertyTypeWithAnnotations = propertyTypeWithAnnotations;
 
             // A property is bogus and must be accessed by calling its accessors directly if the
             // accessor signatures do not agree, both with each other and with the property,
@@ -487,9 +492,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return _refKind; }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _propertyType; }
+            get { return _propertyTypeWithAnnotations; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -581,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 foreach (var prop in propertiesWithImplementedGetters)
                 {
-                    if ((object)prop.SetMethod == null || propertiesWithImplementedSetters.Contains(prop))
+                    if (!prop.SetMethod.IsImplementable() || propertiesWithImplementedSetters.Contains(prop))
                     {
                         builder.Add(prop);
                     }
@@ -591,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     // No need to worry about duplicates.  If prop was added by the previous loop,
                     // then it must have a GetMethod.
-                    if ((object)prop.GetMethod == null)
+                    if (!prop.GetMethod.IsImplementable())
                     {
                         builder.Add(prop);
                     }
@@ -684,8 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var ordinal = i - 1;
                 bool isBad;
 
-                // https://github.com/dotnet/roslyn/issues/29821: handle extra annotations
-                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, extraAnnotations: default, out isBad);
+                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, nullableContext: property, out isBad);
 
                 if (isBad)
                 {
@@ -733,14 +737,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
         }
 
         private sealed class PEPropertySymbolWithCustomModifiers : PEPropertySymbol

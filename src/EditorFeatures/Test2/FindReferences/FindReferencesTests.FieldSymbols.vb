@@ -1,11 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_Private_SameType() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_Private_SameType(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -23,11 +25,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_Private_WrappedInProperty() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_Private_WrappedInProperty(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -44,11 +46,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_MultipleVariableDeclarators() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_MultipleVariableDeclarators(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -67,11 +69,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_Public_OtherType() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_Public_OtherType(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -92,11 +94,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_Inaccessible() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_Inaccessible(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -117,11 +119,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_InDependentProject1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_InDependentProject1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
@@ -154,11 +156,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_CSharpInaccessibleStaticField() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_CSharpInaccessibleStaticField(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -178,11 +180,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_VBInaccessibleStaticField() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_VBInaccessibleStaticField(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -199,11 +201,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_CSharpInaccessibleStaticProtectedField() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_CSharpInaccessibleStaticProtectedField(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -223,11 +225,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_VBInaccessibleStaticProtectedField() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_VBInaccessibleStaticProtectedField(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -244,11 +246,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_CSharpInaccessibleInstanceProtectedField() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_CSharpInaccessibleInstanceProtectedField(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -268,11 +270,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_VBInaccessibleInstanceProtectedField() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_VBInaccessibleInstanceProtectedField(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -289,12 +291,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(539598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539598")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_EnumMember1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_EnumMember1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -312,12 +314,12 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(539598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539598")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_EnumMember2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_EnumMember2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -335,12 +337,12 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(540515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540515")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_AcrossSubmission() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_AcrossSubmission(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Submission Language="C#" CommonReferences="true">
@@ -350,12 +352,12 @@ class Program
         [|goo|]
     </Submission>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(4952, "https://github.com/dotnet/roslyn/pull/4952")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestField_AcrossSubmission_Command() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_AcrossSubmission_Command(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Submission Language="C#" CommonReferences="true">
@@ -368,11 +370,11 @@ class Program
         [|goo|]
     </Submission>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCrefField() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCrefField(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -389,11 +391,11 @@ class Definition:Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCrefField2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCrefField2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -410,7 +412,7 @@ class Definition:Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
     End Class
 End Namespace

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -854,6 +856,77 @@ End Class
   IL_0044:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact>
+        Public Sub CollectionInitializerBoxingConversion_01()
+            Dim source =
+"Imports System
+Imports System.Collections
+Imports System.Runtime.CompilerServices
+
+Interface IAppend
+    Sub Append(o As Object)
+End Interface
+
+Structure S
+    Implements IEnumerable, IAppend
+    Private Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+        Return Nothing
+    End Function
+    Private Sub Append(o As Object) Implements IAppend.Append
+    End Sub
+End Structure
+
+Module Program
+    <Extension>
+    Sub Add(x As IAppend, y As Object)
+        x.Append(y)
+        Console.Write(y)
+    End Sub
+    Sub Main()
+        Dim s = New S() From { 1, 2 }
+    End Sub
+End Module"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="12")
+        End Sub
+
+        <Fact>
+        Public Sub CollectionInitializerBoxingConversion_02()
+            Dim source =
+"Imports System
+Imports System.Collections
+Imports System.Runtime.CompilerServices
+
+Interface IAppend
+    Sub Append(o As Object)
+End Interface
+
+Structure S
+    Implements IEnumerable, IAppend
+    Private Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+        Return Nothing
+    End Function
+    Private Sub Append(o As Object) Implements IAppend.Append
+    End Sub
+End Structure
+
+Module Program
+    <Extension>
+    Sub Add(x As IAppend, y As Object)
+        x.Append(y)
+        Console.Write(y)
+    End Sub
+    Function F(Of T As {IEnumerable, IAppend, New})() As T
+        Return New T() From { 1, 2 }
+    End Function
+    Sub Main()
+        Dim s = F(Of S)()
+    End Sub
+End Module"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="12")
         End Sub
     End Class
 End Namespace

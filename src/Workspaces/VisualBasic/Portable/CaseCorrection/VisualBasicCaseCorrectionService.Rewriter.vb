@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -94,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                         ' If this is a partial method implementation part, then case correct the method name to match the partial method definition part.
                         Dim definitionPart As IMethodSymbol = Nothing
                         Dim otherPartOfPartial = GetOtherPartOfPartialMethod(methodDeclaration, definitionPart)
-                        If otherPartOfPartial IsNot Nothing And otherPartOfPartial Is definitionPart Then
+                        If otherPartOfPartial IsNot Nothing And Equals(otherPartOfPartial, definitionPart) Then
                             Return CaseCorrectIdentifierIfNamesDiffer(token, newToken, otherPartOfPartial)
                         End If
                     Else
@@ -106,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                             If methodDeclaration IsNot Nothing Then
                                 Dim definitionPart As IMethodSymbol = Nothing
                                 Dim otherPartOfPartial = GetOtherPartOfPartialMethod(methodDeclaration, definitionPart)
-                                If otherPartOfPartial IsNot Nothing And otherPartOfPartial Is definitionPart Then
+                                If otherPartOfPartial IsNot Nothing And Equals(otherPartOfPartial, definitionPart) Then
                                     Dim ordinal As Integer = 0
                                     For Each param As SyntaxNode In methodDeclaration.ParameterList.Parameters
                                         If param Is parameterSyntax Then

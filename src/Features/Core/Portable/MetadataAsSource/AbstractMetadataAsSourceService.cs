@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -26,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             _codeGenerationService = codeGenerationService;
         }
 
-        public async Task<Document> AddSourceToAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
+        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
             if (document == null)
             {
@@ -44,22 +48,45 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()), symbol),
                 cancellationToken).ConfigureAwait(false);
 
+            document = await RemoveSimplifierAnnotationsFromImportsAsync(document, cancellationToken).ConfigureAwait(false);
+
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var docWithDocComments = await ConvertDocCommentsToRegularComments(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
-            var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
+            var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbolCompilation, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
             var node = await docWithAssemblyInfo.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var formattedDoc = await Formatter.FormatAsync(
                 docWithAssemblyInfo, SpecializedCollections.SingletonEnumerable(node.FullSpan), options: null, rules: GetFormattingRules(docWithAssemblyInfo), cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var reducers = this.GetReducers();
+            var reducers = GetReducers();
             return await Simplifier.ReduceAsync(formattedDoc, reducers, null, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// <see cref="ImportAdderService"/> adds <see cref="Simplifier.Annotation"/> to Import Directives it adds,
+        /// which causes the <see cref="Simplifier"/> to remove import directives when thety are only used by attributes.
+        /// Presumably this is because MetadataAsSource isn't actually semantically valid code.
+        /// 
+        /// To fix this we remove these annotations.
+        /// </summary>
+        private static async Task<Document> RemoveSimplifierAnnotationsFromImportsAsync(Document document, CancellationToken cancellationToken)
+        {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            var importDirectives = (await document.GetSyntaxRootAsync().ConfigureAwait(false))
+                .DescendantNodesAndSelf()
+                .Where(syntaxFacts.IsUsingOrExternOrImport);
+
+            return await document.ReplaceNodesAsync(
+                importDirectives,
+                (o, c) => c.WithoutAnnotations(Simplifier.Annotation),
+                cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
         /// provide formatting rules to be used when formatting MAS file
         /// </summary>
-        protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
+        protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
         /// <summary>
         /// Prepends a region directive at the top of the document with a name containing
@@ -68,7 +95,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// a string similar to "location unknown" will be placed in the comment inside the region
         /// instead of the path.
         /// </summary>
-        protected abstract Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken);
+        /// <param name="document">The document to generate source into</param>
+        /// <param name="symbolCompilation">The <see cref="Compilation"/> in which symbol is resolved.</param>
+        /// <param name="symbol">The symbol to generate source for</param>
+        /// <param name="cancellationToken">To cancel document operations</param>
+        /// <returns>The updated document</returns>
+        protected abstract Task<Document> AddAssemblyInfoRegionAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken);
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         protected abstract Task<Document> ConvertDocCommentsToRegularComments(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken);

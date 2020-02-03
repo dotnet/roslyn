@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
@@ -27,11 +29,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             Return input.Replace("\n", vbCrLf)
         End Function
 
-        Protected Overloads Async Function TestAsync(initialMarkup As XElement, expected As XElement, Optional index As Integer = 0) As Threading.Tasks.Task
+        Protected Overloads Async Function TestAsync(initialMarkup As XElement, expected As XElement, Optional index As Integer = 0, Optional parseOptions As ParseOptions = Nothing) As Threading.Tasks.Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
             Dim expectedStr = expected.ConvertTestSourceTag()
-
-            Await MyBase.TestAsync(initialMarkupStr, expectedStr, parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions, index:=index)
+            If parseOptions Is Nothing Then
+                Await MyBase.TestAsync(initialMarkupStr, expectedStr, parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions, index:=index)
+            Else
+                Await MyBase.TestAsync(initialMarkupStr, expectedStr, parseOptions:=parseOptions, compilationOptions:=_compilationOptions, index:=index)
+            End If
         End Function
 
         Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Threading.Tasks.Task

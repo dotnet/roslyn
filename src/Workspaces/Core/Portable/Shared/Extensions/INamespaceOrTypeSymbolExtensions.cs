@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -29,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol.ToDisplayString(s_shortNameFormat);
         }
 
-        public static IEnumerable<IPropertySymbol> GetIndexers(this INamespaceOrTypeSymbol symbol)
+        public static IEnumerable<IPropertySymbol> GetIndexers(this INamespaceOrTypeSymbol? symbol)
         {
             return symbol == null
                 ? SpecializedCollections.EmptyEnumerable<IPropertySymbol>()
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => s_namespaceOrTypeToNameMap.GetValue(symbol, s_getNamePartsCallBack);
 
         public static int CompareNameParts(
-            IReadOnlyList<string> names1, IReadOnlyList<string> names2, 
+            IReadOnlyList<string> names1, IReadOnlyList<string> names2,
             bool placeSystemNamespaceFirst)
         {
             for (var i = 0; i < Math.Min(names1.Count, names2.Count); i++)
@@ -73,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return names1.Count - names2.Count;
         }
 
-        private static void GetNameParts(INamespaceOrTypeSymbol namespaceOrTypeSymbol, List<string> result)
+        private static void GetNameParts(INamespaceOrTypeSymbol? namespaceOrTypeSymbol, List<string> result)
         {
             if (namespaceOrTypeSymbol == null || (namespaceOrTypeSymbol.IsNamespace && ((INamespaceSymbol)namespaceOrTypeSymbol).IsGlobalNamespace))
             {

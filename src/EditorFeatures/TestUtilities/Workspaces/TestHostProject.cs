@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,8 +9,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public IEnumerable<TestHostDocument> Documents;
         public IEnumerable<TestHostDocument> AdditionalDocuments;
+        public IEnumerable<TestHostDocument> AnalyzerConfigDocuments;
         public IEnumerable<ProjectReference> ProjectReferences;
 
         public string Name
@@ -166,6 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             IList<MetadataReference> references,
             IList<TestHostDocument> documents,
             IList<TestHostDocument> additionalDocuments = null,
+            IList<TestHostDocument> analyzerConfigDocuments = null,
             Type hostObjectType = null,
             bool isSubmission = false,
             string filePath = null,
@@ -182,6 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
             this.Documents = documents;
             this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
+            this.AnalyzerConfigDocuments = analyzerConfigDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
             ProjectReferences = SpecializedCollections.EmptyEnumerable<ProjectReference>();
             _isSubmission = isSubmission;
             _hostObjectType = hostObjectType;
@@ -203,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             string assemblyName = null,
             string defaultNamespace = null)
-            : this(workspace, name, language, compilationOptions, parseOptions, SpecializedCollections.SingletonEnumerable(document), SpecializedCollections.EmptyEnumerable<TestHostDocument>(), projectReferences, metadataReferences, analyzerReferences, assemblyName, defaultNamespace)
+            : this(workspace, name, language, compilationOptions, parseOptions, SpecializedCollections.SingletonEnumerable(document), SpecializedCollections.EmptyEnumerable<TestHostDocument>(), SpecializedCollections.EmptyEnumerable<TestHostDocument>(), projectReferences, metadataReferences, analyzerReferences, assemblyName, defaultNamespace)
         {
         }
 
@@ -215,6 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ParseOptions parseOptions = null,
             IEnumerable<TestHostDocument> documents = null,
             IEnumerable<TestHostDocument> additionalDocuments = null,
+            IEnumerable<TestHostDocument> analyzerConfigDocuments = null,
             IEnumerable<TestHostProject> projectReferences = null,
             IEnumerable<MetadataReference> metadataReferences = null,
             IEnumerable<AnalyzerReference> analyzerReferences = null,
@@ -232,6 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _parseOptions = parseOptions ?? this.LanguageServiceProvider.GetService<ISyntaxTreeFactoryService>().GetDefaultParseOptions();
             this.Documents = documents ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
             this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
+            this.AnalyzerConfigDocuments = analyzerConfigDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
             ProjectReferences = projectReferences != null ? projectReferences.Select(p => new ProjectReference(p.Id)) : SpecializedCollections.EmptyEnumerable<ProjectReference>();
             _metadataReferences = metadataReferences ?? new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib };
             _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
@@ -255,6 +260,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     doc.SetProject(this);
                 }
             }
+
+            if (analyzerConfigDocuments != null)
+            {
+                foreach (var doc in analyzerConfigDocuments)
+                {
+                    doc.SetProject(this);
+                }
+            }
         }
 
         internal void SetSolution(TestHostSolution solution)
@@ -268,6 +281,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
 
                 foreach (var doc in this.AdditionalDocuments)
+                {
+                    doc.SetProject(this);
+                }
+
+                foreach (var doc in this.AnalyzerConfigDocuments)
                 {
                     doc.SetProject(this);
                 }
@@ -296,6 +314,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.AdditionalDocuments = this.AdditionalDocuments.Where(d => d != document);
         }
 
+        internal void AddAnalyzerConfigDocument(TestHostDocument document)
+        {
+            this.AnalyzerConfigDocuments = this.AnalyzerConfigDocuments.Concat(new TestHostDocument[] { document });
+            document.SetProject(this);
+        }
+
+        internal void RemoveAnalyzerConfigDocument(TestHostDocument document)
+        {
+            this.AnalyzerConfigDocuments = this.AnalyzerConfigDocuments.Where(d => d != document);
+        }
+
         public string Language
         {
             get
@@ -322,6 +351,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 this.Language,
                 this.FilePath,
                 this.OutputFilePath,
+                outputRefFilePath: null,
+                defaultNamespace: null,
                 this.CompilationOptions,
                 this.ParseOptions,
                 this.Documents.Select(d => d.ToDocumentInfo()),
@@ -329,8 +360,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 this.MetadataReferences,
                 this.AnalyzerReferences,
                 this.AdditionalDocuments.Select(d => d.ToDocumentInfo()),
+                this.AnalyzerConfigDocuments.Select(d => d.ToDocumentInfo()),
                 this.IsSubmission,
-                this.HostObjectType)
+                this.HostObjectType,
+                hasAllInformation: true,
+                runAnalyzers: true)
                 .WithDefaultNamespace(this.DefaultNamespace);
         }
 
@@ -362,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private string GetTestOutputFilePath(string filepath)
         {
-            string outputFilePath = @"Z:\";
+            var outputFilePath = @"Z:\";
 
             try
             {

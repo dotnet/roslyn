@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -13,6 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -23,10 +29,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     /// <summary>
     /// The base class of both the Roslyn editor factories.
     /// </summary>
-    internal abstract partial class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactoryNotify
+    internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactoryNotify
     {
         private readonly IComponentModel _componentModel;
-        private Microsoft.VisualStudio.OLE.Interop.IServiceProvider _oleServiceProvider;
+        private Microsoft.VisualStudio.OLE.Interop.IServiceProvider? _oleServiceProvider;
         private bool _encoding;
 
         protected AbstractEditorFactory(IComponentModel componentModel)
@@ -50,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public int CreateEditorInstance(
             uint grfCreateDoc,
             string pszMkDocument,
-            string pszPhysicalView,
+            string? pszPhysicalView,
             IVsHierarchy vsHierarchy,
             uint itemid,
             IntPtr punkDocDataExisting,
@@ -66,11 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             pguidCmdUI = Guid.Empty;
             pgrfCDW = 0;
 
-            var physicalView = pszPhysicalView == null
-                ? "Code"
-                : pszPhysicalView;
-
-            IVsTextBuffer textBuffer = null;
+            var physicalView = pszPhysicalView ?? "Code";
+            IVsTextBuffer? textBuffer = null;
 
             // Is this document already open? If so, let's see if it's a IVsTextBuffer we should re-use. This allows us
             // to properly handle multiple windows open for the same document.
@@ -127,9 +130,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case "Form":
 
                     // We must create the WinForms designer here
-                    const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
+                    var loaderName = GetWinFormsLoaderName(vsHierarchy);
                     var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
-                    var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(LoaderName);
+                    var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(loaderName);
+                    if (designerLoader is null)
+                    {
+                        goto case "Code";
+                    }
 
                     try
                     {
@@ -170,7 +177,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return VSConstants.S_OK;
         }
 
-        public int MapLogicalView(ref Guid rguidLogicalView, out string pbstrPhysicalView)
+        private string? GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
+        {
+            const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
+            const string NewLoaderName = "Microsoft.VisualStudio.Design.Core.Serialization.CodeDom.VSCodeDomDesignerLoader";
+
+            // If this is a netcoreapp3.0 (or newer), we must create the newer WinForms designer.
+            // TODO: This check will eventually move into the WinForms designer itself.
+            if (!vsHierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var targetFrameworkMoniker) ||
+                string.IsNullOrWhiteSpace(targetFrameworkMoniker))
+            {
+                return LoaderName;
+            }
+
+            try
+            {
+                var frameworkName = new FrameworkName(targetFrameworkMoniker);
+                if (frameworkName.Identifier == ".NETCoreApp" && frameworkName.Version?.Major >= 3)
+                {
+                    return NewLoaderName;
+                }
+            }
+            catch
+            {
+                // Fall back to the old loader name if there are any failures
+                // while parsing the TFM.
+            }
+
+            return LoaderName;
+        }
+
+        public int MapLogicalView(ref Guid rguidLogicalView, out string? pbstrPhysicalView)
         {
             pbstrPhysicalView = null;
 
@@ -232,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var workspace = _componentModel.GetService<VisualStudioWorkspace>();
             var solution = workspace.CurrentSolution;
 
-            ProjectId projectIdToAddTo = null;
+            ProjectId? projectIdToAddTo = null;
 
             foreach (var projectId in solution.ProjectIds)
             {
@@ -257,7 +294,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var documentId = DocumentId.CreateNewId(projectIdToAddTo);
             var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
-            var addedDocument = forkedSolution.GetDocument(documentId);
+            var addedDocument = forkedSolution.GetDocument(documentId)!;
 
             var rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
             var documentOptions = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetOptionsAsync(cancellationToken));
@@ -284,11 +321,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             IOUtilities.PerformIO(() =>
             {
-                using (var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding))
-                {
-                    // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
-                    formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
-                }
+                using var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding);
+                // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
+                formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
             });
         }
     }

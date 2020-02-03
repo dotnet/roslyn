@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -2176,7 +2178,7 @@ public class Test2
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
             var info2 = semanticModel.GetSemanticInfoSummary(selectClause);
-            var m = (MethodSymbol)info2.Symbol;
+            var m = (IMethodSymbol)info2.Symbol;
             Assert.Equal("Select", m.ReducedFrom.Name);
         }
 
@@ -2816,12 +2818,12 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                 ReturnedValue: 
                   IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?) (Syntax: 'x')
 ", new DiagnosticDescription[] {
-                // file.cs(9,18): error CS1929: 'string' does not contain a definition for 'Cast' and the best extension method overload 'Queryable.Cast<GC>(IQueryable)' requires a receiver of type 'IQueryable'
+                // file.cs(9,31): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "string.Empty").WithArguments("string", "Cast", "System.Linq.Queryable.Cast<System.GC>(System.Linq.IQueryable)", "System.Linq.IQueryable").WithLocation(9, 18),
-                // file.cs(10,41): error CS1929: 'string' does not contain a definition for 'Cast' and the best extension method overload 'Queryable.Cast<GC>(IQueryable)' requires a receiver of type 'IQueryable'
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "Cast<GC>").WithArguments("System.GC").WithLocation(9, 31),
+                // file.cs(10,28): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "string.Empty").WithArguments("string", "Cast", "System.Linq.Queryable.Cast<System.GC>(System.Linq.IQueryable)", "System.Linq.IQueryable").WithLocation(10, 41)
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28)
             });
         }
 
@@ -2898,7 +2900,7 @@ class C
             var x = model.GetDeclaredSymbol(q.FromClause);
             Assert.Equal(SymbolKind.RangeVariable, x.Kind);
             Assert.Equal("x", x.Name);
-            Assert.Equal(null, info0.CastInfo.Symbol);
+            Assert.Null(info0.CastInfo.Symbol);
             Assert.Null(info0.OperationInfo.Symbol);
             var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.Equal("Select", infoSelect.Symbol.Name);
@@ -2931,7 +2933,7 @@ class C
             var x = model.GetDeclaredSymbol(q.FromClause);
             Assert.Equal(SymbolKind.RangeVariable, x.Kind);
             Assert.Equal("x", x.Name);
-            Assert.Equal(null, info0.CastInfo.Symbol);
+            Assert.Null(info0.CastInfo.Symbol);
             Assert.Null(info0.OperationInfo.Symbol);
             var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.Equal("Select", infoSelect.Symbol.Name);
@@ -3106,7 +3108,8 @@ class Test
             var selectNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as SelectClauseSyntax;
             var model = compilation.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(selectNode);
-            Assert.NotNull(symbolInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, symbolInfo);
             Assert.Null(symbolInfo.Symbol); // there is no select method to call because the receiver is bad
             var typeInfo = model.GetTypeInfo(selectNode);
             Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind);
@@ -3134,7 +3137,8 @@ class Test
             var model = compilation.GetSemanticModel(tree);
             var queryInfo = model.GetQueryClauseInfo(joinNode);
 
-            Assert.NotNull(queryInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, queryInfo);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3736,7 +3740,7 @@ public static class TestExtensions
 }
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-                
+
             compilation.VerifyDiagnostics(
                 // (6,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
                 //         var x01 = from a in Test select a + 1;
@@ -3785,7 +3789,7 @@ static class TestExtensions
                 Diagnostic(ErrorCode.ERR_QueryNoProvider, "select a + 1").WithArguments("Test", "Select").WithLocation(7, 46)
                 );
         }
-        
+
         [Fact]
         [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
         public void Bug204561_03()
@@ -4144,7 +4148,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(12052, "https://github.com/dotnet/roslyn/issues/12052")]
-        public void LambdaParameterConflictsWithRangeVariable()
+        public void LambdaParameterConflictsWithRangeVariable_01()
         {
             string source = @"
 using System;
@@ -4202,6 +4206,64 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a").WithArguments("a").WithLocation(10, 43)
             };
 
+            VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular7_3);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(12052, "https://github.com/dotnet/roslyn/issues/12052")]
+        public void LambdaParameterConflictsWithRangeVariable_02()
+        {
+            string source = @"
+using System;
+using System.Linq;
+
+class Program
+{
+    static void Main()
+    {
+        var res = /*<bind>*/from a in new[] { 1 }
+                  select (Func<int, int>)(a => 1)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable<System.Func<System.Int32, System.Int32>>) (Syntax: 'from a in n ... t>)(a => 1)')
+  Expression: 
+    IInvocationOperation (System.Collections.Generic.IEnumerable<System.Func<System.Int32, System.Int32>> System.Linq.Enumerable.Select<System.Int32, System.Func<System.Int32, System.Int32>>(this System.Collections.Generic.IEnumerable<System.Int32> source, System.Func<System.Int32, System.Func<System.Int32, System.Int32>> selector)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable<System.Func<System.Int32, System.Int32>>, IsImplicit) (Syntax: 'select (Fun ... t>)(a => 1)')
+      Instance Receiver: 
+        null
+      Arguments(2):
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'from a in new[] { 1 }')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'from a in new[] { 1 }')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+              Operand: 
+                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new[] { 1 }')
+                  Dimension Sizes(1):
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[] { 1 }')
+                  Initializer: 
+                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 1 }')
+                      Element Values(1):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '(Func<int, int>)(a => 1)')
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32, System.Func<System.Int32, System.Int32>>, IsImplicit) (Syntax: '(Func<int, int>)(a => 1)')
+              Target: 
+                IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: '(Func<int, int>)(a => 1)')
+                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '(Func<int, int>)(a => 1)')
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '(Func<int, int>)(a => 1)')
+                      ReturnedValue: 
+                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32, System.Int32>) (Syntax: '(Func<int, int>)(a => 1)')
+                          Target: 
+                            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'a => 1')
+                              IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '1')
+                                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '1')
+                                  ReturnedValue: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 

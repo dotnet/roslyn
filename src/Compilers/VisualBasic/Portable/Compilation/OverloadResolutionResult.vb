@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -18,14 +20,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend Class OverloadResolutionResult(Of TMember As Symbol)
 
-        Private ReadOnly _validResult As MemberResolutionResult(Of TMember) ?
-        Private ReadOnly _bestResult As MemberResolutionResult(Of TMember) ?
+        Private ReadOnly _validResult As MemberResolutionResult(Of TMember)?
+        Private ReadOnly _bestResult As MemberResolutionResult(Of TMember)?
         Private _results As ImmutableArray(Of MemberResolutionResult(Of TMember))
 
         Friend Sub New(
             results As ImmutableArray(Of MemberResolutionResult(Of TMember)),
-            validResult As MemberResolutionResult(Of TMember) ?,
-            bestResult As MemberResolutionResult(Of TMember) ?
+            validResult As MemberResolutionResult(Of TMember)?,
+            bestResult As MemberResolutionResult(Of TMember)?
         )
             _results = results
             _validResult = validResult
@@ -45,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If overload resolution successfully selected a single best method, returns information
         ''' about that method. Otherwise returns Nothing.
         ''' </summary>
-        Public ReadOnly Property ValidResult As MemberResolutionResult(Of TMember) ?
+        Public ReadOnly Property ValidResult As MemberResolutionResult(Of TMember)?
             Get
                 Return _validResult
             End Get
@@ -57,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' not considered a successful overload resolution, as long as it was better than any other
         ''' potential method considered.
         ''' </summary>
-        Public ReadOnly Property BestResult As MemberResolutionResult(Of TMember) ?
+        Public ReadOnly Property BestResult As MemberResolutionResult(Of TMember)?
             Get
                 Return _bestResult
             End Get

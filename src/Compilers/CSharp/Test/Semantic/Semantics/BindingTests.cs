@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -550,7 +552,7 @@ class B
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(    // (11,13): error CS0103: The name 'x' does not exist in the current context
-                                                                        //         A.F(x);
+                                                            //         A.F(x);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x"),
                 // (11,11): error CS0122: 'A.F' is inaccessible due to its protection level
                 //         A.F(x);
@@ -2156,33 +2158,19 @@ class C<T> : System.Attribute { }";
 {
     partial void I.M();
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (3,20): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M"),
-                // (3,20): error CS0751: A partial method must be declared within a partial class or partial struct
+                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(3, 20),
+                // (3,20): error CS0751: A partial method must be declared within a partial class, partial struct, or partial interface
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M"),
-                // (3,20): error CS0541: 'I.M()': explicit interface declaration can only be declared in a class or struct
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 20),
+                // (3,20): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("I.M()")
-                );
-        }
-
-        [WorkItem(545208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545208")]
-        [Fact]
-        public void PartialMethodInsidePartialInterface()
-        {
-            var source =
-@"public partial interface IF
-{
-    partial void Add();
-}
-";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (3,18): error CS0751: A partial method must be declared within a partial class or partial struct
-                //    partial void Add();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "Add")
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("default interface implementation", "8.0").WithLocation(3, 20),
+                // (3,18): error CS0540: 'I.M()': containing type does not implement interface 'I'
+                //     partial void I.M();
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I").WithArguments("I.M()", "I").WithLocation(3, 18)
                 );
         }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -31,8 +33,8 @@ class A {
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
-            Assert.NotEqual(null, m);
-            Assert.Equal(true, m.ReturnsVoid);
+            Assert.NotNull(m);
+            Assert.True(m.ReturnsVoid);
             var x = m.Parameters[0];
             Assert.Equal("x", x.Name);
             Assert.Equal(SymbolKind.NamedType, x.Type.Kind);
@@ -105,9 +107,9 @@ class A {
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.InstanceConstructors.Single();
-            Assert.NotEqual(null, m);
+            Assert.NotNull(m);
             Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m.Name);
-            Assert.Equal(true, m.ReturnsVoid);
+            Assert.True(m.ReturnsVoid);
             Assert.Equal(MethodKind.Constructor, m.MethodKind);
             var x = m.Parameters[0];
             Assert.Equal("x", x.Name);
@@ -130,8 +132,8 @@ class A {
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
-            Assert.NotEqual(null, m);
-            Assert.Equal(true, m.ReturnsVoid);
+            Assert.NotNull(m);
+            Assert.True(m.ReturnsVoid);
             Assert.Equal(MethodKind.Ordinary, m.MethodKind);
             var x = m.Parameters[0];
             Assert.Equal("x", x.Name);
@@ -181,7 +183,7 @@ public class MyList<T>
             var t1 = mylist.TypeParameters[0];
             var add = mylist.GetMembers("Add").Single() as MethodSymbol;
             var element = add.Parameters[0];
-            var t2 = element.Type.TypeSymbol;
+            var t2 = element.Type;
             Assert.Equal(t1, t2);
         }
 
@@ -219,7 +221,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -247,7 +249,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -272,7 +274,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialImplementation());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -293,7 +295,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -333,8 +335,8 @@ public interface A {
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
             var t = m.TypeParameters[0];
-            Assert.Equal(t, m.Parameters[0].Type.TypeSymbol);
-            Assert.Equal(t, m.ReturnType.TypeSymbol);
+            Assert.Equal(t, m.Parameters[0].Type);
+            Assert.Equal(t, m.ReturnType);
         }
 
         [WorkItem(931142, "DevDiv/Personal")]
@@ -354,7 +356,7 @@ public interface A {
             Assert.Equal(RefKind.Ref, p1.RefKind);
             Assert.Equal(RefKind.Out, p2.RefKind);
 
-            var refP = p1.Type.TypeSymbol;
+            var refP = p1.Type;
             Assert.Equal(TypeKind.Class, refP.TypeKind);
             Assert.True(refP.IsReferenceType);
             Assert.False(refP.IsValueType);
@@ -362,7 +364,7 @@ public interface A {
             Assert.Equal(2, refP.GetMembers().Length); // M + generated constructor.
             Assert.Equal(1, refP.GetMembers("M").Length);
 
-            var outP = p2.Type.TypeSymbol;
+            var outP = p2.Type;
             Assert.Equal(TypeKind.Struct, outP.TypeKind);
             Assert.False(outP.IsReferenceType);
             Assert.True(outP.IsValueType);
@@ -1356,9 +1358,9 @@ public class C : B<int, long>
 
             var classBMethodMParameters = classBMethodM.Parameters;
             Assert.Equal(3, classBMethodMParameters.Length);
-            Assert.Equal(classBTypeArguments[0], classBMethodMParameters[0].Type.TypeSymbol);
-            Assert.Equal(classBTypeArguments[1], classBMethodMParameters[1].Type.TypeSymbol);
-            Assert.Equal(classBMethodMTypeParameters[0], classBMethodMParameters[2].Type.TypeSymbol);
+            Assert.Equal(classBTypeArguments[0], classBMethodMParameters[0].Type);
+            Assert.Equal(classBTypeArguments[1], classBMethodMParameters[1].Type);
+            Assert.Equal(classBMethodMTypeParameters[0], classBMethodMParameters[2].Type);
 
             var classC = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").Single();
 
@@ -1379,9 +1381,9 @@ public class C : B<int, long>
 
             var classCBaseMethodMParameters = classCBaseMethodM.Parameters;
             Assert.Equal(3, classCBaseMethodMParameters.Length);
-            Assert.Equal(classCBaseTypeArguments[0], classCBaseMethodMParameters[0].Type.TypeSymbol);
-            Assert.Equal(classCBaseTypeArguments[1], classCBaseMethodMParameters[1].Type.TypeSymbol);
-            Assert.Equal(classCBaseMethodMTypeParameters[0], classCBaseMethodMParameters[2].Type.TypeSymbol);
+            Assert.Equal(classCBaseTypeArguments[0], classCBaseMethodMParameters[0].Type);
+            Assert.Equal(classCBaseTypeArguments[1], classCBaseMethodMParameters[1].Type);
+            Assert.Equal(classCBaseMethodMTypeParameters[0], classCBaseMethodMParameters[2].Type);
         }
 
         #region Regressions
@@ -1618,7 +1620,7 @@ class C1 : @int, @void
             MethodSymbol mreturn = (MethodSymbol)c1.GetMembers("@void.return").Single();
             Assert.Equal("@void.return", mreturn.Name);
             Assert.Equal("C1.@void.@return(@void)", mreturn.ToString());
-            NamedTypeSymbol rvoid = (NamedTypeSymbol)mreturn.ReturnType.TypeSymbol;
+            NamedTypeSymbol rvoid = (NamedTypeSymbol)mreturn.ReturnType;
             Assert.Equal("void", rvoid.Name);
             Assert.Equal("@void", rvoid.ToString());
             MethodSymbol mvoidreturn = (MethodSymbol)mreturn.ExplicitInterfaceImplementations.Single();
@@ -2288,6 +2290,99 @@ static class C
                 //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)
                 );
+        }
+
+        [Fact]
+        public void StaticMethodDoesNotRequireInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public static int M() => 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.False(method.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void InstanceMethodRequiresInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public int M() => 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.True(method.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void OrdinaryMethodIsNotConditional()
+        {
+            var source = @"
+class C
+{
+    public void M() {}
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.False(method.IsConditional);
+        }
+
+        [Fact]
+        public void ConditionalMethodIsConditional()
+        {
+            var source = @"
+using System.Diagnostics;
+class C
+{
+    [Conditional(""Debug"")]
+    public void M() {}
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.True(method.IsConditional);
+        }
+
+        [Fact]
+        public void ConditionalMethodOverrideIsConditional()
+        {
+            var source = @"
+using System.Diagnostics;
+
+class Base
+{
+    [Conditional(""Debug"")]
+    public virtual void M() {}
+}
+
+class Derived : Base
+{
+    public override void M() {}
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("Derived.M");
+            Assert.True(method.IsConditional);
+        }
+
+        [Fact]
+        public void InvalidConditionalMethodIsConditional()
+        {
+            var source = @"
+using System.Diagnostics;
+class C
+{
+    [Conditional(""Debug"")]
+    public int M() => 42; 
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                    // (5,6): error CS0578: The Conditional attribute is not valid on 'C.M()' because its return type is not void
+                    //     [Conditional("Debug")]
+                    Diagnostic(ErrorCode.ERR_ConditionalMustReturnVoid, @"Conditional(""Debug"")").WithArguments("C.M()").WithLocation(5, 6));
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.True(method.IsConditional);
         }
     }
 }

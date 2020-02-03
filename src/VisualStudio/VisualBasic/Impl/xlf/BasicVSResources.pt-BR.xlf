@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
-        <target state="translated">Em operadores relacionais:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
+        <target state="translated">Em operadores relacionais:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Como   É</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -34,12 +34,17 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="new">Never</target>
+        <target state="translated">Nunca</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">Prefira 'Is Nothing' para as verificações de igualdade de referência</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="translated">Mostrar itens de namespaces não importados (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -129,7 +134,7 @@
       </trans-unit>
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>_Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="translated">_Navegue para o Pesquisador de Objeto para símbolos definido nos metadados</target>
+        <target state="translated">_Navegue para o Pesquisador de Objetos para símbolos definido nos metadados</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_to_Definition">
@@ -264,12 +269,12 @@
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>
-        <target state="new">Unused local</target>
+        <target state="translated">Local não usado</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">
         <source>VB Coding Conventions</source>
-        <target state="new">VB Coding Conventions</target>
+        <target state="translated">Convenções do Codificação do VB</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">
@@ -299,7 +304,7 @@
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  And   AndAlso   Or   OrElse</source>
-        <target state="translated">Em outros operadores binários:  And   AndAlso   Or   OrElse</target>
+        <target state="translated">Em outros operadores binários: And AndAlso Or OrElse</target>
         <note />
       </trans-unit>
     </body>

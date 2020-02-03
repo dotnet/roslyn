@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
@@ -339,6 +341,95 @@ Class C
             [|i|] = 1
         Next
     End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        Public Async Function StaticLocals() As Task
+            Await TestMissingInRegularAndScriptAsync(
+$"Class C
+    Function Increment() As Boolean
+        Static count As Integer = 0
+        If count > 10 Then
+            Return True
+        End If
+
+        [|count|] = count + 1
+        Return False
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        Public Async Function UsedAssignment_ConditionalPreprocessorDirective() As Task
+            Await TestMissingInRegularAndScriptAsync(
+$"Class C
+    Function M() As Integer
+        Dim [|p|] = 0
+#If DEBUG Then
+        p = 1
+#End If
+        Return p
+    End Function
+End Class")
+        End Function
+
+        <WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        Public Async Function RedundantAssignment_WithLeadingAndTrailingComment() As Task
+            Await TestInRegularAndScriptAsync(
+$"Class C
+    Private Function M() As Integer
+        'Preceding comment.'
+        Dim [|x|] As Integer = 0 'Trailing comment'
+
+        If True Then
+            x = 2
+        End If
+        Return x
+    End Function
+End Class",
+$"Class C
+    Private Function M() As Integer
+        'Preceding comment.'
+        Dim x As Integer
+
+        If True Then
+            x = 2
+        End If
+        Return x
+    End Function
+End Class")
+        End Function
+
+        <WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        Public Async Function MultipleRedundantAssignment_WithLeadingAndTrailingComment() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Function M() As Integer
+        'Preceding comment.'
+        {|FixAllInDocument:Dim x, y As Integer = 0|} 'Trailing comment'
+
+        If True Then
+            x = 2
+            y = 2
+        End If
+        Return x + y
+    End Function
+End Class",
+$"Class C
+    Private Function M() As Integer
+        'Preceding comment.'
+        Dim x As Integer
+        Dim y As Integer
+
+        If True Then
+            x = 2
+            y = 2
+        End If
+        Return x + y
+    End Function
 End Class")
         End Function
     End Class

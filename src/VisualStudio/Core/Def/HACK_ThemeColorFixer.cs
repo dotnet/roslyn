@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.ObjectModel;
@@ -32,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private bool _done;
 
         [ImportingConstructor]
-        private HACK_ThemeColorFixer(
+        public HACK_ThemeColorFixer(
             IClassificationTypeRegistryService classificationTypeRegistryService,
             IClassificationFormatMapService classificationFormatMapService)
         {
@@ -64,6 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.ExcludedCode, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.Identifier, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.Keyword, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.ControlKeyword, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.NumericLiteral, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.StringLiteral, sourceFormatMap, targetFormatMap);
 
@@ -89,6 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.PreprocessorText, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.Operator, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.OperatorOverloaded, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.Punctuation, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.ClassName, sourceFormatMap, targetFormatMap);
@@ -108,6 +112,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.ExtensionMethodName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.PropertyName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.EventName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.NamespaceName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.LabelName, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.VerbatimStringLiteral, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.StringEscapeCharacter, sourceFormatMap, targetFormatMap);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -19,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private readonly ImmutableArray<string> _drives;
 
         public TestFileSystemCompletionHelper(
-            ImmutableArray<string> searchPaths, 
-            string baseDirectoryOpt, 
+            ImmutableArray<string> searchPaths,
+            string baseDirectoryOpt,
             ImmutableArray<string> allowableExtensions,
             IEnumerable<string> drives,
             IEnumerable<string> directories,
-            IEnumerable<string> files) 
+            IEnumerable<string> files)
             : base(Glyph.OpenFolder, Glyph.CSharpFile, searchPaths, baseDirectoryOpt, allowableExtensions, CompletionRules)
         {
             Assert.True(drives.All(d => d.EndsWith(PathUtilities.DirectorySeparatorStr)));
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected override bool IsVisibleFileSystemEntry(string fullPath) =>
             !fullPath.Contains("hidden");
 
-        protected override bool DirectoryExists(string fullPath) => 
+        protected override bool DirectoryExists(string fullPath) =>
             _directories.Contains(fullPath.TrimEnd(PathUtilities.DirectorySeparatorChar));
 
         protected override IEnumerable<string> EnumerateDirectories(string fullDirectoryPath) =>

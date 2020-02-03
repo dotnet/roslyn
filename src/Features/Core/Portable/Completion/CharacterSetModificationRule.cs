@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 
@@ -7,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Completion
     /// <summary>
     /// A rule that modifies a set of characters.
     /// </summary>
-    public struct CharacterSetModificationRule
+    public readonly struct CharacterSetModificationRule
     {
         /// <summary>
         /// The kind of modification.
@@ -21,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private CharacterSetModificationRule(CharacterSetModificationKind kind, ImmutableArray<char> characters)
         {
-            this.Kind = kind;
-            this.Characters = characters;
+            Kind = kind;
+            Characters = characters;
         }
 
         /// <summary>

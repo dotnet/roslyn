@@ -1,15 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <OptionStrict>Off</OptionStrict>
     <VBRuntime>Default</VBRuntime>
     <TargetFramework>net472</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -19,10 +15,9 @@
     <ProjectReference Include="..\..\Compilers\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\Microsoft.CodeAnalysis.InteractiveEditorFeatures.csproj" />
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures.csproj" />
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures.vbproj" />
-    <ProjectReference Include="..\..\Interactive\Features\Microsoft.CodeAnalysis.InteractiveFeatures.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\CSharp.Wpf\Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf.csproj" />
+    <ProjectReference Include="..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
     <ProjectReference Include="..\..\Scripting\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Scripting.vbproj" />
@@ -43,8 +38,6 @@
     <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
     <ProjectReference Include="..\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -64,7 +57,10 @@
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Editor.Shared.Extensions" />
@@ -79,6 +75,10 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Debugging\Resources\*.*"/>
+    <EmbeddedResource Include="Debugging\Resources\*.*" LogicalName="Debugging/%(FileName)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

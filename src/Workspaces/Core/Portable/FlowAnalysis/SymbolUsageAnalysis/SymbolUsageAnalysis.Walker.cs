@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -82,9 +84,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             private void OnReadReferenceFound(ISymbol symbol)
                 => _currentAnalysisData.OnReadReferenceFound(symbol);
 
-            private void OnWriteReferenceFound(ISymbol symbol, IOperation operation, bool maybeWritten)
+            private void OnWriteReferenceFound(ISymbol symbol, IOperation operation, ValueUsageInfo valueUsageInfo)
             {
-                _currentAnalysisData.OnWriteReferenceFound(symbol, operation, maybeWritten);
+                // maybeWritten == 'ref' argument.
+                var isRef = valueUsageInfo == ValueUsageInfo.ReadableWritableReference;
+                _currentAnalysisData.OnWriteReferenceFound(symbol, operation, maybeWritten: isRef, isRef);
                 ProcessPossibleDelegateCreationAssignment(symbol, operation);
             }
 
@@ -96,11 +100,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             private void OnReferenceFound(ISymbol symbol, IOperation operation)
             {
+                Debug.Assert(symbol != null);
+
                 var valueUsageInfo = operation.GetValueUsageInfo();
                 var isReadFrom = valueUsageInfo.IsReadFrom();
                 var isWrittenTo = valueUsageInfo.IsWrittenTo();
 
-                if (isWrittenTo && MakePendingWrite())
+                if (isWrittenTo && MakePendingWrite(operation, symbolOpt: symbol))
                 {
                     // Certain writes are processed at a later visit
                     // and are marked as a pending write for post processing.
@@ -134,8 +140,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                 if (isWrittenTo)
                 {
-                    // maybeWritten == 'ref' argument.
-                    OnWriteReferenceFound(symbol, operation, maybeWritten: valueUsageInfo == ValueUsageInfo.ReadableWritableReference);
+                    OnWriteReferenceFound(symbol, operation, valueUsageInfo);
                 }
 
                 if (operation.Parent is IIncrementOrDecrementOperation &&
@@ -143,50 +148,62 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 {
                     OnReadReferenceFound(symbol);
                 }
+            }
 
-                return;
+            private bool MakePendingWrite(IOperation operation, ISymbol symbolOpt)
+            {
+                Debug.Assert(symbolOpt != null || operation.Kind == OperationKind.FlowCaptureReference);
 
-                // Local functions
-                bool MakePendingWrite()
+                if (operation.Parent is IAssignmentOperation assignmentOperation &&
+                    assignmentOperation.Target == operation)
                 {
-                    Debug.Assert(isWrittenTo);
-
-                    if (operation.Parent is IAssignmentOperation assignmentOperation &&
-                        assignmentOperation.Target == operation)
-                    {
-                        var set = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
-                        set.Add((symbol, operation));
-                        _pendingWritesMap.Add(assignmentOperation, set);
-                        return true;
-                    }
-                    else if (operation.IsInLeftOfDeconstructionAssignment(out var deconstructionAssignment))
-                    {
-                        if (!_pendingWritesMap.TryGetValue(deconstructionAssignment, out var set))
-                        {
-                            set = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
-                            _pendingWritesMap.Add(deconstructionAssignment, set);
-                        }
-
-                        set.Add((symbol, operation));
-                        return true;
-                    }
-
-                    return false;
+                    var set = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
+                    set.Add((symbolOpt, operation));
+                    _pendingWritesMap.Add(assignmentOperation, set);
+                    return true;
                 }
+                else if (operation.IsInLeftOfDeconstructionAssignment(out var deconstructionAssignment))
+                {
+                    if (!_pendingWritesMap.TryGetValue(deconstructionAssignment, out var set))
+                    {
+                        set = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
+                        _pendingWritesMap.Add(deconstructionAssignment, set);
+                    }
+
+                    set.Add((symbolOpt, operation));
+                    return true;
+                }
+
+                return false;
             }
 
             private void ProcessPendingWritesForAssignmentTarget(IAssignmentOperation operation)
             {
                 if (_pendingWritesMap.TryGetValue(operation, out var pendingWrites))
                 {
-                    foreach (var (symbol, write) in pendingWrites)
-                    {
-                        OnWriteReferenceFound(symbol, write, maybeWritten: false);
+                    var isUsedCompountAssignment = operation.IsAnyCompoundAssignment() &&
+                        operation.Parent?.Kind != OperationKind.ExpressionStatement;
 
-                        if (operation.Kind == OperationKind.CompoundAssignment &&
-                            operation.Parent?.Kind != OperationKind.ExpressionStatement)
+                    foreach (var (symbolOpt, write) in pendingWrites)
+                    {
+                        if (write.Kind != OperationKind.FlowCaptureReference)
                         {
-                            OnReadReferenceFound(symbol);
+                            Debug.Assert(symbolOpt != null);
+                            OnWriteReferenceFound(symbolOpt, write, ValueUsageInfo.Write);
+
+                            if (isUsedCompountAssignment)
+                            {
+                                OnReadReferenceFound(symbolOpt);
+                            }
+                        }
+                        else
+                        {
+                            Debug.Assert(symbolOpt == null);
+
+                            var captureReference = (IFlowCaptureReferenceOperation)write;
+                            Debug.Assert(_currentAnalysisData.IsLValueFlowCapture(captureReference.Id));
+
+                            OnLValueDereferenceFound(captureReference.Id);
                         }
                     }
 
@@ -206,6 +223,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 ProcessPendingWritesForAssignmentTarget(operation);
             }
 
+            public override void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation)
+            {
+                base.VisitCoalesceAssignment(operation);
+                ProcessPendingWritesForAssignmentTarget(operation);
+            }
+
             public override void VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation)
             {
                 base.VisitDeconstructionAssignment(operation);
@@ -214,6 +237,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override void VisitLocalReference(ILocalReferenceOperation operation)
             {
+                if (operation.Local.IsRef)
+                {
+                    // Bail out for ref locals.
+                    // We need points to analysis for analyzing writes to ref locals, which is currently not supported.
+                    return;
+                }
+
                 OnReferenceFound(operation.Local, operation);
             }
 
@@ -229,7 +259,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     operation.Parent is IForEachLoopOperation forEachLoop && forEachLoop.LoopControlVariable == operation ||
                     operation.Parent is ICatchClauseOperation catchClause && catchClause.ExceptionDeclarationOrExpression == operation)
                 {
-                    OnWriteReferenceFound(operation.Symbol, operation, maybeWritten: false);
+                    OnWriteReferenceFound(operation.Symbol, operation, ValueUsageInfo.Write);
                 }
 
                 base.VisitVariableDeclarator(operation);
@@ -239,7 +269,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 base.VisitFlowCaptureReference(operation);
 
-                if (_currentAnalysisData.IsLValueFlowCapture(operation.Id))
+                if (_currentAnalysisData.IsLValueFlowCapture(operation.Id) &&
+                    !MakePendingWrite(operation, symbolOpt: null))
                 {
                     OnLValueDereferenceFound(operation.Id);
                 }
@@ -247,7 +278,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
             {
-                OnReferenceFound(operation.DeclaredSymbol, operation);
+                if (operation.DeclaredSymbol != null)
+                {
+                    OnReferenceFound(operation.DeclaredSymbol, operation);
+                }
             }
 
             public override void VisitInvocation(IInvocationOperation operation)
@@ -467,7 +501,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(savedCurrentAnalysisData);
                             AnalyzeDelegateInvocation(target);
                             mergedAnalysisData = BasicBlockAnalysisData.Merge(mergedAnalysisData,
-                                _currentAnalysisData.CurrentBlockAnalysisData, _currentAnalysisData.CreateBlockAnalysisData);
+                                _currentAnalysisData.CurrentBlockAnalysisData, _currentAnalysisData.TrackAllocatedBlockAnalysisData);
                         }
 
                         _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(mergedAnalysisData);

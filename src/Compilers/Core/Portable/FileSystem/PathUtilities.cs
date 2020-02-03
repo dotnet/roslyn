@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 
@@ -46,7 +49,7 @@ namespace Roslyn.Utilities
             int lastSeparator = s.Length;
             while (lastSeparator > 0 && IsDirectorySeparator(s[lastSeparator - 1]))
             {
-                lastSeparator = lastSeparator - 1;
+                lastSeparator -= 1;
             }
 
             if (lastSeparator != s.Length)
@@ -117,8 +120,7 @@ namespace Roslyn.Utilities
             return GetDirectoryName(path, IsUnixLikePlatform);
         }
 
-        // Exposed for testing purposes only.
-        internal static string GetDirectoryName(string path, bool isUnixLike)
+        private static string GetDirectoryName(string path, bool isUnixLike)
         {
             if (path != null)
             {
@@ -333,12 +335,14 @@ namespace Roslyn.Utilities
             return PathKind.Relative;
         }
 
+#nullable enable
+
         /// <summary>
         /// True if the path is an absolute path (rooted to drive or network share)
         /// </summary>
-        public static bool IsAbsolute(string path)
+        public static bool IsAbsolute([NotNullWhen(true)]string? path)
         {
-            if (string.IsNullOrEmpty(path))
+            if (RoslynString.IsNullOrEmpty(path))
             {
                 return false;
             }
@@ -361,6 +365,8 @@ namespace Roslyn.Utilities
                 IsDirectorySeparator(path[0]) &&
                 IsDirectorySeparator(path[1]);
         }
+
+#nullable restore
 
         /// <summary>
         /// Returns true if given path is absolute and starts with a drive specification ("C:\").
@@ -687,7 +693,7 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Unfortunatelly, we cannot depend on Path.GetInvalidPathChars() or Path.GetInvalidFileNameChars()
+        /// Unfortunately, we cannot depend on Path.GetInvalidPathChars() or Path.GetInvalidFileNameChars()
         /// From MSDN: The array returned from this method is not guaranteed to contain the complete set of characters
         /// that are invalid in file and directory names. The full set of invalid characters can vary by file system.
         /// https://msdn.microsoft.com/en-us/library/system.io.path.getinvalidfilenamechars.aspx
@@ -721,6 +727,13 @@ namespace Roslyn.Utilities
             }
         }
 
+        /// <summary>
+        /// If the current environment uses the '\' directory separator, replaces all uses of '\'
+        /// in the given string with '/'. Otherwise, returns the string.
+        /// </summary>
+        public static string NormalizeWithForwardSlash(string p)
+            => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
+
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
 
         private class PathComparer : IEqualityComparer<string>
@@ -744,6 +757,12 @@ namespace Roslyn.Utilities
             {
                 return PathHashCode(s);
             }
+        }
+
+        internal static class TestAccessor
+        {
+            internal static string GetDirectoryName(string path, bool isUnixLike)
+                => PathUtilities.GetDirectoryName(path, isUnixLike);
         }
     }
 }

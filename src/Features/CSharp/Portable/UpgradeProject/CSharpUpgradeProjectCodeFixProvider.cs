@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable 
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -12,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUpgradeProjectCodeFixProvider : AbstractUpgradeProjectCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUpgradeProjectCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(
             new[]
             {
@@ -31,6 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                 "CS8371", // warning CS8371: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
                 "CS8400", // error CS8400: Feature is not available in C# 8.0. Please use language version X or greater.
                 "CS8401", // error CS8401: To use '@$' instead of '$@" for a verbatim interpolated string, please use language version 8.0 or greater.
+                "CS8511", // error CS8511: An expression of type 'T' cannot be handled by a pattern of type '<null>'. Please use language version 'preview' or greater to match an open type with a constant pattern.
+                "CS8652", // error CS8652: The feature '' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                "CS8703", // error CS8703: The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.
+                "CS8706", // error CS8706: '{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater. 
             });
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;
@@ -41,25 +54,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             return RequiredVersion(diagnostics).ToDisplayString();
         }
 
-        public override string AddBetaIfNeeded(string version)
-        {
-            if (version == "8.0")
-            {
-                // https://github.com/dotnet/roslyn/issues/29819 Remove once C# 8.0 is RTM
-                return "8.0 *beta*";
-            }
-            return version;
-        }
-
         private static LanguageVersion RequiredVersion(ImmutableArray<Diagnostic> diagnostics)
         {
             LanguageVersion max = 0;
             foreach (var diagnostic in diagnostics)
             {
-                if (diagnostic.Properties.TryGetValue(DiagnosticPropertyConstants.RequiredLanguageVersion, out string requiredVersion) &&
+                if (diagnostic.Properties.TryGetValue(DiagnosticPropertyConstants.RequiredLanguageVersion, out var requiredVersion) &&
                     LanguageVersionFacts.TryParse(requiredVersion, out var required))
                 {
                     max = max > required ? max : required;
+                }
+                else if (diagnostic.Id == "CS8652")
+                {
+                    max = LanguageVersion.Preview;
+                    break;
                 }
             }
 
@@ -68,10 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
 
         public override Solution UpgradeProject(Project project, string newVersion)
         {
-            var parseOptions = (CSharpParseOptions)project.ParseOptions;
-            if (IsUpgrade(parseOptions, newVersion))
+            if (IsUpgrade(project, newVersion))
             {
                 Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
+                var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+
                 return project.Solution.WithProjectParseOptions(project.Id, parseOptions.WithLanguageVersion(parsedNewVersion));
             }
             else
@@ -81,14 +90,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             }
         }
 
-        public override bool IsUpgrade(ParseOptions projectOptions, string newVersion)
+        public override bool IsUpgrade(Project project, string newVersion)
         {
-            var parseOptions = (CSharpParseOptions)projectOptions;
             Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
 
+            var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+            var mappedVersion = parsedNewVersion.MapSpecifiedToEffectiveVersion();
+
+            var workspace = project.Solution.Workspace;
+
             // treat equivalent versions (one generic and one specific) to be a valid upgrade
-            return parsedNewVersion.MapSpecifiedToEffectiveVersion() >= parseOptions.LanguageVersion &&
-                parseOptions.SpecifiedLanguageVersion.ToDisplayString() != newVersion;
+            return mappedVersion >= parseOptions.LanguageVersion &&
+                parseOptions.SpecifiedLanguageVersion.ToDisplayString() != newVersion &&
+                workspace.CanApplyParseOptionChange(parseOptions, parseOptions.WithLanguageVersion(parsedNewVersion), project);
         }
     }
 }

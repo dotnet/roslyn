@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using System.Linq;
@@ -19,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
     internal partial class CSharpGenerateVariableService :
         AbstractGenerateVariableService<CSharpGenerateVariableService, SimpleNameSyntax, ExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpGenerateVariableService()
+        {
+        }
+
         protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
             => node is PropertyDeclarationSyntax;
 
@@ -111,13 +118,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             // In this case, we would want to generate offer a member called 'Goo'.  however, if we have
             // something like "Goo < string >" then that's clearly something generic and we don't want
             // to offer to generate a member there.
-            var localRoot = identifierName.GetAncestor<StatementSyntax>() ?? 
+            var localRoot = identifierName.GetAncestor<StatementSyntax>() ??
                             identifierName.GetAncestor<MemberDeclarationSyntax>() ??
                             identifierName.SyntaxTree.GetRoot(cancellationToken);
 
             // In order to figure this out (without writing our own parser), we just try to parse out a
             // type name here.  If we get a generic name back, without any errors, then we'll assume the
-            // user realy is typing a generic name, and thus should not get recommendations to create a
+            // user really is typing a generic name, and thus should not get recommendations to create a
             // variable.
             var localText = localRoot.ToString();
             var startIndex = identifierName.Span.Start - localRoot.Span.Start;
@@ -141,6 +148,22 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             }
 
             if (expression.IsParentKind(SyntaxKind.ConditionalAccessExpression))
+            {
+                return true;
+            }
+
+            if (expression.IsParentKind(SyntaxKind.IsPatternExpression))
+            {
+                return true;
+            }
+
+            if (expression.IsParentKind(SyntaxKind.NameColon) &&
+                expression.Parent.IsParentKind(SyntaxKind.Subpattern))
+            {
+                return true;
+            }
+
+            if (expression.IsParentKind(SyntaxKind.ConstantPattern))
             {
                 return true;
             }

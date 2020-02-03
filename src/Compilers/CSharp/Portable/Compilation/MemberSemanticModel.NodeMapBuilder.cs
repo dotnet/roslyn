@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (existing[i].Kind == BoundKind.TypeExpression && added[i].Kind == BoundKind.TypeOrValueExpression)
                                 {
                                     Debug.Assert(
-                                        ((BoundTypeExpression)existing[i]).Type == ((BoundTypeOrValueExpression)added[i]).Type,
+                                        TypeSymbol.Equals(((BoundTypeExpression)existing[i]).Type, ((BoundTypeOrValueExpression)added[i]).Type, TypeCompareKind.ConsiderEverything2),
                                         string.Format(
                                             System.Globalization.CultureInfo.InvariantCulture,
                                             "((BoundTypeExpression)existing[{0}]).Type == ((BoundTypeOrValueExpression)added[{0}]).Type", i));
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 else if (existing[i].Kind == BoundKind.TypeOrValueExpression && added[i].Kind == BoundKind.TypeExpression)
                                 {
                                     Debug.Assert(
-                                        ((BoundTypeOrValueExpression)existing[i]).Type == ((BoundTypeExpression)added[i]).Type,
+                                        TypeSymbol.Equals(((BoundTypeOrValueExpression)existing[i]).Type, ((BoundTypeExpression)added[i]).Type, TypeCompareKind.ConsiderEverything2),
                                         string.Format(
                                             System.Globalization.CultureInfo.InvariantCulture,
                                             "((BoundTypeOrValueExpression)existing[{0}]).Type == ((BoundTypeExpression)added[{0}]).Type", i));
@@ -251,17 +254,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode VisitAwaitableInfo(BoundAwaitableInfo node)
+            {
+                return null;
+            }
+
             public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
             {
                 throw ExceptionUtilities.Unreachable;
-            }
-
-            public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
-            {
-                // We skip the unconverted left and right, they are only meant for lowering
-                this.Visit(node.ConvertedLeft);
-                this.Visit(node.ConvertedRight);
-                return null;
             }
 
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()

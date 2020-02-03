@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -14,8 +16,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Analyzer reports syntax diagnostics (i.e. registers a SyntaxTree action).
+        /// Note: an <see cref="DiagnosticAnalyzer"/> that uses this will not work properly if
+        /// it registers a <see cref="AnalysisContext.RegisterSyntaxNodeAction{TLanguageKindEnum}(Action{SyntaxNodeAnalysisContext}, TLanguageKindEnum[])"/> and then ends
+        /// up needing to use the <see cref="SyntaxNodeAnalysisContext.SemanticModel"/>.  If a
+        /// <see cref="SemanticModel"/> is needed, use <see cref="SemanticSpanAnalysis"/> or
+        /// <see cref="SemanticDocumentAnalysis"/>.
         /// </summary>
-        SyntaxAnalysis = 0x0001,
+        SyntaxTreeWithoutSemanticsAnalysis = 0x0001,
 
         /// <summary>
         /// Analyzer reports semantic diagnostics and also supports incremental span based method body analysis.

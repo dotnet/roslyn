@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -81,12 +83,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
 
             var virtualCaret = session.TextView.GetVirtualCaretPoint(session.SubjectBuffer).Value;
-            Assert.Equal(indentation, virtualCaret.VirtualSpaces);
+            Assert.True(indentation == virtualCaret.VirtualSpaces, $"Expected indentation was {indentation}, but the actual indentation was {virtualCaret.VirtualSpaces}");
 
             if (result != null)
             {
                 Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
             }
+        }
+
+        internal void CheckText(IBraceCompletionSession session, string result)
+        {
+            Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
         }
 
         internal void CheckReturnOnNonEmptyLine(IBraceCompletionSession session, int expectedVirtualSpace)
@@ -154,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
                     options = options.WithChangedOption(entry.Key, entry.Value);
                 }
 
-                workspace.Options = options;
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
             }
 
             var document = workspace.Documents.First();

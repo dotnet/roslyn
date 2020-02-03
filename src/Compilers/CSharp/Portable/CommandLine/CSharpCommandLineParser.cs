@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool displayLangVersions = false;
             bool optimize = false;
             bool checkOverflow = false;
-            bool nullable = false;
+            NullableContextOptions nullableContextOptions = NullableContextOptions.Disable;
             bool allowUnsafe = false;
             bool concurrentBuild = true;
             bool deterministic = false; // TODO(5431): Enable deterministic mode by default
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string outputRefFilePath = null;
             bool refOnly = false;
             string documentationPath = null;
-            string errorLogPath = null;
+            ErrorLogOptions errorLogOptions = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             bool utf8output = false;
             OutputKind outputKind = OutputKind.ConsoleApplication;
@@ -96,12 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<ResourceDescription> managedResources = new List<ResourceDescription>();
             List<CommandLineSourceFile> sourceFiles = new List<CommandLineSourceFile>();
             List<CommandLineSourceFile> additionalFiles = new List<CommandLineSourceFile>();
+            var analyzerConfigPaths = ArrayBuilder<string>.GetInstance();
             List<CommandLineSourceFile> embeddedFiles = new List<CommandLineSourceFile>();
             bool sourceFilesSpecified = false;
             bool embedAllSourceFiles = false;
             bool resourcesOrModulesSpecified = false;
             Encoding codepage = null;
-            var checksumAlgorithm = SourceHashAlgorithm.Sha1;
+            var checksumAlgorithm = SourceHashAlgorithmUtils.DefaultContentHashAlgorithm;
             var defines = ArrayBuilder<string>.GetInstance();
             List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
             List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
@@ -162,7 +165,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string name, value;
                 if (optionsEnded || !TryParseOption(arg, out name, out value))
                 {
-                    sourceFiles.AddRange(ParseFileArgument(arg, baseDirectory, diagnostics));
+                    foreach (var path in ParseFileArgument(arg, baseDirectory, diagnostics))
+                    {
+                        sourceFiles.Add(ToCommandLineSourceFile(path));
+                    }
+
                     if (sourceFiles.Count > 0)
                     {
                         sourceFilesSpecified = true;
@@ -322,20 +329,61 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "nullable":
+
+                            value = RemoveQuotesAndSlashes(value);
+                            if (value != null)
+                            {
+                                if (value.IsEmpty())
+                                {
+                                    AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), name);
+                                    continue;
+                                }
+
+                                string loweredValue = value.ToLower();
+                                switch (loweredValue)
+                                {
+                                    case "disable":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.Disable).ToLower());
+                                        nullableContextOptions = NullableContextOptions.Disable;
+                                        break;
+                                    case "enable":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.Enable).ToLower());
+                                        nullableContextOptions = NullableContextOptions.Enable;
+                                        break;
+                                    case "warnings":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.Warnings).ToLower());
+                                        nullableContextOptions = NullableContextOptions.Warnings;
+                                        break;
+                                    case "annotations":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.Annotations).ToLower());
+                                        nullableContextOptions = NullableContextOptions.Annotations;
+                                        break;
+                                    default:
+                                        AddDiagnostic(diagnostics, ErrorCode.ERR_BadNullableContextOption, value);
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                nullableContextOptions = NullableContextOptions.Enable;
+                            }
+                            continue;
+
+
                         case "nullable+":
                             if (value != null)
                             {
                                 break;
                             }
 
-                            nullable = true;
+                            nullableContextOptions = NullableContextOptions.Enable;
                             continue;
 
                         case "nullable-":
                             if (value != null)
                                 break;
 
-                            nullable = false;
+                            nullableContextOptions = NullableContextOptions.Disable;
                             continue;
 
                         case "instrument":
@@ -390,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             try
                             {
                                 preferredUILang = new CultureInfo(value);
-                                if (CorLightup.Desktop.IsUserCustomCulture(preferredUILang) ?? false)
+                                if ((preferredUILang.CultureTypes & CultureTypes.UserCustomCulture) != 0)
                                 {
                                     // Do not use user custom cultures.
                                     preferredUILang = null;
@@ -1138,11 +1186,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<file>", RemoveQuotesAndSlashes(arg));
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ErrorLogOptionFormat, RemoveQuotesAndSlashes(arg));
                             }
                             else
                             {
-                                errorLogPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory);
+                                errorLogOptions = ParseErrorLogOptions(unquoted, diagnostics, baseDirectory, out bool diagnosticAlreadyReported);
+                                if (errorLogOptions == null && !diagnosticAlreadyReported)
+                                {
+                                    AddDiagnostic(diagnostics, ErrorCode.ERR_BadSwitchValue, unquoted, "/errorlog:", ErrorLogOptionFormat);
+                                }
                             }
                             continue;
 
@@ -1180,7 +1232,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
+                            foreach (var path in ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            {
+                                additionalFiles.Add(ToCommandLineSourceFile(path));
+                            }
+                            continue;
+
+                        case "analyzerconfig":
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<file list>", name);
+                                continue;
+                            }
+
+                            analyzerConfigPaths.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
                             continue;
 
                         case "embed":
@@ -1189,8 +1254,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 embedAllSourceFiles = true;
                                 continue;
                             }
-                            
-                            embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
+
+                            foreach (var path in ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            {
+                                embeddedFiles.Add(ToCommandLineSourceFile(path));
+                            }
                             continue;
                     }
                 }
@@ -1270,7 +1338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddDiagnostic(diagnostics, ErrorCode.ERR_SourceLinkRequiresPdb);
             }
-            
+
             if (embedAllSourceFiles)
             {
                 embeddedFiles.AddRange(sourceFiles);
@@ -1297,7 +1365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We want to report diagnostics with source suppression in the error log file.
             // However, these diagnostics won't be reported on the command line.
-            var reportSuppressedDiagnostics = errorLogPath != null;
+            var reportSuppressedDiagnostics = errorLogOptions is object;
 
             var options = new CSharpCompilationOptions
             (
@@ -1308,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 usings: usings,
                 optimizationLevel: optimize ? OptimizationLevel.Release : OptimizationLevel.Debug,
                 checkOverflow: checkOverflow,
-                nullable: nullable,
+                nullableContextOptions: nullableContextOptions,
                 allowUnsafe: allowUnsafe,
                 deterministic: deterministic,
                 concurrentBuild: concurrentBuild,
@@ -1349,10 +1417,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(options.Errors);
             diagnostics.AddRange(parseOptions.Errors);
 
-            if (nullable && parseOptions.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
+            if (nullableContextOptions != NullableContextOptions.Disable && parseOptions.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
-                                                 nameof(nullable), nullable, parseOptions.LanguageVersion.ToDisplayString(),
+                                                 "nullable", nullableContextOptions, parseOptions.LanguageVersion.ToDisplayString(),
                                                  new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
             }
 
@@ -1373,13 +1441,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RuleSetPath = ruleSetPath,
                 OutputDirectory = outputDirectory,
                 DocumentationPath = documentationPath,
-                ErrorLogPath = errorLogPath,
+                ErrorLogOptions = errorLogOptions,
                 AppConfigPath = appConfigPath,
                 SourceFiles = sourceFiles.AsImmutable(),
                 Encoding = codepage,
                 ChecksumAlgorithm = checksumAlgorithm,
                 MetadataReferences = metadataReferences.AsImmutable(),
                 AnalyzerReferences = analyzers.AsImmutable(),
+                AnalyzerConfigPaths = analyzerConfigPaths.ToImmutableAndFree(),
                 AdditionalFiles = additionalFiles.AsImmutable(),
                 ReferencePaths = referencePaths,
                 SourcePaths = sourcePaths.AsImmutable(),
@@ -1854,9 +1923,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             string[] values = value.Split(new char[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string id in values)
             {
-                ushort number;
-                if (ushort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out number) &&
-                    ErrorFacts.IsWarning((ErrorCode)number))
+                if (string.Equals(id, "nullable", StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (var errorCode in ErrorFacts.NullableWarnings)
+                    {
+                        yield return errorCode;
+                    }
+                }
+                else if (ushort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out ushort number) &&
+                       ErrorFacts.IsWarning((ErrorCode)number))
                 {
                     // The id refers to a compiler warning.
                     yield return CSharp.MessageProvider.Instance.GetIdForErrorCode(number);

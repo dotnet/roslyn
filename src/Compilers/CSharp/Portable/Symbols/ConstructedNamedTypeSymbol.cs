@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get { return GetTypeParametersAsTypeArguments(); }
         }
@@ -31,6 +34,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return this; }
         }
+
+        public override sealed bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 
     /// <summary>
@@ -38,20 +51,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class ConstructedNamedTypeSymbol : SubstitutedNamedTypeSymbol
     {
-        private readonly ImmutableArray<TypeSymbolWithAnnotations> _typeArguments;
+        private readonly ImmutableArray<TypeWithAnnotations> _typeArgumentsWithAnnotations;
         private readonly NamedTypeSymbol _constructedFrom;
 
-        internal ConstructedNamedTypeSymbol(NamedTypeSymbol constructedFrom, ImmutableArray<TypeSymbolWithAnnotations> typeArguments, bool unbound = false)
+        internal ConstructedNamedTypeSymbol(NamedTypeSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, bool unbound = false, TupleExtraData tupleData = null)
             : base(newContainer: constructedFrom.ContainingSymbol,
-                   map: new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArguments),
+                   map: new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArgumentsWithAnnotations),
                    originalDefinition: constructedFrom.OriginalDefinition,
-                   constructedFrom: constructedFrom, unbound: unbound)
+                   constructedFrom: constructedFrom, unbound: unbound, tupleData: tupleData)
         {
-            _typeArguments = typeArguments;
+            _typeArgumentsWithAnnotations = typeArgumentsWithAnnotations;
             _constructedFrom = constructedFrom;
 
-            Debug.Assert(constructedFrom.Arity == typeArguments.Length);
+            Debug.Assert(constructedFrom.Arity == typeArgumentsWithAnnotations.Length);
             Debug.Assert(constructedFrom.Arity != 0);
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            return new ConstructedNamedTypeSymbol(_constructedFrom, _typeArgumentsWithAnnotations, IsUnboundGenericType, tupleData: newData);
         }
 
         public override NamedTypeSymbol ConstructedFrom
@@ -62,15 +80,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get
             {
-                return _typeArguments;
+                return _typeArgumentsWithAnnotations;
             }
         }
 
-        internal static bool TypeParametersMatchTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
+        internal static bool TypeParametersMatchTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeWithAnnotations> typeArguments)
         {
             int n = typeParameters.Length;
             Debug.Assert(typeArguments.Length == n);
@@ -90,12 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
             if (ConstructedFrom.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
-                GetUnificationUseSiteDiagnosticRecursive(ref result, _typeArguments, owner, ref checkedTypes))
+                GetUnificationUseSiteDiagnosticRecursive(ref result, _typeArgumentsWithAnnotations, owner, ref checkedTypes))
             {
                 return true;
             }
 
-            var typeArguments = this.TypeArgumentsNoUseSiteDiagnostics;
+            var typeArguments = this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             foreach (var typeArg in typeArguments)
             {
                 if (GetUnificationUseSiteDiagnosticRecursive(ref result, typeArg.CustomModifiers, owner, ref checkedTypes))
@@ -105,6 +123,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        public override sealed bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
         }
     }
 }

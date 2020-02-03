@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="New_">
         <source>New</source>
-        <target state="translated">Создать</target>
+        <target state="translated">Новое</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_Events">

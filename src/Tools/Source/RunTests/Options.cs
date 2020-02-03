@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -82,9 +84,19 @@ namespace RunTests
         public string XunitPath { get; set; }
 
         /// <summary>
-        /// Directory to hold all of test results and logging information.
+        /// Directory to hold all of the xml files created as test results.
         /// </summary>
-        public string OutputDirectory { get; set; }
+        public string TestResultXmlOutputDirectory { get; set; }
+
+        /// <summary>
+        /// Directory to hold dump files and other log files created while running tests.
+        /// </summary>
+        public string LogFilesOutputDirectory { get; set; }
+
+        /// <summary>
+        /// Directory to hold secondary dump files created while running tests.
+        /// </summary>
+        public string LogFilesSecondaryOutputDirectory { get; set; }
 
         internal static Options Parse(string[] args)
         {
@@ -107,7 +119,7 @@ namespace RunTests
                 return false;
             }
 
-            var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true, OutputDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults") };
+            var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true, TestResultXmlOutputDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults") };
             var index = 1;
             var allGood = true;
             while (index < args.Length)
@@ -141,7 +153,17 @@ namespace RunTests
                 }
                 else if (isOption(current, "-out", out string value))
                 {
-                    opt.OutputDirectory = value;
+                    opt.TestResultXmlOutputDirectory = value;
+                    index++;
+                }
+                else if (isOption(current, "-logs", out string logsPath))
+                {
+                    opt.LogFilesOutputDirectory = logsPath;
+                    index++;
+                }
+                else if (isOption(current, "-secondaryLogs", out string secondaryLogsPath))
+                {
+                    opt.LogFilesSecondaryOutputDirectory = secondaryLogsPath;
                     index++;
                 }
                 else if (isOption(current, "-display", out value))
@@ -187,7 +209,7 @@ namespace RunTests
                     opt.ProcDumpDirectory = value;
                     index++;
                 }
-                else if (comparer.Equals(current, "-procdump"))
+                else if (comparer.Equals(current, "-useprocdump"))
                 {
                     opt.UseProcDump = false;
                     index++;
@@ -221,6 +243,15 @@ namespace RunTests
                 Console.WriteLine($"The option 'useprocdump' was specified but 'procdumppath' was not provided");
                 return null;
             }
+
+            // If we weren't passed both -logs and -out but just -out, use the same value for -logs too.
+            if (opt.LogFilesOutputDirectory == null)
+            {
+                opt.LogFilesOutputDirectory = opt.TestResultXmlOutputDirectory;
+            }
+
+            // If we weren't passed both -secondaryLogs and -logs but just -logs (or -out), use the same value for -secondaryLogs too.
+            opt.LogFilesSecondaryOutputDirectory ??= opt.LogFilesOutputDirectory;
 
             opt.Assemblies = args.Skip(index).ToList();
             return allGood ? opt : null;

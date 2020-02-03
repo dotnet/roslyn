@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -13,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
     <ExportLanguageService(GetType(IGenerateConversionService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicGenerateConversionService
         Inherits AbstractGenerateConversionService(Of VisualBasicGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function AreSpecialOptionsActive(semanticModel As SemanticModel) As Boolean
             Return VisualBasicCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel)
@@ -112,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             End If
 
             methodSymbol = GenerateMethodSymbol(typeToGenerateIn, parameterSymbol)
-            If Not ValidateTypeToGenerateIn(document.Project.Solution, typeToGenerateIn, True, classInterfaceModuleStructTypes, cancellationToken) Then
+            If Not ValidateTypeToGenerateIn(document.Project.Solution, typeToGenerateIn, True, classInterfaceModuleStructTypes) Then
                 typeToGenerateIn = parameterSymbol
             End If
             Return True
@@ -127,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             End If
 
             methodSymbol = GenerateMethodSymbol(typeToGenerateIn, parameterSymbol)
-            If Not ValidateTypeToGenerateIn(document.Project.Solution, typeToGenerateIn, True, classInterfaceModuleStructTypes, cancellationToken) Then
+            If Not ValidateTypeToGenerateIn(document.Project.Solution, typeToGenerateIn, True, classInterfaceModuleStructTypes) Then
                 typeToGenerateIn = parameterSymbol
             End If
             Return True

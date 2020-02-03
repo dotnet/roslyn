@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isIterator = asyncMethod.IsIterator;
             if (isIterator)
             {
-                var elementType = TypeMap.SubstituteType(asyncMethod.IteratorElementType).TypeSymbol;
+                var elementType = TypeMap.SubstituteType(asyncMethod.IteratorElementTypeWithAnnotations).Type;
                 this.IteratorElementType = elementType;
 
                 bool isEnumerable = asyncMethod.IsAsyncReturningIAsyncEnumerable(compilation);
@@ -43,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // IValueTaskSource<bool>
                 interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T).Construct(compilation.GetSpecialType(SpecialType.System_Boolean)));
+
+                // IValueTaskSource
+                interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource));
 
                 // IAsyncDisposable
                 interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable));
@@ -64,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _constructor; }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _interfaces;
         }

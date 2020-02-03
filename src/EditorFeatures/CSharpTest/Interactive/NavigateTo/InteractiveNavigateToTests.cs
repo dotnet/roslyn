@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +14,6 @@ using Microsoft.VisualStudio.Text.PatternMatching;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-#pragma warning disable CS0618 // MatchKind is obsolete
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 {
     public class InteractiveNavigateToTests : AbstractNavigateToTests
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         protected override string Language => "csharp";
 
         protected override TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider)
-            => TestWorkspace.CreateCSharp(content, parseOptions: Options.Script);
+            => TestWorkspace.CreateCSharp(content, parseOptions: Options.Script, exportProvider: exportProvider);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task NoItemsForEmptyFile()
@@ -150,7 +151,7 @@ partial class Goo
 Class Program { FileStyleUriParser f; }", async w =>
             {
                 var items = await _aggregator.GetItemsAsync("FileStyleUriParser");
-                Assert.Equal(items.Count(), 0);
+                Assert.Equal(0, items.Count());
             });
         }
 
@@ -641,4 +642,3 @@ class C2
         }
     }
 }
-#pragma warning restore CS0618 // MatchKind is obsolete

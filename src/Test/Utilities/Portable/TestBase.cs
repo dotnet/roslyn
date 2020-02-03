@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -76,7 +78,7 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference[] LatestVbReferences => s_lazyLatestVbReferences.Value;
 
-        public static readonly AssemblyName RuntimeCorLibName = CoreClrShim.IsRunningOnCoreClr
+        public static readonly AssemblyName RuntimeCorLibName = RuntimeUtilities.IsCoreClrRuntime
             ? new AssemblyName("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
             : new AssemblyName("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
 
@@ -245,6 +247,18 @@ namespace Roslyn.Test.Utilities
             () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard10.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.dll (netstandard 1.0 ref)"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference CSharpNetStandard10Ref => s_stdCSharpRef.Value;
+
+        private static readonly Lazy<MetadataReference> s_std20Ref = new Lazy<MetadataReference>(
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.netstandard).GetReference(display: "netstandard20.netstandard.dll"),
+            LazyThreadSafetyMode.PublicationOnly);
+
+        public static MetadataReference NetStandard20Ref => s_std20Ref.Value;
+
+        private static readonly Lazy<MetadataReference> s_46NetStandardFacade = new Lazy<MetadataReference>(
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.netstandard).GetReference(display: "net461.netstandard.dll"),
+            LazyThreadSafetyMode.PublicationOnly);
+
+        public static MetadataReference Net46StandardFacade => s_46NetStandardFacade.Value;
 
         private static readonly Lazy<MetadataReference> s_systemDynamicRuntimeRef = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard13.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 1.3 ref)"),

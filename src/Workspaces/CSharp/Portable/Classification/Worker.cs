@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -70,13 +75,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyNodeOrToken(SyntaxNodeOrToken nodeOrToken)
         {
+            Debug.Assert(nodeOrToken.IsNode || nodeOrToken.IsToken);
+
             if (nodeOrToken.IsToken)
             {
                 ClassifyToken(nodeOrToken.AsToken());
                 return;
             }
 
-            ClassifyNode(nodeOrToken.AsNode());
+            ClassifyNode(nodeOrToken.AsNode()!);
         }
 
         private void ClassifyNode(SyntaxNode node)
@@ -98,6 +105,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 if (type != null)
                 {
                     AddClassification(span, type);
+
+                    // Additionally classify static symbols
+                    if (token.Kind() == SyntaxKind.IdentifierToken
+                        && ClassificationHelpers.IsStaticallyDeclared(token))
+                    {
+                        AddClassification(span, ClassificationTypeNames.StaticSymbol);
+                    }
                 }
             }
 
@@ -201,6 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.PragmaChecksumDirectiveTrivia:
                 case SyntaxKind.ReferenceDirectiveTrivia:
                 case SyntaxKind.LoadDirectiveTrivia:
+                case SyntaxKind.NullableDirectiveTrivia:
                 case SyntaxKind.BadDirectiveTrivia:
                     ClassifyPreprocessorDirective((DirectiveTriviaSyntax)trivia.GetStructure());
                     return;
@@ -236,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 // for the ======== add a comment for the first line, and then lex all
                 // subsequent lines up until the end of the conflict marker.
                 foreach (var token in SyntaxFactory.ParseTokens(text: trivia.ToFullString(), initialTokenPosition: trivia.SpanStart))
-                { 
+                {
                     ClassifyToken(token);
                 }
             }

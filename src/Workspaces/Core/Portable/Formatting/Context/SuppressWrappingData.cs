@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Text;
 
@@ -9,13 +11,18 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal class SuppressWrappingData
     {
-        public SuppressWrappingData(TextSpan textSpan, bool noWrapping)
+        public SuppressWrappingData(TextSpan textSpan, bool ignoreElastic)
         {
             this.TextSpan = textSpan;
-            this.NoWrapping = noWrapping;
+            this.IgnoreElastic = ignoreElastic;
         }
 
         public TextSpan TextSpan { get; }
-        public bool NoWrapping { get; }
+        public bool IgnoreElastic { get; }
+
+#if DEBUG
+        public override string ToString()
+            => $"Suppress wrapping on '{TextSpan}' with IgnoreElastic={IgnoreElastic}";
+#endif
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------------------------------------
 ' Contains hand-written factories for the SyntaxNodes. Most factories are
@@ -12,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports InternalSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Syntax
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -38,10 +41,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Function ParseSyntaxTree(
             text As String,
-            Optional options As ParseOptions = Nothing,
-            Optional path As String = "",
-            Optional encoding As Encoding = Nothing,
-            Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
+            options As ParseOptions,
+            path As String,
+            encoding As Encoding,
+            cancellationToken As CancellationToken) As SyntaxTree
 
             Return ParseSyntaxTree(SourceText.From(text, encoding), options, path, cancellationToken)
         End Function
@@ -51,12 +54,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Function ParseSyntaxTree(
             text As SourceText,
-            Optional options As ParseOptions = Nothing,
-            Optional path As String = "",
-            Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
+            options As ParseOptions,
+            path As String,
+            cancellationToken As CancellationToken) As SyntaxTree
 
             Return VisualBasicSyntaxTree.ParseText(text, DirectCast(options, VisualBasicParseOptions), path, cancellationToken)
         End Function
+
+#Disable Warning RS0026 ' Do not add multiple public overloads with optional parameters.
+#Disable Warning RS0027 ' Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+
+        ''' <summary>
+        ''' Produces a syntax tree by parsing the source text.
+        ''' </summary>
+        Public Shared Function ParseSyntaxTree(
+            text As String,
+            Optional options As ParseOptions = Nothing,
+            Optional path As String = "",
+            Optional encoding As Encoding = Nothing,
+            Optional diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic) = Nothing,
+            Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
+
+            Return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, cancellationToken)
+        End Function
+
+        ''' <summary>
+        ''' Produces a syntax tree by parsing the source text.
+        ''' </summary>
+        Public Shared Function ParseSyntaxTree(
+            text As SourceText,
+            Optional options As ParseOptions = Nothing,
+            Optional path As String = "",
+            Optional diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic) = Nothing,
+            Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
+
+            Return VisualBasicSyntaxTree.ParseText(text, DirectCast(options, VisualBasicParseOptions), path, diagnosticOptions, cancellationToken)
+        End Function
+
+#Enable Warning RS0026 ' Do not add multiple public overloads with optional parameters.
+#Enable Warning RS0027 ' Public API with optional parameter(s) should have the most parameters amongst its public overloads.
 
         ''' <summary>
         '''Parse the input for leading trivia.

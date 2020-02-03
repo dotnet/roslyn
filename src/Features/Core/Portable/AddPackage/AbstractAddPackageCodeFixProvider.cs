@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,9 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddPackage
 {
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract partial class AbstractAddPackageCodeFixProvider : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         private readonly IPackageInstallerService _packageInstallerService;
         private readonly ISymbolSearchService _symbolSearchService;
@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.AddPackage
         }
 
         protected abstract bool IncludePrerelease { get; }
+
+        public override abstract FixAllProvider GetFixAllProvider();
 
         protected async Task<ImmutableArray<CodeAction>> GetAddPackagesCodeActionsAsync(
             CodeFixContext context, ISet<string> assemblyNames)
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
                 searchNugetPackages &&
                 installerService.IsEnabled(document.Project.Id))
             {
-                foreach (var packageSource in installerService.PackageSources)
+                foreach (var packageSource in installerService.GetPackageSources())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
                     {
                         codeActions.Add(new InstallPackageParentCodeAction(
                             installerService, packageSource.Source,
-                            package.PackageName, this.IncludePrerelease, document));
+                            package.PackageName, IncludePrerelease, document));
                     }
                 }
             }

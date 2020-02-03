@@ -1,17 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -21,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// Represents information about the ability to rename a particular location.
         /// </summary>
-        private partial class SymbolInlineRenameInfo : IInlineRenameInfo
+        private partial class SymbolInlineRenameInfo : IInlineRenameInfoWithFileRename
         {
             private const string AttributeSuffix = "Attribute";
 
@@ -147,10 +153,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new TextSpan(location.TextSpan.Start + position, replacementText.Length);
             }
 
-            private string GetWithoutAttributeSuffix(string value) 
+            private string GetWithoutAttributeSuffix(string value)
                 => value.GetWithoutAttributeSuffix(isCaseSensitive: _document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive);
 
-            private bool HasAttributeSuffix(string value) 
+            private bool HasAttributeSuffix(string value)
                 => value.TryGetWithoutAttributeSuffix(isCaseSensitive: _document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive, result: out var _);
 
             private static string GetSpanText(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
@@ -173,29 +179,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return false;
             }
 
-            public string DisplayName
-            {
-                get
-                {
-                    return this.RenameSymbol.Name;
-                }
-            }
-
-            public string FullDisplayName
-            {
-                get
-                {
-                    return this.RenameSymbol.ToDisplayString();
-                }
-            }
-
-            public Glyph Glyph
-            {
-                get
-                {
-                    return this.RenameSymbol.GetGlyph();
-                }
-            }
+            public string DisplayName => RenameSymbol.Name;
+            public string FullDisplayName => RenameSymbol.ToDisplayString();
+            public Glyph Glyph => RenameSymbol.GetGlyph();
 
             public string GetFinalSymbolName(string replacementText)
             {
@@ -256,6 +242,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 return _refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocumentIDs, RenameSymbol,
                     this.GetFinalSymbolName(replacementText), throwOnFailure: false);
+            }
+
+            public InlineRenameFileRenameInfo GetFileRenameInfo()
+            {
+                if (RenameSymbol.Kind == SymbolKind.NamedType &&
+                    _document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
+                {
+                    if (RenameSymbol.Locations.Length > 1)
+                    {
+                        return InlineRenameFileRenameInfo.TypeWithMultipleLocations;
+                    }
+
+                    if (OriginalNameMatches(_document, RenameSymbol.Name))
+                    {
+                        return InlineRenameFileRenameInfo.Allowed;
+                    }
+
+                    return InlineRenameFileRenameInfo.TypeDoesNotMatchFileName;
+                }
+
+                return InlineRenameFileRenameInfo.NotAllowed;
+
+                // Local Functions
+
+                static bool OriginalNameMatches(Document document, string name)
+                    => Path.GetFileNameWithoutExtension(document.Name)
+                        .Equals(name, StringComparison.OrdinalIgnoreCase);
             }
         }
     }

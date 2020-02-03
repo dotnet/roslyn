@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -30,11 +32,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Goo|]
+                                class [|$$Test1|]
                                 {
                                     void Blah()
                                     {
-                                        [|Goo|] f = new [|Goo|]();
+                                        [|Test1|] f = new [|Test1|]();
                                     }
                                 }
                             </Document>
@@ -45,13 +47,38 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "Bar")
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                VerifyFileName(workspace, "BarTest1")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameLambdaDiscard() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        C _ = null;
+        System.Func<int, string, int> f = (int _, string [|$$_|]) => { _ = null; return 1; };
+    }
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, originalTextToRename:="_", renameTextPrefix:="change", renameOverloads:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -79,6 +106,7 @@ class Deconstructable
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "x", "change", renameOverloads:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -107,6 +135,7 @@ class Deconstructable
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "Deconstruct", "Changed", renameOverloads:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -118,11 +147,11 @@ class Deconstructable
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Goo|]
+                                class [|$$Test1|]
                                 {
                                     void Blah()
                                     {
-                                        [|Goo|] f = new [|Goo|]();
+                                        [|Test1|] f = new [|Test1|]();
                                     }
                                 }
                             </Document>
@@ -133,17 +162,18 @@ class Deconstructable
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "Bar")
 
                 Await WaitForRename(workspace)
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
@@ -152,18 +182,20 @@ class Deconstructable
                                                            renameTextPrefix As String,
                                                            Optional renameOverloads As Boolean = False,
                                                            Optional renameInStrings As Boolean = False,
-                                                           Optional renameInComments As Boolean = False) As Task
+                                                           Optional renameInComments As Boolean = False,
+                                                           Optional renameFile As Boolean = False) As Task
             Dim optionSet = workspace.Options
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameOverloads, renameOverloads)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInStrings, renameInStrings)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInComments, renameInComments)
-            workspace.Options = optionSet
+            optionSet = optionSet.WithChangedOption(RenameOptions.RenameFile, renameFile)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet))
 
             Dim session = StartSession(workspace)
 
             ' Type a bit in the file
             Dim renameDocument As TestHostDocument = workspace.DocumentWithCursor
-            renameDocument.TextBuffer.Insert(renameDocument.CursorPosition.Value, renameTextPrefix)
+            renameDocument.GetTextBuffer().Insert(renameDocument.CursorPosition.Value, renameTextPrefix)
 
             Dim replacementText = renameTextPrefix + originalTextToRename
             Await WaitForRename(workspace)
@@ -173,6 +205,10 @@ class Deconstructable
             session.Commit()
 
             Await VerifyTagsAreCorrect(workspace, replacementText)
+
+            If renameFile Then
+                VerifyFileName(workspace, replacementText)
+            End If
         End Function
 
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/13186")>
@@ -205,6 +241,7 @@ class Program
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -246,6 +283,7 @@ End Class
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -270,6 +308,8 @@ End Class
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "args", "bar", renameInComments:=True)
+
+                Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "Test1.vb"))
             End Using
         End Function
 
@@ -288,6 +328,11 @@ End Class
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
+
+                Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
+
+                ' https://github.com/dotnet/roslyn/issues/36075
+                ' VerifyFileRename(workspace, "ABC")
             End Using
         End Function
 
@@ -313,6 +358,8 @@ public partial class C { }
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
+
+                Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
             End Using
         End Function
 
@@ -343,6 +390,8 @@ public partial class C { }
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
+
+                Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
             End Using
         End Function
 
@@ -373,6 +422,8 @@ public partial class C { }
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
+
+                Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
             End Using
         End Function
 
@@ -393,6 +444,8 @@ public class [|$$C|] { }
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB")
+
+                Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
             End Using
         End Function
 
@@ -428,6 +481,7 @@ class Program
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
 
             Using workspace = CreateWorkspaceWithWaiter(
@@ -458,6 +512,7 @@ class Program
                 </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
 
             Using workspace = CreateWorkspaceWithWaiter(
@@ -488,6 +543,7 @@ class Program
                 </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -521,6 +577,7 @@ End Class
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
 
             Using workspace = CreateWorkspaceWithWaiter(
@@ -549,6 +606,7 @@ End Class
                 </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
 
             Using workspace = CreateWorkspaceWithWaiter(
@@ -577,6 +635,7 @@ End Class
                 </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -602,14 +661,18 @@ End Class
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+                Dim initialTextSnapshot = textBuffer.CurrentSnapshot
 
                 textBuffer.Insert(caretPosition, "Bar")
 
                 session.Cancel()
 
                 ' Assert the file is what it started as
-                Assert.Equal(workspace.Documents.Single().InitialTextSnapshot.GetText(), textBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(initialTextSnapshot.GetText(), textBuffer.CurrentSnapshot.GetText())
+
+                ' Assert the file name didn't change
+                VerifyFileName(workspace, "Test1.cs")
             End Using
         End Sub
 
@@ -635,7 +698,7 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "goo")
 
@@ -660,7 +723,7 @@ End Class
                     </Workspace>)
 
                 Dim session = StartSession(workspace)
-                Dim buffer = workspace.Documents.Single().TextBuffer
+                Dim buffer = workspace.Documents.Single().GetTextBuffer()
 
                 ' Typing at the beginning and end of our span should work
                 Dim cursorPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
@@ -675,6 +738,9 @@ End Class
                 Assert.True(buffer.IsReadOnly(buffer.CurrentSnapshot.Length))
 
                 session.Cancel()
+
+                ' Assert the file name didn't change
+                VerifyFileName(workspace, "Test1.cs")
             End Using
         End Sub
 
@@ -690,7 +756,7 @@ End Class
                     </Workspace>)
 
                 Dim session = StartSession(workspace)
-                Dim buffer = workspace.Documents.Single().TextBuffer
+                Dim buffer = workspace.Documents.Single().GetTextBuffer()
 
                 ' Typing at the beginning and end of our span should work
                 Assert.False(buffer.IsReadOnly(0))
@@ -700,6 +766,8 @@ End Class
                 Assert.False(buffer.IsReadOnly(New Span(workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value, length:=1)))
 
                 session.Cancel()
+
+                VerifyFileName(workspace, "Test1.cs")
             End Using
         End Sub
 
@@ -744,11 +812,11 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Goo|]
+                                class [|$$Test1|]
                                 {
                                     void Blah()
                                     {
-                                        [|Goo|] f = new [|Goo|]();
+                                        [|Test1|] f = new [|Test1|]();
                                     }
                                 }
                             </Document>
@@ -758,15 +826,19 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Dim document = workspace.Documents.Single()
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+
+                session.Commit()
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
@@ -777,7 +849,7 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Goo|]
+                                class [|$$Test1|]
                                 {
                                 }
                             </Document>
@@ -787,15 +859,20 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Dim document = workspace.Documents.Single()
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+
+                session.Commit()
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
@@ -807,11 +884,11 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Goo|]
+                                class [|$$Test1|]
                                 {
                                     void Blah()
                                     {
-                                        [|Goo|] f = new [|Goo|]();
+                                        [|Test1|] f = new [|Test1|]();
                                     }
                                 }
                             </Document>
@@ -821,18 +898,19 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Dim document = workspace.Documents.Single()
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+                VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
@@ -858,7 +936,7 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Dim document = workspace.Documents.Single()
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
@@ -869,6 +947,8 @@ End Class
 
                 session.Cancel()
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+
+                VerifyFileName(workspace, "Test1.cs")
             End Using
         End Function
 
@@ -879,11 +959,11 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Goo|]
+                                class [|$$Test1|]
                                 {
                                     void Blah()
                                     {
-                                        [|Goo|] f = new [|Goo|]();
+                                        [|Test1|] f = new [|Test1|]();
                                     }
                                 }
                             </Document>
@@ -893,18 +973,19 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 Dim document = workspace.Documents.Single()
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+                VerifyFileName(workspace, "BarTest1")
 
                 textBuffer.Insert(caretPosition, "Baz")
                 Await VerifyRenameTrackingTags(renameTrackingTagger, workspace, document, expectedTagCount:=1)
@@ -936,7 +1017,7 @@ End Class
                 Dim session = StartSession(workspace)
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "Bar")
 
@@ -975,7 +1056,7 @@ End Class
                 Dim session = StartSession(workspace)
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "Bar")
 
@@ -993,6 +1074,8 @@ End Class
                 session.Commit(previewChanges:=True)
                 Await VerifyTagsAreCorrect(workspace, "CatBarGoo")
                 Assert.True(previewService.Called)
+
+                VerifyFileName(workspace, "Test1.cs")
             End Using
         End Function
 
@@ -1027,7 +1110,7 @@ End Class
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "o")
                 Await WaitForRename(workspace)
@@ -1072,7 +1155,7 @@ End Class
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
@@ -1113,7 +1196,7 @@ class C
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
                 textBuffer.Insert(caretPosition, "yz")
                 Await WaitForRename(workspace)
 
@@ -1135,7 +1218,7 @@ class C
                 Dim notificationService = DirectCast(workspace.Services.GetService(Of INotificationService)(), INotificationServiceCallback)
                 notificationService.NotificationCallback = Sub(message, title, severity) actualSeverity = severity
 
-                Await editHandler.ApplyAsync(
+                editHandler.Apply(
                     workspace,
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
                     Await actions.First().NestedCodeActions.First().GetOperationsAsync(CancellationToken.None),
@@ -1188,7 +1271,7 @@ class C
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
@@ -1220,7 +1303,7 @@ class C
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
@@ -1254,7 +1337,7 @@ class C
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
@@ -1288,7 +1371,7 @@ class C
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.First().TextBuffer
+                Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
                 Await WaitForRename(workspace)
@@ -1320,6 +1403,7 @@ class C
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "M", "Sa", renameOverloads:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -1346,7 +1430,7 @@ class C
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "Bar")
 
@@ -1389,7 +1473,7 @@ class C
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "Bar")
 
@@ -1435,7 +1519,7 @@ End Module
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "q")
                 session.Commit()
@@ -1463,7 +1547,7 @@ End Module
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Delete(New Span(caretPosition, 1))
                 textBuffer.Insert(caretPosition, "x")
@@ -1507,7 +1591,7 @@ End Class
 
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Delete(New Span(caretPosition, 1))
                 textBuffer.Insert(caretPosition, "x")
@@ -1551,11 +1635,237 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 ' Ensure the rename doesn't crash
                 textBuffer.Insert(caretPosition, "e")
                 session.Commit()
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyNoFileRenameAllowedForPartialType()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                partial class [|$$Goo|]
+                                {
+                                    void Blah()
+                                    {
+                                    }
+                                }
+                            </Document>
+                            <Document>
+                                partial class Goo
+                                {
+                                    void BlahBlah()
+                                    {
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.TypeWithMultipleLocations, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenameAllowedForPartialTypeWithSingleLocation()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                partial class [|$$Test1|]
+                                {
+                                    void Blah()
+                                    {
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.Allowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenameAllowedWithMultipleTypesOnMatchingName()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                class [|$$Test1|]
+                                {
+                                    void Blah()
+                                    {
+                                    }
+                                }
+
+                                class Test2
+                                {
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.Allowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyNoFileRenameAllowedWithMultipleTypes()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                class [|$$Goo|]
+                                {
+                                    void Blah()
+                                    {
+                                    }
+                                }
+
+                                class Test1
+                                {
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.TypeDoesNotMatchFileName, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyEnumKindSupportsFileRename()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                enum [|$$Test1|]
+                                {
+                                    One,
+                                    Two,
+                                    Three
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.Allowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyInterfaceKindSupportsFileRename()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                interface [|$$Test1|]
+                                {
+                                    void Blah();
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.Allowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyUnsupportedFileRename()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                interface Test1
+                                {
+                                    void [|$$Blah|]();
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenameNotAllowedForLinkedFiles()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
+                            <Document FilePath="C.cs"><![CDATA[public class [|$$C|] { } // [|C|]]]></Document>
+                        </Project>
+                        <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
+                            <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
+                        </Project>
+                    </Workspace>)
+
+                ' Disable document changes to make sure file rename is not supported. 
+                ' Linked workspace files will report that applying changes to document
+                ' info is not allowed; this is intended to mimic that behavior
+                ' and make sure inline rename works as intended.
+                workspace.CanApplyChangeDocument = False
+
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenamesCorrectlyWhenCaseChanges()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class [|$$Test1|]
+{
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Delete(New Span(caretPosition, 1))
+                textBuffer.Insert(caretPosition, "t")
+
+                session.Commit()
+                VerifyFileName(workspace, "test1")
             End Using
         End Sub
     End Class

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -74,12 +76,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
 
             return await GetDocumentDiagnosticsToFixAsync(
-                allDiagnostics, projectsToFix, fixAllContext.CancellationToken).ConfigureAwait(false);
+                allDiagnostics, projectsToFix, isGeneratedCode, fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
             ImmutableArray<Diagnostic> diagnostics,
             ImmutableArray<Project> projects,
+            Func<Document, CancellationToken, bool> isGeneratedCode,
             CancellationToken cancellationToken)
         {
             var treeToDocumentMap = await GetTreeToDocumentMapAsync(projects, cancellationToken).ConfigureAwait(false);
@@ -89,8 +92,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var document = documentAndDiagnostics.Key;
-                var diagnosticsForDocument = documentAndDiagnostics.ToImmutableArray();
-                builder.Add(document, diagnosticsForDocument);
+                if (!isGeneratedCode(document, cancellationToken))
+                {
+                    var diagnosticsForDocument = documentAndDiagnostics.ToImmutableArray();
+                    builder.Add(document, diagnosticsForDocument);
+                }
             }
 
             return builder.ToImmutable();
@@ -118,8 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var tree = diagnostic.Location.SourceTree;
             if (tree != null)
             {
-                Document document;
-                if (treeToDocumentsMap.TryGetValue(tree, out document))
+                if (treeToDocumentsMap.TryGetValue(tree, out var document))
                 {
                     return document;
                 }

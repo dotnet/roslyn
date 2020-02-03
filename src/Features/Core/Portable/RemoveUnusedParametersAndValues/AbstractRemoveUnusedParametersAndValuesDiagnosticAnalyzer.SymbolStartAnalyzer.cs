@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
@@ -22,6 +25,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             private readonly INamedTypeSymbol _eventArgsTypeOpt;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
+            private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates;
 
             /// <summary>
@@ -34,12 +38,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             public SymbolStartAnalyzer(
                 AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
                 INamedTypeSymbol eventArgsTypeOpt,
-                ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore)
+                ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
+                DeserializationConstructorCheck deserializationConstructorCheck)
             {
                 _compilationAnalyzer = compilationAnalyzer;
 
                 _eventArgsTypeOpt = eventArgsTypeOpt;
                 _attributeSetForMethodsToIgnore = attributeSetForMethodsToIgnore;
+                _deserializationConstructorCheck = deserializationConstructorCheck;
                 _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
                 _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
             }
@@ -50,8 +56,39 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 var attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(context.Compilation).WhereNotNull());
                 var eventsArgType = context.Compilation.EventArgsType();
-                var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore);
-                context.RegisterSymbolStartAction(symbolAnalyzer.OnSymbolStart, SymbolKind.NamedType);
+                var deserializationConstructorCheck = new DeserializationConstructorCheck(context.Compilation);
+                context.RegisterSymbolStartAction(symbolStartContext =>
+                {
+                    if (HasSyntaxErrors((INamedTypeSymbol)symbolStartContext.Symbol, symbolStartContext.CancellationToken))
+                    {
+                        // Bail out on syntax errors.
+                        return;
+                    }
+
+                    // Create a new SymbolStartAnalyzer instance for every named type symbol
+                    // to ensure there is no shared state (such as identified unused parameters within the type),
+                    // as that would lead to duplicate diagnostics being reported from symbol end action callbacks
+                    // for unrelated named types.
+                    var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore, deserializationConstructorCheck);
+                    symbolAnalyzer.OnSymbolStart(symbolStartContext);
+                }, SymbolKind.NamedType);
+
+                return;
+
+                // Local functions
+                static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
+                {
+                    foreach (var syntaxRef in namedTypeSymbol.DeclaringSyntaxReferences)
+                    {
+                        var syntax = syntaxRef.GetSyntax(cancellationToken);
+                        if (syntax.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
             }
 
             private void OnSymbolStart(SymbolStartAnalysisContext context)
@@ -74,11 +111,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             private void OnSymbolEnd(SymbolAnalysisContext context)
             {
-                foreach (var parameterAndUsageKvp in _unusedParameters)
+                foreach (var (parameter, hasReference) in _unusedParameters)
                 {
-                    var parameter = parameterAndUsageKvp.Key;
-                    bool hasReference = parameterAndUsageKvp.Value;
-
                     ReportUnusedParameterDiagnostic(parameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
                 }
             }
@@ -131,12 +165,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     !isLocalFunctionParameter)
                 {
                     messageFormat = hasReference
-                        ? FeaturesResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used
+                        ? FeaturesResources.Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used
                         : FeaturesResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API;
                 }
                 else if (hasReference)
                 {
-                    messageFormat = FeaturesResources.Remove_unused_parameter_0_its_initial_value_is_never_used;
+                    messageFormat = FeaturesResources.Parameter_0_can_be_removed_its_initial_value_is_never_used;
                 }
                 else
                 {
@@ -159,6 +193,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 // Don't flag obsolete methods.
                 yield return compilation.ObsoleteAttribute();
+
+                // Don't flag MEF import constructors with ImportingConstructor attribute.
+                yield return compilation.SystemCompositionImportingConstructorAttribute();
+                yield return compilation.SystemComponentModelCompositionImportingConstructorAttribute();
             }
 
             private bool IsUnusedParameterCandidate(IParameterSymbol parameter)
@@ -177,9 +215,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     method.IsAbstract ||
                     method.IsVirtual ||
                     method.IsOverride ||
+                    method.PartialImplementationPart != null ||
                     !method.ExplicitOrImplicitInterfaceImplementations().IsEmpty ||
                     method.IsAccessor() ||
-                    method.IsAnonymousFunction())
+                    method.IsAnonymousFunction() ||
+                    _compilationAnalyzer.MethodHasHandlesClause(method) ||
+                    _deserializationConstructorCheck.IsDeserializationConstructor(method))
                 {
                     return false;
                 }
@@ -204,6 +245,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 // Methods used as delegates likely need to have unused parameters for signature compat.
                 if (_methodsUsedAsDelegates.ContainsKey(method))
+                {
+                    return false;
+                }
+
+                // Ignore special parameter names for methods that need a specific signature.
+                // For example, methods used as a delegate in a different type or project.
+                // This also serves as a convenient way to suppress instances of unused parameter diagnostic
+                // without disabling the diagnostic completely.
+                // We ignore parameter names that start with an underscore and are optionally followed by an integer,
+                // such as '_', '_1', '_2', etc.
+                if (IsSymbolWithSpecialDiscardName(parameter))
                 {
                     return false;
                 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// 
         /// With no filter text, this item (or the first item alphabetically 
         /// with this priority) should always be selected.
-        /// test
+        ///
         /// This is used for specific IDE scenarios like "Object creation preselection"
         /// or "Enum preselection" or "Completion list tag preselection".
         /// </summary>

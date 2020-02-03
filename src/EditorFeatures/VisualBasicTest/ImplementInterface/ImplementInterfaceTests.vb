@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -861,25 +863,14 @@ Class A
 End Class")
         End Function
 
-        <WorkItem(541092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541092")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
-        Public Async Function TestShowForNonImplementedPrivateInterfaceMethod() As Task
-            Await TestInRegularAndScriptAsync(
+        Public Async Function TestDoNotShowForNonImplementedPrivateInterfaceMethod() As Task
+            Await TestMissingInRegularAndScriptAsync(
 "Interface I1
     Private Sub Goo()
 End Interface
 Class A
     Implements [|I1|]
-End Class",
-"Interface I1
-    Private Sub Goo()
-End Interface
-Class A
-    Implements I1
-
-    Public Sub Goo() Implements I1.Goo
-        Throw New System.NotImplementedException()
-    End Sub
 End Class")
         End Function
 

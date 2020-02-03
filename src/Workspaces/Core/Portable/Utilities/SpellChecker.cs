@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -239,7 +241,7 @@ namespace Roslyn.Utilities
 
         private static double Penalty(string candidateText, string originalText)
         {
-            int lengthDifference = Math.Abs(originalText.Length - candidateText.Length);
+            var lengthDifference = Math.Abs(originalText.Length - candidateText.Length);
             if (lengthDifference != 0)
             {
                 // For all items of the same edit cost, we penalize those that are 
@@ -257,7 +259,7 @@ namespace Roslyn.Utilities
                 // 3            -> .75
                 // 4            -> .8
                 // And so on and so forth.
-                double penalty = 1.0 - (1.0 / (lengthDifference + 1));
+                var penalty = 1.0 - (1.0 / (lengthDifference + 1));
                 return penalty;
             }
 

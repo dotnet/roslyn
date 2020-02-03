@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -49,11 +51,11 @@ namespace Microsoft.CodeAnalysis.Rename
         private readonly IEnumerable<RenameLocation> _commentsResult;
 
         internal RenameLocations(
-            ISet<RenameLocation> locations, 
-            SymbolAndProjectId symbolAndProjectId, 
-            Solution solution, 
-            IEnumerable<SymbolAndProjectId> referencedSymbols, 
-            IEnumerable<ReferenceLocation> implicitLocations, 
+            ISet<RenameLocation> locations,
+            SymbolAndProjectId symbolAndProjectId,
+            Solution solution,
+            IEnumerable<SymbolAndProjectId> referencedSymbols,
+            IEnumerable<ReferenceLocation> implicitLocations,
             OptionSet options)
         {
             _symbolAndProjectId = symbolAndProjectId;
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 mergedLocations.AddRange(commentsResult);
             }
 
-            var renameMethodGroupReferences = 
+            var renameMethodGroupReferences =
                 options.GetOption(RenameOptions.RenameOverloads) || !GetOverloadedSymbols(symbolAndProjectId).Any();
             var overloadsToMerge = (options.GetOption(RenameOptions.RenameOverloads) ? overloadsResult : null) ?? SpecializedCollections.EmptyEnumerable<SearchResult>();
             foreach (var result in overloadsToMerge.Concat(originalSymbolResult))

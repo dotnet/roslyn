@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
 using System.Threading;
+
+#if WORKSPACE
 using Microsoft.CodeAnalysis.Internal.Log;
+#endif
 
 namespace Roslyn.Utilities
 {
@@ -106,7 +111,7 @@ namespace Roslyn.Utilities
                 // PERF: First spin wait for the lock to become available, but only up to the first planned yield.
                 // This additional amount of spinwaiting was inherited from SemaphoreSlim's implementation where
                 // it showed measurable perf gains in test scenarios.
-                SpinWait spin = new SpinWait();
+                var spin = new SpinWait();
                 while (this.IsLocked && !spin.NextSpinWillYield)
                 {
                     spin.SpinOnce();
@@ -118,8 +123,9 @@ namespace Roslyn.Utilities
                     {
                         // If cancelled, we throw. Trying to wait could lead to deadlock.
                         cancellationToken.ThrowIfCancellationRequested();
-
+#if WORKSPACE
                         using (Logger.LogBlock(FunctionId.Misc_NonReentrantLock_BlockingWait, cancellationToken))
+#endif
                         {
                             // Another thread holds the lock. Wait until we get awoken either
                             // by some code calling "Release" or by cancellation.

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var compilation = CreateCompilation(code);
             var c = compilation.GlobalNamespace.GetTypeMembers("C")[0];
             var x = c.GetMembers("x").Single() as FieldSymbol;
-            var arr = x.Type.TypeSymbol;
+            var arr = x.Type;
 
             arr.GetHashCode();
             // https://github.com/dotnet/roslyn/issues/30023: StackOverflowException in SetUnknownNullabilityForReferenceTypes.
@@ -59,8 +61,8 @@ class A<T> {
             var b2 = aint2.GetTypeMembers("B", 1).Single();                            // A<int>.B<U>
             Assert.NotSame(b1.TypeParameters[0], b2.TypeParameters[0]);                // they've been alpha renamed independently
             Assert.Equal(b1.TypeParameters[0], b2.TypeParameters[0]);                  // but happen to be the same type
-            var xtype1 = (b1.GetMembers("X")[0] as FieldSymbol).Type.TypeSymbol;                  // Types using them are the same too
-            var xtype2 = (b2.GetMembers("X")[0] as FieldSymbol).Type.TypeSymbol;
+            var xtype1 = (b1.GetMembers("X")[0] as FieldSymbol).Type;                  // Types using them are the same too
+            var xtype2 = (b2.GetMembers("X")[0] as FieldSymbol).Type;
             Assert.Equal(xtype1, xtype2);
         }
 
@@ -464,21 +466,21 @@ public partial class A { }
             Assert.Equal(SymbolKind.Field, field1.Kind);
             Assert.True(field1.IsDefinition);
             Assert.True(field1.IsStatic);
-            var elemType1 = (field1 as FieldSymbol).Type;
-            Assert.Equal(TypeKind.Array, elemType1.TypeKind);
-            Assert.Equal("System.Int32[,]", elemType1.TypeSymbol.ToTestDisplayString());
+            var elemType1 = (field1 as FieldSymbol).TypeWithAnnotations;
+            Assert.Equal(TypeKind.Array, elemType1.Type.TypeKind);
+            Assert.Equal("System.Int32[,]", elemType1.Type.ToTestDisplayString());
 
             // ArrayType public API
-            Assert.False(elemType1.TypeSymbol.IsStatic);
-            Assert.False(elemType1.TypeSymbol.IsAbstract);
-            Assert.False(elemType1.TypeSymbol.IsSealed);
-            Assert.Equal(Accessibility.NotApplicable, elemType1.TypeSymbol.DeclaredAccessibility);
+            Assert.False(elemType1.Type.IsStatic);
+            Assert.False(elemType1.Type.IsAbstract);
+            Assert.False(elemType1.Type.IsSealed);
+            Assert.Equal(Accessibility.NotApplicable, elemType1.Type.DeclaredAccessibility);
 
             field1 = classTest.GetMembers("ulongAryField").Single();
             Assert.Equal(classTest, field1.ContainingSymbol);
             Assert.Equal(SymbolKind.Field, field1.Kind);
             Assert.True(field1.IsDefinition);
-            var elemType2 = (field1 as FieldSymbol).Type.TypeSymbol;
+            var elemType2 = (field1 as FieldSymbol).Type;
             Assert.Equal(TypeKind.Array, elemType2.TypeKind);
             // bug 2034
             Assert.Equal("System.UInt64[][,]", elemType2.ToTestDisplayString());
@@ -488,7 +490,7 @@ public partial class A { }
             Assert.Equal(classTest, method.ContainingSymbol);
             Assert.Equal(SymbolKind.Method, method.Kind);
             Assert.True(method.IsDefinition);
-            var retType = (method as MethodSymbol).ReturnType.TypeSymbol;
+            var retType = (method as MethodSymbol).ReturnType;
             Assert.Equal(TypeKind.Array, retType.TypeKind);
 
             // ArrayType public API
@@ -515,8 +517,8 @@ public partial class A { }
         }
 
         // Interfaces impl-ed by System.Array
-        // .Net 2/3.0 (7) IList&[T] -> ICollection&[T] ->IEnumerable&[T]; ICloneable;
-        // .Net 4.0 (9) IList&[T] -> ICollection&[T] ->IEnumerable&[T]; ICloneable; IStructuralComparable; IStructuralEquatable
+        // .NET 2/3.0 (7) IList&[T] -> ICollection&[T] ->IEnumerable&[T]; ICloneable;
+        // .NET 4.0 (9) IList&[T] -> ICollection&[T] ->IEnumerable&[T]; ICloneable; IStructuralComparable; IStructuralEquatable
         // Array T[] impl IList[T] only
         [Fact, WorkItem(537300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537300"), WorkItem(527247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527247")]
         public void ArrayTypeInterfaces()
@@ -534,7 +536,7 @@ public class A {
             var globalNS = compilation.SourceModule.GlobalNamespace;
             var classTest = globalNS.GetTypeMembers("A").Single() as NamedTypeSymbol;
 
-            var sym1 = (classTest.GetMembers("AryField").First() as FieldSymbol).Type.TypeSymbol;
+            var sym1 = (classTest.GetMembers("AryField").First() as FieldSymbol).Type;
             Assert.Equal(SymbolKind.ArrayType, sym1.Kind);
             //
             Assert.Equal(1, sym1.Interfaces().Length);
@@ -563,7 +565,7 @@ public class A {
             Assert.Equal("System.Collections.IStructuralComparable", i8.ToTestDisplayString());
             Assert.Equal("System.Collections.IStructuralEquatable", i9.ToTestDisplayString());
 
-            var sym2 = (classTest.GetMembers("AryField2").First() as FieldSymbol).Type.TypeSymbol;
+            var sym2 = (classTest.GetMembers("AryField2").First() as FieldSymbol).Type;
             Assert.Equal(SymbolKind.ArrayType, sym2.Kind);
             Assert.Equal(0, sym2.Interfaces().Length);
         }
@@ -582,19 +584,19 @@ public class A {
             var globalNS = compilation.SourceModule.GlobalNamespace;
             var classTest = globalNS.GetTypeMembers("A").Single() as NamedTypeSymbol;
 
-            var sym1 = (classTest.GetMembers().First() as FieldSymbol).Type.TypeSymbol;
+            var sym1 = (classTest.GetMembers().First() as FieldSymbol).Type;
             Assert.Equal(SymbolKind.ArrayType, sym1.Kind);
             var v1 = sym1.GetHashCode();
             var v2 = sym1.GetHashCode();
             Assert.Equal(v1, v2);
 
-            var sym2 = (classTest.GetMembers("AryField2").First() as FieldSymbol).Type.TypeSymbol;
+            var sym2 = (classTest.GetMembers("AryField2").First() as FieldSymbol).Type;
             Assert.Equal(SymbolKind.ArrayType, sym2.Kind);
             v1 = sym2.GetHashCode();
             v2 = sym2.GetHashCode();
             Assert.Equal(v1, v2);
 
-            var sym3 = (classTest.GetMembers("AryField3").First() as FieldSymbol).Type.TypeSymbol;
+            var sym3 = (classTest.GetMembers("AryField3").First() as FieldSymbol).Type;
             Assert.Equal(SymbolKind.ArrayType, sym3.Kind);
             v1 = sym3.GetHashCode();
             v2 = sym3.GetHashCode();
@@ -617,7 +619,7 @@ public class A {
             {
                 if (m.Name == "field1")
                 {
-                    var f1 = (m as FieldSymbol).Type.TypeSymbol;
+                    var f1 = (m as FieldSymbol).Type;
                     Assert.False(f1 is ErrorTypeSymbol, f1.GetType().ToString() + " : " + f1.ToTestDisplayString());
                 }
                 else if (m.Name == "field2")
@@ -634,7 +636,7 @@ public class A {
             Assert.Equal(a, obj.ContainingSymbol);
             Assert.Equal(SymbolKind.Field, obj.Kind);
             Assert.True(obj.IsDefinition);
-            var objType = (obj as FieldSymbol).Type.TypeSymbol;
+            var objType = (obj as FieldSymbol).Type;
             Assert.False(objType is ErrorTypeSymbol, objType.GetType().ToString() + " : " + objType.ToTestDisplayString());
             Assert.NotEqual(SymbolKind.ErrorType, objType.Kind);
 
@@ -642,7 +644,7 @@ public class A {
             Assert.Equal(a, dyn.ContainingSymbol);
             Assert.Equal(SymbolKind.Field, dyn.Kind);
             Assert.True(dyn.IsDefinition);
-            var dynType = (obj as FieldSymbol).Type.TypeSymbol;
+            var dynType = (obj as FieldSymbol).Type;
             Assert.False(dynType is ErrorTypeSymbol, dynType.GetType().ToString() + " : " + dynType.ToTestDisplayString()); // this is ok
             Assert.NotEqual(SymbolKind.ErrorType, dynType.Kind);
         }
@@ -661,7 +663,7 @@ public class A {
 ";
             var comp = CreateCompilation(text);
             var v = comp.GlobalNamespace.GetTypeMembers("MyEnum", 0).Single();
-            Assert.NotEqual(null, v);
+            Assert.NotNull(v);
             Assert.Equal(Accessibility.Public, v.DeclaredAccessibility);
 
             var fields = v.GetMembers().OfType<FieldSymbol>().ToList();
@@ -1174,7 +1176,7 @@ class D : C
             var global = comp.GlobalNamespace;
             var d = global.GetMembers("D").Single() as NamedTypeSymbol;
             var x = d.GetMembers("x").Single() as FieldSymbol;
-            Assert.Equal("B.A.X", x.Type.TypeSymbol.ToTestDisplayString());
+            Assert.Equal("B.A.X", x.Type.ToTestDisplayString());
         }
 
         [WorkItem(537970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537970")]
@@ -1472,7 +1474,7 @@ class Program
             var classA = namespaceNS.GetTypeMembers("A").First();
             var varX = classA.GetMembers("x").First() as FieldSymbol;
             Assert.Equal(SymbolKind.Field, varX.Kind);
-            Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), varX.Type.TypeSymbol.OriginalDefinition);
+            Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), varX.Type.OriginalDefinition);
         }
 
         [Fact]
@@ -1498,7 +1500,7 @@ public class NullableTest
             var topType = comp.SourceModule.GlobalNamespace.GetTypeMembers("NullableTest").FirstOrDefault();
             // ------------------------------
             var mem = topType.GetMembers("field01").Single();
-            var memType = (mem as FieldSymbol).Type.TypeSymbol;
+            var memType = (mem as FieldSymbol).Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
             Assert.True(memType.CanBeAssignedNull());
 
@@ -1507,7 +1509,7 @@ public class NullableTest
             Assert.Same(comp.GetSpecialType(SpecialType.System_SByte), underType);
             // ------------------------------
             mem = topType.GetMembers("field02").Single();
-            memType = (mem as FieldSymbol).Type.TypeSymbol;
+            memType = (mem as FieldSymbol).Type;
             Assert.True(memType.IsNullableType());
             Assert.False(memType.CanBeConst());
 
@@ -1516,7 +1518,7 @@ public class NullableTest
             Assert.Same(underType, memType.GetNullableUnderlyingType());
             // ------------------------------
             mem = topType.GetMembers("Prop01").Single();
-            memType = (mem as PropertySymbol).Type.TypeSymbol;
+            memType = (mem as PropertySymbol).Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
             Assert.True(memType.CanBeAssignedNull());
 
@@ -1525,7 +1527,7 @@ public class NullableTest
             Assert.Same(underType, memType.GetNullableUnderlyingType());
             // ------------------------------
             mem = topType.GetMembers(WellKnownMemberNames.Indexer).Single();
-            memType = (mem as PropertySymbol).Type.TypeSymbol;
+            memType = (mem as PropertySymbol).Type;
             Assert.True(memType.CanBeAssignedNull());
             Assert.False(memType.CanBeConst());
 
@@ -1535,13 +1537,13 @@ public class NullableTest
 
             var paras = mem.GetParameters();
             Assert.Equal(2, paras.Length);
-            memType = paras[0].Type.TypeSymbol;
+            memType = paras[0].Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_UInt16), memType.GetNullableUnderlyingType());
-            memType = paras[1].Type.TypeSymbol;
+            memType = paras[1].Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_UInt32), memType.GetNullableUnderlyingType());
             // ------------------------------
             mem = topType.GetMembers("Method01").Single();
-            memType = (mem as MethodSymbol).ReturnType.TypeSymbol;
+            memType = (mem as MethodSymbol).ReturnType;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
             Assert.True(memType.CanBeAssignedNull());
             underType = memType.StrippedType();
@@ -1551,13 +1553,13 @@ public class NullableTest
             paras = mem.GetParameters();
             Assert.Equal(RefKind.Ref, paras[0].RefKind);
             Assert.Equal(RefKind.Out, paras[1].RefKind);
-            memType = paras[0].Type.TypeSymbol;
+            memType = paras[0].Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Int64), memType.GetNullableUnderlyingType());
-            memType = paras[1].Type.TypeSymbol;
+            memType = paras[1].Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_UInt64), memType.GetNullableUnderlyingType());
             // ------------------------------
             mem = topType.GetMembers("Method02").Single();
-            memType = (mem as MethodSymbol).ReturnType.TypeSymbol;
+            memType = (mem as MethodSymbol).ReturnType;
             Assert.True(memType.IsNullableType());
             underType = memType.GetNullableUnderlyingType();
             Assert.True(underType.IsNonNullableValueType());
@@ -1567,11 +1569,11 @@ public class NullableTest
             paras = mem.GetParameters();
             Assert.True(paras[0].IsOptional);
             Assert.True(paras[1].IsParams);
-            memType = paras[0].Type.TypeSymbol;
+            memType = paras[0].Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Double), memType.GetNullableUnderlyingType());
-            memType = paras[1].Type.TypeSymbol;
+            memType = paras[1].Type;
             Assert.True(memType.IsArray());
-            Assert.Same(comp.GetSpecialType(SpecialType.System_Single), (memType as ArrayTypeSymbol).ElementType.TypeSymbol.GetNullableUnderlyingType());
+            Assert.Same(comp.GetSpecialType(SpecialType.System_Single), (memType as ArrayTypeSymbol).ElementType.GetNullableUnderlyingType());
         }
 
         [Fact]
@@ -1605,22 +1607,22 @@ public struct S
             var enumType = comp.SourceModule.GlobalNamespace.GetTypeMembers("E").Single();
             // ------------------------------
             var mem = topType.GetMembers("efield").Single();
-            var deleType = (mem as EventSymbol).Type.TypeSymbol;
+            var deleType = (mem as EventSymbol).Type;
             Assert.True(deleType.IsDelegateType());
-            var memType = deleType.DelegateInvokeMethod().ReturnType.TypeSymbol;
+            var memType = deleType.DelegateInvokeMethod().ReturnType;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
 
             var paras = deleType.DelegateParameters();
             Assert.False(paras[0].IsOptional);
             Assert.True(paras[1].IsOptional);
-            memType = paras[0].Type.TypeSymbol;
+            memType = paras[0].Type;
             Assert.Same(topType, memType.GetNullableUnderlyingType());
-            memType = paras[1].Type.TypeSymbol;
+            memType = paras[1].Type;
             Assert.Same(enumType, memType.GetNullableUnderlyingType());
             Assert.Equal("E?", memType.ToDisplayString());
             // ------------------------------
             mem = topType.GetMembers(WellKnownMemberNames.ImplicitConversionName).Single();
-            memType = (mem as MethodSymbol).ReturnType.TypeSymbol;
+            memType = (mem as MethodSymbol).ReturnType;
             Assert.True(memType.IsNullableType());
             Assert.False(memType.CanBeConst());
 
@@ -1629,17 +1631,17 @@ public struct S
             Assert.Same(nestedType, underType);
 
             paras = (mem as MethodSymbol).GetParameters();
-            Assert.Same(topType, paras[0].Type.TypeSymbol.GetNullableUnderlyingType());
+            Assert.Same(topType, paras[0].Type.GetNullableUnderlyingType());
             // ------------------------------
             mem = topType.GetMembers(WellKnownMemberNames.AdditionOperatorName).Single();
-            memType = (mem as MethodSymbol).ReturnType.TypeSymbol;
+            memType = (mem as MethodSymbol).ReturnType;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
             Assert.True(memType.CanBeAssignedNull());
 
             paras = mem.GetParameters();
-            memType = paras[0].Type.TypeSymbol;
+            memType = paras[0].Type;
             Assert.Same(topType, memType.GetNullableUnderlyingType());
-            memType = paras[1].Type.TypeSymbol;
+            memType = paras[1].Type;
             Assert.Same(nestedType, memType.GetNullableUnderlyingType());
         }
 
@@ -1665,7 +1667,7 @@ class A
 ";
 
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateCompilation(tree);
+            var comp = (Compilation)CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var mnode = (MethodDeclarationSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.MethodDeclaration);
@@ -1674,45 +1676,45 @@ class A
             // 4 locals + 2 lambda params
             Assert.Equal(6, locals.Length);
             // local04
-            var anonymousType = (locals[3] as LocalSymbol).Type.TypeSymbol;
+            var anonymousType = (locals[3] as ILocalSymbol).Type;
             Assert.True(anonymousType.IsAnonymousType);
 
             // --------------------
             // local01
-            var memType = anonymousType.GetMember<PropertySymbol>("p0").Type.TypeSymbol;
+            var memType = anonymousType.GetMember<IPropertySymbol>("p0").Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
-            Assert.Same((locals[0] as LocalSymbol).Type.TypeSymbol, memType);
+            Assert.Equal((locals[0] as ILocalSymbol).Type, memType, SymbolEqualityComparer.ConsiderEverything);
 
             // --------------------
-            var nestedType = anonymousType.GetMember<PropertySymbol>("p1").Type.TypeSymbol;
+            var nestedType = anonymousType.GetMember<IPropertySymbol>("p1").Type;
             Assert.True(nestedType.IsAnonymousType);
             // local02
-            memType = nestedType.GetMember<PropertySymbol>("p1").Type.TypeSymbol;
+            memType = nestedType.GetMember<IPropertySymbol>("p1").Type;
             Assert.True(memType.IsDelegateType());
-            Assert.Same((locals[1] as LocalSymbol).Type.TypeSymbol, memType);
+            Assert.Same((locals[1] as ILocalSymbol).Type, memType);
             // 
-            var paras = memType.DelegateInvokeMethod().Parameters;
-            memType = paras[0].Type.TypeSymbol;
+            var paras = ((INamedTypeSymbol)memType).DelegateInvokeMethod.Parameters;
+            memType = paras[0].Type;
             Assert.True(memType.IsNullableType());
-            Assert.False(memType.CanBeConst());
-            memType = paras[1].Type.TypeSymbol;
+            Assert.False(memType.GetSymbol().CanBeConst());
+            memType = paras[1].Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
-            Assert.True(memType.GetNullableUnderlyingType().IsEnumType());
+            Assert.Equal(TypeKind.Enum, memType.GetNullableUnderlyingType().TypeKind);
             Assert.Equal("System.PlatformID?", memType.ToDisplayString());
 
             // local03
-            memType = nestedType.GetMember<PropertySymbol>("local03").Type.TypeSymbol;
-            Assert.Same((locals[2] as LocalSymbol).Type.TypeSymbol, memType);
+            memType = nestedType.GetMember<IPropertySymbol>("local03").Type;
+            Assert.Same((locals[2] as ILocalSymbol).Type, memType);
             Assert.True(memType.IsDelegateType());
             // return type
-            memType = memType.DelegateInvokeMethod().ReturnType.TypeSymbol;
+            memType = ((INamedTypeSymbol)memType).DelegateInvokeMethod.ReturnType;
             Assert.True(memType.IsNullableType());
-            Assert.True(memType.CanBeAssignedNull());
+            Assert.True(memType.GetSymbol().CanBeAssignedNull());
             // --------------------
             // method parameter symbol
-            var compType = (model.GetDeclaredSymbol(mnode) as MethodSymbol).Parameters[0].Type.TypeSymbol;
-            memType = anonymousType.GetMember<PropertySymbol>("p").Type.TypeSymbol;
-            Assert.Same(compType, memType);
+            var compType = (model.GetDeclaredSymbol(mnode) as IMethodSymbol).Parameters[0].Type;
+            memType = anonymousType.GetMember<IPropertySymbol>("p").Type;
+            Assert.Equal(compType, memType, SymbolEqualityComparer.ConsiderEverything);
             Assert.True(memType.IsNullableType());
             Assert.Equal("System.Collections.DictionaryEntry?", memType.ToDisplayString());
         }
@@ -1749,15 +1751,15 @@ namespace NS
 ";
 
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateCompilation(tree);
+            var comp = (Compilation)CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var node1 = (LocalDeclarationStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.LocalDeclarationStatement, 3);
             var loc = node1.Declaration.Variables.First();
-            var sym = model.GetDeclaredSymbol(node1.Declaration.Variables.First()) as LocalSymbol;
+            var sym = model.GetDeclaredSymbol(node1.Declaration.Variables.First()) as ILocalSymbol;
             // --------------------
             // R?
-            var memType = sym.Type.TypeSymbol;
+            var memType = sym.Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
             Assert.Equal("System.PlatformID?", memType.ToDisplayString());
 
@@ -1765,16 +1767,16 @@ namespace NS
             var tinfo = model.GetTypeInfo(nodes[0] as IdentifierNameSyntax);
             // obj: IGoo<float, PlatformID>
             Assert.NotNull(tinfo.Type);
-            Assert.True(((TypeSymbol)tinfo.Type).IsInterfaceType());
+            Assert.Equal(TypeKind.Interface, ((ITypeSymbol)tinfo.Type).TypeKind);
             Assert.Equal("NS.IGoo<float, System.PlatformID>", tinfo.Type.ToDisplayString());
             // f: T? -> float?
             tinfo = model.GetTypeInfo(nodes[1] as IdentifierNameSyntax);
-            Assert.True(((TypeSymbol)tinfo.Type).IsNullableType());
+            Assert.True(((ITypeSymbol)tinfo.Type).IsNullableType());
             Assert.Equal("float?", tinfo.Type.ToDisplayString());
             // decimal?
             tinfo = model.GetTypeInfo(nodes[2] as LiteralExpressionSyntax);
-            Assert.True(((TypeSymbol)tinfo.ConvertedType).IsNullableType());
-            Assert.Same(comp.GetSpecialType(SpecialType.System_Decimal), ((TypeSymbol)tinfo.ConvertedType).GetNullableUnderlyingType());
+            Assert.True(((ITypeSymbol)tinfo.ConvertedType).IsNullableType());
+            Assert.Same(comp.GetSpecialType(SpecialType.System_Decimal), ((ITypeSymbol)tinfo.ConvertedType).GetNullableUnderlyingType());
             Assert.Equal("decimal?", tinfo.ConvertedType.ToDisplayString());
         }
 
@@ -1794,12 +1796,12 @@ class Goo {
 ";
             var compilation = CreateCompilation(code);
             var Goo = compilation.GlobalNamespace.GetTypeMembers("Goo")[0];
-            var Dynamic = (Goo.GetMembers("X")[0] as FieldSymbol).Type.TypeSymbol;
-            var Object = (Goo.GetMembers("Y")[0] as FieldSymbol).Type.TypeSymbol;
-            var Func_Dynamic = (Goo.GetMembers("Z")[0] as FieldSymbol).Type.TypeSymbol;
-            var Func_Object = (Goo.GetMembers("W")[0] as FieldSymbol).Type.TypeSymbol;
+            var Dynamic = (Goo.GetMembers("X")[0] as FieldSymbol).Type;
+            var Object = (Goo.GetMembers("Y")[0] as FieldSymbol).Type;
+            var Func_Dynamic = (Goo.GetMembers("Z")[0] as FieldSymbol).Type;
+            var Func_Object = (Goo.GetMembers("W")[0] as FieldSymbol).Type;
 
-            var comparator = TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer;
+            var comparator = CSharp.Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability;
             Assert.NotEqual(Object, Dynamic);
             Assert.Equal(comparator.GetHashCode(Dynamic), comparator.GetHashCode(Object));
             Assert.True(comparator.Equals(Dynamic, Object));
@@ -1839,7 +1841,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateCompilation(code);
+            var compilation = (Compilation)CreateCompilation(code);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -1847,11 +1849,11 @@ class C<T>
 
             var info = model.GetSymbolInfo(syntax);
             var symbol = info.Symbol;
-            var originalDefinition = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var originalDefinition = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
 
             Assert.Equal(originalDefinition.InstanceConstructors.Single(), symbol.OriginalDefinition);
             Assert.False(symbol.ContainingType.IsUnboundGenericType);
-            Assert.IsType<UnboundArgumentErrorTypeSymbol>(symbol.ContainingType.TypeArguments.Single());
+            Assert.IsType<UnboundArgumentErrorTypeSymbol>(symbol.ContainingType.TypeArguments.Single().GetSymbol());
         }
 
         [Fact]

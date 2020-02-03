@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -16,8 +18,8 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         TLanguageKindEnum,
         TExpressionSyntax,
         TThisExpressionSyntax,
-        TMemberAccessExpressionSyntax> : 
-        AbstractBuiltInCodeStyleDiagnosticAnalyzer 
+        TMemberAccessExpressionSyntax> :
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TExpressionSyntax : SyntaxNode
         where TThisExpressionSyntax : TExpressionSyntax
@@ -28,6 +30,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         protected AbstractSimplifyThisOrMeDiagnosticAnalyzer(
             ImmutableArray<TLanguageKindEnum> kindsOfInterest)
             : base(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                   ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.QualifyPropertyAccess, CodeStyleOptions.QualifyMethodAccess, CodeStyleOptions.QualifyEventAccess),
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {
@@ -36,9 +39,6 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
         protected abstract string GetLanguageName();
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
-
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
 
         protected abstract bool CanSimplifyTypeNameExpression(
             SemanticModel model, TMemberAccessExpressionSyntax memberAccess, OptionSet optionSet, out TextSpan issueSpan, CancellationToken cancellationToken);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             var cancellationToken = context.CancellationToken;
             var node = (TMemberAccessExpressionSyntax)context.Node;
 
-            var syntaxFacts = this.GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFactsService();
             var expr = syntaxFacts.GetExpressionOfMemberAccessExpression(node);
             if (!(expr is TThisExpressionSyntax))
             {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             builder["OptionLanguage"] = model.Language;
 
             var diagnostic = DiagnosticHelper.Create(
-                descriptor, tree.GetLocation(issueSpan), severity, 
+                descriptor, tree.GetLocation(issueSpan), severity,
                 ImmutableArray.Create(node.GetLocation()), builder.ToImmutable());
 
             context.ReportDiagnostic(diagnostic);

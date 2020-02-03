@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
@@ -11,7 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer 
+    internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
         : AbstractAddAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
     {
         public CSharpAddAccessibilityModifiersDiagnosticAnalyzer()
@@ -19,15 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
         }
 
         protected override void ProcessCompilationUnit(
-            SyntaxTreeAnalysisContext context, SyntaxGenerator generator, 
+            SyntaxTreeAnalysisContext context, SyntaxGenerator generator,
             CodeStyleOption<AccessibilityModifiersRequired> option, CompilationUnitSyntax compilationUnit)
         {
             ProcessMembers(context, generator, option, compilationUnit.Members);
         }
 
         private void ProcessMembers(
-            SyntaxTreeAnalysisContext context, SyntaxGenerator generator, 
-            CodeStyleOption<AccessibilityModifiersRequired> option, 
+            SyntaxTreeAnalysisContext context, SyntaxGenerator generator,
+            CodeStyleOption<AccessibilityModifiersRequired> option,
             SyntaxList<MemberDeclarationSyntax> members)
         {
             foreach (var memberDeclaration in members)

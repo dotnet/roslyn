@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     /// </summary>
     internal sealed class RegexSyntaxClassifier : AbstractSyntaxClassifier
     {
-        private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
+        private static ObjectPool<Visitor> s_visitorPool = SharedPools.Default<Visitor>();
 
         private readonly EmbeddedLanguageInfo _info;
 
@@ -34,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         public override void AddClassifications(
-            Workspace workspace, SyntaxToken token, SemanticModel semanticModel, 
+            Workspace workspace, SyntaxToken token, SemanticModel semanticModel,
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (_info.StringLiteralTokenKind != token.RawKind)
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return;
             }
 
-            var visitor = _visitorPool.Allocate();
+            var visitor = s_visitorPool.Allocate();
             try
             {
                 visitor.Result = result;
@@ -69,7 +72,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             finally
             {
                 visitor.Result = null;
-                _visitorPool.Free(visitor);
+                s_visitorPool.Free(visitor);
             }
         }
 
@@ -315,7 +318,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
             public void Visit(RegexPosixPropertyNode node)
             {
-                // The .net parser just interprets the [ of the node, and skips the rest. So
+                // The .NET parser just interprets the [ of the node, and skips the rest. So
                 // classify the end part as a comment.
                 Result.Add(new ClassifiedSpan(node.TextToken.VirtualChars[0].Span, ClassificationTypeNames.RegexText));
                 Result.Add(new ClassifiedSpan(

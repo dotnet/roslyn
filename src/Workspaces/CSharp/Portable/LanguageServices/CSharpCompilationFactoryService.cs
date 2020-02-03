@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
@@ -12,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal class CSharpCompilationFactoryService : ICompilationFactoryService
     {
         private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild: false);
+
+        [ImportingConstructor]
+        public CSharpCompilationFactoryService()
+        {
+        }
 
         Compilation ICompilationFactoryService.CreateCompilation(string assemblyName, CompilationOptions options)
         {
@@ -32,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Compilation ICompilationFactoryService.GetCompilationFromCompilationReference(MetadataReference reference)
         {
             var compilationRef = reference as CompilationReference;
-            return (compilationRef != null) ? compilationRef.Compilation : null;
+            return compilationRef?.Compilation;
         }
 
         bool ICompilationFactoryService.IsCompilationReference(MetadataReference reference)

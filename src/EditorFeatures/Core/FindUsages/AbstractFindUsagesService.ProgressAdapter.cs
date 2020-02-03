@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                     document, span, _context.CancellationToken).ConfigureAwait(false);
                 await _context.OnReferenceFoundAsync(new SourceReferenceItem(
-                    _definition, documentSpan, ValueUsageInfo.None)).ConfigureAwait(false);
+                    _definition, documentSpan, SymbolUsageInfo.None)).ConfigureAwait(false);
             }
 
             public Task ReportProgressAsync(int current, int maximum)
@@ -98,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     if (!_definitionToItem.TryGetValue(definition.Symbol, out var definitionItem))
                     {
                         definitionItem = await definition.Symbol.ToClassifiedDefinitionItemAsync(
-                            _solution.GetProject(definition.ProjectId), includeHiddenLocations: false, 
+                            _solution.GetProject(definition.ProjectId), includeHiddenLocations: false,
                             _options, _context.CancellationToken).ConfigureAwait(false);
 
                         _definitionToItem[definition.Symbol] = definitionItem;
@@ -116,12 +119,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             public async Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
             {
-                // Ignore duplicate locations.  We don't want to clutter the UI with them.
-                if (location.IsDuplicateReferenceLocation)
-                {
-                    return;
-                }
-
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(
                     definitionItem, includeHiddenLocations: false,

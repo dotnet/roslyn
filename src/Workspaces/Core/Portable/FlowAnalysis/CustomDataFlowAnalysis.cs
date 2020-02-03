@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,13 +31,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var blocks = controlFlowGraph.Blocks;
             var continueDispatchAfterFinally = PooledDictionary<ControlFlowRegion, bool>.GetInstance();
             var dispatchedExceptionsFromRegions = PooledHashSet<ControlFlowRegion>.GetInstance();
-            int firstBlockOrdinal = 0;
-            int lastBlockOrdinal = blocks.Length - 1;
+            var firstBlockOrdinal = 0;
+            var lastBlockOrdinal = blocks.Length - 1;
 
             var unreachableBlocksToVisit = ArrayBuilder<BasicBlock>.GetInstance();
             if (analyzer.AnalyzeUnreachableBlocks)
             {
-                for (int i = firstBlockOrdinal; i <= lastBlockOrdinal; i++)
+                for (var i = firstBlockOrdinal; i <= lastBlockOrdinal; i++)
                 {
                     if (!blocks[i].IsReachable)
                     {
@@ -45,10 +47,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             var initialAnalysisData = analyzer.GetCurrentAnalysisData(blocks[0]);
-            if (initialAnalysisData == default)
-            {
-                initialAnalysisData = analyzer.GetEmptyAnalysisData();
-            }
 
             var result = RunCore(blocks, analyzer, firstBlockOrdinal, lastBlockOrdinal,
                                  initialAnalysisData,
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var toVisit = new SortedSet<int>();
 
             var firstBlock = blocks[firstBlockOrdinal];
-            analyzer.SetCurrentAnalysisData(firstBlock, initialAnalysisData);
+            analyzer.SetCurrentAnalysisData(firstBlock, initialAnalysisData, cancellationToken);
             toVisit.Add(firstBlock.Ordinal);
 
             var processedBlocks = PooledHashSet<BasicBlock>.GetInstance();
@@ -122,7 +120,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         continue;
                     }
 
-                    analyzer.SetCurrentAnalysisData(current, analyzer.GetEmptyAnalysisData());
+                    analyzer.SetCurrentAnalysisData(current, analyzer.GetEmptyAnalysisData(), cancellationToken);
                 }
 
                 if (current.Ordinal < firstBlockOrdinal || current.Ordinal > lastBlockOrdinal)
@@ -137,15 +135,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     dispatchedExceptionsFromRegions.Remove(current.EnclosingRegion);
                 }
 
-                TBlockAnalysisData fallThroughAnalysisData = analyzer.AnalyzeBlock(current, cancellationToken);
-                bool fallThroughSuccessorIsReachable = true;
+                var fallThroughAnalysisData = analyzer.AnalyzeBlock(current, cancellationToken);
+                var fallThroughSuccessorIsReachable = true;
 
                 if (current.ConditionKind != ControlFlowConditionKind.None)
                 {
                     TBlockAnalysisData conditionalSuccessorAnalysisData;
                     (fallThroughAnalysisData, conditionalSuccessorAnalysisData) = analyzer.AnalyzeConditionalBranch(current, fallThroughAnalysisData, cancellationToken);
 
-                    bool conditionalSuccesorIsReachable = true;
+                    var conditionalSuccesorIsReachable = true;
                     if (current.BranchValue.ConstantValue.HasValue && current.BranchValue.ConstantValue.Value is bool constant)
                     {
                         if (constant == (current.ConditionKind == ControlFlowConditionKind.WhenTrue))
@@ -170,7 +168,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 if (fallThroughSuccessorIsReachable || analyzer.AnalyzeUnreachableBlocks)
                 {
-                    ControlFlowBranch branch = current.FallThroughSuccessor;
+                    var branch = current.FallThroughSuccessor;
                     FollowBranch(current, branch, fallThroughAnalysisData);
 
                     if (current.EnclosingRegion.Kind == ControlFlowRegionKind.Finally &&
@@ -212,17 +210,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     case ControlFlowBranchSemantics.None:
                     case ControlFlowBranchSemantics.ProgramTermination:
                     case ControlFlowBranchSemantics.StructuredExceptionHandling:
-                    case ControlFlowBranchSemantics.Throw:
-                    case ControlFlowBranchSemantics.Rethrow:
                     case ControlFlowBranchSemantics.Error:
                         Debug.Assert(branch.Destination == null);
+                        return;
+
+                    case ControlFlowBranchSemantics.Throw:
+                    case ControlFlowBranchSemantics.Rethrow:
+                        Debug.Assert(branch.Destination == null);
+                        StepThroughFinally(current.EnclosingRegion, destinationOrdinal: lastBlockOrdinal, ref currentAnalsisData);
                         return;
 
                     case ControlFlowBranchSemantics.Regular:
                     case ControlFlowBranchSemantics.Return:
                         Debug.Assert(branch.Destination != null);
 
-                        if (StepThroughFinally(current.EnclosingRegion, branch.Destination, ref currentAnalsisData))
+                        if (StepThroughFinally(current.EnclosingRegion, branch.Destination.Ordinal, ref currentAnalsisData))
                         {
                             var destination = branch.Destination;
                             var currentDestinationData = analyzer.GetCurrentAnalysisData(destination);
@@ -234,7 +236,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             if ((current.IsReachable || !destination.IsReachable) &&
                                 (!analyzer.IsEqual(currentDestinationData, mergedAnalysisData) || !processedBlocks.Contains(destination)))
                             {
-                                analyzer.SetCurrentAnalysisData(destination, mergedAnalysisData);
+                                analyzer.SetCurrentAnalysisData(destination, mergedAnalysisData, cancellationToken);
                                 toVisit.Add(branch.Destination.Ordinal);
                             }
                         }
@@ -247,13 +249,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             // Returns whether we should proceed to the destination after finallies were taken care of.
-            bool StepThroughFinally(ControlFlowRegion region, BasicBlock destination, ref TBlockAnalysisData currentAnalysisData)
+            bool StepThroughFinally(ControlFlowRegion region, int destinationOrdinal, ref TBlockAnalysisData currentAnalysisData)
             {
-                int destinationOrdinal = destination.Ordinal;
                 while (!region.ContainsBlock(destinationOrdinal))
                 {
                     Debug.Assert(region.Kind != ControlFlowRegionKind.Root);
-                    ControlFlowRegion enclosing = region.EnclosingRegion;
+                    var enclosing = region.EnclosingRegion;
                     if (region.Kind == ControlFlowRegionKind.Try && enclosing.Kind == ControlFlowRegionKind.TryAndFinally)
                     {
                         Debug.Assert(enclosing.NestedRegions[0] == region);
@@ -295,7 +296,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                                   cancellationToken);
                 }
 
-                if (!continueDispatchAfterFinally.TryGetValue(@finally, out bool dispatch))
+                if (!continueDispatchAfterFinally.TryGetValue(@finally, out var dispatch))
                 {
                     dispatch = false;
                     continueDispatchAfterFinally.Add(@finally, false);
@@ -313,7 +314,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         return;
                     }
 
-                    ControlFlowRegion enclosing = fromRegion.Kind == ControlFlowRegionKind.Root ? null : fromRegion.EnclosingRegion;
+                    var enclosing = fromRegion.Kind == ControlFlowRegionKind.Root ? null : fromRegion.EnclosingRegion;
                     if (fromRegion.Kind == ControlFlowRegionKind.Try)
                     {
                         switch (enclosing.Kind)
@@ -342,10 +343,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     {
                         // If filter throws, dispatch is resumed at the next catch with an original exception
                         Debug.Assert(enclosing.Kind == ControlFlowRegionKind.FilterAndHandler);
-                        ControlFlowRegion tryAndCatch = enclosing.EnclosingRegion;
+                        var tryAndCatch = enclosing.EnclosingRegion;
                         Debug.Assert(tryAndCatch.Kind == ControlFlowRegionKind.TryAndCatch);
 
-                        int index = tryAndCatch.NestedRegions.IndexOf(enclosing, startIndex: 1);
+                        var index = tryAndCatch.NestedRegions.IndexOf(enclosing, startIndex: 1);
 
                         if (index > 0)
                         {
@@ -371,9 +372,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Debug.Assert(startAt > 0);
                 Debug.Assert(startAt <= tryAndCatch.NestedRegions.Length);
 
-                for (int i = startAt; i < tryAndCatch.NestedRegions.Length; i++)
+                for (var i = startAt; i < tryAndCatch.NestedRegions.Length; i++)
                 {
-                    ControlFlowRegion @catch = tryAndCatch.NestedRegions[i];
+                    var @catch = tryAndCatch.NestedRegions[i];
 
                     switch (@catch.Kind)
                     {
@@ -382,7 +383,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             break;
 
                         case ControlFlowRegionKind.FilterAndHandler:
-                            BasicBlock entryBlock = blocks[@catch.FirstBlockOrdinal];
+                            var entryBlock = blocks[@catch.FirstBlockOrdinal];
                             Debug.Assert(@catch.NestedRegions[0].Kind == ControlFlowRegionKind.Filter);
                             Debug.Assert(entryBlock.Ordinal == @catch.NestedRegions[0].FirstBlockOrdinal);
 

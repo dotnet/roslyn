@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -30,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             var parsedStatement = SyntaxFactory.ParseStatement(statement);
             var token = parsedStatement.DescendantTokens().ToArray()[3];
             Assert.True(token.Kind() == SyntaxKind.StringLiteralToken);
-            
+
             return token;
         }
 
-        private void Test(string stringText, string expected, RegexOptions options, 
+        private void Test(string stringText, string expected, RegexOptions options,
             bool runSubTreeTests = true, [CallerMemberName]string name = "",
             bool allowIndexOutOfRange = false,
             bool allowNullReference = false,
@@ -60,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
         private void TryParseSubTrees(
             string stringText, RegexOptions options,
-            bool allowIndexOutOfRange ,
-            bool allowNullReference ,
-            bool allowOutOfMemory )
+            bool allowIndexOutOfRange,
+            bool allowNullReference,
+            bool allowOutOfMemory)
         {
             // Trim the input from the right and make sure tree invariants hold
             var current = stringText;
@@ -93,8 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     allowNullReference,
                     allowOutOfMemory);
             }
-            
-            for (int start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
+
+            for (var start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
             {
                 TryParseTree(
                     stringText.Substring(0, start) +
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
         }
 
-        private (SyntaxToken, RegexTree, ImmutableArray<VirtualChar>) JustParseTree(
+        private (SyntaxToken, RegexTree, VirtualCharSequence) JustParseTree(
             string stringText, RegexOptions options, bool conversionFailureOk)
         {
             var token = GetStringToken(stringText);
@@ -146,25 +148,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
             catch (IndexOutOfRangeException) when (allowIndexOutOfRange)
             {
-                // bug with .net regex parser.  Can happen with patterns like: (?<-0
+                // bug with .NET regex parser.  Can happen with patterns like: (?<-0
                 Assert.NotEmpty(tree.Diagnostics);
                 return treeAndText;
             }
             catch (NullReferenceException) when (allowNullReference)
             {
-                // bug with .net regex parser.  can happen with patterns like: (?(?S))
+                // bug with .NET regex parser.  can happen with patterns like: (?(?S))
                 return treeAndText;
             }
             catch (OutOfMemoryException) when (allowOutOfMemeory)
             {
-                // bug with .net regex parser.  can happen with patterns like: a{2147483647,}
+                // bug with .NET regex parser.  can happen with patterns like: a{2147483647,}
                 return treeAndText;
             }
             catch (ArgumentException ex)
             {
                 Assert.NotEmpty(tree.Diagnostics);
 
-                // Ensure the diagnostic we emit is the same as the .Net one.  Note: we can only
+                // Ensure the diagnostic we emit is the same as the .NET one. Note: we can only
                 // do this in en-US as that's the only culture where we control the text exactly
                 // and can ensure it exactly matches Regex.  We depend on localization to do a 
                 // good enough job here for other languages.
@@ -252,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 trivia.Kind.ToString(),
                 trivia.VirtualChars.CreateString());
 
-        private void CheckInvariants(RegexTree tree, ImmutableArray<VirtualChar> allChars)
+        private void CheckInvariants(RegexTree tree, VirtualCharSequence allChars)
         {
             var root = tree.Root;
             var position = 0;
@@ -260,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Assert.Equal(allChars.Length, position);
         }
 
-        private void CheckInvariants(RegexNode node, ref int position, ImmutableArray<VirtualChar> allChars)
+        private void CheckInvariants(RegexNode node, ref int position, VirtualCharSequence allChars)
         {
             foreach (var child in node)
             {
@@ -275,13 +277,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
         }
 
-        private void CheckInvariants(RegexToken token, ref int position, ImmutableArray<VirtualChar> allChars)
+        private void CheckInvariants(RegexToken token, ref int position, VirtualCharSequence allChars)
         {
             CheckInvariants(token.LeadingTrivia, ref position, allChars);
             CheckCharacters(token.VirtualChars, ref position, allChars);
         }
 
-        private void CheckInvariants(ImmutableArray<RegexTrivia> leadingTrivia, ref int position, ImmutableArray<VirtualChar> allChars)
+        private void CheckInvariants(ImmutableArray<RegexTrivia> leadingTrivia, ref int position, VirtualCharSequence allChars)
         {
             foreach (var trivia in leadingTrivia)
             {
@@ -289,22 +291,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
         }
 
-        private void CheckInvariants(RegexTrivia trivia, ref int position, ImmutableArray<VirtualChar> allChars)
+        private void CheckInvariants(RegexTrivia trivia, ref int position, VirtualCharSequence allChars)
         {
             switch (trivia.Kind)
             {
-            case RegexKind.CommentTrivia:
-            case RegexKind.WhitespaceTrivia:
-                break;
-            default:
-                Assert.False(true, "Incorrect trivia kind");
-                return;
+                case RegexKind.CommentTrivia:
+                case RegexKind.WhitespaceTrivia:
+                    break;
+                default:
+                    Assert.False(true, "Incorrect trivia kind");
+                    return;
             }
 
             CheckCharacters(trivia.VirtualChars, ref position, allChars);
         }
 
-        private static void CheckCharacters(ImmutableArray<VirtualChar> virtualChars, ref int position, ImmutableArray<VirtualChar> allChars)
+        private static void CheckCharacters(VirtualCharSequence virtualChars, ref int position, VirtualCharSequence allChars)
         {
             for (var i = 0; i < virtualChars.Length; i++)
             {

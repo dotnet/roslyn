@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -947,6 +949,11 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.IsReadOnlyAttribute).HasValue;
         }
 
+        internal bool HasDoesNotReturnAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.DoesNotReturnAttribute).HasValue;
+        }
+
         internal bool HasIsUnmanagedAttribute(EntityHandle token)
         {
             return FindTargetAttribute(token, AttributeDescription.IsUnmanagedAttribute).HasValue;
@@ -1046,7 +1053,7 @@ namespace Microsoft.CodeAnalysis
         internal const string ByRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
 
         internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute(
-            EntityHandle token, 
+            EntityHandle token,
             bool ignoreByRefLikeMarker)
         {
             AttributeInfo info;
@@ -1078,6 +1085,22 @@ namespace Microsoft.CodeAnalysis
             }
 
             return null;
+        }
+
+        internal bool HasMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(EntityHandle token, AttributeDescription description, out bool when)
+        {
+            Debug.Assert(description.Namespace == "System.Diagnostics.CodeAnalysis");
+            Debug.Assert(description.Name == "MaybeNullWhenAttribute" || description.Name == "NotNullWhenAttribute" || description.Name == "DoesNotReturnIfAttribute");
+
+            AttributeInfo info = FindTargetAttribute(token, description);
+            if (info.HasValue &&
+                // MaybeNullWhen(bool), NotNullWhen(bool), DoesNotReturnIf(bool)
+                info.SignatureIndex == 0)
+            {
+                return TryExtractValueFromAttribute(info.Handle, out when, s_attributeBooleanValueExtractor);
+            }
+            when = false;
+            return false;
         }
 
         internal CustomAttributeHandle GetAttributeUsageAttributeHandle(EntityHandle token)
@@ -1145,6 +1168,22 @@ namespace Microsoft.CodeAnalysis
             }
 
             defaultValue = null;
+            return false;
+        }
+
+        internal bool HasNullablePublicOnlyAttribute(EntityHandle token, out bool includesInternals)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullablePublicOnlyAttribute);
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryExtractValueFromAttribute(info.Handle, out bool value, s_attributeBooleanValueExtractor))
+                {
+                    includesInternals = value;
+                    return true;
+                }
+            }
+            includesInternals = false;
             return false;
         }
 
@@ -2419,6 +2458,20 @@ namespace Microsoft.CodeAnalysis
             return _lazyContainsNoPiaLocalTypes == ThreeState.True;
         }
 
+        internal bool HasNullableContextAttribute(EntityHandle token, out byte value)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullableContextAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0);
+
+            if (!info.HasValue)
+            {
+                value = 0;
+                return false;
+            }
+
+            return TryExtractValueFromAttribute(info.Handle, out value, s_attributeByteValueExtractor);
+        }
+
         internal bool HasNullableAttribute(EntityHandle token, out byte defaultTransform, out ImmutableArray<byte> nullableTransforms)
         {
             AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullableAttribute);
@@ -2975,7 +3028,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             matchedName = null;
-            return (FirstIndex: -1, SecondIndex: - 1);
+            return (FirstIndex: -1, SecondIndex: -1);
         }
 
         internal IEnumerable<KeyValuePair<string, (int FirstIndex, int SecondIndex)>> GetForwardedTypes()

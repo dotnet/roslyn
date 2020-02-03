@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -531,7 +533,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                     }
                     else
                     {
-                        Assert.Equal("System.Boolean[]", dynamicAttribute.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+                        Assert.Equal("System.Boolean[]", dynamicAttribute.AttributeConstructor.Parameters.Single().TypeWithAnnotations.ToTestDisplayString());
 
                         TypedConstant argument = dynamicAttribute.CommonConstructorArguments.Single();
                         Assert.Equal(TypedConstantKind.Array, argument.Kind);
@@ -805,7 +807,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(33, 19)
                 );
         }
-        
+
         [Fact]
         public void TestDynamicAttributeForScript_Field()
         {
@@ -905,7 +907,7 @@ Gen<dynamic> x = null;";
                 // X x = null;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(20, 1));
         }
-        
+
         [Fact, WorkItem(531108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531108")]
         public void DynamicAttributeCtorCS1980BreakingChange()
         {
@@ -1295,7 +1297,7 @@ class C
         public void TestDynamicAttributeInAliasContext(SourceCodeKind sourceCodeKind)
         {
             string source =
-                "using X = Gen<dynamic>;     // No CS1980" 
+                "using X = Gen<dynamic>;     // No CS1980"
                 + GetNoCS1980String(typeName: "X");
 
             CompileAndVerify(CreateCompilationWithMscorlib45(

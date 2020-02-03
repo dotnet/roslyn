@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,9 +13,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenOperatorTests : CSharpTestBase
+    public class CodeGenOperators : CSharpTestBase
     {
-
         [Fact]
         public void TestIsNullPattern()
         {
@@ -81,13 +82,49 @@ class C
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,28): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
-                //         Console.Write(o is null);
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(7, 28),
-                // (8,18): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
-                //         if (o is null)
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(8, 18));
+            var compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.M<T>(T)", @"{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  ldnull
+  IL_0007:  ceq
+  IL_0009:  call       ""void System.Console.Write(bool)""
+  IL_000e:  ldarg.0
+  IL_000f:  box        ""T""
+  IL_0014:  brtrue.s   IL_0020
+  IL_0016:  ldstr      ""Branch taken""
+  IL_001b:  call       ""void System.Console.Write(string)""
+  IL_0020:  ret
+}");
+            // Debug
+            compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.M<T>(T)", @"{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  box        ""T""
+  IL_0007:  ldnull
+  IL_0008:  ceq
+  IL_000a:  call       ""void System.Console.Write(bool)""
+  IL_000f:  nop
+  IL_0010:  ldarg.0
+  IL_0011:  box        ""T""
+  IL_0016:  ldnull
+  IL_0017:  ceq
+  IL_0019:  stloc.0
+  IL_001a:  ldloc.0
+  IL_001b:  brfalse.s  IL_002a
+  IL_001d:  nop
+  IL_001e:  ldstr      ""Branch taken""
+  IL_0023:  call       ""void System.Console.Write(string)""
+  IL_0028:  nop
+  IL_0029:  nop
+  IL_002a:  ret
+}");
         }
 
         [Fact]
@@ -258,40 +295,35 @@ class C
             // Release
             var compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.Main", @"{
-    // Code size       20 (0x14)
-    .maxstack  2
-    IL_0000:  ldnull
-    IL_0001:  ldnull
-    IL_0002:  ceq
-    IL_0004:  call       ""void System.Console.Write(bool)""
-    IL_0009:  ldstr      "" Branch taken""
-    IL_000e:  call       ""void System.Console.Write(string)""
-    IL_0013:  ret
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(bool)""
+  IL_0006:  ldstr      "" Branch taken""
+  IL_000b:  call       ""void System.Console.Write(string)""
+  IL_0010:  ret
 }");
             // Debug
             compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
-            compilation.VerifyIL("C.Main", @"{
-    // Code size       33 (0x21)
-    .maxstack  2
-    .locals init (bool V_0)
-    IL_0000:  nop
-    IL_0001:  ldnull
-    IL_0002:  ldnull
-    IL_0003:  ceq
-    IL_0005:  call       ""void System.Console.Write(bool)""
-    IL_000a:  nop
-    IL_000b:  ldnull
-    IL_000c:  ldnull
-    IL_000d:  ceq
-    IL_000f:  stloc.0
-    IL_0010:  ldloc.0
-    IL_0011:  brfalse.s  IL_0020
-    IL_0013:  nop
-    IL_0014:  ldstr      "" Branch taken""
-    IL_0019:  call       ""void System.Console.Write(string)""
-    IL_001e:  nop
-    IL_001f:  nop
-    IL_0020:  ret
+            compilation.VerifyIL("C.Main", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""void System.Console.Write(bool)""
+  IL_0007:  nop
+  IL_0008:  ldc.i4.1
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  nop
+  IL_000e:  ldstr      "" Branch taken""
+  IL_0013:  call       ""void System.Console.Write(string)""
+  IL_0018:  nop
+  IL_0019:  nop
+  IL_001a:  ret
 }");
         }
 
@@ -316,40 +348,35 @@ class C
             // Release
             var compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.Main", @"{
-    // Code size       20 (0x14)
-    .maxstack  2
-    IL_0000:  ldnull
-    IL_0001:  ldnull
-    IL_0002:  ceq
-    IL_0004:  call       ""void System.Console.Write(bool)""
-    IL_0009:  ldstr      "" Branch taken""
-    IL_000e:  call       ""void System.Console.Write(string)""
-    IL_0013:  ret
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(bool)""
+  IL_0006:  ldstr      "" Branch taken""
+  IL_000b:  call       ""void System.Console.Write(string)""
+  IL_0010:  ret
 }");
             // Debug
             compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
             compilation.VerifyIL("C.Main", @"{
-    // Code size       33 (0x21)
-    .maxstack  2
-    .locals init (bool V_0)
-    IL_0000:  nop
-    IL_0001:  ldnull
-    IL_0002:  ldnull
-    IL_0003:  ceq
-    IL_0005:  call       ""void System.Console.Write(bool)""
-    IL_000a:  nop
-    IL_000b:  ldnull
-    IL_000c:  ldnull
-    IL_000d:  ceq
-    IL_000f:  stloc.0
-    IL_0010:  ldloc.0
-    IL_0011:  brfalse.s  IL_0020
-    IL_0013:  nop
-    IL_0014:  ldstr      "" Branch taken""
-    IL_0019:  call       ""void System.Console.Write(string)""
-    IL_001e:  nop
-    IL_001f:  nop
-    IL_0020:  ret
+  // Code size       27 (0x1b)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""void System.Console.Write(bool)""
+  IL_0007:  nop
+  IL_0008:  ldc.i4.1
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  nop
+  IL_000e:  ldstr      "" Branch taken""
+  IL_0013:  call       ""void System.Console.Write(string)""
+  IL_0018:  nop
+  IL_0019:  nop
+  IL_001a:  ret
+
 }");
         }
 
@@ -5558,7 +5585,7 @@ class Program
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""(bool a, System.Guid b) (bool a, System.Guid b)?.GetValueOrDefault()""
+  IL_0002:  call       ""System.ValueTuple<bool, System.Guid> System.ValueTuple<bool, System.Guid>?.GetValueOrDefault()""
   IL_0007:  ret
 }");
             comp.VerifyIL("Program.CoalesceUserStruct", @"{
@@ -5602,7 +5629,7 @@ class Program
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""(bool a, System.Guid b, string c) (bool a, System.Guid b, string c)?.GetValueOrDefault()""
+  IL_0002:  call       ""System.ValueTuple<bool, System.Guid, string> System.ValueTuple<bool, System.Guid, string>?.GetValueOrDefault()""
   IL_0007:  ret
 }");
         }
@@ -5797,7 +5824,7 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                // (6,14): error CS8370: Feature 'unconstrained type parameters in null coalescing operator' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,14): error CS8652: The feature 'unconstrained type parameters in null coalescing operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         t1 = t1 ?? t2;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator", "8.0").WithLocation(6, 14));
         }

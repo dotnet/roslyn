@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -6,9 +8,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class LazyUseSiteDiagnosticsInfoForNullableType : LazyDiagnosticInfo
     {
-        private readonly TypeSymbolWithAnnotations _possiblyNullableTypeSymbol;
+        private readonly TypeWithAnnotations _possiblyNullableTypeSymbol;
 
-        internal LazyUseSiteDiagnosticsInfoForNullableType(TypeSymbolWithAnnotations possiblyNullableTypeSymbol)
+        internal LazyUseSiteDiagnosticsInfoForNullableType(TypeWithAnnotations possiblyNullableTypeSymbol)
         {
             _possiblyNullableTypeSymbol = possiblyNullableTypeSymbol;
         }
@@ -17,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_possiblyNullableTypeSymbol.IsNullableType())
             {
-                return _possiblyNullableTypeSymbol.TypeSymbol.OriginalDefinition.GetUseSiteDiagnostic();
+                return _possiblyNullableTypeSymbol.Type.OriginalDefinition.GetUseSiteDiagnostic();
             }
-            else if (_possiblyNullableTypeSymbol.TypeSymbol.IsUnconstrainedTypeParameter())
+            else if (_possiblyNullableTypeSymbol.Type.IsTypeParameterDisallowingAnnotation())
             {
                 return new CSDiagnosticInfo(ErrorCode.ERR_NullableUnconstrainedTypeParameter);
             }

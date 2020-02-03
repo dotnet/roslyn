@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -14,8 +17,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpWinForms(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpWinForms), WellKnownProjectTemplates.WinFormsApplication)
+        public CSharpWinForms(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpWinForms), WellKnownProjectTemplates.WinFormsApplication)
         {
         }
 
@@ -39,7 +42,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.cs");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
             VisualStudio.Editor.EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Text", propertyValue: "NewButtonText");
-            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.cs", saveFile: true);
+            VisualStudio.SolutionExplorer.CloseDesignerFile(project, "Form1.cs", saveFile: true);
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.cs");
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"this.SomeButton.Text = ""NewButtonText""", actualText);
@@ -55,7 +58,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             var expectedPropertyValue = "ButtonTextGoesHere";
             var actualPropertyValue = VisualStudio.Editor.GetWinFormButtonPropertyValue(buttonName: "SomeButton", propertyName: "Text");
             Assert.Equal(expectedPropertyValue, actualPropertyValue);
-            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.cs", saveFile: true);
+            VisualStudio.SolutionExplorer.CloseDesignerFile(project, "Form1.cs", saveFile: true);
             //  Change the control's text in designer.cs code
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.cs");
             //  Verify that the control's property was set correctly. The following text should appear in InitializeComponent().
@@ -64,7 +67,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             //  Replace text property with something else
             VisualStudio.Editor.SelectTextInCurrentDocument(@"this.SomeButton.Text = ""ButtonTextGoesHere"";");
             VisualStudio.Editor.SendKeys(@"this.SomeButton.Text = ""GibberishText"";");
-            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.Designer.cs",  saveFile: true);
+            VisualStudio.SolutionExplorer.CloseCodeFile(project, "Form1.Designer.cs", saveFile: true);
             //  Verify that the control text has changed in the designer
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.cs");
             expectedPropertyValue = "GibberishText";

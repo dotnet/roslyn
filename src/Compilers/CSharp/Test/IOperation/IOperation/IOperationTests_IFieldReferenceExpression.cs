@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -167,7 +169,7 @@ IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (Sys
         [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
         [Fact]
-        public void IFieldReferenceExpression_ImplicitThis ()
+        public void IFieldReferenceExpression_ImplicitThis()
         {
             string source = @"
 class C
@@ -280,7 +282,7 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) 
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,compilationOptions: TestOptions.UnsafeDebugDll);
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

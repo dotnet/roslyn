@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,7 +38,11 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             if (!pastedTextSpan.IsEmpty)
             {
                 var pasteTrackingService = workspace.ExportProvider.GetExportedValue<PasteTrackingService>();
-                pasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, pastedTextSpan);
+
+                // This tests the paste tracking service's resiliancy to failing when multiple pasted spans are
+                // registered consecutively and that the last registered span wins.
+                pasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), default);
+                pasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), pastedTextSpan);
             }
 
             return workspace;
@@ -335,6 +341,52 @@ namespace B
 ";
 
             await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WorkItem(31768, "https://github.com/dotnet/roslyn/issues/31768")]
+        [WpfFact]
+        public async Task AddMissingImports_AddMultipleImports_NoPreviousImports()
+        {
+            var code = @"
+class C
+{
+    [|public D Foo { get; }
+    public E Bar { get; }|]
+}
+
+namespace A
+{
+    public class D { }
+}
+
+namespace B
+{
+    public class E { }
+}
+";
+
+            var expected = @"
+using A;
+using B;
+
+class C
+{
+    public D Foo { get; }
+    public E Bar { get; }
+}
+
+namespace A
+{
+    public class D { }
+}
+
+namespace B
+{
+    public class E { }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
         }
     }
 }

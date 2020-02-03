@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -42,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If commentedNamedType IsNot Nothing AndAlso commentedNamedType.TypeKind <> TypeKind.Delegate Then
                 Debug.Assert(binderContainingMember = commentedSymbol)
             ElseIf commentedSymbol.ContainingType IsNot Nothing Then
-                Debug.Assert(binderContainingMember = commentedSymbol.ContainingType)
+                Debug.Assert(TypeSymbol.Equals(DirectCast(binderContainingMember, TypeSymbol), commentedSymbol.ContainingType, TypeCompareKind.ConsiderEverything))
             Else
                 ' It's not worth writing a complicated check that handles merged namespaces.
                 Debug.Assert(binderContainingMember <> commentedSymbol)

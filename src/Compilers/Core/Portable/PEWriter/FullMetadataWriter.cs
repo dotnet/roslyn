@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -44,7 +48,7 @@ namespace Microsoft.Cci
             CancellationToken cancellationToken)
         {
             var builder = new MetadataBuilder();
-            MetadataBuilder debugBuilderOpt;
+            MetadataBuilder? debugBuilderOpt;
             switch (context.Module.DebugInformationFormat)
             {
                 case DebugInformationFormat.PortablePdb:
@@ -71,8 +75,8 @@ namespace Microsoft.Cci
         private FullMetadataWriter(
             EmitContext context,
             MetadataBuilder builder,
-            MetadataBuilder debugBuilderOpt,
-            DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
+            MetadataBuilder? debugBuilderOpt,
+            DynamicAnalysisDataWriter? dynamicAnalysisDataWriterOpt,
             CommonMessageProvider messageProvider,
             bool metadataOnly,
             bool deterministic,
@@ -270,7 +274,7 @@ namespace Microsoft.Cci
         }
 
         protected override int GreatestMethodDefIndex => _methodDefs.NextRowId;
-        
+
         protected override bool TryGetTypeReferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
         {
             int index;
@@ -337,7 +341,7 @@ namespace Microsoft.Cci
 
         protected override void PopulateEventMapTableRows()
         {
-            ITypeDefinition lastParent = null;
+            ITypeDefinition? lastParent = null;
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
                 if (eventDef.ContainingTypeDefinition == lastParent)
@@ -355,7 +359,7 @@ namespace Microsoft.Cci
 
         protected override void PopulatePropertyMapTableRows()
         {
-            ITypeDefinition lastParent = null;
+            ITypeDefinition? lastParent = null;
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
                 if (propertyDef.ContainingTypeDefinition == lastParent)
@@ -369,11 +373,6 @@ namespace Microsoft.Cci
                     declaringType: GetTypeDefinitionHandle(lastParent),
                     propertyList: GetPropertyDefIndex(propertyDef));
             }
-        }
-
-        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(CommonPEModuleBuilder module)
-        {
-            return module.GetTopLevelTypes(this.Context);
         }
 
         protected override void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Roslyn.Utilities;
@@ -23,24 +25,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             switch (reportDiagnostic)
             {
-            case ReportDiagnostic.Error:
-                return DiagnosticSeverity.Error;
+                case ReportDiagnostic.Error:
+                    return DiagnosticSeverity.Error;
 
-            case ReportDiagnostic.Warn:
-                return DiagnosticSeverity.Warning;
+                case ReportDiagnostic.Warn:
+                    return DiagnosticSeverity.Warning;
 
-            case ReportDiagnostic.Info:
-                return DiagnosticSeverity.Info;
+                case ReportDiagnostic.Info:
+                    return DiagnosticSeverity.Info;
 
-            case ReportDiagnostic.Hidden:
-                return DiagnosticSeverity.Hidden;
+                case ReportDiagnostic.Hidden:
+                    return DiagnosticSeverity.Hidden;
 
-            case ReportDiagnostic.Suppress:
-            case ReportDiagnostic.Default:
-                return null;
+                case ReportDiagnostic.Suppress:
+                case ReportDiagnostic.Default:
+                    return null;
 
-            default:
-                throw ExceptionUtilities.UnexpectedValue(reportDiagnostic);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(reportDiagnostic);
             }
         }
 
@@ -76,24 +78,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// If <paramref name="diagnosticSeverity"/> is not one of the expected values.
         /// </exception>
         public static ReportDiagnostic ToReportDiagnostic(this DiagnosticSeverity diagnosticSeverity)
-        {
-            switch (diagnosticSeverity)
+            => diagnosticSeverity switch
             {
-            case DiagnosticSeverity.Hidden:
-                return ReportDiagnostic.Hidden;
-
-            case DiagnosticSeverity.Info:
-                return ReportDiagnostic.Info;
-
-            case DiagnosticSeverity.Warning:
-                return ReportDiagnostic.Warn;
-
-            case DiagnosticSeverity.Error:
-                return ReportDiagnostic.Error;
-
-            default:
-                throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity);
-            }
-        }
+                DiagnosticSeverity.Hidden => ReportDiagnostic.Hidden,
+                DiagnosticSeverity.Info => ReportDiagnostic.Info,
+                DiagnosticSeverity.Warning => ReportDiagnostic.Warn,
+                DiagnosticSeverity.Error => ReportDiagnostic.Error,
+                _ => throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity),
+            };
     }
 }

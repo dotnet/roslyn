@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -38,11 +40,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.Locations = (locations ?? SpecializedCollections.EmptyEnumerable<ReferenceLocation>()).ToReadOnlyCollection();
         }
 
-        /// <remarks>Internal for testing purposes</remarks>
-        internal string GetDebuggerDisplay()
+        private string GetDebuggerDisplay()
         {
             var count = this.Locations.Count();
             return string.Format("{0}, {1} {2}", this.Definition.Name, count, count == 1 ? "ref" : "refs");
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly ReferencedSymbol _referencedSymbol;
+
+            public TestAccessor(ReferencedSymbol referencedSymbol)
+            {
+                _referencedSymbol = referencedSymbol;
+            }
+
+            internal string GetDebuggerDisplay()
+                => _referencedSymbol.GetDebuggerDisplay();
         }
     }
 }

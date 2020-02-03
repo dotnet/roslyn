@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -7,7 +9,9 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 
-#If Not CODE_STYLE Then
+#If CODE_STYLE Then
+Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
+#Else
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
@@ -22,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 #End If
         Inherits AbstractSyntaxFormattingService
 
-        Private ReadOnly _rules As ImmutableList(Of IFormattingRule)
+        Private ReadOnly _rules As ImmutableList(Of AbstractFormattingRule)
 
 #If Not CODE_STYLE Then
         <ImportingConstructor>
@@ -31,24 +35,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 #Else
         Public Sub New()
 #End If
-            _rules = ImmutableList.Create(Of IFormattingRule)(
+            _rules = ImmutableList.Create(Of AbstractFormattingRule)(
                 New StructuredTriviaFormattingRule(),
                 New ElasticTriviaFormattingRule(),
                 New AdjustSpaceFormattingRule(),
                 New AlignTokensFormattingRule(),
                 New NodeBasedFormattingRule(),
-                New DefaultOperationProvider())
+                DefaultOperationProvider.Instance)
         End Sub
 
-        Public Overrides Function GetDefaultFormattingRules() As IEnumerable(Of IFormattingRule)
+        Public Overrides Function GetDefaultFormattingRules() As IEnumerable(Of AbstractFormattingRule)
             Return _rules
         End Function
 
-        Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As SimpleIntervalTree(Of TextSpan) = Nothing) As IFormattingResult
+        Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector) = Nothing) As IFormattingResult
             Return New AggregatedFormattingResult(node, results, formattingSpans)
         End Function
 
-        Protected Overrides Function Format(root As SyntaxNode, optionSet As OptionSet, formattingRules As IEnumerable(Of IFormattingRule), token1 As SyntaxToken, token2 As SyntaxToken, cancellationToken As CancellationToken) As AbstractFormattingResult
+        Protected Overrides Function Format(root As SyntaxNode, optionSet As OptionSet, formattingRules As IEnumerable(Of AbstractFormattingRule), token1 As SyntaxToken, token2 As SyntaxToken, cancellationToken As CancellationToken) As AbstractFormattingResult
             Return New VisualBasicFormatEngine(root, optionSet, formattingRules, token1, token2).Format(cancellationToken)
         End Function
     End Class

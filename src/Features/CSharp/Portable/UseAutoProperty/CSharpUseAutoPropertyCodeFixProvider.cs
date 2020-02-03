@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -6,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -17,9 +18,14 @@ using Microsoft.CodeAnalysis.UseAutoProperty;
 namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpUseAutoPropertyCodeFixProvider)), Shared]
-    internal class CSharpUseAutoPropertyCodeFixProvider 
+    internal class CSharpUseAutoPropertyCodeFixProvider
         : AbstractUseAutoPropertyCodeFixProvider<TypeDeclarationSyntax, PropertyDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpUseAutoPropertyCodeFixProvider()
+        {
+        }
+
         protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
         {
             var fieldDeclaration = (FieldDeclarationSyntax)declarator.Parent.Parent;
@@ -66,9 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             return updatedProperty.WithTrailingTrivia(trailingTrivia).WithAdditionalAnnotations(SpecializedFormattingAnnotation);
         }
 
-        protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
+        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
-            var rules = new List<IFormattingRule> { new SingleLinePropertyFormattingRule() };
+            var rules = new List<AbstractFormattingRule> { new SingleLinePropertyFormattingRule() };
             rules.AddRange(Formatter.GetDefaultFormattingRules(document));
 
             return rules;
@@ -96,24 +102,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 return false;
             }
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 if (ForceSingleSpace(previousToken, currentToken))
                 {
                     return null;
                 }
 
-                return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, nextOperation);
+                return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
             }
 
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
+            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustSpacesOperation nextOperation)
             {
                 if (ForceSingleSpace(previousToken, currentToken))
                 {
                     return new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
 
-                return base.GetAdjustSpacesOperation(previousToken, currentToken, optionSet, nextOperation);
+                return base.GetAdjustSpacesOperation(previousToken, currentToken, optionSet, in nextOperation);
             }
         }
 

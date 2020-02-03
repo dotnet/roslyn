@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal class TodoItemsUpdatedArgs : UpdatedEventArgs
+    internal sealed class TodoItemsUpdatedArgs : UpdatedEventArgs
     {
         /// <summary>
         /// Solution this task items are associated with
@@ -18,11 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor
         public ImmutableArray<TodoItem> TodoItems { get; }
 
         public TodoItemsUpdatedArgs(
-            object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> todoItems) :
-            base(id, workspace, projectId, documentId)
+            object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> todoItems)
+            : base(id, workspace, projectId, documentId)
         {
-            this.Solution = solution;
-            this.TodoItems = todoItems;
+            Solution = solution;
+            TodoItems = todoItems;
         }
     }
 }

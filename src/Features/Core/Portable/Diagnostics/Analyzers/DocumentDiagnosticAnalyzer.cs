@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -20,7 +22,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// it is not allowed one to implement both DocumentDiagnosticAnalzyer and DiagnosticAnalyzer
         /// </summary>
+#pragma warning disable RS1026 // Enable concurrent execution
+#pragma warning disable RS1025 // Configure generated code analysis
         public sealed override void Initialize(AnalysisContext context)
+#pragma warning restore RS1025 // Configure generated code analysis
+#pragma warning restore RS1026 // Enable concurrent execution
         {
         }
 

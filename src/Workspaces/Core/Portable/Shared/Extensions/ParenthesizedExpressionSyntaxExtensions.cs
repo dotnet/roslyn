@@ -1,11 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Extensions
 {
     internal static class CommonParenthesizedExpressionSyntaxExtensions
     {
         public static bool IsSafeToChangeAssociativity(
-            this SyntaxNode parenthesizedExpression, SyntaxNode innerExpression, 
+            this SyntaxNode parenthesizedExpression, SyntaxNode innerExpression,
             SyntaxNode parentBinaryLeft, SyntaxNode parentBinaryRight, SemanticModel semanticModel)
         {
             // Now we'll perform a few semantic checks to determine whether removal 
@@ -54,6 +60,11 @@ namespace Microsoft.CodeAnalysis.Extensions
             // "(large * large) * small.  And that could easily overflow to Inf (and 
             // other badness).
             var parentBinary = parenthesizedExpression.Parent;
+            if (parentBinary is null)
+            {
+                return false;
+            }
+
             var outerTypeInfo = semanticModel.GetTypeInfo(parentBinary);
             if (IsFloatingPoint(innerTypeInfo) || IsFloatingPoint(outerTypeInfo))
             {
@@ -81,14 +92,14 @@ namespace Microsoft.CodeAnalysis.Extensions
             return false;
         }
 
-        private static bool IsUserDefinedOperator(ISymbol symbol)
+        private static bool IsUserDefinedOperator([NotNullWhen(returnValue: true)] ISymbol? symbol)
             => symbol is IMethodSymbol methodSymbol &&
                methodSymbol.MethodKind == MethodKind.UserDefinedOperator;
 
         private static bool IsFloatingPoint(TypeInfo typeInfo)
             => IsFloatingPoint(typeInfo.Type) || IsFloatingPoint(typeInfo.ConvertedType);
 
-        private static bool IsFloatingPoint(ITypeSymbol type)
+        private static bool IsFloatingPoint([NotNullWhen(returnValue: true)] ITypeSymbol? type)
             => type?.SpecialType == SpecialType.System_Single || type?.SpecialType == SpecialType.System_Double;
     }
 }

@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -12,20 +13,23 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpInitializeMemberFromParameterCodeRefactoringProvider)), Shared]
     [ExtensionOrder(Before = nameof(CSharpAddParameterCheckCodeRefactoringProvider))]
+    [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.Wrapping)]
     internal class CSharpInitializeMemberFromParameterCodeRefactoringProvider :
         AbstractInitializeMemberFromParameterCodeRefactoringProvider<
             ParameterSyntax,
             StatementSyntax,
             ExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpInitializeMemberFromParameterCodeRefactoringProvider()
+        {
+        }
+
         protected override bool IsFunctionDeclaration(SyntaxNode node)
             => InitializeParameterHelpers.IsFunctionDeclaration(node);
 
         protected override SyntaxNode GetTypeBlock(SyntaxNode node)
             => node;
-
-        protected override IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => InitializeParameterHelpers.GetBlockOperation(functionDeclaration, semanticModel, cancellationToken);
 
         protected override SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt)
             => InitializeParameterHelpers.TryGetLastStatement(blockStatementOpt);
@@ -43,5 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         // Properties are always private by default in C#.
         protected override Accessibility DetermineDefaultPropertyAccessibility()
             => Accessibility.Private;
+
+        protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
+            => InitializeParameterHelpers.GetBody(functionDeclaration);
     }
 }

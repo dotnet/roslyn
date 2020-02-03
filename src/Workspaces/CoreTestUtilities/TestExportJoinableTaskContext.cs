@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +10,7 @@ using System.ComponentModel.Composition;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Threading;
 using Xunit.Sdk;
@@ -16,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     // Starting with 15.3 the editor took a dependency on JoinableTaskContext
     // in Text.Logic and IntelliSense layers as an editor host provided service.
     [Export]
-    internal class TestExportJoinableTaskContext
+    internal partial class TestExportJoinableTaskContext
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -26,13 +30,37 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             try
             {
                 SynchronizationContext.SetSynchronizationContext(GetEffectiveSynchronizationContext());
-                (JoinableTaskContext, SynchronizationContext) = ThreadingContext.CreateJoinableTaskContext();
+                (JoinableTaskContext, SynchronizationContext) = CreateJoinableTaskContext();
                 ResetThreadAffinity(JoinableTaskContext.Factory);
             }
             finally
             {
                 SynchronizationContext.SetSynchronizationContext(synchronizationContext);
             }
+        }
+
+        private static (JoinableTaskContext joinableTaskContext, SynchronizationContext synchronizationContext) CreateJoinableTaskContext()
+        {
+            Thread mainThread;
+            SynchronizationContext synchronizationContext;
+            if (SynchronizationContext.Current is DispatcherSynchronizationContext)
+            {
+                // The current thread is the main thread, and provides a suitable synchronization context
+                mainThread = Thread.CurrentThread;
+                synchronizationContext = SynchronizationContext.Current;
+            }
+            else
+            {
+                // The current thread is not known to be the main thread; we have no way to know if the
+                // synchronization context of the current thread will behave in a manner consistent with main thread
+                // synchronization contexts, so we use DenyExecutionSynchronizationContext to track any attempted
+                // use of it.
+                var denyExecutionSynchronizationContext = new DenyExecutionSynchronizationContext(SynchronizationContext.Current);
+                mainThread = denyExecutionSynchronizationContext.MainThread;
+                synchronizationContext = denyExecutionSynchronizationContext;
+            }
+
+            return (new JoinableTaskContext(mainThread, synchronizationContext), synchronizationContext);
         }
 
         [Export]
@@ -46,11 +74,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             get;
         }
 
-        internal static SynchronizationContext GetEffectiveSynchronizationContext()
+        internal static SynchronizationContext? GetEffectiveSynchronizationContext()
         {
             if (SynchronizationContext.Current is AsyncTestSyncContext asyncTestSyncContext)
             {
-                SynchronizationContext innerSynchronizationContext = null;
+                SynchronizationContext? innerSynchronizationContext = null;
                 asyncTestSyncContext.Send(
                     _ =>
                     {
@@ -103,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public override int MaximumConcurrencyLevel => 1;
 
-            protected override IEnumerable<Task> GetScheduledTasks() => null;
+            protected override IEnumerable<Task>? GetScheduledTasks() => null;
 
             protected override void QueueTask(Task task)
             {

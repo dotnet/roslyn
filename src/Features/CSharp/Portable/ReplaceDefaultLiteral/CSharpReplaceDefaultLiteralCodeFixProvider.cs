@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -20,10 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
     internal sealed class CSharpReplaceDefaultLiteralCodeFixProvider : CodeFixProvider
     {
         private const string CS8313 = nameof(CS8313); // A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
-        private const string CS8363 = nameof(CS8363); // A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+        private const string CS8505 = nameof(CS8505); // A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+
+        [ImportingConstructor]
+        public CSharpReplaceDefaultLiteralCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS8313, CS8363);
+            ImmutableArray.Create(CS8313, CS8505);
 
         public override FixAllProvider GetFixAllProvider()
         {

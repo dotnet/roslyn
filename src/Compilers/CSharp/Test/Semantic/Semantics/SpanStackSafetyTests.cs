@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -77,10 +79,8 @@ class C
             comp.VerifyDiagnostics(
                 // (10,18): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<int>'.
                 //             case Span<int> span:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("object", "System.Span<int>").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("object", "System.Span<int>").WithLocation(10, 18)
+                );
         }
 
         [Fact]
@@ -104,10 +104,8 @@ class C
             comp.VerifyDiagnostics(
                 // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
                 //             case Span<int> span:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18)
+                );
         }
 
         [Fact]
@@ -131,10 +129,8 @@ class C
             comp.VerifyDiagnostics(
                 // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
                 //             case Span<int> span:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18)
+                );
         }
 
         [Fact]
@@ -161,13 +157,8 @@ class C
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<object>").WithArguments("System.Span<string>", "System.Span<object>").WithLocation(9, 18),
                 // (11,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'object'.
                 //             case object o:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.Span<string>", "object").WithLocation(11, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.Span<string>", "object").WithLocation(11, 18)
+                );
         }
 
         [Fact]
@@ -189,10 +180,8 @@ class C
             comp.VerifyDiagnostics(
                 // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'T'.
                 //             case T t:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18)
+                );
         }
 
         [Fact]
@@ -214,10 +203,8 @@ class C
             comp.VerifyDiagnostics(
                 // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'T'.
                 //             case T t:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18)
+                );
         }
 
         [Fact]
@@ -719,10 +706,34 @@ public class Program
             comp.VerifyDiagnostics(
                 // (14,28): error CS8343: 'Program.S1': ref structs cannot implement interfaces
                 //     public ref struct S1 : IDisposable
-                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IDisposable").WithArguments("Program.S1", "System.IDisposable").WithLocation(14, 28),
-                // (8,16): error CS1674: 'Program.S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'
-                //         using (new S1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new S1()").WithArguments("Program.S1").WithLocation(8, 16)
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IDisposable").WithArguments("Program.S1", "System.IDisposable").WithLocation(14, 28)
+            );
+        }
+
+        [Fact]
+        public void NoInterfaceImp()
+        {
+            var text = @"
+public class Program
+{
+    static void Main(string[] args)
+    {
+        using (new S1())
+        {
+
+        }
+    }
+
+    public ref struct S1
+    {
+        public void Dispose() { }
+    }
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+
+            comp.VerifyDiagnostics(
             );
         }
 
@@ -1095,7 +1106,7 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyEmitDiagnostics(
-                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
+                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'Span<int>'
                 //         TakesSpan(s: default(Span<int>), i: await I1());
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>").WithLocation(14, 45)
             );
@@ -1103,7 +1114,7 @@ public class Program
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
 
             comp.VerifyEmitDiagnostics(
-                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
+                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'Span<int>'
                 //         TakesSpan(s: default(Span<int>), i: await I1());
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>").WithLocation(14, 45)
             );
@@ -1119,7 +1130,7 @@ public class Program
 {
     static void Main()
     {
-        // this is ok  (overriden)
+        // this is ok  (overridden)
         default(Span<int>).GetHashCode();
 
         // this is ok  (implicit boxing)
@@ -1426,8 +1437,8 @@ class Program
         var x = S1[1];       
         var y = new S1(S1, 1);
     }
-}");           
-            
+}");
+
             comp.VerifyDiagnostics(
                 // (14,9): error CS0120: An object reference is required for the non-static field, method, or property 'Program.S1.Test(int)'
                 //         S1.Test(1);

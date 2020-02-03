@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -37,10 +39,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
     ///        i.e. "_ = Computation();" or "var unused = Computation();"
     ///        This diagnostic configuration is controlled by language specific code style option "UnusedValueAssignment".
     ///     3. Redundant parameters that fall into one of the following two categories:
-    ///         a. Have no references in the executable code block(s) for it's containing method symbol.
-    ///         b. Have one or more references but it's initial value at start of code block is never used.
+    ///         a. Have no references in the executable code block(s) for its containing method symbol.
+    ///         b. Have one or more references but its initial value at start of code block is never used.
     ///            For example, if 'x' in the example for case 2. above was a parameter symbol with RefKind.None
-    ///            and "x = Computation();" is the first statement in the method body, then it's initial value
+    ///            and "x = Computation();" is the first statement in the method body, then its initial value
     ///            is never used. Such a parameter should be removed and 'x' should be converted into a local.
     ///        We provide additional information in the diagnostic message to clarify the above two categories
     ///        and also detect and mention about potential breaking change if the containing method is a public API.
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private const string IsRemovableAssignmentKey = nameof(IsRemovableAssignmentKey);
 
         // Diagnostic reported for expression statements that drop computed value, for example, "Computation();".
-        // This is **not** an unneccessary (fading) diagnostic as the expression being flagged is not unncessary, but the dropped value is.
+        // This is **not** an unnecessary (fading) diagnostic as the expression being flagged is not unncessary, but the dropped value is.
         private static readonly DiagnosticDescriptor s_expressionValueIsUnusedRule = CreateDescriptorWithId(
             IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Expression_value_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
@@ -68,35 +70,63 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         // Diagnostic reported for value assignments to locals/parameters that are never used on any control flow path.
         private static readonly DiagnosticDescriptor s_valueAssignedIsUnusedRule = CreateDescriptorWithId(
             IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId,
-            new LocalizableResourceString(nameof(FeaturesResources.Value_assigned_to_symbol_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            new LocalizableResourceString(nameof(FeaturesResources.Value_assigned_to_0_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Unnecessary_assignment_of_a_value), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Unnecessary_assignment_of_a_value_to_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            description: new LocalizableResourceString(nameof(FeaturesResources.Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: true);
 
-        // Diagnostic reported for unneccessary parameters that can be removed.
+        // Diagnostic reported for unnecessary parameters that can be removed.
         private static readonly DiagnosticDescriptor s_unusedParameterRule = CreateDescriptorWithId(
             IDEDiagnosticIds.UnusedParameterDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            description: new LocalizableResourceString(nameof(FeaturesResources.Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: true);
 
         private static readonly PropertiesMap s_propertiesMap = CreatePropertiesMap();
 
-        protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_expressionValueIsUnusedRule, s_valueAssignedIsUnusedRule, s_unusedParameterRule))
+        protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer(
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueExpressionStatementOption,
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption,
+            string language)
+            : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+                        .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
+                        .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
+                   ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
+                        .Add(s_unusedParameterRule, CodeStyleOptions.UnusedParameters),
+                   language)
         {
+            UnusedValueExpressionStatementOption = unusedValueExpressionStatementOption;
+            UnusedValueAssignmentOption = unusedValueAssignmentOption;
         }
 
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
-        protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
-        protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
-        
+        protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
+        protected abstract bool IsIfConditionalDirective(SyntaxNode node);
+        private Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
+        private Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
+
+        /// <summary>
+        /// Indicates if we should bail from removable assignment analysis for the given
+        /// symbol write operation.
+        /// Removable assignment analysis determines if the assigned value for the symbol write
+        /// has no side effects and can be removed without changing the semantics.
+        /// </summary>
+        protected virtual bool ShouldBailOutFromRemovableAssignmentAnalysis(IOperation unusedSymbolWriteOperation)
+            => false;
+
         /// <summary>
         /// Indicates if the given expression statement operation has an explicit "Call" statement syntax indicating explicit discard.
         /// For example, VB "Call" statement.
         /// </summary>
         /// <returns></returns>
         protected abstract bool IsCallStatement(IExpressionStatementOperation expressionStatement);
+
+        /// <summary>
+        /// Indicates if the given operation is an expression of an expression body.
+        /// </summary>
+        protected abstract bool IsExpressionOfExpressionBody(IExpressionStatementOperation expressionStatement);
 
         /// <summary>
         /// Method to compute well-known diagnostic property maps for different comnbinations of diagnostic properties.
@@ -148,15 +178,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         // Our analysis is limited to unused expressions in a code block, hence is unaffected by changes outside the code block.
         // Hence, we can support incremental span based method body analysis.
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterCompilationStartAction(
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+
+            context.RegisterCompilationStartAction(
                 compilationContext => SymbolStartAnalyzer.CreateAndRegisterActions(compilationContext, this));
+        }
 
         private bool TryGetOptions(
             SyntaxTree syntaxTree,
@@ -254,15 +286,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 return false;
             }
 
-            switch (unusedParametersPreference)
+            if (unusedParametersPreference == UnusedParametersPreference.NonPublicMethods)
             {
-                case UnusedParametersPreference.AllMethods:
-                    return true;
-                case UnusedParametersPreference.NonPublicMethods:
-                    return !symbol.HasPublicResultantVisibility();
-                default:
-                    throw ExceptionUtilities.Unreachable;
+                return !symbol.HasPublicResultantVisibility();
             }
+
+            return true;
         }
 
         public static bool TryGetUnusedValuePreference(Diagnostic diagnostic, out UnusedValuePreference preference)
@@ -297,5 +326,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             Debug.Assert(TryGetUnusedValuePreference(diagnostic, out _));
             return diagnostic.Properties.ContainsKey(IsRemovableAssignmentKey);
         }
+
+        /// <summary>
+        /// Returns true for symbols whose name starts with an underscore and
+        /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
+        /// These are treated as special discard symbol names.
+        /// </summary>
+        private static bool IsSymbolWithSpecialDiscardName(ISymbol symbol)
+            => symbol.Name.StartsWith("_") &&
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
     }
 }

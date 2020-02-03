@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -436,6 +438,27 @@ index: 2);
 @"class Class
 {
     Goo f;
+
+    private class Goo
+    {
+    }
+}",
+index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassFromNullableFieldDeclarationIntoSameType()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    [|Goo?|] f;
+}",
+@"#nullable enable
+class Class
+{
+    Goo? f;
 
     private class Goo
     {
@@ -1386,6 +1409,76 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithNullableParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = null;
+        new [|T|](s);
+    }
+}",
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = null;
+        new [|T|](s);
+    }
+}
+
+internal class T
+{
+    private string? s;
+
+    public T(string? s)
+    {
+        this.s = s;
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithNullableParameterThatIsNotNull()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = ""asdf"";
+        new [|T|](s);
+    }
+}",
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = ""asdf"";
+        new [|T|](s);
+    }
+}
+
+internal class T
+{
+    private string s;
+
+    public T(string s)
+    {
+        this.s = s;
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithNamedParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -1571,7 +1664,7 @@ internal class T
 {
     public T(out DateTime d)
     {
-        d = default(DateTime);
+        d = default;
     }
 }",
 index: 1);
@@ -1720,7 +1813,7 @@ parseOptions: TestOptions.Regular7);
     {
         public T(out X d)
         {
-            d = default(X);
+            d = default;
         }
     }
 }",
@@ -2105,6 +2198,41 @@ class Base
     protected Base(out int o)
     {
     }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithDelegatingConstructorAssigningToNullableField()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        Base? b = new [|T|]();
+    }
+}
+
+class Base
+{
+}",
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        Base? b = new [|T|]();
+    }
+}
+
+internal class T : Base
+{
+}
+
+class Base
+{
 }",
 index: 1);
         }
@@ -4394,7 +4522,7 @@ class A<T>
     {
     }
 }",
-count: 3);
+count: 6);
         }
 
         [WorkItem(543061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543061")]

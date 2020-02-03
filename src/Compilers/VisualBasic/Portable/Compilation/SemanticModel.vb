@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -1216,7 +1218,7 @@ _Default:
                         meParam = New MeParameterSymbol(containingMember, containingType)
 
                     Else
-                        If referenceType = ErrorTypeSymbol.UnknownResultType Then
+                        If TypeSymbol.Equals(referenceType, ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything) Then
                             ' in an instance member, but binder considered Me/MyBase/MyClass unreferenceable
                             meParam = New MeParameterSymbol(containingMember, containingType)
                             resultKind = LookupResultKind.NotReferencable
@@ -1447,7 +1449,7 @@ _Default:
                         Case BoundKind.Attribute
                             Dim boundAttribute As BoundAttribute = DirectCast(boundNodeOfSyntacticParent, BoundAttribute)
 
-                            Debug.Assert(resultKind <> LookupResultKind.Good OrElse namedTypeSymbol = boundAttribute.Type)
+                            Debug.Assert(resultKind <> LookupResultKind.Good OrElse TypeSymbol.Equals(namedTypeSymbol, boundAttribute.Type, TypeCompareKind.ConsiderEverything))
                             constructor = boundAttribute.Constructor
                             resultKind = LookupResult.WorseResultKind(resultKind, boundAttribute.ResultKind)
 
@@ -3474,6 +3476,10 @@ _Default:
             End Select
 
             Return declaringSyntax
+        End Function
+
+        Public NotOverridable Overrides Function GetNullableContext(position As Integer) As NullableContext
+            Return NullableContext.Disabled Or NullableContext.ContextInherited
         End Function
 #End Region
 

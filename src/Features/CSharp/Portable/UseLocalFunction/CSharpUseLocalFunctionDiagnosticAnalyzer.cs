@@ -1,7 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public CSharpUseLocalFunctionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseLocalFunctionDiagnosticId,
+                   CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_local_function), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
 
             // Local functions are only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targetting a lesser version.
+            // in projects targeting a lesser version.
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
             {
                 return;
@@ -106,6 +106,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
+            // If there are compiler error on the declaration we can't reliably
+            // tell that the refactoring will be accurate, so don't provide any
+            // code diagnostics
+            if (localDeclaration.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+            {
+                return;
+            }
+
             var local = semanticModel.GetDeclaredSymbol(localDeclaration.Declaration.Variables[0], cancellationToken);
             if (local == null)
             {
@@ -114,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var delegateType = semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType as INamedTypeSymbol;
             if (!delegateType.IsDelegateType() ||
-                delegateType.DelegateInvokeMethod == null || 
+                delegateType.DelegateInvokeMethod == null ||
                 !CanReplaceDelegateWithLocalFunction(delegateType, localDeclaration, semanticModel, cancellationToken))
             {
                 return;
@@ -185,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private bool CheckForSimpleLocalDeclarationPattern(
-            SemanticModel semanticModel, 
+            SemanticModel semanticModel,
             AnonymousFunctionExpressionSyntax anonymousFunction,
             CancellationToken cancellationToken,
             out LocalDeclarationStatementSyntax localDeclaration)
@@ -226,9 +234,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     continue;
                 }
 
-                if (descendentNode.IsKind(SyntaxKind.IdentifierName))
+                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
                 {
-                    var identifierName = (IdentifierNameSyntax)descendentNode;
                     if (identifierName.Identifier.ValueText == local.Name &&
                         local.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).GetAnySymbol()))
                     {
@@ -374,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static bool CanReplaceDelegateWithLocalFunction(
-            INamedTypeSymbol delegateType, 
+            INamedTypeSymbol delegateType,
             LocalDeclarationStatementSyntax localDeclaration,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)

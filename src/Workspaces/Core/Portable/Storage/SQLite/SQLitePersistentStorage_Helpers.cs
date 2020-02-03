@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Roslyn.Utilities;
 using static System.FormattableString;
 
@@ -18,6 +21,30 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private static long CombineInt32ValuesToInt64(int v1, int v2)
             => ((long)v1 << 32) | (long)v2;
+
+
+        private static (byte[] bytes, int length, bool fromPool) GetBytes(
+            Checksum checksumOpt, CancellationToken cancellationToken)
+        {
+            // If we weren't passed a checsum, just pass the singleton empty byte array.
+            // Note: we don't add this to/from our pool.  But it likely woudn't be a problem
+            // for us to do that as this instance can't actually be mutated since it's just
+            // an empty array.
+            if (checksumOpt == null)
+            {
+                return (Array.Empty<byte>(), length: 0, fromPool: false);
+            }
+
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            {
+                checksumOpt.WriteTo(writer);
+            }
+
+            stream.Position = 0;
+            return GetBytes(stream);
+        }
 
         private static (byte[] bytes, int length, bool fromPool) GetBytes(Stream stream)
         {

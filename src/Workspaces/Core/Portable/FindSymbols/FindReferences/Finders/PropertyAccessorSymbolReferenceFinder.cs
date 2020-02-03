@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            IMethodSymbol symbol, Project project, IImmutableSet<Document> documents, 
+            IMethodSymbol symbol, Project project, IImmutableSet<Document> documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             // First, find any documents with the full name of the accessor (i.e. get_Goo).
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            IMethodSymbol symbol, Document document, SemanticModel semanticModel, 
+            IMethodSymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var references = await FindReferencesInDocumentUsingSymbolNameAsync(
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 options.AssociatePropertyReferencesWithSpecificAccessor)
             {
                 var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
-                    new SymbolAndProjectId(property, document.Project.Id), document, semanticModel, 
+                    new SymbolAndProjectId(property, document.Project.Id), document, semanticModel,
                     options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
                     cancellationToken).ConfigureAwait(false);
 

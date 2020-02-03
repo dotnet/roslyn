@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,9 +11,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -23,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// </summary>
         private class ComplexTrivia : AbstractComplexTrivia
         {
-            public ComplexTrivia(OptionSet optionSet, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2) :
-                base(optionSet, treeInfo, token1, token2)
+            public ComplexTrivia(OptionSet optionSet, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
+                : base(optionSet, treeInfo, token1, token2)
             {
             }
 
@@ -66,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 var formatSpanEnd = commonToken2.Kind() == SyntaxKind.None ? commonToken1.Span.End : commonToken2.Span.Start;
                 var span = TextSpan.FromBounds(commonToken1.Span.End, formatSpanEnd);
-                if (context.IsSpacingSuppressed(span))
+                if (context.IsSpacingSuppressed(span, TreatAsElastic))
                 {
                     return false;
                 }
@@ -100,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             public override void Format(
                 FormattingContext context,
                 ChainedFormattingRules formattingRules,
-                Action<int, TriviaData> formattingResultApplier,
+                Action<int, TokenStream, TriviaData> formattingResultApplier,
                 CancellationToken cancellationToken,
                 int tokenPairIndex = TokenPairIndexNotNeeded)
             {
@@ -109,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return;
                 }
 
-                formattingResultApplier(tokenPairIndex, Format(context, formattingRules, this.LineBreaks, this.Spaces, cancellationToken));
+                formattingResultApplier(tokenPairIndex, context.TokenStream, Format(context, formattingRules, this.LineBreaks, this.Spaces, cancellationToken));
             }
 
             public override List<SyntaxTrivia> GetTriviaList(CancellationToken cancellationToken)

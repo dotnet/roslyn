@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -22,18 +24,18 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public Task<IList<TodoComment>> GetTodoCommentsAsync(DocumentId documentId, IList<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetTodoCommentsAsync, documentId.DebugName, token))
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetTodoCommentsAsync, documentId.DebugName, cancellationToken))
                 {
-                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
 
                     var service = document.GetLanguageService<ITodoCommentService>();
                     if (service != null)
                     {
                         // todo comment service supported
-                        return await service.GetTodoCommentsAsync(document, tokens, token).ConfigureAwait(false);
+                        return await service.GetTodoCommentsAsync(document, tokens, cancellationToken).ConfigureAwait(false);
                     }
 
                     return SpecializedCollections.EmptyList<TodoComment>();

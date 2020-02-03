@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -21,8 +23,15 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
     internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseExplicitTypeCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -34,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
@@ -47,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         }
 
         internal static async Task HandleDeclarationAsync(
-            Document document, SyntaxEditor editor, 
+            Document document, SyntaxEditor editor,
             SyntaxNode node, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -113,8 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             var elements = ((INamedTypeSymbol)typeSymbol).TupleElements;
             Debug.Assert(elements.Length == parensDesignation.Variables.Count);
 
-            var builder = ArrayBuilder<SyntaxNode>.GetInstance(elements.Length);
-            for (int i = 0; i < elements.Length; i++)
+            using var builderDisposer = ArrayBuilder<SyntaxNode>.GetInstance(elements.Length, out var builder);
+            for (var i = 0; i < elements.Length; i++)
             {
                 var designation = parensDesignation.Variables[i];
                 var type = elements[i].Type;
@@ -123,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 {
                     case SyntaxKind.SingleVariableDesignation:
                     case SyntaxKind.DiscardDesignation:
-                        var typeName = type.GenerateTypeSyntax();
+                        var typeName = type.GenerateTypeSyntax(allowVar: false);
                         newDeclaration = SyntaxFactory.DeclarationExpression(typeName, designation);
                         break;
                     case SyntaxKind.ParenthesizedVariableDesignation:
@@ -144,17 +153,17 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             return SyntaxFactory.TupleExpression(
                 SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTrailingTrivia(),
-                SyntaxFactory.SeparatedList(builder.ToImmutableAndFree(), separatorBuilder.ToImmutableAndFree()),
+                SyntaxFactory.SeparatedList(builder.ToImmutable(), separatorBuilder.ToImmutableAndFree()),
                 SyntaxFactory.Token(SyntaxKind.CloseParenToken))
                 .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.Use_explicit_type_instead_of_var,
-                     createChangedDocument,
-                     CSharpFeaturesResources.Use_explicit_type_instead_of_var)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Use_explicit_type_instead_of_var,
+                       createChangedDocument,
+                       CSharpFeaturesResources.Use_explicit_type_instead_of_var)
             {
             }
         }

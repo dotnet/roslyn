@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
+Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SpecialType
@@ -1092,7 +1095,7 @@ End Class
                (leftSpecial = SpecialType.None OrElse rightSpecial = SpecialType.None OrElse
                 (op = BinaryOperatorKind.Subtract AndAlso leftSpecial = SpecialType.System_DateTime AndAlso rightSpecial = SpecialType.System_DateTime)) Then
 
-                If leftSpecial = SpecialType.System_Object OrElse rightSpecial = SpecialType.System_Object OrElse leftType = rightType Then
+                If leftSpecial = SpecialType.System_Object OrElse rightSpecial = SpecialType.System_Object OrElse TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything) Then
                     If leftSpecial = SpecialType.System_Object OrElse rightSpecial = SpecialType.System_Object Then
                         resultType = SpecialType.System_Object
                     End If
@@ -1104,8 +1107,8 @@ End Class
                             Dim method = DirectCast(m, MethodSymbol)
                             If method.MethodKind = MethodKind.UserDefinedOperator AndAlso
                                method.ParameterCount = 2 AndAlso
-                               method.Parameters(0).Type = nonSpecialType AndAlso
-                               method.Parameters(1).Type = nonSpecialType Then
+                               TypeSymbol.Equals(method.Parameters(0).Type, nonSpecialType, TypeCompareKind.ConsiderEverything) AndAlso
+                               TypeSymbol.Equals(method.Parameters(1).Type, nonSpecialType, TypeCompareKind.ConsiderEverything) Then
                                 userDefined = method
                                 resultType = SpecialType.None
                             End If
@@ -1186,7 +1189,7 @@ End Class
                     End If
 
                 Case BinaryOperatorKind.Xor, BinaryOperatorKind.And, BinaryOperatorKind.Or
-                    If leftType.IsEnumType() AndAlso leftType = rightType Then
+                    If leftType.IsEnumType() AndAlso TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything) Then
                         containerName = leftType.ToTestDisplayString()
                         rightName = containerName
                         returnName = containerName
@@ -1222,15 +1225,15 @@ End Class
             Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters(0).Type)
 
             Dim match As Integer = 0
-            If symbol1.ContainingSymbol = symbol1.ReturnType Then
+            If TypeSymbol.Equals(symbol1.ContainingType, symbol1.ReturnType, TypeCompareKind.ConsiderEverything) Then
                 match += 1
             End If
 
-            If symbol1.ContainingSymbol = symbol1.Parameters(0).Type Then
+            If TypeSymbol.Equals(symbol1.ContainingType, symbol1.Parameters(0).Type, TypeCompareKind.ConsiderEverything) Then
                 match += 1
             End If
 
-            If symbol1.ContainingSymbol = symbol1.Parameters(1).Type Then
+            If TypeSymbol.Equals(symbol1.ContainingType, symbol1.Parameters(1).Type, TypeCompareKind.ConsiderEverything) Then
                 match += 1
             End If
 
@@ -1417,6 +1420,88 @@ BC42038: This expression will always evaluate to Nothing (due to null propagatio
                         Throw ExceptionUtilities.UnexpectedValue(i)
                 End Select
             Next
+        End Sub
+
+        <Fact, WorkItem(529600, "DevDiv"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
+        Public Sub Bug529600()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module M
+    Sub Main()
+    End Sub
+
+    Const c0 = "<%= New String("0"c, 65000) %>"
+
+    Const C1=C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0
+
+    Const C2=C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilation(compilationDef)
+
+            Dim err = compilation.GetDiagnostics().Single()
+
+            Assert.Equal(ERRID.ERR_ConstantStringTooLong, err.Code)
+            Assert.Equal("Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.", err.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
+        End Sub
+
+        <Fact, WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
+        Public Sub TestLargeStringConcatenation()
+
+            Dim mid = New StringBuilder()
+            For i As Integer = 0 To 4999
+                mid.Append("""Lorem ipsum dolor sit amet"" + "", consectetur adipiscing elit, sed"" + "" do eiusmod tempor incididunt"" + "" ut labore et dolore magna aliqua. "" +" + vbCrLf)
+            Next
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module M
+    Sub Main()
+        Dim s As String = "BEGIN "+
+        <%= mid.ToString() %> "END"
+        System.Console.WriteLine(System.Linq.Enumerable.Sum(s, Function(c As Char) System.Convert.ToInt32(c)))
+    End Sub
+End Module
+    </file>
+</compilation>
+            Dim compilation = CompilationUtils.CreateCompilation(compilationDef, options:=TestOptions.ReleaseExe)
+            compilation.VerifyDiagnostics()
+            CompileAndVerify(compilation, expectedOutput:="58430604")
         End Sub
 
     End Class

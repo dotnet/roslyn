@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a parameter of a method or indexer.
     /// </summary>
-    internal abstract partial class ParameterSymbol : Symbol, IParameterSymbol
+    internal abstract partial class ParameterSymbol : Symbol, IParameterSymbolInternal
     {
         internal const string ValueParameterName = "value";
 
@@ -45,14 +48,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Gets the type of the parameter along with its annotations.
+        /// </summary>
+        public abstract TypeWithAnnotations TypeWithAnnotations { get; }
+
+        /// <summary>
         /// Gets the type of the parameter.
         /// </summary>
-        public abstract TypeSymbolWithAnnotations Type { get; }
+        public TypeSymbol Type => TypeWithAnnotations.Type;
 
         /// <summary>
         /// Determines if the parameter ref, out or neither.
         /// </summary>
         public abstract RefKind RefKind { get; }
+
+        /// <summary>
+        /// Returns true if the parameter is a discard parameter.
+        /// </summary>
+        public abstract bool IsDiscard { get; }
 
         /// <summary>
         /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
@@ -230,15 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract ConstantValue ExplicitDefaultConstantValue { get; }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                Debug.Assert(IsDefinition);
-                return ContainingSymbol?.NonNullTypes;
-            }
-        }
-
         /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>
@@ -389,24 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
-        /// <summary>
-        /// If there are no annotations on the member (not just that parameter), then returns null. The purpose is to ensure
-        /// that if some annotations are present on the member, then annotations win over the attributes on the member in all positions.
-        /// That could mean removing an attribute.
-        /// </summary>
-        protected FlowAnalysisAnnotations? TryGetExtraAttributeAnnotations()
-        {
-            ParameterSymbol originalParameter = this.OriginalDefinition;
-            var containingMethod = originalParameter.ContainingSymbol as MethodSymbol;
-
-            if (containingMethod is null)
-            {
-                return null;
-            }
-
-            string key = ExtraAnnotations.MakeMethodKey(containingMethod);
-            return ExtraAnnotations.TryGetExtraAttributes(key, this.Ordinal);
-        }
+        internal abstract ImmutableHashSet<string> NotNullIfParameterNotNull { get; }
 
         protected sealed override int HighestPriorityUseSiteError
         {
@@ -426,41 +413,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        #region IParameterSymbol Members
-
-        ITypeSymbol IParameterSymbol.Type
+        protected override ISymbol CreateISymbol()
         {
-            get { return this.Type.TypeSymbol; }
+            return new PublicModel.ParameterSymbol(this);
         }
-
-        ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
-        {
-            get { return this.Type.CustomModifiers; }
-        }
-
-        ImmutableArray<CustomModifier> IParameterSymbol.RefCustomModifiers
-        {
-            get { return this.RefCustomModifiers; }
-        }
-
-        IParameterSymbol IParameterSymbol.OriginalDefinition
-        {
-            get { return this.OriginalDefinition; }
-        }
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitParameter(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitParameter(this);
-        }
-
-        #endregion
     }
 }

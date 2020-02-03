@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -91,13 +93,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_predefined_type_for_member_access"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.CodeStyle")});
 
-        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferThrowExpression = CreateOption(
-            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferThrowExpression),
-            defaultValue: TrueWithSuggestionEnforcement,
-            storageLocations: new OptionStorageLocation[]{
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_throw_expression"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferThrowExpression")});
-
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferObjectInitializer = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferObjectInitializer),
             defaultValue: TrueWithSuggestionEnforcement,
@@ -123,6 +118,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
 
+        internal static readonly PerLanguageOption<OperatorPlacementWhenWrappingPreference> OperatorPlacementWhenWrapping =
+            new PerLanguageOption<OperatorPlacementWhenWrappingPreference>(
+                nameof(CodeStyleOptions), nameof(OperatorPlacementWhenWrapping),
+                defaultValue: OperatorPlacementWhenWrappingPreference.BeginningOfLine,
+                storageLocations:
+                    new EditorConfigStorageLocation<OperatorPlacementWhenWrappingPreference>(
+                        "dotnet_style_operator_placement_when_wrapping",
+                        OperatorPlacementUtilities.Parse,
+                        OperatorPlacementUtilities.GetEditorConfigString));
+
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferCoalesceExpression = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferCoalesceExpression),
             defaultValue: TrueWithSuggestionEnforcement,
@@ -136,20 +141,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             storageLocations: new OptionStorageLocation[]{
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_null_propagation"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferNullPropagation") });
-
-        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferInlinedVariableDeclaration = CreateOption(
-            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferInlinedVariableDeclaration),
-            defaultValue: TrueWithSuggestionEnforcement,
-            storageLocations: new OptionStorageLocation[]{
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_inlined_variable_declaration"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferInlinedVariableDeclaration") });
-
-        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferDeconstructedVariableDeclaration = CreateOption(
-            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferDeconstructedVariableDeclaration),
-            defaultValue: TrueWithSuggestionEnforcement,
-            storageLocations: new OptionStorageLocation[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_deconstructed_variable_declaration"),
-                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferDeconstructedVariableDeclaration)}")});
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferExplicitTupleNames = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferExplicitTupleNames),
@@ -208,8 +199,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_compound_assignment"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCompoundAssignment") });
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferSimplifiedInterpolation = CreateOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferSimplifiedInterpolation),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_simplified_interpolation"),
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferSimplifiedInterpolation)}") });
+
         private static readonly CodeStyleOption<UnusedParametersPreference> s_preferNoneUnusedParametersPreference =
-            new CodeStyleOption<UnusedParametersPreference>(default(UnusedParametersPreference), NotificationOption.None);
+            new CodeStyleOption<UnusedParametersPreference>(default, NotificationOption.None);
         private static readonly CodeStyleOption<UnusedParametersPreference> s_preferAllMethodsUnusedParametersPreference =
             new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.AllMethods, NotificationOption.Suggestion);
 
@@ -264,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 if (value == "never")
                 {
                     // If they provide 'never', they don't need a notification level.
-                    notificationOpt = notificationOpt ?? NotificationOption.Silent;
+                    notificationOpt ??= NotificationOption.Silent;
                 }
 
                 if (notificationOpt != null)
@@ -297,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.Silent);
 
         private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
-            string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, 
+            string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue,
             string styleName)
         {
             return CreateOption(
@@ -347,6 +345,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 KeyValuePairUtil.Create("non_public", UnusedParametersPreference.NonPublicMethods),
                 KeyValuePairUtil.Create("all", UnusedParametersPreference.AllMethods),
             });
+
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferSystemHashCode = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferSystemHashCode),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode") });
 
         static CodeStyleOptions()
         {

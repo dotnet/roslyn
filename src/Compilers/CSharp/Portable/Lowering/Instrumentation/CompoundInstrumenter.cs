@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -153,14 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentSwitchStatement(original, rewritten);
         }
 
-        public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
-            return Previous.InstrumentPatternSwitchStatement(original, rewritten);
-        }
-
-        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
-        {
-            return Previous.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
+            return Previous.InstrumentSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
         }
 
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
@@ -188,9 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory);
         }
 
-        public override BoundStatement InstrumentPatternSwitchBindCasePatternVariables(BoundStatement bindings)
+        public override BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)
         {
-            return Previous.InstrumentPatternSwitchBindCasePatternVariables(bindings);
+            return Previous.InstrumentSwitchBindCasePatternVariables(bindings);
         }
 
         public override BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)

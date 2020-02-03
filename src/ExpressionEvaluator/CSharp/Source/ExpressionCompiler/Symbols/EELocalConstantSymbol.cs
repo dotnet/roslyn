@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private readonly MethodSymbol _method;
         private readonly string _name;
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
         private readonly ConstantValue _value;
 
         public EELocalConstantSymbol(
@@ -18,14 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             string name,
             TypeSymbol type,
             ConstantValue value)
-            : this(method, name, TypeSymbolWithAnnotations.Create(type), value)
+            : this(method, name, TypeWithAnnotations.Create(type), value)
         {
         }
 
         public EELocalConstantSymbol(
             MethodSymbol method,
             string name,
-            TypeSymbolWithAnnotations type,
+            TypeWithAnnotations type,
             ConstantValue value)
         {
             _method = method;
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _method; }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }

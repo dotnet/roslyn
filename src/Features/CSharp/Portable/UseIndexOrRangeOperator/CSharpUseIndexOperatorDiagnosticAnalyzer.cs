@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -37,14 +39,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public CSharpUseIndexOperatorDiagnosticAnalyzer() 
+        public CSharpUseIndexOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIndexOperatorDiagnosticId,
+                   CSharpCodeStyleOptions.PreferIndexOperator,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_index_operator), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Indexing_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
@@ -56,6 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // continually recompute it.
                 var compilation = startContext.Compilation;
                 var infoCache = new InfoCache(compilation);
+
+                // The System.Index type is always required to offer this fix.
+                if (infoCache.IndexType == null)
+                {
+                    return;
+                }
 
                 // Register to hear property references, so we can hear about calls to indexers
                 // like: s[s.Length - n]
@@ -150,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         }
 
         private void AnalyzeInvokedMember(
-            OperationAnalysisContext context, InfoCache infoCache, 
+            OperationAnalysisContext context, InfoCache infoCache,
             IOperation instance, IMethodSymbol targetMethodOpt, IOperation argumentValue,
             IPropertySymbol lengthLikePropertyOpt, CancellationToken cancellationToken)
         {
@@ -197,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // Also ensure that the left side of the subtraction : `s.Length - value` is actually
             // getting the length off the same instance we're indexing into.
 
-            lengthLikePropertyOpt = lengthLikePropertyOpt ?? TryGetLengthLikeProperty(infoCache, targetMethodOpt);
+            lengthLikePropertyOpt ??= TryGetLengthLikeProperty(infoCache, targetMethodOpt);
             if (lengthLikePropertyOpt == null ||
                 !IsInstanceLengthCheck(lengthLikePropertyOpt, instance, subtraction.LeftOperand))
             {

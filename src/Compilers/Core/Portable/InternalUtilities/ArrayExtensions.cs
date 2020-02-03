@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -22,29 +26,6 @@ namespace Roslyn.Utilities
             T[] newArray = new T[length];
             Array.Copy(array, start, newArray, 0, length);
             return newArray;
-        }
-
-        internal static bool ValueEquals(this uint[] array, uint[] other)
-        {
-            if (array == other)
-            {
-                return true;
-            }
-
-            if (array == null || other == null || array.Length != other.Length)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < array.Length; i++)
-            {
-                if (array[i] != other[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         internal static T[] InsertAt<T>(this T[] array, int position, T item)

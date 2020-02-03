@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -341,7 +343,7 @@ class Program
             await VerifyItemExistsAsync(text, "byte");
             await VerifyItemExistsAsync(text, "char");
         }
-    
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PrivateOrProtectedModifiers()
         {
@@ -377,6 +379,42 @@ class C
 }";
 
             await VerifyItemExistsAsync(text, "private");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/34774")]
+        public async Task DontSuggestEventAfterReadonlyInClass()
+        {
+            var markup =
+@"class C {
+    readonly $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "event");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/34774")]
+        public async Task DontSuggestEventAfterReadonlyInInterface()
+        {
+            var markup =
+@"interface C {
+    readonly $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "event");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/34774")]
+        public async Task SuggestEventAfterReadonlyInStruct()
+        {
+            var markup =
+@"struct C {
+    readonly $$
+}
+";
+            await VerifyItemExistsAsync(markup, "event");
         }
     }
 }

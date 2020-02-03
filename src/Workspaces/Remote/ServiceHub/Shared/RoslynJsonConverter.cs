@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Remote
             protected override Checksum ReadValue(JsonReader reader, JsonSerializer serializer)
             {
                 var value = (string)reader.Value;
-                return value == null ? null : new Checksum(Convert.FromBase64String(value));
+                return value == null ? null : Checksum.FromSerialized(Convert.FromBase64String(value));
             }
 
             protected override void WriteValue(JsonWriter writer, Checksum value, JsonSerializer serializer)
@@ -191,12 +193,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 // all integer is long
                 var scopeId = ReadProperty<long>(reader);
                 var fromPrimaryBranch = ReadProperty<bool>(reader);
+                var workspaceVersion = ReadProperty<long>(reader);
                 var checksum = ReadProperty<Checksum>(reader, serializer);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
 
-                return new PinnedSolutionInfo((int)scopeId, fromPrimaryBranch, checksum);
+                return new PinnedSolutionInfo((int)scopeId, fromPrimaryBranch, (int)workspaceVersion, checksum);
             }
 
             protected override void WriteValue(JsonWriter writer, PinnedSolutionInfo scope, JsonSerializer serializer)
@@ -208,6 +211,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WritePropertyName("primary");
                 writer.WriteValue(scope.FromPrimaryBranch);
+
+                writer.WritePropertyName("version");
+                writer.WriteValue(scope.WorkspaceVersion);
 
                 writer.WritePropertyName("checksum");
                 serializer.Serialize(writer, scope.SolutionChecksum);

@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,13 +11,17 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     [ExportSignatureHelpProvider("ObjectCreationExpressionSignatureHelpProvider", LanguageNames.CSharp), Shared]
     internal partial class ObjectCreationExpressionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
+        [ImportingConstructor]
+        public ObjectCreationExpressionSignatureHelpProvider()
+        {
+        }
+
         public override bool IsTriggerCharacter(char ch)
         {
             return ch == '(' || ch == ',';
@@ -58,8 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(objectCreationExpression, cancellationToken).ConfigureAwait(false);
-            var type = semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type as INamedTypeSymbol;
-            if (type == null)
+            if (!(semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type is INamedTypeSymbol type))
             {
                 return null;
             }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -25,9 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            if (parentNode.IsKind(SyntaxKind.CastExpression))
+            if (parentNode.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression))
             {
-                var castExpression = (CastExpressionSyntax)parentNode;
                 return semanticModel.GetTypeInfo(castExpression).Type;
             }
 
@@ -48,9 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32);
             }
 
-            if (parentNode.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (parentNode.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
             {
-                var memberAccess = (MemberAccessExpressionSyntax)parentNode;
                 if (memberAccess.Expression == expression)
                 {
                     var memberSymbol = semanticModel.GetSymbolInfo(memberAccess).Symbol;
@@ -200,10 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (parameter?.IsParams == true)
             {
-                // if the method is defined with errors: void M(params int wrongDefined), paramter.IsParams == true but paramter.Type is not an array.
+                // if the method is defined with errors: void M(params int wrongDefined), parameter.IsParams == true but parameter.Type is not an array.
                 // In such cases is better to be conservative and opt out.
-                var parameterType = parameter.Type as IArrayTypeSymbol;
-                if (parameterType == null)
+                if (!(parameter.Type is IArrayTypeSymbol parameterType))
                 {
                     return true;
                 }
@@ -237,12 +236,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool EnumCastDefinitelyCantBeRemoved(CastExpressionSyntax cast, ITypeSymbol expressionType)
+        private static bool EnumCastDefinitelyCantBeRemoved(CastExpressionSyntax cast, ITypeSymbol expressionType, ITypeSymbol castType)
         {
-            if (expressionType != null
-                && expressionType.IsEnumType()
-                && cast.WalkUpParentheses().IsParentKind(SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
+            if (expressionType is null || !expressionType.IsEnumType())
             {
+                return false;
+            }
+
+            var outerExpression = cast.WalkUpParentheses();
+            if (outerExpression.IsParentKind(SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
+            {
+                // -(NumericType)value
+                // +(NumericType)value
+                return true;
+            }
+
+            if (castType.IsNumericType() && !outerExpression.IsParentKind(SyntaxKind.CastExpression))
+            {
+                if (outerExpression.Parent is BinaryExpressionSyntax
+                    || outerExpression.Parent is PrefixUnaryExpressionSyntax)
+                {
+                    // Let the parent code handle this, since it could be something like this:
+                    //
+                    //   (int)enumValue > 0
+                    //   ~(int)enumValue
+                    return false;
+                }
+
+                // Explicit enum cast to numeric type, but not part of a chained cast or binary expression
                 return true;
             }
 
@@ -253,25 +274,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return conversion1.IsUserDefined
                 && conversion2.IsUserDefined
-                && conversion1.MethodSymbol == conversion2.MethodSymbol;
+                && Equals(conversion1.MethodSymbol, conversion2.MethodSymbol);
         }
 
         private static bool IsInDelegateCreationExpression(ExpressionSyntax expression, SemanticModel semanticModel)
         {
-            var argument = expression.WalkUpParentheses().Parent as ArgumentSyntax;
-            if (argument == null)
+            if (!(expression.WalkUpParentheses().Parent is ArgumentSyntax argument))
             {
                 return false;
             }
 
-            var argumentList = argument.Parent as ArgumentListSyntax;
-            if (argumentList == null)
+            if (!(argument.Parent is ArgumentListSyntax argumentList))
             {
                 return false;
             }
 
-            var objectCreation = argumentList.Parent as ObjectCreationExpressionSyntax;
-            if (objectCreation == null)
+            if (!(argumentList.Parent is ObjectCreationExpressionSyntax objectCreation))
             {
                 return false;
             }
@@ -348,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var expressionTypeInfo = semanticModel.GetTypeInfo(cast.Expression, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
 
-            if (EnumCastDefinitelyCantBeRemoved(cast, expressionType))
+            if (EnumCastDefinitelyCantBeRemoved(cast, expressionType, castType))
             {
                 return false;
             }
@@ -392,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var expressionToCastType = semanticModel.ClassifyConversion(cast.SpanStart, cast.Expression, castType, isExplicitInSource: true);
             var outerType = GetOuterCastType(cast, semanticModel, out var parentIsOrAsExpression) ?? castTypeInfo.ConvertedType;
-            
+
             // Simple case: If the conversion from the inner expression to the cast type is identity,
             // the cast can be removed.
             if (expressionToCastType.IsIdentity)
@@ -504,7 +522,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     expressionToCastType.IsImplicit &&
                     (expressionToCastType.IsNumeric || expressionToCastType.IsConstantExpression))
                 {
-                    return true;
+                    // Some implicit numeric conversions can cause loss of precision and must not be removed.
+                    return !IsRequiredImplicitNumericConversion(expressionType, castType);
                 }
 
                 if (!castToOuterType.IsBoxing &&

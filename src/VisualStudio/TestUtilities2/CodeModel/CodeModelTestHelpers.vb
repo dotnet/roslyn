@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.ExceptionServices
@@ -49,19 +51,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 ' If tests are written that require multiple projects, additional support will need to be added.
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
+                Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+
                 Dim state = New CodeModelState(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                    threadingContext,
                     mockServiceProvider,
                     project.LanguageServices,
                     mockVisualStudioWorkspace,
-                    Nothing)
+                    New ProjectCodeModelFactory(mockVisualStudioWorkspace, mockServiceProvider, threadingContext))
 
-                Dim mockTextManagerAdapter = New MockTextManagerAdapter()
+                Dim projectCodeModel = DirectCast(state.ProjectCodeModelFactory.CreateProjectCodeModel(project.Id, Nothing), ProjectCodeModel)
 
-                For Each documentId In project.DocumentIds
+                For Each document In project.Documents
                     ' Note that a parent is not specified below. In Visual Studio, this would normally be an EnvDTE.Project instance.
-                    Dim fcm = FileCodeModel.Create(state, parent:=Nothing, documentId:=documentId, textManagerAdapter:=mockTextManagerAdapter)
-                    mockVisualStudioWorkspace.SetFileCodeModel(documentId, fcm)
+                    Dim fcm = projectCodeModel.GetOrCreateFileCodeModel(document.FilePath, parent:=Nothing)
+                    fcm.Object.TextManagerAdapter = New MockTextManagerAdapter()
+                    mockVisualStudioWorkspace.SetFileCodeModel(document.Id, fcm)
                 Next
 
                 Dim root = New ComHandle(Of EnvDTE.CodeModel, RootCodeModel)(RootCodeModel.Create(state, Nothing, project.Id))
@@ -91,7 +96,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     Return Me._componentModel
                 End If
 
-                Throw New NotImplementedException()
+                Throw New NotImplementedException($"No service exists for {serviceType.FullName}")
             End Function
         End Class
 

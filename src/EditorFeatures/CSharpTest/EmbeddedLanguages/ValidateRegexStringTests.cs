@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
     public class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpEmbeddedLanguageDiagnosticAnalyzer(), null);
+            => (new CSharpRegexDiagnosticAnalyzer(), null);
 
         private IDictionary<OptionKey, object> OptionOn()
         {
@@ -40,7 +42,7 @@ class Program
     }     
 }",
                 options: OptionOn(),
-                diagnosticId: RegexDiagnosticAnalyzer.DiagnosticId,
+                diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens));
         }
@@ -59,7 +61,7 @@ class Program
     }     
 }",
                 options: OptionOn(),
-                diagnosticId: RegexDiagnosticAnalyzer.DiagnosticId,
+                diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens));
         }

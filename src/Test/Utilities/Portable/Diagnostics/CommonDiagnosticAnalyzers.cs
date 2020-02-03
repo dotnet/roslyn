@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -90,7 +93,7 @@ namespace Microsoft.CodeAnalysis
                 return expectedText;
             }
 
-            public static string GetExpectedErrorLogResultsText(Compilation compilation)
+            public static string GetExpectedV1ErrorLogResultsAndRulesText(Compilation compilation)
             {
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
@@ -164,9 +167,103 @@ namespace Microsoft.CodeAnalysis
 }";
             }
 
+            public static string GetExpectedV2ErrorLogResultsText(Compilation compilation)
+            {
+                var tree = compilation.SyntaxTrees.First();
+                var root = tree.GetRoot();
+                var expectedLineSpan = root.GetLocation().GetLineSpan();
+                var filePath = GetUriForPath(tree.FilePath);
+
+                return
+@"      ""results"": [
+        {
+          ""ruleId"": """ + Descriptor1.Id + @""",
+          ""ruleIndex"": 0,
+          ""level"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""message"": {
+            ""text"": """ + Descriptor1.MessageFormat + @"""
+          },
+          ""locations"": [
+            {
+              ""physicalLocation"": {
+                ""artifactLocation"": {
+                  ""uri"": """ + filePath + @"""
+                },
+                ""region"": {
+                  ""startLine"": " + (expectedLineSpan.StartLinePosition.Line + 1) + @",
+                  ""startColumn"": " + (expectedLineSpan.StartLinePosition.Character + 1) + @",
+                  ""endLine"": " + (expectedLineSpan.EndLinePosition.Line + 1) + @",
+                  ""endColumn"": " + (expectedLineSpan.EndLinePosition.Character + 1) + @"
+                }
+              }
+            }
+          ],
+          ""properties"": {
+            ""warningLevel"": 1," + GetExpectedPropertiesMapText() + @"
+          }
+        },
+        {
+          ""ruleId"": """ + Descriptor2.Id + @""",
+          ""ruleIndex"": 1,
+          ""level"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""message"": {
+            ""text"": """ + Descriptor2.MessageFormat + @"""
+          },
+          ""properties"": {" +
+             GetExpectedPropertiesMapText() + @"
+          }
+        }
+      ]";
+            }
+
+            public static string GetExpectedV2ErrorLogRulesText()
+            {
+                return
+@"          ""rules"": [
+            {
+              ""id"": """ + Descriptor1.Id + @""",
+              ""shortDescription"": {
+                ""text"": """ + Descriptor1.Title + @"""
+              },
+              ""fullDescription"": {
+                ""text"": """ + Descriptor1.Description + @"""
+              },
+              ""helpUri"": """ + Descriptor1.HelpLinkUri + @""",
+              ""properties"": {
+                ""category"": """ + Descriptor1.Category + @""",
+                ""tags"": [
+                  " + String.Join("," + Environment.NewLine + "                  ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
+                ]
+              }
+            },
+            {
+              ""id"": """ + Descriptor2.Id + @""",
+              ""shortDescription"": {
+                ""text"": """ + Descriptor2.Title + @"""
+              },
+              ""fullDescription"": {
+                ""text"": """ + Descriptor2.Description + @"""
+              },
+              ""defaultConfiguration"": {
+                ""level"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @"""
+              },
+              ""helpUri"": """ + Descriptor2.HelpLinkUri + @""",
+              ""properties"": {
+                ""category"": """ + Descriptor2.Category + @""",
+                ""tags"": [
+                  " + String.Join("," + Environment.NewLine + "                  ", Descriptor2.CustomTags.Select(s => $"\"{s}\"")) + @"
+                ]
+              }
+            }
+          ]";
+            }
+
             public static string GetUriForPath(string path)
             {
-                return new Uri(path, UriKind.RelativeOrAbsolute).ToString();
+                var uri = new Uri(path, UriKind.RelativeOrAbsolute);
+                return uri.IsAbsoluteUri
+                    ? uri.AbsoluteUri
+                    : WebUtility.UrlEncode(uri.ToString());
             }
         }
 
@@ -477,7 +574,9 @@ namespace Microsoft.CodeAnalysis
         public sealed class AnalyzerWithCSharpCompilerDiagnosticId : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+#pragma warning disable RS1029 // Do not use reserved diagnostic IDs.
                 "CS101",
+#pragma warning restore RS1029 // Do not use reserved diagnostic IDs.
                 "Title1",
                 "Message1",
                 "Category1",
@@ -496,7 +595,9 @@ namespace Microsoft.CodeAnalysis
         public sealed class AnalyzerWithBasicCompilerDiagnosticId : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+#pragma warning disable RS1029 // Do not use reserved diagnostic IDs.
                 "BC101",
+#pragma warning restore RS1029 // Do not use reserved diagnostic IDs.
                 "Title1",
                 "Message1",
                 "Category1",
@@ -703,16 +804,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        public class HiddenDiagnosticsCompilationAnalyzer : DiagnosticAnalyzer
+        public class CompilationAnalyzerWithSeverity : DiagnosticAnalyzer
         {
-            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-                "ID1000",
-                "Description1",
-                string.Empty,
-                "Analysis",
-                DiagnosticSeverity.Hidden,
-                true,
-                customTags: WellKnownDiagnosticTags.NotConfigurable);
+            public CompilationAnalyzerWithSeverity(
+                DiagnosticSeverity severity,
+                bool configurable)
+            {
+                var customTags = !configurable ? new[] { WellKnownDiagnosticTags.NotConfigurable } : Array.Empty<string>();
+                Descriptor = new DiagnosticDescriptor(
+                    "ID1000",
+                    "Description1",
+                    string.Empty,
+                    "Analysis",
+                    severity,
+                    true,
+                    customTags: customTags);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 
@@ -723,7 +832,7 @@ namespace Microsoft.CodeAnalysis
 
             private void OnCompilation(CompilationAnalysisContext context)
             {
-                // Report the hidden diagnostic on all trees in compilation.
+                // Report the diagnostic on all trees in compilation.
                 foreach (var tree in context.Compilation.SyntaxTrees)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, tree.GetRoot().GetLocation()));
@@ -987,7 +1096,7 @@ namespace Microsoft.CodeAnalysis
                             blockContext.RegisterOperationAction(operationContext =>
                             {
                                 ReportDiagnostic(operationContext.ReportDiagnostic, operationContext.Operation.Syntax.GetLocation());
-                                VerifyControlFlowGraph(operationContext, inBlockAnalysisContext: true);                                
+                                VerifyControlFlowGraph(operationContext, inBlockAnalysisContext: true);
                             }, OperationKind.Literal);
                         });
                         break;
@@ -1390,7 +1499,10 @@ namespace Microsoft.CodeAnalysis
                 _symbolKind = symbolKind;
                 _operationKind = operationKindOpt;
                 _analyzerId = $"Analyzer{(analyzerId.HasValue ? analyzerId.Value : 1)}";
+                SymbolsStarted = new ConcurrentSet<ISymbol>();
             }
+
+            internal ConcurrentSet<ISymbol> SymbolsStarted { get; }
 
             public static readonly DiagnosticDescriptor SymbolStartTopLevelRule = new DiagnosticDescriptor(
                 "SymbolStartTopLevelRuleId",
@@ -1484,7 +1596,6 @@ namespace Microsoft.CodeAnalysis
             public override void Initialize(AnalysisContext context)
             {
                 var diagnostics = new ConcurrentBag<Diagnostic>();
-                var symbolsStarted = new ConcurrentSet<ISymbol>();
                 var symbolsEnded = new ConcurrentSet<ISymbol>();
                 var seenOperationContainers = new ConcurrentDictionary<OperationAnalysisContext, ISet<ISymbol>>();
 
@@ -1535,10 +1646,10 @@ namespace Microsoft.CodeAnalysis
 
                 void reportDiagnosticsAtCompilationEnd(CompilationAnalysisContext compilationEndContext)
                 {
-                    if (!symbolsStarted.SetEquals(symbolsEnded))
+                    if (!SymbolsStarted.SetEquals(symbolsEnded))
                     {
                         // Symbols Started: '{0}', Symbols Ended: '{1}', Analyzer: {2}
-                        var symbolsStartedStr = string.Join(", ", symbolsStarted.Select(s => s.ToDisplayString()).Order());
+                        var symbolsStartedStr = string.Join(", ", SymbolsStarted.Select(s => s.ToDisplayString()).Order());
                         var symbolsEndedStr = string.Join(", ", symbolsEnded.Select(s => s.ToDisplayString()).Order());
                         compilationEndContext.ReportDiagnostic(Diagnostic.Create(SymbolStartedEndedDifferRule, Location.None, symbolsStartedStr, symbolsEndedStr, _analyzerId));
                     }
@@ -1553,7 +1664,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     verifySymbolStartOrdering(symbolStartContext);
                     verifySymbolStartAndOperationOrdering(symbolStartContext);
-                    if (!symbolsStarted.Add(symbolStartContext.Symbol))
+                    if (!SymbolsStarted.Add(symbolStartContext.Symbol))
                     {
                         diagnostics.Add(Diagnostic.Create(DuplicateStartActionRule, Location.None, symbolStartContext.Symbol.Name, _analyzerId));
                     }
@@ -1569,7 +1680,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     Assert.False(symbolEndContext.Symbol.IsImplicitlyDeclared);
-                    var rule = _topLevelAction ? SymbolStartTopLevelRule  : SymbolStartCompilationLevelRule;
+                    var rule = _topLevelAction ? SymbolStartTopLevelRule : SymbolStartCompilationLevelRule;
                     symbolEndContext.ReportDiagnostic(Diagnostic.Create(rule, Location.None, symbolStartContext.Symbol.Name, _analyzerId));
                 }
 
@@ -1613,7 +1724,7 @@ namespace Microsoft.CodeAnalysis
 
                     foreach (var member in members.Where(m => !m.IsImplicitlyDeclared))
                     {
-                        if (symbolsStarted.Contains(member))
+                        if (SymbolsStarted.Contains(member))
                         {
                             // Member '{0}' started before container '{1}', Analyzer {2}
                             diagnostics.Add(Diagnostic.Create(SymbolStartedOrderingRule, Location.None, member, symbolStarted, _analyzerId));
@@ -1659,6 +1770,295 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressorForId : DiagnosticSuppressor
+        {
+            public SuppressionDescriptor SuppressionDescriptor { get; }
+            public DiagnosticSuppressorForId(string suppressedDiagnosticId, string suppressionId = null)
+            {
+                SuppressionDescriptor = new SuppressionDescriptor(
+                    id: suppressionId ?? "SPR0001",
+                    suppressedDiagnosticId: suppressedDiagnosticId,
+                    justification: $"Suppress {suppressedDiagnosticId}");
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(SuppressionDescriptor);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    Assert.Equal(SuppressionDescriptor.SuppressedDiagnosticId, diagnostic.Id);
+                    context.ReportSuppression(Suppression.Create(SuppressionDescriptor, diagnostic));
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressorThrowsExceptionFromSupportedSuppressions : DiagnosticSuppressor
+        {
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => throw new NotImplementedException();
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressorThrowsExceptionFromReportedSuppressions : DiagnosticSuppressor
+        {
+            private readonly SuppressionDescriptor _descriptor;
+            public DiagnosticSuppressorThrowsExceptionFromReportedSuppressions(string suppressedDiagnosticId)
+            {
+                _descriptor = new SuppressionDescriptor(
+                    "SPR0001",
+                    suppressedDiagnosticId,
+                    $"Suppress {suppressedDiagnosticId}");
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(_descriptor);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressor_UnsupportedSuppressionReported : DiagnosticSuppressor
+        {
+            private readonly SuppressionDescriptor _supportedDescriptor;
+            private readonly SuppressionDescriptor _unsupportedDescriptor;
+
+            public DiagnosticSuppressor_UnsupportedSuppressionReported(string suppressedDiagnosticId, string supportedSuppressionId, string unsupportedSuppressionId)
+            {
+                _supportedDescriptor = new SuppressionDescriptor(
+                    supportedSuppressionId,
+                    suppressedDiagnosticId,
+                    $"Suppress {suppressedDiagnosticId}");
+
+                _unsupportedDescriptor = new SuppressionDescriptor(
+                    unsupportedSuppressionId,
+                    suppressedDiagnosticId,
+                    $"Suppress {suppressedDiagnosticId}");
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(_supportedDescriptor);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    Assert.Equal(_unsupportedDescriptor.SuppressedDiagnosticId, diagnostic.Id);
+                    context.ReportSuppression(Suppression.Create(_unsupportedDescriptor, diagnostic));
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressor_InvalidDiagnosticSuppressionReported : DiagnosticSuppressor
+        {
+            private readonly SuppressionDescriptor _supportedDescriptor;
+            private readonly SuppressionDescriptor _unsupportedDescriptor;
+
+            public DiagnosticSuppressor_InvalidDiagnosticSuppressionReported(string suppressedDiagnosticId, string unsupportedSuppressedDiagnosticId)
+            {
+                _supportedDescriptor = new SuppressionDescriptor(
+                    "SPR0001",
+                    suppressedDiagnosticId,
+                    $"Suppress {suppressedDiagnosticId}");
+
+                _unsupportedDescriptor = new SuppressionDescriptor(
+                    "SPR0002",
+                    unsupportedSuppressedDiagnosticId,
+                    $"Suppress {unsupportedSuppressedDiagnosticId}");
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(_supportedDescriptor);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    Assert.Equal(_supportedDescriptor.SuppressedDiagnosticId, diagnostic.Id);
+                    context.ReportSuppression(Suppression.Create(_unsupportedDescriptor, diagnostic));
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressor_NonReportedDiagnosticCannotBeSuppressed : DiagnosticSuppressor
+        {
+            private readonly SuppressionDescriptor _descriptor1, _descriptor2;
+            private readonly string _nonReportedDiagnosticId;
+
+            public DiagnosticSuppressor_NonReportedDiagnosticCannotBeSuppressed(string reportedDiagnosticId, string nonReportedDiagnosticId)
+            {
+                _descriptor1 = new SuppressionDescriptor(
+                    "SPR0001",
+                    reportedDiagnosticId,
+                    $"Suppress {reportedDiagnosticId}");
+                _descriptor2 = new SuppressionDescriptor(
+                    "SPR0002",
+                    nonReportedDiagnosticId,
+                    $"Suppress {nonReportedDiagnosticId}");
+                _nonReportedDiagnosticId = nonReportedDiagnosticId;
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(_descriptor1, _descriptor2);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                var nonReportedDiagnostic = Diagnostic.Create(
+                    id: _nonReportedDiagnosticId,
+                    category: "Category",
+                    message: "Message",
+                    severity: DiagnosticSeverity.Warning,
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    warningLevel: 1);
+                context.ReportSuppression(Suppression.Create(_descriptor2, nonReportedDiagnostic));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class NamedTypeAnalyzer : DiagnosticAnalyzer
+        {
+            public enum AnalysisKind
+            {
+                Symbol,
+                SymbolStartEnd,
+                CompilationStartEnd
+            }
+
+            public const string RuleId = "ID1";
+            private readonly DiagnosticDescriptor _rule;
+            private readonly AnalysisKind _analysisKind;
+            private readonly GeneratedCodeAnalysisFlags _analysisFlags;
+            private readonly ConcurrentSet<ISymbol> _symbolCallbacks;
+
+            public NamedTypeAnalyzer(AnalysisKind analysisKind, GeneratedCodeAnalysisFlags analysisFlags = GeneratedCodeAnalysisFlags.None, bool configurable = true)
+            {
+                _analysisKind = analysisKind;
+                _analysisFlags = analysisFlags;
+                _symbolCallbacks = new ConcurrentSet<ISymbol>();
+
+                var customTags = configurable ? Array.Empty<string>() : new[] { WellKnownDiagnosticTags.NotConfigurable };
+                _rule = new DiagnosticDescriptor(
+                    RuleId,
+                    "Title1",
+                    "Symbol: {0}",
+                    "Category1",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    customTags: customTags);
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
+            public string GetSortedSymbolCallbacksString() => string.Join(", ", _symbolCallbacks.Select(s => s.Name).Order());
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.ConfigureGeneratedCodeAnalysis(_analysisFlags);
+
+                switch (_analysisKind)
+                {
+                    case AnalysisKind.Symbol:
+                        context.RegisterSymbolAction(c =>
+                            {
+                                _symbolCallbacks.Add(c.Symbol);
+                                ReportDiagnostic(c.Symbol, c.ReportDiagnostic);
+                            }, SymbolKind.NamedType);
+                        break;
+
+                    case AnalysisKind.SymbolStartEnd:
+                        context.RegisterSymbolStartAction(symbolStartContext =>
+                        {
+                            symbolStartContext.RegisterSymbolEndAction(symbolEndContext =>
+                            {
+                                _symbolCallbacks.Add(symbolEndContext.Symbol);
+                                ReportDiagnostic(symbolEndContext.Symbol, symbolEndContext.ReportDiagnostic);
+                            });
+                        }, SymbolKind.NamedType);
+
+                        break;
+
+                    case AnalysisKind.CompilationStartEnd:
+                        context.RegisterCompilationStartAction(compilationStartContext =>
+                        {
+                            compilationStartContext.RegisterSymbolAction(c =>
+                            {
+                                _symbolCallbacks.Add(c.Symbol);
+                            }, SymbolKind.NamedType);
+
+                            compilationStartContext.RegisterCompilationEndAction(
+                                compilationEndContext => compilationEndContext.ReportDiagnostic(
+                                    Diagnostic.Create(_rule, Location.None, GetSortedSymbolCallbacksString())));
+                        });
+
+                        break;
+                }
+            }
+
+            private void ReportDiagnostic(ISymbol symbol, Action<Diagnostic> reportDiagnostic)
+                => reportDiagnostic(Diagnostic.Create(_rule, symbol.Locations[0], symbol.Name));
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithNoLocationDiagnostics : DiagnosticAnalyzer
+        {
+            public AnalyzerWithNoLocationDiagnostics(bool isEnabledByDefault)
+            {
+                Descriptor = new DiagnosticDescriptor(
+                    "ID0001",
+                    "Title1",
+                    "Message1",
+                    "Category1",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationAction(compilationContext =>
+                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None)));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class NamedTypeAnalyzerWithConfigurableEnabledByDefault : DiagnosticAnalyzer
+        {
+            public NamedTypeAnalyzerWithConfigurableEnabledByDefault(bool isEnabledByDefault)
+            {
+                Descriptor = new DiagnosticDescriptor(
+                    "ID0001",
+                    "Title1",
+                    "Message1",
+                    "Category1",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(
+                    context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0])),
+                    SymbolKind.NamedType);
             }
         }
     }

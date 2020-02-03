@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -289,15 +291,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var asm1m7 = asm1classC.GetMembers("M7").OfType<MethodSymbol>().Single();
             var asm1m8 = asm1classC.GetMembers("M8").OfType<MethodSymbol>().Single();
 
-            Assert.NotEqual(asm1m2.ReturnType.TypeSymbol, asm1m1.ReturnType.TypeSymbol);
-            Assert.NotEqual(asm1m3.ReturnType.TypeSymbol, asm1m1.ReturnType.TypeSymbol);
-            Assert.NotEqual(asm1m4.ReturnType.TypeSymbol, asm1m1.ReturnType.TypeSymbol);
+            Assert.NotEqual(asm1m2.ReturnType, asm1m1.ReturnType);
+            Assert.NotEqual(asm1m3.ReturnType, asm1m1.ReturnType);
+            Assert.NotEqual(asm1m4.ReturnType, asm1m1.ReturnType);
 
-            Assert.NotEqual(asm1m5.ReturnType.TypeSymbol, asm1m4.ReturnType.TypeSymbol);
-            Assert.NotEqual(asm1m6.ReturnType.TypeSymbol, asm1m4.ReturnType.TypeSymbol);
+            Assert.NotEqual(asm1m5.ReturnType, asm1m4.ReturnType);
+            Assert.NotEqual(asm1m6.ReturnType, asm1m4.ReturnType);
 
-            Assert.Equal(asm1m7.ReturnType.TypeSymbol, asm1m1.ReturnType.TypeSymbol);
-            Assert.Equal(asm1m8.ReturnType.TypeSymbol, asm1m4.ReturnType.TypeSymbol);
+            Assert.Equal(asm1m7.ReturnType, asm1m1.ReturnType);
+            Assert.Equal(asm1m8.ReturnType, asm1m4.ReturnType);
 
             var asm2 = assemblies[1];
 
@@ -306,10 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var asm2m1 = asm2classC.GetMembers("M1").OfType<MethodSymbol>().Single();
             var asm2m4 = asm2classC.GetMembers("M4").OfType<MethodSymbol>().Single();
 
-            Assert.Equal(asm2m1.ReturnType.TypeSymbol, asm1m1.ReturnType.TypeSymbol);
+            Assert.Equal(asm2m1.ReturnType, asm1m1.ReturnType);
 
-            Assert.NotSame(asm1m4.ReturnType.TypeSymbol, asm2m4.ReturnType.TypeSymbol);
-            Assert.Equal(asm2m4.ReturnType.TypeSymbol, asm1m4.ReturnType.TypeSymbol);
+            Assert.NotSame(asm1m4.ReturnType, asm2m4.ReturnType);
+            Assert.Equal(asm2m4.ReturnType, asm1m4.ReturnType);
 
             Assert.Equal(asm1.GetSpecialType(SpecialType.System_Boolean), asm1.GetSpecialType(SpecialType.System_Boolean));
             Assert.Equal(asm1.GetSpecialType(SpecialType.System_Boolean), asm2.GetSpecialType(SpecialType.System_Boolean));

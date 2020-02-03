@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -52,30 +54,31 @@ namespace Microsoft.CodeAnalysis.AddImport
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
-            if (RemoteSupportedLanguages.IsSupported(document.Project.Language))
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
             {
-                var callbackTarget = new RemoteSymbolSearchService(symbolSearchService, cancellationToken);
-                var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<AddImportFixData>>(
-                    RemoteFeatureOptions.AddImportEnabled,
-                    callbackTarget,
+                var callbackTarget = new RemoteSymbolSearchService(symbolSearchService);
+
+                var result = await client.TryRunRemoteAsync<IList<AddImportFixData>>(
+                    WellKnownServiceHubServices.CodeAnalysisService,
                     nameof(IRemoteAddImportFeatureService.GetFixesAsync),
+                    document.Project.Solution,
                     new object[]
                     {
-                    document.Id,
-                    span,
-                    diagnosticId,
-                    maxResults,
-                    placeSystemNamespaceFirst,
-                    searchReferenceAssemblies,
-                    packageSources
+                        document.Id,
+                        span,
+                        diagnosticId,
+                        maxResults,
+                        placeSystemNamespaceFirst,
+                        searchReferenceAssemblies,
+                        packageSources
                     },
+                    callbackTarget,
                     cancellationToken).ConfigureAwait(false);
 
-                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-                if (result != null)
+                if (result.HasValue)
                 {
-                    return result.ToImmutableArray();
+                    return result.Value.ToImmutableArray();
                 }
             }
 
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 {
                     if (!cancellationToken.IsCancellationRequested)
                     {
-                        if (this.CanAddImport(node, cancellationToken))
+                        if (CanAddImport(node, cancellationToken))
                         {
                             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                             var allSymbolReferences = await FindResultsAsync(
@@ -212,7 +215,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
-            Project project, ArrayBuilder<Reference> allSymbolReferences, int maxResults, 
+            Project project, ArrayBuilder<Reference> allSymbolReferences, int maxResults,
             SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
             // If we didn't find enough hits searching just in the project, then check 
@@ -229,21 +232,20 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             // Create another cancellation token so we can both search all projects in parallel,
             // but also stop any searches once we get enough results.
-            using (var nestedTokenSource = new CancellationTokenSource())
-            using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken))
-            {
-                foreach (var unreferencedProject in viableUnreferencedProjects)
-                {
-                    // Search in this unreferenced project.  But don't search in any of its'
-                    // direct references.  i.e. we don't want to search in its metadata references
-                    // or in the projects it references itself. We'll be searching those entities
-                    // individually.
-                    findTasks.Add(finder.FindInSourceSymbolsInProjectAsync(
-                        projectToAssembly, unreferencedProject, exact, linkedTokenSource.Token));
-                }
+            using var nestedTokenSource = new CancellationTokenSource();
+            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
 
-                await WaitForTasksAsync(allSymbolReferences, maxResults, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
+            foreach (var unreferencedProject in viableUnreferencedProjects)
+            {
+                // Search in this unreferenced project.  But don't search in any of its'
+                // direct references.  i.e. we don't want to search in its metadata references
+                // or in the projects it references itself. We'll be searching those entities
+                // individually.
+                findTasks.Add(finder.FindInSourceSymbolsInProjectAsync(
+                    projectToAssembly, unreferencedProject, exact, linkedTokenSource.Token));
             }
+
+            await WaitForTasksAsync(allSymbolReferences, maxResults, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task FindResultsInUnreferencedMetadataSymbolsAsync(
@@ -271,25 +273,24 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             // Create another cancellation token so we can both search all projects in parallel,
             // but also stop any searches once we get enough results.
-            using (var nestedTokenSource = new CancellationTokenSource())
-            using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken))
+            using var nestedTokenSource = new CancellationTokenSource();
+            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
+
+            foreach (var (referenceProjectId, reference) in newReferences)
             {
-                foreach (var (referenceProjectId, reference) in newReferences)
+                var compilation = referenceToCompilation.GetOrAdd(
+                    reference, r => CreateCompilation(project, r));
+
+                // Ignore netmodules.  First, they're incredibly esoteric and barely used.
+                // Second, the SymbolFinder API doesn't even support searching them. 
+                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
-                    var compilation = referenceToCompilation.GetOrAdd(
-                        reference, r => CreateCompilation(project, r));
-
-                    // Ignore netmodules.  First, they're incredibly esoteric and barely used.
-                    // Second, the SymbolFinder API doesn't even support searching them. 
-                    if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
-                    {
-                        findTasks.Add(finder.FindInMetadataSymbolsAsync(
-                            assembly, referenceProjectId, reference, exact, linkedTokenSource.Token));
-                    }
+                    findTasks.Add(finder.FindInMetadataSymbolsAsync(
+                        assembly, referenceProjectId, reference, exact, linkedTokenSource.Token));
                 }
-
-                await WaitForTasksAsync(allSymbolReferences, maxResults, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
             }
+
+            await WaitForTasksAsync(allSymbolReferences, maxResults, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -360,13 +361,15 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         /// <summary>
-        /// We ignore references that are in a directory that contains the names "Packages".
+        /// We ignore references that are in a directory that contains the names
+        /// "Packages", "packs", "NuGetFallbackFolder", or "NuGetPackages"
         /// These directories are most likely the ones produced by NuGet, and we don't want
         /// to offer to add .dll reference manually for dlls that are part of NuGet packages.
         /// 
         /// Note that this is only a heuristic (though a good one), and we should remove this
         /// when we can get an API from NuGet that tells us if a reference is actually provided
         /// by a nuget packages.
+        /// Tracking issue: https://github.com/dotnet/project-system/issues/5275
         /// 
         /// This heuristic will do the right thing in practically all cases for all. It 
         /// prevents the very unpleasant experience of us offering to add a direct metadata 
@@ -384,7 +387,13 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private bool IsInPackagesDirectory(PortableExecutableReference reference)
         {
-            return PathUtilities.ContainsPathComponent(reference.FilePath, "packages", ignoreCase: true);
+            return ContainsPathComponent(reference, "packages")
+                || ContainsPathComponent(reference, "packs")
+                || ContainsPathComponent(reference, "NuGetFallbackFolder")
+                || ContainsPathComponent(reference, "NuGetPackages");
+
+            static bool ContainsPathComponent(PortableExecutableReference reference, string pathComponent)
+                => PathUtilities.ContainsPathComponent(reference.FilePath, pathComponent, ignoreCase: true);
         }
 
         /// <summary>
@@ -475,7 +484,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         public async Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
             Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, int maxResultsPerDiagnostic,
-            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies, 
+            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             // We might have multiple different diagnostics covering the same span.  Have to
@@ -489,7 +498,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             foreach (var diagnostic in diagnostics)
             {
                 var fixes = await GetFixesAsync(
-                    document, span, diagnostic.Id, maxResultsPerDiagnostic, 
+                    document, span, diagnostic.Id, maxResultsPerDiagnostic,
                     placeSystemNamespaceFirst, symbolSearchService, searchReferenceAssemblies,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
@@ -500,7 +509,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         public ImmutableArray<CodeAction> GetCodeActionsForFixes(
-            Document document, ImmutableArray<AddImportFixData> fixes, 
+            Document document, ImmutableArray<AddImportFixData> fixes,
             IPackageInstallerService installerService, int maxResults)
         {
             var codeActionsBuilder = ArrayBuilder<CodeAction>.GetInstance();
@@ -521,32 +530,22 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService installerService)
-        {
-            switch (fixData.Kind)
+            => fixData.Kind switch
             {
-                case AddImportFixKind.ProjectSymbol:
-                    return new ProjectSymbolReferenceCodeAction(document, fixData);
+                AddImportFixKind.ProjectSymbol => new ProjectSymbolReferenceCodeAction(document, fixData),
+                AddImportFixKind.MetadataSymbol => new MetadataSymbolReferenceCodeAction(document, fixData),
+                AddImportFixKind.ReferenceAssemblySymbol => new AssemblyReferenceCodeAction(document, fixData),
+                AddImportFixKind.PackageSymbol => !installerService.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
+                    ? new ParentInstallPackageCodeAction(document, fixData, installerService)
+                    : default(CodeAction),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
 
-                case AddImportFixKind.MetadataSymbol:
-                    return new MetadataSymbolReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.ReferenceAssemblySymbol:
-                    return new AssemblyReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.PackageSymbol:
-                    return !installerService.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
-                        ? new ParentInstallPackageCodeAction(document, fixData, installerService)
-                        : null;
-            }
-
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService, SyntaxNode node, CancellationToken cancellationToken)
+        private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService, SyntaxNode node)
         {
             var awaitExpression = FirstAwaitExpressionAncestor(syntaxFactsService, node);
 
-            var innerExpression = syntaxFactsService.GetExpressionOfAwaitExpression(node);
+            var innerExpression = syntaxFactsService.GetExpressionOfAwaitExpression(awaitExpression);
 
             return semanticModel.GetTypeInfo(innerExpression).Type;
         }

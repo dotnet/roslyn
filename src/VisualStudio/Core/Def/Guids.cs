@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -22,6 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string CSharpOrganizeIconIdString = "9420a4b2-b48b-449d-a4c0-335d6e864b82";
         public const string CSharpLibraryIdString = "58F1BAD0-2288-45b9-AC3A-D56398F7781D";
         public const string CSharpReplPackageIdString = "c5edd1ee-c43b-4360-9ce4-6b993ca12897";
+
+        /// <summary>
+        /// A <see cref="UIContext"/> that is set if there is a C# project in the <see cref="VisualStudioWorkspace"/>.
+        /// </summary>
+        public static readonly Guid CSharpProjectExistsInWorkspaceUIContext = new Guid("CA719A03-D55C-48F9-85DE-D934346E7F70");
 
         public const string CSharpProjectRootIdString = "C7FEDB89-B36D-4a62-93F4-DC7A95999921";
 
@@ -68,6 +78,11 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string VisualBasicLibraryIdString = "414AC972-9829-4b6a-A8D7-A08152FEB8AA";
         public const string VisualBasicOptionPageCodeStyleIdString = "10C168E1-3470-448A-A1AC-73D6BC070750";
 
+        /// <summary>
+        /// A <see cref="UIContext"/> that is set if there is a Visual Basic project in the <see cref="VisualStudioWorkspace"/>.
+        /// </summary>
+        public static readonly Guid VisualBasicProjectExistsInWorkspaceUIContext = new Guid("EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275");
+
         public static readonly Guid VisualBasicPackageId = new Guid(VisualBasicPackageIdString);
         public static readonly Guid VisualBasicCompilerServiceId = new Guid(VisualBasicCompilerServiceIdString);
         public static readonly Guid VisualBasicLanguageServiceId = new Guid(VisualBasicLanguageServiceIdString);
@@ -103,6 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string RoslynOptionPagePerformanceLoggersIdString = "236AC96F-A60D-4BD6-A480-D315151EDC2B";
         public const string RoslynOptionPageInternalDiagnosticsIdString = "48993C4C-C619-42AD-B1C8-79378AD8BEF2";
         public const string RoslynOptionPageInternalSolutionCrawlerIdString = "9702D3BD-F06C-4A6A-974B-7D0C2BC89A72";
+        public const string RoslynOptionPageExperimentationIdString = "D5AA7ED7-85E2-42A0-9BF6-22AEF1C1ED8C";
 
         public static readonly Guid RoslynPackageId = new Guid(RoslynPackageIdString);
         public static readonly Guid RoslynCommandSetId = new Guid(RoslynCommandSetIdString);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.SQLite.Interop
 {
@@ -8,8 +10,8 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
     internal enum OpenFlags
     {
         // SQLITE_OPEN_READONLY         = 0x00000001, /* Ok for sqlite3_open_v2() */
-        SQLITE_OPEN_READWRITE           = 0x00000002, /* Ok for sqlite3_open_v2() */
-        SQLITE_OPEN_CREATE              = 0x00000004, /* Ok for sqlite3_open_v2() */
+        SQLITE_OPEN_READWRITE = 0x00000002, /* Ok for sqlite3_open_v2() */
+        SQLITE_OPEN_CREATE = 0x00000004, /* Ok for sqlite3_open_v2() */
         // SQLITE_OPEN_DELETEONCLOSE    = 0x00000008, /* VFS only */
         // SQLITE_OPEN_EXCLUSIVE        = 0x00000010, /* VFS only */
         // SQLITE_OPEN_AUTOPROXY        = 0x00000020, /* VFS only */
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         // SQLITE_OPEN_TEMP_JOURNAL     = 0x00001000, /* VFS only */
         // SQLITE_OPEN_SUBJOURNAL       = 0x00002000, /* VFS only */
         // SQLITE_OPEN_MASTER_JOURNAL   = 0x00004000, /* VFS only */
-        SQLITE_OPEN_NOMUTEX          = 0x00008000, /* Ok for sqlite3_open_v2() */
+        SQLITE_OPEN_NOMUTEX = 0x00008000, /* Ok for sqlite3_open_v2() */
         // SQLITE_OPEN_FULLMUTEX        = 0x00010000, /* Ok for sqlite3_open_v2() */
         // SQLITE_OPEN_SHAREDCACHE      = 0x00020000, /* Ok for sqlite3_open_v2() */
         // SQLITE_OPEN_PRIVATECACHE     = 0x00040000, /* Ok for sqlite3_open_v2() */

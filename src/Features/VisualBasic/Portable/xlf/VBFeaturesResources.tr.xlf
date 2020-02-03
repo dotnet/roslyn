@@ -4,22 +4,27 @@
     <body>
       <trans-unit id="Add_Await">
         <source>Add Await</source>
-        <target state="new">Add Await</target>
+        <target state="translated">Await ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
         <source>Add Await and 'ConfigureAwait(false)'</source>
-        <target state="new">Add Await and 'ConfigureAwait(false)'</target>
+        <target state="translated">Await ve 'ConfigureAwait(false)' ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add &lt;Obsolete&gt;</source>
+        <target state="translated">&lt;Obsolete&gt; ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
-        <target state="new">Add missing Imports</target>
+        <target state="translated">Eksik Import'ları ekle</target>
         <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
         <source>Add 'Shadows'</source>
-        <target state="new">Add 'Shadows'</target>
+        <target state="translated">'Shadows' ekle</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
@@ -64,8 +69,13 @@
       </trans-unit>
       <trans-unit id="Introduce_Using_statement">
         <source>Introduce 'Using' statement</source>
-        <target state="new">Introduce 'Using' statement</target>
+        <target state="translated">'Using' deyimi ekle</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_0_inheritable">
+        <source>Make '{0}' inheritable</source>
+        <target state="translated">'{0}' öğesini devralınabilir hale getir</target>
+        <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
@@ -325,11 +335,6 @@
       <trans-unit id="new_variable">
         <source>&lt;new variable&gt;</source>
         <target state="translated">&lt;new variable&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_and_Sort_Imports">
-        <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">Import'ları Kaldır &amp;ve Sırala</target>
         <note />
       </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
@@ -1499,7 +1504,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_narrowing_conversion_in_0">
         <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">{0}' öğesinde daraltma dönüşümü oluştur</target>
+        <target state="translated">'{0}' öğesinde daraltma dönüştürmesi oluştur</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
@@ -1679,7 +1684,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">Birleştirme koşulu</target>
+        <target state="translated">Join koşulu</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">
@@ -1724,7 +1729,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Add_Overloads">
         <source>Add 'Overloads'</source>
-        <target state="needs-review-translation">Aşırı Yükleme Ekle</target>
+        <target state="translated">'Overloads' ekle</target>
         <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">

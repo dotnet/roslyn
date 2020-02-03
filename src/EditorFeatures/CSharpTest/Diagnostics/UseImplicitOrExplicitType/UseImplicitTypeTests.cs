@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -32,34 +34,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
 
         // specify all options explicitly to override defaults.
         public IDictionary<OptionKey, object> ImplicitTypeEverywhere() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
         private IDictionary<OptionKey, object> ImplicitTypeWhereApparent() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
         private IDictionary<OptionKey, object> ImplicitTypeWhereApparentAndForIntrinsics() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
         public IDictionary<OptionKey, object> ImplicitTypeButKeepIntrinsics() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo));
 
         private IDictionary<OptionKey, object> ImplicitTypeEnforcements() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithWarning),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithError),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithWarning),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithError),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
         private IDictionary<OptionKey, object> ImplicitTypeSilentEnforcement() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithSilent));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
 
         private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
             => new Dictionary<OptionKey, object> { { option, value } };
@@ -1768,7 +1770,7 @@ class C
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
-        private static string trivial2uple =
+        private static readonly string trivial2uple =
                     @"
 namespace System
 {
@@ -2462,7 +2464,7 @@ public class Test
         [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
         public async Task DoNotSuggestVarForInterfaceVariableInDeclarationStatement()
         {
-    await TestMissingInRegularAndScriptAsync(@"
+            await TestMissingInRegularAndScriptAsync(@"
 public interface ITest
 {
     string Value { get; }
@@ -2585,6 +2587,76 @@ class C
         }
     }
 }", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WorkItem(39171, "https://github.com/dotnet/roslyn/issues/39171")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        public async Task NoSuggestionForSwitchExpressionDifferentTypes()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    interface IFruit { }
+
+    class Apple : IFruit { }
+
+    class Banana : IFruit { }
+
+    public static void Test(string name)
+    {
+        [|IFruit|] fruit = name switch
+        {
+            ""apple"" => new Apple(),
+            ""banana"" => new Banana(),
+            _ => null,
+        };
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WorkItem(39171, "https://github.com/dotnet/roslyn/issues/39171")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        public async Task SuggestSwitchExpressionSameOrInheritedTypes()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Test { }
+
+class Test2 : Test { }
+
+class C
+{
+    void M()
+    {
+        var str = ""one"";
+        [|Test|] t = str switch
+        {
+            ""one"" => new Test(),
+            ""two"" => new Test2(),
+            _ => throw new InvalidOperationException(""Unknown test.""),
+        };
+    }     
+}",
+@"using System;
+
+class Test { }
+
+class Test2 : Test { }
+
+class C
+{
+    void M()
+    {
+        var str = ""one"";
+        var t = str switch
+        {
+            ""one"" => new Test(),
+            ""two"" => new Test2(),
+            _ => throw new InvalidOperationException(""Unknown test.""),
+        };
+    }     
+}", options: ImplicitTypeEverywhere());
         }
     }
 }

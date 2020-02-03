@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     internal class TriviaRewriter : CSharpSyntaxRewriter
     {
         private readonly SyntaxNode _node;
-        private readonly SimpleIntervalTree<TextSpan> _spans;
+        private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> _spans;
         private readonly CancellationToken _cancellationToken;
 
         private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _trailingTriviaMap;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public TriviaRewriter(
             SyntaxNode node,
-            SimpleIntervalTree<TextSpan> spanToFormat,
+            SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> spanToFormat,
             Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map,
             CancellationToken cancellationToken)
         {
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText;
             var trailingTrivia = SyntaxFactory.ParseTrailingTrivia(text);
 
-            int width = trailingTrivia.GetFullWidth();
+            var width = trailingTrivia.GetFullWidth();
             var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(text.Substring(width));
 
             return ValueTuple.Create(trailingTrivia, leadingTrivia);
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 yield break;
             }
 
-            for (int i = startIndex; i <= endIndex; i++)
+            for (var i = startIndex; i <= endIndex; i++)
             {
                 yield return triviaList[i];
             }
@@ -133,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private int GetFirstEndOfLineIndexOrRightBeforeComment(List<SyntaxTrivia> triviaList)
         {
-            for (int i = 0; i < triviaList.Count; i++)
+            for (var i = 0; i < triviaList.Count; i++)
             {
                 var trivia = triviaList[i];
 

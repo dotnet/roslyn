@@ -1,9 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
 using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -11,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Anchor Indentation Formatting Rule";
 
-        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AnchorIndentationOperation> nextOperation)
+        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, in NextAnchorIndentationOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
             if (node.IsKind(SyntaxKind.SimpleLambdaExpression) || node.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
             {
@@ -64,6 +71,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return;
                 case AccessorDeclarationSyntax accessorDeclNode:
                     AddAnchorIndentationOperation(list, accessorDeclNode);
+                    return;
+                case CSharpSyntaxNode switchExpressionArm when switchExpressionArm.IsKind(SyntaxKind.SwitchExpressionArm):
+                    // The expression in a switch expression arm should be anchored to the beginning of the arm
+                    // ```
+                    // e switch
+                    // {
+                    // pattern:
+                    //         expression,
+                    // ```
+                    // We will keep the relative position of `expression` relative to `pattern:`. It will format to:
+                    // ```
+                    // e switch
+                    // {
+                    //     pattern:
+                    //             expression,
+                    // ```
+                    AddAnchorIndentationOperation(list, switchExpressionArm);
                     return;
             }
         }

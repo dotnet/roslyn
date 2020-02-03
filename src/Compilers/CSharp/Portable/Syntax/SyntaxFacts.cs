@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -246,10 +248,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsNamedArgumentName(SyntaxNode node)
         {
             // An argument name is an IdentifierName inside a NameColon, inside an Argument, inside an ArgumentList, inside an
-            // Invocation, ObjectCreation, ObjectInitializer, or ElementAccess.
+            // Invocation, ObjectCreation, ObjectInitializer, ElementAccess or Subpattern.
 
             if (!node.IsKind(IdentifierName))
-            { 
+            {
                 return false;
             }
 
@@ -260,6 +262,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var parent2 = parent1.Parent;
+            if (parent2.IsKind(SyntaxKind.Subpattern))
+            {
+                return true;
+            }
+
             if (parent2 == null || !(parent2.IsKind(Argument) || parent2.IsKind(AttributeArgument)))
             {
                 return false;
@@ -405,14 +412,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LambdaUtilities.IsLambdaBody(node);
         }
 
-        internal static bool IsVar(this Syntax.InternalSyntax.SyntaxToken node)
+        internal static bool IsIdentifierVar(this Syntax.InternalSyntax.SyntaxToken node)
         {
-            return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
+            return node.ContextualKind == SyntaxKind.VarKeyword;
         }
 
-        internal static bool IsVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
+        internal static bool IsIdentifierVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
         {
-            return node.IsVar() || IsPredefinedType(node.Kind);
+            return node.IsIdentifierVar() || IsPredefinedType(node.Kind);
         }
 
         internal static bool IsDeclarationExpressionType(SyntaxNode node, out DeclarationExpressionSyntax parent)
@@ -459,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
 
-            return nameToken.ValueText;
+            return nameToken.RawKind != 0 ? nameToken.ValueText : null;
         }
 
         /// <summary>
@@ -472,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool IsReservedTupleElementName(string elementName)
         {
-            return TupleTypeSymbol.IsElementNameReserved(elementName) != -1;
+            return NamedTypeSymbol.IsTupleElementNameReserved(elementName) != -1;
         }
 
         internal static bool HasAnyBody(this BaseMethodDeclarationSyntax declaration)

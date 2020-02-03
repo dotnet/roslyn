@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal static partial class UsingsAndExternAliasesOrganizer
     {
-        private static readonly SyntaxTrivia s_newLine = SyntaxFactory.ElasticCarriageReturnLineFeed;
+        private static readonly SyntaxTrivia s_newLine = SyntaxFactory.CarriageReturnLineFeed;
 
         public static void Organize(
             SyntaxList<ExternAliasDirectiveSyntax> externAliasList,
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         private static bool NeedsGrouping(
-            UsingDirectiveSyntax using1, 
+            UsingDirectiveSyntax using1,
             UsingDirectiveSyntax using2)
         {
             var directive1IsUsingStatic = using1.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             // First, make sure that every node (except the last one) ends with
             // a newline.
-            for (int i = 0; i < list.Count - 1; i++)
+            for (var i = 0; i < list.Count - 1; i++)
             {
                 var node = list[i];
                 var trailingTrivia = node.GetTrailingTrivia();
@@ -159,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // Now, make sure that every node (except the first one) does *not*
             // start with newlines.
-            for (int i = 1; i < list.Count; i++)
+            for (var i = 1; i < list.Count; i++)
             {
                 var node = list[i];
                 list[i] = TrimLeadingNewLines(node);

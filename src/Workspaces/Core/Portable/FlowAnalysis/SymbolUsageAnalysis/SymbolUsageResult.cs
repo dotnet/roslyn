@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         /// </summary>
         public IEnumerable<(ISymbol Symbol, IOperation WriteOperation)> GetUnreadSymbolWrites()
             => SymbolWritesMap.Where(kvp => !kvp.Value).Select(kvp => kvp.Key);
-        
+
         /// <summary>
         /// Returns true if the initial value of the parameter from the caller is used.
         /// </summary>
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 // 'write' operation is 'null' for the initial write of the parameter,
                 // which may be from the caller's argument or parameter initializer.
-                if (kvp.Key.write == null && kvp.Key.symbol == parameter)
+                if (kvp.Key.write == null && Equals(kvp.Key.symbol, parameter))
                 {
                     return kvp.Value;
                 }
@@ -73,10 +75,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         /// </summary>
         public int GetSymbolWriteCount(ISymbol symbol)
         {
-            int count = 0;
+            var count = 0;
             foreach (var kvp in SymbolWritesMap)
             {
-                if (kvp.Key.symbol == symbol)
+                if (Equals(kvp.Key.symbol, symbol))
                 {
                     count++;
                 }

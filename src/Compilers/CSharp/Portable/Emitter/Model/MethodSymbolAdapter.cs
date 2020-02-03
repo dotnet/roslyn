@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -209,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.ReturnType.CustomModifiers.As<Cci.ICustomModifier>();
+                return this.ReturnTypeWithAnnotations.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -231,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(this.ReturnType.TypeSymbol,
+            return ((PEModuleBuilder)context.Module).Translate(this.ReturnType,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                 diagnostics: context.Diagnostics);
         }
@@ -242,10 +244,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(((Cci.IMethodReference)this).AsGenericMethodInstanceReference != null);
 
-            foreach (var arg in this.TypeArguments)
+            foreach (var arg in this.TypeArgumentsWithAnnotations)
             {
                 Debug.Assert(arg.CustomModifiers.IsEmpty);
-                yield return moduleBeingBuilt.Translate(arg.TypeSymbol,
+                yield return moduleBeingBuilt.Translate(arg.Type,
                                                         syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                         diagnostics: context.Diagnostics);
             }

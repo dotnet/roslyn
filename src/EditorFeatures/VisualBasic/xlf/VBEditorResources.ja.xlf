@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="New_">
         <source>New</source>
-        <target state="translated">新規作成</target>
+        <target state="translated">新規</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_Events">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
-        <target state="translated">ドキュメントをフォーマットしています...</target>
+        <target state="translated">ドキュメントを書式設定しています...</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_new_line">

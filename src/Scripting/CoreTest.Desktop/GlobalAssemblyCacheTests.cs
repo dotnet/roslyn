@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -79,6 +81,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // fusion API CreateAssemblyEnum returns S_FALSE for this name
             names = gac.GetAssemblyIdentities("nonexistingassemblyname" + Guid.NewGuid().ToString()).ToArray();
             Assert.Equal(0, names.Length);
+        }
+
+        [MonoOnlyFact("https://github.com/dotnet/roslyn/pull/39369")]
+        public void GetFacadeAssemblyIdentities()
+        {
+            var gac = GlobalAssemblyCache.Instance;
+
+            AssemblyIdentity[] names;
+
+            // One netstandard.dll should resolve from Facades on Mono
+            names = gac.GetAssemblyIdentities(new AssemblyName("netstandard")).ToArray();
+            Assert.Collection(names, name =>
+            {
+                Assert.Equal("netstandard", name.Name);
+                Assert.True(name.Version >= new Version("2.0.0.0"), "netstandard version must be >= 2.0.0.0");
+            });
         }
 
         [ClrOnlyFact(ClrOnlyReason.Fusion)]

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -30,51 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public override IWorkspaceTaskScheduler CreateEventingTaskQueue()
         {
-            // When we are creating the workspace, we might not actually have established what the UI thread is, since
-            // we might be getting created via MEF. So we'll allow the queue to be created now, and once we actually need
-            // to queue something we'll then start using the task queue from there.
-            // In Visual Studio, we raise these events on the UI thread. At this point we should know
-            // exactly which thread that is.
-            return new VisualStudioTaskScheduler(this);
-        }
-
-        private class VisualStudioTaskScheduler : IWorkspaceTaskScheduler
-        {
-            private readonly Lazy<WorkspaceTaskQueue> _queue;
-            private readonly VisualStudioTaskSchedulerFactory _factory;
-
-            public VisualStudioTaskScheduler(VisualStudioTaskSchedulerFactory factory)
-            {
-                _factory = factory;
-                _queue = new Lazy<WorkspaceTaskQueue>(CreateQueue);
-            }
-
-            private WorkspaceTaskQueue CreateQueue()
-            {
-                // At this point, we have to know what the UI thread is.
-                Contract.ThrowIfFalse(_factory._threadingContext.HasMainThread);
-                return new WorkspaceTaskQueue(_factory, new JoinableTaskFactoryTaskScheduler(_factory._threadingContext.JoinableTaskFactory));
-            }
-
-            public Task ScheduleTask(Action taskAction, string taskName, CancellationToken cancellationToken = default)
-            {
-                return _queue.Value.ScheduleTask(taskAction, taskName, cancellationToken);
-            }
-
-            public Task<T> ScheduleTask<T>(Func<T> taskFunc, string taskName, CancellationToken cancellationToken = default)
-            {
-                return _queue.Value.ScheduleTask(taskFunc, taskName, cancellationToken);
-            }
-
-            public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default)
-            {
-                return _queue.Value.ScheduleTask(taskFunc, taskName, cancellationToken);
-            }
-
-            public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default)
-            {
-                return _queue.Value.ScheduleTask(taskFunc, taskName, cancellationToken);
-            }
+            return new WorkspaceTaskQueue(this, new JoinableTaskFactoryTaskScheduler(_threadingContext.JoinableTaskFactory));
         }
 
         private class JoinableTaskFactoryTaskScheduler : TaskScheduler

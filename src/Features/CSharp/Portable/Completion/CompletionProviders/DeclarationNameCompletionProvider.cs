@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var recommendedNames = await GetRecommendedNamesAsync(baseNames, nameInfo, context, document, cancellationToken).ConfigureAwait(false);
-                int sortValue = 0;
+                var sortValue = 0;
                 foreach (var (name, kind) in recommendedNames)
                 {
                     // We've produced items in the desired order, add a sort text to each item to prevent alphabetization
@@ -70,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel,  NameDeclarationInfo nameInfo)
+        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel, NameDeclarationInfo nameInfo)
         {
             if (nameInfo.Alias != null)
             {
@@ -110,33 +113,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private Glyph GetGlyph(SymbolKind kind, Accessibility? declaredAccessibility)
         {
-            Glyph publicIcon;
-            switch (kind)
+            var publicIcon = kind switch
             {
-                case SymbolKind.Field:
-                    publicIcon = Glyph.FieldPublic;
-                    break;
-                case SymbolKind.Local:
-                    publicIcon = Glyph.Local;
-                    break;
-                case SymbolKind.Method:
-                    publicIcon = Glyph.MethodPublic;
-                    break;
-                case SymbolKind.Parameter:
-                    publicIcon = Glyph.Parameter;
-                    break;
-                case SymbolKind.Property:
-                    publicIcon = Glyph.PropertyPublic;
-                    break;
-                case SymbolKind.RangeVariable:
-                    publicIcon = Glyph.RangeVariable;
-                    break;
-                case SymbolKind.TypeParameter:
-                    publicIcon = Glyph.TypeParameter;
-                    break;
-                default:
-                    throw new ArgumentException();
-            }
+                SymbolKind.Field => Glyph.FieldPublic,
+                SymbolKind.Local => Glyph.Local,
+                SymbolKind.Method => Glyph.MethodPublic,
+                SymbolKind.Parameter => Glyph.Parameter,
+                SymbolKind.Property => Glyph.PropertyPublic,
+                SymbolKind.RangeVariable => Glyph.RangeVariable,
+                SymbolKind.TypeParameter => Glyph.TypeParameter,
+                _ => throw new ArgumentException(),
+            };
 
             switch (declaredAccessibility)
             {
@@ -177,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
             {
                 var originalDefinition = namedType.OriginalDefinition;
-                
+
                 var ienumerableOfT = namedType.GetAllInterfacesIncludingThis().FirstOrDefault(
                     t => t.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
 
@@ -198,9 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var valueTaskType = compilation.ValueTaskOfTType();
                 var lazyOfTType = compilation.LazyOfTType();
 
-                if (originalDefinition == taskOfTType ||
-                    originalDefinition == valueTaskType ||
-                    originalDefinition == lazyOfTType ||
+                if (Equals(originalDefinition, taskOfTType) ||
+                    Equals(originalDefinition, valueTaskType) ||
+                    Equals(originalDefinition, lazyOfTType) ||
                     originalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
                     return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural, seenTypes: seenTypes);
@@ -219,6 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var rules = await document.GetNamingRulesAsync(FallbackNamingRules.CompletionOfferingRules, cancellationToken).ConfigureAwait(false);
             var result = new Dictionary<string, SymbolKind>();
+            var semanticFactsService = context.GetLanguageService<ISemanticFactsService>();
+
             foreach (var kind in declarationInfo.PossibleSymbolKinds)
             {
                 // There's no special glyph for local functions.
@@ -236,9 +225,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         foreach (var baseName in baseNames)
                         {
                             var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
-                            if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
+
+                            // Don't add multiple items for the same name and only add valid identifiers
+                            if (name.Length > 1 && CSharpSyntaxFactsService.Instance.IsValidIdentifier(name) && !result.ContainsKey(name))
                             {
-                                result.Add(name, symbolKind);
+                                var targetToken = context.TargetToken;
+                                var uniqueName = semanticFactsService.GenerateUniqueName(
+                                    context.SemanticModel,
+                                    context.TargetToken.Parent,
+                                    containerOpt: null,
+                                    baseName: name,
+                                    filter: IsRelevantSymbolKind,
+                                    usedNames: Enumerable.Empty<string>(),
+                                    cancellationToken: cancellationToken);
+                                result.Add(uniqueName.Text, symbolKind);
                             }
                         }
                     }
@@ -248,14 +248,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return result.Select(kvp => (kvp.Key, kvp.Value)).ToImmutableArray();
         }
 
+        /// <summary>
+        /// Check if the symbol is a relevant kind.
+        /// Only relevant if symbol could cause a conflict with a local variable.
+        /// </summary>
+        private bool IsRelevantSymbolKind(ISymbol symbol)
+        {
+            return symbol.Kind == SymbolKind.Local ||
+                symbol.Kind == SymbolKind.Parameter ||
+                symbol.Kind == SymbolKind.RangeVariable;
+        }
+
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
         {
             return CommonCompletionItem.Create(
-                name, 
+                name,
                 displayTextSuffix: "",
-                CompletionItemRules.Default, 
-                glyph: glyph, 
-                sortText: sortText, 
+                CompletionItemRules.Default,
+                glyph: glyph,
+                sortText: sortText,
                 description: CSharpFeaturesResources.Suggested_name.ToSymbolDisplayParts());
         }
     }

@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 return new MethodInfo
                 {
                     LocalFuncs = this.LocalFuncs
-                        .Select(x => x == null 
-                                     ? null 
+                        .Select(x => x == null
+                                     ? null
                                      : (IList<string>)new List<string>(x)).ToList(),
                     CaptureContext = this.CaptureContext.Clone()
                 };

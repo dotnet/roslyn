@@ -94,6 +94,11 @@
         <target state="translated">MSB3104: il modello "{0}" a cui si fa riferimento non è stato trovato. Se l'assembly è prodotto da un altro progetto, assicurarsi di compilare tale progetto prima di compilare quello corrente.</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">Non è stato possibile leggere il file "{0}": {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">La compilazione condivisa non è riuscita. Verrà eseguito il fallback allo strumento: {0}</target>

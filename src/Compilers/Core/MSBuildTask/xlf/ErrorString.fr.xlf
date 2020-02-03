@@ -94,6 +94,11 @@
         <target state="translated">MSB3104: L'assembly référencé "{0}" est introuvable. Si cet assembly est produit par l'un de vos projets, assurez-vous de générer ce projet avant de générer celui-ci.</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">Impossible de lire le fichier "{0}" : {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">Échec de la compilation partagée ; retour à l'outil : {0}</target>

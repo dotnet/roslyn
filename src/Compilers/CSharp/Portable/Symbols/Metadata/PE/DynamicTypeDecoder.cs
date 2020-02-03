@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -207,11 +209,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol TransformNamedType(NamedTypeSymbol namedType, bool isContaining = false)
         {
-            if (namedType.IsTupleType)
-            {
-                return TransformTupleType(namedType, isContaining);
-            }
-
             // Native compiler encodes a bool for the given namedType, but none for its containing types.
             if (!isContaining)
             {
@@ -237,9 +234,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // Native compiler encodes bools for each type argument, starting from type arguments for the outermost containing type to those for the given namedType.
-            ImmutableArray<TypeSymbolWithAnnotations> typeArguments = namedType.TypeArgumentsNoUseSiteDiagnostics;
+            ImmutableArray<TypeWithAnnotations> typeArguments = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
 
-            ImmutableArray<TypeSymbolWithAnnotations> transformedTypeArguments = TransformTypeArguments(typeArguments); // Note, modifiers are not involved, this is behavior of the native compiler.
+            ImmutableArray<TypeWithAnnotations> transformedTypeArguments = TransformTypeArguments(typeArguments); // Note, modifiers are not involved, this is behavior of the native compiler.
 
             if (transformedTypeArguments.IsDefault)
             {
@@ -247,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // Construct a new namedType, if required.
-            bool containerIsChanged = (newContainingType != containingType);
+            bool containerIsChanged = (!TypeSymbol.Equals(newContainingType, containingType, TypeCompareKind.ConsiderEverything2));
 
             if (containerIsChanged || transformedTypeArguments != typeArguments)
             {
@@ -257,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return namedType.ConstructIfGeneric(transformedTypeArguments);
                 }
 
-                return namedType.ConstructedFrom.Construct(transformedTypeArguments, unbound: false);
+                return namedType.ConstructedFrom.Construct(transformedTypeArguments, unbound: false).WithTupleDataFrom(namedType);
             }
             else
             {
@@ -265,44 +262,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private NamedTypeSymbol TransformTupleType(NamedTypeSymbol tupleType, bool isContaining)
-        {
-            Debug.Assert(tupleType.IsTupleType);
-
-            var underlying = tupleType.TupleUnderlyingType;
-            var transformedUnderlying = TransformNamedType(underlying, isContaining);
-            
-            if (transformedUnderlying == null)
-            {
-                // Bail, something is wrong with the flags.
-                // the dynamic transformation should be ignored.
-                return null;
-            }
-
-            return TupleTypeSymbol.Create(transformedUnderlying, tupleType.TupleElementNames);
-        }
-
-        private ImmutableArray<TypeSymbolWithAnnotations> TransformTypeArguments(ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
+        private ImmutableArray<TypeWithAnnotations> TransformTypeArguments(ImmutableArray<TypeWithAnnotations> typeArguments)
         {
             if (!typeArguments.Any())
             {
                 return typeArguments;
             }
 
-            var transformedTypeArgsBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            var transformedTypeArgsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             bool anyTransformed = false;
             foreach (var typeArg in typeArguments)
             {
-                TypeSymbol transformedTypeArg = TransformType(typeArg.TypeSymbol);
+                TypeSymbol transformedTypeArg = TransformType(typeArg.Type);
                 if ((object)transformedTypeArg == null)
                 {
                     transformedTypeArgsBuilder.Free();
-                    return default(ImmutableArray<TypeSymbolWithAnnotations>);
+                    return default(ImmutableArray<TypeWithAnnotations>);
                 }
 
                 // Note, modifiers are not involved, this is behavior of the native compiler.
                 transformedTypeArgsBuilder.Add(typeArg.WithTypeAndModifiers(transformedTypeArg, typeArg.CustomModifiers));
-                anyTransformed |= transformedTypeArg != typeArg.TypeSymbol;
+                anyTransformed |= !TypeSymbol.Equals(transformedTypeArg, typeArg.Type, TypeCompareKind.ConsiderEverything2);
             }
 
             if (!anyTransformed)
@@ -319,22 +299,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var flag = ConsumeFlag();
             Debug.Assert(!flag);
 
-            if (!HandleCustomModifiers(arrayType.ElementType.CustomModifiers.Length))
+            if (!HandleCustomModifiers(arrayType.ElementTypeWithAnnotations.CustomModifiers.Length))
             {
                 return null;
             }
 
-            TypeSymbol transformedElementType = TransformType(arrayType.ElementType.TypeSymbol);
+            TypeSymbol transformedElementType = TransformType(arrayType.ElementType);
             if ((object)transformedElementType == null)
             {
                 return null;
             }
 
-            return transformedElementType == arrayType.ElementType.TypeSymbol ?
+            return TypeSymbol.Equals(transformedElementType, arrayType.ElementType, TypeCompareKind.ConsiderEverything2) ?
                 arrayType :
                 arrayType.IsSZArray ?
-                    ArrayTypeSymbol.CreateSZArray(_containingAssembly, arrayType.ElementType.WithTypeAndModifiers(transformedElementType, arrayType.ElementType.CustomModifiers)) :
-                    ArrayTypeSymbol.CreateMDArray(_containingAssembly, arrayType.ElementType.WithTypeAndModifiers(transformedElementType, arrayType.ElementType.CustomModifiers), arrayType.Rank, arrayType.Sizes, arrayType.LowerBounds);
+                    ArrayTypeSymbol.CreateSZArray(_containingAssembly, arrayType.ElementTypeWithAnnotations.WithTypeAndModifiers(transformedElementType, arrayType.ElementTypeWithAnnotations.CustomModifiers)) :
+                    ArrayTypeSymbol.CreateMDArray(_containingAssembly, arrayType.ElementTypeWithAnnotations.WithTypeAndModifiers(transformedElementType, arrayType.ElementTypeWithAnnotations.CustomModifiers), arrayType.Rank, arrayType.Sizes, arrayType.LowerBounds);
         }
 
         private PointerTypeSymbol TransformPointerType(PointerTypeSymbol pointerType)
@@ -342,20 +322,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var flag = ConsumeFlag();
             Debug.Assert(!flag);
 
-            if (!HandleCustomModifiers(pointerType.PointedAtType.CustomModifiers.Length))
+            if (!HandleCustomModifiers(pointerType.PointedAtTypeWithAnnotations.CustomModifiers.Length))
             {
                 return null;
             }
 
-            TypeSymbol transformedPointedAtType = TransformType(pointerType.PointedAtType.TypeSymbol);
+            TypeSymbol transformedPointedAtType = TransformType(pointerType.PointedAtType);
             if ((object)transformedPointedAtType == null)
             {
                 return null;
             }
 
-            return transformedPointedAtType == pointerType.PointedAtType.TypeSymbol ?
+            return TypeSymbol.Equals(transformedPointedAtType, pointerType.PointedAtType, TypeCompareKind.ConsiderEverything2) ?
                 pointerType :
-                new PointerTypeSymbol(pointerType.PointedAtType.WithTypeAndModifiers(transformedPointedAtType, pointerType.PointedAtType.CustomModifiers));
+                new PointerTypeSymbol(pointerType.PointedAtTypeWithAnnotations.WithTypeAndModifiers(transformedPointedAtType, pointerType.PointedAtTypeWithAnnotations.CustomModifiers));
         }
 
         private bool HasFlag => _index < _dynamicTransformFlags.Length || !_checkLength;

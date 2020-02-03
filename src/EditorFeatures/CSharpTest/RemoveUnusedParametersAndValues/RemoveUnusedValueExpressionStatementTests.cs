@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
@@ -178,6 +181,62 @@ $@"class C
     void M()
     {
         [|M2()|];
+    }
+}", optionName);
+        }
+
+        [WorkItem(33073, "https://github.com/dotnet/roslyn/issues/33073")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionStatement_SemanticError_02(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|M2()|];
+    }
+
+    UndefinedType M2() => null;
+}", optionName);
+        }
+
+        [WorkItem(33073, "https://github.com/dotnet/roslyn/issues/33073")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionStatement_SemanticError_03(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    private async Task M()
+    {
+        // error CS0103: The name 'CancellationToken' does not exist in the current context
+        [|await Task.Delay(0, CancellationToken.None).ConfigureAwait(false)|];
+    }
+}", optionName);
+        }
+
+        [WorkItem(33073, "https://github.com/dotnet/roslyn/issues/33073")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionStatement_SemanticError_04(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    private async Task M()
+    {
+        // error CS0103: The name 'Task' does not exist in the current context
+        // error CS0103: The name 'CancellationToken' does not exist in the current context
+        // error CS1983: The return type of an async method must be void, Task or Task<T>
+        [|await Task.Delay(0, CancellationToken.None).ConfigureAwait(false)|];
     }
 }", optionName);
         }
@@ -444,7 +503,7 @@ $@"class C
 {
     void M()
     {/*C0*/
-     /*C1*/
+        /*C1*/
         _ = M2()/*C2*/;/*C3*/
      /*C4*/
     }
@@ -499,13 +558,66 @@ $@"class C
 {
     void M()
     {/*C0*/
-     /*C1*/
+        /*C1*/
         var unused = M2()/*C2*/;/*C3*/
-                                /*C4*/
+        /*C4*/
     }
 
     int M2() => 0;
 }", options: PreferUnusedLocal);
+        }
+
+        [WorkItem(32942, "https://github.com/dotnet/roslyn/issues/32942")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionBodiedMember_01(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M() => [|M2()|];
+    int M2() => 0;
+}", optionName);
+        }
+
+        [WorkItem(32942, "https://github.com/dotnet/roslyn/issues/32942")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionBodiedMember_02(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        System.Action a = () => [|M2()|];
+    }
+
+    int M2() => 0;
+}", optionName);
+        }
+
+        [WorkItem(32942, "https://github.com/dotnet/roslyn/issues/32942")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionBodiedMember_03(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        LocalFunction();
+        return;
+
+        void LocalFunction() => [|M2()|];
+    }
+
+    int M2() => 0;
+}", optionName);
         }
     }
 }

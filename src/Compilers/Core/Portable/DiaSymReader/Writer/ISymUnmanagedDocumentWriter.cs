@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #pragma warning disable 436 // SuppressUnmanagedCodeSecurityAttribute defined in source and mscorlib 
 
@@ -9,9 +11,9 @@ using System.Security;
 namespace Microsoft.DiaSymReader
 {
     [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("B01FAFEB-C450-3A4D-BEEC-B4CEEC01E006"), SuppressUnmanagedCodeSecurity]
-    internal interface ISymUnmanagedDocumentWriter
+    internal unsafe interface ISymUnmanagedDocumentWriter
     {
-        void SetSource(uint sourceSize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] byte[] source);
-        void SetCheckSum(Guid algorithmId, uint checkSumSize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[] checkSum);
+        void SetSource(uint sourceSize, byte* source);
+        void SetCheckSum(Guid algorithmId, uint checkSumSize, byte* checkSum);
     }
 }

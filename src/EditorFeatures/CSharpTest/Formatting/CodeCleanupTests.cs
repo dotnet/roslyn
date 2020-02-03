@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,13 +13,14 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
@@ -41,18 +44,16 @@ class Program
 ";
 
             var expected = @"using System;
-class Program
+
+internal class Program
 {
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
         Console.WriteLine();
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
-                (CodeCleanupOptions.RemoveUnusedImports, enabled: true),
-                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
+            return AssertCodeCleanupResult(expected, code);
         }
 
         [Fact]
@@ -73,20 +74,107 @@ class Program
 
             var expected = @"using System;
 using System.Collections.Generic;
-class Program
+
+internal class Program
 {
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
-        var list = new List<int>();
+        List<int> list = new List<int>();
         Console.WriteLine(list.Count);
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
-                (CodeCleanupOptions.SortImports, enabled: true),
-                (CodeCleanupOptions.ApplyImplicitExplicitTypePreferences, enabled: false),
-                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
+            return AssertCodeCleanupResult(expected, code);
+        }
+
+        [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public Task GroupUsings()
+        {
+            var code = @"using M;
+using System;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine(""Hello World!"");
+
+        new Goo();
+    }
+}
+
+namespace M
+{
+    public class Goo { }
+}
+";
+
+            var expected = @"using M;
+
+using System;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine(""Hello World!"");
+
+        new Goo();
+    }
+}
+
+namespace M
+{
+    public class Goo { }
+}
+";
+            return AssertCodeCleanupResult(expected, code, systemUsingsFirst: false, separateUsingGroups: true);
+        }
+
+        [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public Task SortAndGroupUsings()
+        {
+            var code = @"using M;
+using System;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine(""Hello World!"");
+
+        new Goo();
+    }
+}
+
+namespace M
+{
+    public class Goo { }
+}
+";
+
+            var expected = @"using System;
+
+using M;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine(""Hello World!"");
+
+        new Goo();
+    }
+}
+
+namespace M
+{
+    public class Goo { }
+}
+";
+            return AssertCodeCleanupResult(expected, code, systemUsingsFirst: true, separateUsingGroups: true);
         }
 
         [Fact]
@@ -103,9 +191,9 @@ class Program
     }
 }
 ";
-            var expected = @"class Program
+            var expected = @"internal class Program
 {
-    void Method()
+    private void Method()
     {
         int a = 0;
         if (a > 0)
@@ -115,10 +203,7 @@ class Program
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
-                (CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements, enabled: true),
-                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
+            return AssertCodeCleanupResult(expected, code);
         }
 
         [Fact]
@@ -133,17 +218,14 @@ class Program
     }
 }
 ";
-            var expected = @"class Program
+            var expected = @"internal class Program
 {
-    void Method()
+    private void Method()
     {
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
-                (CodeCleanupOptions.RemoveUnusedVariables, enabled: true),
-                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
+            return AssertCodeCleanupResult(expected, code);
         }
 
         [Fact]
@@ -162,51 +244,45 @@ class Program
 {
     private void Method()
     {
-        int a;
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
-                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: true));
+            return AssertCodeCleanupResult(expected, code);
         }
 
-        protected static async Task AssertCodeCleanupResult(string expected, string code, params (PerLanguageOption<bool> option, bool enabled)[] options)
+        protected static async Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false)
         {
             var exportProvider = ExportProviderCache
                 .GetOrCreateExportProviderFactory(
                     TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(CodeCleanupAnalyzerProviderService)))
                 .CreateExportProvider();
 
-            using (var workspace = TestWorkspace.CreateCSharp(code, exportProvider: exportProvider))
-            {
-                if (options != null)
-                {
-                    foreach (var option in options)
-                    {
-                        workspace.Options = workspace.Options.WithChangedOption(option.option, LanguageNames.CSharp, option.enabled);
-                    }
-                }
+            using var workspace = TestWorkspace.CreateCSharp(code, exportProvider: exportProvider);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst)
+                .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups)));
 
-                // register this workspace to solution crawler so that analyzer service associate itself with given workspace
-                var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
-                incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);
+            // register this workspace to solution crawler so that analyzer service associate itself with given workspace
+            var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
+            incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);
 
-                var hostdoc = workspace.Documents.Single();
-                var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+            var hostdoc = workspace.Documents.Single();
+            var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
-                var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
-                var newDoc = await codeCleanupService.CleanupAsync(
-                    document, new ProgressTracker(), CancellationToken.None);
+            var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
-                var actual = await newDoc.GetTextAsync();
+            var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
-                Assert.Equal(expected, actual.ToString());
-            }
+            var newDoc = await codeCleanupService.CleanupAsync(
+                document, enabledDiagnostics, new ProgressTracker(), CancellationToken.None);
+
+            var actual = await newDoc.GetTextAsync();
+
+            Assert.Equal(expected, actual.ToString());
         }
 
-        [Export(typeof(IWorkspaceDiagnosticAnalyzerProviderService))]
-        private class CodeCleanupAnalyzerProviderService : IWorkspaceDiagnosticAnalyzerProviderService
+        [Export(typeof(IHostDiagnosticAnalyzerPackageProvider))]
+        private class CodeCleanupAnalyzerProviderService : IHostDiagnosticAnalyzerPackageProvider
         {
             private readonly HostDiagnosticAnalyzerPackage _info;
 
@@ -227,9 +303,9 @@ class Program
                 return FromFileLoader.Instance;
             }
 
-            public IEnumerable<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
+            public ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
             {
-                yield return _info;
+                return ImmutableArray.Create(_info);
             }
 
             public class FromFileLoader : IAnalyzerAssemblyLoader

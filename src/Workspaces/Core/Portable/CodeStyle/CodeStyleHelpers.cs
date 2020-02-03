@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static bool TryParseStringEditorConfigCodeStyleOption(string arg, out CodeStyleOption<string> option)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(
-                    arg, out string value, out NotificationOption notificationOpt))
+                    arg, out var value, out var notificationOpt))
             {
                 option = new CodeStyleOption<string>(value, notificationOpt ?? NotificationOption.Silent);
                 return true;
@@ -25,16 +27,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static bool TryParseBoolEditorConfigCodeStyleOption(string arg, out CodeStyleOption<bool> option)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(
-                    arg, out string value, out NotificationOption notificationOpt))
+                    arg, out var value, out var notificationOpt))
             {
                 // First value has to be true or false.  Anything else is unsupported.
-                if (bool.TryParse(value.Trim(), out var isEnabled))
+                if (bool.TryParse(value, out var isEnabled))
                 {
                     // We allow 'false' to be provided without a notification option.  However,
                     // 'true' must always be provided with a notification option.
                     if (isEnabled == false)
                     {
-                        notificationOpt = notificationOpt ?? NotificationOption.Silent;
+                        notificationOpt ??= NotificationOption.Silent;
                         option = new CodeStyleOption<bool>(false, notificationOpt);
                         return true;
                     }
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private static readonly CodeStyleOption<UnusedValuePreference> s_preferNoneUnusedValuePreference =
-            new CodeStyleOption<UnusedValuePreference>(default(UnusedValuePreference), NotificationOption.None);
+            new CodeStyleOption<UnusedValuePreference>(default, NotificationOption.None);
 
         private static readonly BidirectionalMap<string, UnusedValuePreference> s_unusedExpressionAssignmentPreferenceMap =
             new BidirectionalMap<string, UnusedValuePreference>(new[]
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             Debug.Assert(s_unusedExpressionAssignmentPreferenceMap.ContainsValue(option.Value));
             var value = s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(defaultPreference);
-            return option.Notification == null ? value : $"{value}:{option.Notification.ToEditorConfigString()}";
+            return $"{value}:{option.Notification.ToEditorConfigString()}";
         }
     }
 }

@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
         protected override TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions)
             => TestWorkspace.CreateCSharp(definition, (CSharpParseOptions)parseOptions);
 
-        internal override Tuple<Analyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override Tuple<Analyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
-            return new Tuple<Analyzer, ISuppressionFixProvider>(new Analyzer(), new CSharpSuppressionCodeFixProvider());
+            return new Tuple<Analyzer, IConfigurationFixProvider>(new Analyzer(), new CSharpSuppressionCodeFixProvider());
         }
 
         [WorkItem(956453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
