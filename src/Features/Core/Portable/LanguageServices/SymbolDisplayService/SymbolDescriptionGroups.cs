@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         AnonymousTypes = 1 << 4,
         Exceptions = 1 << 5,
         Captures = 1 << 6,
-        All = MainDescription | AwaitableUsageText | Documentation | TypeParameterMap | AnonymousTypes | Exceptions | Captures
+        ReturnsDocumentation = 1 << 7,
+        All = MainDescription | AwaitableUsageText | Documentation | TypeParameterMap | AnonymousTypes | Exceptions | Captures | ReturnsDocumentation,
     }
 }

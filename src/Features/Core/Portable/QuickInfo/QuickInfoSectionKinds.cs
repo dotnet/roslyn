@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     {
         public const string Description = nameof(Description);
         public const string DocumentationComments = nameof(DocumentationComments);
+        public const string ReturnsDocumentationComments = nameof(ReturnsDocumentationComments);
         public const string TypeParameters = nameof(TypeParameters);
         public const string AnonymousTypes = nameof(AnonymousTypes);
         public const string Usage = nameof(Usage);

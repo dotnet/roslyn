@@ -209,6 +209,18 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.DocumentationComments, documentationContent);
             }
 
+            var returnsDocumentationContent = GetReturnsDocumentationContent(symbols, groups, semanticModel, token, formatter, syntaxFactsService, cancellationToken);
+            if (!returnsDocumentationContent.IsDefaultOrEmpty)
+            {
+                var builder = ImmutableArray.CreateBuilder<TaggedText>();
+                builder.AddLineBreak();
+                builder.AddText(FeaturesResources.Returns_colon);
+                builder.AddLineBreak();
+                builder.Add(new TaggedText(TextTags.Space, "  "));
+                builder.AddRange(returnsDocumentationContent);
+                AddSection(QuickInfoSectionKinds.ReturnsDocumentationComments, builder.ToImmutable());
+            }
+
             if (TryGetGroupText(SymbolDescriptionGroups.TypeParameterMap, out var typeParameterMapText))
             {
                 var builder = ImmutableArray.CreateBuilder<TaggedText>();
@@ -283,7 +295,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             if (sections.TryGetValue(SymbolDescriptionGroups.Documentation, out var parts))
             {
                 var documentationBuilder = new List<TaggedText>();
-                documentationBuilder.AddRange(sections[SymbolDescriptionGroups.Documentation]);
+                documentationBuilder.AddRange(parts);
                 return documentationBuilder.ToImmutableArray();
             }
             else if (symbols.Any())
@@ -299,6 +311,42 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
                 var documentation = symbol.GetDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
 
+                if (documentation != null)
+                {
+                    return documentation.ToImmutableArray();
+                }
+            }
+
+            return default;
+        }
+
+        private ImmutableArray<TaggedText> GetReturnsDocumentationContent(
+            IEnumerable<ISymbol> symbols,
+            IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
+            SemanticModel semanticModel,
+            SyntaxToken token,
+            IDocumentationCommentFormattingService formatter,
+            ISyntaxFactsService syntaxFactsService,
+            CancellationToken cancellationToken)
+        {
+            if (sections.TryGetValue(SymbolDescriptionGroups.ReturnsDocumentation, out var parts))
+            {
+                var documentationBuilder = new List<TaggedText>();
+                documentationBuilder.AddRange(parts);
+                return documentationBuilder.ToImmutableArray();
+            }
+            else if (symbols.Any())
+            {
+                var symbol = symbols.First().OriginalDefinition;
+
+                // if generating quick info for an attribute, bind to the class instead of the constructor
+                if (syntaxFactsService.IsAttributeName(token.Parent) &&
+                    symbol.ContainingType?.IsAttribute() == true)
+                {
+                    symbol = symbol.ContainingType;
+                }
+
+                var documentation = symbol.GetReturnsDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
                 if (documentation != null)
                 {
                     return documentation.ToImmutableArray();

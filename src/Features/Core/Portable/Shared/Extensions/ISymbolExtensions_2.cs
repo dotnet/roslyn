@@ -183,6 +183,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : SpecializedCollections.EmptyEnumerable<TaggedText>();
         }
 
+        public static IEnumerable<TaggedText> GetReturnsDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
+        {
+            var documentation = GetReturnsDocumentation(symbol, semanticModel.Compilation, cancellationToken);
+            return documentation != null
+                ? formatter.Format(documentation, semanticModel, position, CrefFormat)
+                : SpecializedCollections.EmptyEnumerable<TaggedText>();
+        }
+
         private static string GetDocumentation(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
             => symbol switch
             {
@@ -191,6 +199,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 IMethodSymbol method => GetMethodDocumentation(method, compilation, cancellationToken),
                 IAliasSymbol alias => alias.Target.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText,
                 _ => symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText,
+            };
+
+        private static string GetReturnsDocumentation(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
+            => symbol switch
+            {
+                IMethodSymbol method => GetMethodReturnsDocumentation(method, compilation, cancellationToken),
+                _ => symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).ReturnsText,
             };
 
         private static string GetParameterDocumentation(IParameterSymbol parameter, Compilation compilation, CancellationToken cancellationToken)
@@ -252,6 +267,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return method.AssociatedSymbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText;
                 default:
                     return method.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText;
+            }
+        }
+
+        private static string GetMethodReturnsDocumentation(IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken)
+        {
+            switch (method.MethodKind)
+            {
+                case MethodKind.EventAdd:
+                case MethodKind.EventRaise:
+                case MethodKind.EventRemove:
+                case MethodKind.PropertyGet:
+                case MethodKind.PropertySet:
+                    return method.AssociatedSymbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).ReturnsText;
+                default:
+                    return method.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).ReturnsText;
             }
         }
     }

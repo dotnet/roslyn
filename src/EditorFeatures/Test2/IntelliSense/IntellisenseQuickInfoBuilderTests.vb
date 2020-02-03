@@ -392,6 +392,59 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             AssertEqualAdornments(expected, container)
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
+        Public Async Sub QuickInfoShowsMethodReturns()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// Summary text.
+                                /// &lt;/summary&gt;
+                                /// &lt;returns&gt;
+                                /// Returns text.
+                                /// &lt;/returns&gt;
+                                int Me$$thod() => throw null;
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "Method", navigationAction:=Sub() Return, "int MyClass.Method()"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Summary text."))),
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, FeaturesResources.Returns_colon)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, "  "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Returns text."))))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
         <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("<para>text1</para><para>text2</para>")>
         <InlineData("text1<br/><br/>text2")>
