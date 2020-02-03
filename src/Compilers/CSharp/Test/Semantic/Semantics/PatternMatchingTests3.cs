@@ -2364,11 +2364,7 @@ class C
 zero
 positive";
                 var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
-                // PROTOTYPE(ngafter): these should be considered exhaustive
                 compilation.VerifyDiagnostics(
-                    // (12,36): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
-                    //         System.Console.WriteLine(i switch
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(12, 36)
                     );
                 var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
@@ -2406,11 +2402,7 @@ less
 same
 more";
                 var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
-                // PROTOTYPE(ngafter): these should be considered exhaustive
                 compilation.VerifyDiagnostics(
-                    // (13,36): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
-                    //         System.Console.WriteLine(i switch
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(13, 36)
                     );
                 var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
@@ -2476,7 +2468,6 @@ same
 more
 incomparable";
                 var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
-                // PROTOTYPE(ngafter): these should be considered exhaustive
                 compilation.VerifyDiagnostics(
                     );
                 var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);

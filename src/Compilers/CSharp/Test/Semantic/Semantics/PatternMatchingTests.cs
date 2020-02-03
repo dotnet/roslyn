@@ -3218,17 +3218,13 @@ public class X
 }
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
-            // PROTOTYPE(ngafter): should avoid the subsumed error
             compilation.VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case typeof(string):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string)").WithLocation(9, 18),
                 // (12,18): error CS0150: A constant value is expected
                 //             case typeof(string[]):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18),
-                // (12,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case typeof(string[]):
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "typeof(string[])").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18)
                 );
             // If we support switching on System.Type as proposed, the expectation would be
             // something like CompileAndVerify(compilation, expectedOutput: @"string[]");
