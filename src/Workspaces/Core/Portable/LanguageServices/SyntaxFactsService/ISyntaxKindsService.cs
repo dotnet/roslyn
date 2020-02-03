@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Host;
-
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
     /// <summary>
     /// Provides a uniform view of SyntaxKinds over C# and VB for constructs they have
     /// in common.
     /// </summary>
-    internal interface ISyntaxKindsService : ILanguageService
+    internal partial interface ISyntaxKindsService
     {
         int DotToken { get; }
         int QuestionToken { get; }

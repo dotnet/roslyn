@@ -7,12 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal interface ISyntaxFactsService : ILanguageService
+    internal partial interface ISyntaxFactsService
     {
         bool IsCaseSensitive { get; }
         StringComparer StringComparer { get; }

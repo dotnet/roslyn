@@ -127,6 +127,12 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\TriviaEngine\LineColumnDelta.cs" Link="Formatting\TriviaEngine\LineColumnDelta.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\TriviaEngine\LineColumnRule.cs" Link="Formatting\TriviaEngine\LineColumnRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\TriviaEngine\TriviaList.cs" Link="Formatting\TriviaEngine\TriviaList.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\ExternalSourceInfo.cs" Link="LanguageServices\SyntaxFactsService\ExternalSourceInfo.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\ISyntaxFactsService.cs" Link="LanguageServices\SyntaxFactsService\ISyntaxFactsService.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\ISyntaxFactsServiceExtensions.cs" Link="LanguageServices\SyntaxFactsService\ISyntaxFactsServiceExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\ISyntaxKindsService.cs" Link="LanguageServices\SyntaxFactsService\ISyntaxKindsService.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\PredefinedOperator.cs" Link="LanguageServices\SyntaxFactsService\PredefinedOperator.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\PredefinedType.cs" Link="LanguageServices\SyntaxFactsService\PredefinedType.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Log\EmptyLogBlock.cs" Link="Formatting\EmptyLogBlock.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Log\FunctionId.cs" Link="Formatting\FunctionId.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Log\FunctionIdOptions.cs" Link="Formatting\FunctionIdOptions.cs" />
@@ -197,6 +203,9 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="LanguageServices\SyntaxFactsService\" />
   </ItemGroup>
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
 </Project>
