@@ -365,20 +365,24 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(6, 14));
         }
 
-        [Fact]
-        public void LocalFunctionAttribute_TypeParameter()
+        [Theory]
+        [InlineData("[A] void local() { }")]
+        [InlineData("[return: A] void local() { }")]
+        [InlineData("void local([A] int i) { }")]
+        [InlineData("void local<[A]T>() {}")]
+        public void LocalFunctionAttribute_SpeculativeSemanticModel(string localFunction)
         {
-            const string text = @"
+            string text = $@"
 using System;
-class A : Attribute {}
+class A : Attribute {{}}
 
 class C
-{
+{{
     static void M()
-    {
-        void local<[A]T>() {}
-    }
-}";
+    {{
+        {localFunction}
+    }}
+}}";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var comp = (Compilation)CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
@@ -404,46 +408,6 @@ class C
             var info = model.GetSymbolInfo(a);
             // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
             Assert.Equal(attrType, info.Symbol);
-        }
-
-        [Theory]
-        [InlineData("[A]")]
-        [InlineData("[return: A]")]
-        public void LocalFunctionAttribute_SpeculativeSemanticModel(string attributes)
-        {
-            var text = $@"
-using System;
-
-class A : Attribute {{ }}
-
-class C
-{{
-    void M()
-    {{
-        {attributes} void local1() {{ }}
-    }}
-}}
-";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.RegularPreview);
-            var model = CreateCompilation(tree).GetSemanticModel(tree);
-            var attrClass = model
-                .GetDeclaredSymbol(tree.FindNodeOrTokenByKind(SyntaxKind.ClassDeclaration).AsNode())
-                .GetSymbol<NamedTypeSymbol>();
-            Assert.Equal("A", attrClass.Name);
-
-            var attrSyntax = (AttributeSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.Attribute).AsNode();
-            var attrSymbol = model.GetSymbolInfo(attrSyntax.Name).Symbol.GetSymbol<MethodSymbol>();
-            Assert.Equal(attrClass.Constructors.Single(), attrSymbol);
-
-            // Verify with speculative semantic model
-            var newTree = SyntaxFactory.ParseSyntaxTree(text + " ", TestOptions.RegularPreview);
-            var newMethod = newTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
-            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(newMethod.Body.SpanStart, newMethod, out var speculativeModel));
-
-            var newAttrSyntax = (AttributeSyntax)newTree.FindNodeOrTokenByKind(SyntaxKind.Attribute).AsNode();
-            var speculativeAttr = speculativeModel.GetSymbolInfo(newAttrSyntax.Name).Symbol.GetSymbol<NamedTypeSymbol>();
-            // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
-            Assert.Equal(attrClass, speculativeAttr);
         }
 
         [Fact]
