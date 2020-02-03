@@ -155,10 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         protected SyntaxNode TryGetTargetNode(SyntaxNode root, TextSpan span)
         {
             var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();
-            if (!ancestors.Any())
-            {
-                return null;
-            }
 
             var node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root);
             return node;
@@ -168,10 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         {
             node = null;
             var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();
-            if (!ancestors.Any())
-            {
-                return false;
-            }
 
             node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root && n != target && n.IsKind(kind));
             return node != null;
