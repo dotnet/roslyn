@@ -20,9 +20,9 @@
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\csc.deps.json" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\csc.runtimeconfig.json" />
 
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\netstandard2.0\publish\vbc.dll" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\netstandard2.0\publish\vbc.deps.json" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\netstandard2.0\publish\vbc.runtimeconfig.json" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\netcoreapp3.1\publish\vbc.dll" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\netcoreapp3.1\publish\vbc.deps.json" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\netcoreapp3.1\publish\vbc.runtimeconfig.json" />
 
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\netcoreapp3.1\publish\VBCSCompiler.dll" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\netcoreapp3.1\publish\VBCSCompiler.deps.json" />
