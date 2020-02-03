@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             if (IsDotNetHost(out string? pathToDotNet))
             {
                 commandLineArguments = $@"exec ""{toolFilePath}"" {commandLineArguments}";
-                return (pathToDotNet, commandLineArguments, toolFilePath);
+                return (pathToDotNet!, commandLineArguments, toolFilePath);
             }
             else
             {
@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis
         internal static NamedPipeClientStream CreateNamedPipeClient(string serverName, string pipeName, PipeDirection direction, PipeOptions options) =>
             new NamedPipeClientStream(serverName, pipeName, direction, options);
 
-#elif NETCOREAPP2_1
+#elif NETCOREAPP3_1
         internal static bool IsDesktopRuntime => false;
 
         private static string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
 
-        private static bool IsDotNetHost([NotNullWhen(true)] out string? pathToDotNet)
+        private static bool IsDotNetHost(out string? pathToDotNet)
         {
             pathToDotNet = GetDotNetPathOrDefault();
             return true;
