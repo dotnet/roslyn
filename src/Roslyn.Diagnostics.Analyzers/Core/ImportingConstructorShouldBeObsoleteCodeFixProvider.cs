@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Diagnostics.Analyzers
@@ -99,7 +100,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             var obsoleteAttribute = generator.Attribute(
-                generator.TypeExpression(obsoleteAttributeSymbol),
+                generator.TypeExpression(obsoleteAttributeSymbol).WithAddImportsAnnotation(),
                 new[]
                 {
                     GenerateDescriptionArgument(generator, semanticModel),
@@ -206,7 +207,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 mefConstructionType.GetMembers("ImportingConstructorMessage").OfType<IFieldSymbol>().Any())
             {
                 attributeArgument = generator.MemberAccessExpression(
-                    generator.TypeExpressionForStaticMemberAccess(mefConstructionType),
+                    generator.TypeExpression(mefConstructionType).WithAddImportsAnnotation(),
                     generator.IdentifierName("ImportingConstructorMessage"));
             }
             else
