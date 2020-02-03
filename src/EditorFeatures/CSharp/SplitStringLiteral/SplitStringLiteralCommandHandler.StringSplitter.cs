@@ -51,20 +51,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
                 // Check if there is a line ending specified in the editorconfig
                 // and ensure we honour it. 
-                if (!string.IsNullOrEmpty(newLineValue) && newLineValue == "\n")
-                {
-                    PlusNewLineToken = SyntaxFactory.Token(
-                   leading: default,
-                   SyntaxKind.PlusToken,
-                   SyntaxFactory.TriviaList(SyntaxFactory.ElasticLineFeed));
-                }
-                else
-                {
-                    PlusNewLineToken = SyntaxFactory.Token(
-                    leading: default,
-                    SyntaxKind.PlusToken,
-                    SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
-                }
+                PlusNewLineToken = SyntaxFactory.Token(
+                leading: default,
+                SyntaxKind.PlusToken,
+                newLineValue == "\n" ? SyntaxFactory.TriviaList(SyntaxFactory.ElasticLineFeed) : SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
             }
 
             public static StringSplitter Create(

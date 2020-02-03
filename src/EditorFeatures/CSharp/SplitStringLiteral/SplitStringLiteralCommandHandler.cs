@@ -136,7 +136,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
         private bool LineContainsQuote(ITextSnapshotLine line, int caretPosition)
         {
-            return line.Snapshot.GetText().Contains("\"");
+            var snapshot = line.Snapshot;
+            for (int i = line.Start; i < caretPosition; i++)
+            {
+                if (snapshot[i] == '"')
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private int? SplitStringLiteral(
