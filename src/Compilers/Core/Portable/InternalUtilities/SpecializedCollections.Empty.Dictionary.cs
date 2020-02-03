@@ -16,7 +16,9 @@ namespace Roslyn.Utilities
         {
             internal class Dictionary<TKey, TValue>
 #nullable disable
-               : Collection<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
+                // Note: if the interfaces we implement weren't oblivious, then we'd warn about the `[MaybeNullWhen(false)] out TValue value` parameter below
+                // We can remove this once `IDictionary` is annotated with `[MaybeNullWhen(false)]`
+                : Collection<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
 #nullable enable
                 where TKey : notnull
             {

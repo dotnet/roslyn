@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));
-            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation));
@@ -397,9 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullReferenceArgument:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
-                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
-                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation:
@@ -441,6 +438,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullReferenceInitializer:
                 case ErrorCode.WRN_ShouldNotReturn:
                 case ErrorCode.WRN_DoesNotReturnMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
@@ -449,6 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return 0;
             }
+            // Note: when adding a warning here, consider whether it should be registered as a nullability warning too
         }
 
         /// <summary>

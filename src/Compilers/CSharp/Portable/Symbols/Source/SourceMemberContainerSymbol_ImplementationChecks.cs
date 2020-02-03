@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (reportMismatchInReturnType != null &&
-                !areParameterAnnotationsCompatible(
+                !NullableWalker.AreParameterAnnotationsCompatible(
                     overridingMethod.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.Out,
                     overriddenMethod.ReturnTypeWithAnnotations,
                     overriddenMethod.ReturnTypeFlowAnalysisAnnotations,
@@ -1137,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, parameter, false, extraArgument);
                 }
                 else if (reportMismatchInParameterType != null &&
-                    !areParameterAnnotationsCompatible(
+                    !NullableWalker.AreParameterAnnotationsCompatible(
                         parameter.RefKind,
                         overriddenParameterType,
                         overriddenParameters[i].FlowAnalysisAnnotations,
@@ -1146,124 +1146,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, parameter, true, extraArgument);
                 }
-            }
-
-            static bool areParameterAnnotationsCompatible(
-                    RefKind refKind,
-                    TypeWithAnnotations overriddenType,
-                    FlowAnalysisAnnotations overriddenAnnotations,
-                    TypeWithAnnotations overridingType,
-                    FlowAnalysisAnnotations overridingAnnotations,
-                    bool forRef = false)
-            {
-                // We've already checked types and annotations, let's check nullability attributes as well
-                // Return value is treated as an `out` parameter (or `ref` if it is a `ref` return)
-
-                if (refKind == RefKind.Ref)
-                {
-                    // ref variables are invariant
-                    return areParameterAnnotationsCompatible(RefKind.None, overriddenType, overriddenAnnotations, overridingType, overridingAnnotations, forRef: true) &&
-                        areParameterAnnotationsCompatible(RefKind.Out, overriddenType, overriddenAnnotations, overridingType, overridingAnnotations);
-                }
-
-                if (refKind == RefKind.None || refKind == RefKind.In)
-                {
-                    // pre-condition attributes
-                    // Check whether we can assign a value from overridden parameter to overriding
-                    var valueState = NullableWalker.GetParameterState(overriddenType, overriddenAnnotations);
-                    if (isBadAssignment(valueState, overridingType, overridingAnnotations))
-                    {
-                        return false;
-                    }
-
-                    // unconditional post-condition attributes 
-                    bool overridingHasNotNull = (overridingAnnotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
-                    bool overriddenHasNotNull = (overriddenAnnotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
-                    if (overriddenHasNotNull && !overridingHasNotNull && (refKind == RefKind.None || refKind == RefKind.In) && !forRef)
-                    {
-                        // Overriding doesn't conform to contract of overridden (ie. promise not to return if parameter is null)
-                        return false;
-                    }
-
-                    bool overridingHasMaybeNull = (overridingAnnotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull;
-                    bool overriddenHasMaybeNull = (overriddenAnnotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull;
-                    if (overriddenHasMaybeNull && !overridingHasMaybeNull && (refKind == RefKind.None || refKind == RefKind.In) && !forRef)
-                    {
-                        // Overriding doesn't conform to contract of overridden (ie. promise to only return if parameter is null)
-                        return false;
-                    }
-                }
-
-                // conditional post-condition attributes 
-                if (refKind == RefKind.Out)
-                {
-                    // when true
-                    var valueWhenTrue = NullableWalker.ApplyUnconditionalAnnotations(
-                        overridingType.ToTypeWithState(),
-                        makeUnconditionalAnnotation(overridingAnnotations, sense: true));
-
-                    var destAnnotationsWhenTrue = NullableWalker.ToInwardAnnotations(makeUnconditionalAnnotation(overriddenAnnotations, sense: true));
-                    if (isBadAssignment(valueWhenTrue, overriddenType, destAnnotationsWhenTrue))
-                    {
-                        // Can't assign value from overriding to overridden in true case
-                        return false;
-                    }
-
-                    // when false
-                    var valueWhenFalse = NullableWalker.ApplyUnconditionalAnnotations(
-                        overridingType.ToTypeWithState(),
-                        makeUnconditionalAnnotation(overridingAnnotations, sense: false));
-
-                    var destAnnotationsWhenFalse = NullableWalker.ToInwardAnnotations(makeUnconditionalAnnotation(overriddenAnnotations, sense: false));
-                    if (isBadAssignment(valueWhenFalse, overriddenType, destAnnotationsWhenFalse))
-                    {
-                        // Can't assign value from overriding to overridden in false case
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            static bool isBadAssignment(TypeWithState valueState, TypeWithAnnotations destinationType, FlowAnalysisAnnotations destinationAnnotations)
-            {
-                if (NullableWalker.ShouldReportNullableAssignment(
-                    NullableWalker.ApplyLValueAnnotations(destinationType, destinationAnnotations),
-                    valueState.State))
-                {
-                    return true;
-                }
-
-                if (NullableWalker.IsDisallowedNullAssignment(valueState, destinationAnnotations))
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-            // Convert both conditional annotations to unconditional ones or nothing
-            static FlowAnalysisAnnotations makeUnconditionalAnnotation(FlowAnalysisAnnotations annotations, bool sense)
-            {
-                if (sense)
-                {
-                    var unconditionalAnnotationWhenTrue = makeUnconditionalAnnotationCore(annotations, FlowAnalysisAnnotations.NotNullWhenTrue, FlowAnalysisAnnotations.NotNull);
-                    return makeUnconditionalAnnotationCore(unconditionalAnnotationWhenTrue, FlowAnalysisAnnotations.MaybeNullWhenTrue, FlowAnalysisAnnotations.MaybeNull);
-                }
-
-                var unconditionalAnnotationWhenFalse = makeUnconditionalAnnotationCore(annotations, FlowAnalysisAnnotations.NotNullWhenFalse, FlowAnalysisAnnotations.NotNull);
-                return makeUnconditionalAnnotationCore(unconditionalAnnotationWhenFalse, FlowAnalysisAnnotations.MaybeNullWhenFalse, FlowAnalysisAnnotations.MaybeNull);
-            }
-
-            // Convert Maybe/NotNullWhen into Maybe/NotNull or nothing
-            static FlowAnalysisAnnotations makeUnconditionalAnnotationCore(FlowAnalysisAnnotations annotations, FlowAnalysisAnnotations conditionalAnnotation, FlowAnalysisAnnotations replacementAnnotation)
-            {
-                if ((annotations & conditionalAnnotation) != 0)
-                {
-                    return annotations | replacementAnnotation;
-                }
-
-                return annotations & ~replacementAnnotation;
             }
 
             static bool isValidNullableConversion(
