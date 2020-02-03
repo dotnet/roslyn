@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
-        <target state="new">Awaited task returns '{0}'</target>
+        <target state="translated">La tarea esperada devuelve "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
         <source>Awaited task returns no value</source>
-        <target state="new">Awaited task returns no value</target>
+        <target state="translated">La tarea esperada no devuelve ningún valor.</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="needs-review-translation">El contenido actual del archivo de código fuente "{0}" no coincide con el del origen compilado. La sesión de depuración no puede continuar hasta que se restaure el contenido del archivo de código fuente.</target>
+        <target state="new">The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -224,22 +224,22 @@
       </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
-        <target state="new">Extract interface...</target>
+        <target state="translated">Extraer interfaz...</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_local_function">
         <source>Extract local function</source>
-        <target state="new">Extract local function</target>
+        <target state="translated">Extraer función local</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_method">
         <source>Extract method</source>
-        <target state="new">Extract method</target>
+        <target state="translated">Extraer método</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_method_plus_local">
         <source>Extract method + local</source>
-        <target state="new">Extract method + local</target>
+        <target state="translated">Extraer método + local</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
@@ -274,37 +274,37 @@
       </trans-unit>
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
-        <target state="new">'GetHashCode' implementation can be simplified</target>
+        <target state="translated">La implementación de "GetHashCode" se puede simplificar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement all interfaces explicitly">
         <source>Implement all interfaces explicitly</source>
-        <target state="new">Implement all interfaces explicitly</target>
+        <target state="translated">Implementar todas las interfaces de forma explícita</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement explicitly">
         <source>Implement explicitly</source>
-        <target state="new">Implement explicitly</target>
+        <target state="translated">Implementar de forma explícita</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
-        <target state="new">Implement '{0}' explicitly</target>
+        <target state="translated">Implementar "{0}" de forma explícita</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
-        <target state="new">Implement '{0}' implicitly</target>
+        <target state="translated">Implementar "{0}" de forma implícita</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
-        <target state="new">Implement all interfaces implicitly</target>
+        <target state="translated">Implementar todas las interfaces de forma implícita</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
-        <target state="new">Implement implicitly</target>
+        <target state="translated">Implementar de forma implícita</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
-        <target state="new">Interpolation can be simplified</target>
+        <target state="translated">La interpolación se puede simplificar</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant">
@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Make_member_static">
         <source>Make static</source>
-        <target state="new">Make static</target>
+        <target state="translated">Hacer estático</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
@@ -534,7 +534,7 @@
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
         <source>Simplify interpolation</source>
-        <target state="new">Simplify interpolation</target>
+        <target state="translated">Simplificar la interpolación</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -564,7 +564,7 @@
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
-        <target state="new">The selection contains a local function call without its declaration.</target>
+        <target state="translated">La selección contiene una llamada a una función local sin la declaración correspondiente.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
@@ -629,22 +629,22 @@
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
         <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="translated">Use el patrón Dispose recomendado para asegurarse de que los objetos descartables de ámbito local se desechan en todas las rutas de acceso. Si es posible, incluya la creación en una instrucción "using" o una declaración "using". En caso contrario, use un patrón try-finally, con la declaración de una variable local dedicada antes de la región "try" y una invocación de Dispose incondicional en un valor no nulo en la región "finally", por ejemplo, "x?.Dispose()". Si el objeto se desecha de forma explícita en la región "try" o la pertenencia de Dispose se transfiere a otro objeto o método, asigne "null" a la variable local justo después de tal operación para evitar un doble Dispose en "finally".</target>
+        <target state="translated">Use el patrón de Dispose recomendado para asegurarse de que los objetos descartables de ámbito local se desechan en todas las rutas de acceso. Si es posible, incluya la creación en una instrucción "using" o una declaración "using". En caso contrario, use un patrón try-finally, con la declaración de una variable local dedicada antes de la región "try" y una invocación de Dispose incondicional en un valor no nulo en la región "finally", por ejemplo, "x?.Dispose()". Si el objeto se desecha de forma explícita en la región "try" o la pertenencia de Dispose se transfiere a otro objeto o método, asigne "null" a la variable local justo después de tal operación para evitar un doble Dispose en "finally".</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_System_HashCode">
         <source>Use 'System.HashCode'</source>
-        <target state="new">Use 'System.HashCode'</target>
+        <target state="translated">Usar "System.HashCode"</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
-        <target state="translated">Usar cuerpo de bloque de expresiones lambda</target>
+        <target state="translated">Usar cuerpo del bloque para las expresiones lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
         <source>Use block body for local functions</source>
-        <target state="translated">Usar el cuerpo de bloques para las funciones locales</target>
+        <target state="translated">Usar cuerpo del bloque para las funciones locales</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_compound_assignment">
@@ -689,12 +689,12 @@
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
         <source>Use recommended dispose pattern</source>
-        <target state="translated">Usar el patrón Dispose recomendado</target>
+        <target state="translated">Usar el patrón de Dispose recomendado</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="translated">Use el patrón Dispose recomendado para asegurarse de que el objeto creado por "{0}" se desecha en todas las rutas de acceso: instrucción o declaración using o try/finally</target>
+        <target state="translated">Use el patrón de Dispose recomendado para asegurarse de que el objeto creado por "{0}" se desecha en todas las rutas de acceso: instrucción o declaración using o try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_simple_using_statement">
@@ -774,7 +774,7 @@
       </trans-unit>
       <trans-unit id="discard">
         <source>discard</source>
-        <target state="new">discard</target>
+        <target state="translated">descartar</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -1665,12 +1665,12 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
         <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">Implementar interfaz explícitamente con modelo de Dispose</target>
+        <target state="translated">Implementar la interfaz de forma explícita con el patrón de Dispose</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
-        <target state="translated">Implementar interfaz con modelo de Dispose</target>
+        <target state="translated">Implementar la interfaz con el patrón de Dispose</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">
@@ -2152,32 +2152,32 @@ Esta versión se utiliza en: {2}</target>
       </trans-unit>
       <trans-unit id="Use_block_body_for_methods">
         <source>Use block body for methods</source>
-        <target state="translated">Usar cuerpo de bloques para los métodos</target>
+        <target state="translated">Usar cuerpo del bloque para los métodos</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
         <source>Use block body for accessors</source>
-        <target state="translated">Usar cuerpo de bloques para los descriptores de acceso</target>
+        <target state="translated">Usar cuerpo del bloque para los descriptores de acceso</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_constructors">
         <source>Use block body for constructors</source>
-        <target state="translated">Usar cuerpo de bloques para los constructores</target>
+        <target state="translated">Usar cuerpo del bloque para los constructores</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
-        <target state="translated">Usar cuerpo de bloques para los indizadores</target>
+        <target state="translated">Usar cuerpo del bloque para los indizadores</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_operators">
         <source>Use block body for operators</source>
-        <target state="translated">Usar cuerpo de bloques para los operadores</target>
+        <target state="translated">Usar cuerpo del bloque para los operadores</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_properties">
         <source>Use block body for properties</source>
-        <target state="translated">Usar cuerpo de bloques para las propiedades</target>
+        <target state="translated">Usar cuerpo del bloque para las propiedades</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_accessors">

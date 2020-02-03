@@ -5447,6 +5447,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title" xml:space="preserve">
     <value>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</value>
   </data>
+  <data name="WRN_ParameterConditionallyDisallowsNull" xml:space="preserve">
+    <value>Parameter '{0}' may not have a null value when exiting with '{1}'.</value>
+  </data>
+  <data name="WRN_ParameterConditionallyDisallowsNull_Title" xml:space="preserve">
+    <value>Parameter may not have a null value when exiting in some condition.</value>
+  </data>
+  <data name="WRN_ShouldNotReturn" xml:space="preserve">
+    <value>A method marked [DoesNotReturn] should not return.</value>
+  </data>
+  <data name="WRN_ShouldNotReturn_Title" xml:space="preserve">
+    <value>A method marked [DoesNotReturn] should not return.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
     <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
   </data>
