@@ -18,6 +18,12 @@
       which has all of our global settings 
     -->
     <UserRuntimeConfig Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(OutputType)' == 'Exe'">$(RepositoryEngineeringDir)config\runtimeconfig.template.json</UserRuntimeConfig>
+
+    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND '$(TargetFramework)' != '' AND '$(TargetFramework)' == 'netcoreapp3.1'">true</DisableNullableWarnings>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
+    <NoWarn>$(NoWarn);8600;8601;8602;8603;8604;8605;8610;8616;8617;8714</NoWarn>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
@@ -37,7 +43,7 @@
 
     <!-- Bypass a check in msbuild that .NET Framework 3.5 is installed on the machine when targeting .NET < 4.0 -->
     <BypassFrameworkInstallChecks>true</BypassFrameworkInstallChecks>
-  </PropertyGroup>
+ </PropertyGroup>
 
   <!-- Add the UnitTestContainer project capability -->
   <ItemGroup Condition="'$(IsTestProject)' == 'true'">
