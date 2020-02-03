@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
+using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Helpers;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
@@ -57,8 +57,8 @@ class MyAnalyzer : DiagnosticAnalyzer
 }";
             DiagnosticResult[] expected = new[]
             {
-                GetCSharpExpectedDiagnostic(24, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterSyntaxNodeActionName),
-                GetCSharpExpectedDiagnostic(25, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCodeBlockStartActionName)
+                GetCSharpExpectedDiagnostic(24, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterSyntaxNodeActionName),
+                GetCSharpExpectedDiagnostic(25, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterCodeBlockStartActionName)
             };
 
             await VerifyCS.VerifyAnalyzerAsync(source, expected);
@@ -99,8 +99,8 @@ End Class
 ";
             DiagnosticResult[] expected = new[]
             {
-                GetBasicExpectedDiagnostic(20, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterSyntaxNodeActionName),
-                GetBasicExpectedDiagnostic(21, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCodeBlockStartActionName)
+                GetBasicExpectedDiagnostic(20, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterSyntaxNodeActionName),
+                GetBasicExpectedDiagnostic(21, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterCodeBlockStartActionName)
             };
 
             await VerifyVB.VerifyAnalyzerAsync(source, expected);
@@ -192,11 +192,11 @@ End Class
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName) =>
             VerifyCS.Diagnostic(CSharpRegisterActionAnalyzer.InvalidSyntaxKindTypeArgumentRule)
                 .WithLocation(line, column)
-                .WithArguments(typeArgumentName, DiagnosticAnalyzerCorrectnessAnalyzer.TLanguageKindEnumName, registerMethodName);
+                .WithArguments(typeArgumentName, DiagnosticWellKnownNames.TLanguageKindEnumName, registerMethodName);
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName) =>
             VerifyVB.Diagnostic(BasicRegisterActionAnalyzer.InvalidSyntaxKindTypeArgumentRule)
                 .WithLocation(line, column)
-                .WithArguments(typeArgumentName, DiagnosticAnalyzerCorrectnessAnalyzer.TLanguageKindEnumName, registerMethodName);
+                .WithArguments(typeArgumentName, DiagnosticWellKnownNames.TLanguageKindEnumName, registerMethodName);
     }
 }
