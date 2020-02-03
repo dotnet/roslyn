@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         // Environment variable, if set, to enable logging and set the file to log to.
         private const string environmentVariable = "RoslynCommandLineLogFile";
 
-        private static readonly Stream s_loggingStream;
+        private static readonly Stream? s_loggingStream;
         private static string s_prefix = "---";
 
         /// <summary>
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Log a line of text to the logging file, with string.Format arguments.
         /// </summary>
-        public static void Log(string format, params object[] arguments)
+        public static void Log(string format, params object?[] arguments)
         {
             if (s_loggingStream != null)
             {

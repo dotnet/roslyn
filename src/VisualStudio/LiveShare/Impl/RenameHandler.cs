@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 var solutionChanges = newSolution.GetChanges(solution);
                 var changedDocuments = solutionChanges
                     .GetProjectChanges()
-                    .SelectMany(p => p.GetChangedDocuments());
+                    .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true));
 
                 var documentEdits = new ArrayBuilder<TextDocumentEdit>();
                 foreach (var docId in changedDocuments)
