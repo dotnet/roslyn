@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
             var diagnostic = context.Diagnostics.First();
