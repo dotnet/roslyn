@@ -571,6 +571,14 @@ function Setup-IntegrationTestRun() {
 }
 
 function Prepare-TempDir() {
+  Write-Host "-- Temp content -------------------------"
+  Get-ChildItem $env:Temp -erroraction 'silentlycontinue' | Write-Host
+
+  Write-Host "-- nuget cache content ------------------"
+  Get-ChildItem (Join-Path $env:UserProfile ".nuget\packages") -erroraction 'silentlycontinue' | Write-Host
+
+  Write-Host "-----------------------------------------"
+
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
