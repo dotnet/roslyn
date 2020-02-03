@@ -572,10 +572,12 @@ function Setup-IntegrationTestRun() {
 
 function Prepare-TempDir() {
   Write-Host "-- Temp content -------------------------"
+  Write-Host "-- $env:Temp"
   Get-ChildItem $env:Temp -erroraction 'silentlycontinue' | Write-Host
 
-  Write-Host "-- nuget cache content ------------------"
-  Get-ChildItem (Join-Path $env:UserProfile ".nuget\packages") -erroraction 'silentlycontinue' | Write-Host
+  Write-Host "-- user profile content -----------------"
+  Write-Host "-- Join-Path $env:UserProfile"
+  Get-ChildItem $env:UserProfile -Recurse -erroraction 'silentlycontinue' | Write-Host
 
   Write-Host "-----------------------------------------"
 
