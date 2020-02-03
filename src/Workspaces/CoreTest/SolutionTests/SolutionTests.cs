@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -726,7 +728,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private Solution CreateNotKeptAliveSolution()
         {
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), "NotKeptAlive");
-            workspace.Options = workspace.Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0)));
             return workspace.CurrentSolution;
         }
 
@@ -1270,6 +1273,11 @@ End Class";
             Assert.Equal(@"C:\doesnotexist.cs: (0,0)-(0,0)", diagnostic.Location.GetLineSpan().ToString());
             Assert.Equal(WorkspaceDiagnosticKind.Failure, diagnosticFromEvent.Kind);
             Assert.Equal("", text.ToString());
+
+            // Verify invariant: The compilation is guaranteed to have a syntax tree for each document of the project (even if the contnet fails to load).
+            var compilation = await solution.State.GetCompilationAsync(doc.Project.State, CancellationToken.None).ConfigureAwait(false);
+            var syntaxTree = compilation.SyntaxTrees.Single();
+            Assert.Equal("", syntaxTree.ToString());
         }
 
         [Fact]
@@ -1444,7 +1452,8 @@ public class C : A {
             // set max file length to 1 bytes
             var maxLength = 1;
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), ServiceLayer.Host);
-            workspace.Options = workspace.Options.WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength)));
 
             using var root = new TempRoot();
             var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");

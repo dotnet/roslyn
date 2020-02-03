@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -1260,78 +1262,11 @@ End Class
                 Diagnostic("TypeDeclaration", "C").WithLocation(9, 7));
         }
 
-        [Fact]
-        public async Task AnalyzerExceptionDiagnosticsWithDifferentContext()
-        {
-            var analyzer = new ThrowExceptionForEachNamedTypeAnalyzer();
-            var exceptions = new List<Exception>();
-            var diagnostics = new List<Diagnostic>();
-
-            await VerifyCSharpAsync(@"
-public class C0
-{
-}
-public class C1
-{
-}
-public class C2
-{
-}
-",
-                new[] { analyzer },
-                onAnalyzerException: (ex, a, d) =>
-                {
-                    if (diagnostics.Contains(d))
-                    {
-                        return;
-                    }
-
-                    exceptions.Add(ex);
-                    diagnostics.Add(d);
-                });
-
-            var orderedDiagnostics = new List<Diagnostic>(diagnostics.OrderBy(d => d.Location.SourceSpan));
-            var expected = new List<DiagnosticDescription>();
-            Assert.Equal(3, diagnostics.Count);
-            for (var i = 0; i < exceptions.Count; i++)
-            {
-                IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: {analyzer.AssemblyName}
-ISymbol: C{orderedDiagnostics.IndexOf(diagnostics[i])} (NamedType)")}
-
-{exceptions[i]}
------
-
-{string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ThrowException")}";
-                var diagnostic = Diagnostic("AD0001", null)
-                        .WithArguments(
-                            "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer",
-                            "System.Exception",
-                            "ThrowExceptionAnalyzer exception",
-                            context)
-                        .WithLocation(1, 1);
-
-                expected.Add(diagnostic);
-            }
-
-            // expect 3 different diagnostics with 3 different contexts.
-            diagnostics.Verify(expected.ToArray());
-        }
-
         #endregion
 
         protected async Task VerifyCSharpAsync(string source, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
             await VerifyAsync(source, LanguageNames.CSharp, analyzers, diagnostics);
-        }
-
-        protected async Task VerifyCSharpAsync(string source, DiagnosticAnalyzer[] analyzers, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, params DiagnosticDescription[] diagnostics)
-        {
-            await VerifyAsync(source, LanguageNames.CSharp, analyzers, diagnostics, onAnalyzerException);
-        }
-
-        protected async Task VerifyCSharpAsync(string source, DiagnosticAnalyzer[] analyzers, bool logAnalyzerExceptionsAsDiagnostics, params DiagnosticDescription[] diagnostics)
-        {
-            await VerifyAsync(source, LanguageNames.CSharp, analyzers, diagnostics, onAnalyzerException: null, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionsAsDiagnostics);
         }
 
         protected Task VerifyTokenDiagnosticsCSharpAsync(string markup, params DiagnosticDescription[] diagnostics)
@@ -1342,7 +1277,7 @@ ISymbol: C{orderedDiagnostics.IndexOf(diagnostics[i])} (NamedType)")}
         protected async Task VerifyBasicAsync(string source, string rootNamespace, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
             Assert.False(string.IsNullOrWhiteSpace(rootNamespace), string.Format("Invalid root namespace '{0}'", rootNamespace));
-            await VerifyAsync(source, LanguageNames.VisualBasic, analyzers, diagnostics, onAnalyzerException: null, rootNamespace: rootNamespace);
+            await VerifyAsync(source, LanguageNames.VisualBasic, analyzers, diagnostics, rootNamespace: rootNamespace);
         }
 
         protected async Task VerifyBasicAsync(string source, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
@@ -1350,22 +1285,12 @@ ISymbol: C{orderedDiagnostics.IndexOf(diagnostics[i])} (NamedType)")}
             await VerifyAsync(source, LanguageNames.VisualBasic, analyzers, diagnostics);
         }
 
-        protected async Task VerifyBasicAsync(string source, DiagnosticAnalyzer[] analyzers, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, params DiagnosticDescription[] diagnostics)
-        {
-            await VerifyAsync(source, LanguageNames.VisualBasic, analyzers, diagnostics, onAnalyzerException);
-        }
-
-        protected async Task VerifyBasicAsync(string source, DiagnosticAnalyzer[] analyzers, bool logAnalyzerExceptionAsDiagnostics, params DiagnosticDescription[] diagnostics)
-        {
-            await VerifyAsync(source, LanguageNames.VisualBasic, analyzers, diagnostics, onAnalyzerException: null, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics);
-        }
-
         protected Task VerifyTokenDiagnosticsBasicAsync(string markup, params DiagnosticDescription[] diagnostics)
         {
             return VerifyTokenDiagnosticsAsync(markup, LanguageNames.VisualBasic, diagnostics);
         }
 
-        protected abstract Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, string rootNamespace = null);
+        protected abstract Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, string rootNamespace = null);
 
         // Generate a diagnostic on every token in the specified spans, and verify that only the specified diagnostics are not suppressed
         private Task VerifyTokenDiagnosticsAsync(string markup, string language, DiagnosticDescription[] diagnostics)

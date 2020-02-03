@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -305,6 +307,8 @@ class X
                         case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                         case ErrorCode.WRN_NullReferenceInitializer:
+                        case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
+                        case ErrorCode.WRN_ShouldNotReturn:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -71,12 +73,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return GetSolutionAsync(RoslynServices, _solutionInfo, cancellationToken);
         }
 
-        protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-        {
-            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
-            return GetSolutionAsync(localRoslynService, solutionInfo, cancellationToken);
-        }
-
         private static Task<Solution> GetSolutionAsync(RoslynServices roslynService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             var solutionController = (ISolutionController)roslynService.SolutionService;
@@ -144,6 +140,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected void Log(TraceEventType errorType, string message)
             => Logger.TraceEvent(errorType, 0, $"{DebugInstanceString}: {message}");
+
+        protected SolutionService CreateSolutionService(PinnedSolutionInfo solutionInfo)
+            => new SolutionService(SolutionService.CreateAssetProvider(solutionInfo, AssetStorage));
+
+        protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+            => CreateSolutionService(solutionInfo).GetSolutionAsync(solutionInfo, cancellationToken);
 
         protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
         {
