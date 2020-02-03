@@ -34,23 +34,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return stack.SelectMany(n => n.TypeParameters);
         }
 
-        public static IEnumerable<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol? symbol)
-        {
-            var stack = GetContainmentStack(symbol);
-            return stack.SelectMany(n => n.TypeArguments);
-        }
-
-        private static Stack<INamedTypeSymbol> GetContainmentStack(INamedTypeSymbol? symbol)
-        {
-            var stack = new Stack<INamedTypeSymbol>();
-            for (var current = symbol; current != null; current = current.ContainingType)
-            {
-                stack.Push(current);
-            }
-
-            return stack;
-        }
-
         public static bool IsContainedWithin([NotNullWhen(returnValue: true)] this INamedTypeSymbol? symbol, INamedTypeSymbol outer)
         {
             // TODO(cyrusn): Should we be using OriginalSymbol here?

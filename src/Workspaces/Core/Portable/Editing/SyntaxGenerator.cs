@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editing
     /// preference if any <see cref="Simplifier.ReduceAsync(Document, OptionSet, CancellationToken)" /> 
     /// overload is called.
     /// </summary>
-    public abstract class SyntaxGenerator : ILanguageService
+    public abstract partial class SyntaxGenerator
     {
         public static SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
@@ -40,30 +39,6 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxTrivia EndOfLine(string text);
         internal abstract SyntaxTrivia Whitespace(string text);
-
-        /// <summary>
-        /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
-        /// </summary>
-        public static SyntaxGenerator GetGenerator(Workspace workspace, string language)
-        {
-            return workspace.Services.GetLanguageServices(language).GetService<SyntaxGenerator>();
-        }
-
-        /// <summary>
-        /// Gets the <see cref="SyntaxGenerator"/> for the language corresponding to the document.
-        /// </summary>
-        public static SyntaxGenerator GetGenerator(Document document)
-        {
-            return GetGenerator(document.Project);
-        }
-
-        /// <summary>
-        /// Gets the <see cref="SyntaxGenerator"/> for the language corresponding to the project.
-        /// </summary>
-        public static SyntaxGenerator GetGenerator(Project project)
-        {
-            return project.LanguageServices.GetService<SyntaxGenerator>();
-        }
 
         #region Declarations
 

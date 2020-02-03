@@ -49,11 +49,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol?.TypeKind == TypeKind.Class && symbol.IsAbstract;
         }
 
-        public static bool IsSystemVoid([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
-        {
-            return symbol?.SpecialType == SpecialType.System_Void;
-        }
-
         public static bool IsNullable([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
