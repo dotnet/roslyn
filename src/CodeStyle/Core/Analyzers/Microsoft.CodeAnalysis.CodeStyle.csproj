@@ -133,6 +133,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\TriviaEngine\LineColumnDelta.cs" Link="Formatting\TriviaEngine\LineColumnDelta.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\TriviaEngine\LineColumnRule.cs" Link="Formatting\TriviaEngine\LineColumnRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\TriviaEngine\TriviaList.cs" Link="Formatting\TriviaEngine\TriviaList.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\AbstractDocumentationCommentService.cs" Link="LanguageServices\SyntaxFactsService\AbstractDocumentationCommentService.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" Link="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\ExternalSourceInfo.cs" Link="LanguageServices\SyntaxFactsService\ExternalSourceInfo.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" Link="LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" />
