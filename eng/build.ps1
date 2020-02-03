@@ -574,6 +574,8 @@ function Prepare-TempDir() {
   Write-Host "-- $env:UserProfile content -------------------------"
   Get-ChildItem $env:UserProfile -File -Recurse | Select-Object { "$($_.Directory)\$($_.Name)" } > (Join-Path $LogDir "dir.txt")
   
+  throw "Done"
+  
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
