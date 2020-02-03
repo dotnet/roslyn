@@ -127,7 +127,9 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\TriviaEngine\LineColumnDelta.cs" Link="Formatting\TriviaEngine\LineColumnDelta.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\TriviaEngine\LineColumnRule.cs" Link="Formatting\TriviaEngine\LineColumnRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\TriviaEngine\TriviaList.cs" Link="Formatting\TriviaEngine\TriviaList.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" Link="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\ExternalSourceInfo.cs" Link="LanguageServices\SyntaxFactsService\ExternalSourceInfo.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" Link="LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\ISyntaxFactsService.cs" Link="LanguageServices\SyntaxFactsService\ISyntaxFactsService.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\ISyntaxFactsServiceExtensions.cs" Link="LanguageServices\SyntaxFactsService\ISyntaxFactsServiceExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\ISyntaxKindsService.cs" Link="LanguageServices\SyntaxFactsService\ISyntaxKindsService.cs" />
@@ -175,6 +177,12 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\NormalizedTextSpanCollection.cs" Link="Formatting\NormalizedTextSpanCollection.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\AliasSymbolCache.cs" Link="AliasSymbolCache.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\CommonFormattingHelpers.cs" Link="Formatting\CommonFormattingHelpers.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher.ChoiceMatcher.cs" Link="Shared\Utilities\Matcher.ChoiceMatcher.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher.cs" Link="Shared\Utilities\Matcher.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher.RepeatMatcher.cs" Link="Shared\Utilities\Matcher.RepeatMatcher.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher.SequenceMatcher.cs" Link="Shared\Utilities\Matcher.SequenceMatcher.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher.SingleMatcher.cs" Link="Shared\Utilities\Matcher.SingleMatcher.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher`1.cs" Link="Shared\Utilities\Matcher`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\AnnotationTable.cs" Link="Formatting\AnnotationTable.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\BidirectionalMap.cs" Link="InternalUtilities\BidirectionalMap.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\CancellableLazy`1.cs" Link="Formatting\CancellableLazy`1.cs" />
