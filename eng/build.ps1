@@ -571,6 +571,9 @@ function Setup-IntegrationTestRun() {
 }
 
 function Prepare-TempDir() {
+  $env:TEMP=$TempDir
+  $env:TMP=$TempDir
+
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
