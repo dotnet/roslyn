@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected readonly SyntaxNode Node;
 
         private readonly IList<AbstractFormattingResult> _formattingResults;
-        private readonly SimpleIntervalTree<TextSpan> _formattingSpans;
+        private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> _formattingSpans;
 
         private readonly CancellableLazy<IList<TextChange>> _lazyTextChanges;
         private readonly CancellableLazy<SyntaxNode> _lazyNode;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public AbstractAggregatedFormattingResult(
             SyntaxNode node,
             IList<AbstractFormattingResult> formattingResults,
-            SimpleIntervalTree<TextSpan> formattingSpans)
+            SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> formattingSpans)
         {
             Contract.ThrowIfNull(node);
             Contract.ThrowIfNull(formattingResults);
@@ -43,9 +45,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// </summary>
         protected abstract SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> changeMap, CancellationToken cancellationToken);
 
-        protected SimpleIntervalTree<TextSpan> GetFormattingSpans()
+        protected SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> GetFormattingSpans()
         {
-            return _formattingSpans ?? SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, _formattingResults.Select(r => r.FormattedSpan));
+            return _formattingSpans ?? SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), _formattingResults.Select(r => r.FormattedSpan));
         }
 
         #region IFormattingResult implementation

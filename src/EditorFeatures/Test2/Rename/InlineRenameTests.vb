@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -1836,6 +1838,34 @@ End Class
                 Dim session = StartSession(workspace)
 
                 Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenamesCorrectlyWhenCaseChanges()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class [|$$Test1|]
+{
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Delete(New Span(caretPosition, 1))
+                textBuffer.Insert(caretPosition, "t")
+
+                session.Commit()
+                VerifyFileName(workspace, "test1")
             End Using
         End Sub
     End Class

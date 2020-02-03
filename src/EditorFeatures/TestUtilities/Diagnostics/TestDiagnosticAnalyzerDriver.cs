@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -26,29 +28,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public TestDiagnosticAnalyzerDriver(
             Project project,
             DiagnosticAnalyzer workspaceAnalyzerOpt = null,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
             bool includeSuppressedDiagnostics = false)
         {
             _exceptionDiagnosticsSource = new TestHostDiagnosticUpdateSource(project.Solution.Workspace);
 
-            _diagnosticAnalyzerService = CreateDiagnosticAnalyzerService(project, workspaceAnalyzerOpt, onAnalyzerException);
+            _diagnosticAnalyzerService = CreateDiagnosticAnalyzerService(project, workspaceAnalyzerOpt);
             _diagnosticAnalyzerService.CreateIncrementalAnalyzer(project.Solution.Workspace);
 
             _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
         }
 
-        private TestDiagnosticAnalyzerService CreateDiagnosticAnalyzerService(Project project, DiagnosticAnalyzer workspaceAnalyzerOpt, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException)
+        private TestDiagnosticAnalyzerService CreateDiagnosticAnalyzerService(Project project, DiagnosticAnalyzer workspaceAnalyzerOpt)
         {
             if (workspaceAnalyzerOpt != null)
             {
-                return new TestDiagnosticAnalyzerService(project.Language, workspaceAnalyzerOpt, _exceptionDiagnosticsSource, onAnalyzerException);
+                return new TestDiagnosticAnalyzerService(project.Language, workspaceAnalyzerOpt, _exceptionDiagnosticsSource);
             }
 
             var analyzer = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language);
             var analyzerService = project.Solution.Workspace.Services.GetService<IAnalyzerService>();
             var analyzerReferences = ImmutableArray.Create<AnalyzerReference>(new AnalyzerFileReference(analyzer.GetType().Assembly.Location, analyzerService.GetLoader()));
 
-            return new TestDiagnosticAnalyzerService(analyzerReferences, _exceptionDiagnosticsSource, onAnalyzerException);
+            return new TestDiagnosticAnalyzerService(analyzerReferences, _exceptionDiagnosticsSource);
         }
 
         private async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var snapshotService = workspace.Services.GetService<CodeAnalysis.Execution.IRemotableDataService>();
             var assetBuilder = new CodeAnalysis.Execution.CustomAssetBuilder(workspace);
 
-            foreach (var reference in _diagnosticAnalyzerService.GetHostAnalyzerReferences())
+            foreach (var (_, reference) in _diagnosticAnalyzerService.AnalyzerInfoCache.GetHostAnalyzerReferencesMap())
             {
                 if (!(reference is AnalyzerFileReference))
                 {

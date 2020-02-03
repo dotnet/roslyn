@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +15,7 @@ using Roslyn.Utilities;
 using System;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -45,34 +48,41 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<Solution> CreateSolutionAsync(Checksum newSolutionChecksum)
         {
-            var solution = _baseSolution;
-
-            var oldSolutionChecksums = await solution.State.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
-            var newSolutionChecksums = await _assetService.GetAssetAsync<SolutionStateChecksums>(newSolutionChecksum, _cancellationToken).ConfigureAwait(false);
-
-            if (oldSolutionChecksums.Info != newSolutionChecksums.Info)
+            try
             {
-                var newSolutionInfo = await _assetService.GetAssetAsync<SolutionInfo.SolutionAttributes>(newSolutionChecksums.Info, _cancellationToken).ConfigureAwait(false);
+                var solution = _baseSolution;
 
-                // if either id or file path has changed, then this is not update
-                Contract.ThrowIfFalse(solution.Id == newSolutionInfo.Id && solution.FilePath == newSolutionInfo.FilePath);
+                var oldSolutionChecksums = await solution.State.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
+                var newSolutionChecksums = await _assetService.GetAssetAsync<SolutionStateChecksums>(newSolutionChecksum, _cancellationToken).ConfigureAwait(false);
+
+                if (oldSolutionChecksums.Info != newSolutionChecksums.Info)
+                {
+                    var newSolutionInfo = await _assetService.GetAssetAsync<SolutionInfo.SolutionAttributes>(newSolutionChecksums.Info, _cancellationToken).ConfigureAwait(false);
+
+                    // if either id or file path has changed, then this is not update
+                    Contract.ThrowIfFalse(solution.Id == newSolutionInfo.Id && solution.FilePath == newSolutionInfo.FilePath);
+                }
+
+                if (oldSolutionChecksums.Options != newSolutionChecksums.Options)
+                {
+                    var newOptions = await _assetService.GetAssetAsync<SerializableOptionSet>(newSolutionChecksums.Options, _cancellationToken).ConfigureAwait(false);
+                    solution = solution.WithOptions(newOptions);
+                }
+
+                if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
+                {
+                    solution = await UpdateProjectsAsync(solution, oldSolutionChecksums.Projects, newSolutionChecksums.Projects).ConfigureAwait(false);
+                }
+
+                // make sure created solution has same checksum as given one
+                await ValidateChecksumAsync(newSolutionChecksum, solution).ConfigureAwait(false);
+
+                return solution;
             }
-
-            if (oldSolutionChecksums.Options != newSolutionChecksums.Options)
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
             {
-                var newOptions = await _assetService.GetAssetAsync<SerializableOptionSet>(newSolutionChecksums.Options, _cancellationToken).ConfigureAwait(false);
-                solution = solution.WithOptions(newOptions);
+                throw ExceptionUtilities.Unreachable;
             }
-
-            if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
-            {
-                solution = await UpdateProjectsAsync(solution, oldSolutionChecksums.Projects, newSolutionChecksums.Projects).ConfigureAwait(false);
-            }
-
-            // make sure created solution has same checksum as given one
-            await ValidateChecksumAsync(newSolutionChecksum, solution).ConfigureAwait(false);
-
-            return solution;
         }
 
         private async Task<Solution> UpdateProjectsAsync(Solution solution, ChecksumCollection oldChecksums, ChecksumCollection newChecksums)

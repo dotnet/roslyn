@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
         <source>Convert to 'switch' expression</source>
-        <target state="new">Convert to 'switch' expression</target>
+        <target state="translated">Convertir en expression 'switch'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_statement">
         <source>Convert to 'switch' statement</source>
-        <target state="new">Convert to 'switch' statement</target>
+        <target state="translated">Convertir en instruction « switch »</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
-        <target state="new">Reverse 'for' statement</target>
+        <target state="translated">Inverser l'instruction 'for'</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
