@@ -14,5 +14,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return symbol?.SpecialType == SpecialType.System_Void;
         }
+
+        public static bool ContainsAnonymousType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
+        {
+            switch (symbol)
+            {
+                case IArrayTypeSymbol a: return ContainsAnonymousType(a.ElementType);
+                case IPointerTypeSymbol p: return ContainsAnonymousType(p.PointedAtType);
+                case INamedTypeSymbol n: return ContainsAnonymousType(n);
+                default: return false;
+            }
+        }
+
+        public static bool IsNullable([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
+            => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
     }
 }

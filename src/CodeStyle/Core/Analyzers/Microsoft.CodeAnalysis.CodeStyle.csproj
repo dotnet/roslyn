@@ -195,7 +195,9 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher.SingleMatcher.cs" Link="Shared\Utilities\Matcher.SingleMatcher.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher`1.cs" Link="Shared\Utilities\Matcher`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\DoNotAddImportsAnnotation.cs" Link="Simplification\DoNotAddImportsAnnotation.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\DoNotAllowVarAnnotation.cs" Link="Simplification\DoNotAllowVarAnnotation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\Simplifier_Annotation.cs" Link="Simplification\Simplifier_Annotation.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\SymbolAnnotation.cs" Link="Simplification\SymbolAnnotation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\AnnotationTable.cs" Link="Formatting\AnnotationTable.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\BidirectionalMap.cs" Link="InternalUtilities\BidirectionalMap.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\CancellableLazy`1.cs" Link="Formatting\CancellableLazy`1.cs" />

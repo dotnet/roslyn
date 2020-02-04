@@ -446,16 +446,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return parameters.Length > 0 && parameters[parameters.Length - 1].IsParams;
         }
 
-        public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol? symbol)
-        {
-            switch (symbol)
-            {
-                case IMethodSymbol m: return m.Parameters;
-                case IPropertySymbol nt: return nt.Parameters;
-                default: return ImmutableArray<IParameterSymbol>.Empty;
-            }
-        }
-
         public static ImmutableArray<ITypeParameterSymbol> GetTypeParameters(this ISymbol? symbol)
         {
             switch (symbol)

@@ -10,11 +10,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -27,39 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this ITypeSymbol typeSymbol)
         {
             return typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Instance).WithAdditionalAnnotations(Simplifier.Annotation);
-        }
-
-        public static NameSyntax GenerateNameSyntax(
-            this INamespaceOrTypeSymbol symbol, bool allowVar = true)
-        {
-            return (NameSyntax)GenerateTypeSyntax(symbol, nameSyntax: true, allowVar: allowVar);
-        }
-
-        public static TypeSyntax GenerateTypeSyntax(
-            this INamespaceOrTypeSymbol symbol, bool allowVar = true)
-        {
-            return GenerateTypeSyntax(symbol, nameSyntax: false, allowVar: allowVar);
-        }
-
-        private static TypeSyntax GenerateTypeSyntax(
-            INamespaceOrTypeSymbol symbol, bool nameSyntax, bool allowVar = true)
-        {
-            if (symbol is ITypeSymbol type && type.ContainsAnonymousType())
-            {
-                // something with an anonymous type can only be represented with 'var', regardless
-                // of what the user's preferences might be.
-                return SyntaxFactory.IdentifierName("var");
-            }
-
-            var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))
-                               .WithAdditionalAnnotations(Simplifier.Annotation);
-
-            if (!allowVar)
-            {
-                syntax = syntax.WithAdditionalAnnotations(DoNotAllowVarAnnotation.Annotation);
-            }
-
-            return syntax;
         }
 
         public static TypeSyntax GenerateRefTypeSyntax(

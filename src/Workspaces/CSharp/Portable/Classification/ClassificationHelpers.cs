@@ -333,13 +333,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 parentNode = parentNode!.Parent!.Parent;
 
                 // Check if this is a field constant declaration 
-                if (parentNode.GetModifiers().Any(SyntaxKind.ConstKeyword))
+                if (parentNode!.GetModifiers().Any(SyntaxKind.ConstKeyword))
                 {
                     return true;
                 }
             }
 
-            return parentNode.GetModifiers().Any(SyntaxKind.StaticKeyword);
+            return parentNode!.GetModifiers().Any(SyntaxKind.StaticKeyword);
         }
 
         private static bool IsExtensionMethod(MethodDeclarationSyntax methodDeclaration)

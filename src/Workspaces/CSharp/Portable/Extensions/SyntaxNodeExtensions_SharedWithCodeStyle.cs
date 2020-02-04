@@ -219,5 +219,107 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 WhileStatementSyntax n => n.Statement,
                 _ => null,
             };
+
+        public static ConditionalAccessExpressionSyntax? GetParentConditionalAccessExpression(this SyntaxNode node)
+        {
+            var current = node;
+            while (current?.Parent != null)
+            {
+                if (current.IsParentKind(SyntaxKind.ConditionalAccessExpression) &&
+                    ((ConditionalAccessExpressionSyntax)current.Parent).WhenNotNull == current)
+                {
+                    return (ConditionalAccessExpressionSyntax)current.Parent;
+                }
+
+                current = current.Parent;
+            }
+
+            return null;
+        }
+
+        public static bool IsInStaticContext(this SyntaxNode node)
+        {
+            // this/base calls are always static.
+            if (node.FirstAncestorOrSelf<ConstructorInitializerSyntax>() != null)
+            {
+                return true;
+            }
+
+            var memberDeclaration = node.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+            if (memberDeclaration == null)
+            {
+                return false;
+            }
+
+            switch (memberDeclaration.Kind())
+            {
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.EventDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                    return memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword);
+
+                case SyntaxKind.PropertyDeclaration:
+                    return memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword) ||
+                        node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer!);
+
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                    // Inside a field one can only access static members of a type (unless it's top-level).
+                    return !memberDeclaration.Parent.IsKind(SyntaxKind.CompilationUnit);
+
+                case SyntaxKind.DestructorDeclaration:
+                    return false;
+            }
+
+            // Global statements are not a static context.
+            if (node.FirstAncestorOrSelf<GlobalStatementSyntax>() != null)
+            {
+                return false;
+            }
+
+            // any other location is considered static
+            return true;
+        }
+
+        public static bool IsUnsafeContext(this SyntaxNode node)
+        {
+            if (node.GetAncestor<UnsafeStatementSyntax>() != null)
+            {
+                return true;
+            }
+
+            return node.GetAncestors<MemberDeclarationSyntax>().Any(
+                m => m.GetModifiers().Any(SyntaxKind.UnsafeKeyword));
+        }
+
+        public static bool IsLeftSideOfAssignExpression(this SyntaxNode node)
+        {
+            return node.IsParentKind(SyntaxKind.SimpleAssignmentExpression) &&
+                ((AssignmentExpressionSyntax)node.Parent!).Left == node;
+        }
+
+        public static TNode ConvertToSingleLine<TNode>(this TNode node, bool useElasticTrivia = false)
+            where TNode : SyntaxNode
+        {
+            if (node == null)
+            {
+                return node!;
+            }
+
+            var rewriter = new SingleLineRewriter(useElasticTrivia);
+            return (TNode)rewriter.Visit(node);
+        }
+
+        public static SyntaxTokenList GetModifiers(this SyntaxNode member)
+        {
+            switch (member)
+            {
+                case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
+                case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
+            }
+
+            return default;
+        }
     }
 }

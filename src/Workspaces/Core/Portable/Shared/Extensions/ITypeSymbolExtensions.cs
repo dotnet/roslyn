@@ -49,9 +49,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol?.TypeKind == TypeKind.Class && symbol.IsAbstract;
         }
 
-        public static bool IsNullable([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
-            => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
-
         public static bool IsNullable(
             [NotNullWhen(true)] this ITypeSymbol? symbol,
             [NotNullWhen(true)] out ITypeSymbol? underlyingType)
@@ -584,17 +581,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static Accessibility DetermineMinimalAccessibility(this ITypeSymbol typeSymbol)
         {
             return typeSymbol.Accept(MinimalAccessibilityVisitor.Instance);
-        }
-
-        public static bool ContainsAnonymousType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
-        {
-            switch (symbol)
-            {
-                case IArrayTypeSymbol a: return ContainsAnonymousType(a.ElementType);
-                case IPointerTypeSymbol p: return ContainsAnonymousType(p.PointedAtType);
-                case INamedTypeSymbol n: return ContainsAnonymousType(n);
-                default: return false;
-            }
         }
 
         private static bool ContainsAnonymousType(INamedTypeSymbol type)

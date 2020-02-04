@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -18,6 +19,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             // TODO(cyrusn): Defer to compiler code to handle this once it can.
             return member?.Accept(new IsUnsafeVisitor()) == true;
+        }
+
+        public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol? symbol)
+        {
+            switch (symbol)
+            {
+                case IMethodSymbol m: return m.Parameters;
+                case IPropertySymbol nt: return nt.Parameters;
+                default: return ImmutableArray<IParameterSymbol>.Empty;
+            }
         }
     }
 }
