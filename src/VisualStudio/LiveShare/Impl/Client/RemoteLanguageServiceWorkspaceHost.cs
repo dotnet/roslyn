@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
                         // Adds the Roslyn project into the current solution;
                         // and raise WorkspaceChanged event (WorkspaceChangeKind.ProjectAdded)
-                        _remoteLanguageServiceWorkspace.OnManagedProjectAdded(projectInfo);
+                        _remoteLanguageServiceWorkspace.OnProjectAdded(projectInfo);
 
                         _loadedProjects = _loadedProjects.Add(projectName, projectId);
                         _loadedProjectInfo = _loadedProjectInfo.Add(projectName, projectInfo);
@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                     {
                         if (_loadedProjectInfo.TryGetValue(projectName, out ProjectInfo projInfo))
                         {
-                            _remoteLanguageServiceWorkspace.OnManagedProjectReloaded(projInfo);
+                            _remoteLanguageServiceWorkspace.OnProjectReloaded(projectInfo);
                         }
                     }
                 }
