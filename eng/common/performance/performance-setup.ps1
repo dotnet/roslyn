@@ -2,7 +2,7 @@ Param(
     [string] $SourceDirectory=$env:BUILD_SOURCESDIRECTORY,
     [string] $CoreRootDirectory,
     [string] $BaselineCoreRootDirectory,
-    [string] $Architecture="x64",
+    [string] $Architecture=$env:archType,
     [string] $Framework="netcoreapp5.0",
     [string] $CompilationMode="Tiered",
     [string] $Repository=$env:BUILD_REPOSITORY_NAME,
@@ -14,7 +14,7 @@ Param(
     [string] $Kind="micro",
     [switch] $Internal,
     [switch] $Compare,
-    [string] $Configurations="CompilationMode=$CompilationMode"
+    [string] $Configurations="CompilationMode=$CompilationMode RunKind=$Kind"
 )
 
 $RunFromPerformanceRepo = ($Repository -eq "dotnet/performance") -or ($Repository -eq "dotnet-performance")
