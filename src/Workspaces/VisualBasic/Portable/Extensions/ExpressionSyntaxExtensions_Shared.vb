@@ -68,5 +68,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso DirectCast(expression.Parent, MemberAccessExpressionSyntax).Expression Is expression)
         End Function
 
+        <Extension()>
+        Public Function IsMeMyBaseOrMyClass(expression As ExpressionSyntax) As Boolean
+            If expression Is Nothing Then
+                Return False
+            End If
+
+            Return expression.Kind = SyntaxKind.MeExpression OrElse
+                   expression.Kind = SyntaxKind.MyBaseExpression OrElse
+                   expression.Kind = SyntaxKind.MyClassExpression
+        End Function
+
     End Module
 End Namespace

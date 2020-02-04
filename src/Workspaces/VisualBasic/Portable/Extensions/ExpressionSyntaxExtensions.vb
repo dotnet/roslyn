@@ -369,17 +369,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsMeMyBaseOrMyClass(expression As ExpressionSyntax) As Boolean
-            If expression Is Nothing Then
-                Return False
-            End If
-
-            Return expression.Kind = SyntaxKind.MeExpression OrElse
-                   expression.Kind = SyntaxKind.MyBaseExpression OrElse
-                   expression.Kind = SyntaxKind.MyClassExpression
-        End Function
-
-        <Extension()>
         Public Function IsFirstStatementInCtor(expression As ExpressionSyntax) As Boolean
             Dim statement = expression.FirstAncestorOrSelf(Of StatementSyntax)()
             If statement Is Nothing Then

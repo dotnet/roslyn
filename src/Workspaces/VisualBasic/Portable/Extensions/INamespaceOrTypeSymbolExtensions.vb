@@ -8,13 +8,7 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
-
     Friend Module INamespaceOrTypeSymbolExtensions
-        <Extension>
-        Public Function GenerateTypeSyntax(symbol As INamespaceOrTypeSymbol, Optional addGlobal As Boolean = True) As TypeSyntax
-            Return symbol.Accept(TypeSyntaxGeneratorVisitor.Create(addGlobal)).WithAdditionalAnnotations(Simplifier.Annotation)
-        End Function
-
         <Extension>
         Public Function GetAliasForSymbol(symbol As INamespaceOrTypeSymbol, node As SyntaxNode, semanticModel As SemanticModel) As IAliasSymbol
             ' NOTE(cyrusn): If we're in an imports clause, we can't use aliases.
@@ -40,5 +34,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return aliasSymbol
         End Function
     End Module
-
 End Namespace

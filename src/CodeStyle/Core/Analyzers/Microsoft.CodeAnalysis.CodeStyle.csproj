@@ -196,6 +196,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\NormalizedTextSpanCollection.cs" Link="Formatting\NormalizedTextSpanCollection.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\AliasSymbolCache.cs" Link="AliasSymbolCache.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\CommonFormattingHelpers.cs" Link="Formatting\CommonFormattingHelpers.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\IntegerUtilities.cs" Link="Utilities\IntegerUtilities.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher.ChoiceMatcher.cs" Link="Shared\Utilities\Matcher.ChoiceMatcher.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher.cs" Link="Shared\Utilities\Matcher.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher.RepeatMatcher.cs" Link="Shared\Utilities\Matcher.RepeatMatcher.cs" />

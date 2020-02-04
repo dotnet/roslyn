@@ -9,10 +9,16 @@
     <PackageId>Microsoft.CodeAnalysis.VisualBasic.CodeStyle.NewNameSinceWeReferenceTheAnalyzersAndNuGetCannotFigureItOut</PackageId>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\CodeGeneration\ExpressionGenerator.StringPiece.vb" Link="CodeGeneration\ExpressionGenerator.StringPiece.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\CodeGeneration\ExpressionGenerator.StringPieceKind.vb" Link="CodeGeneration\ExpressionGenerator.StringPieceKind.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\CodeGeneration\ExpressionGenerator.vb" Link="CodeGeneration\ExpressionGenerator.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\CodeGeneration\VisualBasicFlagsEnumGenerator.vb" Link="CodeGeneration\VisualBasicFlagsEnumGenerator.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\CodeGeneration\VisualBasicSyntaxGenerator.vb" Link="CodeGeneration\VisualBasicSyntaxGenerator.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\ArgumentSyntaxExtensions_Shared.vb" Link="Extensions\ArgumentSyntaxExtensions_Shared.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\ContextQuery\SyntaxTreeExtensions_Shared.vb" Link="Extensions\ContextQuery\SyntaxTreeExtensions_Shared.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\DirectiveSyntaxExtensions.vb" Link="Extensions\DirectiveSyntaxExtensions.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\ExpressionSyntaxExtensions_Shared.vb" Link="Extensions\ExpressionSyntaxExtensions_Shared.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\INamespaceOrTypeSymbolExtensions_Shared.vb" Link="Extensions\INamespaceOrTypeSymbolExtensions_Shared.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\MemberAccessExpressionSyntaxExtensions_Shared.vb" Link="Extensions\MemberAccessExpressionSyntaxExtensions_Shared.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SingleLineRewriter.vb" Link="Extensions\SingleLineRewriter.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\StatementSyntaxExtensions_Shared.vb" Link="Extensions\StatementSyntaxExtensions_Shared.vb" />
@@ -21,6 +27,7 @@
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.vb" Link="Formatting\SyntaxTokenExtensions_SharedWithCodeStyle.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.vb" Link="Formatting\SyntaxTreeExtensions_SharedWithCodeStyle.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTriviaExtensions.vb" Link="Formatting\SyntaxTriviaExtensions.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\TypeSyntaxGeneratorVisitor.vb" Link="Extensions\TypeSyntaxGeneratorVisitor.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\DefaultOperationProvider.vb" Link="Formatting\DefaultOperationProvider.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\AggregatedFormattingResult.vb" Link="Formatting\Engine\AggregatedFormattingResult.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\FormattingResult.vb" Link="Formatting\Engine\FormattingResult.vb" />
@@ -88,6 +95,7 @@
   <ItemGroup>
     <Folder Include="Extensions\ContextQuery\" />
     <Folder Include="LanguageServices\" />
+    <Folder Include="CodeGeneration\" />
     <Folder Include="Utilities\" />
   </ItemGroup>
 </Project>
