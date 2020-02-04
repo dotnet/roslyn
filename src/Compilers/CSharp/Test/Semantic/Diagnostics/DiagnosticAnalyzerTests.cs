@@ -3204,5 +3204,36 @@ class C
             Assert.False(second.Concurrent);
             Assert.True(second.Append(first).Concurrent);
         }
+
+        [Fact, WorkItem(41402, "https://github.com/dotnet/roslyn/issues/41402")]
+        public async Task TestRegisterOperationBlockAndOperationActionOnSameContext()
+        {
+            string source = @"
+internal class A
+{
+    public void M() { }
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            // Verify analyzer execution from command line
+            // 'VerifyAnalyzerDiagnostics' helper executes the analyzers on the entire compilation without any state-based analysis.
+            var analyzers = new DiagnosticAnalyzer[] { new RegisterOperationBlockAndOperationActionAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: Diagnostic("ID0001", "M").WithLocation(4, 17));
+
+            // Now verify analyzer execution for a single file.
+            // 'GetAnalyzerSemanticDiagnosticsAsync' executes the analyzers on the given file with state-based analysis.
+            var model = compilation.GetSemanticModel(tree);
+            var compWithAnalyzers = new CompilationWithAnalyzers(
+                compilation,
+                analyzers.ToImmutableArray(),
+                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                CancellationToken.None);
+            var diagnostics = await compWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, CancellationToken.None);
+            diagnostics.Verify(Diagnostic("ID0001", "M").WithLocation(4, 17));
+        }
     }
 }

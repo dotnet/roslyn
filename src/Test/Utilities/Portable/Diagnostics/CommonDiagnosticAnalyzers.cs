@@ -2061,5 +2061,30 @@ namespace Microsoft.CodeAnalysis
                     SymbolKind.NamedType);
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class RegisterOperationBlockAndOperationActionAnalyzer : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+                "ID0001",
+                "Title",
+                "Message",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+            public override void Initialize(AnalysisContext analysisContext)
+            {
+                analysisContext.RegisterOperationAction(_ => { }, OperationKind.Invocation);
+                analysisContext.RegisterOperationBlockStartAction(OnOperationBlockStart);
+            }
+
+            private void OnOperationBlockStart(OperationBlockStartAnalysisContext context)
+            {
+                context.RegisterOperationBlockEndAction(
+                    endContext => endContext.ReportDiagnostic(Diagnostic.Create(s_descriptor, context.OwningSymbol.Locations[0])));
+            }
+        }
     }
 }
