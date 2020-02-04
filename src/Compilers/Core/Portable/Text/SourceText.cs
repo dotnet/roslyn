@@ -283,8 +283,8 @@ namespace Microsoft.CodeAnalysis.Text
         {
             RoslynDebug.Assert(stream != null);
             RoslynDebug.Assert(encoding != null);
-            const int minBufferSize = 4096;
-            int bufferSize = minBufferSize;
+            const int maxBufferSize = 4096;
+            int bufferSize = maxBufferSize;
 
             if (stream.CanSeek)
             {
@@ -296,7 +296,8 @@ namespace Microsoft.CodeAnalysis.Text
                     actualEncoding = encoding;
                     return string.Empty;
                 }
-                bufferSize = Math.Min(minBufferSize, length);
+
+                bufferSize = Math.Min(maxBufferSize, length);
             }
 
             // Note: We are setting the buffer size to 4KB instead of the default 1KB. That's
