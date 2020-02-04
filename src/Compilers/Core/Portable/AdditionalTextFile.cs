@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis
         private SourceText? _text;
         private IList<DiagnosticInfo> _diagnostics;
 
-        private readonly object _lockObject = new object();
+        private object _lockObject = new object();
+        private bool _initialized;
 
         public AdditionalTextFile(CommandLineSourceFile sourceFile, CommonCompiler compiler)
         {
@@ -45,19 +46,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public override SourceText? GetText(CancellationToken cancellationToken = default)
         {
-            if (_text == null && _diagnostics == null)
+            return LazyInitializer.EnsureInitialized(ref _text, ref _initialized, ref _lockObject, () =>
             {
-                lock (_lockObject)
-                {
-                    if (_text == null && _diagnostics == null)
-                    {
-                        var diagnostics = new List<DiagnosticInfo>();
-                        _text = _compiler.TryReadFileContent(_sourceFile, diagnostics);
-                        _diagnostics = diagnostics;
-                    }
-                }
-            }
-            return _text;
+                var diagnostics = new List<DiagnosticInfo>();
+                var text = _compiler.TryReadFileContent(_sourceFile, diagnostics);
+                _diagnostics = diagnostics;
+                return text;
+            });
         }
 
         /// <summary>
