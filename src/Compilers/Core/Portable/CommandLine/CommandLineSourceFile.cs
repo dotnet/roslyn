@@ -31,16 +31,16 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Although this path is absolute it may not be normalized. That is, it may contain ".." and "." in the middle. 
         /// </remarks>
-        public string Path { get; private set; }
+        public string Path { get; }
 
         /// <summary>
         /// True if the input has been redirected from the standard input stream.
         /// </summary>
-        public bool IsInputRedirected { get; private set; }
+        public bool IsInputRedirected { get; }
 
         /// <summary>
         /// True if the file should be treated as a script file.
         /// </summary>
-        public bool IsScript { get; private set; }
+        public bool IsScript { get; }
     }
 }
