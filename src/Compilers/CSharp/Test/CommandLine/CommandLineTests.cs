@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class CommandLineTests : CommandLineTestBase
     {
-#if NETCOREAPP2_1
+#if NETCOREAPP3_1
         private static readonly string s_CSharpCompilerExecutable;
         private static readonly string s_DotnetCscRun;
 #else
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         static CommandLineTests()
         {
-#if NETCOREAPP2_1
+#if NETCOREAPP3_1
             var cscDllPath = Path.Combine(
                 Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
                 Path.Combine("dependency", "csc.dll"));
