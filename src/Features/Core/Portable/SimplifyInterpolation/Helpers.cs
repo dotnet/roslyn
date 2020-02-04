@@ -70,33 +70,31 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             IVirtualCharService virtualCharService, IOperation expression, out IOperation unwrapped,
             out string? formatString, List<TextSpan> unnecessarySpans)
         {
-            if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation)
+            if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation &&
+                HasNonImplicitInstance(invocation))
             {
-                if (invocation.Instance != null && !invocation.Instance.IsImplicit)
+                if (invocation.Arguments.Length == 1 &&
+                    invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal)
                 {
-                    if (invocation.Arguments.Length == 1 &&
-                        invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal)
-                    {
-                        unwrapped = invocation.Instance;
-                        formatString = value;
+                    unwrapped = invocation.Instance;
+                    formatString = value;
 
-                        unnecessarySpans.AddRange(invocation.Syntax.Span
-                            .Subtract(invocation.Instance.Syntax.FullSpan)
-                            .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, literal.Syntax.GetFirstToken())));
-                        return;
-                    }
+                    unnecessarySpans.AddRange(invocation.Syntax.Span
+                        .Subtract(invocation.Instance.Syntax.FullSpan)
+                        .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, literal.Syntax.GetFirstToken())));
+                    return;
+                }
 
-                    if (invocation.Arguments.Length == 0)
-                    {
-                        // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
-                        // Just remove entirely.
-                        unwrapped = invocation.Instance;
-                        formatString = "";
+                if (invocation.Arguments.Length == 0)
+                {
+                    // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
+                    // Just remove entirely.
+                    unwrapped = invocation.Instance;
+                    formatString = "";
 
-                        unnecessarySpans.AddRange(invocation.Syntax.Span
-                            .Subtract(invocation.Instance.Syntax.FullSpan));
-                        return;
-                    }
+                    unnecessarySpans.AddRange(invocation.Syntax.Span
+                        .Subtract(invocation.Instance.Syntax.FullSpan));
+                    return;
                 }
             }
 
@@ -117,30 +115,28 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             out TExpressionSyntax? alignment, out bool negate, List<TextSpan> unnecessarySpans)
             where TExpressionSyntax : SyntaxNode
         {
-            if (expression is IInvocationOperation invocation)
+            if (expression is IInvocationOperation invocation &&
+                HasNonImplicitInstance(invocation))
             {
                 var targetName = invocation.TargetMethod.Name;
                 if (targetName == nameof(string.PadLeft) || targetName == nameof(string.PadRight))
                 {
-                    if (invocation.Instance != null && !invocation.Instance.IsImplicit)
+                    var argCount = invocation.Arguments.Length;
+                    if (argCount == 1 || argCount == 2)
                     {
-                        var argCount = invocation.Arguments.Length;
-                        if (argCount == 1 || argCount == 2)
+                        if (argCount == 1 ||
+                            IsSpaceChar(invocation.Arguments[1]))
                         {
-                            if (argCount == 1 ||
-                                IsSpaceChar(invocation.Arguments[1]))
-                            {
-                                var alignmentSyntax = invocation.Arguments[0].Value.Syntax;
+                            var alignmentSyntax = invocation.Arguments[0].Value.Syntax;
 
-                                unwrapped = invocation.Instance;
-                                alignment = alignmentSyntax as TExpressionSyntax;
-                                negate = targetName == nameof(string.PadLeft);
+                            unwrapped = invocation.Instance;
+                            alignment = alignmentSyntax as TExpressionSyntax;
+                            negate = targetName == nameof(string.PadLeft);
 
-                                unnecessarySpans.AddRange(invocation.Syntax.Span
-                                    .Subtract(invocation.Instance.Syntax.FullSpan)
-                                    .Subtract(alignmentSyntax.FullSpan));
-                                return;
-                            }
+                            unnecessarySpans.AddRange(invocation.Syntax.Span
+                                .Subtract(invocation.Instance.Syntax.FullSpan)
+                                .Subtract(alignmentSyntax.FullSpan));
+                            return;
                         }
                     }
                 }
@@ -149,6 +145,11 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             unwrapped = expression;
             alignment = null;
             negate = false;
+        }
+
+        private static bool HasNonImplicitInstance(IInvocationOperation invocation)
+        {
+            return invocation.Instance != null && !invocation.Instance.IsImplicit;
         }
 
         private static bool IsSpaceChar(IArgumentOperation argument)
