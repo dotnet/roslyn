@@ -24,7 +24,7 @@
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\CodeGeneration\ExpressionGenerator.cs" Link="CodeGeneration\ExpressionGenerator.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\ArgumentSyntaxExtensions.cs" Link="Extensions\ArgumentSyntaxExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\AssignmentExpressionSyntaxExtensions.cs" Link="Extensions\AssignmentExpressionSyntaxExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\ContextQuery\SyntaxTokenExtensions_SharedWithCodeStyle.cs" Link="Formatting\ContextQuery\SyntaxTokenExtensions_SharedWithCodeStyle.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\ContextQuery\SyntaxTokenExtensions_SharedWithCodeStyle.cs" Link="Extensions\ContextQuery\SyntaxTokenExtensions_SharedWithCodeStyle.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\ContextQuery\SyntaxTreeExtensions_Shared.cs" Link="Extensions\ContextQuery\SyntaxTreeExtensions_Shared.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\DirectiveSyntaxExtensions.cs" Link="Extensions\DirectiveSyntaxExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\DirectiveSyntaxExtensions.DirectiveInfo.cs" Link="Extensions\DirectiveSyntaxExtensions.DirectiveInfo.cs" />
@@ -42,7 +42,7 @@
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.cs" Link="Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxNodeExtensions.SingleLineRewriter.cs" Link="Extensions\SyntaxNodeExtensions.SingleLineRewriter.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTreeExtensions_Shared.cs" Link="Extensions\SyntaxTreeExtensions_Shared.cs" />
-    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTriviaExtensions.cs" Link="Formatting\SyntaxTriviaExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTriviaExtensions.cs" Link="Extensions\SyntaxTriviaExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTriviaListExtensions.cs" Link="Extensions\SyntaxTriviaListExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\CSharpFormattingOptions.cs" Link="Formatting\CSharpFormattingOptions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\CSharpFormattingOptions.Parsers.cs" Link="Formatting\CSharpFormattingOptions.Parsers.cs" />
@@ -79,7 +79,7 @@
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\LanguageServices\CSharpDocumentationCommentService.cs" Link="LanguageServices\CSharpDocumentationCommentService.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\LanguageServices\CSharpSyntaxFactsService.cs" Link="LanguageServices\CSharpSyntaxFactsService.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\LanguageServices\CSharpSyntaxKindsService.cs" Link="LanguageServices\CSharpSyntaxKindsService.cs" />
-    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Utilities\FormattingRangeHelper.cs" Link="Formatting\FormattingRangeHelper.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Utilities\FormattingRangeHelper.cs" Link="Utilities\FormattingRangeHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="CSharpCodeStyleResources.Designer.cs">

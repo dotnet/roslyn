@@ -24,11 +24,11 @@
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\StatementSyntaxExtensions_Shared.vb" Link="Extensions\StatementSyntaxExtensions_Shared.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\StringExtensions.vb" Link="Extensions\StringExtensions.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxNodeExtensions_Shared.vb" Link="Extensions\SyntaxNodeExtensions_Shared.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.vb" Link="Formatting\SyntaxTokenExtensions_SharedWithCodeStyle.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.vb" Link="Formatting\SyntaxTreeExtensions_SharedWithCodeStyle.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTriviaExtensions.vb" Link="Formatting\SyntaxTriviaExtensions.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.vb" Link="Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.vb" Link="Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTriviaExtensions.vb" Link="Extensions\SyntaxTriviaExtensions.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\TypeSyntaxGeneratorVisitor.vb" Link="Extensions\TypeSyntaxGeneratorVisitor.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\DefaultOperationProvider.vb" Link="Formatting\DefaultOperationProvider.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\DefaultOperationProvider.vb" Link="Extensions\DefaultOperationProvider.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\AggregatedFormattingResult.vb" Link="Formatting\Engine\AggregatedFormattingResult.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\FormattingResult.vb" Link="Formatting\Engine\FormattingResult.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.AbstractLineBreakTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.AbstractLineBreakTrivia.vb" />
