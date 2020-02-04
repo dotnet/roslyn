@@ -8630,11 +8630,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="translated">La funzionalità '{0}' non è disponibile C# 7.0. Usare la versione {1} o versioni successive del linguaggio.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FeatureIsUnimplemented">
-        <source>Feature '{0}' is not implemented in this compiler.</source>
-        <target state="translated">La funzionalità '{0}' non è implementata in questo compilatore.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_VersionExperimental">
         <source>'experimental'</source>
         <target state="translated">'experimental'</target>

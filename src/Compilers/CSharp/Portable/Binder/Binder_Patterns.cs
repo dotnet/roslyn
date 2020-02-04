@@ -149,7 +149,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
             if (wasExpression)
             {
-                return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
+                if (constantValueOpt is null)
+                {
+                    constantValueOpt = ConstantValue.Bad;
+                    hasErrors = true;
+                }
+
+                return new BoundConstantPattern(node, convertedExpression, constantValueOpt, inputType, hasErrors);
             }
             else
             {
@@ -1202,6 +1208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
+            if (constantValueOpt is null) hasErrors = true;
             return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
 
             static BinaryOperatorKind TokenKindToBinaryOperatorKind(SyntaxKind kind) => kind switch

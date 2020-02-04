@@ -81,13 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNegatedPattern(BoundNegatedPattern node)
         {
-            // PROTOTYPE(ngafter): what is the right behavior here?
+            Visit(node.Negated);
             return null;
         }
 
         public override BoundNode VisitBinaryPattern(BoundBinaryPattern node)
         {
-            // PROTOTYPE(ngafter): what is the right behavior here?
+            Visit(node.Left);
+            Visit(node.Right);
             return null;
         }
 
@@ -162,10 +163,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case BoundNegatedPattern p:
-                    // PROTOTYPE(ngafter): what is the right behavior here?
+                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Negated);
                     break;
                 case BoundBinaryPattern p:
-                    // PROTOTYPE(ngafter): what is the right behavior here?
+                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Left);
+                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Right);
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern);

@@ -4849,15 +4849,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not implemented in this compiler..
-        /// </summary>
-        internal static string ERR_FeatureIsUnimplemented {
-            get {
-                return ResourceManager.GetString("ERR_FeatureIsUnimplemented", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 1. Please use language version {1} or greater..
         /// </summary>
         internal static string ERR_FeatureNotAvailableInVersion1 {

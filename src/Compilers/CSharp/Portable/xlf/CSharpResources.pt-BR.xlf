@@ -8630,11 +8630,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="translated">O recurso '{0}' não está disponível em C# 7.0. Use a versão de linguagem {1} ou superior.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FeatureIsUnimplemented">
-        <source>Feature '{0}' is not implemented in this compiler.</source>
-        <target state="translated">O recurso '{0}' não é implementado nesse compilador.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_VersionExperimental">
         <source>'experimental'</source>
         <target state="translated">'experimental'</target>

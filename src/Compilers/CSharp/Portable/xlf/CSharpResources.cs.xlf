@@ -8630,11 +8630,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">Funkce {0} není dostupná v jazyce C# 7.0. Použijte prosím jazyk verze {1} nebo vyšší.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FeatureIsUnimplemented">
-        <source>Feature '{0}' is not implemented in this compiler.</source>
-        <target state="translated">Funkce {0} není implementovaná v tomto kompilátoru.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_VersionExperimental">
         <source>'experimental'</source>
         <target state="translated">'"experimentální"</target>

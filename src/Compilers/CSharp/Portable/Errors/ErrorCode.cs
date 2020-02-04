@@ -1738,7 +1738,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 8.0
 
         ERR_InternalError = 8751,
-        ERR_FeatureIsUnimplemented = 8752, // PROTOTYPE(ngafter): temporary diagnostic until fully implemented
 
         ERR_ExternEventInitializer = 8760,
 

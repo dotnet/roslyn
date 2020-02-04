@@ -8630,11 +8630,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">C# 7.0 中不支持功能“{0}”。请使用 {1} 或更高的语言版本。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FeatureIsUnimplemented">
-        <source>Feature '{0}' is not implemented in this compiler.</source>
-        <target state="translated">此编译器中未实现功能“{0}”。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_VersionExperimental">
         <source>'experimental'</source>
         <target state="translated">'“实验”</target>

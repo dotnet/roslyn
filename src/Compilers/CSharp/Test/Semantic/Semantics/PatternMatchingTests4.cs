@@ -1480,7 +1480,8 @@ class _
 {
 }";
             var compilation = CreatePatternCompilation(source);
-            // PROTOTYPE(ngafter): Diagnostics are not ideal.  On the other hand, this is not likely to be a frequent occurrence except in test code.
+            // Diagnostics are not ideal here.  On the other hand, this is not likely to be a frequent occurrence except in test code
+            // so any effort at improving the diagnostics would not likely be well spent.
             compilation.VerifyDiagnostics(
                 // (9,20): error CS1003: Syntax error, ':' expected
                 //             case _ x: break;

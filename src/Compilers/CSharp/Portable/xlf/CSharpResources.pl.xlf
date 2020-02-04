@@ -8630,11 +8630,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Funkcja „{0}” nie jest dostępna w języku C# 7.0. Użyj języka w wersji {1} lub nowszej.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FeatureIsUnimplemented">
-        <source>Feature '{0}' is not implemented in this compiler.</source>
-        <target state="translated">Funkcja „{0}” nie jest zaimplementowana w tym kompilatorze.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_VersionExperimental">
         <source>'experimental'</source>
         <target state="translated">'„eksperymentalna”</target>

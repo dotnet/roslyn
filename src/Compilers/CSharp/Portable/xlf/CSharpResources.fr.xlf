@@ -8630,11 +8630,6 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <target state="translated">La fonctionnalité '{0}' n'est pas disponible en C# 7.0. Utilisez la version de langage {1} ou une version ultérieure.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FeatureIsUnimplemented">
-        <source>Feature '{0}' is not implemented in this compiler.</source>
-        <target state="translated">La fonctionnalité '{0}' n'est pas implémentée dans ce compilateur.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_VersionExperimental">
         <source>'experimental'</source>
         <target state="translated">'expérimental'</target>
