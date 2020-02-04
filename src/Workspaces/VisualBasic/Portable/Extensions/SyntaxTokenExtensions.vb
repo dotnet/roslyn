@@ -213,11 +213,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IntersectsWith(token As SyntaxToken, position As Integer) As Boolean
-            Return token.Span.IntersectsWith(position)
-        End Function
-
-        <Extension()>
         Public Function GetNextNonZeroWidthTokenOrEndOfFile(token As SyntaxToken) As SyntaxToken
             Dim nextToken = token.GetNextToken()
             Return If(nextToken.Kind = SyntaxKind.None, token.GetAncestor(Of CompilationUnitSyntax)().EndOfFileToken, nextToken)
