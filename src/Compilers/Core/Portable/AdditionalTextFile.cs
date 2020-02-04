@@ -43,18 +43,20 @@ namespace Microsoft.CodeAnalysis
         /// Returns a <see cref="SourceText"/> with the contents of this file, or <c>null</c> if
         /// there were errors reading the file.
         /// </summary>
-        public override SourceText GetText(CancellationToken cancellationToken = default)
+        public override SourceText? GetText(CancellationToken cancellationToken = default)
         {
-            lock (_lockObject)
+            if (_text == null && _diagnostics == null)
             {
-                if (_text == null)
+                lock (_lockObject)
                 {
-                    var diagnostics = new List<DiagnosticInfo>();
-                    _text = _compiler.TryReadFileContent(_sourceFile, diagnostics);
-                    _diagnostics = diagnostics;
+                    if (_text == null && _diagnostics == null)
+                    {
+                        var diagnostics = new List<DiagnosticInfo>();
+                        _text = _compiler.TryReadFileContent(_sourceFile, diagnostics);
+                        _diagnostics = diagnostics;
+                    }
                 }
             }
-
             return _text;
         }
 
