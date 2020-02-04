@@ -694,7 +694,7 @@ End Class | {s_basicCompilerExecutable} /nologo /t:library /out:{name} -""", wor
             If Console.IsInputRedirected Then
                 ' [applicable to both Windows and Unix]
                 ' if our parent (xunit) process itself has input redirected, we cannot test this
-                ' error case because our child process will inherit it and we cannot achive what
+                ' error case because our child process will inherit it and we cannot achieve what
                 ' we are aiming for: isatty(0):true and thereby Console.IsInputerRedirected:false in
                 ' child. running this case will make StreamReader to hang (waiting for input, that
                 ' we do not propagate: parent.In->child.In).
