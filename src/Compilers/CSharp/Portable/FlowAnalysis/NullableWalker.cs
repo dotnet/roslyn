@@ -2982,11 +2982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (slot > 0 && PossiblyNullableType(expressionType))
             {
-                if (state[slot] == NullableFlowState.NotNull)
-                {
-                    // Note: We leave a MaybeDefault state as-is
-                    state[slot] = NullableFlowState.MaybeNull;
-                }
+                state[slot] = NullableFlowState.MaybeDefault;
 
                 if (markDependentSlotsNotNull)
                 {
