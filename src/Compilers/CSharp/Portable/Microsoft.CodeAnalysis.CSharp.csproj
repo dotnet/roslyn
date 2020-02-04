@@ -17,7 +17,7 @@
     </PackageDescription>
 
     <!-- Disable the nullable warnings when compiling for netcoreapp3.1 during our transition period -->
-    <DisableNullableWarnings Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+    <DisableNullableWarnings Condition="'$(TargetFramework)' == 'netcoreapp3.1'">true</DisableNullableWarnings>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
