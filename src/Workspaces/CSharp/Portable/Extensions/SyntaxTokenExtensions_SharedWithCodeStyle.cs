@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -62,6 +64,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsOpenBraceOfAccessorList(this SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.AccessorList);
+        }
+
+        public static SyntaxToken GetPreviousTokenIfTouchingWord(this SyntaxToken token, int position)
+        {
+            return token.IntersectsWith(position) && IsWord(token)
+                ? token.GetPreviousToken(includeSkipped: true)
+                : token;
+        }
+
+        private static bool IsWord(SyntaxToken token)
+        {
+            return CSharpSyntaxFactsService.Instance.IsWord(token);
         }
     }
 }

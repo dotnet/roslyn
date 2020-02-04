@@ -34,23 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static bool IntersectsWith(this SyntaxToken token, int position)
-        {
-            return token.Span.IntersectsWith(position);
-        }
-
-        public static SyntaxToken GetPreviousTokenIfTouchingWord(this SyntaxToken token, int position)
-        {
-            return token.IntersectsWith(position) && IsWord(token)
-                ? token.GetPreviousToken(includeSkipped: true)
-                : token;
-        }
-
-        private static bool IsWord(SyntaxToken token)
-        {
-            return CSharpSyntaxFactsService.Instance.IsWord(token);
-        }
-
         public static SyntaxToken GetNextNonZeroWidthTokenOrEndOfFile(this SyntaxToken token)
         {
             return token.GetNextTokenOrEndOfFile();

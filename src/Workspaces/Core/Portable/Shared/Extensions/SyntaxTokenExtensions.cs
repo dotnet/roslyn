@@ -172,5 +172,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static SyntaxTrivia[] GetTrivia(this IEnumerable<SyntaxToken> tokens)
             => tokens.SelectMany(token => SyntaxNodeOrTokenExtensions.GetTrivia(token)).ToArray();
+
+        public static bool IntersectsWith(this SyntaxToken token, int position)
+        {
+            return token.Span.IntersectsWith(position);
+        }
     }
 }

@@ -139,12 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression.IsParentKind(SyntaxKind.NameMemberCref) && expression.Parent.IsParentKind(SyntaxKind.QualifiedCref);
         }
 
-        public static bool IsMemberAccessExpressionName(this ExpressionSyntax expression)
-        {
-            return (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Name == expression) ||
-                   IsMemberBindingExpressionName(expression);
-        }
-
         public static bool IsAnyMemberAccessExpressionName(this ExpressionSyntax expression)
         {
             if (expression == null)
@@ -154,17 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return expression == (expression.Parent as MemberAccessExpressionSyntax)?.Name ||
                 expression.IsMemberBindingExpressionName();
-        }
-
-        private static bool IsMemberBindingExpressionName(this ExpressionSyntax expression)
-        {
-            return expression.IsParentKind(SyntaxKind.MemberBindingExpression) &&
-                ((MemberBindingExpressionSyntax)expression.Parent).Name == expression;
-        }
-
-        public static bool IsRightSideOfQualifiedName(this ExpressionSyntax expression)
-        {
-            return expression.IsParentKind(SyntaxKind.QualifiedName) && ((QualifiedNameSyntax)expression.Parent).Right == expression;
         }
 
         public static bool IsRightSideOfColonColon(this ExpressionSyntax expression)

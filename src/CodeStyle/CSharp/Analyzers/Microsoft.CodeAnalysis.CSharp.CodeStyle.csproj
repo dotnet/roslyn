@@ -19,10 +19,14 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\CodeGeneration\CSharpSyntaxGenerator.cs" Link="CodeGeneration\CSharpSyntaxGenerator.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\ContextQuery\SyntaxTokenExtensions_SharedWithCodeStyle.cs" Link="Formatting\ContextQuery\SyntaxTokenExtensions_SharedWithCodeStyle.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\ExpressionSyntaxExtensions_Shared.cs" Link="Extensions\ExpressionSyntaxExtensions_Shared.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\MemberDeclarationSyntaxExtensions_GetAttributes.cs" Link="Formatting\MemberDeclarationSyntaxExtensions_GetAttributes.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\StringExtensions.cs" Link="Extensions\StringExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxNodeExtensions_SharedWithCodeStyle.cs" Link="Formatting\SyntaxNodeExtensions_SharedWithCodeStyle.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.cs" Link="Formatting\SyntaxTokenExtensions_SharedWithCodeStyle.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTreeExtensions_Shared.cs" Link="Extensions\SyntaxTreeExtensions_Shared.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTriviaExtensions.cs" Link="Formatting\SyntaxTriviaExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\CSharpFormattingOptions.cs" Link="Formatting\CSharpFormattingOptions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\CSharpFormattingOptions.Parsers.cs" Link="Formatting\CSharpFormattingOptions.Parsers.cs" />
@@ -56,6 +60,8 @@
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\SyntaxKindEx.cs" Link="Formatting\Rules\SyntaxKindEx.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\TokenBasedFormattingRule.cs" Link="Formatting\Rules\TokenBasedFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\WrappingFormattingRule.cs" Link="Formatting\Rules\WrappingFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\LanguageServices\CSharpDocumentationCommentService.cs" Link="LanguageServices\CSharpDocumentationCommentService.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\LanguageServices\CSharpSyntaxFactsService.cs" Link="LanguageServices\CSharpSyntaxFactsService.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\LanguageServices\CSharpSyntaxKindsService.cs" Link="LanguageServices\CSharpSyntaxKindsService.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Utilities\FormattingRangeHelper.cs" Link="Formatting\FormattingRangeHelper.cs" />
   </ItemGroup>
@@ -79,5 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="LanguageServices\" />
+    <Folder Include="CodeGeneration\" />
+    <Folder Include="Extensions\" />
   </ItemGroup>
 </Project>
