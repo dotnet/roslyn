@@ -681,12 +681,9 @@ End Class | {s_basicCompilerExecutable} /nologo /t:library /out:{name} -""", wor
 
             Assert.False(result.ContainsErrors, $"Compilation error(s) occurred: {result.Output} {result.Errors}")
 
-            Dim assembly As Assembly = Assembly.LoadFrom(Path.Combine(tempDir, name))
-            Dim peKind As PortableExecutableKinds = Nothing
-            Dim machine As ImageFileMachine = Nothing
-            assembly.ManifestModule.GetPEKind(peKind, machine)
-
-            Assert.Equal(PortableExecutableKinds.ILOnly, peKind)
+            Dim assemblyName = System.Reflection.AssemblyName.GetAssemblyName(Path.Combine(tempDir, name))
+            Assert.Equal(name.Replace(".dll", ", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                         assemblyName.ToString())
         End Sub
 
         <Fact>

@@ -5721,10 +5721,9 @@ class A                                                               \
 
             Assert.False(result.ContainsErrors, $"Compilation error(s) occurred: {result.Output} {result.Errors}");
 
-            var assembly = Assembly.LoadFrom(Path.Combine(tempDir, name));
-            assembly.ManifestModule.GetPEKind(out PortableExecutableKinds peKind, out _);
-
-            Assert.Equal(PortableExecutableKinds.ILOnly, peKind);
+            var assemblyName = AssemblyName.GetAssemblyName(Path.Combine(tempDir, name));
+            Assert.Equal(name.Replace(".dll", ", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                assemblyName.ToString());
         }
 
         [Fact]
