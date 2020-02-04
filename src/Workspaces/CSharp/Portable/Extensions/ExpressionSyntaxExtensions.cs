@@ -26,16 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression;
         }
 
-        public static ExpressionSyntax WalkDownParentheses(this ExpressionSyntax expression)
-        {
-            while (expression.IsKind(SyntaxKind.ParenthesizedExpression))
-            {
-                expression = ((ParenthesizedExpressionSyntax)expression).Expression;
-            }
-
-            return expression;
-        }
-
         public static CastExpressionSyntax Cast(
             this ExpressionSyntax expression,
             ITypeSymbol targetType)
@@ -144,31 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return firstToken.Kind() != SyntaxKind.None
                 && firstToken.GetPreviousToken().Kind() == SyntaxKind.CloseParenToken;
         }
-
-        public static bool IsLeftSideOfDot(this ExpressionSyntax expression)
-        {
-            if (expression == null)
-            {
-                return false;
-            }
-
-            return IsLeftSideOfQualifiedName(expression) ||
-                   IsLeftSideOfSimpleMemberAccessExpression(expression);
-        }
-
-        public static bool IsLeftSideOfSimpleMemberAccessExpression(this ExpressionSyntax expression)
-            => (expression?.Parent).IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess) &&
-               memberAccess.Expression == expression;
-
-        public static bool IsLeftSideOfDotOrArrow(this ExpressionSyntax expression)
-            => IsLeftSideOfQualifiedName(expression) ||
-               (expression.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression == expression);
-
-        public static bool IsLeftSideOfQualifiedName(this ExpressionSyntax expression)
-            => (expression?.Parent).IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax qualifiedName) && qualifiedName.Left == expression;
-
-        public static bool IsLeftSideOfExplicitInterfaceSpecifier(this NameSyntax name)
-            => name.IsParentKind(SyntaxKind.ExplicitInterfaceSpecifier);
 
         public static bool IsExpressionOfInvocation(this ExpressionSyntax expression)
             => (expression?.Parent).IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation) &&

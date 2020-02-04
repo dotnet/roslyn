@@ -2,15 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -102,6 +96,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
 
             return parenthesized.WithTriviaFrom(expression);
+        }
+
+        public static bool IsLeftSideOfDot(this ExpressionSyntax expression)
+        {
+            if (expression == null)
+            {
+                return false;
+            }
+
+            return IsLeftSideOfQualifiedName(expression) ||
+                   IsLeftSideOfSimpleMemberAccessExpression(expression);
+        }
+
+        public static bool IsLeftSideOfSimpleMemberAccessExpression(this ExpressionSyntax expression)
+            => (expression?.Parent).IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess) &&
+               memberAccess.Expression == expression;
+
+        public static bool IsLeftSideOfExplicitInterfaceSpecifier(this NameSyntax name)
+            => name.IsParentKind(SyntaxKind.ExplicitInterfaceSpecifier);
+
+        public static bool IsLeftSideOfQualifiedName(this ExpressionSyntax expression)
+            => (expression?.Parent).IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax qualifiedName) && qualifiedName.Left == expression;
+
+        public static bool IsLeftSideOfDotOrArrow(this ExpressionSyntax expression)
+            => IsLeftSideOfQualifiedName(expression) ||
+               (expression.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression == expression);
+
+        public static ExpressionSyntax WalkDownParentheses(this ExpressionSyntax expression)
+        {
+            while (expression.IsKind(SyntaxKind.ParenthesizedExpression))
+            {
+                expression = ((ParenthesizedExpressionSyntax)expression).Expression;
+            }
+
+            return expression;
         }
     }
 }

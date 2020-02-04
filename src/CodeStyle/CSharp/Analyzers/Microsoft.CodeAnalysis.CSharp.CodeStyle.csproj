@@ -19,14 +19,23 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\CodeGeneration\CSharpFlagsEnumGenerator.cs" Link="CodeGeneration\CSharpFlagsEnumGenerator.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\CodeGeneration\CSharpSyntaxGenerator.cs" Link="CodeGeneration\CSharpSyntaxGenerator.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\CodeGeneration\ExpressionGenerator.cs" Link="CodeGeneration\ExpressionGenerator.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\ArgumentSyntaxExtensions.cs" Link="Extensions\ArgumentSyntaxExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\AssignmentExpressionSyntaxExtensions.cs" Link="Extensions\AssignmentExpressionSyntaxExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\ContextQuery\SyntaxTokenExtensions_SharedWithCodeStyle.cs" Link="Formatting\ContextQuery\SyntaxTokenExtensions_SharedWithCodeStyle.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\ContextQuery\SyntaxTreeExtensions_Shared.cs" Link="Extensions\ContextQuery\SyntaxTreeExtensions_Shared.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\DirectiveSyntaxExtensions.cs" Link="Extensions\DirectiveSyntaxExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\DirectiveSyntaxExtensions.DirectiveInfo.cs" Link="Extensions\DirectiveSyntaxExtensions.DirectiveInfo.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\DirectiveSyntaxExtensions.DirectiveSyntaxEqualityComparer.cs" Link="Extensions\DirectiveSyntaxExtensions.DirectiveSyntaxEqualityComparer.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\DirectiveSyntaxExtensions.DirectiveWalker.cs" Link="Extensions\DirectiveSyntaxExtensions.DirectiveWalker.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\ExpressionSyntaxExtensions_Shared.cs" Link="Extensions\ExpressionSyntaxExtensions_Shared.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\ITypeSymbolExtensions.TypeSyntaxGeneratorVisitor.cs" Link="Extensions\ITypeSymbolExtensions.TypeSyntaxGeneratorVisitor.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\ITypeSymbolExtensions_Shared.cs" Link="Extensions\ITypeSymbolExtensions_Shared.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\MemberDeclarationSyntaxExtensions_GetAttributes.cs" Link="Extensions\MemberDeclarationSyntaxExtensions_GetAttributes.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\MemberDeclarationSyntaxExtensions_Shared.cs" Link="Extensions\MemberDeclarationSyntaxExtensions_Shared.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\StatementSyntaxExtensions.cs" Link="Extensions\StatementSyntaxExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\StringExtensions.cs" Link="Extensions\StringExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxListExtensions.cs" Link="Extensions\SyntaxListExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxNodeExtensions_SharedWithCodeStyle.cs" Link="Extensions\SyntaxNodeExtensions_SharedWithCodeStyle.cs" />
@@ -34,6 +43,7 @@
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxNodeExtensions.SingleLineRewriter.cs" Link="Extensions\SyntaxNodeExtensions.SingleLineRewriter.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTreeExtensions_Shared.cs" Link="Extensions\SyntaxTreeExtensions_Shared.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTriviaExtensions.cs" Link="Formatting\SyntaxTriviaExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTriviaListExtensions.cs" Link="Extensions\SyntaxTriviaListExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\CSharpFormattingOptions.cs" Link="Formatting\CSharpFormattingOptions.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\CSharpFormattingOptions.Parsers.cs" Link="Formatting\CSharpFormattingOptions.Parsers.cs" />
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\CSharpSyntaxFormattingService.cs" Link="Formatting\CSharpSyntaxFormattingService.cs" />
@@ -90,8 +100,8 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Extensions\ContextQuery\" />
     <Folder Include="LanguageServices\" />
     <Folder Include="CodeGeneration\" />
-    <Folder Include="Extensions\" />
   </ItemGroup>
 </Project>

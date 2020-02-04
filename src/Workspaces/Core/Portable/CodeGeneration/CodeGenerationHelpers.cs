@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal static class CodeGenerationHelpers
+    internal static partial class CodeGenerationHelpers
     {
         public static SyntaxNode GenerateThrowStatement(
             SyntaxGenerator factory,
@@ -97,11 +97,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 name = @namespace.Name;
                 innermostNamespace = @namespace;
             }
-        }
-
-        public static bool IsSpecialType(ITypeSymbol type, SpecialType specialType)
-        {
-            return type != null && type.SpecialType == specialType;
         }
 
         public static int GetPreferredIndex(int index, IList<bool> availableIndices, bool forward)

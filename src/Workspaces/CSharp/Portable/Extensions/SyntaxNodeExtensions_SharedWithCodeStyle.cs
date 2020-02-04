@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -320,6 +321,145 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return default;
+        }
+
+        public static IEnumerable<MemberDeclarationSyntax> GetMembers(this SyntaxNode node)
+        {
+            switch (node)
+            {
+                case CompilationUnitSyntax compilation:
+                    return compilation.Members;
+                case NamespaceDeclarationSyntax @namespace:
+                    return @namespace.Members;
+                case TypeDeclarationSyntax type:
+                    return type.Members;
+                case EnumDeclarationSyntax @enum:
+                    return @enum.Members;
+            }
+
+            return SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>();
+        }
+
+        public static bool IsLeftSideOfAnyAssignExpression(this SyntaxNode node)
+        {
+            return node != null &&
+                node.Parent!.IsAnyAssignExpression() &&
+                ((AssignmentExpressionSyntax)node.Parent!).Left == node;
+        }
+
+        public static bool IsLeftSideOfCompoundAssignExpression(this SyntaxNode node)
+        {
+            return node != null &&
+                node.Parent!.IsCompoundAssignExpression() &&
+                ((AssignmentExpressionSyntax)node.Parent!).Left == node;
+        }
+
+        public static bool IsAnyAssignExpression(this SyntaxNode node)
+            => SyntaxFacts.IsAssignmentExpression(node.Kind());
+
+        public static bool IsCompoundAssignExpression(this SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.CoalesceAssignmentExpression:
+                case SyntaxKind.AddAssignmentExpression:
+                case SyntaxKind.SubtractAssignmentExpression:
+                case SyntaxKind.MultiplyAssignmentExpression:
+                case SyntaxKind.DivideAssignmentExpression:
+                case SyntaxKind.ModuloAssignmentExpression:
+                case SyntaxKind.AndAssignmentExpression:
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                case SyntaxKind.OrAssignmentExpression:
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                case SyntaxKind.RightShiftAssignmentExpression:
+                    return true;
+            }
+
+            return false;
+        }
+        public static bool ContainsInterleavedDirective(
+            this SyntaxToken token,
+            TextSpan textSpan,
+            CancellationToken cancellationToken)
+        {
+            return
+                ContainsInterleavedDirective(textSpan, token.LeadingTrivia, cancellationToken) ||
+                ContainsInterleavedDirective(textSpan, token.TrailingTrivia, cancellationToken);
+        }
+
+        private static bool ContainsInterleavedDirective(
+            TextSpan textSpan,
+            SyntaxTriviaList list,
+            CancellationToken cancellationToken)
+        {
+            foreach (var trivia in list)
+            {
+                if (textSpan.Contains(trivia.Span))
+                {
+                    if (ContainsInterleavedDirective(textSpan, trivia, cancellationToken))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool ContainsInterleavedDirective(
+            TextSpan textSpan,
+            SyntaxTrivia trivia,
+            CancellationToken cancellationToken)
+        {
+            if (trivia.HasStructure)
+            {
+                var structure = trivia.GetStructure();
+                var parentSpan = structure.Span;
+                if (trivia.GetStructure().IsKind(SyntaxKind.RegionDirectiveTrivia,
+                                                 SyntaxKind.EndRegionDirectiveTrivia,
+                                                 SyntaxKind.IfDirectiveTrivia,
+                                                 SyntaxKind.EndIfDirectiveTrivia))
+                {
+                    var match = ((DirectiveTriviaSyntax)structure).GetMatchingDirective(cancellationToken);
+                    if (match != null)
+                    {
+                        var matchSpan = match.Span;
+                        if (!textSpan.Contains(matchSpan.Start))
+                        {
+                            // The match for this pp directive is outside
+                            // this node.
+                            return true;
+                        }
+                    }
+                }
+                else if (trivia.GetStructure().IsKind(SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia))
+                {
+                    var directives = ((DirectiveTriviaSyntax)structure).GetMatchingConditionalDirectives(cancellationToken);
+                    if (directives != null && directives.Count > 0)
+                    {
+                        if (!textSpan.Contains(directives[0].SpanStart) ||
+                            !textSpan.Contains(directives[directives.Count - 1].SpanStart))
+                        {
+                            // This else/elif belongs to a pp span that isn't 
+                            // entirely within this node.
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static SyntaxNode? WithModifiers(this SyntaxNode member, SyntaxTokenList modifiers)
+        {
+            switch (member)
+            {
+                case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
+                case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
+            }
+
+            return null;
         }
     }
 }

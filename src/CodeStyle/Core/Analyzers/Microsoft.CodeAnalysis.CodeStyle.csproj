@@ -26,11 +26,14 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs" Link="Collections\ArrayBuilderExtensions.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="Formatting\Debug.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs" Link="Formatting\EnumerableExtensions.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="InternalUtilities\ExceptionUtilities.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs" Link="InternalUtilities\KeyValuePairUtil.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DecimalUtilities.cs" Link="InternalUtilities\DecimalUtilities.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumUtilties.cs" Link="InternalUtilities\EnumUtilties.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="Formatting\NullableAttributes.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Link="PerformanceSensitiveAttribute.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs" Link="RoslynString.cs" />
@@ -54,6 +57,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="InternalUtilities\SyntaxTreeExtensions.cs" />
     <Compile Include="..\..\..\Features\Core\Portable\Diagnostics\Analyzers\IDEDiagnosticIds.cs" Link="IDEDiagnosticIds.cs" />
     <Compile Include="..\..\..\Features\Core\Portable\Diagnostics\DiagnosticCustomTags.cs" Link="DiagnosticCustomTags.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeGeneration\AbstractFlagsEnumGenerator.cs" Link="CodeGeneration\AbstractFlagsEnumGenerator.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeGeneration\CodeGenerationHelpers_Shared.cs" Link="CodeGeneration\CodeGenerationHelpers_Shared.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeGeneration\LiteralSpecialValues.cs" Link="CodeGeneration\LiteralSpecialValues.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\CodeStyleHelpers.cs" Link="Options\CodeStyleHelpers.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\CodeStyleOption.cs" Link="Options\CodeStyleOption.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\NotificationOption.cs" Link="Options\NotificationOption.cs" />
@@ -197,6 +203,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\DoNotAddImportsAnnotation.cs" Link="Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\DoNotAllowVarAnnotation.cs" Link="Simplification\DoNotAllowVarAnnotation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\Simplifier_Annotation.cs" Link="Simplification\Simplifier_Annotation.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\SpecialTypeAnnotation.cs" Link="Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\SymbolAnnotation.cs" Link="Simplification\SymbolAnnotation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\AnnotationTable.cs" Link="Formatting\AnnotationTable.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\BidirectionalMap.cs" Link="InternalUtilities\BidirectionalMap.cs" />
@@ -232,6 +239,8 @@
   <ItemGroup>
     <Folder Include="LanguageServices\SyntaxFactsService\" />
     <Folder Include="Editing\" />
+    <Folder Include="Collections\" />
+    <Folder Include="CodeGeneration\" />
     <Folder Include="Shared\Extensions\" />
     <Folder Include="Utilities\" />
     <Folder Include="Simplification\" />

@@ -30,5 +30,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 default: return ImmutableArray<IParameterSymbol>.Empty;
             }
         }
+
+        public static bool IsPointerType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+        {
+            return symbol is IPointerTypeSymbol;
+        }
     }
 }
