@@ -148,9 +148,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         }
 
         private static bool HasNonImplicitInstance(IInvocationOperation invocation)
-        {
-            return invocation.Instance != null && !invocation.Instance.IsImplicit;
-        }
+            => invocation.Instance != null && !invocation.Instance.IsImplicit;
 
         private static bool IsSpaceChar(IArgumentOperation argument)
             => argument.Value.ConstantValue is { HasValue: true, Value: ' ' };
