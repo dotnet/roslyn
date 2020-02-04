@@ -111,7 +111,7 @@
       </trans-unit>
       <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
         <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
-        <target state="translated">SuppressionDescriptor türünün null veya boş dize ya da yalnızca boşluk içeren dize olmayan bir kimliğinin olması gerekir.</target>
+        <target state="translated">SuppressionDescriptor türünün kimliği, null veya boş bir dize ya da yalnızca boşluk içeren bir dize olmamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">

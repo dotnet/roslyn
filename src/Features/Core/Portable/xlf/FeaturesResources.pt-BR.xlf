@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">O conteúdo atual do arquivo de origem '{0}' não corresponde à origem criada. Todas as alterações feitas neste arquivo durante a depuração não serão aplicadas até que o conteúdo corresponda à origem criada.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -434,12 +434,12 @@
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</target>
+        <target state="translated">O parâmetro '{0}' pode ser removido se ele não fizer parte de uma API pública enviada. Seu valor inicial nunca é usado</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
         <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="new">Parameter '{0}' can be removed, its initial value is never used</target>
+        <target state="translated">O parâmetro '{0}' pode ser removido. Seu valor inicial nunca é usado</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -569,7 +569,7 @@
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <target state="translated">Não é possível ler o arquivo de origem '{0}' ou o PDB criado para o projeto que o contém. Todas as alterações feitas neste arquivo durante a depuração não serão aplicadas até que o conteúdo corresponda à origem criada.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -774,7 +774,7 @@
       </trans-unit>
       <trans-unit id="discard">
         <source>discard</source>
-        <target state="translated">descartar</target>
+        <target state="translated">discard</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
