@@ -21,6 +21,7 @@
 
     <!-- Disable the nullable warnings when compiling for netcoreapp3.1 during our transition period -->
     <DisableNullableWarnings Condition="'$(TargetFramework)' == 'netcoreapp3.1'">true</DisableNullableWarnings>
+    <DisableNullableWarnings Condition="'$(TargetFramework)' == 'netstandard2.0'">false</DisableNullableWarnings>
   </PropertyGroup>
 
   <ItemGroup>

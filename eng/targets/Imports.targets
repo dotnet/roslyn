@@ -19,7 +19,7 @@
     -->
     <UserRuntimeConfig Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(OutputType)' == 'Exe'">$(RepositoryEngineeringDir)config\runtimeconfig.template.json</UserRuntimeConfig>
 
-    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND '$(TargetFramework)' != '' AND '$(TargetFramework)' == 'netcoreapp3.1'">true</DisableNullableWarnings>
+    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND '$(TargetFramework)' != '' AND '$(TargetFramework)' != 'netcoreapp3.1'">true</DisableNullableWarnings>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
