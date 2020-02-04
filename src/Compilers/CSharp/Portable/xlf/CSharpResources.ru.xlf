@@ -19,12 +19,12 @@
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
-        <target state="translated">Чтобы применять "@$" вместо "$@" для интерполированной строки verbatim, следует использовать версию языка "{0}" или более позднюю.</target>
+        <target state="translated">Чтобы применять "@$" вместо "$@" для интерполированной буквальной строки, следует использовать версию языка "{0}" или более позднюю.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
         <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
-        <target state="new">Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</target>
+        <target state="translated">Оператор "{0}" не может быть применен к "default" и операнду типа "{1}", так как это параметр типа, который не является ссылочным типом.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">Ошибка в синтаксисе командной строки: "{0}" не является допустимым значением для параметра "{1}". Значение должно иметь форму "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -119,7 +119,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNoTargetType">
         <source>There is no target type for the default literal.</source>
-        <target state="new">There is no target type for the default literal.</target>
+        <target state="translated">Отсутствует целевой тип для литерала по умолчанию.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
-        <target state="new">'{0}': extern event cannot have initializer</target>
+        <target state="translated">"{0}": внешнее событие не может иметь инициализатор</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
@@ -234,17 +234,17 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
         <source>Invocation of implicit Index Indexer cannot name the argument.</source>
-        <target state="new">Invocation of implicit Index Indexer cannot name the argument.</target>
+        <target state="translated">Вызов неявного индексатора для индекса не может присвоить аргументу имя.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
-        <target state="new">Invocation of implicit Range Indexer cannot name the argument.</target>
+        <target state="translated">Вызов неявного индексатора для диапазона не может присвоить аргументу имя.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
-        <target state="translated">Аргументы с модификатором "in" невозможно использовать в динамически отправляемых выражениях.</target>
+        <target state="translated">Аргументы с модификатором "in" невозможно использовать в динамически диспетчеризируемых выражениях.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
-        <target state="new">Internal error in the C# compiler.</target>
+        <target state="translated">Внутренняя ошибка в компиляторе C#.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -314,12 +314,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">"{0}": тип, используемый в асинхронном операторе using, должен допускать неявное преобразование в тип "System.IAsyncDisposable" или реализовывать подходящий метод "DisposeAsync". Возможно, вы имели в виду "using", а не "await using"?</target>
+        <target state="translated">"{0}": тип, используемый в асинхронном операторе using, должен допускать неявное преобразование в тип "System.IAsyncDisposable" или реализовывать подходящий метод "DisposeAsync". Возможно, вы имели в виду "using", а не "await using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">"{0}": тип, используемый в операторе using, должен допускать неявное преобразование в тип "System.IDisposable" или реализовывать подходящий метод "Dispose". Возможно, вы имели в виду "await using", а не "using"?</target>
+        <target state="translated">"{0}": тип, использованный в операторе using, должен иметь возможность неявного преобразования в System.IDisposable. Вы хотели использовать "await using" вместо "using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -389,7 +389,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">Невозможно внедрить тип "{0}", так как он переопределяет абстракцию элемента базового интерфейса. Попробуйте задать для свойства "Внедрить типы взаимодействия" значение false (ложь).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
@@ -404,7 +404,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="translated">Левая часть выражения присваивания ссылки должна быть локальной ссылкой или параметром.</target>
+        <target state="translated">Левая часть выражения назначения ссылки должна быть локальной ссылкой или параметром.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
@@ -414,7 +414,7 @@
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
-        <target state="translated">Для шаблона деконструкции с одним элементом требуется другой синтаксис для устранения неоднозначности. Рекомендуется добавить знак отмены "_" после закрывающей скобки ")".</target>
+        <target state="translated">Для шаблона деконструкции с одним элементом требуется другой синтаксис для устранения неоднозначности. Рекомендуется добавить указатель отмены "_" после закрывающей скобки ")".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
@@ -494,7 +494,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceInterfaceNesting">
         <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
-        <target state="new">Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</target>
+        <target state="translated">Перечисления, классы и структуры не могут быть объявлены в интерфейсе, имеющем параметр типа "In" или "Out".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
@@ -659,13 +659,13 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Параметры компилятора Visual C#
 
                        - Выходные файлы -
 -out:&lt;file&gt;                   Указать имя выходного файла (по умолчанию: базовое имя
                               файла с классом main или имя первого файла)
--target:exe                   По умолчанию выполняет сборку консольного исполняемого файла (краткая
+-target:exe                   Выполнить сборку консольного исполняемого файла (по умолчанию) (краткая
                               форма: -t:exe)
 -target:winexe                Выполнить сборку исполняемого файла Windows (краткая форма:
                               -t:winexe)
@@ -708,8 +708,8 @@
 -nowin32manifest              Не включать манифест Win32 по умолчанию
 -resource:&lt;resinfo&gt;           Внедрить указанный ресурс (краткая форма: -res)
 -linkresource:&lt;resinfo&gt;       Скомпоновать указанный ресурс вместе с этой сборкой
-                              (краткая форма: -linkres), где данные о ресурсах имеют формат
-                              &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                              (краткая форма: -linkres), где данные о ресурсах имеют
+                              формат &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                        - Создание кода -
 -debug[+|-]                   Выдать отладочную информацию
@@ -733,8 +733,11 @@
 -nowarn:&lt;warn list&gt;           Отключить указанные предупреждения
 -ruleset:&lt;file&gt;               Указать файл набора правил, отключающий определенные
                               диагностические операции.
--errorlog:&lt;file&gt;              Указать файл для записи всех диагностических данных
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              Указать файл для записи всех диагностических данных
                               компилятора и анализатора.
+                              sarif_version:{1|2|2.1} По умолчанию используются значения 1. 2 и 2.1,
+                              обозначающие версию SARIF 2.1.0.
 -reportanalyzer               Сообщить дополнительные сведения об анализаторе, например
                               время выполнения.
 
@@ -821,12 +824,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureAltInterpolatedVerbatimStrings">
         <source>alternative interpolated verbatim strings</source>
-        <target state="translated">альтернативные интерполированные строки verbatim</target>
+        <target state="translated">альтернативные интерполированные буквальные строки</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncUsing">
         <source>asynchronous using</source>
-        <target state="new">asynchronous using</target>
+        <target state="translated">асинхронный оператор using</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
@@ -866,7 +869,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaDiscardParameters">
         <source>lambda discard parameters</source>
-        <target state="new">lambda discard parameters</target>
+        <target state="translated">Параметры удаления лямбда-выражения</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -931,7 +934,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefReassignment">
         <source>ref reassignment</source>
-        <target state="translated">повторное присваивание по ссылке</target>
+        <target state="translated">повторное назначение по ссылке</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
@@ -1346,7 +1349,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureTypeVariance">
         <source>type variance</source>
-        <target state="translated">изменение типа</target>
+        <target state="translated">вариантность типа</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
@@ -1446,12 +1449,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">Заметка к ссылочным типам, допускающим значение NULL, должна использоваться в коде только в контексте заметок "#nullable". Автоматически создаваемый исходный код требует директиву "#nullable" в явном виде.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">Заметка к ссылочным типам, допускающим значение NULL, должна использоваться в коде только в контексте заметок "#nullable". Автоматически создаваемый исходный код требует директиву "#nullable" в явном виде.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
@@ -1481,22 +1484,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceAssignment">
         <source>Possible null reference assignment.</source>
-        <target state="translated">Возможно, присваивание-ссылка, допускающее значение NULL.</target>
+        <target state="translated">Возможно, назначение-ссылка, допускающее значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceAssignment_Title">
         <source>Possible null reference assignment.</source>
-        <target state="translated">Возможно, присваивание-ссылка, допускающее значение NULL.</target>
+        <target state="translated">Возможно, назначение-ссылка, допускающее значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer">
         <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <target state="translated">Инициализатор объекта или коллекции неявно разыменовывает член "{0}", который может быть равен NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
+        <target state="translated">Инициализатор объекта или коллекции неявно разыменовывает член, который может быть равен NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
@@ -1749,9 +1752,29 @@
         <target state="translated">Тип значения, допускающего NULL, может быть NULL.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
+        <source>Parameter '{0}' may not have a null value when exiting with '{1}'.</source>
+        <target state="new">Parameter '{0}' may not have a null value when exiting with '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
+        <source>Parameter may not have a null value when exiting in some condition.</source>
+        <target state="new">Parameter may not have a null value when exiting in some condition.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ShouldNotReturn">
+        <source>A method marked [DoesNotReturn] should not return.</source>
+        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ShouldNotReturn_Title">
+        <source>A method marked [DoesNotReturn] should not return.</source>
+        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">Выражение switch обрабатывает не все возможные входные данные (оно не полное).</target>
+        <target state="translated">Выражение switch обрабатывает не все возможные значения своего типа входных данных (оно не полное).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1766,7 +1789,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">Выражение switch обрабатывает не все возможные входные данные (оно не полное).</target>
+        <target state="translated">Выражение switch обрабатывает не все возможные значения своего типа входных данных (оно не полное).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -1831,7 +1854,7 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">{0} "{1}", не допускающий значение NULL, не инициализирован. Рекомендуется объявить {0} как допускающий значение NULL.</target>
+        <target state="translated">Поле {0} "{1}", не допускающее значение NULL, не инициализировано. Попробуйте объявить {0} как допускающее значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
@@ -2396,7 +2419,7 @@
       </trans-unit>
       <trans-unit id="ERR_AssgLvalueExpected">
         <source>The left-hand side of an assignment must be a variable, property or indexer</source>
-        <target state="translated">Левая часть выражения присваивания должна быть переменной, свойством или индексатором.</target>
+        <target state="translated">Левая часть выражения назначения должна быть переменной, свойством или индексатором.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstParam">
@@ -2546,7 +2569,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReturnExpected">
         <source>'{0}': not all code paths return a value</source>
-        <target state="translated">'"{0}": не все ветви кода возвращают значение.</target>
+        <target state="translated">'"{0}": не все пути к коду возвращают значение.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreachableCode">
@@ -2761,7 +2784,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="translated">В качестве оператора могут использоваться только выражения присваивания, вызова, инкремента, декремента и создания нового объекта</target>
+        <target state="translated">В качестве оператора могут использоваться только выражения назначения, вызова, инкремента, декремента и создания нового объекта</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -2996,7 +3019,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadCastInFixed">
         <source>The right hand side of a fixed statement assignment may not be a cast expression</source>
-        <target state="translated">Правая часть присваивания оператора fixed не может быть выражением приведения типа.</target>
+        <target state="translated">Правая часть назначения оператора fixed не может быть выражением приведения типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StackallocInCatchFinally">
@@ -4330,7 +4353,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_IncorrectBooleanAssg">
         <source>Assignment in conditional expression is always constant; did you mean to use == instead of = ?</source>
-        <target state="translated">В условных выражениях присваивание всегда постоянное. Предполагалось использовать ==, а не = ?</target>
+        <target state="translated">В условных выражениях назначение всегда постоянное. Предполагалось использовать ==, а не = ?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IncorrectBooleanAssg_Title">
@@ -4685,12 +4708,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InvalidAnonymousTypeMemberDeclarator">
         <source>Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.</source>
-        <target state="translated">Неверное определение члена анонимного типа. Члены анонимного типа должны быть объявлены присваиванием члена, простым именем или доступом к члену.</target>
+        <target state="translated">Недопустимый оператор объявления элемента анонимного типа. Элементы анонимного типа должны быть объявлены назначением элемента, простым именем или доступом к элементу.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidInitializerElementInitializer">
         <source>Invalid initializer member declarator</source>
-        <target state="translated">Неверное объявление инициализатора члена.</target>
+        <target state="translated">Недопустимый оператор объявления элемента инициализатора.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InconsistentLambdaParameterUsage">
@@ -4810,7 +4833,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedVariableMultipleDeclarator">
         <source>Implicitly-typed variables cannot have multiple declarators</source>
-        <target state="translated">Неявно типизированные переменные не могут быть многократно объявлены.</target>
+        <target state="translated">Неявно типизированные переменные не могут иметь множество операторов объявления.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedVariableAssignedArrayInitializer">
@@ -4860,7 +4883,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAssignment">
         <source>An expression tree may not contain an assignment operator</source>
-        <target state="translated">Дерево выражения не может содержать оператор присваивания.</target>
+        <target state="translated">Дерево выражения не может содержать оператор назначения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonymousTypeDuplicatePropertyName">
@@ -5259,7 +5282,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBaseCtor">
         <source>The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.</source>
-        <target state="translated">Не удается выполнить требуемую для вызова конструктора динамическую отправку, поскольку этот вызов является частью инициализатора конструктора. Попробуйте привести динамические аргументы.</target>
+        <target state="translated">Не удается выполнить требуемую для вызова конструктора динамическую диспетчеризацию, поскольку этот вызов является частью инициализатора конструктора. Попробуйте привести динамические аргументы.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueTypeExtDelegate">
@@ -5894,7 +5917,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_MultipleIEnumOfT">
         <source>foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
-        <target state="translated">Оператор foreach не может использоваться с переменными типа "{0}", так как он реализует несколько экземпляров "{1}"; рекомендуется предварительное приведение к определенной реализации интерфейса.</target>
+        <target state="translated">Оператор foreach не может использоваться с переменными типа "{0}", так как он реализует создание нескольких экземпляров "{1}". Попробуйте выполнить приведение к созданию экземпляра определенного интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedDimsRequired">
@@ -5909,7 +5932,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_AnonymousReturnExpected">
         <source>Not all code paths return a value in {0} of type '{1}'</source>
-        <target state="translated">Не все ветви кода возвращают значение в {0} типа "{1}.</target>
+        <target state="translated">Не все пути к коду возвращают значение в {0} типа "{1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NonECMAFeature">
@@ -5939,7 +5962,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
         <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
-        <target state="needs-review-translation">Присваивание значений доступному только для чтения полю допускается только в конструкторе и в инициализаторе переменных.</target>
+        <target state="translated">Полю, которое доступно только для чтения, не может быть присвоено значение (значение может быть присвоено только в конструкторе класса, в котором определено поле, или в инициализаторе переменной).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -6109,7 +6132,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
-        <target state="needs-review-translation">"{0}": тип, используемый в операторе using, должен допускать неявное преобразование в тип "System.IDisposable" или реализовывать подходящий метод "Dispose".</target>
+        <target state="translated">"{0}": тип, использованный в операторе using, должен иметь возможность неявного преобразования в System.IDisposable.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -6199,7 +6222,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="WRN_CallOnNonAgileField_Title">
         <source>Accessing a member on a field of a marshal-by-reference class may cause a runtime exception</source>
-        <target state="translated">Доступ к члену в поле класса упаковки по ссылке может вызвать исключение времени выполнения</target>
+        <target state="translated">Доступ к члену в поле класса маршалинга по ссылке может вызвать исключение времени выполнения</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallOnNonAgileField_Description">
@@ -7434,7 +7457,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_IllegalVarianceSyntax">
         <source>Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.</source>
-        <target state="translated">Недопустимый модификатор изменения. В качестве варианта допускается указывать только параметры типа интерфейса и делегата.</target>
+        <target state="translated">Недопустимый модификатор вариантности. В качестве варианта допускается указывать только параметры типа интерфейса и делегата.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedAliasedName">
@@ -7499,7 +7522,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParamsVariance">
         <source>Partial declarations of '{0}' must have the same type parameter names and variance modifiers in the same order</source>
-        <target state="translated">В разделяемых объявлениях "{0}" должны быть одинаковыми имена параметров типов, модификаторы изменений и их порядок.</target>
+        <target state="translated">В разделяемых объявлениях "{0}" должны быть одинаковыми имена параметров типов, модификаторы вариантности и их порядок.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVariance">
@@ -7789,7 +7812,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
         <source>Failed to emit module '{0}': {1}</source>
-        <target state="new">Failed to emit module '{0}': {1}</target>
+        <target state="translated">Не удалось выдать модуль "{0}": {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedLocalInLambda">
@@ -7924,22 +7947,22 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_BadDynamicMethodArg">
         <source>Cannot use an expression of type '{0}' as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">Не удается использовать выражение типа "{0}" в качестве аргумента для динамически отправляемой операции.</target>
+        <target state="translated">Не удается использовать выражение типа "{0}" в качестве аргумента для динамически диспетчеризируемой операции.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicMethodArgLambda">
         <source>Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.</source>
-        <target state="translated">Не удается использовать лямбда-выражение в качестве аргумента для динамически отправляемой операции без предварительного преобразования его в делегат или тип дерева выражения.</target>
+        <target state="translated">Не удается использовать лямбда-выражение в качестве аргумента для динамически диспетчеризируемой операции без предварительного преобразования его в делегат или тип дерева выражения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicMethodArgMemgrp">
         <source>Cannot use a method group as an argument to a dynamically dispatched operation. Did you intend to invoke the method?</source>
-        <target state="translated">Не удается использовать группу методов в качестве аргумента для динамически отправляемой операции. Предполагалось вызывать этот метод?</target>
+        <target state="translated">Не удается использовать группу методов в качестве аргумента для динамически диспетчеризируемой операции. Предполагалось вызывать этот метод?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBase">
         <source>The call to method '{0}' needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.</source>
-        <target state="translated">Не удается выполнить требуемую для вызова метода "{0}" динамическую подготовку к отправке в связи с тем, что этот метод является частью базового выражения доступа. Попробуйте привести типы динамических аргументов или исключить доступ к базовым членам.</target>
+        <target state="translated">Не удается выполнить требуемую для вызова метода "{0}" динамическую диспетчеризацию в связи с тем, что этот метод является частью базового выражения доступа. Попробуйте привести типы динамических аргументов или исключить доступ к базовым членам.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicQuery">
@@ -7949,22 +7972,22 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBaseIndexer">
         <source>The indexer access needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.</source>
-        <target state="translated">Не удается выполнить требуемую для доступа к индексатору динамическую отправку, поскольку он является частью базового выражения доступа. Попробуйте привести типы динамических аргументов или исключить доступ к базовым членам.</target>
+        <target state="translated">Не удается выполнить требуемую для доступа к индексатору динамическую диспетчеризацию, поскольку он является частью базового выражения доступа. Попробуйте привести типы динамических аргументов или исключить доступ к базовым членам.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToConditionalMethod">
         <source>The dynamically dispatched call to method '{0}' may fail at runtime because one or more applicable overloads are conditional methods.</source>
-        <target state="translated">Вызов метода "{0}" с автоматической диспетчеризацией может привести к ошибке во время выполнения, поскольку одна или несколько применимых перегрузок являются условными методами.</target>
+        <target state="translated">Вызов метода "{0}" с динамической диспетчеризацией может привести к ошибке во время выполнения, поскольку одна или несколько применимых перегрузок являются условными методами.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToConditionalMethod_Title">
         <source>Dynamically dispatched call may fail at runtime because one or more applicable overloads are conditional methods</source>
-        <target state="translated">Может произойти сбой динамически отправляемого вызова во время выполнения, так как одна или несколько применимых перегрузок являются условными методами</target>
+        <target state="translated">Может произойти сбой динамически диспетчеризируемого вызова во время выполнения, так как одна или несколько применимых перегрузок являются условными методами</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgTypeDynamicExtension">
         <source>'{0}' has no applicable method named '{1}' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.</source>
-        <target state="translated">'{0}" не имеет применимого метода с именем "{1}", но, по-видимому, имеет метод расширения с таким именем. Методы расширения не могут отправляться динамически. Попробуйте привести динамические аргументы или вызвать метод расширения без использования синтаксиса метода расширения.</target>
+        <target state="translated">'{0}" не имеет применимого метода с именем "{1}", но, по-видимому, имеет метод расширения с таким именем. Методы расширения диспетчеризовать динамически. Попробуйте привести динамические аргументы или вызвать метод расширения без использования синтаксиса метода расширения.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerFilePathPreferredOverCallerMemberName">
@@ -8442,7 +8465,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="InvalidGetDeclarationNameMultipleDeclarators">
         <source>Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators.</source>
-        <target state="translated">Вызван GetDeclarationName для узла объявления, в котором возможно содержится несколько операторов объявления переменных.</target>
+        <target state="translated">GetDeclarationName вызывается для узла объявления, который может содержать множество операторов объявления переменных.</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeNotPartOfCompilation">
@@ -8922,7 +8945,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">Длина строковой константы превышает текущий предельный объем памяти. Попробуйте разбить строку на несколько констант.</target>
+        <target state="translated">Длина строковой константы, полученной в результате объединения, превышает значение System.Int32.MaxValue. Попробуйте разделить строку на несколько констант.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -9307,7 +9330,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable">
         <source>Cannot infer the type of implicitly-typed deconstruction variable '{0}'.</source>
-        <target state="translated">Не удается вывести тип переменной неявно типизированных деконструкций "{0}".</target>
+        <target state="translated">Не удается вывести тип переменной неявно типизированных деконструирований "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardTypeInferenceFailed">
@@ -9327,7 +9350,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_DeconstructTooFewElements">
         <source>Deconstruction must contain at least two variables.</source>
-        <target state="translated">Деконструкция должна иметь не менее двух переменных.</target>
+        <target state="translated">Деконструирование должно иметь не менее двух переменных.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleLiteralNameMismatch">
@@ -9352,7 +9375,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_DeconstructionVarFormDisallowsSpecificType">
         <source>Deconstruction 'var (...)' form disallows a specific type for 'var'.</source>
-        <target state="translated">Форма деконструкции "var (...)" не разрешает использовать конкретный тип для "var".</target>
+        <target state="translated">Форма деконструирования "var (...)" не разрешает использовать конкретный тип для "var".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleElementNamesAttributeMissing">
@@ -9422,7 +9445,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_MixedDeconstructionUnsupported">
         <source>A deconstruction cannot mix declarations and expressions on the left-hand-side.</source>
-        <target state="translated">Деконструкция не может содержать объявления и выражения в левой части.</target>
+        <target state="translated">Деконструирование не может содержать объявления и выражения в левой части.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeclarationExpressionNotPermitted">
@@ -9437,7 +9460,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_TupleElementNamesInDeconstruction">
         <source>Tuple element names are not permitted on the left of a deconstruction.</source>
-        <target state="translated">Имена элементов кортежа не разрешены в левой части деконструкции.</target>
+        <target state="translated">Имена элементов кортежа не разрешены в левой части деконструирования.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PossibleBadNegCast">
@@ -9642,7 +9665,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ICompoundAssignmentOperationIsNotCSharpCompoundAssignment">
         <source>{0} is not a valid C# compound assignment operation</source>
-        <target state="translated">{0} не является допустимой операцией составного присваивания C#</target>
+        <target state="translated">{0} не является допустимой операцией составного назначения C#</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FilterIsConstantFalse">
@@ -9702,7 +9725,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">"{0}": тип, используемый в асинхронном операторе using, должен допускать неявное преобразование в тип "System.IAsyncDisposable" или реализовывать подходящий метод "DisposeAsync".</target>
+        <target state="translated">"{0}": тип, используемый в асинхронном операторе using, должен допускать неявное преобразование в тип "System.IAsyncDisposable" или реализовывать подходящий метод "DisposeAsync".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
@@ -9712,7 +9735,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_MultipleIAsyncEnumOfT">
         <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
-        <target state="translated">Асинхронный оператор foreach не может использоваться с переменными типа "{0}", так как он реализует несколько экземпляров "{1}"; рекомендуется предварительное приведение к определенной реализации интерфейса.</target>
+        <target state="translated">Асинхронный оператор foreach не может использоваться с переменными типа "{0}", так как он реализует создание нескольких экземпляров "{1}". Попробуйте выполнить приведение к созданию экземпляра определенного интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">

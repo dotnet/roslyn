@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null, false,
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
                 // (5,18): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1"),
@@ -103,7 +105,7 @@ public class C : NotFound
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null, false,
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
                 // (6,14): warning CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //     int x3 = x1 + x2;
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1"),
@@ -163,7 +165,7 @@ public class C : NotFound
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound"))
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null, false,
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
                 // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1").WithWarningAsError(true),
@@ -196,7 +198,7 @@ public class C : NotFound
                 // public class C : NotFound
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotFound").WithArguments("NotFound")
                 )
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null, false,
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ComplainAboutX() }, null, null,
                 // (6,18): error CA9999_UseOfVariableThatStartsWithX: Use of variable whose name starts with 'x': 'x1'
                 //         int x3 = x1(x2);
                 Diagnostic("CA9999_UseOfVariableThatStartsWithX", "x1").WithArguments("x1").WithWarningAsError(true),
@@ -279,7 +281,7 @@ public class C { }";
 
             CreateCompilationWithMscorlib45(source, options: options)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() }, null, null, false,
+                .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SyntaxAndSymbolAnalyzer() }, null, null,
                     // Symbol diagnostics
                     Diagnostic("XX0001", "C").WithArguments("NamedType").WithWarningAsError(true),
                     // Syntax diagnostics
@@ -568,7 +570,7 @@ public class C : B
 
             CreateCompilationWithMscorlib45(baseCtorSource)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
                     Diagnostic("ConstructorInitializerDiagnostic"),
                     Diagnostic("CodeBlockDiagnostic"),
                     Diagnostic("CodeBlockDiagnostic"));
@@ -588,7 +590,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
                     Diagnostic("CodeBlockDiagnostic"),
                     Diagnostic("CodeBlockDiagnostic"),
                     Diagnostic("CodeBlockDiagnostic"),
@@ -611,7 +613,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
                     Diagnostic("PropertyExpressionBodyDiagnostic"),
                     Diagnostic("IndexerExpressionBodyDiagnostic"),
                     Diagnostic("MethodExpressionBodyDiagnostic"));
@@ -631,7 +633,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
                     Diagnostic("MethodSymbolDiagnostic", "0").WithArguments("B.Property.get").WithLocation(4, 28),
                     Diagnostic("MethodSymbolDiagnostic", "Method").WithArguments("B.Method()").WithLocation(5, 16),
                     Diagnostic("MethodSymbolDiagnostic", "0").WithArguments("B.this[int].get").WithLocation(6, 31));
@@ -674,7 +676,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
                      Diagnostic("MyFieldDiagnostic", @"public string field = ""field"";").WithLocation(4, 5));
         }
 
@@ -692,7 +694,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, false,
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
                      Diagnostic("MyFieldDiagnostic", @"public string field1, field2;").WithLocation(4, 5),
                      Diagnostic("MyFieldDiagnostic", @"public int field3 = 0, field4 = 1;").WithLocation(5, 5),
                      Diagnostic("MyFieldDiagnostic", @"public int field5, field6 = 1;").WithLocation(6, 5));
@@ -846,8 +848,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
-                     expected: Diagnostic("AD0001")
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
                      .WithArguments("Microsoft.CodeAnalysis.CSharp.UnitTests.DiagnosticAnalyzerTests+AnalyzerReportingUnsupportedDiagnostic", "System.ArgumentException", message)
                      .WithLocation(1, 1));
         }
@@ -885,8 +886,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
-                     expected: Diagnostic("AD0001")
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
                      .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticId", "System.ArgumentException", message)
                      .WithLocation(1, 1));
         }
@@ -901,8 +901,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
-                     expected: Diagnostic("AD0001")
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
                      .WithArguments(analyzerFullName, "System.ArgumentException", message)
                      .WithLocation(1, 1));
         }
@@ -915,8 +914,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
-                    Diagnostic("CS101").WithLocation(1, 1));
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, Diagnostic("CS101").WithLocation(1, 1));
         }
 
         [Fact, WorkItem(25748, "https://github.com/dotnet/roslyn/issues/25748")]
@@ -927,8 +925,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
-                    Diagnostic("BC101").WithLocation(1, 1));
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, Diagnostic("BC101").WithLocation(1, 1));
         }
 
         [Fact, WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]
@@ -950,8 +947,7 @@ public class B
                 var analyzer = new AnalyzerWithInvalidDiagnosticLocation(treeInAnotherCompilation, actionKind);
                 var analyzers = new DiagnosticAnalyzer[] { analyzer };
                 compilation
-                    .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
-                        expected:
+                    .VerifyAnalyzerDiagnostics(analyzers, null, null, expected:
                         Diagnostic("AD0001")
                             .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticLocation", "System.ArgumentException", message)
                             .WithLocation(1, 1)
@@ -976,8 +972,7 @@ public class B
             var analyzer = new AnalyzerWithInvalidDiagnosticSpan(badSpan);
             var analyzers = new DiagnosticAnalyzer[] { analyzer };
             compilation
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
-                    expected:
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected:
                     Diagnostic("AD0001")
                         .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticSpan", "System.ArgumentException", message)
                         .WithLocation(1, 1)
@@ -993,8 +988,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
-                     expected: Diagnostic("AD0001")
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
                      .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithAsyncMethodRegistration", "System.ArgumentException", message)
                      .WithLocation(1, 1));
         }
@@ -1008,8 +1002,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
-                     expected: Diagnostic("AD0001")
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic("AD0001")
                      .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithAsyncLambdaRegistration", "System.ArgumentException", message)
                      .WithLocation(1, 1));
         }
@@ -1023,7 +1016,7 @@ public class B
             // Verify, not configurable enabled diagnostic is always reported and disabled diagnostic is never reported..
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
 
             // Verify not configurable enabled diagnostic cannot be suppressed.
             var specificDiagOptions = new Dictionary<string, ReportDiagnostic>();
@@ -1032,7 +1025,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source, options: options)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
 
             // Verify not configurable disabled diagnostic cannot be enabled.
             specificDiagOptions.Clear();
@@ -1041,7 +1034,7 @@ public class B
 
             CreateCompilationWithMscorlib45(source, options: options)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id));
         }
 
         [Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")]
@@ -1057,8 +1050,7 @@ class C
             // Verify, code block action diagnostics.
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
-                    expected: new[] {
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: new[] {
                         Diagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, "M").WithArguments("M").WithLocation(4, 17),
                         Diagnostic(CodeBlockActionAnalyzer.CodeBlockPerCompilationRule.Id, "M").WithArguments("M").WithLocation(4, 17)
                     });
@@ -1077,8 +1069,7 @@ class C
             // Verify, code block action diagnostics.
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
-                    expected: Diagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, "M").WithArguments("M").WithLocation(4, 17));
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: Diagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, "M").WithArguments("M").WithLocation(4, 17));
         }
 
         [Fact, WorkItem(2614, "https://github.com/dotnet/roslyn/issues/2614")]
@@ -1107,8 +1098,8 @@ namespace ConsoleApplication1
         {
             // Verify, no duplicate diagnostics on generic name.
             CreateCompilationWithMscorlib45(source)
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
-                    expected: Diagnostic(CSharpGenericNameAnalyzer.DiagnosticId, @"Nullable<int>").WithLocation(9, 17));
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                Diagnostic(CSharpGenericNameAnalyzer.DiagnosticId, @"Nullable<int>").WithLocation(9, 17));
         }
 
         [Fact, WorkItem(4745, "https://github.com/dotnet/roslyn/issues/4745")]
@@ -1121,8 +1112,8 @@ namespace Goo.Bar.GooBar { }
 
             // Verify, no duplicate diagnostics on qualified name.
             CreateCompilationWithMscorlib45(source)
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
-                    expected: Diagnostic(CSharpNamespaceDeclarationAnalyzer.DiagnosticId, @"namespace Goo.Bar.GooBar { }").WithLocation(2, 1));
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                Diagnostic(CSharpNamespaceDeclarationAnalyzer.DiagnosticId, @"namespace Goo.Bar.GooBar { }").WithLocation(2, 1));
         }
 
         [Fact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")]
@@ -1255,8 +1246,7 @@ class D
             // Verify, code block action diagnostics.
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
-                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
-                    expected: new[] {
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, expected: new[] {
                         Diagnostic(CSharpCodeBlockObjectCreationAnalyzer.DiagnosticDescriptor.Id, "new C()").WithLocation(5, 18)
                     });
         }
@@ -1561,11 +1551,10 @@ class C
 ";
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OwningSymbolTestAnalyzer() }, null, null, false,
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OwningSymbolTestAnalyzer() }, null, null,
                 Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "0").WithLocation(12, 17),
                 Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "x").WithLocation(13, 17),
-                Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "12").WithLocation(16, 29)
-                );
+                Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "12").WithLocation(16, 29));
         }
 
         private static void VerifyGeneratedCodeAnalyzerDiagnostics(Compilation compilation, AnalyzerOptions analyzerOptions, Func<string, bool> isGeneratedFileName, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
@@ -1577,7 +1566,7 @@ class C
         private static void VerifyGeneratedCodeAnalyzerDiagnostics(Compilation compilation, DiagnosticDescription[] expected, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt, AnalyzerOptions analyzerOptions = null)
         {
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(generatedCodeAnalysisFlagsOpt) };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, analyzerOptions, null, logAnalyzerExceptionAsDiagnostics: false, expected: expected);
+            compilation.VerifyAnalyzerDiagnostics(analyzers, analyzerOptions, null, expected: expected);
         }
 
         private static DiagnosticDescription[] GetExpectedGeneratedCodeAnalyzerDiagnostics(Compilation compilation, Func<string, bool> isGeneratedFileName, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
@@ -1741,7 +1730,7 @@ public partial class C33 { }
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new SharedStateAnalyzer() };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("UserCodeDiagnostic").WithArguments("Source1_File1.cs").WithLocation(1, 1),
                 Diagnostic("UniqueTextFileDiagnostic").WithArguments("Source1_File1.cs").WithLocation(1, 1),
                 Diagnostic("GeneratedCodeDiagnostic", "C33").WithArguments("C33").WithLocation(2, 22),
@@ -1774,7 +1763,7 @@ public class C
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                     Diagnostic("Parameter_ID", "a").WithLocation(4, 18),
                     Diagnostic("Parameter_ID", "b").WithLocation(4, 25));
         }
@@ -1795,7 +1784,7 @@ public class C
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                     Diagnostic("Parameter_ID", "a").WithLocation(4, 20),
                     Diagnostic("Parameter_ID", "b").WithLocation(4, 30));
         }
@@ -1818,7 +1807,7 @@ public class C
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                     Diagnostic("Parameter_ID", "index").WithLocation(4, 25));
         }
 
@@ -1839,7 +1828,7 @@ public class C
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                     Diagnostic("Local_ID", "x").WithLocation(6, 36),
                     Diagnostic("Parameter_ID", "a").WithLocation(6, 45),
                     Diagnostic("Parameter_ID", "b").WithLocation(6, 52));
@@ -1864,7 +1853,7 @@ public class C
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                         Diagnostic("Parameter_ID", "a").WithLocation(9, 37),
                         Diagnostic("Parameter_ID", "x").WithLocation(6, 26),
                         Diagnostic("Parameter_ID", "y").WithLocation(6, 33));
@@ -1884,7 +1873,7 @@ public class C
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                     Diagnostic("Parameter_ID", "x").WithLocation(4, 25),
                     Diagnostic("Parameter_ID", "y").WithLocation(4, 35));
         }
@@ -1903,7 +1892,7 @@ public class C
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                     Diagnostic("Parameter_ID", "c").WithLocation(4, 44));
         }
 
@@ -1926,7 +1915,7 @@ public class C : I
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                     Diagnostic("Parameter_ID", "c").WithLocation(9, 18),
                     Diagnostic("Parameter_ID", "d").WithLocation(9, 25),
                     Diagnostic("Parameter_ID", "a").WithLocation(4, 16),
@@ -1947,7 +1936,7 @@ public static class C
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                     Diagnostic("Parameter_ID", "x").WithLocation(4, 28),
                     Diagnostic("Parameter_ID", "y").WithLocation(4, 35));
         }
@@ -1973,7 +1962,7 @@ public class C
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerForParameters() };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                     Diagnostic("Parameter_ID", "a").WithLocation(4, 18), // ctor
                     Diagnostic("Parameter_ID", "b").WithLocation(4, 25),
                     Diagnostic("Local_ID", "c").WithLocation(6, 13),
@@ -2006,7 +1995,7 @@ public class RegularClass
             compilation.VerifyDiagnostics();
 
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.None) };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "}").WithArguments("Source.cs").WithLocation(11, 1),
                 Diagnostic("GeneratedCodeAnalyzerError", "}").WithArguments("Source.cs").WithLocation(11, 1),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
@@ -2014,7 +2003,7 @@ public class RegularClass
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("RegularClass", "Source.cs").WithLocation(1, 1));
 
             analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.Analyze) };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "}").WithArguments("Source.cs").WithLocation(11, 1),
                 Diagnostic("GeneratedCodeAnalyzerError", "}").WithArguments("Source.cs").WithLocation(11, 1),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "RegularClass").WithArguments("RegularClass").WithLocation(9, 14),
@@ -2022,7 +2011,7 @@ public class RegularClass
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("HiddenClass,RegularClass", "Source.cs").WithLocation(1, 1));
 
             analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics) };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "}").WithArguments("Source.cs").WithLocation(11, 1),
                 Diagnostic("GeneratedCodeAnalyzerError", "}").WithArguments("Source.cs").WithLocation(11, 1),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "HiddenClass").WithArguments("HiddenClass").WithLocation(4, 14),
@@ -2074,7 +2063,7 @@ public class Class
             var operationKinds = ImmutableArray.Create(OperationKind.VariableDeclarator);
 
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.None, syntaxKinds, operationKinds) };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0").WithArguments("Node: var userVar = 0").WithLocation(17, 9),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0").WithArguments("Node: var mixMethodUserVar = 0").WithLocation(26, 9),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "userVar = 0").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 13),
@@ -2082,7 +2071,7 @@ public class Class
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("Node: var mixMethodUserVar = 0,Node: var userVar = 0,Operation: MixMethod,Operation: NonHiddenMethod").WithLocation(1, 1));
 
             analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.Analyze, syntaxKinds, operationKinds) };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0").WithArguments("Node: var userVar = 0").WithLocation(17, 9),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "userVar = 0").WithArguments("Operation: NonHiddenMethod").WithLocation(17, 13),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var mixMethodUserVar = 0").WithArguments("Node: var mixMethodUserVar = 0").WithLocation(26, 9),
@@ -2090,7 +2079,7 @@ public class Class
                 Diagnostic("GeneratedCodeAnalyzerSummary").WithArguments("Node: var hiddenVar = 0,Node: var mixMethodHiddenVar = 0,Node: var mixMethodUserVar = 0,Node: var userVar = 0,Operation: HiddenMethod,Operation: MixMethod,Operation: NonHiddenMethod").WithLocation(1, 1));
 
             analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics, syntaxKinds, operationKinds) };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var hiddenVar = 0").WithArguments("Node: var hiddenVar = 0").WithLocation(10, 9),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "hiddenVar = 0").WithArguments("Operation: HiddenMethod").WithLocation(10, 13),
                 Diagnostic("GeneratedCodeAnalyzerWarning", "var userVar = 0").WithArguments("Node: var userVar = 0").WithLocation(17, 9),
@@ -2301,7 +2290,7 @@ internal class C : MyInterface
         private static void TestFieldReferenceAnalyzer_InAttributes_Core(Compilation compilation, bool doOperationBlockAnalysis)
         {
             var analyzers = new DiagnosticAnalyzer[] { new FieldReferenceOperationAnalyzer(doOperationBlockAnalysis) };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("ID", "FieldForClass").WithArguments("FieldForClass", "1").WithLocation(17, 14),
                 Diagnostic("ID", "FieldForStruct").WithArguments("FieldForStruct", "2").WithLocation(27, 18),
                 Diagnostic("ID", "FieldForInterface").WithArguments("FieldForInterface", "3").WithLocation(30, 18),
@@ -2366,7 +2355,7 @@ internal class Derived : Base
         private static void TestFieldReferenceAnalyzer_InConstructorInitializer_Core(Compilation compilation, bool doOperationBlockAnalysis)
         {
             var analyzers = new DiagnosticAnalyzer[] { new FieldReferenceOperationAnalyzer(doOperationBlockAnalysis) };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("ID", "Field").WithArguments("Field", "0").WithLocation(11, 29));
         }
 
@@ -2395,7 +2384,7 @@ internal class C
         private static void TestFieldReferenceAnalyzer_InConstructorDestructorExpressionBody_Core(Compilation compilation, bool doOperationBlockAnalysis)
         {
             var analyzers = new DiagnosticAnalyzer[] { new FieldReferenceOperationAnalyzer(doOperationBlockAnalysis) };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
                 Diagnostic("ID", "Flag").WithArguments("Flag", "").WithLocation(5, 19),
                 Diagnostic("ID", "Flag").WithArguments("Flag", "").WithLocation(6, 13));
         }

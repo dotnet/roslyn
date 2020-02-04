@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -62,11 +64,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// </summary>
                 public readonly Closure ContainingClosureOpt;
 
+#nullable enable
+
                 /// <summary>
-                /// Environments created in this scope to hold <see cref="DeclaredVariables"/>.
+                /// Environment created in this scope to hold <see cref="DeclaredVariables"/>.
+                /// At the moment, all variables declared in the same scope
+                /// always get assigned to the same environment.
                 /// </summary>
-                public readonly ArrayBuilder<ClosureEnvironment> DeclaredEnvironments
-                    = ArrayBuilder<ClosureEnvironment>.GetInstance();
+                public ClosureEnvironment? DeclaredEnvironment = null;
+
+#nullable restore
 
                 public Scope(Scope parent, BoundNode boundNode, Closure containingClosure)
                 {
@@ -96,7 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         closure.Free();
                     }
                     Closures.Free();
-                    DeclaredEnvironments.Free();
                 }
 
                 public override string ToString() => BoundNode.Syntax.GetText().ToString();
