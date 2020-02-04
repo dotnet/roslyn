@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -73,28 +72,31 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         {
             if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation)
             {
-                if (invocation.Arguments.Length == 1 &&
-                    invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal)
+                if (invocation.Instance != null && !invocation.Instance.IsImplicit)
                 {
-                    unwrapped = invocation.Instance;
-                    formatString = value;
+                    if (invocation.Arguments.Length == 1 &&
+                        invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal)
+                    {
+                        unwrapped = invocation.Instance;
+                        formatString = value;
 
-                    unnecessarySpans.AddRange(invocation.Syntax.Span
-                        .Subtract(invocation.Instance.Syntax.FullSpan)
-                        .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, literal.Syntax.GetFirstToken())));
-                    return;
-                }
+                        unnecessarySpans.AddRange(invocation.Syntax.Span
+                            .Subtract(invocation.Instance.Syntax.FullSpan)
+                            .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, literal.Syntax.GetFirstToken())));
+                        return;
+                    }
 
-                if (invocation.Arguments.Length == 0)
-                {
-                    // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
-                    // Just remove entirely.
-                    unwrapped = invocation.Instance;
-                    formatString = "";
+                    if (invocation.Arguments.Length == 0)
+                    {
+                        // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
+                        // Just remove entirely.
+                        unwrapped = invocation.Instance;
+                        formatString = "";
 
-                    unnecessarySpans.AddRange(invocation.Syntax.Span
-                        .Subtract(invocation.Instance.Syntax.FullSpan));
-                    return;
+                        unnecessarySpans.AddRange(invocation.Syntax.Span
+                            .Subtract(invocation.Instance.Syntax.FullSpan));
+                        return;
+                    }
                 }
             }
 
@@ -120,22 +122,25 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 var targetName = invocation.TargetMethod.Name;
                 if (targetName == nameof(string.PadLeft) || targetName == nameof(string.PadRight))
                 {
-                    var argCount = invocation.Arguments.Length;
-                    if (argCount == 1 || argCount == 2)
+                    if (invocation.Instance != null && !invocation.Instance.IsImplicit)
                     {
-                        if (argCount == 1 ||
-                            IsSpaceChar(invocation.Arguments[1]))
+                        var argCount = invocation.Arguments.Length;
+                        if (argCount == 1 || argCount == 2)
                         {
-                            var alignmentSyntax = invocation.Arguments[0].Value.Syntax;
+                            if (argCount == 1 ||
+                                IsSpaceChar(invocation.Arguments[1]))
+                            {
+                                var alignmentSyntax = invocation.Arguments[0].Value.Syntax;
 
-                            unwrapped = invocation.Instance;
-                            alignment = alignmentSyntax as TExpressionSyntax;
-                            negate = targetName == nameof(string.PadLeft);
+                                unwrapped = invocation.Instance;
+                                alignment = alignmentSyntax as TExpressionSyntax;
+                                negate = targetName == nameof(string.PadLeft);
 
-                            unnecessarySpans.AddRange(invocation.Syntax.Span
-                                .Subtract(invocation.Instance.Syntax.FullSpan)
-                                .Subtract(alignmentSyntax.FullSpan));
-                            return;
+                                unnecessarySpans.AddRange(invocation.Syntax.Span
+                                    .Subtract(invocation.Instance.Syntax.FullSpan)
+                                    .Subtract(alignmentSyntax.FullSpan));
+                                return;
+                            }
                         }
                     }
                 }
