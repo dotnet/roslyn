@@ -181,9 +181,11 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\ISymbolExtensions_Shared.cs" Link="Shared\Extensions\ISymbolExtensions_Shared.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\ITypeSymbolExtensions_Shared.cs" Link="Shared\Extensions\ITypeSymbolExtensions_Shared.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\LinkedListExtensions.cs" Link="Formatting\LinkedListExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\ObjectExtensions.TypeSwitch.cs" Link="Shared\Extensions\ObjectExtensions.TypeSwitch.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SimpleIntervalTreeExtensions.cs" Link="Formatting\SimpleIntervalTreeExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SourceTextExtensions_SharedWithCodeStyle.cs" Link="Formatting\SourceTextExtensions_SharedWithCodeStyle.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\StringExtensions.cs" Link="Formatting\StringExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SymbolInfoExtensions.cs" Link="Shared\Extensions\SymbolInfoExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxNodeExtensions.cs" Link="Formatting\SyntaxNodeExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxNodeOrTokenExtensions.cs" Link="Formatting\SyntaxNodeOrTokenExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTokenExtensions.cs" Link="Formatting\SyntaxTokenExtensions.cs" />

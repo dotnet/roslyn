@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Partial Friend Module SyntaxTokenExtensions
@@ -15,6 +16,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function IsKind(token As SyntaxToken, ParamArray kinds As SyntaxKind()) As Boolean
             Return kinds.Contains(token.Kind)
+        End Function
+
+        <Extension()>
+        Public Function HasMatchingText(token As SyntaxToken, kind As SyntaxKind) As Boolean
+            Return String.Equals(token.ToString(), SyntaxFacts.GetText(kind), StringComparison.OrdinalIgnoreCase)
+        End Function
+
+        <Extension()>
+        Public Function GetPreviousTokenIfTouchingWord(token As SyntaxToken, position As Integer) As SyntaxToken
+            Return If(token.IntersectsWith(position) AndAlso IsWord(token),
+                      token.GetPreviousToken(includeSkipped:=True),
+                      token)
+        End Function
+
+        <Extension>
+        Public Function IsWord(token As SyntaxToken) As Boolean
+            Return VisualBasicSyntaxFactsService.Instance.IsWord(token)
         End Function
     End Module
 End Namespace

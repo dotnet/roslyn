@@ -494,48 +494,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return (symbol as ITypeSymbol)?.IsAttribute() == true;
         }
 
-        public static ITypeSymbol ConvertToType(
-            this ISymbol? symbol,
-            Compilation compilation,
-            bool extensionUsedAsInstance = false)
-        {
-            if (symbol is ITypeSymbol type)
-            {
-                return type;
-            }
-
-            if (symbol is IMethodSymbol method && method.Parameters.All(p => p.RefKind == RefKind.None))
-            {
-                var count = extensionUsedAsInstance ? Math.Max(0, method.Parameters.Length - 1) : method.Parameters.Length;
-                var skip = extensionUsedAsInstance ? 1 : 0;
-
-                string WithArity(string typeName, int arity) => arity > 0 ? typeName + '`' + arity : typeName;
-
-                // Convert the symbol to Func<...> or Action<...>
-                var delegateType = compilation.GetTypeByMetadataName(method.ReturnsVoid
-                    ? WithArity("System.Action", count)
-                    : WithArity("System.Func", count + 1));
-
-                if (delegateType != null)
-                {
-                    var types = method.Parameters
-                        .Skip(skip)
-                        .Select(p => (p.Type ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullableAnnotation(p.NullableAnnotation));
-
-                    if (!method.ReturnsVoid)
-                    {
-                        // +1 for the return type.
-                        types = types.Concat((method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullableAnnotation(method.ReturnNullableAnnotation));
-                    }
-
-                    return delegateType.TryConstruct(types.ToArray());
-                }
-            }
-
-            // Otherwise, just default to object.
-            return compilation.ObjectType;
-        }
-
         public static bool IsStaticType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol != null && symbol.Kind == SymbolKind.NamedType && symbol.IsStatic;
@@ -1392,6 +1350,48 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation)
                 .WhereAsArray(s => !s.IsUnsafe());
+        }
+
+        public static ITypeSymbol ConvertToType(
+            this ISymbol? symbol,
+            Compilation compilation,
+            bool extensionUsedAsInstance = false)
+        {
+            if (symbol is ITypeSymbol type)
+            {
+                return type;
+            }
+
+            if (symbol is IMethodSymbol method && method.Parameters.All(p => p.RefKind == RefKind.None))
+            {
+                var count = extensionUsedAsInstance ? Math.Max(0, method.Parameters.Length - 1) : method.Parameters.Length;
+                var skip = extensionUsedAsInstance ? 1 : 0;
+
+                string WithArity(string typeName, int arity) => arity > 0 ? typeName + '`' + arity : typeName;
+
+                // Convert the symbol to Func<...> or Action<...>
+                var delegateType = compilation.GetTypeByMetadataName(method.ReturnsVoid
+                    ? WithArity("System.Action", count)
+                    : WithArity("System.Func", count + 1));
+
+                if (delegateType != null)
+                {
+                    var types = method.Parameters
+                        .Skip(skip)
+                        .Select(p => (p.Type ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullableAnnotation(p.NullableAnnotation));
+
+                    if (!method.ReturnsVoid)
+                    {
+                        // +1 for the return type.
+                        types = types.Concat((method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullableAnnotation(method.ReturnNullableAnnotation));
+                    }
+
+                    return delegateType.TryConstruct(types.ToArray());
+                }
+            }
+
+            // Otherwise, just default to object.
+            return compilation.ObjectType;
         }
     }
 }

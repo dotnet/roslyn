@@ -17,11 +17,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function HasMatchingText(token As SyntaxToken, kind As SyntaxKind) As Boolean
-            Return String.Equals(token.ToString(), SyntaxFacts.GetText(kind), StringComparison.OrdinalIgnoreCase)
-        End Function
-
-        <Extension()>
         Public Function IsCharacterLiteral(token As SyntaxToken) As Boolean
             Return token.Kind = SyntaxKind.CharacterLiteralToken
         End Function
@@ -198,18 +193,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function SpansPreprocessorDirective(tokens As IEnumerable(Of SyntaxToken)) As Boolean
             Return VisualBasicSyntaxFactsService.Instance.SpansPreprocessorDirective(tokens)
-        End Function
-
-        <Extension()>
-        Public Function GetPreviousTokenIfTouchingWord(token As SyntaxToken, position As Integer) As SyntaxToken
-            Return If(token.IntersectsWith(position) AndAlso IsWord(token),
-                      token.GetPreviousToken(includeSkipped:=True),
-                      token)
-        End Function
-
-        <Extension>
-        Public Function IsWord(token As SyntaxToken) As Boolean
-            Return VisualBasicSyntaxFactsService.Instance.IsWord(token)
         End Function
 
         <Extension()>

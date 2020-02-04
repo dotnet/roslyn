@@ -27,5 +27,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return stack;
         }
+
+        public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
+        {
+            return typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
+        }
     }
 }

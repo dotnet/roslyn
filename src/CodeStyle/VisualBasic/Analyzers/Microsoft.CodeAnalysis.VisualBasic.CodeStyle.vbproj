@@ -9,6 +9,15 @@
     <PackageId>Microsoft.CodeAnalysis.VisualBasic.CodeStyle.NewNameSinceWeReferenceTheAnalyzersAndNuGetCannotFigureItOut</PackageId>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\ArgumentSyntaxExtensions_Shared.vb" Link="Extensions\ArgumentSyntaxExtensions_Shared.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\ContextQuery\SyntaxTreeExtensions_Shared.vb" Link="Extensions\ContextQuery\SyntaxTreeExtensions_Shared.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\DirectiveSyntaxExtensions.vb" Link="Extensions\DirectiveSyntaxExtensions.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\ExpressionSyntaxExtensions_Shared.vb" Link="Extensions\ExpressionSyntaxExtensions_Shared.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\MemberAccessExpressionSyntaxExtensions_Shared.vb" Link="Extensions\MemberAccessExpressionSyntaxExtensions_Shared.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SingleLineRewriter.vb" Link="Extensions\SingleLineRewriter.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\StatementSyntaxExtensions_Shared.vb" Link="Extensions\StatementSyntaxExtensions_Shared.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\StringExtensions.vb" Link="Extensions\StringExtensions.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxNodeExtensions_Shared.vb" Link="Extensions\SyntaxNodeExtensions_Shared.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.vb" Link="Formatting\SyntaxTokenExtensions_SharedWithCodeStyle.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.vb" Link="Formatting\SyntaxTreeExtensions_SharedWithCodeStyle.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTriviaExtensions.vb" Link="Formatting\SyntaxTriviaExtensions.vb" />
@@ -35,7 +44,11 @@
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\NodeBasedFormattingRule.vb" Link="Formatting\Rules\NodeBasedFormattingRule.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\StructuredTriviaFormattingRule.vb" Link="Formatting\Rules\StructuredTriviaFormattingRule.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\VisualBasicSyntaxFormattingService.vb" Link="Formatting\VisualBasicSyntaxFormattingService.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\LanguageServices\VisualBasicDocumentationCommentService.vb" Link="LanguageServices\VisualBasicDocumentationCommentService.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\LanguageServices\VisualBasicSyntaxFactsService.vb" Link="LanguageServices\VisualBasicSyntaxFactsService.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\LanguageServices\VisualBasicSyntaxKindsService.vb" Link="LanguageServices\VisualBasicSyntaxKindsService.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Utilities\DirectiveSyntaxEqualityComparer.vb" Link="Utilities\DirectiveSyntaxEqualityComparer.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Utilities\DirectiveWalker.vb" Link="Utilities\DirectiveWalker.vb" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
@@ -73,6 +86,8 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Extensions\ContextQuery\" />
     <Folder Include="LanguageServices\" />
+    <Folder Include="Utilities\" />
   </ItemGroup>
 </Project>
