@@ -27,16 +27,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs" Link="Collections\ArrayBuilderExtensions.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="Formatting\Debug.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs" Link="Formatting\EnumerableExtensions.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="InternalUtilities\Debug.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs" Link="InternalUtilities\EnumerableExtensions.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="InternalUtilities\ExceptionUtilities.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs" Link="InternalUtilities\KeyValuePairUtil.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DecimalUtilities.cs" Link="InternalUtilities\DecimalUtilities.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumUtilties.cs" Link="InternalUtilities\EnumUtilties.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="Formatting\NullableAttributes.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Link="PerformanceSensitiveAttribute.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs" Link="RoslynString.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="InternalUtilities\NullableAttributes.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Link="InternalUtilities\PerformanceSensitiveAttribute.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs" Link="InternalUtilities\RoslynString.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs" Link="InternalUtilities\SpecializedCollections.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs" Link="InternalUtilities\SpecializedCollections.Empty.Collection.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.cs" Link="InternalUtilities\SpecializedCollections.Empty.cs" />
@@ -54,24 +54,24 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs" Link="InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs" Link="InternalUtilities\StringExtensions.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="InternalUtilities\StringExtensions.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="InternalUtilities\SyntaxTreeExtensions.cs" />
-    <Compile Include="..\..\..\Features\Core\Portable\Diagnostics\Analyzers\IDEDiagnosticIds.cs" Link="IDEDiagnosticIds.cs" />
-    <Compile Include="..\..\..\Features\Core\Portable\Diagnostics\DiagnosticCustomTags.cs" Link="DiagnosticCustomTags.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="Diagnostics\Syntax\SyntaxTreeExtensions.cs" />
+    <Compile Include="..\..\..\Features\Core\Portable\Diagnostics\Analyzers\IDEDiagnosticIds.cs" Link="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
+    <Compile Include="..\..\..\Features\Core\Portable\Diagnostics\DiagnosticCustomTags.cs" Link="Diagnostics\DiagnosticCustomTags.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\CodeGeneration\AbstractFlagsEnumGenerator.cs" Link="CodeGeneration\AbstractFlagsEnumGenerator.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\CodeGeneration\CodeGenerationHelpers_Shared.cs" Link="CodeGeneration\CodeGenerationHelpers_Shared.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\CodeGeneration\LiteralSpecialValues.cs" Link="CodeGeneration\LiteralSpecialValues.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\CodeStyleHelpers.cs" Link="Options\CodeStyleHelpers.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\CodeStyleOption.cs" Link="Options\CodeStyleOption.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\NotificationOption.cs" Link="Options\NotificationOption.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\UnusedValuePreference.cs" Link="Options\UnusedValuePreference.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Diagnostics\Extensions_SharedWithCodeStyle.cs" Link="Options\Extensions_SharedWithCodeStyle.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\CodeStyleHelpers.cs" Link="CodeStyle\CodeStyleHelpers.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\CodeStyleOption.cs" Link="CodeStyle\CodeStyleOption.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\NotificationOption.cs" Link="CodeStyle\NotificationOption.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\UnusedValuePreference.cs" Link="CodeStyle\UnusedValuePreference.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Diagnostics\Extensions_SharedWithCodeStyle.cs" Link="Diagnostics\Extensions_SharedWithCodeStyle.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Editing\DeclarationKind.cs" Link="Editing\DeclarationKind.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Editing\DeclarationModifiers.cs" Link="Editing\DeclarationModifiers.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Editing\OperatorKind.cs" Link="Editing\OperatorKind.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Editing\SyntaxGenerator.cs" Link="Editing\SyntaxGenerator.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Editing\TypeConstraintKind.cs" Link="Editing\TypeConstraintKind.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\NotificationOptionExtensions.cs" Link="Options\NotificationOptionExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\ReportDiagnosticExtensions.cs" Link="Options\ReportDiagnosticExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\NotificationOptionExtensions.cs" Link="Extensions\NotificationOptionExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\ReportDiagnosticExtensions.cs" Link="Extensions\ReportDiagnosticExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\AbstractSyntaxFormattingService.cs" Link="Formatting\AbstractSyntaxFormattingService.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\BottomUpBaseIndentationFinder.cs" Link="Formatting\BottomUpBaseIndentationFinder.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\ContextIntervalTree.cs" Link="Formatting\ContextIntervalTree.cs" />
@@ -148,14 +148,14 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\ISyntaxKindsService.cs" Link="LanguageServices\SyntaxFactsService\ISyntaxKindsService.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\PredefinedOperator.cs" Link="LanguageServices\SyntaxFactsService\PredefinedOperator.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\LanguageServices\SyntaxFactsService\PredefinedType.cs" Link="LanguageServices\SyntaxFactsService\PredefinedType.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\EmptyLogBlock.cs" Link="Formatting\EmptyLogBlock.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\FunctionId.cs" Link="Formatting\FunctionId.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\FunctionIdOptions.cs" Link="Formatting\FunctionIdOptions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\ILogger.cs" Link="Formatting\ILogger.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\Logger.cs" Link="Formatting\Logger.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\Logger.LogBlock.cs" Link="Formatting\Logger.LogBlock.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\LogMessage.cs" Link="Formatting\LogMessage.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\NamingStyles\EditorConfig\EditorConfigSeverityStrings.cs" Link="Options\EditorConfigSeverityStrings.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\EmptyLogBlock.cs" Link="Log\EmptyLogBlock.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\FunctionId.cs" Link="Log\FunctionId.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\FunctionIdOptions.cs" Link="Log\FunctionIdOptions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\ILogger.cs" Link="Log\ILogger.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\Logger.cs" Link="Log\Logger.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\Logger.LogBlock.cs" Link="Log\Logger.LogBlock.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Log\LogMessage.cs" Link="Log\LogMessage.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\NamingStyles\EditorConfig\EditorConfigSeverityStrings.cs" Link="NamingStyles\EditorConfigSeverityStrings.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\EditorConfigStorageLocation.cs" Link="Options\EditorConfigStorageLocation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\EditorConfigStorageLocation`1.cs" Link="Options\EditorConfigStorageLocation`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\EditorConfig\IEditorConfigStorageLocation.cs" Link="Options\IEditorConfigStorageLocation.cs" />
@@ -169,34 +169,34 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\Option`1.cs" Link="Options\Option`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\PerLanguageOption.cs" Link="Options\PerLanguageOption.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Options\RoamingProfileStorageLocation.cs" Link="Options\RoamingProfileStorageLocation.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\IIntervalIntrospector.cs" Link="Formatting\Context\IIntervalIntrospector.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\IntervalTree`1.cs" Link="Formatting\Context\IntervalTree`1.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\IntervalTree`1.Node.cs" Link="Formatting\Context\IntervalTree`1.Node.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\SimpleIntervalTree.cs" Link="Formatting\SimpleIntervalTree.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\SimpleIntervalTree`2.cs" Link="Formatting\Context\SimpleIntervalTree`2.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\TextSpanIntervalIntrospector.cs" Link="Formatting\TextSpanIntervalIntrospector.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\IIntervalIntrospector.cs" Link="Shared\Collections\IIntervalIntrospector.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\IntervalTree`1.cs" Link="Shared\Collections\IntervalTree`1.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\IntervalTree`1.Node.cs" Link="Shared\Collections\IntervalTree`1.Node.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\SimpleIntervalTree.cs" Link="Shared\Collections\SimpleIntervalTree.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\SimpleIntervalTree`2.cs" Link="Shared\Collections\SimpleIntervalTree`2.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\TextSpanIntervalIntrospector.cs" Link="Shared\Collections\TextSpanIntervalIntrospector.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\ChildSyntaxListExtensions.cs" Link="Formatting\ChildSyntaxListExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\INamedTypeSymbolExtensions_Shared.cs" Link="Shared\Extensions\INamedTypeSymbolExtensions_Shared.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\ISymbolExtensions.IsUnsafeVisitor.cs" Link="Shared\Extensions\ISymbolExtensions.IsUnsafeVisitor.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\ISymbolExtensions_Shared.cs" Link="Shared\Extensions\ISymbolExtensions_Shared.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\ITypeSymbolExtensions_Shared.cs" Link="Shared\Extensions\ITypeSymbolExtensions_Shared.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\LinkedListExtensions.cs" Link="Formatting\LinkedListExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\LinkedListExtensions.cs" Link="Shared\Extensions\LinkedListExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\ObjectExtensions.TypeSwitch.cs" Link="Shared\Extensions\ObjectExtensions.TypeSwitch.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SimpleIntervalTreeExtensions.cs" Link="Formatting\SimpleIntervalTreeExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SourceTextExtensions_SharedWithCodeStyle.cs" Link="Formatting\SourceTextExtensions_SharedWithCodeStyle.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\StringExtensions.cs" Link="Formatting\StringExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SourceTextExtensions_SharedWithCodeStyle.cs" Link="Shared\Extensions\SourceTextExtensions_SharedWithCodeStyle.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\StringExtensions.cs" Link="Shared\Extensions\StringExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SymbolInfoExtensions.cs" Link="Shared\Extensions\SymbolInfoExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxNodeExtensions.cs" Link="Formatting\SyntaxNodeExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxNodeOrTokenExtensions.cs" Link="Formatting\SyntaxNodeOrTokenExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTokenExtensions.cs" Link="Formatting\SyntaxTokenExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.cs" Link="Formatting\SyntaxTreeExtensions_SharedWithCodeStyle.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTriviaExtensions.cs" Link="Formatting\SyntaxTriviaExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTriviaListExtensions.cs" Link="Formatting\SyntaxTriviaListExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\TextLineExtensions.cs" Link="Formatting\TextLineExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\NormalizedTextSpanCollection.cs" Link="Formatting\NormalizedTextSpanCollection.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\AliasSymbolCache.cs" Link="AliasSymbolCache.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\CommonFormattingHelpers.cs" Link="Formatting\CommonFormattingHelpers.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\IntegerUtilities.cs" Link="Utilities\IntegerUtilities.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxNodeExtensions.cs" Link="Shared\Extensions\SyntaxNodeExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxNodeOrTokenExtensions.cs" Link="Shared\Extensions\SyntaxNodeOrTokenExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTokenExtensions.cs" Link="Shared\Extensions\SyntaxTokenExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.cs" Link="Shared\Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTriviaExtensions.cs" Link="Shared\Extensions\SyntaxTriviaExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTriviaListExtensions.cs" Link="Shared\Extensions\SyntaxTriviaListExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\TextLineExtensions.cs" Link="Shared\Extensions\TextLineExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\NormalizedTextSpanCollection.cs" Link="Shared\NormalizedTextSpanCollection.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\AliasSymbolCache.cs" Link="Shared\Utilities\AliasSymbolCache.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\CommonFormattingHelpers.cs" Link="Shared\Utilities\CommonFormattingHelpers.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\IntegerUtilities.cs" Link="Shared\Utilities\IntegerUtilities.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher.ChoiceMatcher.cs" Link="Shared\Utilities\Matcher.ChoiceMatcher.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher.cs" Link="Shared\Utilities\Matcher.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\Matcher.RepeatMatcher.cs" Link="Shared\Utilities\Matcher.RepeatMatcher.cs" />
@@ -207,18 +207,18 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\DoNotAllowVarAnnotation.cs" Link="Simplification\DoNotAllowVarAnnotation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\SpecialTypeAnnotation.cs" Link="Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Simplification\SymbolAnnotation.cs" Link="Simplification\SymbolAnnotation.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\AnnotationTable.cs" Link="Formatting\AnnotationTable.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\BidirectionalMap.cs" Link="InternalUtilities\BidirectionalMap.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\CancellableLazy`1.cs" Link="Formatting\CancellableLazy`1.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\AnnotationTable.cs" Link="Utilities\AnnotationTable.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\BidirectionalMap.cs" Link="Utilities\BidirectionalMap.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\CancellableLazy`1.cs" Link="Utilities\CancellableLazy`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ConcatImmutableArray`1.cs" Link="Utilities\ConcatImmutableArray`1.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\Contract.cs" Link="Formatting\Contract.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\IBidirectionalMap.cs" Link="InternalUtilities\IBidirectionalMap.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\Contract.cs" Link="Utilities\Contract.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\IBidirectionalMap.cs" Link="Utilities\IBidirectionalMap.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ImmutableArrayExtensions.cs" Link="Utilities\ImmutableArrayExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\LazyInitialization.cs" Link="Formatting\LazyInitialization.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\NonReentrantLock.cs" Link="Formatting\NonReentrantLock.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ObjectPools\Extensions.cs" Link="Formatting\Extensions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ObjectPools\PooledObject.cs" Link="Formatting\PooledObject.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ObjectPools\SharedPools.cs" Link="Formatting\SharedPools.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\LazyInitialization.cs" Link="Utilities\LazyInitialization.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\NonReentrantLock.cs" Link="Utilities\NonReentrantLock.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ObjectPools\Extensions.cs" Link="Utilities\ObjectPools\Extensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ObjectPools\PooledObject.cs" Link="Utilities\ObjectPools\PooledObject.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ObjectPools\SharedPools.cs" Link="Utilities\ObjectPools\SharedPools.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="CodeStyleResources.Designer.cs">
