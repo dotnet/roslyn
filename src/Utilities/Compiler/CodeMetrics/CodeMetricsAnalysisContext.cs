@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
         public Compilation Compilation { get; }
         public CancellationToken CancellationToken { get; }
-        public Func<INamedTypeSymbol, bool> IsExcludedFromInheritanceCountFunc { get; internal set; }
+        public Func<INamedTypeSymbol, bool> IsExcludedFromInheritanceCountFunc { get; }
 
         internal SemanticModel GetSemanticModel(SyntaxNode node)
             => _semanticModelMap.GetOrAdd(node.SyntaxTree, tree => Compilation.GetSemanticModel(node.SyntaxTree));
