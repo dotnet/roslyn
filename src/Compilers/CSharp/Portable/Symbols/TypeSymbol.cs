@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -344,26 +346,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var interfaces = (baseType.TypeKind == TypeKind.TypeParameter) ? ((TypeParameterSymbol)baseType).EffectiveInterfacesNoUseSiteDiagnostics : baseType.InterfacesNoUseSiteDiagnostics();
                 for (int i = interfaces.Length - 1; i >= 0; i--)
                 {
-                    AddAllInterfaces(interfaces[i], visited, result);
+                    addAllInterfaces(interfaces[i], visited, result);
                 }
             }
 
             result.ReverseContents();
             return result.ToImmutableAndFree();
-        }
 
-        private static void AddAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result)
-        {
-            if (visited.Add(@interface))
+            static void addAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result)
             {
-                ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.InterfacesNoUseSiteDiagnostics();
-                for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                if (visited.Add(@interface))
                 {
-                    var baseInterface = baseInterfaces[i];
-                    AddAllInterfaces(baseInterface, visited, result);
-                }
+                    ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.InterfacesNoUseSiteDiagnostics();
+                    for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                    {
+                        var baseInterface = baseInterfaces[i];
+                        addAllInterfaces(baseInterface, visited, result);
+                    }
 
-                result.Add(@interface);
+                    result.Add(@interface);
+                }
             }
         }
 

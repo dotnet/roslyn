@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #if DEBUG
 //#define CHECK_LOCALS // define CHECK_LOCALS to help debug some rewriting problems that would otherwise cause code-gen failures
@@ -329,14 +331,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Analysis.VisitScopeTree(_analysis.ScopeTree, scope =>
             {
-                if (scope.DeclaredEnvironments.Count > 0)
+                if (scope.DeclaredEnvironment is { } env)
                 {
                     Debug.Assert(!_frames.ContainsKey(scope.BoundNode));
-                    // At the moment, all variables declared in the same
-                    // scope always get assigned to the same environment
-                    Debug.Assert(scope.DeclaredEnvironments.Count == 1);
 
-                    var env = scope.DeclaredEnvironments[0];
                     var frame = MakeFrame(scope, env);
                     env.SynthesizedEnvironment = frame;
 
@@ -1432,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNode tmpScope = null;
                 Analysis.VisitScopeTree(_analysis.ScopeTree, scope =>
                 {
-                    if (scope.DeclaredEnvironments.Contains(closure.ContainingEnvironmentOpt))
+                    if (scope.DeclaredEnvironment == closure.ContainingEnvironmentOpt)
                     {
                         tmpScope = scope.BoundNode;
                     }

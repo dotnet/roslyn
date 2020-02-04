@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Positional patterns
-            if (token.Parent.IsKind(SyntaxKindEx.PositionalPatternClause) && token.Parent.Parent.IsKind(SyntaxKindEx.RecursivePattern))
+            if (token.Parent.IsKind(SyntaxKind.PositionalPatternClause) && token.Parent.Parent.IsKind(SyntaxKind.RecursivePattern))
             {
                 // Avoid treating tuple expressions as positional patterns for formatting
                 return token.Parent.Parent.GetFirstToken() != token;
@@ -172,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            return token.Parent is ExpressionSyntax || token.Parent.IsKind(SyntaxKindEx.PropertyPatternClause);
+            return token.Parent is ExpressionSyntax || token.Parent.IsKind(SyntaxKind.PropertyPatternClause);
         }
 
         public static bool IsCloseBraceOfEmbeddedBlock(this SyntaxToken token)
@@ -338,13 +340,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => token.Kind() == SyntaxKind.ColonToken && token.Parent is CasePatternSwitchLabelSyntax;
 
         public static bool IsColonInSwitchExpressionArm(this SyntaxToken token)
-            => token.Kind() == SyntaxKind.ColonToken && token.Parent.IsKind(SyntaxKindEx.SwitchExpressionArm);
+            => token.Kind() == SyntaxKind.ColonToken && token.Parent.IsKind(SyntaxKind.SwitchExpressionArm);
 
         public static bool IsCommaInSwitchExpression(this SyntaxToken token)
-            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKindEx.SwitchExpression);
+            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.SwitchExpression);
 
         public static bool IsCommaInPropertyPatternClause(this SyntaxToken token)
-            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKindEx.PropertyPatternClause);
+            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.PropertyPatternClause);
 
         public static bool IsIdentifierInLabeledStatement(this SyntaxToken token)
         {

@@ -1537,7 +1537,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
         <source>Failed to emit module '{0}': {1}</source>
-        <target state="new">Failed to emit module '{0}': {1}</target>
+        <target state="translated">모듈 '{0}'을(를) 내보내지 못했습니다. {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
@@ -9141,12 +9141,12 @@
       </trans-unit>
       <trans-unit id="WRN_AttributeNotSupportedInVB">
         <source>'{0}' is not supported in VB.</source>
-        <target state="new">'{0}' is not supported in VB.</target>
+        <target state="translated">'{0}'은(는) VB에서 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributeNotSupportedInVB_Title">
         <source>Attribute is not supported in VB</source>
-        <target state="new">Attribute is not supported in VB</target>
+        <target state="translated">특성은 VB에서 지원되지 않습니다.</target>
         <note />
       </trans-unit>
     </body>

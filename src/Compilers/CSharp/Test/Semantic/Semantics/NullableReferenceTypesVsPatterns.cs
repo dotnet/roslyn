@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2070,6 +2072,29 @@ public class C {
                 //                 c.c.c.ToString(); // warning
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.c.c").WithLocation(19, 17)
                 );
+        }
+
+        [Fact]
+        [WorkItem(40629, "https://github.com/dotnet/roslyn/issues/40629")]
+        public void NullTestInSwitch_01()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+#nullable enable
+class C
+{
+    void M(object? p)
+    {
+        switch (p)
+        {
+            case null:
+                return;
+        }
+
+        p.ToString();
+    }
+}
+");
+            c.VerifyDiagnostics();
         }
     }
 }
