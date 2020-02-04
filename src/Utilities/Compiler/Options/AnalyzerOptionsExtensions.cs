@@ -205,12 +205,12 @@ namespace Analyzer.Utilities
             }
         }
 
-        public static SymbolNamesOption GetInheritanceExcludedTypeNamesOption(
+        public static SymbolNamesOption GetInheritanceExcludedSymbolNamesOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesOption(EditorConfigOptionNames.InheritanceExcludedTypeNames, namePrefixOpt: null, optionDefaultValue: "N:System.*", rule, compilation, cancellationToken);
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.AdditionalInheritanceExcludedSymbolNames, namePrefixOpt: null, optionDefaultValue: "N:System.*", rule, compilation, cancellationToken);
 
         private static SymbolNamesOption GetSymbolNamesOption(
             this AnalyzerOptions options,

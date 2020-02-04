@@ -147,6 +147,6 @@ namespace Analyzer.Utilities
         ///   4. Fully qualified wildcard names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
         ///      with an optional "T:" prefix for types or "N:" prefix for namespaces and ending with the wildcard symbol.
         /// </summary>
-        public const string InheritanceExcludedTypeNames = "inheritance_excluded_type_names";
+        public const string AdditionalInheritanceExcludedSymbolNames = "additional_inheritance_excluded_symbol_names";
     }
 }
