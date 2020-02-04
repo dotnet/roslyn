@@ -336,13 +336,10 @@ interface I
 
             static void verify(CSharpCompilation comp)
             {
-                var tree = comp.SyntaxTrees[0];
-                var nodes = tree.GetRoot().DescendantNodes().ToArray();
-                var model = comp.GetSemanticModel(tree);
-                var method = model.GetDeclaredSymbol(nodes.OfType<MethodDeclarationSyntax>().Single());
+                var method = comp.GetMember<MethodSymbol>("I.Add");
                 Assert.Equal("System.Int16 I.Add(System.Int16 x, System.UIntPtr y)", method.ToTestDisplayString());
-                var underlyingType0 = method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>();
-                var underlyingType1 = method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>();
+                var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
+                var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
                 Assert.False(underlyingType0.IsNativeInt);
                 Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
