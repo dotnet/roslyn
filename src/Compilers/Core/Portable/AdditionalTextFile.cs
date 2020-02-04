@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly CommandLineSourceFile _sourceFile;
         private readonly CommonCompiler _compiler;
-        private Lazy<SourceText?> _text;
+        private readonly Lazy<SourceText?> _text;
         private IList<DiagnosticInfo> _diagnostics;
 
         public AdditionalTextFile(CommandLineSourceFile sourceFile, CommonCompiler compiler)
