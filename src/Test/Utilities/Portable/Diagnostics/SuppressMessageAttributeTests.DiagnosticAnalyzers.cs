@@ -6,10 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -253,9 +255,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             public const string Id = "ThrowException";
             private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
+            private readonly ExceptionDispatchInfo _exceptionDispatchInfo;
 
-            public ThrowExceptionForEachNamedTypeAnalyzer()
+            public ThrowExceptionForEachNamedTypeAnalyzer(ExceptionDispatchInfo exceptionDispatchInfo)
             {
+                _exceptionDispatchInfo = exceptionDispatchInfo;
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -266,12 +270,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
+            public string AssemblyName { get; private set; }
+
             public override void Initialize(AnalysisContext analysisContext)
             {
+                analysisContext.RegisterCompilationStartAction(context => AssemblyName = context.Compilation.AssemblyName);
+
                 analysisContext.RegisterSymbolAction(
                     (context) =>
                     {
-                        throw new Exception("ThrowExceptionAnalyzer exception");
+                        _exceptionDispatchInfo.Throw();
                     },
                     SymbolKind.NamedType);
             }
@@ -279,15 +287,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         protected class ThrowExceptionFromSupportedDiagnostics : DiagnosticAnalyzer
         {
-            public ThrowExceptionFromSupportedDiagnostics()
+            private readonly Exception _exception;
+
+            public ThrowExceptionFromSupportedDiagnostics(Exception exception)
             {
+                _exception = exception;
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-                => throw new Exception("SupportedDiagnostics exception");
+            {
+                get
+                {
+                    ExceptionDispatchInfo.Capture(_exception).Throw();
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }
 
             public override void Initialize(AnalysisContext analysisContext)
-                => throw new Exception("Initialize exception");
+                => throw ExceptionUtilities.Unreachable;
         }
 
         protected static DiagnosticDescriptor GetRule(string id)
