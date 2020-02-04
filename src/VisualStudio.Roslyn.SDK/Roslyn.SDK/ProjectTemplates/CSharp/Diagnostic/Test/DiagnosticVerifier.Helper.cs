@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -92,7 +92,10 @@ namespace TestHelper
         /// <returns>An IEnumerable containing the Diagnostics in order of Location</returns>
         private static Diagnostic[] SortDiagnostics(IEnumerable<Diagnostic> diagnostics)
         {
-            return diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
+            return diagnostics
+                .OrderBy(d => d.Location.SourceTree.FilePath)
+                .ThenBy(d => d.Location.SourceSpan.Start)
+                .ToArray();
         }
 
         #endregion
