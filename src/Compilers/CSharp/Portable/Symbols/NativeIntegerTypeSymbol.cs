@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal NativeIntegerTypeSymbol(NamedTypeSymbol underlying) : base(underlying, tupleData: null)
         {
+            Debug.Assert(underlying.TupleData is null);
             Debug.Assert(!underlying.IsNativeInt);
             Debug.Assert(underlying.SpecialType == SpecialType.System_IntPtr || underlying.SpecialType == SpecialType.System_UIntPtr);
             Debug.Assert(this.Equals(underlying));

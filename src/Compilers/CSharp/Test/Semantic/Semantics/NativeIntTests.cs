@@ -42,8 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             comp.VerifyDiagnostics();
         }
 
+        /// <summary>
+        /// System.IntPtr and System.UIntPtr definitions from metadata.
+        /// </summary>
         [Fact]
-        public void FromMetadata()
+        public void TypeDefinitions_FromMetadata()
         {
             var source =
 @"interface I
@@ -54,22 +57,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees[0];
-            var nodes = tree.GetRoot().DescendantNodes().ToArray();
-            var model = comp.GetSemanticModel(tree);
-            var methodDeclarations = nodes.OfType<MethodDeclarationSyntax>().ToArray();
-
-            var method = model.GetDeclaredSymbol(methodDeclarations[0]);
+            var method = comp.GetMember<MethodSymbol>("I.F1");
             Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(FormatWithSpecialTypes));
-            VerifyTypes((INamedTypeSymbol)method.Parameters[0].Type, (INamedTypeSymbol)method.Parameters[1].Type, signed: true);
+            VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
 
-            method = model.GetDeclaredSymbol(methodDeclarations[1]);
+            method = comp.GetMember<MethodSymbol>("I.F2");
             Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
-            VerifyTypes((INamedTypeSymbol)method.Parameters[0].Type, (INamedTypeSymbol)method.Parameters[1].Type, signed: false);
+            VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: false);
         }
 
+        /// <summary>
+        /// System.IntPtr and System.UIntPtr definitions from source.
+        /// </summary>
         [Fact]
-        public void FromSource()
+        public void TypeDefinitions_FromSource()
         {
             var sourceA =
 @"namespace System
@@ -88,34 +89,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 }";
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            verify(comp, comp.SyntaxTrees[1]);
+            verify(comp);
 
             comp = CreateEmptyCompilation(sourceA);
             comp.VerifyDiagnostics();
-            var ref1 = new CSharpCompilationReference(comp);
+            var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
             comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            verify(comp, comp.SyntaxTrees[0]);
+            verify(comp);
 
             comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            verify(comp, comp.SyntaxTrees[0]);
+            verify(comp);
 
-            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            static void verify(CSharpCompilation comp)
             {
-                var nodes = tree.GetRoot().DescendantNodes().ToArray();
-                var model = comp.GetSemanticModel(tree);
-                var methodDeclarations = nodes.OfType<MethodDeclarationSyntax>().ToArray();
-
-                var method = model.GetDeclaredSymbol(methodDeclarations[0]);
+                var method = comp.GetMember<MethodSymbol>("I.F1");
                 Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(FormatWithSpecialTypes));
-                VerifyTypes((INamedTypeSymbol)method.Parameters[0].Type, (INamedTypeSymbol)method.Parameters[1].Type, signed: true);
+                VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
 
-                method = model.GetDeclaredSymbol(methodDeclarations[1]);
+                method = comp.GetMember<MethodSymbol>("I.F2");
                 Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
-                VerifyTypes((INamedTypeSymbol)method.Parameters[0].Type, (INamedTypeSymbol)method.Parameters[1].Type, signed: false);
+                VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: false);
             }
         }
 
@@ -144,8 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Equal(underlyingType, nativeIntegerType);
             Assert.Equal(nativeIntegerType, underlyingType);
             Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
-
-            VerifyTypes(underlyingType.GetSymbol<NamedTypeSymbol>(), nativeIntegerType.GetSymbol<NamedTypeSymbol>(), signed);
         }
 
         private static void VerifyTypes(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType, bool signed)
@@ -178,6 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             VerifyEqualButDistinct(underlyingType, underlyingType.AsNativeInt(true));
             VerifyEqualButDistinct(nativeIntegerType, nativeIntegerType.AsNativeInt(false));
             VerifyEqualButDistinct(underlyingType, nativeIntegerType);
+
+            VerifyTypes(underlyingType.GetPublicSymbol(), nativeIntegerType.GetPublicSymbol(), signed);
         }
 
         private static void VerifyEqualButDistinct(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType)
@@ -224,34 +221,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(diagnostics);
-            verify(comp, comp.SyntaxTrees[1]);
+            verify(comp);
 
             comp = CreateEmptyCompilation(sourceA);
             comp.VerifyDiagnostics();
-            var ref1 = new CSharpCompilationReference(comp);
+            var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
             comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(diagnostics);
-            verify(comp, comp.SyntaxTrees[0]);
+            verify(comp);
 
             comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(diagnostics);
-            verify(comp, comp.SyntaxTrees[0]);
+            verify(comp);
 
-            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            static void verify(CSharpCompilation comp)
             {
-                var nodes = tree.GetRoot().DescendantNodes().ToArray();
-                var model = comp.GetSemanticModel(tree);
-                var methodDeclarations = nodes.OfType<MethodDeclarationSyntax>().ToArray();
-
-                var method = model.GetDeclaredSymbol(methodDeclarations[0]);
+                var method = comp.GetMember<MethodSymbol>("I.F1");
                 Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(FormatWithSpecialTypes));
-                verifyTypes(method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>(), method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>(), signed: true);
+                verifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
 
-                method = model.GetDeclaredSymbol(methodDeclarations[1]);
+                method = comp.GetMember<MethodSymbol>("I.F2");
                 Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
-                verifyTypes(method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>(), method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>(), signed: false);
+                verifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: false);
             }
 
             static void verifyTypes(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType, bool signed)
