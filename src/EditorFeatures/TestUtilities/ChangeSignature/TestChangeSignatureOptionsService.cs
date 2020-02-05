@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
         }
 
-
         ChangeSignatureOptionsResult IChangeSignatureOptionsService.GetChangeSignatureOptions(
             Document document,
             int insertPosition,
