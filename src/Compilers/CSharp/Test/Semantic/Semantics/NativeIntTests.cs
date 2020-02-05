@@ -57,6 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
+            var type = comp.GetTypeByMetadataName("System.IntPtr");
+            VerifyType(type, signed: true, isNativeInt: false);
+            VerifyType(type.GetPublicSymbol(), signed: true, isNativeInt: false);
+
+            type = comp.GetTypeByMetadataName("System.UIntPtr");
+            VerifyType(type, signed: false, isNativeInt: false);
+            VerifyType(type.GetPublicSymbol(), signed: false, isNativeInt: false);
+
             var method = comp.GetMember<MethodSymbol>("I.F1");
             Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(FormatWithSpecialTypes));
             VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
@@ -106,6 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             static void verify(CSharpCompilation comp)
             {
+                var type = comp.GetTypeByMetadataName("System.IntPtr");
+                VerifyType(type, signed: true, isNativeInt: false);
+                VerifyType(type.GetPublicSymbol(), signed: true, isNativeInt: false);
+
+                type = comp.GetTypeByMetadataName("System.UIntPtr");
+                VerifyType(type, signed: false, isNativeInt: false);
+                VerifyType(type.GetPublicSymbol(), signed: false, isNativeInt: false);
+
                 var method = comp.GetMember<MethodSymbol>("I.F1");
                 Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(FormatWithSpecialTypes));
                 VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
@@ -116,19 +132,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             }
         }
 
-        private static void VerifyTypes(INamedTypeSymbol underlyingType, INamedTypeSymbol nativeIntegerType, bool signed)
+        private static void VerifyType(NamedTypeSymbol type, bool signed, bool isNativeInt)
         {
             var specialType = signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr;
 
-            Assert.Equal(specialType, underlyingType.SpecialType);
-            Assert.Equal(SymbolKind.NamedType, underlyingType.Kind);
-            Assert.Equal(TypeKind.Struct, underlyingType.TypeKind);
-            Assert.Same(underlyingType, underlyingType.ConstructedFrom);
+            Assert.Equal(specialType, type.SpecialType);
+            Assert.Equal(SymbolKind.NamedType, type.Kind);
+            Assert.Equal(TypeKind.Struct, type.TypeKind);
+            Assert.Same(type, type.ConstructedFrom);
+            Assert.Equal(isNativeInt, type.IsNativeInt);
+        }
 
-            Assert.Equal(specialType, nativeIntegerType.SpecialType);
-            Assert.Equal(SymbolKind.NamedType, nativeIntegerType.Kind);
-            Assert.Equal(TypeKind.Struct, nativeIntegerType.TypeKind);
-            Assert.Same(nativeIntegerType, nativeIntegerType.ConstructedFrom);
+        private static void VerifyType(INamedTypeSymbol type, bool signed, bool isNativeInt)
+        {
+            var specialType = signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr;
+
+            Assert.Equal(specialType, type.SpecialType);
+            Assert.Equal(SymbolKind.NamedType, type.Kind);
+            Assert.Equal(TypeKind.Struct, type.TypeKind);
+            Assert.Same(type, type.ConstructedFrom);
+        }
+
+        private static void VerifyTypes(INamedTypeSymbol underlyingType, INamedTypeSymbol nativeIntegerType, bool signed)
+        {
+            VerifyType(underlyingType, signed, isNativeInt: false);
+            VerifyType(nativeIntegerType, signed, isNativeInt: false);
 
             Assert.Empty(nativeIntegerType.MemberNames);
             Assert.Empty(nativeIntegerType.GetTypeMembers());
@@ -145,19 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
         private static void VerifyTypes(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType, bool signed)
         {
-            var specialType = signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr;
-
-            Assert.Equal(specialType, underlyingType.SpecialType);
-            Assert.Equal(SymbolKind.NamedType, underlyingType.Kind);
-            Assert.Equal(TypeKind.Struct, underlyingType.TypeKind);
-            Assert.Same(underlyingType, underlyingType.ConstructedFrom);
-            Assert.False(underlyingType.IsNativeInt);
-
-            Assert.Equal(specialType, nativeIntegerType.SpecialType);
-            Assert.Equal(SymbolKind.NamedType, nativeIntegerType.Kind);
-            Assert.Equal(TypeKind.Struct, nativeIntegerType.TypeKind);
-            Assert.Same(nativeIntegerType, nativeIntegerType.ConstructedFrom);
-            Assert.True(nativeIntegerType.IsNativeInt);
+            VerifyType(underlyingType, signed, isNativeInt: false);
+            VerifyType(nativeIntegerType, signed, isNativeInt: true);
 
             Assert.Empty(nativeIntegerType.MemberNames);
             Assert.Empty(nativeIntegerType.GetTypeMembers());
@@ -267,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         // PROTOTYPE: Test:
         // - @nint
         // - Type.nint, Namespace.nint
-        // - BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol has the comment "dynamic not allowed as an attribute underlyingType". Does that apply to "nint"?
+        // - BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol has the comment "dynamic not allowed as an attribute type". Does that apply to "nint"?
         // - BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol checks IsViableType(result)
         // - Use-site diagnostics (basically any use-site diagnostics from IntPtr/UIntPtr)
 
