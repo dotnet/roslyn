@@ -297,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsLocalFunctionDeclarationContext(
             this SyntaxTree syntaxTree,
             int position,
+            ISet<SyntaxKind> validModifiers,
             CancellationToken cancellationToken)
         {
             var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
@@ -307,9 +308,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 return true;
             }
-
-            // Also valid after certain modifiers
-            var validModifiers = SyntaxKindSet.LocalFunctionModifiers;
 
             var modifierTokens = syntaxTree.GetPrecedingModifiers(
                 position, token, out var beforeModifiersPosition);
@@ -328,6 +326,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
                 token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
+
+                // TODO: how do we detect that we are in an attribute list inside a method body?
+                // Simply adding `|| token.IsKind(SyntaxKind.CloseBracketToken)` makes us fail tests
+                // for keyword recommendation following assembly attributes.
                 return syntaxTree.IsStatementContext(beforeModifiersPosition, token, cancellationToken);
             }
 

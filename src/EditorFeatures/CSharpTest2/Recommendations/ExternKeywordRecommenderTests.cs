@@ -49,10 +49,38 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        public async Task TestInEmptyStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStaticInStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"static $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttributesInStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr] $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttributesAndStaticInStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr] static $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterExternInStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"$$"));
+@"extern $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

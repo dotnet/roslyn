@@ -247,7 +247,7 @@ class Goo
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction7()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 class Goo
 {
     public void M()
