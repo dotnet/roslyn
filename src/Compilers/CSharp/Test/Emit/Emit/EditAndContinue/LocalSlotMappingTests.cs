@@ -2355,7 +2355,7 @@ class C
             // Validate presence of a hidden sequence point @IL_0007 that is required for proper function remapping.
             v0.VerifyIL("C.M", @"
 {
-  // Code size       59 (0x3b)
+  // Code size       56 (0x38)
   .maxstack  2
   .locals init (string V_0,
                 string V_1)
@@ -2365,25 +2365,23 @@ class C
  ~IL_0007:  ldloc.1
   IL_0008:  stloc.0
  ~IL_0009:  ldloc.0
-  IL_000a:  brfalse.s  IL_003a
-  IL_000c:  ldloc.0
-  IL_000d:  ldstr      ""a""
-  IL_0012:  call       ""bool string.op_Equality(string, string)""
-  IL_0017:  brtrue.s   IL_0028
-  IL_0019:  ldloc.0
-  IL_001a:  ldstr      ""b""
-  IL_001f:  call       ""bool string.op_Equality(string, string)""
-  IL_0024:  brtrue.s   IL_0031
-  IL_0026:  br.s       IL_003a
- -IL_0028:  ldc.i4.1
-  IL_0029:  call       ""void System.Console.WriteLine(int)""
-  IL_002e:  nop
- -IL_002f:  br.s       IL_003a
- -IL_0031:  ldc.i4.2
-  IL_0032:  call       ""void System.Console.WriteLine(int)""
-  IL_0037:  nop
- -IL_0038:  br.s       IL_003a
- -IL_003a:  ret
+  IL_000a:  ldstr      ""a""
+  IL_000f:  call       ""bool string.op_Equality(string, string)""
+  IL_0014:  brtrue.s   IL_0025
+  IL_0016:  ldloc.0
+  IL_0017:  ldstr      ""b""
+  IL_001c:  call       ""bool string.op_Equality(string, string)""
+  IL_0021:  brtrue.s   IL_002e
+  IL_0023:  br.s       IL_0037
+ -IL_0025:  ldc.i4.1
+  IL_0026:  call       ""void System.Console.WriteLine(int)""
+  IL_002b:  nop
+ -IL_002c:  br.s       IL_0037
+ -IL_002e:  ldc.i4.2
+  IL_002f:  call       ""void System.Console.WriteLine(int)""
+  IL_0034:  nop
+ -IL_0035:  br.s       IL_0037
+ -IL_0037:  ret
 }", sequencePoints: "C.M");
 
             var methodData0 = v0.TestData.GetMethodData("C.M");
@@ -2395,9 +2393,9 @@ class C
                 generation0,
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapByKind(method0, SyntaxKind.SwitchStatement), preserveLocalVariables: true)));
 
-            diff1.VerifyIL("C.M", @"
+        diff1.VerifyIL("C.M", @"
 {
-  // Code size       61 (0x3d)
+  // Code size       58 (0x3a)
   .maxstack  2
   .locals init (string V_0,
                 string V_1)
@@ -2407,25 +2405,23 @@ class C
  ~IL_0007:  ldloc.1
   IL_0008:  stloc.0
  ~IL_0009:  ldloc.0
-  IL_000a:  brfalse.s  IL_003c
-  IL_000c:  ldloc.0
-  IL_000d:  ldstr      ""a""
-  IL_0012:  call       ""bool string.op_Equality(string, string)""
-  IL_0017:  brtrue.s   IL_0028
-  IL_0019:  ldloc.0
-  IL_001a:  ldstr      ""b""
-  IL_001f:  call       ""bool string.op_Equality(string, string)""
-  IL_0024:  brtrue.s   IL_0032
-  IL_0026:  br.s       IL_003c
- -IL_0028:  ldc.i4.s   10
-  IL_002a:  call       ""void System.Console.WriteLine(int)""
-  IL_002f:  nop
- -IL_0030:  br.s       IL_003c
- -IL_0032:  ldc.i4.s   20
-  IL_0034:  call       ""void System.Console.WriteLine(int)""
-  IL_0039:  nop
- -IL_003a:  br.s       IL_003c
- -IL_003c:  ret
+  IL_000a:  ldstr      ""a""
+  IL_000f:  call       ""bool string.op_Equality(string, string)""
+  IL_0014:  brtrue.s   IL_0025
+  IL_0016:  ldloc.0
+  IL_0017:  ldstr      ""b""
+  IL_001c:  call       ""bool string.op_Equality(string, string)""
+  IL_0021:  brtrue.s   IL_002f
+  IL_0023:  br.s       IL_0039
+ -IL_0025:  ldc.i4.s   10
+  IL_0027:  call       ""void System.Console.WriteLine(int)""
+  IL_002c:  nop
+ -IL_002d:  br.s       IL_0039
+ -IL_002f:  ldc.i4.s   20
+  IL_0031:  call       ""void System.Console.WriteLine(int)""
+  IL_0036:  nop
+ -IL_0037:  br.s       IL_0039
+ -IL_0039:  ret
 }", methodToken: diff1.UpdatedMethods.Single());
         }
 

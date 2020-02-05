@@ -3374,10 +3374,7 @@ void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.ERR_ConstantExpected, @"(object)""b""").WithLocation(23, 18),
                 // (21,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
                 //             case (object)null:
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (object)null:").WithArguments("null").WithLocation(21, 13),
-                // (23,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case (object)"b":
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, @"(object)""b""").WithLocation(23, 18));
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (object)null:").WithArguments("null").WithLocation(21, 13));
         }
 
         [Fact]

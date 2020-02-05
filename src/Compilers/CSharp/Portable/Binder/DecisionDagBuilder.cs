@@ -837,7 +837,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return resultForRelation(BinaryOperatorKind.Equal, t.Value);
                 case BoundDagRelationalTest t:
                     return resultForRelation(t.Relation, t.Value);
-                    throw new NotImplementedException();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(test);
             }
@@ -850,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             resultForRelation(BinaryOperatorKind relation, ConstantValue value)
             {
                 var input = test.Input;
-                IValueSetFactory? valueFac = ValueSetFactory.ForSpecialType(input.Type.SpecialType);
+                IValueSetFactory? valueFac = ValueSetFactory.ForSpecialType(input.Type.EnumUnderlyingTypeOrSelf().SpecialType);
                 if (valueFac == null || value.IsBad)
                 {
                     // If it is a type we don't track yet, assume all values are possible
@@ -1698,15 +1697,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundDagTest ComputeSelectedTest()
                 {
                     // Our simple heuristic is to perform the first test of the
-                    // first possible matched case.
-                    //
-                    // But in the specific case of a null check following by a type test, we skip the
-                    // null check and perform the type test directly.  That's because the type test
-                    // has the side-effect of performing the null check for us.
-                    if (RemainingTests[0] is One { Test: { Kind: BoundKind.DagNonNullTest } planA } &&
-                        RemainingTests[1] is One { Test: { Kind: BoundKind.DagTypeTest } planB })
+                    // first possible matched case, with two exceptions.
+
+                    if (RemainingTests[0] is One { Test: { Kind: BoundKind.DagNonNullTest } planA })
                     {
-                        return (planA.Input == planB.Input) ? planB : planA;
+                        switch (RemainingTests[1])
+                        {
+                            // In the specific case of a null check following by a type test, we skip the
+                            // null check and perform the type test directly.  That's because the type test
+                            // has the side-effect of performing the null check for us.
+                            case One { Test: { Kind: BoundKind.DagTypeTest } planB1 }:
+                                return (planA.Input == planB1.Input) ? planB1 : planA;
+
+                            // In the specific case of a null check following by a value test (which occurs for
+                            // pattern matching a string constant pattern), we skip the
+                            // null check and perform the value test directly.  That's because the value test
+                            // has the side-effect of performing the null check for us.
+                            case One { Test: { Kind: BoundKind.DagValueTest } planB2 }:
+                                return (planA.Input == planB2.Input) ? planB2 : planA;
+                        }
                     }
 
                     return RemainingTests[0].ComputeSelectedTest();

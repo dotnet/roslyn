@@ -1624,9 +1624,9 @@ class Program
                 // (8,18): error CS0150: A constant value is expected
                 //             case new object() is int x1:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new object() is int x1").WithLocation(8, 18),
-                // (9,17): warning CS0162: Unreachable code detected
+                // (9,42): error CS0165: Use of unassigned local variable 'x1'
                 //                 System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(9, 42)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

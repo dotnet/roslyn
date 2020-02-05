@@ -380,8 +380,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("-Inf", ForFloat.Related(Equal, float.NegativeInfinity).ToString());
         }
 
+        [Fact]
+        public void TestString_01()
+        {
+            var notaset = ForString.Related(Equal, "a").Complement();
+            var bset = ForString.Related(Equal, "b");
+            var intersect = bset.Intersect(notaset);
+            Assert.False(intersect.Any(Equal, "c"));
+        }
+
         // TODO: test that relationals not supported for decimal
         // TODO: test other integral types
         // TODO: test bool
+        // TODO: test string
     }
 }

@@ -33852,9 +33852,6 @@ class C
                 // (11,18): error CS0150: A constant value is expected
                 //             case !M(nameof(M(out var z2)), z2):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "!M(nameof(M(out var z2)), z2)").WithLocation(11, 18),
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case !M(nameof(M(out var z2)), z2):
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "!M(nameof(M(out var z2)), z2)").WithLocation(11, 18),
                 // (8,44): error CS0165: Use of unassigned local variable 'z1'
                 //             case !M(nameof(M(out int z1)), z1):
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(8, 44),

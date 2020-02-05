@@ -149,13 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
             if (wasExpression)
             {
-                if (constantValueOpt is null)
-                {
-                    constantValueOpt = ConstantValue.Bad;
-                    hasErrors = true;
-                }
-
-                return new BoundConstantPattern(node, convertedExpression, constantValueOpt, inputType, hasErrors);
+                return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors || constantValueOpt is null);
             }
             else
             {

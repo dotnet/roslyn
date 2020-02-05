@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var other = (EnumeratedValueSet<T, TTC>)o;
                 var (larger, smaller) = (this.membersIncludedOrExcluded.Count > other.membersIncludedOrExcluded.Count) ? (this, other) : (other, this);
-                return (larger.included, larger.included) switch
+                return (larger.included, smaller.included) switch
                 {
                     (true, true) => new EnumeratedValueSet<T, TTC>(true, this.membersIncludedOrExcluded.Intersect(other.membersIncludedOrExcluded)),
                     (true, false) => new EnumeratedValueSet<T, TTC>(true, this.membersIncludedOrExcluded.Except(other.membersIncludedOrExcluded)),
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var other = (EnumeratedValueSet<T, TTC>)o;
                 var (larger, smaller) = (this.membersIncludedOrExcluded.Count > other.membersIncludedOrExcluded.Count) ? (this, other) : (other, this);
-                return (larger.included, larger.included) switch
+                return (larger.included, smaller.included) switch
                 {
                     (false, false) => new EnumeratedValueSet<T, TTC>(false, this.membersIncludedOrExcluded.Intersect(other.membersIncludedOrExcluded)),
                     (false, true) => new EnumeratedValueSet<T, TTC>(false, this.membersIncludedOrExcluded.Except(other.membersIncludedOrExcluded)),
