@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -942,8 +944,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableHashSet<ISymbol> ComputeGeneratedCodeSymbolsInTree(SyntaxTree tree, Compilation compilation, CancellationToken cancellationToken)
         {
             // PERF: Bail out early if file doesn't have "GeneratedCode" text.
-            var text = tree.GetText(cancellationToken).ToString();
-            if (!text.Contains("GeneratedCode"))
+            var walker = new GeneratedCodeTokenWalker(cancellationToken);
+            walker.Visit(tree.GetRoot(cancellationToken));
+            if (!walker.HasGeneratedCodeIdentifier)
             {
                 return ImmutableHashSet<ISymbol>.Empty;
             }

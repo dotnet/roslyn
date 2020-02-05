@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -8,7 +10,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -96,45 +97,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     yield return documentId;
                 }
             }
-        }
-
-        /// <summary>
-        /// Revert all textual change made in unchangeable documents.
-        /// </summary>
-        /// <remark>A document is unchangeable if `Document.CanApplyChange()` returns false</remark>
-        /// <param name="newSolution">New solution with changes</param>
-        /// <param name="oldSolution">Old solution the new solution is based on</param>
-        /// <returns>
-        /// A tuple indicates whether there's such disallowed change made in the <paramref name="newSolution"/>, 
-        /// as well as the updated solution with all disallowed change reverted (which would be identical to 
-        /// <paramref name="oldSolution"/> if `containsDisallowedChange` is false).
-        /// </returns>
-        public static async Task<(bool containsDisallowedChange, Solution updatedSolution)> ExcludeDisallowedDocumentTextChangesAsync(this Solution newSolution, Solution oldSolution, CancellationToken cancellationToken)
-        {
-            var solutionChanges = newSolution.GetChanges(oldSolution);
-            var containsDisallowedChange = false;
-
-            foreach (var projectChange in solutionChanges.GetProjectChanges())
-            {
-                foreach (var changedDocumentId in projectChange.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
-                {
-                    var oldDocument = oldSolution.GetDocument(changedDocumentId)!;
-                    if (oldDocument.CanApplyChange())
-                    {
-                        continue;
-                    }
-
-                    containsDisallowedChange = true;
-
-                    var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newDocument = newSolution.GetDocument(changedDocumentId)!;
-                    var revertedDocument = newDocument.WithText(oldText);
-
-                    newSolution = revertedDocument.Project.Solution;
-                }
-            }
-
-            return (containsDisallowedChange, newSolution);
         }
     }
 }

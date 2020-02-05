@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -26415,6 +26417,137 @@ public class ClassB
                 Assert.False(tuple2.TupleUnderlyingType.IsErrorType());
                 Assert.False(tuple2.IsErrorType());
             }
+        }
+
+        [Fact]
+        [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
+        [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
+        public void CustomFields_01()
+        {
+            var source0 = @"
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+    {
+        public static int F1 = 123;
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return F1.ToString();
+        }
+    }
+}
+";
+
+            var source1 = @"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine((1,2).ToString());
+    }
+}
+";
+
+            var source2 = @"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(System.ValueTuple<int, int>.F1);
+    }
+}
+";
+
+            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "123");
+
+            var comp1Ref = new[] { comp1.ToMetadataReference() };
+            var comp1ImageRef = new[] { comp1.EmitToImageReference() };
+
+            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            CompileAndVerify(comp4, expectedOutput: "123");
+
+            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp5, expectedOutput: "123");
+
+            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1ImageRef);
+            CompileAndVerify(comp6, expectedOutput: "123");
+        }
+
+        [Fact]
+        [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
+        [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
+        public void CustomFields_02()
+        {
+            var source0 = @"
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+    {
+        public int F1;
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+            F1 = 123;
+        }
+
+        public override string ToString()
+        {
+            return F1.ToString();
+        }
+    }
+}
+";
+
+            var source1 = @"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine((1,2).ToString());
+    }
+}
+";
+
+            var source2 = @"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine((1,2).F1);
+    }
+}
+";
+
+            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "123");
+
+            var comp1Ref = new[] { comp1.ToMetadataReference() };
+            var comp1ImageRef = new[] { comp1.EmitToImageReference() };
+
+            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            CompileAndVerify(comp4, expectedOutput: "123");
+
+            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp5, expectedOutput: "123");
+
+            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1ImageRef);
+            CompileAndVerify(comp6, expectedOutput: "123");
         }
     }
 }

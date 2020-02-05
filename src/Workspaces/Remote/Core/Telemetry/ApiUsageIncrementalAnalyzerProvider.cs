@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -94,13 +96,25 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     }
                 }
 
-                var groupByAssembly = metadataSymbolUsed.GroupBy(s => s.ContainingAssembly);
-                var apiPerAssembly = groupByAssembly.Select(g => new
+                var groupByAssembly = metadataSymbolUsed.GroupBy(symbol => symbol.ContainingAssembly);
+                var apiPerAssembly = groupByAssembly.Select(assemblyGroup => new
                 {
                     // mark all string as PII (customer data)
-                    AssemblyName = new TelemetryPiiProperty(g.Key.Identity.Name),
-                    AssemblyVersion = g.Key.Identity.Version.ToString(),
-                    Symbols = g.Select(s => s.GetDocumentationCommentId()).Where(id => id != null).Select(id => new TelemetryPiiProperty(id))
+                    AssemblyName = new TelemetryPiiProperty(assemblyGroup.Key.Identity.Name),
+                    AssemblyVersion = assemblyGroup.Key.Identity.Version.ToString(),
+                    Namespaces = assemblyGroup.GroupBy(symbol => symbol.ContainingNamespace)
+                        .Select(namespaceGroup =>
+                        {
+                            var namespaceName = namespaceGroup.Key?.ToString() ?? string.Empty;
+
+                            return new
+                            {
+                                Namespace = new TelemetryPiiProperty(namespaceName),
+                                Symbols = namespaceGroup.Select(symbol => symbol.GetDocumentationCommentId())
+                                    .Where(id => id != null)
+                                    .Select(id => new TelemetryPiiProperty(id))
+                            };
+                        })
                 });
 
                 lock (_reported)

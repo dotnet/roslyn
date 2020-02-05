@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7411,6 +7413,83 @@ public class Test
             int [|p2|] => ""Int"",
             _ => ""NoMatch""
         };
+    }
+}", new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task LocalUsedWithPropertySubPattern()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    public object P { get; }
+    void M()
+    {
+        C [|c|] = new C();
+        var x = c is { P : int i };
+    }
+}", new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedLocalDefinedInPropertySubPattern_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public object P { get; }
+    void M(C c)
+    {
+        var x = c is { P : int [|i|] };
+    }
+}",
+@"class C
+{
+    public object P { get; }
+    void M(C c)
+    {
+        var x = c is { P : int _ };
+    }
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedVarLocalDefinedInPropertySubPattern_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public object P { get; }
+    void M(C c)
+    {
+        var x = c is { P : var [|i|] };
+    }
+}",
+@"class C
+{
+    public object P { get; }
+    void M(C c)
+    {
+        var x = c is { P : _ };
+    }
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedLocalDefinedInPropertySubPattern_PreferUnusedLocal()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    public object P { get; }
+    void M(C c)
+    {
+        var x = c is { P : int [|i|] };
     }
 }", new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
         }

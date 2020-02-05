@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -6,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             switch (context)
             {
                 case ChangeSignatureAnalyzedSucceedContext changeSignatureAnalyzedSucceedContext:
-                    return ChangeSignatureWithContextAsync(changeSignatureAnalyzedSucceedContext, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                    return ChangeSignatureWithContext(changeSignatureAnalyzedSucceedContext, cancellationToken);
                 case CannotChangeSignatureAnalyzedContext cannotChangeSignatureAnalyzedContext:
                     switch (cannotChangeSignatureAnalyzedContext.CannotChangeSignatureReason)
                     {
@@ -172,7 +175,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 declarationDocument ?? document, insertPositionOpt.Value, symbol, parameterConfiguration);
         }
 
-        private async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedSucceedContext context, CancellationToken cancellationToken)
+        private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
         {
             var options = GetChangeSignatureOptions(context);
             if (options == null)
@@ -180,15 +183,15 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new ChangeSignatureResult(succeeded: false);
             }
 
-            return await ChangeSignatureWithContextAsync(context, options, cancellationToken).ConfigureAwait(false);
+            return ChangeSignatureWithContext(context, options, cancellationToken);
         }
 
         protected abstract int? TryGetInsertPositionFromDeclaration(SyntaxNode matchingNode);
 
-        internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedSucceedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
+        internal ChangeSignatureResult ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedSucceedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
-            var updatedSolution = await TryCreateUpdatedSolutionAsync(context, options, cancellationToken).ConfigureAwait(false);
-            return new ChangeSignatureResult(updatedSolution != null, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
+            var succeeded = TryCreateUpdatedSolution(context, options, cancellationToken, out var updatedSolution);
+            return new ChangeSignatureResult(succeeded, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
         }
 
         internal ChangeSignatureOptionsResult? GetChangeSignatureOptions(ChangeSignatureAnalyzedSucceedContext context)
@@ -224,11 +227,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
 #nullable enable
 
-        // TODO refactor this: https://github.com/dotnet/roslyn/issues/41136
-        private async Task<Solution?> TryCreateUpdatedSolutionAsync(
-            ChangeSignatureAnalyzedSucceedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
+        private bool TryCreateUpdatedSolution(
+            ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken, [NotNullWhen(true)] out Solution? updatedSolution)
         {
-            var originalSolution = context.Solution;
+            updatedSolution = null;
+
+            var currentSolution = context.Solution;
             var declaredSymbol = context.Symbol;
 
             var nodesToUpdate = new Dictionary<DocumentId, List<SyntaxNode>>();
@@ -312,7 +316,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     foreach (var def in symbolWithSyntacticParameters.Locations)
                     {
-                        if (!TryGetNodeWithEditableSignatureOrAttributes(def, originalSolution, out var nodeToUpdate, out var documentId))
+                        if (!TryGetNodeWithEditableSignatureOrAttributes(def, currentSolution, out var nodeToUpdate, out var documentId))
                         {
                             continue;
                         }
@@ -335,7 +339,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         continue;
                     }
 
-                    if (!TryGetNodeWithEditableSignatureOrAttributes(location.Location, originalSolution, out var nodeToUpdate2, out var documentId2))
+                    if (!TryGetNodeWithEditableSignatureOrAttributes(location.Location, currentSolution, out var nodeToUpdate2, out var documentId2))
                     {
                         continue;
                     }
@@ -354,7 +358,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var notificationService = context.Solution.Workspace.Services.GetRequiredService<INotificationService>();
                 if (!notificationService.ConfirmMessageBox(FeaturesResources.This_symbol_has_related_definitions_or_references_in_metadata_Changing_its_signature_may_result_in_build_errors_Do_you_want_to_continue, severity: NotificationSeverity.Warning))
                 {
-                    return null;
+                    return false;
                 }
             }
 
@@ -362,7 +366,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var updatedRoots = new Dictionary<DocumentId, SyntaxNode>();
             foreach (var docId in nodesToUpdate.Keys)
             {
-                var doc = originalSolution.GetDocument(docId)!;
+                var doc = currentSolution.GetRequiredDocument(docId);
                 var updater = doc.Project.LanguageServices.GetRequiredService<AbstractChangeSignatureService>();
                 var root = doc.GetSyntaxRootSynchronously(CancellationToken.None);
                 if (root is null)
@@ -408,8 +412,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(docId, formattedDoc.GetSyntaxRootSynchronously(cancellationToken)!);
             }
 
-            (_, updatedSolution) = await updatedSolution.ExcludeDisallowedDocumentTextChangesAsync(originalSolution, cancellationToken).ConfigureAwait(false);
-            return updatedSolution;
+            updatedSolution = currentSolution;
+            return true;
         }
 
 #nullable restore
