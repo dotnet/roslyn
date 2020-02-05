@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -399,7 +400,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var updatedSolution = originalSolution;
             foreach (var docId in nodesToUpdate.Keys)
             {
-                updatedSolution = updatedSolution.WithDocumentSyntaxRoot(docId, updatedRoots[docId]);
+                var updatedDoc = updatedSolution.GetDocument(docId)!.WithSyntaxRoot(updatedRoots[docId]);
+                var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, safe: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var formattedDoc = await Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                updatedSolution = updatedSolution.WithDocumentSyntaxRoot(docId, formattedDoc.GetSyntaxRootSynchronously(cancellationToken)!);
             }
 
             (_, updatedSolution) = await updatedSolution.ExcludeDisallowedDocumentTextChangesAsync(originalSolution, cancellationToken).ConfigureAwait(false);

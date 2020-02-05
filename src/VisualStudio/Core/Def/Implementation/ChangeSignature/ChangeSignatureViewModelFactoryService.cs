@@ -94,6 +94,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public abstract bool IsTypeNameValid(string typeName);
 
+        public abstract SyntaxNode GetTypeNode(string typeName);
+
         protected abstract ITrackingSpan[] CreateSpansMethod(ITextSnapshot textSnapshot, int insertPosition);
 
         protected abstract string TextToInsert { get; }

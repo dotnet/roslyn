@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -464,12 +465,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 attributeLists:=SyntaxFactory.List(Of AttributeListSyntax)(),
                 modifiers:=SyntaxFactory.TokenList(),
                 identifier:=SyntaxFactory.ModifiedIdentifier(addedParameter.ParameterName),
-                asClause:=SyntaxFactory.SimpleAsClause(SyntaxFactory.ParseTypeName(addedParameter.TypeName).WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace)).WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace),
+                asClause:=SyntaxFactory.SimpleAsClause(
+                    addedParameter.Type.GenerateTypeSyntax() _
+                    .WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace)) _
+                    .WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace),
                 [default]:=Nothing)
         End Function
 
         Private Shared Function CreateNewCrefParameterSyntax(addedParameter As AddedParameter) As CrefSignaturePartSyntax
-            Return SyntaxFactory.CrefSignaturePart(Nothing, type:=SyntaxFactory.ParseTypeName(addedParameter.TypeName))
+            Return SyntaxFactory.CrefSignaturePart(
+                modifier:=Nothing,
+                type:=addedParameter.Type.GenerateTypeSyntax())
         End Function
 
         Private Function UpdateParamNodesInLeadingTrivia(document As Document, node As VisualBasicSyntaxNode, declarationSymbol As ISymbol, updatedSignature As SignatureChange) As List(Of SyntaxTrivia)

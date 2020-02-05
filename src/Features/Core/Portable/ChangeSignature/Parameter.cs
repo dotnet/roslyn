@@ -25,21 +25,24 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
     internal sealed class AddedParameter : Parameter
     {
-        public AddedParameter(string type, string parameter, string callSiteValue)
+        public AddedParameter(ITypeSymbol type, string typeNameDisplayWithErrorIndicator, string parameter, string callSiteValue)
         {
-            TypeName = type;
+            Type = type;
+            TypeNameDisplayWithErrorIndicator = typeNameDisplayWithErrorIndicator;
             ParameterName = parameter;
             CallSiteValue = callSiteValue;
         }
 
-        public string TypeName { get; set; }
+        public ITypeSymbol Type { get; set; }
         public string ParameterName { get; set; }
         public string CallSiteValue { get; set; }
 
         public override bool HasExplicitDefaultValue => false;
         public override string Name => ParameterName;
 
+        public string TypeNameDisplayWithErrorIndicator { get; set; }
+
         // For test purposes: to display assert failure details in tests.
-        public override string ToString() => $"{TypeName} {Name} ({CallSiteValue})";
+        public override string ToString() => $"{Type.ToDisplayString(new SymbolDisplayFormat(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters))} {Name} ({CallSiteValue})";
     }
 }

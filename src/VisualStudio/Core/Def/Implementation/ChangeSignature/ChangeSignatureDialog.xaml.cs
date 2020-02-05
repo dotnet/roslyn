@@ -138,6 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             if (result.HasValue && result.Value)
             {
                 var addedParameter = new AddedParameter(
+                    addParameterViewModel.TypeSymbol,
                     addParameterViewModel.TypeName,
                     addParameterViewModel.ParameterName,
                     string.IsNullOrWhiteSpace(addParameterViewModel.CallSiteValue)

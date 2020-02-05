@@ -610,7 +610,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 _addedParameter = addedParameter;
             }
 
-            public override string Type => _addedParameter.TypeName;
+            public override string Type => _addedParameter.TypeNameDisplayWithErrorIndicator;
 
             public override string ParameterName => _addedParameter.ParameterName;
 

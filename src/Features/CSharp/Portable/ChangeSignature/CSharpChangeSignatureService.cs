@@ -448,19 +448,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         private static ParameterSyntax CreateNewParameterSyntax(AddedParameter addedParameter)
             => CreateNewParameterSyntax(addedParameter, skipParameterType: false);
 
-        // TODO consider using symbol for TypeName instead of parsing it
-        // https://github.com/dotnet/roslyn/issues/41046
-        // Consider cross-platform scenarios here.
         private static ParameterSyntax CreateNewParameterSyntax(AddedParameter addedParameter, bool skipParameterType)
             => SyntaxFactory.Parameter(
                 attributeLists: SyntaxFactory.List<AttributeListSyntax>(),
                 modifiers: SyntaxFactory.TokenList(),
-                type: skipParameterType ? default : SyntaxFactory.ParseTypeName(addedParameter.TypeName).WithTrailingTrivia(SyntaxFactory.ElasticSpace),
+                type: skipParameterType
+                    ? default
+                    : addedParameter.Type.GenerateTypeSyntax(allowVar: false)
+                        .WithTrailingTrivia(SyntaxFactory.ElasticSpace),
                 SyntaxFactory.Identifier(addedParameter.ParameterName),
                 @default: default);
 
         private static CrefParameterSyntax CreateNewCrefParameterSyntax(AddedParameter addedParameter)
-            => SyntaxFactory.CrefParameter(type: SyntaxFactory.ParseTypeName(addedParameter.TypeName)).WithLeadingTrivia(SyntaxFactory.ElasticSpace);
+            => SyntaxFactory.CrefParameter(type: addedParameter.Type.GenerateTypeSyntax(allowVar: false))
+                .WithLeadingTrivia(SyntaxFactory.ElasticSpace);
 
         private SeparatedSyntaxList<T> UpdateDeclaration<T>(
             SeparatedSyntaxList<T> list,

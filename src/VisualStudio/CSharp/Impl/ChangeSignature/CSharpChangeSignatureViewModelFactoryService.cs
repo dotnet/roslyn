@@ -50,5 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
                 new SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, null, addedParameterViewModel.ParameterName)};
 
         public override bool IsTypeNameValid(string typeName) => !SyntaxFactory.ParseTypeName(typeName).ContainsDiagnostics;
+
+        public override SyntaxNode GetTypeNode(string typeName) => SyntaxFactory.ParseTypeName(typeName);
     }
 }
