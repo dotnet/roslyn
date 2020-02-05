@@ -73,10 +73,10 @@ namespace TestResources
         public static byte[] Windows => ResourceLoader.GetOrCreateResource(ref s_windows, "ExpressionCompiler.Windows.winmd");
 
         private static byte[] s_windowsData;
-        public static byte[] WindowsData => ResourceLoader.GetOrCreateResource(ref s_windowsData, "ExpressionCompiler.WindowsData.winmd");
+        public static byte[] WindowsData => ResourceLoader.GetOrCreateResource(ref s_windowsData, "ExpressionCompiler.Windows.Data.winmd");
 
         private static byte[] s_windowsStorage;
-        public static byte[] WindowsStorage => ResourceLoader.GetOrCreateResource(ref s_windowsStorage, "ExpressionCompiler.WindowsStorage.winmd");
+        public static byte[] WindowsStorage => ResourceLoader.GetOrCreateResource(ref s_windowsStorage, "ExpressionCompiler.Windows.Storage.winmd");
     }
 }
 

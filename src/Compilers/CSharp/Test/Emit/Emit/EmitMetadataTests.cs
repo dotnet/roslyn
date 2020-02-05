@@ -87,32 +87,32 @@ public class N : D.K<M>
 
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 <Global>
-<type name=""&amp;lt;Module&amp;gt;"" />
-<type name=""A"" Of=""T"" base=""System.Object"">
-  <field name=""x1"" type=""A(Of T)"" />
-  <field name=""x2"" type=""A(Of D)"" />
-  <type name=""B"" base=""A(Of T)"">
-  <field name=""y1"" type=""A(Of T).B"" />
-  <field name=""y2"" type=""A(Of D).B"" />
-  <type name=""C"" base=""A(Of T).B"" />
+  <type name=""&lt;Module&gt;"" />
+  <type name=""A"" Of=""T"" base=""System.Object"">
+    <field name=""x1"" type=""A&lt;T&gt;"" />
+    <field name=""x2"" type=""A&lt;D&gt;"" />
+    <type name=""B"" base=""A&lt;T&gt;"">
+      <field name=""y1"" type=""A&lt;T&gt;.B"" />
+      <field name=""y2"" type=""A&lt;D&gt;.B"" />
+      <type name=""C"" base=""A&lt;T&gt;.B"" />
+    </type>
+    <type name=""H"" Of=""S"" base=""System.Object"">
+      <type name=""I"" base=""A&lt;T&gt;.H&lt;S&gt;"" />
+    </type>
   </type>
-  <type name=""H"" Of=""S"" base=""System.Object"">
-  <type name=""I"" base=""A(Of T).H(Of S)"" />
+  <type name=""D"" base=""System.Object"">
+    <type name=""K"" Of=""T"" base=""System.Object"">
+      <type name=""L"" base=""D.K&lt;T&gt;"" />
+    </type>
   </type>
-</type>
-<type name=""D"" base=""System.Object"">
-  <type name=""K"" Of=""T"" base=""System.Object"">
-  <type name=""L"" base=""D.K(Of T)"" />
-  </type>
-</type>
-<type name=""F"" base=""A(Of D)"" />
-<type name=""G"" base=""A(Of NS1.E).B"" />
-<type name=""J"" base=""A(Of D).H(Of D)"" />
-<type name=""M"" base=""System.Object"" />
-<type name=""N"" base=""D.K(Of M)"" />
-<NS1>
-  <type name=""E"" base=""D"" />
-</NS1>
+  <type name=""F"" base=""A&lt;D&gt;"" />
+  <type name=""G"" base=""A&lt;NS1.E&gt;.B"" />
+  <type name=""J"" base=""A&lt;D&gt;.H&lt;D&gt;"" />
+  <type name=""M"" base=""System.Object"" />
+  <type name=""N"" base=""D.K&lt;M&gt;"" />
+  <NS1>
+    <type name=""E"" base=""D"" />
+  </NS1>
 </Global>
 ", dump);
             }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));

@@ -26,7 +26,6 @@
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="Resources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
