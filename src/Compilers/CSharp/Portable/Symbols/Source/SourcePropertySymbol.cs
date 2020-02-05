@@ -491,6 +491,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override ImmutableArray<string> NotNullMembers =>
+            GetDecodedWellKnownAttributeData()?.NotNullMembers ?? ImmutableArray<string>.Empty;
+
+        internal sealed override ImmutableArray<string> NotNullWhenTrueMembers =>
+            GetDecodedWellKnownAttributeData()?.NotNullWhenTrueMembers ?? ImmutableArray<string>.Empty;
+
+        internal sealed override ImmutableArray<string> NotNullWhenFalseMembers =>
+            GetDecodedWellKnownAttributeData()?.NotNullWhenFalseMembers ?? ImmutableArray<string>.Empty;
+
         internal bool IsExpressionBodied
             => (_propertyFlags & Flags.IsExpressionBodied) != 0;
 
@@ -1371,7 +1380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
             {
-                attribute.DecodeSkipLocalsInitAttribute<PropertyWellKnownAttributeData>(DeclaringCompilation, ref arguments);
+                CSharpAttributeData.DecodeSkipLocalsInitAttribute<PropertyWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
@@ -1417,6 +1426,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
             {
                 arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasNotNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.MemberNotNullAttribute))
+            {
+                MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                CSharpAttributeData.DecodeMemberNotNullAttribute<PropertyWellKnownAttributeData>(ref arguments);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.MemberNotNullWhenAttribute))
+            {
+                MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                CSharpAttributeData.DecodeMemberNotNullWhenAttribute<PropertyWellKnownAttributeData>(ref arguments);
             }
         }
 

@@ -189,6 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLambdaDiscardParameters = MessageBase + 12765,
         IDS_FeatureLocalFunctionAttributes = MessageBase + 12766,
         IDS_FeatureExternLocalFunctions = MessageBase + 12767,
+        IDS_FeatureMemberNotNull = MessageBase + 12768,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -297,8 +298,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# preview features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
+<<<<<<< HEAD
                 case MessageID.IDS_FeatureLocalFunctionAttributes: // syntax check
                 case MessageID.IDS_FeatureExternLocalFunctions: // syntax check
+=======
+                case MessageID.IDS_FeatureMemberNotNull:
+>>>>>>> d74c05a... Add support for MemberNotNull/When attributes
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.

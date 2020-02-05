@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void DecodeSkipLocalsInitAttribute<T>(CSharpCompilation compilation, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        static internal void DecodeSkipLocalsInitAttribute<T>(CSharpCompilation compilation, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, ISkipLocalsInitAttributeTarget, new()
         {
             arguments.GetOrCreateData<T>().HasSkipLocalsInitAttribute = true;
@@ -244,6 +244,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_IllegalUnsafe, arguments.AttributeSyntaxOpt.Location);
             }
+        }
+
+        static internal void DecodeMemberNotNullAttribute<T>(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+            where T : WellKnownAttributeData, IMemberNotNullAttributeTarget, new()
+        {
+            var membersArray = arguments.Attribute.CommonConstructorArguments[0];
+            if (membersArray.IsNull)
+            {
+                return;
+            }
+
+            var builder = ArrayBuilder<string>.GetInstance();
+            foreach (var member in membersArray.Values)
+            {
+                builder.Add(member.DecodeValue<string>(SpecialType.System_String));
+            }
+
+            arguments.GetOrCreateData<T>().AddNotNullMember(builder);
+            builder.Free();
+        }
+
+        static internal void DecodeMemberNotNullWhenAttribute<T>(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+            where T : WellKnownAttributeData, IMemberNotNullAttributeTarget, new()
+        {
+            var membersArray = arguments.Attribute.CommonConstructorArguments[1];
+            if (membersArray.IsNull)
+            {
+                return;
+            }
+
+            var builder = ArrayBuilder<string>.GetInstance();
+            foreach (var member in membersArray.Values)
+            {
+                builder.Add(member.DecodeValue<string>(SpecialType.System_String));
+            }
+
+            var sense = arguments.Attribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean);
+            arguments.GetOrCreateData<T>().AddNotNullWhenMember(sense, builder);
+            builder.Free();
         }
 
         private DeclarativeSecurityAction DecodeSecurityAttributeAction(Symbol targetSymbol, CSharpCompilation compilation, AttributeSyntax nodeOpt, out bool hasErrors, DiagnosticBag diagnostics)

@@ -101,12 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsExpressionBodied
-        {
-            get
-            {
-                return _isExpressionBodied;
-            }
-        }
+            => _isExpressionBodied;
+
+        internal override ImmutableArray<string> NotNullWhenTrueMembers
+            => MethodKind == MethodKind.PropertyGet ? _property.NotNullWhenTrueMembers : ImmutableArray<string>.Empty;
+
+        internal override ImmutableArray<string> NotNullWhenFalseMembers
+            => MethodKind == MethodKind.PropertyGet ? _property.NotNullWhenFalseMembers : ImmutableArray<string>.Empty;
 
         private static void GetNameAndExplicitInterfaceImplementations(
             PropertySymbol explicitlyImplementedPropertyOpt,

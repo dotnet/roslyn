@@ -433,6 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             this.Diagnostics.Clear();
             this.regionPlace = RegionPlace.Before;
+            makeNotNullMembersMaybeNull();
             if (!_isSpeculative)
             {
                 ParameterSymbol methodThisParameter = MethodThisParameter;
@@ -448,10 +449,60 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
             EnforceDoesNotReturn(syntaxOpt: null);
+            EnforceMemberNotNull(syntaxOpt: null);
             return pendingReturns;
+
+            void makeNotNullMembersMaybeNull()
+            {
+                if (_symbol is MethodSymbol method)
+                {
+                    makeMembersMaybeNull(method, method.NotNullMembers);
+                    makeMembersMaybeNull(method, method.NotNullWhenTrueMembers);
+                    makeMembersMaybeNull(method, method.NotNullWhenFalseMembers);
+                }
+            }
+
+            void makeMembersMaybeNull(MethodSymbol method, ImmutableArray<string> members)
+            {
+                foreach (var memberName in members)
+                {
+                    makeMemberMaybeNull(method, memberName);
+                }
+            }
+
+            void makeMemberMaybeNull(MethodSymbol method, string memberName)
+            {
+                foreach (var member in method.ContainingType.GetMembers(memberName))
+                {
+                    if (GetSlotForFieldOrProperty(member) is int memberSlot &&
+                        memberSlot > 0)
+                    {
+                        this.State[memberSlot] = NullableFlowState.MaybeNull;
+                    }
+                }
+            }
         }
 
 #nullable enable
+
+        private int GetSlotForFieldOrProperty(Symbol field)
+        {
+            int thisSlot = -1;
+            bool isStatic = field.IsStatic;
+
+            if (!isStatic)
+            {
+                thisSlot = GetOrCreateSlot(MethodThisParameter);
+                if (thisSlot < 0)
+                {
+                    return -1;
+                }
+                Debug.Assert(thisSlot > 0);
+            }
+
+            return GetOrCreateSlot(field, isStatic ? 0 : thisSlot);
+        }
+
         private void EnforceDoesNotReturn(SyntaxNode? syntaxOpt)
         {
             if (_symbol is MethodSymbol method &&
@@ -461,6 +512,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // A method marked [DoesNotReturn] should not return.
                 ReportDiagnostic(ErrorCode.WRN_ShouldNotReturn, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation());
             }
+        }
+
+        private void EnforceMemberNotNull(SyntaxNode? syntaxOpt)
+        {
+            if (_symbol is MethodSymbol method)
+            {
+                bool isStatic = method.IsStatic;
+                foreach (var memberName in method.NotNullMembers)
+                {
+                    foreach (var member in method.ContainingType.GetMembers(memberName))
+                    {
+                        if (MemberHasBadState(member, State))
+                        {
+                            // Member '{name}' may not have a null value when exiting.
+                            ReportDiagnostic(ErrorCode.WRN_MemberNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name);
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool MemberHasBadState(Symbol member, LocalState state)
+        {
+            switch (member.Kind)
+            {
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                    if (GetSlotForFieldOrProperty(member) is int memberSlot &&
+                        memberSlot > 0)
+                    {
+                        var parameterState = state[memberSlot];
+                        return !parameterState.IsNotNull();
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                case SymbolKind.Event:
+                case SymbolKind.Method:
+                    break;
+            }
+
+            return false;
         }
 #nullable restore
 
@@ -1630,6 +1725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
         {
             Debug.Assert(!IsConditionalState);
+            EnforceMemberNotNull(node.Syntax);
 
             BoundExpression expr = node.ExpressionOpt;
             if (expr == null)
@@ -1663,6 +1759,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 checkConditionalParameterState(node.Syntax, parameters, sense: false);
                             }
                         }
+
+                        if (!IsConstantFalse(expr))
+                        {
+                            // don't check MemberNotWhenTrue state on a 'return false;'
+                            checkConditionalMemberState(node.Syntax, sense: true);
+                        }
+                        if (!IsConstantTrue(expr))
+                        {
+                            // don't check MemberNotWhenFalse state on a 'return true;'
+                            checkConditionalMemberState(node.Syntax, sense: false);
+                        }
+
                         Unsplit();
                     }
                 }
@@ -1693,7 +1801,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             EnforceDoesNotReturn(node.Syntax);
+
             return null;
+
+            void checkConditionalMemberState(SyntaxNode syntaxOpt, bool sense)
+            {
+                if (_symbol is MethodSymbol method)
+                {
+                    var notNullMembers = sense ? method.NotNullWhenTrueMembers : method.NotNullWhenFalseMembers;
+                    LocalState state = sense ? StateWhenTrue : StateWhenFalse;
+                    foreach (var memberName in notNullMembers)
+                    {
+                        foreach (var member in method.ContainingType.GetMembers(memberName))
+                        {
+                            if (MemberHasBadState(member, state))
+                            {
+                                // Member '{name}' may not have a null value when exiting with '{sense}'.
+                                ReportDiagnostic(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense);
+                            }
+                        }
+                    }
+                }
+            }
 
             void checkConditionalParameterState(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense)
             {
@@ -3715,6 +3844,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             (method, results, returnNotNull) = VisitArguments(node, node.Arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
                 node.Expanded, node.InvokedAsExtensionMethod, method);
 
+            if (method.IsStatic || node.ReceiverOpt is BoundThisReference)
+            {
+                ApplyMemberPostConditions(method.NotNullMembers, method.NotNullWhenTrueMembers, method.NotNullWhenFalseMembers);
+            }
+
             LearnFromEqualsMethod(method, node, receiverType, results);
 
             LearnFromCompareExchangeMethod(method, node, results);
@@ -4180,6 +4314,58 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             notNullParametersBuilder?.Free();
             return (method, results, shouldReturnNotNull);
+        }
+
+        private void ApplyMemberPostConditions(
+            ImmutableArray<string> notNullMembers,
+            ImmutableArray<string> notNullWhenTrueMembers,
+            ImmutableArray<string> notNullWhenFalseMembers)
+        {
+            if (notNullWhenTrueMembers.IsEmpty && notNullWhenFalseMembers.IsEmpty)
+            {
+                applyMemberPostConditions(notNullMembers, ref State);
+            }
+            else
+            {
+                Split();
+                applyMemberPostConditions(notNullWhenTrueMembers, ref StateWhenTrue);
+                applyMemberPostConditions(notNullWhenFalseMembers, ref StateWhenFalse);
+            }
+
+            void applyMemberPostConditions(ImmutableArray<string> members, ref LocalState state)
+            {
+                if (members.IsEmpty)
+                {
+                    return;
+                }
+
+                foreach (var memberName in members)
+                {
+                    markMembersAsNotNull(memberName, ref state);
+                }
+            }
+
+            void markMembersAsNotNull(string memberName, ref LocalState state)
+            {
+                foreach (Symbol member in CurrentSymbol.ContainingType.GetMembers(memberName))
+                {
+                    switch (member.Kind)
+                    {
+                        case SymbolKind.Field:
+                        case SymbolKind.Property:
+
+                            if (GetSlotForFieldOrProperty(member) is int memberSlot &&
+                                memberSlot > 0)
+                            {
+                                state[memberSlot] = NullableFlowState.NotNull;
+                            }
+                            break;
+                        case SymbolKind.Event:
+                        case SymbolKind.Method:
+                            break;
+                    }
+                }
+            }
         }
 
 #nullable enable
@@ -7203,8 +7389,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
-            var updatedMember = VisitMemberAccess(node, node.ReceiverOpt, node.PropertySymbol);
-            SetUpdatedSymbol(node, node.PropertySymbol, updatedMember);
+            var property = node.PropertySymbol;
+            var updatedMember = VisitMemberAccess(node, node.ReceiverOpt, property);
+
+            if (property.IsStatic || node.ReceiverOpt is BoundThisReference)
+            {
+                ApplyMemberPostConditions(property.NotNullMembers, property.NotNullWhenTrueMembers, property.NotNullWhenFalseMembers);
+            }
+
+            SetUpdatedSymbol(node, property, updatedMember);
             return null;
         }
 

@@ -123,6 +123,95 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : topLevelMethod;
         }
 
+        public override BoundNode VisitCall(BoundCall node)
+        {
+            var result = base.VisitCall(node);
+            var method = node.Method;
+            if (method.IsStatic || node.ReceiverOpt is BoundThisReference)
+            {
+                ApplyMemberPostConditions(method.ContainingType,
+                    method.NotNullMembers, method.NotNullWhenTrueMembers, method.NotNullWhenFalseMembers);
+            }
+            return result;
+        }
+
+        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            var result = base.VisitPropertyAccess(node);
+            var property = node.PropertySymbol;
+            if (property.IsStatic || node.ReceiverOpt is BoundThisReference)
+            {
+                ApplyMemberPostConditions(property.ContainingType,
+                    property.NotNullMembers, property.NotNullWhenTrueMembers, property.NotNullWhenFalseMembers);
+            }
+            return result;
+        }
+
+        private void ApplyMemberPostConditions(
+            TypeSymbol containingType,
+            ImmutableArray<string> notNullMembers,
+            ImmutableArray<string> notNullWhenTrueMembers,
+            ImmutableArray<string> notNullWhenFalseMembers)
+        {
+            if (notNullWhenTrueMembers.IsEmpty && notNullWhenFalseMembers.IsEmpty)
+            {
+                applyMemberPostConditions(notNullMembers, ref State);
+            }
+            else
+            {
+                Split();
+                applyMemberPostConditions(notNullWhenTrueMembers, ref StateWhenTrue);
+                applyMemberPostConditions(notNullWhenFalseMembers, ref StateWhenFalse);
+            }
+
+            void applyMemberPostConditions(ImmutableArray<string> notNullMembers, ref LocalState state)
+            {
+                if (notNullMembers.IsEmpty)
+                {
+                    return;
+                }
+
+                foreach (var notNullMember in notNullMembers)
+                {
+                    markMemberAsAssigned(notNullMember, ref state);
+                }
+            }
+
+            void markMemberAsAssigned(string notNullMember, ref LocalState state)
+            {
+                foreach (Symbol member in containingType.GetMembers(notNullMember))
+                {
+                    switch (member.Kind)
+                    {
+                        case SymbolKind.Field:
+                        case SymbolKind.Property:
+                            int thisSlot = -1;
+                            bool isStatic = member.IsStatic;
+                            if (!isStatic)
+                            {
+                                thisSlot = GetOrCreateSlot(MethodThisParameter);
+                                if (thisSlot < 0)
+                                {
+                                    continue;
+                                }
+                                Debug.Assert(thisSlot > 0);
+                            }
+
+                            var memberSlot = GetOrCreateSlot(member, isStatic ? 0 : thisSlot);
+                            if (memberSlot >= 0)
+                            {
+                                SetSlotAssigned(memberSlot, ref state);
+                            }
+
+                            break;
+                        case SymbolKind.Event:
+                        case SymbolKind.Method:
+                            break;
+                    }
+                }
+            }
+        }
+
         internal static void ReportUninitializedNonNullableReferenceTypeFields(
             UnassignedFieldsWalker walkerOpt,
             int thisSlot,
