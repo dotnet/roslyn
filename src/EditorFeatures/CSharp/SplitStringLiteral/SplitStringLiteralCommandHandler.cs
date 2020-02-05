@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
-            var newLineTrivia = lineEnding == "\n" ? SyntaxFactory.TriviaList(SyntaxFactory.ElasticLineFeed) : SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed);
+            var newLineTrivia = SyntaxFactory.TriviaList(lineEnding == "\n" ? SyntaxFactory.ElasticLineFeed : SyntaxFactory.ElasticCarriageReturnLineFeed);
 
             var splitter = StringSplitter.Create(
                 document, position, root, sourceText,
