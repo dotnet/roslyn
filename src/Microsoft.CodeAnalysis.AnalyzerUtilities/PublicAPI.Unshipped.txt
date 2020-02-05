@@ -710,11 +710,11 @@ virtual Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TA
 virtual Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PredicatedAnalysisData<TKey, TValue>.ApplyPredicatedData(Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DictionaryAnalysisData<TKey, TValue> coreAnalysisData, Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DictionaryAnalysisData<TKey, TValue> predicatedData) -> void
 virtual Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PredicatedAnalysisData<TKey, TValue>.RemoveEntryInPredicatedData(TKey key, Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DictionaryAnalysisData<TKey, TValue> predicatedData) -> void
 Analyzer.Utilities.Unit
-Analyzer.Utilities.Unit.Unit() -> Analyzer.Utilities.Unit
-Analyzer.Utilities.Unit.Equals(Unit other) -> bool
+Analyzer.Utilities.Unit.Unit() -> void
+Analyzer.Utilities.Unit.Equals(Analyzer.Utilities.Unit other) -> bool
 override Analyzer.Utilities.Unit.Equals(object obj) -> bool
 override Analyzer.Utilities.Unit.GetHashCode() -> int
 override Analyzer.Utilities.Unit.ToString() -> string
-static Analyzer.Utilities.Unit.operator ==(Unit first, Unit second) -> bool
-static Analyzer.Utilities.Unit.operator !=(Unit first, Unit second) -> bool
+static Analyzer.Utilities.Unit.operator ==(Analyzer.Utilities.Unit first, Analyzer.Utilities.Unit second) -> bool
+static Analyzer.Utilities.Unit.operator !=(Analyzer.Utilities.Unit first, Analyzer.Utilities.Unit second) -> bool
 static Analyzer.Utilities.Unit.Default.get -> Analyzer.Utilities.Unit
