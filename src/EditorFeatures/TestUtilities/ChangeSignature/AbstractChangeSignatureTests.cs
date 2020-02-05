@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
                     if (diagnostics.Length > 0)
                     {
-                        Assert.True(false, CreateDiagnosticsString(diagnostics, updatedSignature, totalParameters, (await testState.InvocationDocument.GetTextAsync()).ToString()));
+                        Assert.True(false, CreateDiagnosticsString(diagnostics, updatedSignature, testState.InvocationDocument, totalParameters, (await testState.InvocationDocument.GetTextAsync()).ToString()));
                     }
                 }
 
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             }
         }
 
-        private string CreateDiagnosticsString(ImmutableArray<Diagnostic> diagnostics, AddedParameterOrExistingIndex[] permutation, int? totalParameters, string fileContents)
+        private string CreateDiagnosticsString(ImmutableArray<Diagnostic> diagnostics, AddedParameterOrExistingIndex[] permutation, Document document, int? totalParameters, string fileContents)
         {
             if (diagnostics.Length == 0)
             {
@@ -150,12 +150,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
             return string.Format("{0} diagnostic(s) introduced in signature configuration \"{1}\":\r\n{2}\r\n{3}",
                 diagnostics.Length,
-                GetSignatureDescriptionString(permutation, totalParameters),
+                GetSignatureDescriptionString(document, permutation, totalParameters),
                 string.Join("\r\n", diagnostics.Select(d => d.GetMessage())),
                 fileContents);
         }
 
-        private string GetSignatureDescriptionString(AddedParameterOrExistingIndex[] signature, int? totalParameters)
+        private string GetSignatureDescriptionString(Document document, AddedParameterOrExistingIndex[] signature, int? totalParameters)
         {
             var existingParametersKept = signature.Where(p => p.IsExisting).Select(p => p.OldIndex).ToArray();
             var removeDescription = string.Empty;
@@ -173,13 +173,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 removeDescription = removed.Any() ? string.Format(", Removed: {{{0}}}", string.Join(", ", removed)) : string.Empty;
             }
 
-            // TODO!
-            // var newParametersString = string.Join(",", signature.Where(p => !p.IsExisting).Select(p => p._addedParameterWithoutTypeSymbol));
-            // var addDescription = !newParametersString.IsEmpty() ? string.Format(", Added {{{0}}}", newParametersString) : string.Empty;
+            var newParametersString = string.Join(",", signature.Where(p => !p.IsExisting).Select(p => p.GetAddedParameter(document)));
+            var addDescription = !newParametersString.IsEmpty() ? string.Format(", Added {{{0}}}", newParametersString) : string.Empty;
 
-            // return string.Format("Parameters: <{0}>{1}{2}", string.Join(", ", signature.Select(item => item.ToString())), removeDescription, addDescription);
-
-            return "FAIL";
+            return string.Format("Parameters: <{0}>{1}{2}", string.Join(", ", signature.Select(item => item.ToString())), removeDescription, addDescription);
         }
 
         /// <summary>
