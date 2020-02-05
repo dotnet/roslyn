@@ -2117,23 +2117,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
         public void TestDanglingNumericQuantifier1()
         {
-            Test(@"@""{1}""", @"<Tree>
+            Test(@"@""{1}""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
-        <TextToken>{</TextToken>
+        <TextToken>{{</TextToken>
       </Text>
       <Text>
-        <TextToken>1}</TextToken>
+        <TextToken>1}}</TextToken>
       </Text>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""{"" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[10..11)"" Text=""{{"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" Text=""{1}"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""{{1}}"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -2141,23 +2141,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
         public void TestDanglingNumericQuantifier2()
         {
-            Test(@"@""{1,2}""", @"<Tree>
+            Test(@"@""{1,2}""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
-        <TextToken>{</TextToken>
+        <TextToken>{{</TextToken>
       </Text>
       <Text>
-        <TextToken>1,2}</TextToken>
+        <TextToken>1,2}}</TextToken>
       </Text>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""{"" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[10..11)"" Text=""{{"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..15)"" Text=""{1,2}"" />
+    <Capture Name=""0"" Span=""[10..15)"" Text=""{{1,2}}"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
