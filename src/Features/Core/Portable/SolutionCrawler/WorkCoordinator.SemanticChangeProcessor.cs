@@ -121,11 +121,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return false;
                     }
 
-                    return await TryEnqueueFromMemberAsync(document, symbol).ConfigureAwait(false) ||
-                        await TryEnqueueFromTypeAsync(document, symbol).ConfigureAwait(false);
+                    return TryEnqueueFromMember(document, symbol) ||
+                        TryEnqueueFromType(document, symbol);
                 }
 
-                private async Task<bool> TryEnqueueFromTypeAsync(Document document, ISymbol symbol)
+                private bool TryEnqueueFromType(Document document, ISymbol symbol)
                 {
                     if (!IsType(symbol))
                     {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     if (symbol.DeclaredAccessibility == Accessibility.Private)
                     {
-                        await EnqueueWorkItemAsync(document, symbol).ConfigureAwait(false);
+                        EnqueueWorkItem(document, symbol);
 
                         Logger.Log(FunctionId.WorkCoordinator_SemanticChange_EnqueueFromType, symbol.Name);
                         return true;
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return false;
                 }
 
-                private async Task<bool> TryEnqueueFromMemberAsync(Document document, ISymbol symbol)
+                private bool TryEnqueueFromMember(Document document, ISymbol symbol)
                 {
                     if (!IsMember(symbol))
                     {
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     if (symbol.DeclaredAccessibility == Accessibility.Private)
                     {
-                        await EnqueueWorkItemAsync(document, symbol).ConfigureAwait(false);
+                        EnqueueWorkItem(document, symbol);
 
                         Logger.Log(FunctionId.WorkCoordinator_SemanticChange_EnqueueFromMember, symbol.Name);
                         return true;
@@ -172,15 +172,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return false;
                     }
 
-                    return await TryEnqueueFromTypeAsync(document, typeSymbol).ConfigureAwait(false);
+                    return TryEnqueueFromType(document, typeSymbol);
                 }
 
-                private Task EnqueueWorkItemAsync(Document document, ISymbol symbol)
+                private void EnqueueWorkItem(Document document, ISymbol symbol)
                 {
-                    return EnqueueWorkItemAsync(document, symbol.ContainingType != null ? symbol.ContainingType.Locations : symbol.Locations);
+                    EnqueueWorkItem(document, symbol.ContainingType != null ? symbol.ContainingType.Locations : symbol.Locations);
                 }
 
-                private async Task EnqueueWorkItemAsync(Document thisDocument, ImmutableArray<Location> locations)
+                private void EnqueueWorkItem(Document thisDocument, ImmutableArray<Location> locations)
                 {
                     var solution = thisDocument.Project.Solution;
                     var projectId = thisDocument.Id.ProjectId;
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             continue;
                         }
 
-                        await _processor.EnqueueWorkItemAsync(document).ConfigureAwait(false);
+                        _processor.EnqueueWorkItem(document);
                     }
                 }
 
@@ -400,18 +400,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Logger.Log(FunctionId.WorkCoordinator_Project_Enqueue, s_enqueueLogger, Environment.TickCount, projectId);
                     }
 
-                    public async Task EnqueueWorkItemAsync(Document document)
+                    public void EnqueueWorkItem(Document document)
                     {
                         // we are shutting down
                         CancellationToken.ThrowIfCancellationRequested();
 
-                        // call to this method is serialized. and only this method does the writing.
-                        var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
-                        var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, CancellationToken).ConfigureAwait(false);
-
                         _processor.Enqueue(
                             new WorkItem(document.Id, document.Project.Language, InvocationReasons.SemanticChanged,
-                                isLowPriority, activeMember: null, Listener.BeginAsyncOperation(nameof(EnqueueWorkItemAsync), tag: EnqueueItem)));
+                                activeMember: null, Listener.BeginAsyncOperation(nameof(EnqueueWorkItem), tag: EnqueueItem)));
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
@@ -419,7 +415,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return _gate.WaitAsync(cancellationToken);
                     }
 
-                    protected override async Task ExecuteAsync()
+                    protected override Task ExecuteAsync()
                     {
                         var data = Dequeue();
 
@@ -428,13 +424,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             var project = _registration.CurrentSolution.GetProject(data.ProjectId);
                             if (project == null)
                             {
-                                return;
+                                return Task.CompletedTask;
                             }
 
                             if (!data.NeedDependencyTracking)
                             {
-                                await EnqueueWorkItemAsync(project).ConfigureAwait(false);
-                                return;
+                                EnqueueWorkItem(project);
+                                return Task.CompletedTask;
                             }
 
                             // do dependency tracking here with current solution
@@ -442,8 +438,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             foreach (var projectId in GetProjectsToAnalyze(solution, data.ProjectId))
                             {
                                 project = solution.GetProject(projectId);
-                                await EnqueueWorkItemAsync(project).ConfigureAwait(false);
+                                EnqueueWorkItem(project);
                             }
+
+                            return Task.CompletedTask;
                         }
                     }
 
@@ -452,7 +450,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return DequeueWorker(_workGate, _pendingWork, CancellationToken);
                     }
 
-                    private async Task EnqueueWorkItemAsync(Project project)
+                    private void EnqueueWorkItem(Project project)
                     {
                         if (project == null)
                         {
@@ -461,7 +459,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         foreach (var document in project.Documents)
                         {
-                            await EnqueueWorkItemAsync(document).ConfigureAwait(false);
+                            EnqueueWorkItem(document);
                         }
                     }
 

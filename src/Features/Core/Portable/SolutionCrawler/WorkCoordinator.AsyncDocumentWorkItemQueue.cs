@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
@@ -56,41 +57,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return false;
                     }
 
-                    var documentId = GetBestDocumentId_NoLock(preferableProjectId, dependencyGraph, service);
+                    var documentId = GetAnyPendingDocumentId_NoLock(preferableProjectId, dependencyGraph, service);
                     if (TryTake_NoLock(documentId, out workItem))
                     {
                         return true;
                     }
 
                     return Contract.FailWithReturn<bool>("how?");
-                }
 
-                private DocumentId GetBestDocumentId_NoLock(
-                    ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService analyzerService)
-                {
-                    var projectId = GetBestProjectId_NoLock(_documentWorkQueue, preferableProjectId, dependencyGraph, analyzerService);
-
-                    var documentMap = _documentWorkQueue[projectId];
-
-                    // explicitly iterate so that we can use struct enumerator.
-                    // Return the first normal priority work item we find.  If we don't
-                    // find any, then just return the first low prio item we saw.
-                    DocumentId lowPriorityDocumentId = null;
-                    foreach (var pair in documentMap)
+                    DocumentId GetAnyPendingDocumentId_NoLock(
+                        ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService analyzerService)
                     {
-                        var workItem = pair.Value;
-                        if (workItem.IsLowPriority)
-                        {
-                            lowPriorityDocumentId = pair.Key;
-                        }
-                        else
-                        {
-                            return pair.Key;
-                        }
-                    }
+                        var projectId = GetBestProjectId_NoLock(_documentWorkQueue, preferableProjectId, dependencyGraph, analyzerService);
 
-                    Contract.ThrowIfNull(lowPriorityDocumentId);
-                    return lowPriorityDocumentId;
+                        var documentMap = _documentWorkQueue[projectId];
+                        return documentMap.Keys.First();
+                    }
                 }
 
                 protected override bool AddOrReplace_NoLock(WorkItem item)
