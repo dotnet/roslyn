@@ -23,7 +23,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
-    <NoWarn>$(NoWarn);8600;8601;8602;8603;8604;8605;8610;8616;8617;8714</NoWarn>
+    <NoWarn>$(NoWarn);Nullable</NoWarn>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
