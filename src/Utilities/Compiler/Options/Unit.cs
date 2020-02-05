@@ -6,7 +6,9 @@ namespace Analyzer.Utilities
     /// <summary>
     /// Represents a type with a single value. This type is often used to denote the successful completion of a void-returning method (C#) or a Sub procedure (Visual Basic).
     /// </summary>
-    /// <see cref="https://github.com/dotnet/reactive/blob/master/Rx.NET/Source/src/System.Reactive/Unit.cs"/>
+    /// <remarks>
+    /// This class is a duplicate from "https://github.com/dotnet/reactive/blob/master/Rx.NET/Source/src/System.Reactive/Unit.cs
+    /// </remarks>
     public struct Unit : IEquatable<Unit>
     {
         /// <summary>
