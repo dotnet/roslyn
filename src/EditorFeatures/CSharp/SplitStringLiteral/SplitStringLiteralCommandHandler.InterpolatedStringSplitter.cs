@@ -19,8 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 SyntaxNode root, SourceText sourceText,
                 InterpolatedStringExpressionSyntax interpolatedStringExpression,
                 bool useTabs, int tabSize, IndentStyle indentStyle,
+                SyntaxTriviaList newLineTrivia,
                 CancellationToken cancellationToken)
-                : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, cancellationToken)
+                : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, newLineTrivia, cancellationToken)
             {
                 _interpolatedStringExpression = interpolatedStringExpression;
             }

@@ -5,6 +5,7 @@
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -154,13 +155,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             var useTabs = options.GetOption(FormattingOptions.UseTabs);
             var tabSize = options.GetOption(FormattingOptions.TabSize);
             var indentStyle = options.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
+            var lineEnding = options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
 
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
+            var newLineTrivia = lineEnding == "\n" ? SyntaxFactory.TriviaList(SyntaxFactory.ElasticLineFeed) : SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed);
 
             var splitter = StringSplitter.Create(
                 document, position, root, sourceText,
-                useTabs, tabSize, indentStyle, cancellationToken);
+                useTabs, tabSize, indentStyle, newLineTrivia,
+                cancellationToken);
+
             if (splitter == null)
             {
                 return null;

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -49,6 +50,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             if (useTabs && expectedOutputMarkup != null)
             {
                 Assert.Contains("\t", expectedOutputMarkup);
+            }
+
+            if (lineEnding == "\n" && inputMarkup != null)
+            {
+                Assert.DoesNotContain("\r\n", inputMarkup);
             }
 
             if (lineEnding == "\n" && expectedOutputMarkup != null)

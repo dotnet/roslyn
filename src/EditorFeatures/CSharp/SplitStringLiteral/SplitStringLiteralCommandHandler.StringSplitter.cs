@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             protected readonly SyntaxNode Root;
             protected readonly int TabSize;
             protected readonly bool UseTabs;
+            protected readonly SyntaxTriviaList NewLineTrivia;
             protected readonly CancellationToken CancellationToken;
 
             private readonly IndentStyle _indentStyle;
@@ -34,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 Document document, int position,
                 SyntaxNode root, SourceText sourceText,
                 bool useTabs, int tabSize,
-                IndentStyle indentStyle, CancellationToken cancellationToken)
+                IndentStyle indentStyle, 
+                SyntaxTriviaList newLineTrivia, CancellationToken cancellationToken)
             {
                 Document = document;
                 CursorPosition = position;
@@ -43,24 +45,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 UseTabs = useTabs;
                 TabSize = tabSize;
                 _indentStyle = indentStyle;
+                NewLineTrivia = newLineTrivia;
                 CancellationToken = cancellationToken;
 
-                var options = document.GetOptionsAsync().Result;
-                var newLineKey = new OptionKey(NewLine, LanguageNames.CSharp);
-                var newLineValue = (string)options.GetOption(newLineKey);
-
-                // Check if there is a line ending specified in the editorconfig
-                // and ensure we honour it. 
                 PlusNewLineToken = SyntaxFactory.Token(
-                leading: default,
-                SyntaxKind.PlusToken,
-                newLineValue == "\n" ? SyntaxFactory.TriviaList(SyntaxFactory.ElasticLineFeed) : SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
+                    leading: default,
+                    SyntaxKind.PlusToken,
+                    NewLineTrivia);
             }
 
             public static StringSplitter Create(
                 Document document, int position,
                 SyntaxNode root, SourceText sourceText,
                 bool useTabs, int tabSize, IndentStyle indentStyle,
+                SyntaxTriviaList newLineTrivia,
                 CancellationToken cancellationToken)
             {
                 var token = root.FindToken(position);
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                     return new SimpleStringSplitter(
                         document, position, root,
                         sourceText, token, useTabs, tabSize,
-                        indentStyle, cancellationToken);
+                        indentStyle, newLineTrivia, cancellationToken);
                 }
 
                 var interpolatedStringExpression = TryGetInterpolatedStringExpression(token, position);
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                     return new InterpolatedStringSplitter(
                         document, position, root,
                         sourceText, interpolatedStringExpression,
-                        useTabs, tabSize, indentStyle, cancellationToken);
+                        useTabs, tabSize, indentStyle, newLineTrivia, cancellationToken);
                 }
 
                 return null;
