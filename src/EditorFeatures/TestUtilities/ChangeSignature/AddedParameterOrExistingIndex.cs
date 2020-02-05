@@ -5,8 +5,6 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.ChangeSignature;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
@@ -42,7 +40,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
         internal AddedParameter GetAddedParameter(Document document)
         {
             var semanticModel = document.GetRequiredSemanticModelAsync(CancellationToken.None).Result;
-            var type = semanticModel.GetSpeculativeTypeInfo(0, SyntaxFactory.ParseTypeName(_addedParameterFullyQualifiedTypeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+
+            var type = document.Project.Language switch
+            {
+                LanguageNames.CSharp => semanticModel.GetSpeculativeTypeInfo(0, CSharp.SyntaxFactory.ParseTypeName(_addedParameterFullyQualifiedTypeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type,
+                LanguageNames.VisualBasic => semanticModel.GetSpeculativeTypeInfo(0, VisualBasic.SyntaxFactory.ParseTypeName(_addedParameterFullyQualifiedTypeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type,
+                _ => throw new ArgumentException("Unsupported language")
+            };
 
             return new AddedParameter(type!, _addedParameterWithoutTypeSymbol!.TypeNameDisplayWithErrorIndicator, _addedParameterWithoutTypeSymbol.ParameterName, _addedParameterWithoutTypeSymbol.CallSiteValue);
         }

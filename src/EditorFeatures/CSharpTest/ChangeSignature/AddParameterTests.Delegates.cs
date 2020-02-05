@@ -195,7 +195,7 @@ class C
         MyDelegate d1 = null;
         d1 = (r) => { System.Console.WriteLine(""Test""); };
         d1 = r => { System.Console.WriteLine(""Test""); };
-        d1 =r=>{ System.Console.WriteLine(""Test""); };
+        d1 = r => { System.Console.WriteLine(""Test""); };
     }
 }";
             var updatedSignature = new[] {
@@ -210,8 +210,8 @@ class C
     {
         MyDelegate d1 = null;
         d1 = (newIntegerParameter) => { System.Console.WriteLine(""Test""); };
-        d1 = (int newIntegerParameter)=> { System.Console.WriteLine(""Test""); };
-        d1 =(int newIntegerParameter)=>{ System.Console.WriteLine(""Test""); };
+        d1 = (int newIntegerParameter) => { System.Console.WriteLine(""Test""); };
+        d1 = (int newIntegerParameter) => { System.Console.WriteLine(""Test""); };
     }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
