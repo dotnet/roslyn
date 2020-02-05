@@ -192,60 +192,6 @@
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Implementation\ChangeSignature\ChangeSignatureDialog.xaml.cs">
-      <DependentUpon>ChangeSignatureDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Implementation\PreviewPane\PreviewPane.xaml.cs">
-      <DependentUpon>PreviewPane.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Implementation\ExtractInterface\ExtractInterfaceDialog.xaml.cs">
-      <DependentUpon>ExtractInterfaceDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Implementation\GenerateType\GenerateTypeDialog.xaml.cs">
-      <DependentUpon>GenerateTypeDialog.xaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="Implementation\ChangeSignature\AddParameterDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Implementation\MoveToNamespace\MoveToNamespaceDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Implementation\ChangeSignature\ChangeSignatureDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Implementation\PickMembers\PickMembersDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Implementation\PreviewPane\PreviewPane.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Implementation\ExtractInterface\ExtractInterfaceDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Implementation\GenerateType\GenerateTypeDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Implementation\PullMemberUp\MainDialog\PullMemberUpDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Implementation\PullMemberUp\WarningDialog\PullMemberUpWarningDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Implementation\Workspace\DetailedErrorInfoDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Update="ServicesVSResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>

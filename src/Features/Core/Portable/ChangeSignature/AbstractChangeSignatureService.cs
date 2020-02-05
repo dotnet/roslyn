@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 declarationDocument ?? document, insertPositionOpt.Value, symbol, parameterConfiguration);
         }
 
-        private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
+        private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedSucceedContext context, CancellationToken cancellationToken)
         {
             var options = GetChangeSignatureOptions(context);
             if (options == null)
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected abstract int? TryGetInsertPositionFromDeclaration(SyntaxNode matchingNode);
 
-        internal ChangeSignatureResult ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedSucceedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
+        internal ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedSucceedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
             var succeeded = TryCreateUpdatedSolution(context, options, cancellationToken, out var updatedSolution);
             return new ChangeSignatureResult(succeeded, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 #nullable enable
 
         private bool TryCreateUpdatedSolution(
-            ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken, [NotNullWhen(true)] out Solution? updatedSolution)
+            ChangeSignatureAnalyzedSucceedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken, [NotNullWhen(true)] out Solution? updatedSolution)
         {
             updatedSolution = null;
 
@@ -240,9 +240,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             var hasLocationsInMetadata = false;
 
-            var symbols = await FindChangeSignatureReferencesAsync(
+            var symbols = FindChangeSignatureReferencesAsync(
                 SymbolAndProjectId.Create(declaredSymbol, context.Document.Project.Id),
-                context.Solution, cancellationToken).ConfigureAwait(false);
+                context.Solution, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var declaredSymbolParametersCount = declaredSymbol.GetParameters().Length;
 
@@ -401,15 +401,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             // Update the documents using the updated syntax trees
-            var updatedSolution = originalSolution;
             foreach (var docId in nodesToUpdate.Keys)
             {
-                var updatedDoc = updatedSolution.GetDocument(docId)!.WithSyntaxRoot(updatedRoots[docId]);
-                var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, safe: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var formattedDoc = await Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var updatedDoc = currentSolution.GetDocument(docId)!.WithSyntaxRoot(updatedRoots[docId]);
+                var docWithImports = ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, safe: true, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+                var reducedDoc = Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+                var formattedDoc = Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
 
-                updatedSolution = updatedSolution.WithDocumentSyntaxRoot(docId, formattedDoc.GetSyntaxRootSynchronously(cancellationToken)!);
+                currentSolution = currentSolution.WithDocumentSyntaxRoot(docId, formattedDoc.GetSyntaxRootSynchronously(cancellationToken)!);
             }
 
             updatedSolution = currentSolution;
