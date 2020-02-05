@@ -105,7 +105,7 @@ Enforcing nullability attributes within method bodies:
 - An input parameter marked with `[DisallowNull]` is initialized with a not-null state.
 - A parameter marked with `[MaybeNull]` or `[MaybeNullWhen]` can be assigned a maybe-null value, without warning. Same for return values. Same for a nullable parameter marked with `[NotNullWhen]` (the attribute is ignored).
 - A parameter marked with `[NotNull]` will produce a warning when assigned a maybe-null value. Same for return values.
-- The state of a parameter marked with `[MaybeNullWhen]`\`[NotNullWhen]` is checked upon exiting the method instead.
+- The state of a parameter marked with `[MaybeNullWhen]`/`[NotNullWhen]` is checked upon exiting the method instead.
 - A method marked with `[DoesNotReturn]` will produce a warning if it returns or exits normally.
 
 Note: we don't validate the internal consistency of auto-properties, so it is possible to misuse attributes on auto-props as on fields. For example: `[AllowNull, NotNull] public TOpen P { get; set; }`.

@@ -1053,23 +1053,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool checkParameters)
             {
                 CheckValidNullableMethodOverride(overridingMethod.DeclaringCompilation, overriddenMethod, overridingMethod, diagnostics,
-                                                 checkReturnType ? reportBadReturn : (ReportMismatchinReturnType<Location>)null,
-                                                 checkParameters ? reportBadParameter : (ReportMismatchInParameterType<Location>)null,
+                                                 checkReturnType ? ReportBadReturn : null,
+                                                 checkParameters ? ReportBadParameter : null,
                                                  overridingMemberLocation);
             }
-
-            static void reportBadReturn(DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool blameAttributes, Location location)
-                => diagnostics.Add(blameAttributes ?
-                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes :
-                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride,
-                    location);
-
-            static void reportBadParameter(DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, bool blameAttributes, Location location)
-                => diagnostics.Add(
-                    blameAttributes ? ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes : ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
-                    location,
-                    new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
         }
+
+        static readonly ReportMismatchinReturnType<Location> ReportBadReturn =
+            (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool blameAttributes, Location location)
+            => diagnostics.Add(blameAttributes ?
+                ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes :
+                ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride,
+                location);
+
+        static readonly ReportMismatchInParameterType<Location> ReportBadParameter =
+            (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, bool blameAttributes, Location location)
+            => diagnostics.Add(
+                blameAttributes ? ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes : ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
+                location,
+                new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
 
         internal static void CheckValidNullableMethodOverride<TArg>(
             CSharpCompilation compilation,
@@ -1092,27 +1094,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var conversions = compilation.Conversions.WithNullability(true);
-            if (reportMismatchInReturnType != null &&
-                !isValidNullableConversion(
-                    conversions,
-                    overridingMethod.RefKind,
-                    overridingMethod.ReturnTypeWithAnnotations,
-                    overriddenMethod.ReturnTypeWithAnnotations))
+            if (reportMismatchInReturnType != null)
             {
-                reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, false, extraArgument);
-                return;
-            }
+                if (!isValidNullableConversion(
+                        conversions,
+                        overridingMethod.RefKind,
+                        overridingMethod.ReturnTypeWithAnnotations,
+                        overriddenMethod.ReturnTypeWithAnnotations))
+                {
+                    reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, false, extraArgument);
+                    return;
+                }
 
-            if (reportMismatchInReturnType != null &&
-                !NullableWalker.AreParameterAnnotationsCompatible(
-                    overridingMethod.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.Out,
-                    overriddenMethod.ReturnTypeWithAnnotations,
-                    overriddenMethod.ReturnTypeFlowAnalysisAnnotations,
-                    overridingMethod.ReturnTypeWithAnnotations,
-                    overridingMethod.ReturnTypeFlowAnalysisAnnotations))
-            {
-                reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, true, extraArgument);
-                return;
+                if (!NullableWalker.AreParameterAnnotationsCompatible(
+                        overridingMethod.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.Out,
+                        overriddenMethod.ReturnTypeWithAnnotations,
+                        overriddenMethod.ReturnTypeFlowAnalysisAnnotations,
+                        overridingMethod.ReturnTypeWithAnnotations,
+                        overridingMethod.ReturnTypeFlowAnalysisAnnotations))
+                {
+                    reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, true, extraArgument);
+                    return;
+                }
             }
 
             if (reportMismatchInParameterType == null)
@@ -1125,26 +1128,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < overriddenMethod.ParameterCount; i++)
             {
-                var overriddenParameterType = overriddenParameters[i].TypeWithAnnotations;
-                var parameter = overridingParameters[i];
-                var overridingParameterType = parameter.TypeWithAnnotations;
+                var overriddenParameter = overriddenParameters[i];
+                var overriddenParameterType = overriddenParameter.TypeWithAnnotations;
+                var overridingParameter = overridingParameters[i];
+                var overridingParameterType = overridingParameter.TypeWithAnnotations;
                 if (!isValidNullableConversion(
                         conversions,
-                        parameter.RefKind,
+                        overridingParameter.RefKind,
                         overriddenParameterType,
                         overridingParameterType))
                 {
-                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, parameter, false, extraArgument);
+                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameter, false, extraArgument);
                 }
-                else if (reportMismatchInParameterType != null &&
-                    !NullableWalker.AreParameterAnnotationsCompatible(
-                        parameter.RefKind,
+                else if (!NullableWalker.AreParameterAnnotationsCompatible(
+                        overridingParameter.RefKind,
                         overriddenParameterType,
-                        overriddenParameters[i].FlowAnalysisAnnotations,
+                        overriddenParameter.FlowAnalysisAnnotations,
                         overridingParameterType,
-                        parameter.FlowAnalysisAnnotations))
+                        overridingParameter.FlowAnalysisAnnotations))
                 {
-                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, parameter, true, extraArgument);
+                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameter, true, extraArgument);
                 }
             }
 

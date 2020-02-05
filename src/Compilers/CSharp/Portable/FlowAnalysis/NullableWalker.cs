@@ -1209,32 +1209,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (refKind == RefKind.Out)
             {
                 // post-condition attributes (`Maybe/NotNull` and `Maybe/NotNullWhen`)
-                // when true
-                var valueWhenTrue = ApplyUnconditionalAnnotations(
-                    overridingType.ToTypeWithState(),
-                    makeUnconditionalAnnotation(overridingAnnotations, sense: true));
-
-                var destAnnotationsWhenTrue = ToInwardAnnotations(makeUnconditionalAnnotation(overriddenAnnotations, sense: true));
-                if (isBadAssignment(valueWhenTrue, overriddenType, destAnnotationsWhenTrue))
+                if (!canAssignOutputValueWhen(true) || !canAssignOutputValueWhen(false))
                 {
-                    // Can't assign value from overriding to overridden in true case
-                    return false;
-                }
-
-                // when false
-                var valueWhenFalse = ApplyUnconditionalAnnotations(
-                    overridingType.ToTypeWithState(),
-                    makeUnconditionalAnnotation(overridingAnnotations, sense: false));
-
-                var destAnnotationsWhenFalse = ToInwardAnnotations(makeUnconditionalAnnotation(overriddenAnnotations, sense: false));
-                if (isBadAssignment(valueWhenFalse, overriddenType, destAnnotationsWhenFalse))
-                {
-                    // Can't assign value from overriding to overridden in false case
                     return false;
                 }
             }
 
             return true;
+
+            bool canAssignOutputValueWhen(bool sense)
+            {
+                var valueWhenTrue = ApplyUnconditionalAnnotations(
+                    overridingType.ToTypeWithState(),
+                    makeUnconditionalAnnotation(overridingAnnotations, sense));
+
+                var destAnnotationsWhenTrue = ToInwardAnnotations(makeUnconditionalAnnotation(overriddenAnnotations, sense));
+                if (isBadAssignment(valueWhenTrue, overriddenType, destAnnotationsWhenTrue))
+                {
+                    // Can't assign value from overriding to overridden in 'sense' case
+                    return false;
+                }
+
+                return true;
+            }
 
             static bool isBadAssignment(TypeWithState valueState, TypeWithAnnotations destinationType, FlowAnalysisAnnotations destinationAnnotations)
             {
