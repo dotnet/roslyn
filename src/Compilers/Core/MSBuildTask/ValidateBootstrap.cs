@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public string? TasksAssemblyFullPath
         {
             get { return _tasksAssemblyFullPath; }
-            set { _tasksAssemblyFullPath = NormalizePath(Path.GetFullPath(value)); }
+            set { _tasksAssemblyFullPath = NormalizePath(Path.GetFullPath(value!)); }
         }
 
         public ValidateBootstrap()
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return path;
         }
 
-        private string GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.TryGetAssemblyPath(assembly));
+        private string? GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.TryGetAssemblyPath(assembly));
 
         internal static void AddFailedLoad(AssemblyName name)
         {

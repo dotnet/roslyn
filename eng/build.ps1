@@ -218,7 +218,7 @@ function BuildSolution() {
   $enableAnalyzers = !$skipAnalyzers
   $toolsetBuildProj = InitializeToolset
 
-  $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.0%3Bnetcoreapp2.1" } else { "" }
+  $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.1" } else { "" }
   
   $ibcSourceBranchName = GetIbcSourceBranchName
   $ibcDropId = if ($officialIbcDropId -ne "default") { $officialIbcDropId } else { "" }
@@ -571,6 +571,9 @@ function Setup-IntegrationTestRun() {
 }
 
 function Prepare-TempDir() {
+  $env:TEMP=$TempDir
+  $env:TMP=$TempDir
+
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
@@ -613,10 +616,6 @@ try {
 
     $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
     InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
-
-    # Make sure a 2.1 runtime is installed so we can run our tests. Most of them still 
-    # target netcoreapp2.1.
-    InstallDotNetSdk $global:_DotNetInstallDir "2.1.503"
   }
 
   try
@@ -656,6 +655,10 @@ try {
   }
 
   if ($launch) {
+    if (-not $build) {
+      InitializeBuildTool
+    }
+
     $devenvExe = Join-Path $env:VSINSTALLDIR 'Common7\IDE\devenv.exe'
     &$devenvExe /rootSuffix RoslynDev
   }

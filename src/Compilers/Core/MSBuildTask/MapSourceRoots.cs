@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private void MergeSourceRootMetadata(ITaskItem left, ITaskItem right)
         {
-            foreach (string metadataName in right.MetadataNames)
+            foreach (string? metadataName in right.MetadataNames)
             {
                 var leftValue = left.GetMetadata(metadataName);
                 var rightValue = right.GetMetadata(metadataName);
