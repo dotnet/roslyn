@@ -78,5 +78,71 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddParameterAddsImportsOnCascading()
+        {
+            var markup = @"
+using NS1;
+
+namespace NS1
+{
+    class B
+    {
+        public virtual void M() { }
+    }
+}
+
+namespace NS2
+{
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Threading.Tasks;
+
+    class D : B
+    {
+        public override void $$M() { }
+    }
+}";
+
+            var updatedSignature = new[] {
+                new AddedParameterOrExistingIndex(
+                    new AddedParameter(
+                        null,
+                        "Dictionary<ConsoleColor, Task<AsyncOperation>>",
+                        "test",
+                        "TODO"),
+                    "System.Collections.Generic.Dictionary<System.ConsoleColor, System.Threading.Tasks.Task<System.ComponentModel.AsyncOperation>>")};
+
+            var updatedCode = @"
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Threading.Tasks;
+using NS1;
+
+namespace NS1
+{
+    class B
+    {
+        public virtual void M(Dictionary<ConsoleColor, Task<AsyncOperation>> test) { }
+    }
+}
+
+namespace NS2
+{
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Threading.Tasks;
+
+    class D : B
+    {
+        public override void M(Dictionary<ConsoleColor, Task<AsyncOperation>> test) { }
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
     }
 }
