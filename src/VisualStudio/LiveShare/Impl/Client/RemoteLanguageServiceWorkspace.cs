@@ -61,6 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// </summary>
         private ImmutableHashSet<string> _registeredExternalPaths;
 
+        private TaskCompletionSource<bool>? _completionSource;
+
         private readonly RemoteDiagnosticListTable _remoteDiagnosticListTable;
 
         public bool IsRemoteSession { get; private set; }
@@ -115,9 +117,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _session = session;
             IsRemoteSession = true;
 
-            // Files could have been opened before the collaboration session was fully initialized.
-            // So get the roots and update remote paths for all open files.
+            // Create a task that tracks completion of the first root path update
+            // on start of the live share session.
+            _completionSource = new TaskCompletionSource<bool>();
+
+            // Get the initial workspace roots and update any files that have been opened.
             await UpdatePathsToRemoteFilesAsync().ConfigureAwait(false);
+
+            _completionSource.TrySetResult(true);
 
             session.RemoteServicesChanged += (object sender, RemoteServicesChangedEventArgs e) =>
             {
@@ -134,12 +141,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// <summary>
         /// Event that gets triggered whenever the active workspace changes.  If we're in a live share session
         /// this means that the remote workpace roots have also changed and need to be updated.
+        /// This will not be called concurrently.
         /// </summary>
         private async Task OnActiveWorkspaceChangedAsync(object sender, EventArgs args)
         {
-            if (IsRemoteSession)
+            if (IsRemoteSession && _completionSource != null)
             {
-                await UpdatePathsToRemoteFilesAsync().ConfigureAwait(false);
+                // It's possible (though unlikely) that a workspace changed event comes in concurrently with the collaboration session creation.
+                // So wait for the completion of the root update from session creation to try to update the roots.
+                await _completionSource.Task.ContinueWith(_ => UpdatePathsToRemoteFilesAsync(), TaskScheduler.Default).ConfigureAwait(false);
             }
         }
 
