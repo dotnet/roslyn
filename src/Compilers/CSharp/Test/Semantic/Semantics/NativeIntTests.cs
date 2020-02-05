@@ -287,6 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         // - BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol has the comment "dynamic not allowed as an attribute type". Does that apply to "nint"?
         // - BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol checks IsViableType(result)
         // - Use-site diagnostics (basically any use-site diagnostics from IntPtr/UIntPtr)
+        // - Type unification of I<System.IntPtr> and I<nint>
 
         [Fact]
         public void ClassName()
