@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public IValueSet<T> Related(BinaryOperatorKind relation, T value) => relation switch
             {
                 Equal => EnumeratedValueSet<T, TTC>.Including(value),
-                NotEqual => EnumeratedValueSet<T, TTC>.Excluding(value),
                 _ => EnumeratedValueSet<T, TTC>.AllValues, // supported for error recovery
             };
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) => value.IsBad ? EnumeratedValueSet<T, TTC>.AllValues : this.Related(relation, default(TTC).FromConstantValue(value));

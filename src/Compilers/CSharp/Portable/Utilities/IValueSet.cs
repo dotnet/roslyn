@@ -4,6 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    // PROTOTYPE(ngafter): documentation needed.  Be clear about what relational operators are supported.
     internal interface IValueSet
     {
         /// <summary>

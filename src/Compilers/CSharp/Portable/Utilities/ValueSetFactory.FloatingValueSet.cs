@@ -20,8 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RoslynDebug.Assert(numbers is NumericValueSet<TFloating, TFloatingTC>);
                 (_hasNaN, _hasMinusInf, _hasPlusInf, _numbers) = (hasNaN, hasMinusInf, hasPlusInf, numbers);
             }
-            public static readonly IValueSet<TFloating> AllValues = new FloatingValueSet<TFloating, TFloatingTC>(true, true, true, new NumericValueSet<TFloating, TFloatingTC>(Interval.Included.Instance));
-            public static readonly IValueSet<TFloating> None = new FloatingValueSet<TFloating, TFloatingTC>(false, false, false, new NumericValueSet<TFloating, TFloatingTC>(Interval.Excluded.Instance));
+            public static readonly IValueSet<TFloating> AllValues =
+                new FloatingValueSet<TFloating, TFloatingTC>(hasNaN: true, hasMinusInf: true, hasPlusInf: true, numbers: new NumericValueSet<TFloating, TFloatingTC>(Interval.Included.Instance));
+            public static readonly IValueSet<TFloating> None =
+                new FloatingValueSet<TFloating, TFloatingTC>(hasNaN: false, hasMinusInf: false, hasPlusInf: false, numbers: new NumericValueSet<TFloating, TFloatingTC>(Interval.Excluded.Instance));
 
             bool IValueSet.IsEmpty => !_hasNaN && !_hasMinusInf && !_hasPlusInf && _numbers.IsEmpty;
             IValueSetFactory<TFloating> IValueSet<TFloating>.Factory => FloatingValueSetFactory<TFloating, TFloatingTC>.Instance;
@@ -34,18 +36,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (tc.Related(Equal, tc.NaN, value))
                 {
                     return new FloatingValueSet<TFloating, TFloatingTC>(
-                        true,
-                        false,
-                        false,
-                        NumericValueSetFactory<TFloating, TFloatingTC>.Instance.None
+                        hasNaN: true,
+                        hasMinusInf: false,
+                        hasPlusInf: false,
+                        numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.None
                         );
                 }
 
                 return new FloatingValueSet<TFloating, TFloatingTC>(
-                    false,
-                    tc.Related(relation, tc.MinusInf, value),
-                    tc.Related(relation, tc.PlusInf, value),
-                    NumericValueSetFactory<TFloating, TFloatingTC>.Instance.Related(relation, value)
+                    hasNaN: false,
+                    hasMinusInf: tc.Related(relation, tc.MinusInf, value),
+                    hasPlusInf: tc.Related(relation, tc.PlusInf, value),
+                    numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.Related(relation, value)
                     );
             }
 
@@ -55,10 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this;
                 var other = (FloatingValueSet<TFloating, TFloatingTC>)o;
                 return new FloatingValueSet<TFloating, TFloatingTC>(
-                    this._hasNaN & other._hasNaN,
-                    this._hasMinusInf & other._hasMinusInf,
-                    this._hasPlusInf & other._hasPlusInf,
-                    this._numbers.Intersect(other._numbers));
+                    hasNaN: this._hasNaN & other._hasNaN,
+                    hasMinusInf: this._hasMinusInf & other._hasMinusInf,
+                    hasPlusInf: this._hasPlusInf & other._hasPlusInf,
+                    numbers: this._numbers.Intersect(other._numbers));
             }
             IValueSet IValueSet.Intersect(IValueSet other) => this.Intersect((IValueSet<TFloating>)other);
 
@@ -68,20 +70,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this;
                 var other = (FloatingValueSet<TFloating, TFloatingTC>)o;
                 return new FloatingValueSet<TFloating, TFloatingTC>(
-                    this._hasNaN | other._hasNaN,
-                    this._hasMinusInf | other._hasMinusInf,
-                    this._hasPlusInf | other._hasPlusInf,
-                    this._numbers.Union(other._numbers));
+                    hasNaN: this._hasNaN | other._hasNaN,
+                    hasMinusInf: this._hasMinusInf | other._hasMinusInf,
+                    hasPlusInf: this._hasPlusInf | other._hasPlusInf,
+                    numbers: this._numbers.Union(other._numbers));
             }
             IValueSet IValueSet.Union(IValueSet other) => this.Union((IValueSet<TFloating>)other);
 
             public IValueSet<TFloating> Complement()
             {
                 return new FloatingValueSet<TFloating, TFloatingTC>(
-                    !this._hasNaN,
-                    !this._hasMinusInf,
-                    !this._hasPlusInf,
-                    this._numbers.Complement());
+                    hasNaN: !this._hasNaN,
+                    hasMinusInf: !this._hasMinusInf,
+                    hasPlusInf: !this._hasPlusInf,
+                    numbers: this._numbers.Complement());
             }
             IValueSet IValueSet.Complement() => this.Complement();
 
@@ -90,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TFloatingTC tc = default;
                 return
-                    _hasNaN && tc.Related(relation, value, tc.NaN) ||
-                    _hasMinusInf && tc.Related(relation, value, tc.MinusInf) ||
-                    _hasPlusInf && tc.Related(relation, value, tc.PlusInf) ||
+                    _hasNaN && tc.Related(relation, tc.NaN, value) ||
+                    _hasMinusInf && tc.Related(relation, tc.MinusInf, value) ||
+                    _hasPlusInf && tc.Related(relation, tc.PlusInf, value) ||
                     _numbers.Any(relation, value);
             }
 
@@ -102,8 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TFloatingTC tc = default;
                 return
                     (!_hasNaN || tc.Related(relation, value, tc.NaN)) &&
-                    (!_hasMinusInf || tc.Related(relation, value, tc.MinusInf)) &&
-                    (!_hasPlusInf || tc.Related(relation, value, tc.PlusInf)) &&
+                    (!_hasMinusInf || tc.Related(relation, tc.MinusInf, value)) &&
+                    (!_hasPlusInf || tc.Related(relation, tc.PlusInf, value)) &&
                     _numbers.All(relation, value);
             }
 

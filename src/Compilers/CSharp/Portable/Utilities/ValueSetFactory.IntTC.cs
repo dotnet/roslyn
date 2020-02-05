@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GreaterThan => left > right,
                 LessThanOrEqual => left <= right,
                 LessThan => left < right,
-                NotEqual => left != right,
                 _ => throw new ArgumentException("relation")
             };
             int NumericTC<int>.Next(int value) => value + 1;

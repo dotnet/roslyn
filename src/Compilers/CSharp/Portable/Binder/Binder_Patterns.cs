@@ -1211,8 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxKind.LessThanToken => BinaryOperatorKind.LessThan,
                 SyntaxKind.GreaterThanToken => BinaryOperatorKind.GreaterThan,
                 SyntaxKind.GreaterThanEqualsToken => BinaryOperatorKind.GreaterThanOrEqual,
-                // The following occur in error recovery scenarios
-                SyntaxKind.ExclamationEqualsToken => BinaryOperatorKind.NotEqual,
+                // The following occurs in error recovery scenarios
                 _ => BinaryOperatorKind.Equal,
             };
 

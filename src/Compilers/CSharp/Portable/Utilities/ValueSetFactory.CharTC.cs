@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GreaterThan => left > right,
                 LessThanOrEqual => left <= right,
                 LessThan => left < right,
-                NotEqual => left != right,
                 _ => throw new ArgumentException("relation")
             };
             char NumericTC<char>.Next(char value) => (char)(value + 1);

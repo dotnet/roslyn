@@ -160,39 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(4)]
-        [InlineData(-1)]
-        [InlineData(-2)]
-        [InlineData(-3)]
-        [InlineData(-4)]
-        [InlineData(int.MinValue)]
-        [InlineData(int.MaxValue)]
-        public void TestNE_01(int i1)
-        {
-            IValueSet<int> values = ForInt.Related(NotEqual, i1);
-            var expected =
-                (i1 == int.MinValue) ? $"[{i1 + 1}..{int.MaxValue}]" :
-                (i1 == int.MaxValue) ? $"[{int.MinValue}..{i1 - 1}]" :
-                $"[{int.MinValue}..{i1 - 1}],[{i1 + 1}..{int.MaxValue}]";
-            Assert.Equal(expected, values.ToString());
-        }
-
-        [Fact]
-        public void TestNE_02()
-        {
-            for (int i = 0; i < 100; i++)
-            {
-                int i1 = Random.Next(int.MinValue + 1, int.MaxValue);
-                IValueSet<int> values = ForInt.Related(NotEqual, i1);
-                Assert.Equal($"[{int.MinValue}..{i1 - 1}],[{i1 + 1}..{int.MaxValue}]", values.ToString());
-            }
-        }
-
         [Fact]
         public void TestIntersect_01()
         {
@@ -294,7 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 void test(int val)
                 {
                     Assert.Equal(val >= i1 && val <= i2, values.Any(Equal, val));
-                    Assert.Equal(val != i1 || val != i2, values.Any(NotEqual, val));
                     Assert.Equal(val >= i1, values.Any(LessThanOrEqual, val));
                     Assert.Equal(val > i1, values.Any(LessThan, val));
                     Assert.Equal(val <= i2, values.Any(GreaterThanOrEqual, val));
@@ -374,10 +340,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.Equal("NaN", ForDouble.Related(Equal, double.NaN).ToString());
             Assert.Equal("NaN", ForFloat.Related(Equal, float.NaN).ToString());
+            Assert.True(ForDouble.Related(Equal, double.NaN).Any(Equal, double.NaN));
+            Assert.True(ForFloat.Related(Equal, float.NaN).Any(Equal, float.NaN));
             Assert.Equal("Inf", ForDouble.Related(Equal, double.PositiveInfinity).ToString());
             Assert.Equal("Inf", ForFloat.Related(Equal, float.PositiveInfinity).ToString());
             Assert.Equal("-Inf", ForDouble.Related(Equal, double.NegativeInfinity).ToString());
             Assert.Equal("-Inf", ForFloat.Related(Equal, float.NegativeInfinity).ToString());
+        }
+
+        [Fact]
+        public void TestDouble_04()
+        {
+            var neg = ForDouble.Related(LessThan, 0.0);
+            Assert.True(neg.Any(LessThan, double.MinValue));
+            Assert.False(neg.Any(GreaterThan, double.MaxValue));
+
+            var mi = ForDouble.Related(Equal, double.NegativeInfinity);
+            Assert.True(mi.All(LessThan, 0.0));
         }
 
         [Fact]

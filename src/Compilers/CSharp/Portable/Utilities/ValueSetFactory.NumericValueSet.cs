@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LessThanOrEqual => tc.Related(LessThanOrEqual, minValue, value),
                         GreaterThan => tc.Related(GreaterThan, maxValue, value),
                         GreaterThanOrEqual => tc.Related(GreaterThanOrEqual, maxValue, value),
-                        NotEqual => tc.Related(GreaterThan, minValue, value) || tc.Related(LessThan, maxValue, value),
                         Equal => tc.Related(LessThanOrEqual, minValue, value) && tc.Related(GreaterThanOrEqual, maxValue, value),
                         _ => throw new ArgumentException("relation"),
                     },
@@ -65,7 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LessThanOrEqual when tc.Related(LessThanOrEqual, maxValue, value) => true,
                         GreaterThanOrEqual when tc.Related(GreaterThanOrEqual, value, maxValue) => false,
                         GreaterThanOrEqual when tc.Related(GreaterThanOrEqual, minValue, value) => true,
-                        NotEqual => true, // a mixed interval contains more than one value
                         Equal when tc.Related(LessThan, value, minValue) || tc.Related(LessThan, maxValue, value) => false,
                         _ when tc.Partition(minValue, maxValue) is var (leftMax, rightMin) =>
                             AnyInterval(mixed.Left, relation, value, minValue, leftMax) ||
@@ -99,7 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LessThanOrEqual => tc.Related(LessThanOrEqual, maxValue, value),
                         GreaterThan => tc.Related(GreaterThan, minValue, value),
                         GreaterThanOrEqual => tc.Related(GreaterThanOrEqual, minValue, value),
-                        NotEqual => tc.Related(GreaterThan, minValue, value) || tc.Related(LessThan, maxValue, value),
                         Equal => tc.Related(Equal, minValue, value) && tc.Related(Equal, maxValue, value),
                         _ => throw new ArgumentException("relation"),
                     },
@@ -113,7 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LessThanOrEqual when tc.Related(LessThanOrEqual, maxValue, value) => true,
                         GreaterThanOrEqual when tc.Related(GreaterThanOrEqual, value, maxValue) => false,
                         GreaterThanOrEqual when tc.Related(GreaterThanOrEqual, minValue, value) => true,
-                        NotEqual when tc.Related(LessThan, value, minValue) || tc.Related(LessThan, maxValue, value) => true,
                         _ when tc.Partition(minValue, maxValue) is var (leftMax, rightMin) =>
                             AllInterval(mixed.Left, relation, value, minValue, leftMax) &&
                             AllInterval(mixed.Right, relation, value, rightMin, maxValue),

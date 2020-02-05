@@ -36,8 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 (Equal, true) => _hasTrue,
                 (Equal, false) => _hasFalse,
-                (NotEqual, true) => _hasFalse,
-                (NotEqual, false) => _hasTrue,
                 var _ => throw new ArgumentException("relation"),
             };
             bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, value.BooleanValue);
@@ -45,8 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 (Equal, true) => !_hasFalse,
                 (Equal, false) => !_hasTrue,
-                (NotEqual, true) => !_hasTrue,
-                (NotEqual, false) => !_hasFalse,
                 var _ => throw new ArgumentException("relation"),
             };
             bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, value.BooleanValue);

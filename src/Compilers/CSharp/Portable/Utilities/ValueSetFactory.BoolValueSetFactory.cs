@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 (Equal, true) => BoolValueSet.OnlyTrue,
                 (Equal, false) => BoolValueSet.OnlyFalse,
-                (NotEqual, true) => BoolValueSet.OnlyFalse,
-                (NotEqual, false) => BoolValueSet.OnlyTrue,
                 var _ => throw new ArgumentException("relation"),
             };
 

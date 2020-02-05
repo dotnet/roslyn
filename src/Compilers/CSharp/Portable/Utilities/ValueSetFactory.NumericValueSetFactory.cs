@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Equal when tc.Related(LessThan, value, minValue) => Interval.Excluded.Instance,
                     Equal when tc.Related(GreaterThan, value, maxValue) => Interval.Excluded.Instance,
-                    NotEqual when tc.Related(LessThan, value, minValue) => Interval.Included.Instance,
-                    NotEqual when tc.Related(GreaterThan, value, maxValue) => Interval.Included.Instance,
                     GreaterThan when tc.Related(LessThan, value, minValue) => Interval.Included.Instance,
                     GreaterThan when tc.Related(GreaterThanOrEqual, value, maxValue) => Interval.Excluded.Instance,
                     LessThan when tc.Related(LessThanOrEqual, value, minValue) => Interval.Excluded.Instance,
