@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (_hasNaN, _hasMinusInf, _hasPlusInf, _numbers) = (hasNaN, hasMinusInf, hasPlusInf, numbers);
             }
             public static readonly IValueSet<TFloating> AllValues =
-                new FloatingValueSet<TFloating, TFloatingTC>(hasNaN: true, hasMinusInf: true, hasPlusInf: true, numbers: new NumericValueSet<TFloating, TFloatingTC>(Interval.Included.Instance));
+                new FloatingValueSet<TFloating, TFloatingTC>(hasNaN: true, hasMinusInf: true, hasPlusInf: true, numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.All);
             public static readonly IValueSet<TFloating> None =
-                new FloatingValueSet<TFloating, TFloatingTC>(hasNaN: false, hasMinusInf: false, hasPlusInf: false, numbers: new NumericValueSet<TFloating, TFloatingTC>(Interval.Excluded.Instance));
+                new FloatingValueSet<TFloating, TFloatingTC>(hasNaN: false, hasMinusInf: false, hasPlusInf: false, numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.None);
 
             bool IValueSet.IsEmpty => !_hasNaN && !_hasMinusInf && !_hasPlusInf && _numbers.IsEmpty;
             IValueSetFactory<TFloating> IValueSet<TFloating>.Factory => FloatingValueSetFactory<TFloating, TFloatingTC>.Instance;
