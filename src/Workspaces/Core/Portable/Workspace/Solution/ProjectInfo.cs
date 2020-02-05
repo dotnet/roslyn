@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
-        /// or null if it is unknown or not applicable. 
+        /// or null if it is unknown or not applicable.
         /// </summary>
         /// <remarks>
-        /// Right now VB doesn't have the concept of "default namespace", but we conjure one in workspace 
-        /// by assigning the value of the project's root namespace to it. So various features can choose to 
+        /// Right now VB doesn't have the concept of "default namespace", but we conjure one in workspace
+        /// by assigning the value of the project's root namespace to it. So various features can choose to
         /// use it for their own purpose.
-        /// In the future, we might consider officially exposing "default namespace" for VB project 
+        /// In the future, we might consider officially exposing "default namespace" for VB project
         /// (e.g. through a "defaultnamespace" msbuild property)
         /// </remarks>
         internal string? DefaultNamespace => Attributes.DefaultNamespace;
@@ -231,7 +231,8 @@ namespace Microsoft.CodeAnalysis
                     defaultNamespace: null,
                     isSubmission,
                     hasAllInformation: true,
-                    runAnalyzers: true),
+                    runAnalyzers: true,
+                    telemetryId: default),
                 compilationOptions,
                 parseOptions,
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(documents, nameof(documents)),
@@ -347,6 +348,11 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference>? analyzerReferences)
             => With(analyzerReferences: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
 
+        internal ProjectInfo WithTelemetryId(Guid telemetryId)
+        {
+            return With(attributes: Attributes.With(telemetryId: telemetryId));
+        }
+
         internal string GetDebuggerDisplay()
             => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
 
@@ -425,6 +431,11 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public bool RunAnalyzers { get; }
 
+            /// <summary>
+            /// The id report during telementry events.
+            /// </summary>
+            public Guid TelemetryId { get; }
+
             public ProjectAttributes(
                 ProjectId id,
                 VersionStamp version,
@@ -438,7 +449,8 @@ namespace Microsoft.CodeAnalysis
                 string? defaultNamespace,
                 bool isSubmission,
                 bool hasAllInformation,
-                bool runAnalyzers)
+                bool runAnalyzers,
+                Guid telemetryId)
             {
                 Id = id;
                 Name = name;
@@ -454,6 +466,7 @@ namespace Microsoft.CodeAnalysis
                 IsSubmission = isSubmission;
                 HasAllInformation = hasAllInformation;
                 RunAnalyzers = runAnalyzers;
+                TelemetryId = telemetryId;
             }
 
             public ProjectAttributes With(
@@ -468,7 +481,8 @@ namespace Microsoft.CodeAnalysis
                 Optional<string?> defaultNamespace = default,
                 Optional<bool> isSubmission = default,
                 Optional<bool> hasAllInformation = default,
-                Optional<bool> runAnalyzers = default)
+                Optional<bool> runAnalyzers = default,
+                Optional<Guid> telemetryId = default)
             {
                 var newVersion = version ?? Version;
                 var newName = name ?? Name;
@@ -482,6 +496,7 @@ namespace Microsoft.CodeAnalysis
                 var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : IsSubmission;
                 var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : HasAllInformation;
                 var newRunAnalyzers = runAnalyzers.HasValue ? runAnalyzers.Value : RunAnalyzers;
+                var newTelemetryId = telemetryId.HasValue ? telemetryId.Value : TelemetryId;
 
                 if (newVersion == Version &&
                     newName == Name &&
@@ -494,7 +509,8 @@ namespace Microsoft.CodeAnalysis
                     newDefaultNamespace == DefaultNamespace &&
                     newIsSubmission == IsSubmission &&
                     newHasAllInformation == HasAllInformation &&
-                    newRunAnalyzers == RunAnalyzers)
+                    newRunAnalyzers == RunAnalyzers &&
+                    newTelemetryId == TelemetryId)
                 {
                     return this;
                 }
@@ -512,7 +528,8 @@ namespace Microsoft.CodeAnalysis
                     newDefaultNamespace,
                     newIsSubmission,
                     newHasAllInformation,
-                    newRunAnalyzers);
+                    newRunAnalyzers,
+                    newTelemetryId);
             }
 
             bool IObjectWritable.ShouldReuseInSerialization => true;
@@ -535,6 +552,7 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteBoolean(IsSubmission);
                 writer.WriteBoolean(HasAllInformation);
                 writer.WriteBoolean(RunAnalyzers);
+                writer.WriteGuid(TelemetryId);
 
                 // TODO: once CompilationOptions, ParseOptions, ProjectReference, MetadataReference, AnalyzerReference supports
                 //       serialization, we should include those here as well.
@@ -556,6 +574,7 @@ namespace Microsoft.CodeAnalysis
                 var isSubmission = reader.ReadBoolean();
                 var hasAllInformation = reader.ReadBoolean();
                 var runAnalyzers = reader.ReadBoolean();
+                var telementryId = reader.ReadGuid();
 
                 return new ProjectAttributes(
                     projectId,
@@ -570,7 +589,8 @@ namespace Microsoft.CodeAnalysis
                     defaultNamespace,
                     isSubmission,
                     hasAllInformation,
-                    runAnalyzers);
+                    runAnalyzers,
+                    telementryId);
             }
 
             Checksum IChecksummedObject.Checksum
