@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.Options;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             Compilation compilation,
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
-            SymbolNamesOption<byte> nullCheckValidationMethods,
+            SymbolNamesWithValueOption<Unit> nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool performCopyAnalysis,
             bool pessimisticAnalysis = true)
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
-            SymbolNamesOption<byte> nullCheckValidationMethods,
+            SymbolNamesWithValueOption<Unit> nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResult)

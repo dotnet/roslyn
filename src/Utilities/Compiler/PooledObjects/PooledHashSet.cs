@@ -24,6 +24,12 @@ namespace Analyzer.Utilities.PooledObjects
             _pool = pool;
         }
 
+        private PooledHashSet(ObjectPool<PooledHashSet<T>>? pool, IEnumerable<T> collection, IEqualityComparer<T>? comparer)
+            : base(collection, comparer)
+        {
+            _pool = pool;
+        }
+
         public void Dispose() => Free();
 
         public void Free()
@@ -65,11 +71,28 @@ namespace Analyzer.Utilities.PooledObjects
             return pool;
         }
 
+        public static ObjectPool<PooledHashSet<T>> CreatePool(IEnumerable<T> collection, IEqualityComparer<T>? comparer = null)
+        {
+            ObjectPool<PooledHashSet<T>>? pool = null;
+            pool = new ObjectPool<PooledHashSet<T>>(() => new PooledHashSet<T>(pool, collection, comparer), 128);
+            return pool;
+        }
+
         public static PooledHashSet<T> GetInstance(IEqualityComparer<T>? comparer = null)
         {
             var pool = comparer == null ?
                 s_poolInstance :
                 s_poolInstancesByComparer.GetOrAdd(comparer, c => CreatePool(c));
+            var instance = pool.Allocate();
+            Debug.Assert(instance.Count == 0);
+            return instance;
+        }
+
+        public static PooledHashSet<T> GetInstance(IEnumerable<T> collection, IEqualityComparer<T>? comparer = null)
+        {
+            var pool = comparer == null ?
+                s_poolInstance :
+                s_poolInstancesByComparer.GetOrAdd(comparer, c => CreatePool(collection, c));
             var instance = pool.Allocate();
             Debug.Assert(instance.Count == 0);
             return instance;

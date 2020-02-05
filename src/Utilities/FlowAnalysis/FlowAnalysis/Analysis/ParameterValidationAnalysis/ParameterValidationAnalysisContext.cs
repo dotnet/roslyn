@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
-            SymbolNamesOption<byte> nullCheckValidationMethods,
+            SymbolNamesWithValueOption<Unit> nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult? pointsToAnalysisResultOpt,
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
-            SymbolNamesOption<byte> nullCheckValidationMethods,
+            SymbolNamesWithValueOption<Unit> nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult? pointsToAnalysisResultOpt,
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
         public bool TrackHazardousParameterUsages { get; }
 
-        private SymbolNamesOption<byte> NullCheckValidationMethodNames { get; }
+        private SymbolNamesWithValueOption<Unit> NullCheckValidationMethodNames { get; }
         public bool IsNullCheckValidationMethod(IMethodSymbol method)
             => NullCheckValidationMethodNames.Contains(method);
 
