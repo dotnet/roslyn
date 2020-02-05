@@ -23,7 +23,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
@@ -53,7 +53,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
@@ -83,7 +83,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
@@ -120,7 +120,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
@@ -166,7 +166,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Function MyFunc(z As Boolean, newIntegerParameter As Integer, y As String) As Integer
@@ -208,7 +208,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Function MyFunc(z As Boolean, newIntegerParameter As Integer, y As String) As Integer
@@ -244,7 +244,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
@@ -277,7 +277,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Function MyFunc(z As Boolean, newIntegerParameter As Integer, y As String) As MyFunc
@@ -321,7 +321,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 ''' <summary>
@@ -368,7 +368,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
@@ -403,7 +403,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Function MyFunc(z As Boolean, newIntegerParameter As Integer, y As String) As Integer
@@ -445,7 +445,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -483,7 +483,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -513,7 +513,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -546,7 +546,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -575,7 +575,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -609,7 +609,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -655,7 +655,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -704,7 +704,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -749,7 +749,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -785,7 +785,7 @@ Class C
 End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345"))}
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer")}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MyDelegate(Of T)(newIntegerParameter As Integer)
 

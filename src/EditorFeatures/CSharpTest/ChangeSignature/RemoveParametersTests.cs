@@ -246,7 +246,7 @@ class C{i}
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(0),
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "123")) };
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "123"), "int") };
 
             using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
             testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;

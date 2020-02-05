@@ -50,7 +50,7 @@ End Module
             Dim permutation = {
                 New AddedParameterOrExistingIndex(0),
                 New AddedParameterOrExistingIndex(3),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1),
                 New AddedParameterOrExistingIndex(5)}
             Dim updatedCode = <Text><![CDATA[
@@ -104,7 +104,7 @@ End Module
 
 ]]></Text>.NormalizedValue()
             Dim permutation = {
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345"))}
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer")}
             Dim updatedCode = <Text><![CDATA[
 Module Program
     Sub M(newIntegerParameter As Integer)
@@ -127,7 +127,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -150,7 +150,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -173,7 +173,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -208,7 +208,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class D
@@ -245,7 +245,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 <C("two", x:=1, newIntegerParameter:=12345)>
@@ -277,7 +277,7 @@ End Module]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(0),
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1),
                 New AddedParameterOrExistingIndex(5),
                 New AddedParameterOrExistingIndex(4),
@@ -320,7 +320,7 @@ End Module]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(0),
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1),
                 New AddedParameterOrExistingIndex(5),
                 New AddedParameterOrExistingIndex(4),
@@ -354,7 +354,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
                 New AddedParameterOrExistingIndex(0),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(2)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -378,7 +378,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
                 New AddedParameterOrExistingIndex(0),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(2)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -414,7 +414,7 @@ End Module]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(0),
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1),
                 New AddedParameterOrExistingIndex(3)}
             Dim updatedCode = <Text><![CDATA[
@@ -460,7 +460,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -496,7 +496,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -523,7 +523,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -550,7 +550,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -577,7 +577,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -605,7 +605,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -634,7 +634,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -663,7 +663,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -693,7 +693,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -727,7 +727,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -760,7 +760,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345")),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C

@@ -28,7 +28,7 @@ class C : I
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "12345")),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
                 new AddedParameterOrExistingIndex(0)
             };
             var updatedCode = @"
@@ -62,7 +62,7 @@ class C : I
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "12345")),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
                 new AddedParameterOrExistingIndex(0)
             };
             var updatedCode = @"
@@ -96,7 +96,7 @@ class C : I
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "12345")),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
                 new AddedParameterOrExistingIndex(0)
             };
             var updatedCode = @"
@@ -131,7 +131,7 @@ class D : B
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "12345")),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
                 new AddedParameterOrExistingIndex(0)
             };
             var updatedCode = @"
@@ -167,7 +167,7 @@ class D : B
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "12345")),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
                 new AddedParameterOrExistingIndex(0)
             };
             var updatedCode = @"
@@ -209,7 +209,7 @@ class D2 : D
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "12345")),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
                 new AddedParameterOrExistingIndex(0)
             };
             var updatedCode = @"
@@ -257,7 +257,7 @@ class D2 : D
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "12345")),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
                 new AddedParameterOrExistingIndex(0)
             };
             var updatedCode = @"
@@ -303,7 +303,7 @@ class C : I3 { public void M(int x, string y) { } }";
 
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "12345")),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
                 new AddedParameterOrExistingIndex(0)
             };
             var updatedCode = @"
@@ -362,7 +362,7 @@ public class D2 : D
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "12345")),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
                 new AddedParameterOrExistingIndex(0)
             };
             var updatedCode = @"

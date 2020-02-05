@@ -2,7 +2,12 @@
 
 #nullable enable
 
+using System;
+using System.Threading;
 using Microsoft.CodeAnalysis.ChangeSignature;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
 {
@@ -12,23 +17,34 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
 
         public int? OldIndex { get; }
 
-        public AddedParameter? AddedParameter { get; }
+        private readonly AddedParameter? _addedParameterWithoutTypeSymbol;
+        private readonly string? _addedParameterFullyQualifiedTypeName;
 
         public AddedParameterOrExistingIndex(int index)
         {
             OldIndex = index;
             IsExisting = true;
-            AddedParameter = null;
+            _addedParameterWithoutTypeSymbol = null;
+            _addedParameterFullyQualifiedTypeName = null;
         }
 
-        public AddedParameterOrExistingIndex(AddedParameter addedParameter)
+        public AddedParameterOrExistingIndex(AddedParameter addedParameterWithoutTypeSymbol, string addedParameterFullyQualifiedTypeName)
         {
             OldIndex = null;
             IsExisting = false;
-            AddedParameter = addedParameter;
+            _addedParameterWithoutTypeSymbol = addedParameterWithoutTypeSymbol;
+            _addedParameterFullyQualifiedTypeName = addedParameterFullyQualifiedTypeName;
         }
 
         public override string ToString()
-            => IsExisting ? OldIndex.ToString() : (AddedParameter?.ToString() ?? string.Empty);
+            => IsExisting ? OldIndex.ToString() : (_addedParameterWithoutTypeSymbol?.ToString() ?? string.Empty);
+
+        internal AddedParameter GetAddedParameter(Document document)
+        {
+            var semanticModel = document.GetRequiredSemanticModelAsync(CancellationToken.None).Result;
+            var type = semanticModel.GetSpeculativeTypeInfo(0, SyntaxFactory.ParseTypeName(_addedParameterFullyQualifiedTypeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+
+            return new AddedParameter(type!, _addedParameterWithoutTypeSymbol!.TypeNameDisplayWithErrorIndicator, _addedParameterWithoutTypeSymbol.ParameterName, _addedParameterWithoutTypeSymbol.CallSiteValue);
+        }
     }
 }

@@ -173,10 +173,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 removeDescription = removed.Any() ? string.Format(", Removed: {{{0}}}", string.Join(", ", removed)) : string.Empty;
             }
 
-            var newParametersString = string.Join(",", signature.Where(p => !p.IsExisting).Select(p => p.AddedParameter));
-            var addDescription = !newParametersString.IsEmpty() ? string.Format(", Added {{{0}}}", newParametersString) : string.Empty;
+            // TODO!
+            // var newParametersString = string.Join(",", signature.Where(p => !p.IsExisting).Select(p => p._addedParameterWithoutTypeSymbol));
+            // var addDescription = !newParametersString.IsEmpty() ? string.Format(", Added {{{0}}}", newParametersString) : string.Empty;
 
-            return string.Format("Parameters: <{0}>{1}{2}", string.Join(", ", signature.Select(item => item.ToString())), removeDescription, addDescription);
+            // return string.Format("Parameters: <{0}>{1}{2}", string.Join(", ", signature.Select(item => item.ToString())), removeDescription, addDescription);
+
+            return "FAIL";
         }
 
         /// <summary>
