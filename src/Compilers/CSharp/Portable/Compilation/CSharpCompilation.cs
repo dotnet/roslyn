@@ -1465,11 +1465,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                         HostObjectType.Name,
                                                                                         useCLSCompliantNameArityEncoding: true);
 
-                    symbol = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(
+                    symbol = new MissingMetadataTypeSymbol.TopLevel(
                         new MissingAssemblySymbol(AssemblyIdentity.FromAssemblyDefinition(HostObjectType.GetTypeInfo().Assembly)).Modules[0],
                         ref mdName,
-                        CreateReflectionTypeNotFoundError(HostObjectType),
-                        SpecialType.None);
+                        SpecialType.None,
+                        CreateReflectionTypeNotFoundError(HostObjectType));
                 }
 
                 Interlocked.CompareExchange(ref _lazyHostObjectTypeSymbol, symbol, null);

@@ -2320,19 +2320,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
                 => throw ExceptionUtilities.Unreachable;
 
-            // PROTOTYPE: Temporary approach for AsNativeInt().
-            private PENamedTypeSymbolNonGeneric(PENamedTypeSymbolNonGeneric other, bool isNativeInt) :
-                base(other)
-            {
-                Debug.Assert(isNativeInt != other.IsNativeInt);
-
-                _underlying = other;
-                IsNativeInt = isNativeInt;
-
-                Debug.Assert(this.Equals(other));
-                Debug.Assert(other.Equals(this));
-            }
-
             public override int Arity
             {
                 get
@@ -2358,36 +2345,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            private readonly PENamedTypeSymbolNonGeneric _underlying;
-            internal override bool IsNativeInt { get; }
-
             internal override NamedTypeSymbol AsNativeInt(bool asNativeInt)
             {
                 Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
 
-                if (IsNativeInt == asNativeInt)
-                {
-                    return this;
-                }
-
-                return asNativeInt ? new PENamedTypeSymbolNonGeneric(this, isNativeInt: true) : _underlying;
+                return asNativeInt ?
+                    (NamedTypeSymbol)new NativeIntegerTypeSymbol(this) : // PROTOTYPE: Consider caching instance, perhaps on containing assembly.
+                    this;
             }
 
-            // PROTOTYPE: Temporary approach for AsNativeInt().
             internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
             {
-                if ((object)t2 == null) return false;
-                if ((object)t2 == this) return true;
-
-                var other = t2 as PENamedTypeSymbolNonGeneric;
-                if ((object)other != null &&
-                    (this.IsNativeInt || other.IsNativeInt) &&
-                    this.SpecialType == other.SpecialType)
-                {
-                    return true;
-                }
-
-                return base.Equals(t2, comparison, isValueTypeOverrideOpt);
+                return t2 is NativeIntegerTypeSymbol nativeInteger ?
+                    nativeInteger.Equals(this, comparison, isValueTypeOverrideOpt) :
+                    base.Equals(t2, comparison, isValueTypeOverrideOpt);
             }
         }
 

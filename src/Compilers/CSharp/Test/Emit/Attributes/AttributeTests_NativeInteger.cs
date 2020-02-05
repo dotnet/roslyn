@@ -265,6 +265,22 @@ using System.Runtime.CompilerServices;
 
             comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
+
+            var type = comp.GetTypeByMetadataName("B");
+            Assert.Equal("void B.F1(A<nint, nuint> a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
+            Assert.Equal("void B.F2(A<System.IntPtr, System.UIntPtr> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
+            Assert.Equal("void B.F3(A<System.IntPtr, System.UIntPtr> a)", type.GetMember("F3").ToDisplayString(FormatWithSpecialTypes));
+
+            var expected =
+@"B
+    void F1(A<System.IntPtr, System.UIntPtr> a)
+        [NativeInteger({ False, True, True })] A<System.IntPtr, System.UIntPtr> a
+    void F2(A<System.IntPtr, System.UIntPtr> a)
+        [NativeInteger({ False, True })] A<System.IntPtr, System.UIntPtr> a
+    void F3(A<System.IntPtr, System.UIntPtr> a)
+        [NativeInteger({ False, False, True, True })] A<System.IntPtr, System.UIntPtr> a
+";
+            AssertNativeIntegerAttributes(type.ContainingModule, expected);
         }
 
         [Fact]
@@ -897,7 +913,7 @@ class B : A<nint>
         private static void AssertAttributes(MetadataReader reader, CustomAttributeHandleCollection handles, params string[] expectedNames)
         {
             var actualNames = handles.Select(h => GetAttributeConstructorName(reader, h)).ToArray();
-            AssertEx.SetEqual(actualNames, expectedNames);
+            AssertEx.Equal(actualNames, expectedNames);
         }
 
         private static void AssertNoNativeIntegerAttribute(ImmutableArray<CSharpAttributeData> attributes)
@@ -913,7 +929,7 @@ class B : A<nint>
         private static void AssertAttributes(ImmutableArray<CSharpAttributeData> attributes, params string[] expectedNames)
         {
             var actualNames = attributes.Select(a => a.AttributeClass.ToTestDisplayString()).ToArray();
-            AssertEx.SetEqual(actualNames, expectedNames);
+            AssertEx.Equal(actualNames, expectedNames);
         }
 
         private static void AssertNoNativeIntegerAttributes(CSharpCompilation comp)

@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, emittedName.FullName, conflicts.Item1, conflicts.Item2);
                         }
 
-                        result = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this.Assembly.Modules[0], ref emittedName, errorInfo, type);
+                        result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type, errorInfo);
                     }
                     else
                     {
