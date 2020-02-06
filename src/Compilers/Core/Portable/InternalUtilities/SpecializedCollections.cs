@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 
@@ -42,11 +46,13 @@ namespace Roslyn.Utilities
         }
 
         public static IDictionary<TKey, TValue> EmptyDictionary<TKey, TValue>()
+            where TKey : notnull
         {
             return Empty.Dictionary<TKey, TValue>.Instance;
         }
 
         public static IReadOnlyDictionary<TKey, TValue> EmptyReadOnlyDictionary<TKey, TValue>()
+            where TKey : notnull
         {
             return Empty.Dictionary<TKey, TValue>.Instance;
         }
@@ -76,21 +82,21 @@ namespace Roslyn.Utilities
             return new ReadOnly.Enumerable<IEnumerable<T>, T>(values);
         }
 
-        public static ICollection<T> ReadOnlyCollection<T>(ICollection<T> collection)
+        public static ICollection<T> ReadOnlyCollection<T>(ICollection<T>? collection)
         {
             return collection == null || collection.Count == 0
                 ? EmptyCollection<T>()
                 : new ReadOnly.Collection<ICollection<T>, T>(collection);
         }
 
-        public static ISet<T> ReadOnlySet<T>(ISet<T> set)
+        public static ISet<T> ReadOnlySet<T>(ISet<T>? set)
         {
             return set == null || set.Count == 0
                 ? EmptySet<T>()
                 : new ReadOnly.Set<ISet<T>, T>(set);
         }
 
-        public static IReadOnlySet<T> StronglyTypedReadOnlySet<T>(ISet<T> set)
+        public static IReadOnlySet<T> StronglyTypedReadOnlySet<T>(ISet<T>? set)
         {
             return set == null || set.Count == 0
                 ? EmptyReadOnlySet<T>()

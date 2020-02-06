@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -24,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypeDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -59,10 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.use_var_instead_of_explicit_type,
-                     createChangedDocument,
-                     CSharpFeaturesResources.use_var_instead_of_explicit_type)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.use_var_instead_of_explicit_type,
+                       createChangedDocument,
+                       CSharpFeaturesResources.use_var_instead_of_explicit_type)
             {
             }
         }

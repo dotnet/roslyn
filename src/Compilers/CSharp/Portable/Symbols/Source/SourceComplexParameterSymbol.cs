@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -46,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(owner, parameterType, ordinal, refKind, name, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
+            Debug.Assert(!(owner is LambdaSymbol)); // therefore we're not dealing with discard parameters
 
             _lazyHasOptionalAttribute = ThreeState.Unknown;
             _syntaxRef = syntaxRef;
@@ -76,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal ParameterSyntax CSharpSyntaxNode => (ParameterSyntax)_syntaxRef?.GetSyntax();
 
         internal SyntaxTree SyntaxTree => _syntaxRef == null ? null : _syntaxRef.SyntaxTree;
+
+        public sealed override bool IsDiscard => false;
 
         internal override ConstantValue ExplicitDefaultConstantValue
         {
@@ -131,12 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                FlowAnalysisAnnotations? annotations = TryGetExtraAttributeAnnotations();
-                if (annotations.HasValue)
-                {
-                    // https://github.com/dotnet/roslyn/issues/30078: Make sure this is covered by test
-                    return annotations.Value;
-                }
                 return DecodeFlowAnalysisAttributes(GetDecodedWellKnownAttributeData());
             }
         }
@@ -150,34 +149,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None;
             if (attributeData.HasAllowNullAttribute) annotations |= FlowAnalysisAnnotations.AllowNull;
             if (attributeData.HasDisallowNullAttribute) annotations |= FlowAnalysisAnnotations.DisallowNull;
+
             if (attributeData.HasMaybeNullAttribute)
             {
                 annotations |= FlowAnalysisAnnotations.MaybeNull;
             }
             else
             {
-                bool? value = attributeData.MaybeNullWhenAttribute;
-                if (value.HasValue)
+                if (attributeData.MaybeNullWhenAttribute is bool when)
                 {
-                    annotations |= (value.GetValueOrDefault() ? FlowAnalysisAnnotations.MaybeNullWhenTrue : FlowAnalysisAnnotations.MaybeNullWhenFalse);
+                    annotations |= (when ? FlowAnalysisAnnotations.MaybeNullWhenTrue : FlowAnalysisAnnotations.MaybeNullWhenFalse);
                 }
             }
+
             if (attributeData.HasNotNullAttribute)
             {
                 annotations |= FlowAnalysisAnnotations.NotNull;
             }
             else
             {
-                bool? value = attributeData.NotNullWhenAttribute;
-                if (value.HasValue)
+                if (attributeData.NotNullWhenAttribute is bool when)
                 {
-                    annotations |= (value.GetValueOrDefault() ? FlowAnalysisAnnotations.NotNullWhenTrue : FlowAnalysisAnnotations.NotNullWhenFalse);
+                    annotations |= (when ? FlowAnalysisAnnotations.NotNullWhenTrue : FlowAnalysisAnnotations.NotNullWhenFalse);
                 }
             }
-            if (attributeData.HasAssertsTrueAttribute) annotations |= FlowAnalysisAnnotations.AssertsTrue;
-            if (attributeData.HasAssertsFalseAttribute) annotations |= FlowAnalysisAnnotations.AssertsFalse;
+
+            if (attributeData.DoesNotReturnIfAttribute is bool condition)
+            {
+                annotations |= (condition ? FlowAnalysisAnnotations.DoesNotReturnIfTrue : FlowAnalysisAnnotations.DoesNotReturnIfFalse);
+            }
+
             return annotations;
         }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+            => GetDecodedWellKnownAttributeData()?.NotNullIfParameterNotNull ?? ImmutableHashSet<string>.Empty;
 
         internal bool HasEnumeratorCancellationAttribute
         {
@@ -262,9 +268,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If we have something like M(double? x = 1) then the expression we'll get is (double?)1, which
             // does not have a constant value. The constant value we want is (double)1.
             // The default literal conversion is an exception: (double)default would give the wrong value for M(double? x = default).
-
             if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion &&
-                !(valueBeforeConversion.Kind == BoundKind.DefaultExpression && (object)valueBeforeConversion.Type == null))
+                ((BoundConversion)convertedExpression).ConversionKind != ConversionKind.DefaultLiteral)
             {
                 if (parameterType.Type.IsNullableType())
                 {
@@ -684,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullWhenAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().MaybeNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenAttribute(AttributeDescription.MaybeNullWhenAttribute, attribute, arguments.Diagnostics);
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().MaybeNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.MaybeNullWhenAttribute, attribute, arguments.Diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
             {
@@ -692,15 +697,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().NotNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenAttribute(AttributeDescription.NotNullWhenAttribute, attribute, arguments.Diagnostics);
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().NotNullWhenAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.NotNullWhenAttribute, attribute, arguments.Diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.AssertsTrueAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnIfAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasAssertsTrueAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().DoesNotReturnIfAttribute = DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription.DoesNotReturnIfAttribute, attribute, arguments.Diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.AssertsFalseAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasAssertsFalseAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().AddNotNullIfParameterNotNull(attribute.DecodeNotNullIfNotNullAttribute());
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.EnumeratorCancellationAttribute))
             {
@@ -709,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool? DecodeMaybeNullWhenOrNotNullWhenAttribute(AttributeDescription description, CSharpAttributeData attribute, DiagnosticBag diagnostics)
+        private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription description, CSharpAttributeData attribute, DiagnosticBag diagnostics)
         {
             var arguments = attribute.CommonConstructorArguments;
             return arguments.Length == 1 && arguments[0].TryDecodeValue(SpecialType.System_Boolean, out bool value) ?
@@ -800,15 +805,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arg = attribute.CommonConstructorArguments[0];
 
             SpecialType specialType = arg.Kind == TypedConstantKind.Enum ?
-                ((INamedTypeSymbol)arg.Type).EnumUnderlyingType.SpecialType :
-                arg.Type.SpecialType;
+                ((NamedTypeSymbol)arg.TypeInternal).EnumUnderlyingType.SpecialType :
+                arg.TypeInternal.SpecialType;
 
             var compilation = this.DeclaringCompilation;
             var constantValueDiscriminator = ConstantValue.GetDiscriminator(specialType);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (constantValueDiscriminator == ConstantValueTypeDiscriminator.Bad)
             {
-                if (arg.Kind != TypedConstantKind.Array && arg.Value == null)
+                if (arg.Kind != TypedConstantKind.Array && arg.ValueInternal == null)
                 {
                     if (this.Type.IsReferenceType)
                     {
@@ -829,12 +834,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // error CS1910: Argument of type '{0}' is not applicable for the DefaultParameterValue attribute
                     if (diagnose)
                     {
-                        diagnosticsOpt.Add(ErrorCode.ERR_DefaultValueBadValueType, node.Name.Location, arg.Type);
+                        diagnosticsOpt.Add(ErrorCode.ERR_DefaultValueBadValueType, node.Name.Location, arg.TypeInternal);
                     }
                     return ConstantValue.Bad;
                 }
             }
-            else if (!compilation.Conversions.ClassifyConversionFromType((TypeSymbol)arg.Type, this.Type, ref useSiteDiagnostics).Kind.IsImplicitConversion())
+            else if (!compilation.Conversions.ClassifyConversionFromType((TypeSymbol)arg.TypeInternal, this.Type, ref useSiteDiagnostics).Kind.IsImplicitConversion())
             {
                 // error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 if (diagnose)
@@ -850,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnosticsOpt.Add(node.Name.Location, useSiteDiagnostics);
             }
 
-            return ConstantValue.Create(arg.Value, constantValueDiscriminator);
+            return ConstantValue.Create(arg.ValueInternal, constantValueDiscriminator);
         }
 
         private bool IsValidCallerInfoContext(AttributeSyntax node) => !ContainingSymbol.IsExplicitInterfaceImplementation()

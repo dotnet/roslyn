@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -362,8 +364,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal EnvDTE.CodeProperty AddProperty(SyntaxNode containerNode, string getterName, string putterName, object type, object position, EnvDTE.vsCMAccess access)
         {
-            bool isGetterPresent = !string.IsNullOrEmpty(getterName);
-            bool isPutterPresent = !string.IsNullOrEmpty(putterName);
+            var isGetterPresent = !string.IsNullOrEmpty(getterName);
+            var isPutterPresent = !string.IsNullOrEmpty(putterName);
 
             if ((!isGetterPresent && !isPutterPresent) ||
                 (isGetterPresent && isPutterPresent && getterName != putterName))
@@ -681,7 +683,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEInvalidArg();
             }
 
-            int? realPosition = GetRealPosition(position);
+            var realPosition = GetRealPosition(position);
 
             var updatedNode = CodeModelService.AddBase(node, typeSymbol, semanticModel, realPosition);
 
@@ -717,7 +719,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEInvalidArg();
             }
 
-            int? realPosition = GetRealPosition(position);
+            var realPosition = GetRealPosition(position);
 
             var updatedNode = CodeModelService.AddImplementedInterface(node, typeSymbol, semanticModel, realPosition);
 

@@ -1,9 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
 {
@@ -21,16 +19,16 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
     {
         private partial class NavigableSymbolSource : INavigableSymbolSource
         {
-            private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _presenters;
+            private readonly IStreamingFindUsagesPresenter _presenter;
             private readonly IWaitIndicator _waitIndicator;
 
             private bool _disposed;
 
             public NavigableSymbolSource(
-                IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+                IStreamingFindUsagesPresenter streamingPresenter,
                 IWaitIndicator waitIndicator)
             {
-                _presenters = streamingPresenters;
+                _presenter = streamingPresenter;
                 _waitIndicator = waitIndicator;
             }
 
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 }
 
                 var snapshotSpan = new SnapshotSpan(snapshot, context.Span.ToSpan());
-                return new NavigableSymbol(definitions.ToImmutableArray(), snapshotSpan, document, _presenters, _waitIndicator);
+                return new NavigableSymbol(definitions.ToImmutableArray(), snapshotSpan, document, _presenter, _waitIndicator);
             }
         }
     }

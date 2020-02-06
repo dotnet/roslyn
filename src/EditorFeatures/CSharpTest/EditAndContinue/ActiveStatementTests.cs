@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void Update_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -27,7 +29,7 @@ class C
         <AS:0>Console.WriteLine(a);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -54,7 +56,7 @@ class C
         [Fact]
         public void Update_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -67,7 +69,7 @@ class C
         <AS:0>Console.WriteLine(a);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -93,7 +95,7 @@ class C
         [Fact]
         public void Update_Leaf_NewCommentAtEndOfActiveStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -106,7 +108,7 @@ class C
         <AS:0>Console.WriteLine(a);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -129,7 +131,7 @@ class C
         [Fact]
         public void Update_Inner_NewCommentAtEndOfActiveStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -142,7 +144,7 @@ class C
         <AS:0>Console.WriteLine(a);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -166,7 +168,7 @@ class C
         [Fact]
         public void Update_Leaf_Block()
         {
-            string src1 = @"
+            var src1 = @"
 class C : System.IDisposable
 {
     public void Dispose() {}
@@ -176,22 +178,21 @@ class C : System.IDisposable
         using (<AS:0>C x = null</AS:0>) {}
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C : System.IDisposable
 {
     public void Dispose() {}
 
     static void Main(string[] args)
     {
-        using (C x) <AS:0>{</AS:0>}
+        using (<AS:0>C x = new C()</AS:0>) {}
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "using (C x)", CSharpFeaturesResources.using_statement));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         #endregion
@@ -201,7 +202,7 @@ class C : System.IDisposable
         [Fact]
         public void Delete_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -214,7 +215,7 @@ class C
         <AS:0>Console.WriteLine(a);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -241,7 +242,7 @@ class C
         [Fact]
         public void Delete_Inner_MultipleParents()
         {
-            string src1 = @"
+            var src1 = @"
 class C : IDisposable
 {
     unsafe static void Main(string[] args)
@@ -302,7 +303,7 @@ class C : IDisposable
         <AS:0>Console.WriteLine(a);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C : IDisposable
 {
     unsafe static void Main(string[] args)
@@ -378,7 +379,7 @@ class C : IDisposable
         [Fact]
         public void Delete_Leaf1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -391,7 +392,7 @@ class C
         <AS:0>Console.WriteLine(a);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -413,7 +414,7 @@ class C
         [Fact]
         public void Delete_Leaf2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Goo(int a)
@@ -424,7 +425,7 @@ class C
         Console.WriteLine(4);
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Goo(int a)
@@ -445,7 +446,7 @@ class C
         [Fact]
         public void Delete_Leaf_InTry()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -464,7 +465,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -492,7 +493,7 @@ class C
         [Fact]
         public void Delete_Leaf_InTry2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -517,7 +518,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -551,7 +552,7 @@ class C
         [Fact]
         public void Delete_Inner_CommentActiveStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -564,7 +565,7 @@ class C
         <AS:0>Console.WriteLine(a);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -589,7 +590,7 @@ class C
         [Fact]
         public void Delete_Leaf_CommentActiveStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -602,7 +603,7 @@ class C
         <AS:0>Console.WriteLine(a);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -625,7 +626,7 @@ class C
         [Fact]
         public void Delete_EntireNamespace()
         {
-            string src1 = @"
+            var src1 = @"
 namespace N
 {
     class C
@@ -636,13 +637,13 @@ namespace N
         }
     }
 }";
-            string src2 = @"<AS:0></AS:0>";
+            var src2 = @"<AS:0></AS:0>";
 
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, null, "namespace"));
+                Diagnostic(RudeEditKind.Delete, null, FeaturesResources.namespace_));
         }
 
         #endregion
@@ -653,7 +654,7 @@ namespace N
         [Fact]
         public void Updated_Inner_Constructor()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class Program
@@ -672,7 +673,7 @@ class Goo
         <AS:0>this.value = a;</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class Program
@@ -702,7 +703,7 @@ class Goo
         [Fact]
         public void Updated_Leaf_Constructor()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class Program
@@ -721,7 +722,7 @@ class Goo
         <AS:0>this.value = a;</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class Program
@@ -750,7 +751,7 @@ class Goo
         [Fact]
         public void Updated_Leaf_Constructor_Parameter()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class Program
@@ -769,7 +770,7 @@ class Goo
         this.value = a;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class Program
@@ -799,7 +800,7 @@ class Goo
         [Fact]
         public void Updated_Leaf_Constructor_Parameter_DefaultValue()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class Program
@@ -818,7 +819,7 @@ class Goo
         this.value = a;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class Program
@@ -848,7 +849,7 @@ class Goo
         [Fact]
         public void Updated_Leaf_ConstructorChaining1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class Test
@@ -868,7 +869,7 @@ class A
 
     public A(int x, int y, int z) { }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class Test
@@ -898,7 +899,7 @@ class A
         [Fact]
         public void Updated_Leaf_ConstructorChaining2()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 
 class Test
@@ -918,7 +919,7 @@ class A
 
     public A(int x, int y, int z) { }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 
 class Test
@@ -948,7 +949,7 @@ class A
         [Fact]
         public void InstanceConstructorWithoutInitializer()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int a = 5;
@@ -960,7 +961,7 @@ class C
         <AS:1>C c = new C(3);</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int a = 42;
@@ -981,7 +982,7 @@ class C
         [Fact]
         public void InstanceConstructorWithInitializer_Internal_Update1()
         {
-            string src1 = @"
+            var src1 = @"
 class D
 {
     public D(int d) {}
@@ -1005,7 +1006,7 @@ class C : D
         <AS:3>C c = new C(3);</AS:3>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class D
 {
     public D(int d) {}
@@ -1039,7 +1040,7 @@ class C : D
         [Fact]
         public void InstanceConstructorWithInitializer_Internal_Update2()
         {
-            string src1 = @"
+            var src1 = @"
 class D
 {
     public D(int d) {}
@@ -1059,7 +1060,7 @@ class C : D
         <AS:2>C c = new C();</AS:2>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class D
 {
     public D(int d) {}
@@ -1089,7 +1090,7 @@ class C : D
         [Fact]
         public void InstanceConstructorWithInitializer_Internal_Update3()
         {
-            string src1 = @"
+            var src1 = @"
 class D
 {
     public D(int d) <AS:0>{</AS:0> }
@@ -1104,7 +1105,7 @@ class C : D
         <AS:2>C c = new C();</AS:2>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class D
 {
     public D(int d) <AS:0>{</AS:0> }
@@ -1129,7 +1130,7 @@ class C : D
         [Fact]
         public void InstanceConstructorWithInitializer_Leaf_Update1()
         {
-            string src1 = @"
+            var src1 = @"
 class D
 {
     public D(int d) { }
@@ -1144,7 +1145,7 @@ class C : D
         <AS:1>C c = new C();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class D
 {
     public D(int d) { }
@@ -1168,7 +1169,7 @@ class C : D
         [Fact]
         public void InstanceConstructorWithInitializer_Leaf_Update2()
         {
-            string src1 = @"
+            var src1 = @"
 class D
 {
     public D() { }
@@ -1184,7 +1185,7 @@ class C : D
         <AS:1>C c = new C();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class D
 {
     public D() { }
@@ -1209,7 +1210,7 @@ class C : D
         [Fact]
         public void InstanceConstructorWithInitializer_Leaf_Update3()
         {
-            string src1 = @"
+            var src1 = @"
 class D
 {
     public D() { }
@@ -1225,7 +1226,7 @@ class C : D
         <AS:1>C c = new C();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class D
 {
     public D() { }
@@ -1250,12 +1251,12 @@ class C : D
         [Fact]
         public void InstanceConstructorWithInitializerWithLambda_Update1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public C() : this((a, b) => { <AS:0>Console.WriteLine(a + b);</AS:0> }) { }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public C() : base((a, b) => { <AS:0>Console.WriteLine(a - b);</AS:0> }) { }
@@ -1269,12 +1270,12 @@ class C
         [Fact]
         public void InstanceConstructorWithInitializerWithLambda_Update2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public C() : <AS:1>this((a, b) => { <AS:0>Console.WriteLine(a + b);</AS:0> })</AS:1> { Console.WriteLine(1); }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public C() : <AS:1>this((a, b) => { <AS:0>Console.WriteLine(a + b);</AS:0> })</AS:1> { Console.WriteLine(2); }
@@ -1288,12 +1289,12 @@ class C
         [Fact]
         public void InstanceConstructorWithInitializerWithLambda_Update3()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public C() : <AS:1>this((a, b) => { <AS:0>Console.WriteLine(a + b);</AS:0> })</AS:1> { Console.WriteLine(1); }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public C() : <AS:1>this((a, b) => { <AS:0>Console.WriteLine(a - b);</AS:0> })</AS:1> { Console.WriteLine(1); }
@@ -1311,7 +1312,7 @@ class C
         [Fact]
         public void InstancePropertyInitializer_Leaf_Update()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int a { get; } = <AS:0>1</AS:0>;
@@ -1323,7 +1324,7 @@ class C
         <AS:1>C c = new C();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int a { get; } = <AS:0>2</AS:0>;
@@ -1345,7 +1346,7 @@ class C
         [Fact]
         public void InstanceFieldInitializer_Leaf_Update1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     <AS:0>int a = 1</AS:0>, b = 2;
@@ -1357,7 +1358,7 @@ class C
         <AS:1>C c = new C();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     <AS:0>int a = 2</AS:0>, b = 2;
@@ -1378,7 +1379,7 @@ class C
         [Fact]
         public void InstanceFieldInitializer_Internal_Update1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     <AS:1>int a = F(1)</AS:1>, b = F(2);
@@ -1395,7 +1396,7 @@ class C
         <AS:2>C c = new C();</AS:2>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     <AS:1>int a = F(2)</AS:1>, b = F(2);
@@ -1422,7 +1423,7 @@ class C
         [Fact]
         public void InstanceFieldInitializer_Internal_Update2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int a = F(1), <AS:1>b = F(2)</AS:1>;
@@ -1439,7 +1440,7 @@ class C
         <AS:2>C c = new C();</AS:2>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int a = F(1), <AS:1>b = F(3)</AS:1>;
@@ -1466,7 +1467,7 @@ class C
         [Fact]
         public void InstancePropertyInitializer_Internal_Delete1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int a { get; } = <AS:0>1</AS:0>;
@@ -1479,7 +1480,7 @@ class C
         <AS:1>C c = new C();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int a { get { return 1; } }
@@ -1502,7 +1503,7 @@ class C
         [Fact]
         public void InstancePropertyInitializer_Internal_Delete2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int a { get; } = <AS:0>1</AS:0>;
@@ -1516,7 +1517,7 @@ class C
         <AS:1>C c = new C();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int a { get; }
@@ -1539,7 +1540,7 @@ class C
         [Fact]
         public void InstanceFieldInitializer_Internal_Delete1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     <AS:1>int a = F(1)</AS:1>, b = F(2);
@@ -1556,7 +1557,7 @@ class C
         <AS:2>C c = new C();</AS:2>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int a, <AS:1>b = F(2)</AS:1>;
@@ -1582,7 +1583,7 @@ class C
         [Fact]
         public void InstanceFieldInitializer_Internal_Delete2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int a = F(1), <AS:1>b = F(2)</AS:1>;
@@ -1599,7 +1600,7 @@ class C
         <AS:2>C c = new C();</AS:2>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     <AS:1>int a, b;</AS:1>
@@ -1625,7 +1626,7 @@ class C
         [Fact]
         public void InstancePropertyAndFieldInitializers_Delete1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int a { get; } = <AS:0>1</AS:0>;
@@ -1639,7 +1640,7 @@ class C
         <AS:1>C c = new C();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int a { get; }
@@ -1662,7 +1663,7 @@ class C
         [Fact]
         public void InstancePropertyAndFieldInitializers_Delete2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int a = <AS:0>1</AS:0>;
@@ -1676,7 +1677,7 @@ class C
         <AS:1>C c = new C();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int a;
@@ -1699,7 +1700,7 @@ class C
         [Fact]
         public void InstanceFieldInitializer_SingleDeclarator()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     <AS:1>public static readonly int a = F(1);</AS:1>
@@ -1716,7 +1717,7 @@ class C
         <AS:2>C c = new C();</AS:2>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     <AS:1>public static readonly int <TS:1>a = F(1)</TS:1>;</AS:1>
@@ -1742,7 +1743,7 @@ class C
         [Fact]
         public void FieldInitializer_Lambda1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     Func<int, int> a = z => <AS:0>z + 1</AS:0>;
@@ -1752,7 +1753,7 @@ class C
         <AS:1>new C().a(1);</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     Func<int, int> a = F(z => <AS:0>z + 1</AS:0>);
@@ -1771,7 +1772,7 @@ class C
         [Fact]
         public void PropertyInitializer_Lambda1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     Func<int, int> a { get; } = z => <AS:0>z + 1</AS:0>;
@@ -1781,7 +1782,7 @@ class C
         <AS:1>new C().a(1);</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     Func<int, int> a { get; } = F(z => <AS:0>z + 1</AS:0>);
@@ -1800,7 +1801,7 @@ class C
         [Fact]
         public void FieldInitializer_Lambda2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     Func<int, Func<int>> a = z => () => <AS:0>z + 1</AS:0>;
@@ -1810,7 +1811,7 @@ class C
         <AS:1>new C().a(1)();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     Func<int, Func<int>> a = z => () => <AS:0>z + 2</AS:0>;
@@ -1829,7 +1830,7 @@ class C
         [Fact]
         public void PropertyInitializer_Lambda2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     Func<int, Func<int>> a { get; } = z => () => <AS:0>z + 1</AS:0>;
@@ -1839,7 +1840,7 @@ class C
         <AS:1>new C().a(1)();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     Func<int, Func<int>> a { get; } = z => () => <AS:0>z + 2</AS:0>;
@@ -1858,14 +1859,14 @@ class C
         [Fact]
         public void FieldInitializer_InsertConst1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     <AS:0>int a = 1</AS:0>;
 
     public C() {}
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     <AS:0>const int a = 1;</AS:0>
@@ -1886,7 +1887,7 @@ class C
         [Fact]
         public void LocalInitializer_InsertConst1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public void M()
@@ -1894,7 +1895,7 @@ class C
         <AS:0>int a = 1</AS:0>;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public void M()
@@ -1911,14 +1912,14 @@ class C
         [Fact]
         public void FieldInitializer_InsertConst2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int <AS:0>a = 1</AS:0>, b = 2;
 
     public C() {}
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     <AS:0>const int a = 1, b = 2;</AS:0>
@@ -1936,7 +1937,7 @@ class C
         [Fact]
         public void LocalInitializer_InsertConst2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public void M()
@@ -1944,7 +1945,7 @@ class C
         int <AS:0>a = 1</AS:0>, b = 2;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public void M()
@@ -1961,7 +1962,7 @@ class C
         [Fact]
         public void FieldInitializer_Delete1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     <AS:0>int a = 1;</AS:0>
@@ -1969,7 +1970,7 @@ class C
 
     public C() {}
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int a;
@@ -1986,12 +1987,12 @@ class C
         [Fact]
         public void LocalInitializer_Delete1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
       public void M() { <AS:0>int a = 1</AS:0>; }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public void M() { int a; <AS:0>}</AS:0> 
@@ -2005,7 +2006,7 @@ class C
         [Fact]
         public void FieldInitializer_Delete2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int b = 1;
@@ -2014,7 +2015,7 @@ class C
 
     public C() {}
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     <AS:0>int b = 1;</AS:0>
@@ -2032,7 +2033,7 @@ class C
         [Fact]
         public void LocalInitializer_Delete2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public void M() 
@@ -2042,7 +2043,7 @@ class C
         <AS:0>int a = 1;</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public void M()
@@ -2061,7 +2062,7 @@ class C
         [Fact]
         public void FieldInitializer_Delete3()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int b = 1;
@@ -2070,7 +2071,7 @@ class C
 
     public C() {}
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     <AS:0>int b = 1;</AS:0>
@@ -2088,7 +2089,7 @@ class C
         [Fact]
         public void LocalInitializer_Delete3()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public void M() 
@@ -2098,7 +2099,7 @@ class C
         <AS:0>int a = 1;</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public void M()
@@ -2116,7 +2117,7 @@ class C
         [Fact]
         public void FieldInitializer_DeleteStaticInstance1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     <AS:0>int a = 1;</AS:0>
@@ -2125,7 +2126,7 @@ class C
     
     public C() {}
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int a;
@@ -2143,7 +2144,7 @@ class C
         [Fact]
         public void FieldInitializer_DeleteStaticInstance2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static int c = 1;
@@ -2152,7 +2153,7 @@ class C
     
     public C() {}
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     <AS:0>static int c = 1;</AS:0>
@@ -2170,7 +2171,7 @@ class C
         [Fact]
         public void FieldInitializer_DeleteStaticInstance3()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     <AS:0>static int a = 1;</AS:0>
@@ -2178,7 +2179,7 @@ class C
     
     public C() {}
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     <AS:0>static int a;</AS:0>
@@ -2195,7 +2196,7 @@ class C
         [Fact]
         public void FieldInitializer_DeleteMove1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int b = 1;
@@ -2204,7 +2205,7 @@ class C
 
     public C() {}
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     int c;
@@ -2223,7 +2224,7 @@ class C
         [Fact]
         public void LocalInitializer_DeleteReorder1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public void M() 
@@ -2233,7 +2234,7 @@ class C
         int c;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public void M()
@@ -2251,14 +2252,14 @@ class C
         [Fact]
         public void FieldToProperty1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int a = <AS:0>1</AS:0>;
 }";
 
             // The placement of the active statement is not ideal, but acceptable.
-            string src2 = @"
+            var src2 = @"
 <AS:0>class C</AS:0>
 {
     int a { get; } = 1;
@@ -2273,14 +2274,14 @@ class C
         [Fact]
         public void PropertyToField1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     int a { get; } = <AS:0>1</AS:0>;
 }";
 
             // The placement of the active statement is not ideal, but acceptable.
-            string src2 = @"
+            var src2 = @"
 <AS:0>class C</AS:0>
 {
     int a = 1;
@@ -2299,7 +2300,7 @@ class C
         [Fact]
         public void LockBody_Update()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static object F() { <AS:0>return new object();</AS:0> }
@@ -2312,7 +2313,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static object F() { <AS:0>return new object();</AS:0> }
@@ -2335,7 +2336,7 @@ class Test
         [Fact]
         public void Lock_Insert_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static object lockThis = new object();
@@ -2344,7 +2345,7 @@ class Test
         <AS:0>System.Console.Write(5);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static object lockThis = new object();
@@ -2367,7 +2368,7 @@ class Test
         [Fact]
         public void Lock_Insert_Leaf2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static object lockThis = new object();
@@ -2378,7 +2379,7 @@ class Test
         <AS:0>}</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static object lockThis = new object();
@@ -2400,7 +2401,7 @@ class Test
         [Fact]
         public void Lock_Insert_Leaf3()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static object lockThis = new object();
@@ -2412,7 +2413,7 @@ class Test
         <AS:0>System.Console.Write(10);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static object lockThis = new object();
@@ -2434,7 +2435,7 @@ class Test
         [Fact]
         public void Lock_Insert_Leaf4()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static object a = new object();
@@ -2457,7 +2458,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static object a = new object();
@@ -2494,7 +2495,7 @@ class Test
         [Fact]
         public void Lock_Insert_Leaf5()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static object a = new object();
@@ -2521,7 +2522,7 @@ class Test
     }
 }";
 
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static object a = new object();
@@ -2555,7 +2556,7 @@ class Test
         [Fact]
         public void Lock_Update_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static object lockThis = new object();
@@ -2567,7 +2568,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static object lockThis = new object();
@@ -2589,7 +2590,7 @@ class Test
         [Fact]
         public void Lock_Update_Leaf2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static object lockThis = new object();
@@ -2602,7 +2603,7 @@ class Test
         <AS:0>System.Console.Write(5);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static object lockThis = new object();
@@ -2624,7 +2625,7 @@ class Test
         [Fact]
         public void Lock_Delete_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static object lockThis = new object();
@@ -2636,7 +2637,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static object lockThis = new object();
@@ -2654,7 +2655,7 @@ class Test
         [Fact]
         public void Lock_Update_Lambda1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -2666,7 +2667,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -2687,7 +2688,7 @@ class C
         [Fact]
         public void Lock_Update_Lambda2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -2699,7 +2700,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -2725,7 +2726,7 @@ class C
         [Fact]
         public void FixedBody_Update()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static string F() { <AS:0>return null;</AS:0> }
@@ -2742,7 +2743,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static string F() { <AS:0>return null;</AS:0> }
@@ -2769,7 +2770,7 @@ class Test
         [Fact]
         public void Fixed_Insert_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static int value = 20;
@@ -2782,7 +2783,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static int value = 20;
@@ -2808,7 +2809,7 @@ class Test
         [Fact]
         public void Fixed_Insert_Leaf2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static int value = 20;
@@ -2820,7 +2821,7 @@ class Test
         <AS:0>}</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static int value = 20;
@@ -2846,7 +2847,7 @@ class Test
         [Fact]
         public void Fixed_Insert_Leaf3()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static int value = 20;
@@ -2864,7 +2865,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static int value = 20;
@@ -2891,7 +2892,7 @@ class Test
         [Fact]
         public void Fixed_Reorder_Leaf1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static int value = 20;
@@ -2910,7 +2911,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static int value = 20;
@@ -2939,7 +2940,7 @@ class Test
         [Fact]
         public void Fixed_Update_Leaf1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static int value = 20;
@@ -2955,7 +2956,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static int value = 20;
@@ -2982,7 +2983,7 @@ class Test
         [Fact]
         public void Fixed_Update_Leaf2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static int value1 = 10;
@@ -3005,7 +3006,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static int value1 = 10;
@@ -3043,7 +3044,7 @@ class Test
         [Fact]
         public void Fixed_Delete_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static int value = 20;
@@ -3059,7 +3060,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static int value = 20;
@@ -3081,7 +3082,7 @@ class Test
         [Fact]
         public void Fixed_Update_Lambda1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static unsafe void Main(string[] args)
@@ -3093,7 +3094,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static unsafe void Main(string[] args)
@@ -3114,7 +3115,7 @@ class C
         [Fact]
         public void Fixed_Update_Lambda2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static unsafe void Main(string[] args)
@@ -3126,7 +3127,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static unsafe void Main(string[] args)
@@ -3152,7 +3153,7 @@ class C
         [Fact]
         public void ForEachBody_Update_ExpressionActive()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static string F() { <AS:0>return null;</AS:0> }
@@ -3165,7 +3166,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static string F() { <AS:0>return null;</AS:0> }
@@ -3187,7 +3188,7 @@ class Test
         [Fact]
         public void ForEachVariableBody_Update_ExpressionActive()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static (string, int) F() { <AS:0>return null;</AS:0> }
@@ -3200,7 +3201,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static (string, int) F() { <AS:0>return null;</AS:0> }
@@ -3222,7 +3223,7 @@ class Test
         [Fact]
         public void ForEachBody_Update_InKeywordActive()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static string F() { <AS:0>return null;</AS:0> }
@@ -3235,7 +3236,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static string F() { <AS:0>return null;</AS:0> }
@@ -3257,7 +3258,7 @@ class Test
         [Fact]
         public void ForEachVariableBody_Update_InKeywordActive()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static (string, int) F() { <AS:0>return null;</AS:0> }
@@ -3270,7 +3271,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static (string, int) F() { <AS:0>return null;</AS:0> }
@@ -3292,7 +3293,7 @@ class Test
         [Fact]
         public void ForEachBody_Update_VariableActive()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static string[] F() { <AS:0>return null;</AS:0> }
@@ -3305,7 +3306,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static string[] F() { <AS:0>return null;</AS:0> }
@@ -3327,7 +3328,7 @@ class Test
         [Fact]
         public void ForEachVariableBody_Update_VariableActive()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static (string, int) F() { <AS:0>return null;</AS:0> }
@@ -3340,7 +3341,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static (string, int) F() { <AS:0>return null;</AS:0> }
@@ -3362,7 +3363,7 @@ class Test
         [Fact]
         public void ForEachBody_Update_ForeachKeywordActive()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static string F() { <AS:0>return null;</AS:0> }
@@ -3375,7 +3376,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static string F() { <AS:0>return null;</AS:0> }
@@ -3397,7 +3398,7 @@ class Test
         [Fact]
         public void ForEachVariableBody_Update_ForeachKeywordActive()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static (string, int) F() { <AS:0>return null;</AS:0> }
@@ -3410,7 +3411,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static (string, int) F() { <AS:0>return null;</AS:0> }
@@ -3432,7 +3433,7 @@ class Test
         [Fact]
         public void ForEachVariable_Update()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static string[] F() { <AS:0>return null;</AS:0> }
@@ -3445,7 +3446,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static string[] F() { <AS:0>return null;</AS:0> }
@@ -3470,7 +3471,7 @@ class Test
         [Fact]
         public void ForEachDeconstructionVariable_Update()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static (int, (bool, double))[] F() { <AS:0>return new[] { (1, (true, 2.0)) };</AS:0> }
@@ -3483,7 +3484,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static (int, (bool, double))[] F() { <AS:0>return new[] { (1, (true, 2.0)) };</AS:0> }
@@ -3507,7 +3508,7 @@ class Test
         [Fact]
         public void ForEach_Reorder_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -3527,7 +3528,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -3556,7 +3557,7 @@ class Test
         [Fact]
         public void ForEachVariable_Reorder_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static (int, bool)[] e1 = new (int, bool)[1];
@@ -3576,7 +3577,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static (int, bool)[] e1 = new (int, bool)[1];
@@ -3605,7 +3606,7 @@ class Test
         [Fact]
         public void ForEach_Update_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -3616,7 +3617,7 @@ class Test
         <AS:0>System.Console.Write();</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -3648,7 +3649,7 @@ class Test
         [Fact]
         public void ForEachVariable_Update_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static (int, bool)[] e1 = new (int, bool)[1];
@@ -3659,7 +3660,7 @@ class Test
         <AS:0>System.Console.Write();</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static (int, bool)[] e1 = new (int, bool)[1];
@@ -3691,7 +3692,7 @@ class Test
         [Fact]
         public void ForEach_Delete_Leaf1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -3711,7 +3712,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -3737,7 +3738,7 @@ class Test
         [Fact]
         public void ForEachVariable_Delete_Leaf1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static (int, bool)[] e1 = new (int, bool)[1];
@@ -3757,7 +3758,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static (int, bool)[] e1 = new (int, bool)[1];
@@ -3783,7 +3784,7 @@ class Test
         [Fact]
         public void ForEach_Delete_Leaf2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -3803,7 +3804,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -3829,7 +3830,7 @@ class Test
         [Fact]
         public void ForEachVariable_Delete_Leaf2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static (int, bool)[] e1 = new (int, bool)[1];
@@ -3849,7 +3850,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static (int, bool)[] e1 = new (int, bool)[1];
@@ -3875,7 +3876,7 @@ class Test
         [Fact]
         public void ForEach_Delete_Leaf3()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -3895,7 +3896,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -3921,7 +3922,7 @@ class Test
         [Fact]
         public void ForEachVariable_Delete_Leaf3()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -3941,7 +3942,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -3967,7 +3968,7 @@ class Test
         [Fact]
         public void ForEach_Lambda1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -3983,7 +3984,7 @@ class Test
         <AS:1>a();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static int[] e1 = new int[1];
@@ -4019,7 +4020,7 @@ class Test
         [Fact]
         public void ForEach_Update_Lambda1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static unsafe void Main(string[] args)
@@ -4031,7 +4032,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static unsafe void Main(string[] args)
@@ -4052,7 +4053,7 @@ class C
         [Fact]
         public void ForEach_Update_Lambda2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static unsafe void Main(string[] args)
@@ -4064,7 +4065,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static unsafe void Main(string[] args)
@@ -4083,6 +4084,41 @@ class C
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var a in G(a => a))", CSharpFeaturesResources.foreach_statement));
         }
 
+        [Fact]
+        public void ForEach_Update_Nullable()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        var arr = new int?[] { 0 };
+        foreach (var s in arr)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        var arr = new int[] { 0 };
+        foreach (var s in arr)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
         #endregion
 
         #region For Statement
@@ -4090,7 +4126,7 @@ class C
         [Fact]
         public void ForStatement_Initializer1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4104,7 +4140,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4128,7 +4164,7 @@ class Test
         [Fact]
         public void ForStatement_Initializer2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4142,7 +4178,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4165,7 +4201,7 @@ class Test
         [Fact]
         public void ForStatement_Initializer_Delete()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4179,7 +4215,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4203,7 +4239,7 @@ class Test
         [Fact]
         public void ForStatement_Declarator1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4216,7 +4252,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4239,7 +4275,7 @@ class Test
         [Fact]
         public void ForStatement_Declarator2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4252,7 +4288,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4274,7 +4310,7 @@ class Test
         [Fact]
         public void ForStatement_Declarator3()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4287,7 +4323,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4309,7 +4345,7 @@ class Test
         [Fact]
         public void ForStatement_Condition1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4322,7 +4358,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4345,7 +4381,7 @@ class Test
         [Fact]
         public void ForStatement_Condition_Delete()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4358,7 +4394,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4381,7 +4417,7 @@ class Test
         [Fact]
         public void ForStatement_Incrementors1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4394,7 +4430,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4416,7 +4452,7 @@ class Test
         [Fact]
         public void ForStatement_Incrementors2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4429,7 +4465,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4452,7 +4488,7 @@ class Test
         [Fact]
         public void ForStatement_Incrementors3()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4465,7 +4501,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4487,7 +4523,7 @@ class Test
         [Fact]
         public void ForStatement_Incrementors4()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4500,7 +4536,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     private static int F(int a) { <AS:0>return a;</AS:0> }
@@ -4521,12 +4557,12 @@ class Test
 
         #endregion
 
-        #region Using Statement
+        #region Using Statement and Local Declaration
 
         [Fact]
-        public void Using_Update_Leaf1()
+        public void UsingStatement_Expression_Update_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     public static System.IDisposable a = null;
@@ -4544,7 +4580,7 @@ class Test
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static System.IDisposable a = null;
@@ -4568,14 +4604,335 @@ class Test
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
+            // Using with an expression generates code that stores the value of the expression in a compiler-generated temp.
+            // This temp is not initialized when using is added around an active statement so the disposal is a no-op.
+            // The user might expect that the object the field points to is disposed at the end of the using block, but it isn't.
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "using (c)", CSharpFeaturesResources.using_statement));
         }
 
         [Fact]
-        public void Using_InLambdaBody1()
+        public void UsingStatement_Declaration_Update_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (var a = new Disposable())
+        {
+            using (var b = new Disposable())
+            {
+                <AS:0>System.Console.Write();</AS:0>
+            }
+        }
+    }
+}";
+            var src2 = @"
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (var a = new Disposable())
+        {
+            using (var c = new Disposable())
+            {
+                using (var b = new Disposable())
+                {
+                    <AS:0>System.Console.Write();</AS:0>
+                }
+            }
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            // Unlike using with an expression, using with a declaration does not introduce compiler-generated temps.
+            // As with other local declarations that are added but not executed, the variable is not initialized and thus 
+            // there should be no expectation (or need) for its disposal. Hence we do not report a rude edit.
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void UsingLocalDeclaration_Update_Leaf1()
+        {
+            var src1 = @"
+class Test
+{
+    static void Main(string[] args)
+    {
+        using var a = new Disposable(), b = new Disposable();
+        <AS:0>System.Console.Write();</AS:0>
+    }
+}";
+            var src2 = @"
+class Test
+{
+    static void Main(string[] args)
+    {
+        using var a = new Disposable(), c = new Disposable(), b = new Disposable();
+        <AS:0>System.Console.Write();</AS:0>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            // Unlike using with an expression, using local declaration does not introduce compiler-generated temps.
+            // As with other local declarations that are added but not executed, the variable is not initialized and thus 
+            // there should be no expectation (or need) for its disposal. Hence we do not report a rude edit.
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void UsingLocalDeclaration_Update_Leaf2()
+        {
+            var src1 = @"
+class Test
+{
+    static void Main(string[] args)
+    {
+        using var a = new Disposable();
+        using var b = new Disposable();
+        <AS:0>System.Console.Write();</AS:0>
+    }
+}";
+            var src2 = @"
+class Test
+{
+    static void Main(string[] args)
+    {
+        using var a = new Disposable();
+        using var c = new Disposable();
+        using var b = new Disposable();
+        <AS:0>System.Console.Write();</AS:0>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            // Unlike using with an expression, using local declaration does not introduce compiler-generated temps.
+            // As with other local declarations that are added but not executed, the variable is not initialized and thus 
+            // there should be no expectation (or need) for its disposal. Hence we do not report a rude edit.
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void UsingStatement_Update_NonLeaf1()
+        {
+            var src1 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (var a = new Disposable(1)) { System.Console.Write(); <AS:1>}</AS:1>
+    }
+}";
+            var src2 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (var a = new Disposable(2)) { System.Console.Write(); <AS:1>}</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "}"));
+        }
+
+        [Fact]
+        public void UsingStatement_Update_NonLeaf2()
+        {
+            var src1 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (Disposable a = new Disposable(1), b = Disposable(2)) { System.Console.Write(); <AS:1>}</AS:1>
+    }
+}";
+            var src2 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (Disposable a = new Disposable(1)) { System.Console.Write(); <AS:1>}</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "}"));
+        }
+
+        [Fact]
+        public void UsingStatement_Update_NonLeaf_Lambda()
+        {
+            var src1 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (var a = new Disposable(() => 1)) { System.Console.Write(); <AS:1>}</AS:1>
+    }
+}";
+            var src2 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        using (var a = new Disposable(() => 2)) { System.Console.Write(); <AS:1>}</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void UsingLocalDeclaration_Update_NonLeaf1()
+        {
+            var src1 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        if (F())
+        {        
+            using Disposable a = new Disposable(1);
+
+            using Disposable b = new Disposable(2), c = new Disposable(3);
+
+  <AS:1>}</AS:1>
+    }
+}";
+            var src2 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        if (F())
+        {        
+            using Disposable a = new Disposable(1);
+
+            using Disposable b = new Disposable(20), c = new Disposable(3);
+
+  <AS:1>}</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "}"));
+        }
+
+        [Fact]
+        public void UsingLocalDeclaration_Update_NonLeaf_Lambda()
+        {
+            var src1 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        if (F())
+        {        
+            using Disposable a = new Disposable(() => 1);
+
+            {
+                using var x = new Disposable(1);
+            }
+
+            using Disposable b = new Disposable(() => 2), c = new Disposable(() => 3);
+
+  <AS:1>}</AS:1>
+    }
+}";
+            var src2 = @"
+class Disposable : IDisposable
+{
+    public void Dispose() <AS:0>{</AS:0>}
+}
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        if (F())
+        {        
+            using Disposable a = new Disposable(() => 10);
+
+            {
+                using var x = new Disposable(2);
+            }
+
+            Console.WriteLine(1);
+
+            using Disposable b = new Disposable(() => 20), c = new Disposable(() => 30);
+
+  <AS:1>}</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void UsingStatement_Expression_InLambdaBody1()
+        {
+            var src1 = @"
 class Test
 {
     public static System.IDisposable a = null;
@@ -4599,7 +4956,7 @@ class Test
         <AS:1>a();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     public static System.IDisposable a = null;
@@ -4634,9 +4991,9 @@ class Test
         }
 
         [Fact]
-        public void Using_Update_Lambda1()
+        public void UsingStatement_Expression_Update_Lambda1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static unsafe void Main(string[] args)
@@ -4648,7 +5005,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static unsafe void Main(string[] args)
@@ -4667,9 +5024,9 @@ class C
         }
 
         [Fact]
-        public void Using_Update_Lambda2()
+        public void UsingStatement_Expression_Update_Lambda2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static unsafe void Main(string[] args)
@@ -4681,7 +5038,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static unsafe void Main(string[] args)
@@ -4707,7 +5064,7 @@ class C
         [Fact]
         public void IfBody_Update1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 	public static bool B() <AS:0>{</AS:0> return false; }
@@ -4720,7 +5077,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 	public static bool B() <AS:0>{</AS:0> return false; }
@@ -4742,7 +5099,7 @@ class C
         [Fact]
         public void IfBody_Update2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 	public static bool B() <AS:0>{</AS:0> return false; }
@@ -4755,7 +5112,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 	public static bool B() <AS:0>{</AS:0> return false; }
@@ -4778,7 +5135,7 @@ class C
         [Fact]
         public void IfBody_Update_Lambda()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
@@ -4791,7 +5148,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
@@ -4813,7 +5170,7 @@ class C
         [Fact]
         public void WhileBody_Update1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 	public static bool B() <AS:0>{</AS:0> return false; }
@@ -4826,7 +5183,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 	public static bool B() <AS:0>{</AS:0> return false; }
@@ -4848,7 +5205,7 @@ class C
         [Fact]
         public void WhileBody_Update2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 	public static bool B() <AS:0>{</AS:0> return false; }
@@ -4861,7 +5218,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 	public static bool B() <AS:0>{</AS:0> return false; }
@@ -4884,7 +5241,7 @@ class C
         [Fact]
         public void WhileBody_Update_Lambda()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
@@ -4897,7 +5254,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
@@ -4919,7 +5276,7 @@ class C
         [Fact]
         public void DoWhileBody_Update1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 	public static bool B() <AS:0>{</AS:0> return false; }
@@ -4933,7 +5290,7 @@ class C
         <AS:1>while (B());</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 	public static bool B() <AS:0>{</AS:0> return false; }
@@ -4956,7 +5313,7 @@ class C
         [Fact]
         public void DoWhileBody_Update2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 	public static bool B() <AS:0>{</AS:0> return false; }
@@ -4970,7 +5327,7 @@ class C
         <AS:1>while (B());</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 	public static bool B() <AS:0>{</AS:0> return false; }
@@ -4994,7 +5351,7 @@ class C
         [Fact]
         public void DoWhileBody_Update_Lambda()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
@@ -5008,7 +5365,7 @@ class C
         <AS:1>while (B(() => 1));</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
@@ -5031,7 +5388,7 @@ class C
         [Fact]
         public void SwitchCase_Update1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 	public static string F() <AS:0>{</AS:0> return null; }
@@ -5045,7 +5402,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 	public static string F() <AS:0>{</AS:0> return null; }
@@ -5068,7 +5425,7 @@ class C
         [Fact]
         public void SwitchCase_Update_Lambda()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
 	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
@@ -5082,7 +5439,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
 	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
@@ -5104,12 +5461,532 @@ class C
 
         #endregion
 
+        #region Switch When Clauses, Patterns
+
+        [Fact]
+        public void SwitchWhenClause_PatternUpdate1()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case int a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+                
+            case byte a when G5(a):
+                return 10;
+                
+            case double b when G2(b):
+                return 20;
+                
+            case C { X: 2 } when G4(9):
+                return 30;
+                
+            case C { X: 2, Y: C { X: 1 } } c1 when G3(c1):
+                return 40;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case int a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+                
+            case byte a when G5(a):
+                return 10;
+                
+            case double b when G2(b):
+                return 20;
+                
+            case C { X: 2 } when G4(9):
+                return 30;
+                
+            case C { X: 2, Y: C { X: 2 } } c1 when G3(c1):
+                return 40;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (F())", CSharpFeaturesResources.switch_statement_case_clause));
+        }
+
+        [Fact]
+        public void SwitchWhenClause_PatternInsert()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case int a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (F())", CSharpFeaturesResources.switch_statement_case_clause));
+        }
+
+        [Fact]
+        public void SwitchWhenClause_PatternDelete()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case int a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (F())", CSharpFeaturesResources.switch_statement_case_clause));
+        }
+
+        [Fact]
+        public void SwitchWhenClause_WhenDelete()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case byte a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case byte a1:
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (F())", CSharpFeaturesResources.switch_statement_case_clause));
+        }
+
+        [Fact]
+        public void SwitchWhenClause_WhenAdd()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case byte a1:
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case byte a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (F())", CSharpFeaturesResources.switch_statement_case_clause));
+        }
+
+        [Fact]
+        public void SwitchWhenClause_WhenUpdate()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case byte a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F())
+		{
+			case byte a1 when G1(a1 * 2):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void SwitchWhenClause_UpdateGoverningExpression()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F(1))
+		{
+			case int a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+	public static int Main()
+	{
+		switch (F(2))
+		{
+			case int a1 when G1(a1):
+            case int a2 <AS:0>when G1(a2)</AS:0>:
+                return 10;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (F(2))", CSharpFeaturesResources.switch_statement));
+        }
+
+        [Fact]
+        public void Switch_PropertyPattern_Update_NonLeaf()
+        {
+            var src1 = @"
+class C
+{
+    public int X { get => <AS:0>1</AS:0>; }
+
+	public static int F(object obj)
+	{
+		<AS:1>switch (obj)</AS:1>
+		{
+			case C { X: 1 }:
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+    public int X { get => <AS:0>1</AS:0>; }
+
+	public static int F(object obj)
+	{
+		<AS:1>switch (obj)</AS:1>
+		{
+			case C { X: 2 }:
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "switch (obj)"));
+        }
+
+        [Fact]
+        public void Switch_PositionalPattern_Update_NonLeaf()
+        {
+            var src1 = @"
+class C
+{
+    public void Deconstruct(out int x) => <AS:0>x = X</AS:0>;
+
+	public static int F(object obj)
+	{
+		<AS:1>switch (obj)</AS:1>
+		{
+			case C ( x: 1 ):
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+    public void Deconstruct(out int x) => <AS:0>x = X</AS:0>;
+
+	public static int F(object obj)
+	{
+		<AS:1>switch (obj)</AS:1>
+		{
+			case C ( x: 2 ):
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "switch (obj)"));
+        }
+
+        [Fact]
+        public void Switch_VarPattern_Update_NonLeaf()
+        {
+            var src1 = @"
+class C
+{
+    public static object G() => <AS:0>null</AS:0>;
+	
+    public static int F(object obj)
+	{
+		<AS:1>switch (G())</AS:1>
+		{
+			case var (x, y):
+                return 1;
+
+			case 2:
+                return 2;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+    public static object G() => <AS:0>null</AS:0>;
+
+    public static int F(object obj)
+	{
+		<AS:1>switch (G())</AS:1>
+		{
+			case var (x, y):
+                return 1;
+
+			case 3:
+                return 2;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "switch (G())"));
+        }
+
+        [Fact]
+        public void Switch_DiscardPattern_Update_NonLeaf()
+        {
+            var src1 = @"
+class C
+{
+    public static object G() => <AS:0>null</AS:0>;
+	
+    public static int F(object obj)
+	{
+		<AS:1>switch (G())</AS:1>
+		{
+			case bool _:
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+    public static object G() => <AS:0>null</AS:0>;
+
+	public static int F(object obj)
+	{
+		<AS:1>switch (G())</AS:1>
+		{
+			case int _:
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "switch (G())"));
+        }
+
+        [Fact]
+        public void Switch_NoPatterns_Update_NonLeaf()
+        {
+            var src1 = @"
+class C
+{
+    public static object G() => <AS:0>null</AS:0>;
+	
+    public static int F(object obj)
+	{
+		<AS:1>switch (G())</AS:1>
+		{
+			case 1:
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var src2 = @"
+class C
+{
+    public static object G() => <AS:0>null</AS:0>;
+
+	public static int F(object obj)
+	{
+		<AS:1>switch (G())</AS:1>
+		{
+			case 2:
+                return 1;
+        }
+
+        return 0;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        #endregion
+
         #region Try
 
         [Fact]
         public void Try_Add_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5122,7 +5999,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5152,7 +6029,7 @@ class C
         [Fact]
         public void Try_Add_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5165,7 +6042,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5194,7 +6071,7 @@ class C
         [Fact]
         public void Try_Delete_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5213,7 +6090,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5237,7 +6114,7 @@ class C
         [Fact]
         public void Try_Delete_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5256,7 +6133,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5279,7 +6156,7 @@ class C
         [Fact]
         public void Try_Update_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5298,7 +6175,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5328,7 +6205,7 @@ class C
         [Fact]
         public void Try_Update_Inner2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5347,7 +6224,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5376,7 +6253,7 @@ class C
         [Fact]
         public void TryFinally_Update_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5395,7 +6272,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5424,7 +6301,7 @@ class C
         [Fact]
         public void Try_Update_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5443,7 +6320,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5472,7 +6349,7 @@ class C
         [Fact]
         public void TryFinally_DeleteStatement_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main()
@@ -5489,7 +6366,7 @@ class C
         }</ER:1.0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main()
@@ -5515,7 +6392,7 @@ class C
         [Fact]
         public void TryFinally_DeleteStatement_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5530,7 +6407,7 @@ class C
         }</ER:0.0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5554,7 +6431,7 @@ class C
         [Fact]
         public void Try_DeleteStatement_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main()
@@ -5571,7 +6448,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main()
@@ -5597,7 +6474,7 @@ class C
         [Fact]
         public void Try_DeleteStatement_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main()
@@ -5612,7 +6489,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main()
@@ -5639,7 +6516,7 @@ class C
         [Fact]
         public void Catch_Add_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5652,7 +6529,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5682,7 +6559,7 @@ class C
         [Fact]
         public void Catch_Add_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5695,7 +6572,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5725,7 +6602,7 @@ class C
         [Fact]
         public void Catch_Delete_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5744,7 +6621,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5768,7 +6645,7 @@ class C
         [Fact]
         public void Catch_Delete_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5787,7 +6664,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5811,7 +6688,7 @@ class C
         [Fact]
         public void Catch_Update_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5830,7 +6707,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5860,7 +6737,7 @@ class C
         [Fact]
         public void Catch_Update_InFilter_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5878,7 +6755,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5906,7 +6783,7 @@ class C
         [Fact]
         public void Catch_Update_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5925,7 +6802,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -5955,7 +6832,7 @@ class C
         [Fact]
         public void CatchFilter_Update_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -5973,7 +6850,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -6002,7 +6879,7 @@ class C
         [Fact]
         public void CatchFilter_Update_Leaf1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -6015,7 +6892,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -6038,7 +6915,7 @@ class C
         [Fact]
         public void CatchFilter_Update_Leaf2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -6051,7 +6928,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -6078,7 +6955,7 @@ class C
         [Fact]
         public void Finally_Add_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -6091,7 +6968,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -6121,7 +6998,7 @@ class C
         [Fact]
         public void Finally_Add_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -6134,7 +7011,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -6164,7 +7041,7 @@ class C
         [Fact]
         public void Finally_Delete_Inner()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -6183,7 +7060,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -6207,7 +7084,7 @@ class C
         [Fact]
         public void Finally_Delete_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -6226,7 +7103,7 @@ class C
         }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -6254,7 +7131,7 @@ class C
         [Fact]
         public void TryCatchFinally()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -6291,7 +7168,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -6342,7 +7219,7 @@ class C
         [Fact, WorkItem(23865, "https://github.com/dotnet/roslyn/issues/23865")]
         public void TryCatchFinally_Regions()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -6379,7 +7256,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -6409,7 +7286,7 @@ class C
         [Fact, WorkItem(23865, "https://github.com/dotnet/roslyn/issues/23865")]
         public void TryCatchFinally2_Regions()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -6451,7 +7328,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -6505,7 +7382,7 @@ class C
         [Fact]
         public void TryFilter_Regions1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -6524,7 +7401,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -6550,7 +7427,7 @@ class C
         [Fact]
         public void TryFilter_Regions2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -6569,7 +7446,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -6595,7 +7472,7 @@ class C
         [Fact]
         public void Try_Lambda1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Linq;
 class C
@@ -6619,7 +7496,7 @@ class C
         <AS:2>Console.Write(f(2));</AS:2>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Linq;
 class C
@@ -6648,7 +7525,7 @@ class C
         [Fact]
         public void Try_Lambda2()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Linq;
 class C
@@ -6674,7 +7551,7 @@ class C
         <AS:2>Console.Write(f(2));</AS:2>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Linq;
 class C
@@ -6705,7 +7582,7 @@ class C
         [Fact]
         public void Try_Query_Join1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static int Goo(int x)
@@ -6728,7 +7605,7 @@ class C
         <AS:2>q.ToArray();</AS:2>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static int Goo(int x)
@@ -6759,7 +7636,7 @@ class C
         [Fact]
         public void CheckedUnchecked_Insert_Leaf()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -6768,7 +7645,7 @@ class Test
         <AS:0>Console.WriteLine(a*b);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -6789,7 +7666,7 @@ class Test
         [Fact]
         public void CheckedUnchecked_Insert_Internal()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -6802,7 +7679,7 @@ class Test
         <AS:0>return a * b;</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -6828,7 +7705,7 @@ class Test
         [Fact]
         public void CheckedUnchecked_Delete_Internal()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -6844,7 +7721,7 @@ class Test
         <AS:0>return a * b;</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -6867,7 +7744,7 @@ class Test
         [Fact]
         public void CheckedUnchecked_Update_Internal()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -6883,7 +7760,7 @@ class Test
         <AS:0>return a * b;</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -6909,7 +7786,7 @@ class Test
         [Fact]
         public void CheckedUnchecked_Lambda1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -6927,7 +7804,7 @@ class Test
         <AS:0>return a * b;</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -6955,7 +7832,7 @@ class Test
         [Fact]
         public void CheckedUnchecked_Query1()
         {
-            string src1 = @"
+            var src1 = @"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6977,7 +7854,7 @@ class Test
         <AS:0>return a * b;</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7013,7 +7890,7 @@ class Test
         [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_GeneralStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7022,7 +7899,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7040,7 +7917,7 @@ class C
         [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_Nested1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7049,7 +7926,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7067,7 +7944,7 @@ class C
         [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_Nested2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7076,7 +7953,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7095,7 +7972,7 @@ class C
         [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_IfStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7104,7 +7981,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7122,7 +7999,7 @@ class C
         [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_WhileStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7131,7 +8008,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7149,7 +8026,7 @@ class C
         [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_DoStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7158,7 +8035,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7176,7 +8053,7 @@ class C
         [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_SwitchStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7189,7 +8066,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7211,7 +8088,7 @@ class C
         [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_LockStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7220,7 +8097,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7238,7 +8115,7 @@ class C
         [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_UsingStatement1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7247,7 +8124,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7265,7 +8142,7 @@ class C
         [Fact]
         public void Lambdas_ExpressionToStatements()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7274,7 +8151,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7292,7 +8169,7 @@ class C
         [Fact]
         public void Lambdas_ExpressionToDelegate()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7301,7 +8178,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7319,7 +8196,7 @@ class C
         [Fact]
         public void Lambdas_StatementsToExpression()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7328,7 +8205,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7346,7 +8223,7 @@ class C
         [Fact]
         public void Lambdas_DelegateToExpression()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7355,7 +8232,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7373,7 +8250,7 @@ class C
         [Fact]
         public void Lambdas_StatementsToDelegate()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7382,7 +8259,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7400,7 +8277,7 @@ class C
         [Fact]
         public void Lambdas_ActiveStatementRemoved1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7417,7 +8294,7 @@ class C
         <AS:1>z(2);</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7442,7 +8319,7 @@ class C
         [Fact]
         public void Lambdas_ActiveStatementRemoved2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7453,7 +8330,7 @@ class C
         <AS:1>z(2);</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7475,7 +8352,7 @@ class C
         [Fact]
         public void Lambdas_ActiveStatementRemoved3()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7496,7 +8373,7 @@ class C
         <AS:1>z(2);</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7523,7 +8400,7 @@ class C
         [Fact]
         public void Lambdas_ActiveStatementRemoved4()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7539,7 +8416,7 @@ class C
         };
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7559,7 +8436,7 @@ class C
         [Fact]
         public void Queries_ActiveStatementRemoved_WhereClause()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7568,7 +8445,7 @@ class C
         <AS:1>s.ToArray();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7588,7 +8465,7 @@ class C
         [Fact]
         public void Queries_ActiveStatementRemoved_LetClause()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7597,7 +8474,7 @@ class C
         <AS:1>s.ToArray();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7617,7 +8494,7 @@ class C
         [Fact]
         public void Queries_ActiveStatementRemoved_JoinClauseLeft()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7629,7 +8506,7 @@ class C
         <AS:1>s.ToArray();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7649,7 +8526,7 @@ class C
         [Fact]
         public void Queries_ActiveStatementRemoved_OrderBy1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7661,7 +8538,7 @@ class C
         <AS:1>s.ToArray();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7681,7 +8558,7 @@ class C
         [Fact]
         public void Queries_ActiveStatementRemoved_OrderBy2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7693,7 +8570,7 @@ class C
         <AS:1>s.ToArray();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7713,7 +8590,7 @@ class C
         [Fact]
         public void Queries_ActiveStatementRemoved_OrderBy3()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -7725,7 +8602,7 @@ class C
         <AS:1>s.ToArray();</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -7745,7 +8622,7 @@ class C
         [Fact]
         public void Queries_Remove_JoinInto1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main()
@@ -7755,7 +8632,7 @@ class C
                 select <AS:0>1</AS:0>;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main()
@@ -7775,7 +8652,7 @@ class C
         [Fact]
         public void Queries_Remove_QueryContinuation1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main()
@@ -7786,7 +8663,7 @@ class C
                 select 1;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main()
@@ -7807,7 +8684,7 @@ class C
         [Fact]
         public void Queries_Remove_QueryContinuation2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main()
@@ -7817,7 +8694,7 @@ class C
                 select <AS:0>1</AS:0>;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main()
@@ -7838,7 +8715,7 @@ class C
         [Fact]
         public void Queries_Select_Reduced1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main()
@@ -7848,7 +8725,7 @@ class C
                 select <AS:0>a + 1</AS:0>;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main()
@@ -7869,7 +8746,7 @@ class C
         [Fact]
         public void Queries_Select_Reduced2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static int F(IEnumerable<int> e) => <AS:0>1</AS:0>;
@@ -7879,7 +8756,7 @@ class C
         <AS:1>F(from a in array where a > 0 select a + 1);</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static int F(IEnumerable<int> e) => <AS:0>1</AS:0>;
@@ -7900,7 +8777,7 @@ class C
         [Fact]
         public void Queries_GroupBy_Reduced1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main()
@@ -7909,7 +8786,7 @@ class C
                 group <AS:0>a + 1</AS:0> by a;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main()
@@ -7929,7 +8806,7 @@ class C
         [Fact]
         public void Queries_GroupBy_Reduced2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static int F(IEnumerable<IGrouping<int, int>> e) => <AS:0>1</AS:0>;
@@ -7939,7 +8816,7 @@ class C
         <AS:1>F(from a in array group a by a);</AS:1>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static int F(IEnumerable<IGrouping<int, int>> e) => <AS:0>1</AS:0>;
@@ -7964,7 +8841,7 @@ class C
         [Fact]
         public void MethodToIteratorMethod_WithActiveStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static IEnumerable<int> F()
@@ -7974,7 +8851,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static IEnumerable<int> F()
@@ -7988,13 +8865,13 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "yield return 1;", CSharpFeaturesResources.yield_statement));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "yield return 1;", CSharpFeaturesResources.yield_return_statement));
         }
 
         [Fact]
         public void MethodToIteratorMethod_WithActiveStatementInLambda()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static IEnumerable<int> F()
@@ -8004,7 +8881,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static IEnumerable<int> F()
@@ -8024,7 +8901,7 @@ class C
         [Fact]
         public void MethodToIteratorMethod_WithoutActiveStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static IEnumerable<int> F()
@@ -8034,7 +8911,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static IEnumerable<int> F()
@@ -8051,9 +8928,9 @@ class C
         }
 
         [Fact]
-        public void MethodToAsyncMethod_WithActiveStatement1()
+        public void MethodToAsyncMethod_WithActiveStatement_AwaitExpression()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static Task<int> F()
@@ -8064,7 +8941,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static async Task<int> F()
@@ -8082,9 +8959,74 @@ class C
         }
 
         [Fact]
-        public void MethodToAsyncMethod_WithActiveStatement2()
+        public void MethodToAsyncMethod_WithActiveStatement_AwaitForEach()
         {
-            string src1 = @"
+            var src1 = @"
+class C
+{
+    static Task<int> F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+
+        return Task.FromResult(1);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        await foreach (var x in AsyncIter()) { }
+        return 1;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await foreach (var x in AsyncIter())", CSharpFeaturesResources.asynchronous_foreach_statement));
+        }
+
+        [Fact]
+        public void MethodToAsyncMethod_WithActiveStatement_AwaitUsing()
+        {
+            var src1 = @"
+class C
+{
+    static Task<int> F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+
+        return Task.FromResult(1);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async Task<int> F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        await using IAsyncDisposable x = new AsyncDisposable(), y = new AsyncDisposable();
+        return 1;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "x = new AsyncDisposable()", CSharpFeaturesResources.asynchronous_using_declaration),
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "y = new AsyncDisposable()", CSharpFeaturesResources.asynchronous_using_declaration));
+        }
+
+        [Fact]
+        public void MethodToAsyncMethod_WithActiveStatement_NoAwait1()
+        {
+            var src1 = @"
 class C
 {
     static void F()
@@ -8093,7 +9035,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static async void F()
@@ -8110,9 +9052,9 @@ class C
         }
 
         [Fact]
-        public void MethodToAsyncMethod_WithActiveStatement3()
+        public void MethodToAsyncMethod_WithActiveStatement_NoAwait2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -8121,7 +9063,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static async void F()
@@ -8140,7 +9082,7 @@ class C
         [Fact]
         public void MethodToAsyncMethod_WithActiveStatementInLambda1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static Task<int> F()
@@ -8150,7 +9092,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static async Task<int> F()
@@ -8170,7 +9112,7 @@ class C
         [Fact]
         public void MethodToAsyncMethod_WithActiveStatementInLambda_2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -8180,7 +9122,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static async void F()
@@ -8198,37 +9140,9 @@ class C
         }
 
         [Fact]
-        public void MethodToAsyncMethod_WithActiveStatementInLambda_3()
-        {
-            string src1 = @"
-class C
-{
-    static void F()
-    {
-        var f = new Action(() => { <AS:0>Console.WriteLine(1);</AS:0> });
-    }
-}
-";
-            string src2 = @"
-class C
-{
-    static async void F()
-    {
-        var f = new Action(async () => { <AS:0>Console.WriteLine(1);</AS:0> });
-    }
-}
-";
-            var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
-
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "()"));
-        }
-
-        [Fact]
         public void MethodToAsyncMethod_WithLambda()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -8238,7 +9152,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static async void F()
@@ -8258,7 +9172,7 @@ class C
         [Fact]
         public void MethodToAsyncMethod_WithoutActiveStatement_1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static Task<int> F()
@@ -8268,7 +9182,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static async Task<int> F()
@@ -8287,7 +9201,7 @@ class C
         [Fact]
         public void MethodToAsyncMethod_WithoutActiveStatement_2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -8296,7 +9210,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static async void F()
@@ -8312,9 +9226,195 @@ class C
         }
 
         [Fact]
+        public void LambdaToAsyncLambda_WithActiveStatement()
+        {
+            var src1 = @"
+class C
+{
+    static void F()
+    {
+        var f = new Func<Task<int>>(() => 
+        { 
+            <AS:0>Console.WriteLine(1);</AS:0>
+            return Task.FromResult(1);
+        });
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F()
+    {
+        var f = new Func<Task<int>>(async () => 
+        { 
+            <AS:0>Console.WriteLine(1);</AS:0>
+            return await Task.FromResult(1);
+        });
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await", CSharpFeaturesResources.await_expression));
+        }
+
+        [Fact]
+        public void LambdaToAsyncLambda_WithActiveStatement_NoAwait()
+        {
+            var src1 = @"
+class C
+{
+    static void F()
+    {
+        var f = new Action(() => { <AS:0>Console.WriteLine(1);</AS:0> });
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F()
+    {
+        var f = new Action(async () => { <AS:0>Console.WriteLine(1);</AS:0> });
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "()"));
+        }
+
+        [Fact]
+        public void LambdaToAsyncLambda_WithActiveStatement_NoAwait_Nested()
+        {
+            var src1 = @"
+class C
+{
+    static void F()
+    {
+        var f = new Func<int, Func<int, int>>(a => <AS:0>b => 1</AS:0>);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F()
+    {
+        var f = new Func<int, Func<int, int>>(async a => <AS:0>b => 1</AS:0>);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "a"));
+        }
+
+        [Fact]
+        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        public void LocalFunctionToAsyncLocalFunction_BlockBody_WithActiveStatement()
+        {
+            var src1 = @"
+class C
+{
+    static void F()
+    {
+        Task<int> f()
+        { 
+            <AS:0>Console.WriteLine(1);</AS:0>
+            return Task.FromResult(1);
+        }
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F()
+    {
+        async Task<int> f()
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+            return await Task.FromResult(1);
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await", CSharpFeaturesResources.await_expression));
+        }
+
+        [Fact]
+        [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
+        public void LocalFunctionToAsyncLocalFunction_ExpressionBody_WithActiveStatement()
+        {
+            var src1 = @"
+class C
+{
+    static void F()
+    {
+        Task<int> f() => <AS:0>Task.FromResult(1)</AS:0>;
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F()
+    {
+        async Task<int> f() => <AS:0>await Task.FromResult(1)</AS:0>;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await", CSharpFeaturesResources.await_expression));
+        }
+
+        [Fact]
+        public void AnonymousFunctionToAsyncAnonymousFunction_WithActiveStatement_NoAwait()
+        {
+            var src1 = @"
+class C
+{
+    static void F()
+    {
+        var f = new Action(delegate() { <AS:0>Console.WriteLine(1);</AS:0> });
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static async void F()
+    {
+        var f = new Action(async delegate() { <AS:0>Console.WriteLine(1);</AS:0> });
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, FeaturesResources.delegate_));
+        }
+
+        [Fact]
         public void AsyncMethodEdit_Semantics()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Threading.Tasks;
 
@@ -8322,12 +9422,18 @@ class C
 {
     static async Task<int> F()
     {
-        Console.WriteLine(1);
+        await using var x = new AsyncDisposable();
+
+        await foreach (var x in AsyncIter()) 
+        {
+            Console.WriteLine(x);
+        }
+
         return await Task.FromResult(1);
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Threading.Tasks;
 
@@ -8335,8 +9441,14 @@ class C
 {
     static async Task<int> F()
     {
-        Console.WriteLine(2);
-        return await Task.FromResult(1);
+        await using var x = new AsyncDisposable();
+
+        await foreach (var x in AsyncIter()) 
+        {
+            Console.WriteLine(x + 1);
+        }
+
+        return await Task.FromResult(2);
     }
 }
 ";
@@ -8349,7 +9461,7 @@ class C
         [Fact]
         public void IteratorMethodEdit_Semantics()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 using System.Collections.Generic;
 
@@ -8362,7 +9474,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 using System;
 using System.Collections.Generic;
 
@@ -8381,6 +9493,71 @@ class C
             edits.VerifySemanticDiagnostics();
         }
 
+        [Fact]
+        public void AsyncIteratorMethodEdit_Semantics()
+        {
+            var src1 = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class C
+{
+    static async IAsyncEnumerable<int> F()
+    {
+        Console.WriteLine(1);
+        await Task.Delay(1);
+        yield return 1;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class C
+{
+    static async IAsyncEnumerable<int> F()
+    {
+        Console.WriteLine(2);
+        await Task.Delay(2);
+        yield return 2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(targetFrameworks: new[] { TargetFramework.NetCoreApp30 });
+        }
+
+        [Fact]
+        public void AsyncMethodToMethod()
+        {
+            var src1 = @"
+class C
+{
+    static async void F()
+    {
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F()
+    {
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "static void F()", FeaturesResources.method));
+        }
+
         #endregion
 
         #region Misplaced AS 
@@ -8388,7 +9565,7 @@ class C
         [Fact]
         public void MisplacedActiveStatement1()
         {
-            string src1 = @"
+            var src1 = @"
 <AS:1>class C</AS:1>
 {
     public static int F(int a)
@@ -8397,7 +9574,7 @@ class C
         <AS:2>return a;</AS:2> 
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public static int F(int a)
@@ -8415,14 +9592,14 @@ class C
         [Fact]
         public void MisplacedActiveStatement2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static <AS:0>void</AS:0> Main(string[] args)
     {
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -8438,14 +9615,14 @@ class C
         [Fact]
         public void MisplacedTrackingSpan1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static <AS:0>void</AS:0> Main(string[] args)
     {
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static <TS:0>void</TS:0> Main(string[] args)
@@ -8465,7 +9642,7 @@ class C
         [Fact]
         public void UnmodifiedDocument1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -8484,7 +9661,7 @@ class C
         Console.WriteLine(<AS:0>1</AS:0>);
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -8511,7 +9688,7 @@ class C
         [Fact]
         public void UnmodifiedDocument_BadSpans1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     <AS:2>const int a = 1;</AS:2>
@@ -8529,7 +9706,7 @@ class C
 
 <AS:0></AS:0>
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     const int a = 1;
@@ -8556,7 +9733,7 @@ class C
         [Fact]
         public void UpdateAroundActiveStatement_IsPattern()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F(object x)
@@ -8566,7 +9743,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F(object x)
@@ -8585,7 +9762,7 @@ class C
         [Fact]
         public void UpdateAroundActiveStatement_DeconstructionDeclarationStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F(object x)
@@ -8595,7 +9772,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F(object x)
@@ -8614,7 +9791,7 @@ class C
         [Fact]
         public void UpdateAroundActiveStatement_DeconstructionForEach()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F(object o)
@@ -8624,7 +9801,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F(object o)
@@ -8643,7 +9820,7 @@ class C
         [Fact]
         public void UpdateAroundActiveStatement_VarDeconstruction()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F(object o1, object o2)
@@ -8653,7 +9830,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F(object o1, object o2)
@@ -8672,7 +9849,7 @@ class C
         [Fact]
         public void UpdateAroundActiveStatement_TypedDeconstruction()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F(object o1, object o2)
@@ -8682,7 +9859,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F(object o1, object o2)
@@ -8701,7 +9878,7 @@ class C
         [Fact]
         public void UpdateAroundActiveStatement_Tuple()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F(object o)
@@ -8711,7 +9888,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F(object o)
@@ -8730,7 +9907,7 @@ class C
         [Fact]
         public void UpdateAroundActiveStatement_LocalFunction()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F(object o)
@@ -8740,7 +9917,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F(object o)
@@ -8759,7 +9936,7 @@ class C
         [Fact]
         public void UpdateAroundActiveStatement_OutVar()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -8769,7 +9946,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F()
@@ -8788,7 +9965,7 @@ class C
         [Fact]
         public void UpdateAroundActiveStatement_OutVarRemoved()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -8798,7 +9975,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F()
@@ -8816,7 +9993,7 @@ class C
         [Fact]
         public void UpdateAroundActiveStatement_Ref()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -8826,7 +10003,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F()
@@ -8845,7 +10022,7 @@ class C
         [Fact]
         public void UpdateAroundActiveStatement_DeconstructionDeclaration()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F(object o1, object o2)
@@ -8855,7 +10032,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F(object o1, object o2)
@@ -8874,7 +10051,7 @@ class C
         [Fact]
         public void UpdateAroundActiveStatement_DeconstructionAssignment()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F(object o1, object o2)
@@ -8885,7 +10062,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F(object o1, object o2)
@@ -8905,7 +10082,7 @@ class C
         [Fact]
         public void UpdateAroundActiveStatement_SwitchWithPattern()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F(object o1, object o2)
@@ -8919,7 +10096,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F(object o1, object o2)
@@ -8942,12 +10119,70 @@ class C
 
         #endregion
 
+        #region Nullable
+
+        [Fact]
+        public void ChangeLocalNullableToNonNullable()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>string? s = ""a"";</AS:0>
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>string s = ""a"";</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void ChangeLocalNonNullableToNullable()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>string s = ""a"";</AS:0>
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>string? s = ""a"";</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        #endregion
+
         #region Misc
 
         [Fact]
         public void Delete_All_SourceText()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -8960,7 +10195,7 @@ class C
         <AS:0>Console.WriteLine(a);</AS:0>
     }
 }";
-            string src2 = @"";
+            var src2 = @"";
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
@@ -8970,7 +10205,7 @@ class C
         [Fact]
         public void PartiallyExecutedActiveStatement()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public static void F()
@@ -8982,7 +10217,7 @@ class C
         <AS:4>Console.WriteLine(5);</AS:4> 
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public static void F()
@@ -9013,7 +10248,7 @@ class C
         [Fact]
         public void PartiallyExecutedActiveStatement_Deleted1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public static void F()
@@ -9021,7 +10256,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0> 
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public static void F()
@@ -9040,7 +10275,7 @@ class C
         [Fact]
         public void PartiallyExecutedActiveStatement_Deleted2()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public static void F()
@@ -9048,7 +10283,7 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0> 
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public static void F()

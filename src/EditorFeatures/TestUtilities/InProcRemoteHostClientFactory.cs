@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -43,10 +45,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
         {
             if (workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest))
             {
-                return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: cancellationToken);
+                return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
             }
 
-            return SpecializedTasks.Default<RemoteHostClient>();
+            return SpecializedTasks.Null<RemoteHostClient>();
         }
     }
 }

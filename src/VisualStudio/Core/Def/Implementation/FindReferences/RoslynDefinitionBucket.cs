@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Windows;
@@ -18,7 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
         {
             private readonly StreamingFindUsagesPresenter _presenter;
-            private readonly AbstractTableDataSourceFindUsagesContext _context;
 
             public readonly DefinitionItem DefinitionItem;
 
@@ -31,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                        identifier: context.Identifier)
             {
                 _presenter = presenter;
-                _context = context;
                 DefinitionItem = definitionItem;
             }
 
@@ -42,6 +42,23 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 content = GetValue(key);
                 return content != null;
+            }
+
+            /// <summary>
+            /// The editor is presenting 'Text' while telling the screen reader to use the 'Name' field.
+            /// Workaround this bug by overriding the string content to provide the proper data for the screen reader.
+            /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1020534/
+            /// </summary>
+            public override bool TryCreateStringContent(out string content)
+            {
+                if (TryGetValue(StandardTableKeyNames.Text, out var contentValue) && contentValue is string textContent)
+                {
+                    content = textContent;
+                    return true;
+                }
+
+                content = null;
+                return false;
             }
 
             private object GetValue(string key)

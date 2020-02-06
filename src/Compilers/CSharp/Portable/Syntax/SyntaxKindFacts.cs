@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 
@@ -90,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LoadKeyword:
                 case SyntaxKind.NullableKeyword:
                 case SyntaxKind.EnableKeyword:
+                case SyntaxKind.WarningsKeyword:
+                case SyntaxKind.AnnotationsKeyword:
                     return true;
                 default:
                     return false;
@@ -117,6 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DisableKeyword:
                 case SyntaxKind.RestoreKeyword:
                 case SyntaxKind.EnableKeyword:
+                case SyntaxKind.WarningsKeyword:
+                case SyntaxKind.AnnotationsKeyword:
                     return false;
                 default:
                     return IsPreprocessorKeyword(kind);
@@ -309,22 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static bool IsTypeDeclaration(SyntaxKind kind)
-        {
-            switch (kind)
-            {
-                case SyntaxKind.DelegateDeclaration:
-                case SyntaxKind.EnumDeclaration:
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
-
         /// <summary>
         /// Member declarations that can appear in global code (other than type declarations).
         /// </summary>
@@ -343,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public static bool IsNamespaceMemberDeclaration(SyntaxKind kind)
+        public static bool IsTypeDeclaration(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -352,12 +342,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.EnumDeclaration:
-                case SyntaxKind.NamespaceDeclaration:
                     return true;
+
                 default:
                     return false;
             }
         }
+
+        public static bool IsNamespaceMemberDeclaration(SyntaxKind kind)
+            => IsTypeDeclaration(kind) || (kind == SyntaxKind.NamespaceDeclaration);
 
         public static bool IsAnyUnaryExpression(SyntaxKind token)
         {
@@ -1059,6 +1052,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.NullableKeyword;
                 case "enable":
                     return SyntaxKind.EnableKeyword;
+                case "warnings":
+                    return SyntaxKind.WarningsKeyword;
+                case "annotations":
+                    return SyntaxKind.AnnotationsKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1551,6 +1548,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "nullable";
                 case SyntaxKind.EnableKeyword:
                     return "enable";
+                case SyntaxKind.WarningsKeyword:
+                    return "warnings";
+                case SyntaxKind.AnnotationsKeyword:
+                    return "annotations";
 
                 // contextual keywords
                 case SyntaxKind.YieldKeyword:

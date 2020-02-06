@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -61,11 +63,10 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
+            var (document, _, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var forEachStatement = root.FindNode(context.Span) as TForEachStatement;
+            var forEachStatement = await context.TryGetRelevantNodeAsync<TForEachStatement>().ConfigureAwait(false);
             if (forEachStatement == null)
             {
                 return;
@@ -112,7 +113,8 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             context.RegisterRefactoring(
                 new ForEachToLinqQueryCodeAction(
                     FeaturesResources.Convert_to_linq,
-                    c => ApplyConversion(queryConverter, document, convertToQuery: true, c)));
+                    c => ApplyConversion(queryConverter, document, convertToQuery: true, c)),
+                forEachStatement.Span);
 
             // Offer refactoring to convert foreach to LINQ invocation expression. For example:
             //
@@ -133,7 +135,8 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
                 context.RegisterRefactoring(
                     new ForEachToLinqQueryCodeAction(
                         FeaturesResources.Convert_to_linq_call_form,
-                        c => ApplyConversion(linqConverter, document, convertToQuery: false, c)));
+                        c => ApplyConversion(linqConverter, document, convertToQuery: false, c)),
+                    forEachStatement.Span);
             }
         }
 

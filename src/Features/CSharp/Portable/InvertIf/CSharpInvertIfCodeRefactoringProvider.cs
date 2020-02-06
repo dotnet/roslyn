@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -57,13 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 
         protected override StatementSyntax GetElseBody(IfStatementSyntax ifNode)
             => ifNode.Else.Statement;
-
-        protected override TextSpan GetHeaderSpan(IfStatementSyntax ifNode)
-        {
-            return TextSpan.FromBounds(
-                ifNode.IfKeyword.SpanStart,
-                ifNode.CloseParenToken.Span.End);
-        }
 
         protected override bool CanControlFlowOut(SyntaxNode node)
         {
@@ -246,13 +241,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
                 return false;
             }
 
-            return isSingleStatement(statementRange.FirstStatement);
+            return IsSingleStatement(statementRange.FirstStatement);
 
-            bool isSingleStatement(StatementSyntax statement)
+            static bool IsSingleStatement(StatementSyntax statement)
             {
                 if (statement is BlockSyntax block)
                 {
-                    return block.Statements.Count == 1 && isSingleStatement(block.Statements[0]);
+                    return block.Statements.Count == 1 && IsSingleStatement(block.Statements[0]);
                 }
 
                 return true;

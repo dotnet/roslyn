@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -6,9 +8,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
@@ -21,8 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 public ExpressionCodeGenerator(
                     InsertionPoint insertionPoint,
                     SelectionResult selectionResult,
-                    AnalyzerResult analyzerResult) :
-                    base(insertionPoint, selectionResult, analyzerResult)
+                    AnalyzerResult analyzerResult,
+                    OptionSet options,
+                    bool localFunction)
+                    : base(insertionPoint, selectionResult, analyzerResult, options, localFunction)
                 {
                 }
 
@@ -33,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 protected override SyntaxToken CreateMethodName()
                 {
-                    var methodName = "NewMethod";
+                    var methodName = GenerateMethodNameFromUserPreference();
+
                     var containingScope = this.CSharpSelectionResult.GetContainingScope();
 
                     methodName = GetMethodNameBasedOnExpression(methodName, containingScope);
@@ -43,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, methodName));
                 }
 
-                private static string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
+                private string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
                 {
                     if (expression.Parent != null &&
                         expression.Parent.Kind() == SyntaxKind.EqualsValueClause &&
@@ -51,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         expression.Parent.Parent.Kind() == SyntaxKind.VariableDeclarator)
                     {
                         var name = ((VariableDeclaratorSyntax)expression.Parent.Parent).Identifier.ValueText;
-                        return (name != null && name.Length > 0) ? MakeMethodName("Get", name) : methodName;
+                        return (name != null && name.Length > 0) ? MakeMethodName("Get", name, methodName.Equals(NewMethodCamelCaseStr)) : methodName;
                     }
 
                     if (expression is MemberAccessExpressionSyntax memberAccess)
@@ -80,7 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         }
 
                         var unqualifiedNameIdentifierValueText = unqualifiedName.Identifier.ValueText;
-                        return (unqualifiedNameIdentifierValueText != null && unqualifiedNameIdentifierValueText.Length > 0) ? MakeMethodName("Get", unqualifiedNameIdentifierValueText) : methodName;
+                        return (unqualifiedNameIdentifierValueText != null && unqualifiedNameIdentifierValueText.Length > 0) ?
+                            MakeMethodName("Get", unqualifiedNameIdentifierValueText, methodName.Equals(NewMethodCamelCaseStr)) : methodName;
                     }
 
                     return methodName;

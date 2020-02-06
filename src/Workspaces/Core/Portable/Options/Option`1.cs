@@ -1,15 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
+    /// Marker interface for <see cref="Option{T}"/>
+    /// </summary>
+    internal interface ILanguageSpecificOption : IOptionWithGroup
+    {
+    }
+
+    /// <summary>
     /// An global option. An instance of this class can be used to access an option value from an OptionSet.
     /// </summary>
-    public class Option<T> : IOptionWithGroup
+    public class Option<T> : ILanguageSpecificOption
     {
         /// <summary>
         /// Feature this option is associated with.
@@ -61,18 +69,13 @@ namespace Microsoft.CodeAnalysis.Options
                 throw new ArgumentNullException(nameof(feature));
             }
 
-            if (group == null)
-            {
-                throw new ArgumentNullException(nameof(group));
-            }
-
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentException(nameof(name));
             }
 
             this.Feature = feature;
-            this.Group = group;
+            this.Group = group ?? throw new ArgumentNullException(nameof(group));
             this.Name = name;
             this.DefaultValue = defaultValue;
             this.StorageLocations = storageLocations.ToImmutableArray();

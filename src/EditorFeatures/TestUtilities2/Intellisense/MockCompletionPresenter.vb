@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 Imports System.Collections.Immutable
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
@@ -62,7 +64,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Function GetFilters() As ImmutableArray(Of CompletionFilterWithState)
-            Return _filters
+            Return _filters.WhereAsArray(Function(state) TypeOf state.Filter IsNot CompletionExpander)
+        End Function
+
+        Public Sub SetExpander(isSelected As Boolean)
+            _filters = _filters.Select(Function(n) If(TypeOf n.Filter Is CompletionExpander, n.WithSelected(isSelected), n)).ToImmutableArray()
+            RaiseEvent FiltersChanged(Me, New CompletionFilterChangedEventArgs(_filters))
+        End Sub
+
+        Public Function GetExpander() As CompletionFilterWithState
+            Return _filters.SingleOrDefault(Function(state) TypeOf state.Filter Is CompletionExpander)
         End Function
 
         Public Sub TriggerFiltersChanged(sender As Object, args As CompletionFilterChangedEventArgs)

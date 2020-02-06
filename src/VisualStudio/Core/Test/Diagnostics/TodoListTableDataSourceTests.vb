@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -21,7 +23,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim provider = New TestTodoListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
 
                 Assert.Equal(manager.Identifier, StandardTables.TasksTable)
@@ -54,7 +56,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim provider = New TestTodoListProvider(CreateItem(documentId))
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -73,7 +75,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim provider = New TestTodoListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
 
                 Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem))
@@ -100,7 +102,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -141,7 +143,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -189,7 +191,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -219,7 +221,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -252,7 +254,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -285,7 +287,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -324,7 +326,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim provider = New TestTodoListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
 
                 provider.Items = New TodoItem() {item1, item2}
                 provider.RaiseTodoListUpdated(workspace)

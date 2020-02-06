@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
+using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -27,8 +30,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public WithReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
-                ImmutableArray<AbstractFindUsagesCustomColumnDefinition> customColumns)
-                : base(presenter, findReferencesWindow, customColumns)
+                ImmutableArray<ITableColumnDefinition> customColumns,
+                bool includeContainingTypeAndMemberColumns,
+                bool includeKindColumn)
+                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
             {
             }
 
@@ -64,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
                     var definitionEntry = await TryCreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, customColumnsDataOpt: null).ConfigureAwait(false);
+                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, SymbolUsageInfo.None, additionalProperties: definition.DisplayableProperties).ConfigureAwait(false);
                     declarations.AddIfNotNull(definitionEntry);
                 }
 
@@ -108,7 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     bucket => TryCreateDocumentSpanEntryAsync(
                         bucket, reference.SourceSpan,
                         reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
-                        reference.ReferenceInfo),
+                        reference.SymbolUsageInfo,
+                        reference.AdditionalProperties),
                     addToEntriesWhenGroupingByDefinition: true,
                     addToEntriesWhenNotGroupingByDefinition: true);
             }

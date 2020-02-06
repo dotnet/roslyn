@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Xunit
@@ -20,8 +22,8 @@ End Class
 
             Dim children = GetChildren(FormatResult("c", CreateDkmClrValue(Activator.CreateInstance(typeC))))
             Verify(children,
-                EvalResult("_2d", "{Length=4}", "Integer(,)", "c._2d", DkmEvaluationResultFlags.Expandable),
-                EvalResult("_3d", "{Length=1}", "Integer(,,)(,)", "c._3d", DkmEvaluationResultFlags.Expandable))
+                EvalResult("_2d", "{Length=4}", "Integer(,)", "c._2d", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_3d", "{Length=1}", "Integer(,,)(,)", "c._3d", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite))
 
             children = GetChildren(children(1))
             Verify(children,

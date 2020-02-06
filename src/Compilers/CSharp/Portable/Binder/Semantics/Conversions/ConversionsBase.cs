@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -110,7 +111,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return GetImplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteDiagnostics);
+            conversion = GetImplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteDiagnostics);
+            if (conversion.Exists)
+            {
+                return conversion;
+            }
+
+            // The switch expression conversion is "lowest priority", so that if there is a conversion from the expression's
+            // type it will be preferred over the switch expression conversion.  Technically, we would want the language
+            // specification to say that the switch expression conversion only "exists" if there is no implicit conversion
+            // from the type, and we accomplish that by making it lowest priority.
+            return GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -519,7 +530,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // "S s = null;" should be allowed. 
             // 
             // We extend the definition of standard implicit conversions to include
-            // all of the implicit conversions that are allowed based on an expression.
+            // all of the implicit conversions that are allowed based on an expression,
+            // with the exception of the switch expression conversion.
 
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, source, destination, ref useSiteDiagnostics);
             if (conversion.Exists)
@@ -862,13 +874,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.DefaultExpression:
-                    var defaultExpression = (BoundDefaultExpression)sourceExpression;
-                    if ((object)defaultExpression.Type == null)
-                    {
-                        return Conversion.DefaultOrNullLiteral;
-                    }
-                    break;
+                case BoundKind.DefaultLiteral:
+                    return Conversion.DefaultLiteral;
 
                 case BoundKind.ExpressionWithNullability:
                     {
@@ -926,6 +933,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
+        private Conversion GetSwitchExpressionConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            switch (source)
+            {
+                case BoundConvertedSwitchExpression _:
+                    // It has already been subjected to a switch expression conversion.
+                    return Conversion.NoConversion;
+                case BoundUnconvertedSwitchExpression switchExpression:
+                    var innerConversions = ArrayBuilder<Conversion>.GetInstance(switchExpression.SwitchArms.Length);
+                    foreach (var arm in switchExpression.SwitchArms)
+                    {
+                        var nestedConversion = this.ClassifyImplicitConversionFromExpression(arm.Value, destination, ref useSiteDiagnostics);
+                        if (!nestedConversion.Exists)
+                        {
+                            innerConversions.Free();
+                            return Conversion.NoConversion;
+                        }
+
+                        innerConversions.Add(nestedConversion);
+                    }
+
+                    return Conversion.MakeSwitchExpression(innerConversions.ToImmutableAndFree());
+                default:
+                    return Conversion.NoConversion;
+            }
+        }
+
         private static Conversion ClassifyNullLiteralConversion(BoundExpression source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
@@ -941,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // The spec defines a "null literal conversion" specifically as a conversion from
                 // null to nullable type.
-                return Conversion.DefaultOrNullLiteral;
+                return Conversion.NullLiteral;
             }
 
             // SPEC: An implicit conversion exists from the null literal to any reference type. 
@@ -1979,12 +2013,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = source.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
-            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length))
+            if (!destination.IsTupleTypeOfCardinality(arguments.Length))
             {
                 return Conversion.NoConversion;
             }
 
-            var targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
+            var targetElementTypes = destination.TupleElementTypesWithAnnotations;
             Debug.Assert(arguments.Length == targetElementTypes.Length);
 
             // check arguments against flattened list of target element types 
@@ -2052,8 +2086,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> sourceTypes;
             ImmutableArray<TypeWithAnnotations> destTypes;
 
-            if (!source.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out sourceTypes) ||
-                !destination.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out destTypes) ||
+            if (!source.TryGetElementTypesWithAnnotationsIfTupleType(out sourceTypes) ||
+                !destination.TryGetElementTypesWithAnnotationsIfTupleType(out destTypes) ||
                 sourceTypes.Length != destTypes.Length)
             {
                 return Conversion.NoConversion;
@@ -2683,6 +2717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source.GetAllTypeArguments(sourceTypeArguments, ref useSiteDiagnostics);
                 destination.GetAllTypeArguments(destinationTypeArguments, ref useSiteDiagnostics);
 
+                Debug.Assert(TypeSymbol.Equals(source.OriginalDefinition, destination.OriginalDefinition, TypeCompareKind.AllIgnoreOptions));
                 Debug.Assert(typeParameters.Count == sourceTypeArguments.Count);
                 Debug.Assert(typeParameters.Count == destinationTypeArguments.Count);
 
@@ -2703,6 +2738,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (typeParameterSymbol.Variance)
                     {
                         case VarianceKind.None:
+                            // System.IEquatable<T> is invariant for back compat reasons (dynamic type checks could start
+                            // to succeed where they previously failed, creating different runtime behavior), but the uses
+                            // require treatment specifically of nullability as contravariant, so we special case the
+                            // behavior here. Normally we use GetWellKnownType for these kinds of checks, but in this
+                            // case we don't want just the canonical IEquatable to be special-cased, we want all definitions
+                            // to be treated as contravariant, in case there are other definitions in metadata that were
+                            // compiled with that expectation.
+                            if (isTypeIEquatable(destination.OriginalDefinition) &&
+                                TypeSymbol.Equals(destinationTypeArgument.Type, sourceTypeArgument.Type, TypeCompareKind.AllNullableIgnoreOptions) &&
+                                HasAnyNullabilityImplicitConversion(destinationTypeArgument, sourceTypeArgument))
+                            {
+                                return true;
+                            }
                             return false;
 
                         case VarianceKind.Out:
@@ -2732,6 +2780,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+
+            static bool isTypeIEquatable(NamedTypeSymbol type)
+            {
+                return type is
+                {
+                    IsInterface: true,
+                    Name: "IEquatable",
+                    ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                    ContainingSymbol: { Kind: SymbolKind.Namespace },
+                    TypeParameters: { Length: 1 }
+                };
+            }
         }
 
         // Spec 6.1.10

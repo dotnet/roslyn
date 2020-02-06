@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using System.Linq;
@@ -31,10 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var nestedHierarchy = hierarchyItem.HierarchyIdentity.NestedHierarchy;
             var nestedHierarchyId = hierarchyItem.HierarchyIdentity.NestedItemID;
 
-            if (!nestedHierarchy.TryGetCanonicalName(nestedHierarchyId, out string nestedCanonicalName)
-                || !nestedHierarchy.TryGetItemName(nestedHierarchyId, out string nestedName))
+            if (!nestedHierarchy.TryGetCanonicalName(nestedHierarchyId, out var nestedCanonicalName)
+                || !nestedHierarchy.TryGetItemName(nestedHierarchyId, out var nestedName))
             {
-                projectId = default(ProjectId);
+                projectId = default;
                 return false;
             }
 
@@ -64,8 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var hierarchy = _workspace.GetHierarchy(p.Id);
 
                     if (hierarchy != null
-                        && hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out string projectCanonicalName)
-                        && hierarchy.TryGetItemName((uint)VSConstants.VSITEMID.Root, out string projectName)
+                        && hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out var projectCanonicalName)
+                        && hierarchy.TryGetItemName((uint)VSConstants.VSITEMID.Root, out var projectName)
                         && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase)
                         && projectName.Equals(nestedName))
                     {
@@ -74,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                             return true;
                         }
 
-                        return hierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out string projectTargetFrameworkMoniker)
+                        return hierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var projectTargetFrameworkMoniker)
                             && projectTargetFrameworkMoniker.Equals(targetFrameworkMoniker);
                     }
 
@@ -102,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            projectId = default(ProjectId);
+            projectId = default;
             return false;
         }
     }

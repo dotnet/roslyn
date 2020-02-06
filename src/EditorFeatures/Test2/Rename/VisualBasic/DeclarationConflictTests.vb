@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
@@ -1240,6 +1242,31 @@ End Class
                 result.AssertLabeledSpansAre("parameter0", "y", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("parameter1", "y", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("local0", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(941271, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/941271")>
+        Public Sub AsNewClauseSpeculationResolvesConflicts()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document>
+                                Public Class Main
+                                    Private T As {|class0:$$Test|} = Nothing
+                                End Class
+
+                                Public Class {|class1:Test|}
+                                    Private Rnd As New {|classConflict:Random|}
+                                End Class
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Random")
+
+                result.AssertLabeledSpansAre("class0", "Random", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("class1", "Random", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("classConflict", "System.Random", type:=RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
     End Class

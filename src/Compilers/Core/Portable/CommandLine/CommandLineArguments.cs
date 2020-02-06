@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +14,6 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -123,9 +124,18 @@ namespace Microsoft.CodeAnalysis
         public string DocumentationPath { get; internal set; }
 
         /// <summary>
-        /// Absolute path of the error log file or null if not specified.
+        /// Options controlling the generation of a SARIF log file containing compilation or
+        /// analysis diagnostics, or null if no log file is desired.
         /// </summary>
-        public string ErrorLogPath { get; internal set; }
+#nullable enable
+        public ErrorLogOptions? ErrorLogOptions { get; internal set; }
+
+        /// <summary>
+        /// Options controlling the generation of a SARIF log file containing compilation or
+        /// analysis diagnostics, or null if no log file is desired.
+        /// </summary>
+        public string? ErrorLogPath => ErrorLogOptions?.Path;
+#nullable restore
 
         /// <summary>
         /// An absolute path of the app.config file or null if not specified.

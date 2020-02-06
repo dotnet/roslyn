@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,9 +12,10 @@ using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Diagnostics;
 using System;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -45,44 +48,56 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<Solution> CreateSolutionAsync(Checksum newSolutionChecksum)
         {
-            var solution = _baseSolution;
-
-            var oldSolutionChecksums = await solution.State.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
-            var newSolutionChecksums = await _assetService.GetAssetAsync<SolutionStateChecksums>(newSolutionChecksum, _cancellationToken).ConfigureAwait(false);
-
-            if (oldSolutionChecksums.Info != newSolutionChecksums.Info)
+            try
             {
-                var newSolutionInfo = await _assetService.GetAssetAsync<SolutionInfo.SolutionAttributes>(newSolutionChecksums.Info, _cancellationToken).ConfigureAwait(false);
+                var solution = _baseSolution;
 
-                // if either id or file path has changed, then this is not update
-                Contract.ThrowIfFalse(solution.Id == newSolutionInfo.Id && solution.FilePath == newSolutionInfo.FilePath);
+                var oldSolutionChecksums = await solution.State.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
+                var newSolutionChecksums = await _assetService.GetAssetAsync<SolutionStateChecksums>(newSolutionChecksum, _cancellationToken).ConfigureAwait(false);
+
+                if (oldSolutionChecksums.Info != newSolutionChecksums.Info)
+                {
+                    var newSolutionInfo = await _assetService.GetAssetAsync<SolutionInfo.SolutionAttributes>(newSolutionChecksums.Info, _cancellationToken).ConfigureAwait(false);
+
+                    // if either id or file path has changed, then this is not update
+                    Contract.ThrowIfFalse(solution.Id == newSolutionInfo.Id && solution.FilePath == newSolutionInfo.FilePath);
+                }
+
+                if (oldSolutionChecksums.Options != newSolutionChecksums.Options)
+                {
+                    var newOptions = await _assetService.GetAssetAsync<SerializableOptionSet>(newSolutionChecksums.Options, _cancellationToken).ConfigureAwait(false);
+                    solution = solution.WithOptions(newOptions);
+                }
+
+                if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
+                {
+                    solution = await UpdateProjectsAsync(solution, oldSolutionChecksums.Projects, newSolutionChecksums.Projects).ConfigureAwait(false);
+                }
+
+                // make sure created solution has same checksum as given one
+                await ValidateChecksumAsync(newSolutionChecksum, solution).ConfigureAwait(false);
+
+                return solution;
             }
-
-            if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
             {
-                solution = await UpdateProjectsAsync(solution, oldSolutionChecksums.Projects, newSolutionChecksums.Projects).ConfigureAwait(false);
+                throw ExceptionUtilities.Unreachable;
             }
-
-            // make sure created solution has same checksum as given one
-            await ValidateChecksumAsync(newSolutionChecksum, solution).ConfigureAwait(false);
-
-            return solution;
         }
 
         private async Task<Solution> UpdateProjectsAsync(Solution solution, ChecksumCollection oldChecksums, ChecksumCollection newChecksums)
         {
-            using (var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
-            using (var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
-            {
-                olds.Object.UnionWith(oldChecksums);
-                news.Object.UnionWith(newChecksums);
+            using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+            using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
 
-                // remove projects that exist in both side
-                olds.Object.ExceptWith(newChecksums);
-                news.Object.ExceptWith(oldChecksums);
+            olds.Object.UnionWith(oldChecksums);
+            news.Object.UnionWith(newChecksums);
 
-                return await UpdateProjectsAsync(solution, olds.Object, news.Object).ConfigureAwait(false);
-            }
+            // remove projects that exist in both side
+            olds.Object.ExceptWith(newChecksums);
+            news.Object.ExceptWith(oldChecksums);
+
+            return await UpdateProjectsAsync(solution, olds.Object, news.Object).ConfigureAwait(false);
         }
 
         private async Task<Solution> UpdateProjectsAsync(Solution solution, HashSet<Checksum> oldChecksums, HashSet<Checksum> newChecksums)
@@ -139,21 +154,20 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task SynchronizeAssetsAsync(Solution solution, Dictionary<ProjectId, ProjectStateChecksums> oldMap, Dictionary<ProjectId, ProjectStateChecksums> newMap)
         {
-            using (var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
-            {
-                // added project
-                foreach (var kv in newMap)
-                {
-                    if (oldMap.ContainsKey(kv.Key))
-                    {
-                        continue;
-                    }
+            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
 
-                    pooledObject.Object.Add(kv.Value.Checksum);
+            // added project
+            foreach (var kv in newMap)
+            {
+                if (oldMap.ContainsKey(kv.Key))
+                {
+                    continue;
                 }
 
-                await _assetService.SynchronizeProjectAssetsAsync(pooledObject.Object, _cancellationToken).ConfigureAwait(false);
+                pooledObject.Object.Add(kv.Value.Checksum);
             }
+
+            await _assetService.SynchronizeProjectAssetsAsync(pooledObject.Object, _cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Solution> UpdateProjectAsync(Project project, ProjectStateChecksums oldProjectChecksums, ProjectStateChecksums newProjectChecksums)
@@ -283,6 +297,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 project = project.Solution.WithHasAllInformation(project.Id, newProjectInfo.HasAllInformation).GetProject(project.Id);
             }
 
+            if (project.State.ProjectInfo.Attributes.RunAnalyzers != newProjectInfo.RunAnalyzers)
+            {
+                project = project.Solution.WithRunAnalyzers(project.Id, newProjectInfo.RunAnalyzers).GetProject(project.Id);
+            }
+
             return project;
         }
 
@@ -294,65 +313,64 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
             Func<Solution, DocumentId, Solution> removeDocument)
         {
-            using (var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
-            using (var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
+            using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+            using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+
+            olds.Object.UnionWith(oldChecksums);
+            news.Object.UnionWith(newChecksums);
+
+            // remove documents that exist in both side
+            olds.Object.ExceptWith(newChecksums);
+            news.Object.ExceptWith(oldChecksums);
+
+            var oldMap = await GetDocumentMapAsync(existingTextDocumentStates, olds.Object).ConfigureAwait(false);
+            var newMap = await GetDocumentMapAsync(_assetService, news.Object).ConfigureAwait(false);
+
+            // added document
+            ImmutableArray<DocumentInfo>.Builder documentsToAdd = null;
+            foreach (var kv in newMap)
             {
-                olds.Object.UnionWith(oldChecksums);
-                news.Object.UnionWith(newChecksums);
-
-                // remove documents that exist in both side
-                olds.Object.ExceptWith(newChecksums);
-                news.Object.ExceptWith(oldChecksums);
-
-                var oldMap = await GetDocumentMapAsync(project, existingTextDocumentStates, olds.Object).ConfigureAwait(false);
-                var newMap = await GetDocumentMapAsync(_assetService, news.Object).ConfigureAwait(false);
-
-                // added document
-                ImmutableArray<DocumentInfo>.Builder documentsToAdd = null;
-                foreach (var kv in newMap)
+                if (!oldMap.ContainsKey(kv.Key))
                 {
-                    if (!oldMap.ContainsKey(kv.Key))
-                    {
-                        documentsToAdd = documentsToAdd ?? ImmutableArray.CreateBuilder<DocumentInfo>();
+                    documentsToAdd ??= ImmutableArray.CreateBuilder<DocumentInfo>();
 
-                        // we have new document added
-                        var documentInfo = await SolutionInfoCreator.CreateDocumentInfoAsync(_assetService, kv.Value.Checksum, _cancellationToken).ConfigureAwait(false);
-                        documentsToAdd.Add(documentInfo);
-                    }
+                    // we have new document added
+                    var documentInfo = await SolutionInfoCreator.CreateDocumentInfoAsync(_assetService, kv.Value.Checksum, _cancellationToken).ConfigureAwait(false);
+                    documentsToAdd.Add(documentInfo);
                 }
-
-                if (documentsToAdd != null)
-                {
-                    project = addDocuments(project.Solution, documentsToAdd.ToImmutable()).GetProject(project.Id);
-                }
-
-                // changed document
-                foreach (var kv in newMap)
-                {
-                    if (!oldMap.TryGetValue(kv.Key, out var oldDocumentChecksums))
-                    {
-                        continue;
-                    }
-
-                    var newDocumentChecksums = kv.Value;
-                    Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
-
-                    var document = project.GetDocument(kv.Key) ?? project.GetAdditionalDocument(kv.Key) ?? project.GetAnalyzerConfigDocument(kv.Key);
-                    project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums).ConfigureAwait(false);
-                }
-
-                // removed document
-                foreach (var kv in oldMap)
-                {
-                    if (!newMap.ContainsKey(kv.Key))
-                    {
-                        // we have a document removed
-                        project = removeDocument(project.Solution, kv.Key).GetProject(project.Id);
-                    }
-                }
-
-                return project;
             }
+
+            if (documentsToAdd != null)
+            {
+                project = addDocuments(project.Solution, documentsToAdd.ToImmutable()).GetProject(project.Id);
+            }
+
+            // changed document
+            foreach (var kv in newMap)
+            {
+                if (!oldMap.TryGetValue(kv.Key, out var oldDocumentChecksums))
+                {
+                    continue;
+                }
+
+                var newDocumentChecksums = kv.Value;
+                Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
+
+                var document = project.GetDocument(kv.Key) ?? project.GetAdditionalDocument(kv.Key) ?? project.GetAnalyzerConfigDocument(kv.Key);
+                project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums).ConfigureAwait(false);
+            }
+
+            // removed document
+            foreach (var kv in oldMap)
+            {
+                if (!newMap.ContainsKey(kv.Key))
+                {
+                    // we have a document removed
+                    project = removeDocument(project.Solution, kv.Key).GetProject(project.Id);
+                }
+            }
+
+            return project;
         }
 
         private async Task<Project> UpdateDocumentAsync(TextDocument document, DocumentStateChecksums oldDocumentChecksums, DocumentStateChecksums newDocumentChecksums)
@@ -368,23 +386,13 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var sourceText = await _assetService.GetAssetAsync<SourceText>(newDocumentChecksums.Text, _cancellationToken).ConfigureAwait(false);
 
-                switch (document.Kind)
+                document = document.Kind switch
                 {
-                    case TextDocumentKind.Document:
-                        document = document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id);
-                        break;
-
-                    case TextDocumentKind.AnalyzerConfigDocument:
-                        document = document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, sourceText).GetAnalyzerConfigDocument(document.Id);
-                        break;
-
-                    case TextDocumentKind.AdditionalDocument:
-                        document = document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id);
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(document.Kind);
-                }
+                    TextDocumentKind.Document => document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id),
+                    TextDocumentKind.AnalyzerConfigDocument => document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, sourceText).GetAnalyzerConfigDocument(document.Id),
+                    TextDocumentKind.AdditionalDocument => document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id),
+                    _ => throw ExceptionUtilities.UnexpectedValue(document.Kind),
+                };
             }
 
             return document.Project;
@@ -433,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return map;
         }
 
-        private async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync(Project project, IEnumerable<TextDocumentState> states, HashSet<Checksum> documents)
+        private async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync(IEnumerable<TextDocumentState> states, HashSet<Checksum> documents)
         {
             var map = new Dictionary<DocumentId, DocumentStateChecksums>();
 
@@ -481,16 +489,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return map;
         }
 
-        private Project AddDocument(Project project, DocumentInfo documentInfo, bool additionalText)
-        {
-            if (additionalText)
-            {
-                return project.Solution.AddAdditionalDocument(documentInfo).GetProject(project.Id);
-            }
-
-            return project.Solution.AddDocument(documentInfo).GetProject(project.Id);
-        }
-
         private async Task ValidateChecksumAsync(Checksum checksumFromRequest, Solution incrementalSolutionBuilt)
         {
 #if DEBUG
@@ -506,9 +504,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async Task<Solution> CreateSolutionFromScratchAsync(Checksum checksum)
             {
-                var solutionInfo = await SolutionInfoCreator.CreateSolutionInfoAsync(_assetService, checksum, _cancellationToken).ConfigureAwait(false);
-                var workspace = new TemporaryWorkspace(solutionInfo);
-
+                var (solutionInfo, options) = await SolutionInfoCreator.CreateSolutionInfoAndOptionsAsync(_assetService, checksum, _cancellationToken).ConfigureAwait(false);
+                var workspace = new TemporaryWorkspace(solutionInfo, options);
                 return workspace.CurrentSolution;
             }
 #else

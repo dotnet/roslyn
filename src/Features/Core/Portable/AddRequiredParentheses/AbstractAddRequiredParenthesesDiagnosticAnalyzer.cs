@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         where TBinaryLikeExpressionSyntax : TExpressionSyntax
         where TLanguageKindEnum : struct
     {
-        private static Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>> s_cachedProperties =
+        private static readonly Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>> s_cachedProperties =
             new Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>>();
 
         private readonly IPrecedenceService _precedenceService;
@@ -62,8 +63,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
         protected AbstractAddRequiredParenthesesDiagnosticAnalyzer(IPrecedenceService precedenceService)
             : base(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId,
-           new LocalizableResourceString(nameof(FeaturesResources.Add_parentheses_for_clarity), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-           new LocalizableResourceString(nameof(FeaturesResources.Parentheses_should_be_added_for_clarity), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Add_parentheses_for_clarity), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Parentheses_should_be_added_for_clarity), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
             _precedenceService = precedenceService;
         }

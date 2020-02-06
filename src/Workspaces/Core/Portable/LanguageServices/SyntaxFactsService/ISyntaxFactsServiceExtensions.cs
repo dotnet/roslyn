@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 return false;
             }
 
-            for (int i = 1; i < name.Length; i++)
+            for (var i = 1; i < name.Length; i++)
             {
                 if (!syntaxFacts.IsIdentifierPartCharacter(name[i]))
                 {
@@ -64,6 +66,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             out SyntaxNode left, out SyntaxNode right)
         {
             syntaxFacts.GetPartsOfAssignmentStatement(statement, out left, out _, out right);
+        }
+
+        public static SyntaxNode GetExpressionOfInvocationExpression(
+            this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfInvocationExpression(node, out var expression, out _);
+            return expression;
         }
 
         public static SyntaxNode Unparenthesize(
@@ -162,5 +171,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             syntaxFacts.GetPartsOfConditionalAccessExpression(node, out var expression, out _);
             return expression;
         }
+
+        public static SyntaxToken GetOperatorTokenOfMemberAccessExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfMemberAccessExpression(node, out _, out var operatorToken, out _);
+            return operatorToken;
+        }
+
+        public static void GetPartsOfMemberAccessExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node, out SyntaxNode expression, out SyntaxNode name)
+            => syntaxFacts.GetPartsOfMemberAccessExpression(node, out expression, out _, out name);
+
+        public static void GetPartsOfConditionalAccessExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node, out SyntaxNode expression, out SyntaxNode whenNotNull)
+            => syntaxFacts.GetPartsOfConditionalAccessExpression(node, out expression, out _, out whenNotNull);
     }
 }

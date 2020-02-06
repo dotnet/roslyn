@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -305,6 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var syntax = (DelegateDeclarationSyntax)SyntaxRef.GetSyntax();
                 var location = syntax.ReturnType.GetLocation();
+                var compilation = DeclaringCompilation;
 
                 Debug.Assert(location != null);
 
@@ -312,17 +315,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (_refKind == RefKind.RefReadOnly)
                 {
-                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
-                ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+                ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
-                if (ReturnTypeWithAnnotations.NeedsNullableAttribute())
+                if (compilation.ShouldEmitNullableAttributes(this) &&
+                    ReturnTypeWithAnnotations.NeedsNullableAttribute())
                 {
-                    this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                    compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
-                ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+                ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers => _refCustomModifiers;

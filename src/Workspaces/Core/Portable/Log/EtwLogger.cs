@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics.Tracing;
@@ -40,18 +42,18 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
         {
-            RoslynEventSource.Instance.BlockStart(GetMessage(logMessage), functionId, uniquePairId);
+            _source.BlockStart(GetMessage(logMessage), functionId, uniquePairId);
         }
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                RoslynEventSource.Instance.BlockCanceled(functionId, delta, uniquePairId);
+                _source.BlockCanceled(functionId, delta, uniquePairId);
             }
             else
             {
-                RoslynEventSource.Instance.BlockStop(functionId, delta, uniquePairId);
+                _source.BlockStop(functionId, delta, uniquePairId);
             }
         }
 

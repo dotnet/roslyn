@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -1479,7 +1481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             CallKind callKind;
 
-            if (method.IsStatic)
+            if (!method.RequiresInstanceReceiver)
             {
                 callKind = CallKind.Call;
             }
@@ -1520,7 +1522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             //       otherwise we should not use direct 'call' and must use constrained call;
 
                             // calling a method defined in a value type
-                            Debug.Assert(TypeSymbol.Equals(receiverType, methodContainingType, TypeCompareKind.ConsiderEverything2));
+                            Debug.Assert(TypeSymbol.Equals(receiverType, methodContainingType, TypeCompareKind.ObliviousNullableModifierMatchesAny));
                             tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
                             callKind = CallKind.Call;
                         }
@@ -1748,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 stack += 1;
             }
 
-            if (!call.Method.IsStatic)
+            if (call.Method.RequiresInstanceReceiver)
             {
                 // The call pops the receiver off the stack.
                 stack -= 1;
@@ -1905,6 +1907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // we can ignore that if the actual result is unused
             if (used)
             {
+                _sawStackalloc = true;
                 _builder.EmitOpCode(ILOpCode.Localloc);
             }
 
@@ -1984,7 +1987,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return true;
             }
 
-            if (originalDef.ContainingType.Name == TupleTypeSymbol.TupleTypeName &&
+            if (originalDef.ContainingType.Name == NamedTypeSymbol.ValueTupleTypeName &&
                     (originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T2__ctor) ||
                     originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T3__ctor) ||
                     originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T4__ctor) ||
@@ -3284,11 +3287,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
                     var conversionKind = conversion.ConversionKind;
-                    Debug.Assert(conversionKind != ConversionKind.DefaultOrNullLiteral);
+                    Debug.Assert(conversionKind != ConversionKind.NullLiteral && conversionKind != ConversionKind.DefaultLiteral);
 
                     if (conversionKind.IsImplicitConversion() &&
                         conversionKind != ConversionKind.MethodGroup &&
-                        conversionKind != ConversionKind.DefaultOrNullLiteral)
+                        conversionKind != ConversionKind.NullLiteral &&
+                        conversionKind != ConversionKind.DefaultLiteral)
                     {
                         return StackMergeType(conversion.Operand);
                     }

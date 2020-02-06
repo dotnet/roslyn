@@ -1,15 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
-
 using NewIndentationService = Microsoft.CodeAnalysis.Indentation.IIndentationService;
 using OldIndentationService = Microsoft.CodeAnalysis.Editor.IIndentationService;
 using OldSynchronousIndentationService = Microsoft.CodeAnalysis.Editor.ISynchronousIndentationService;
@@ -53,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 var newService = document.GetLanguageService<NewIndentationService>();
                 if (newService != null)
                 {
-                    var result = newService.GetDesiredIndentation(document, lineToBeIndented.LineNumber, cancellationToken);
-                    return result?.GetIndentation(_textView, lineToBeIndented);
+                    var result = newService.GetIndentation(document, lineToBeIndented.LineNumber, cancellationToken);
+                    return result.GetIndentation(_textView, lineToBeIndented);
                 }
 
                 // If we don't have a feature-layer service, try to fall back to the legacy
@@ -75,7 +77,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                     return result?.GetIndentation(_textView, lineToBeIndented);
                 }
 #pragma warning restore CS0618 // Type or member is obsolete
-
 
                 return null;
             }

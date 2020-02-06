@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -14,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddBraces = nameof(AddBraces);
         public const string ChangeReturnType = nameof(ChangeReturnType);
         public const string ChangeToYield = nameof(ChangeToYield);
+        public const string ConfigureCodeStyleOption = nameof(ConfigureCodeStyleOption);
+        public const string ConfigureSeverity = nameof(ConfigureSeverity);
         public const string ConvertToAsync = nameof(ConvertToAsync);
         public const string ConvertToIterator = nameof(ConvertToIterator);
         public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);

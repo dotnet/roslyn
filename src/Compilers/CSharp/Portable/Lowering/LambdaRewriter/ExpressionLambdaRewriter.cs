@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -459,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversion = (BoundConversion)operand;
                 if (!conversion.ConversionKind.IsUserDefinedConversion() &&
                     conversion.ConversionKind.IsImplicitConversion() &&
-                    conversion.ConversionKind != ConversionKind.DefaultOrNullLiteral &&
+                    conversion.ConversionKind != ConversionKind.NullLiteral &&
                     conversion.Type.StrippedType().IsEnumType())
                 {
                     operand = conversion.Operand;
@@ -564,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = node.Method;
                 return ExprFactory(
                     "Call",
-                    method.IsStatic ? _bound.Null(ExpressionType) : Visit(node.ReceiverOpt),
+                    method.RequiresInstanceReceiver ? Visit(node.ReceiverOpt) : _bound.Null(ExpressionType),
                     _bound.MethodInfo(method),
                     Expressions(node.Arguments));
             }
@@ -608,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.MethodGroup:
                     {
                         var mg = (BoundMethodGroup)node.Operand;
-                        return DelegateCreation(mg.ReceiverOpt, node.SymbolOpt, node.Type, node.SymbolOpt.IsStatic && !node.IsExtensionMethod);
+                        return DelegateCreation(mg.ReceiverOpt, node.SymbolOpt, node.Type, !node.SymbolOpt.RequiresInstanceReceiver && !node.IsExtensionMethod);
                     }
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
@@ -648,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var e1 = Convert(Visit(node.Operand), node.Operand.Type, intermediate, node.Checked, false);
                         return Convert(e1, intermediate, node.Type, node.Checked, false);
                     }
-                case ConversionKind.DefaultOrNullLiteral:
+                case ConversionKind.NullLiteral:
                     return Convert(Constant(_bound.Null(_objectType)), _objectType, node.Type, false, node.ExplicitCastInCode);
                 default:
                     return Convert(Visit(node.Operand), node.Operand.Type, node.Type, node.Checked, node.ExplicitCastInCode);
@@ -665,10 +667,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ExprFactory(isChecked ? "ConvertChecked" : "Convert", expr, _bound.Typeof(type));
         }
 
-        private BoundExpression DelegateCreation(BoundExpression receiver, MethodSymbol method, TypeSymbol delegateType, bool staticMember)
+        private BoundExpression DelegateCreation(BoundExpression receiver, MethodSymbol method, TypeSymbol delegateType, bool requiresInstanceReceiver)
         {
             var nullObject = _bound.Null(_objectType);
-            receiver = staticMember ? nullObject : receiver.Type.IsReferenceType ? receiver : _bound.Convert(_objectType, receiver);
+            receiver = requiresInstanceReceiver ? nullObject : receiver.Type.IsReferenceType ? receiver : _bound.Convert(_objectType, receiver);
 
             var createDelegate = _bound.WellKnownMethod(WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, isOptional: true);
             BoundExpression unquoted;
@@ -700,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)node.MethodOpt != null)
             {
-                bool staticMember = node.MethodOpt.IsStatic && !node.IsExtensionMethod;
+                bool staticMember = !node.MethodOpt.RequiresInstanceReceiver && !node.IsExtensionMethod;
                 return DelegateCreation(node.Argument, node.MethodOpt, node.Type, staticMember);
             }
 

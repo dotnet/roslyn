@@ -1,8 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
+Imports RoslynCompletion = Microsoft.CodeAnalysis.Completion
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class ObjectInitializerCompletionProviderTests
@@ -18,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
                 hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String,
-                matchingFilters As List(Of CompletionItemFilter)) As Task
+                matchingFilters As List(Of CompletionFilter)) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> SourceCodeKind.Regular Then
@@ -460,7 +464,7 @@ End Program</Document>
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim service = GetCompletionService(workspace)
-                Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, CompletionTrigger.Invoke)
+                Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, RoslynCompletion.CompletionTrigger.Invoke)
                 Assert.True(completionList Is Nothing OrElse completionList.GetTestAccessor().IsExclusive, "Expected always exclusive")
             End Using
         End Function

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -54,36 +56,36 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             {
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-                this.DeclarationStatement = node;
+                DeclarationStatement = node;
 
-                var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(this.DeclarationStatement);
+                var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(DeclarationStatement);
                 if (variables.Count != 1)
                 {
                     return false;
                 }
 
-                this.VariableDeclarator = (TVariableDeclaratorSyntax)variables[0];
-                if (!service.IsValidVariableDeclarator(this.VariableDeclarator))
+                VariableDeclarator = (TVariableDeclaratorSyntax)variables[0];
+                if (!service.IsValidVariableDeclarator(VariableDeclarator))
                 {
                     return false;
                 }
 
-                this.OutermostBlock = this.DeclarationStatement.Parent;
-                if (!syntaxFacts.IsExecutableBlock(this.OutermostBlock))
+                OutermostBlock = DeclarationStatement.Parent;
+                if (!syntaxFacts.IsExecutableBlock(OutermostBlock))
                 {
                     return false;
                 }
 
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                this.LocalSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(
-                    service.GetVariableDeclaratorSymbolNode(this.VariableDeclarator), cancellationToken);
-                if (this.LocalSymbol == null)
+                LocalSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(
+                    service.GetVariableDeclaratorSymbolNode(VariableDeclarator), cancellationToken);
+                if (LocalSymbol == null)
                 {
                     // This can happen in broken code, for example: "{ object x; object }"
                     return false;
                 }
 
-                var findReferencesResult = await SymbolFinder.FindReferencesAsync(this.LocalSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                var findReferencesResult = await SymbolFinder.FindReferencesAsync(LocalSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                 var findReferencesList = findReferencesResult.ToList();
                 if (findReferencesList.Count != 1)
                 {
@@ -109,33 +111,33 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     return false;
                 }
 
-                this.InnermostBlock = syntaxFacts.FindInnermostCommonExecutableBlock(referencingStatements);
-                if (this.InnermostBlock == null)
+                InnermostBlock = syntaxFacts.FindInnermostCommonExecutableBlock(referencingStatements);
+                if (InnermostBlock == null)
                 {
                     return false;
                 }
 
-                this.InnermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(this.InnermostBlock);
-                this.OutermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(this.OutermostBlock);
+                InnermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(InnermostBlock);
+                OutermostBlockStatements = syntaxFacts.GetExecutableBlockStatements(OutermostBlock);
 
                 var allAffectedStatements = new HashSet<TStatementSyntax>(referencingStatements.SelectMany(
                     expr => expr.GetAncestorsOrThis<TStatementSyntax>()));
-                this.FirstStatementAffectedInInnermostBlock = this.InnermostBlockStatements.FirstOrDefault(allAffectedStatements.Contains);
+                FirstStatementAffectedInInnermostBlock = InnermostBlockStatements.FirstOrDefault(allAffectedStatements.Contains);
 
-                if (this.FirstStatementAffectedInInnermostBlock == null)
+                if (FirstStatementAffectedInInnermostBlock == null)
                 {
                     return false;
                 }
 
-                if (this.FirstStatementAffectedInInnermostBlock == this.DeclarationStatement)
+                if (FirstStatementAffectedInInnermostBlock == DeclarationStatement)
                 {
                     return false;
                 }
 
-                this.IndexOfDeclarationStatementInInnermostBlock = this.InnermostBlockStatements.IndexOf(this.DeclarationStatement);
-                this.IndexOfFirstStatementAffectedInInnermostBlock = this.InnermostBlockStatements.IndexOf(this.FirstStatementAffectedInInnermostBlock);
-                if (this.IndexOfDeclarationStatementInInnermostBlock >= 0 &&
-                    this.IndexOfDeclarationStatementInInnermostBlock < this.IndexOfFirstStatementAffectedInInnermostBlock)
+                IndexOfDeclarationStatementInInnermostBlock = InnermostBlockStatements.IndexOf(DeclarationStatement);
+                IndexOfFirstStatementAffectedInInnermostBlock = InnermostBlockStatements.IndexOf(FirstStatementAffectedInInnermostBlock);
+                if (IndexOfDeclarationStatementInInnermostBlock >= 0 &&
+                    IndexOfDeclarationStatementInInnermostBlock < IndexOfFirstStatementAffectedInInnermostBlock)
                 {
                     // Don't want to move a decl with initializer past other decls in order to move it to the first
                     // affected statement.  If we do we can end up in the following situation: 
@@ -156,8 +158,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     // statement.
                     // So, we also check if the variable declaration has an initializer below.
 
-                    if (syntaxFacts.GetInitializerOfVariableDeclarator(this.VariableDeclarator) != null &&
-                        InDeclarationStatementGroup(this.IndexOfDeclarationStatementInInnermostBlock, this.IndexOfFirstStatementAffectedInInnermostBlock))
+                    if (syntaxFacts.GetInitializerOfVariableDeclarator(VariableDeclarator) != null &&
+                        InDeclarationStatementGroup(IndexOfDeclarationStatementInInnermostBlock, IndexOfFirstStatementAffectedInInnermostBlock))
                     {
                         return false;
                     }
@@ -178,7 +180,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             {
                 for (var i = originalIndexInBlock; i < firstStatementIndexAffectedInBlock; i++)
                 {
-                    if (!(this.InnermostBlockStatements[i] is TLocalDeclarationStatementSyntax))
+                    if (!(InnermostBlockStatements[i] is TLocalDeclarationStatementSyntax))
                     {
                         return false;
                     }

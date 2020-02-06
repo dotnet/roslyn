@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -37,12 +40,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             throw new NotImplementedException();
         }
 
-        public OptionSet GetOptions()
+        public SerializableOptionSet GetOptions()
+        {
+            throw new NotImplementedException();
+        }
+
+        public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages)
         {
             throw new NotImplementedException();
         }
 
         public IEnumerable<IOption> GetRegisteredOptions()
+        {
+            throw new NotImplementedException();
+        }
+
+        public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages)
         {
             throw new NotImplementedException();
         }
@@ -59,6 +72,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         public Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RegisterWorkspace(Workspace workspace)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UnregisterWorkspace(Workspace workspace)
         {
             throw new NotImplementedException();
         }

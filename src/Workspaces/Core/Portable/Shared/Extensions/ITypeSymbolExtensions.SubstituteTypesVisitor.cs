@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -80,15 +82,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     symbol = updatedContainingType.GetTypeMembers(symbol.Name, symbol.Arity).First(m => m.TypeKind == symbol.TypeKind);
                 }
 
-                var typeArgumentsWithNullability = symbol.TypeArguments.ZipAsArray(symbol.TypeArgumentsNullableAnnotations, (t, n) => t.WithNullability(n));
-                var substitutedArguments = typeArgumentsWithNullability.Select(t => t.Accept(this));
-                if (typeArgumentsWithNullability.SequenceEqual(substitutedArguments))
+                var substitutedArguments = symbol.TypeArguments.Select(t => t.Accept(this));
+                if (symbol.TypeArguments.SequenceEqual(substitutedArguments))
                 {
                     return symbol;
                 }
 
-                // TODO: pass nullability to the substituted arguments once https://github.com/dotnet/roslyn/issues/36046 is fixed
-                return _typeGenerator.Construct(symbol.OriginalDefinition, substitutedArguments.Select(t => t.WithoutNullability()).ToArray()).WithNullability(symbol.GetNullability());
+                return _typeGenerator.Construct(symbol.OriginalDefinition, substitutedArguments.ToArray()).WithNullableAnnotation(symbol.NullableAnnotation);
             }
 
             public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)

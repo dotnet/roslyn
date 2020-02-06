@@ -1,9 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -177,7 +178,8 @@ End Class
             MarkupTestFile.GetPosition(codeWithMarkup, code, position)
 
             Using workspace = TestWorkspace.CreateVisualBasic(code)
-                workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)))
 
                 Dim hostdoc = workspace.Documents.First()
                 Dim buffer = hostdoc.GetTextBuffer()
@@ -197,7 +199,8 @@ End Class
                 Dim ignoreMissingToken = previousToken.IsMissing AndAlso line.Start.Position = position
 
                 Assert.True(VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                            formattingRules, root, line.AsTextLine, workspace.Options, Nothing, ignoreMissingToken))
+                            formattingRules, root, line.AsTextLine, workspace.Options,
+                            Nothing, ignoreMissingToken))
 
                 Dim smartFormatter = New VisualBasicSmartTokenFormatter(Await document.GetOptionsAsync(CancellationToken.None), formattingRules, root)
                 Dim changes = Await smartFormatter.FormatTokenAsync(workspace, token, Nothing)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -77,40 +79,40 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     return false;
                 }
 
-                if (!CodeGenerator.CanAdd(document.Project.Solution, this.TypeToGenerateIn, cancellationToken))
+                if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, cancellationToken))
                 {
                     return false;
                 }
 
-                this.ParameterTypes = this.ParameterTypes.IsDefault
+                ParameterTypes = ParameterTypes.IsDefault
                     ? GetParameterTypes(service, document, cancellationToken)
-                    : this.ParameterTypes;
-                this.ParameterRefKinds = this.ParameterRefKinds ?? this.Arguments.Select(service.GetRefKind).ToList();
+                    : ParameterTypes;
+                ParameterRefKinds ??= Arguments.Select(service.GetRefKind).ToList();
 
-                return !ClashesWithExistingConstructor(document, cancellationToken);
+                return !ClashesWithExistingConstructor(document);
             }
 
-            private bool ClashesWithExistingConstructor(SemanticDocument document, CancellationToken cancellationToken)
+            private bool ClashesWithExistingConstructor(SemanticDocument document)
             {
-                var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.TypeToGenerateIn.Language);
+                var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
-                return this.TypeToGenerateIn.InstanceConstructors.Any(c => Matches(c, syntaxFacts));
+                return TypeToGenerateIn.InstanceConstructors.Any(c => Matches(c, syntaxFacts));
             }
 
             private bool Matches(IMethodSymbol ctor, ISyntaxFactsService service)
             {
-                if (ctor.Parameters.Length != this.ParameterTypes.Length)
+                if (ctor.Parameters.Length != ParameterTypes.Length)
                 {
                     return false;
                 }
 
-                for (int i = 0; i < this.ParameterTypes.Length; i++)
+                for (var i = 0; i < ParameterTypes.Length; i++)
                 {
                     var ctorParameter = ctor.Parameters[i];
-                    var result = SymbolEquivalenceComparer.Instance.Equals(ctorParameter.Type, this.ParameterTypes[i]) &&
-                        ctorParameter.RefKind == this.ParameterRefKinds[i];
+                    var result = SymbolEquivalenceComparer.Instance.Equals(ctorParameter.Type, ParameterTypes[i]) &&
+                        ctorParameter.RefKind == ParameterRefKinds[i];
 
-                    string parameterName = GetParameterName(service, i);
+                    var parameterName = GetParameterName(service, i);
                     if (!string.IsNullOrEmpty(parameterName))
                     {
                         result &= service.IsCaseSensitive
@@ -129,12 +131,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             private string GetParameterName(ISyntaxFactsService service, int index)
             {
-                if (this.Arguments.IsDefault || index >= this.Arguments.Length)
+                if (Arguments.IsDefault || index >= Arguments.Length)
                 {
                     return string.Empty;
                 }
 
-                return service.GetNameForArgument(this.Arguments[index]);
+                return service.GetNameForArgument(Arguments[index]);
             }
 
             internal ImmutableArray<ITypeSymbol> GetParameterTypes(
@@ -142,11 +144,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 SemanticDocument document,
                 CancellationToken cancellationToken)
             {
-                var allTypeParameters = this.TypeToGenerateIn.GetAllTypeParameters();
+                var allTypeParameters = TypeToGenerateIn.GetAllTypeParameters();
                 var semanticModel = document.SemanticModel;
-                var allTypes = this.AttributeArguments != null
-                    ? this.AttributeArguments.Select(a => service.GetAttributeArgumentType(semanticModel, a, cancellationToken))
-                    : this.Arguments.Select(a => service.GetArgumentType(semanticModel, a, cancellationToken));
+                var allTypes = AttributeArguments != null
+                    ? AttributeArguments.Select(a => service.GetAttributeArgumentType(semanticModel, a, cancellationToken))
+                    : Arguments.Select(a => service.GetArgumentType(semanticModel, a, cancellationToken));
 
                 return allTypes.Select(t => FixType(t, semanticModel, allTypeParameters)).ToImmutableArray();
             }
@@ -171,9 +173,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     return false;
                 }
 
-                this.Token = token;
-                this.Arguments = arguments;
-                this.IsConstructorInitializerGeneration = true;
+                Token = token;
+                Arguments = arguments;
+                IsConstructorInitializerGeneration = true;
 
                 var semanticModel = document.SemanticModel;
                 var semanticInfo = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken);
@@ -196,18 +198,18 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 if (service.TryInitializeSimpleNameGenerationState(document, simpleName, cancellationToken,
                     out var token, out var arguments, out var typeToGenerateIn))
                 {
-                    this.Token = token;
-                    this.Arguments = arguments;
+                    Token = token;
+                    Arguments = arguments;
                 }
                 else if (service.TryInitializeSimpleAttributeNameGenerationState(document, simpleName, cancellationToken,
                     out token, out arguments, out var attributeArguments, out typeToGenerateIn))
                 {
-                    this.Token = token;
-                    this.AttributeArguments = attributeArguments;
-                    this.Arguments = arguments;
+                    Token = token;
+                    AttributeArguments = attributeArguments;
+                    Arguments = arguments;
 
                     //// Attribute parameters are restricted to be constant values (simple types or string, etc).
-                    if (this.AttributeArguments != null && GetParameterTypes(service, document, cancellationToken).Any(t => !IsValidAttributeParameterType(t)))
+                    if (AttributeArguments != null && GetParameterTypes(service, document, cancellationToken).Any(t => !IsValidAttributeParameterType(t)))
                     {
                         return false;
                     }
@@ -268,11 +270,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 CancellationToken cancellationToken)
             {
                 var definition = await SymbolFinder.FindSourceDefinitionAsync(original, document.Project.Solution, cancellationToken).ConfigureAwait(false);
-                this.TypeToGenerateIn = definition as INamedTypeSymbol;
+                TypeToGenerateIn = definition as INamedTypeSymbol;
 
-                return this.TypeToGenerateIn != null &&
-                    (this.TypeToGenerateIn.TypeKind == TypeKind.Class ||
-                     this.TypeToGenerateIn.TypeKind == TypeKind.Struct);
+                return TypeToGenerateIn != null &&
+                    (TypeToGenerateIn.TypeKind == TypeKind.Class ||
+                     TypeToGenerateIn.TypeKind == TypeKind.Struct);
             }
         }
     }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -98,10 +100,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // would be losing data.
                 Debug.Assert(taskCompletionSource != null);
 
-                using (var pooledConnection = GetPooledConnection())
-                {
-                    ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
-                }
+                using var pooledConnection = GetPooledConnection();
+                ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
             }
             catch (OperationCanceledException ex)
             {
@@ -195,10 +195,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                     // a second max, this should not be an area of contention.
                     if (writesToProcess.Count > 0)
                     {
-                        using (var pooledConnection = GetPooledConnection())
-                        {
-                            ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
-                        }
+                        using var pooledConnection = GetPooledConnection();
+                        ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
                     }
                 }
             }

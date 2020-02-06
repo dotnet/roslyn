@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -107,7 +109,7 @@ namespace RunTests
 
             ConsoleUtil.WriteLine($"Data Storage: {testExecutor.DataStorage.Name}");
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpDirectory}");
-            ConsoleUtil.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} partitions");
+            ConsoleUtil.WriteLine($"Running {options.Assemblies.Count} test assemblies in {assemblyInfoList.Count} partitions");
 
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
@@ -203,7 +205,7 @@ namespace RunTests
                     var processOutput = await processInfo.Result;
 
                     // The exit code for procdump doesn't obey standard windows rules.  It will return non-zero
-                    // for succesful cases (possibly returning the count of dumps that were written).  Best 
+                    // for successful cases (possibly returning the count of dumps that were written).  Best 
                     // backup is to test for the dump file being present.
                     if (File.Exists(dumpFilePath))
                     {
@@ -300,7 +302,7 @@ namespace RunTests
                 // bottleneck.  Can adjust as we get real data.
                 if (name == "Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll" ||
                     name == "Microsoft.CodeAnalysis.EditorFeatures.UnitTests.dll" ||
-                    name == "Roslyn.Services.Editor.UnitTests2.dll" ||
+                    name == "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll" ||
                     name == "Microsoft.VisualStudio.LanguageServices.UnitTests.dll" ||
                     name == "Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests.dll" ||
                     name == "Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests.dll")

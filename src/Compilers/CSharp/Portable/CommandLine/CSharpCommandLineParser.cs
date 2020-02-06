@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string outputRefFilePath = null;
             bool refOnly = false;
             string documentationPath = null;
-            string errorLogPath = null;
+            ErrorLogOptions errorLogOptions = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             bool utf8output = false;
             OutputKind outputKind = OutputKind.ConsoleApplication;
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool embedAllSourceFiles = false;
             bool resourcesOrModulesSpecified = false;
             Encoding codepage = null;
-            var checksumAlgorithm = SourceHashAlgorithm.Sha256;
+            var checksumAlgorithm = SourceHashAlgorithmUtils.DefaultContentHashAlgorithm;
             var defines = ArrayBuilder<string>.GetInstance();
             List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
             List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
@@ -351,6 +353,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     case "warnings":
                                         Debug.Assert(loweredValue == nameof(NullableContextOptions.Warnings).ToLower());
                                         nullableContextOptions = NullableContextOptions.Warnings;
+                                        break;
+                                    case "annotations":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.Annotations).ToLower());
+                                        nullableContextOptions = NullableContextOptions.Annotations;
                                         break;
                                     default:
                                         AddDiagnostic(diagnostics, ErrorCode.ERR_BadNullableContextOption, value);
@@ -1180,11 +1186,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             unquoted = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(unquoted))
                             {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<file>", RemoveQuotesAndSlashes(arg));
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ErrorLogOptionFormat, RemoveQuotesAndSlashes(arg));
                             }
                             else
                             {
-                                errorLogPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory);
+                                errorLogOptions = ParseErrorLogOptions(unquoted, diagnostics, baseDirectory, out bool diagnosticAlreadyReported);
+                                if (errorLogOptions == null && !diagnosticAlreadyReported)
+                                {
+                                    AddDiagnostic(diagnostics, ErrorCode.ERR_BadSwitchValue, unquoted, "/errorlog:", ErrorLogOptionFormat);
+                                }
                             }
                             continue;
 
@@ -1355,7 +1365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We want to report diagnostics with source suppression in the error log file.
             // However, these diagnostics won't be reported on the command line.
-            var reportSuppressedDiagnostics = errorLogPath != null;
+            var reportSuppressedDiagnostics = errorLogOptions is object;
 
             var options = new CSharpCompilationOptions
             (
@@ -1431,7 +1441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RuleSetPath = ruleSetPath,
                 OutputDirectory = outputDirectory,
                 DocumentationPath = documentationPath,
-                ErrorLogPath = errorLogPath,
+                ErrorLogOptions = errorLogOptions,
                 AppConfigPath = appConfigPath,
                 SourceFiles = sourceFiles.AsImmutable(),
                 Encoding = codepage,
@@ -1913,9 +1923,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             string[] values = value.Split(new char[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string id in values)
             {
-                ushort number;
-                if (ushort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out number) &&
-                    ErrorFacts.IsWarning((ErrorCode)number))
+                if (string.Equals(id, "nullable", StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (var errorCode in ErrorFacts.NullableWarnings)
+                    {
+                        yield return errorCode;
+                    }
+                }
+                else if (ushort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out ushort number) &&
+                       ErrorFacts.IsWarning((ErrorCode)number))
                 {
                     // The id refers to a compiler warning.
                     yield return CSharp.MessageProvider.Instance.GetIdForErrorCode(number);

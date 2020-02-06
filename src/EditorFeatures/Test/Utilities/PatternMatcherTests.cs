@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -241,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         internal void TestNonFuzzyMatch(
             string candidate, string pattern, PatternMatchKind matchKind, bool isCaseSensitive)
         {
-            var match = TestNonFuzzyMatch(candidate, pattern);
+            var match = TestNonFuzzyMatchCore(candidate, pattern);
             Assert.NotNull(match);
 
             Assert.Equal(matchKind, match.Value.Kind);
@@ -262,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("runtime.native.system", "system.reflection")]
         public void TestNonFuzzyMatch_NoMatch(string candidate, string pattern)
         {
-            var match = TestNonFuzzyMatch(candidate, pattern);
+            var match = TestNonFuzzyMatchCore(candidate, pattern);
             Assert.Null(match);
         }
 
@@ -461,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             try
             {
-                var match = TestNonFuzzyMatch("[|ioo|]", "\u0130oo"); // u0130 = Capital I with dot
+                var match = TestNonFuzzyMatchCore("[|ioo|]", "\u0130oo"); // u0130 = Capital I with dot
 
                 Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
                 Assert.False(match.Value.IsCaseSensitive);
@@ -474,14 +476,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static ImmutableArray<string> PartListToSubstrings(string identifier, ArrayBuilder<TextSpan> parts)
         {
-            var result = ArrayBuilder<string>.GetInstance();
+            using var resultDisposer = ArrayBuilder<string>.GetInstance(out var result);
             foreach (var span in parts)
             {
                 result.Add(identifier.Substring(span.Start, span.Length));
             }
 
             parts.Free();
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private static ImmutableArray<string> BreakIntoCharacterParts(string identifier)
@@ -490,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private static ImmutableArray<string> BreakIntoWordParts(string identifier)
             => PartListToSubstrings(identifier, StringBreaker.GetWordParts(identifier));
 
-        private static PatternMatch? TestNonFuzzyMatch(string candidate, string pattern)
+        private static PatternMatch? TestNonFuzzyMatchCore(string candidate, string pattern)
         {
             MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> spans);
 
@@ -513,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> expectedSpans);
 
-            var matches = ArrayBuilder<PatternMatch>.GetInstance();
+            using var matchesDisposer = ArrayBuilder<PatternMatch>.GetInstance(out var matches);
             PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, matches);
 
             if (matches.Count == 0)
@@ -525,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             {
                 var actualSpans = matches.SelectMany(m => m.MatchedSpans).OrderBy(s => s.Start).ToList();
                 Assert.Equal(expectedSpans, actualSpans);
-                return matches;
+                return matches.ToImmutable();
             }
         }
     }

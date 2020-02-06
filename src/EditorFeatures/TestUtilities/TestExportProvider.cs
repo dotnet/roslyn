@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -35,7 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         private static Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => ExportProviderCache.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
-                        .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog()));
+                        .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog())
+                        .WithDefaultFakes());
 
         private static Lazy<IExportProviderFactory> s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic =
             new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(MinimumCatalogWithCSharpAndVisualBasic));
@@ -120,7 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             return ExportProviderCache.GetOrCreateAssemblyCatalog(
                 GetNeutralAndCSharpAndVisualBasicTypes().Select(t => t.Assembly).Distinct(), ExportProviderCache.CreateResolver())
-                .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog());
+                .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog())
+                .WithDefaultFakes();
         }
     }
 }

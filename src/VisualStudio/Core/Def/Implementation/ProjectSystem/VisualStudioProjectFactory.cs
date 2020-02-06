@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -41,6 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // HACK: Fetch this service to ensure it's still created on the UI thread; once this is moved off we'll need to fix up it's constructor to be free-threaded.
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
+            // HACK: since we're on the UI thread, ensure we initialize our options provider which depends on a UI-affinitized experimentation service
+            _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitialized();
+
             var id = ProjectId.CreateNewId(projectSystemName);
             var directoryNameOpt = creationInfo.FilePath != null ? Path.GetDirectoryName(creationInfo.FilePath) : null;
 
@@ -52,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
 
-            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.ProjectGuid, projectSystemName);
+            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 
             _visualStudioWorkspaceImpl.ApplyChangeToWorkspace(w =>
             {
@@ -87,15 +89,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             VersionStamp.Create(),
                             solutionFilePath,
                             projects: new[] { projectInfo }));
-
-                    // set working folder for the persistent service
-                    var persistenceService = w.Services.GetRequiredService<IPersistentStorageLocationService>() as VisualStudioPersistentStorageLocationService;
-                    persistenceService?.UpdateForVisualStudioWorkspace(w);
                 }
                 else
                 {
                     w.OnProjectAdded(projectInfo);
                 }
+
+                _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage(language);
             });
 
             // We do all these sets after the w.OnProjectAdded, as the setting of these properties is going to try to modify the workspace

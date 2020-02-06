@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -222,7 +224,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var key = symbol.GetSymbolKey();
 
             // We may be talking about different compilations.  So do not try to resolve locations.
-            return key.Resolve(compilation, resolveLocations: false, cancellationToken: cancellationToken).GetAllSymbols().OfType<TSymbol>();
+            var result = new HashSet<TSymbol>();
+            var resolution = key.Resolve(compilation, resolveLocations: false, cancellationToken: cancellationToken);
+            foreach (var current in resolution.OfType<TSymbol>())
+            {
+                result.Add(current);
+            }
+
+            return result;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
-                var operations = await VerifyActionAndGetOperationsAsync(action, default);
+                var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
 
                 var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
                 var oldSolution = appliedChanges.Item1;
@@ -55,36 +57,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
             int index = 0)
         {
             var parameters = new TestParameters(parseOptions: parseOptions, index: index);
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
-            {
-                var (actions, actionsToInvoke) = await GetCodeActionsAsync(workspace, parameters);
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
+            var (actions, actionsToInvoke) = await GetCodeActionsAsync(workspace, parameters);
 
-                Assert.Empty(actions);
-                Assert.Null(actionsToInvoke);
-            }
+            Assert.Empty(actions);
+            Assert.Null(actionsToInvoke);
         }
 
         [Fact]
         public async Task UpgradeProjectFromCSharp7_2ToCSharp8()
         {
-            await TestLanguageVersionNotUpgradedAsync(
+            await TestLanguageVersionUpgradedAsync(
 @"class C
 {
     object F = [|null!|];
 }",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
 
         [Fact]
         public async Task UpgradeProjectFromCSharp7ToCSharp8()
         {
-            await TestLanguageVersionNotUpgradedAsync(
+            await TestLanguageVersionUpgradedAsync(
 @"class C
 {
     object F = [|null!|];
 }",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
 
@@ -339,7 +339,7 @@ class Program
         [Fact]
         public async Task UpgradeProjectForVerbatimInterpolatedString()
         {
-            await TestLanguageVersionNotUpgradedAsync(
+            await TestLanguageVersionUpgradedAsync(
 @"
 class Program
 {
@@ -348,7 +348,7 @@ class Program
         var x = [|@$""hello""|];
     }
 }",
-                expected: LanguageVersion.Preview,
+                expected: LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
         #endregion
@@ -384,7 +384,7 @@ class C
         [Fact]
         public async Task UpgradeAllProjectsToCSharp8()
         {
-            await TestLanguageVersionNotUpgradedAsync(
+            await TestLanguageVersionUpgradedAsync(
 @"<Workspace>
     <Project Language=""C#"" LanguageVersion=""6"">
         <Document>
@@ -403,22 +403,21 @@ class C
     <Project Language=""Visual Basic"">
     </Project>
 </Workspace>",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp8,
                 parseOptions: null,
                 index: 1);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30027")]
-        [WorkItem(30027, "https://github.com/dotnet/roslyn/issues/30027")]
+        [Fact]
         public async Task UpgradeAllProjectsToCSharp8_NullableReferenceType()
         {
             await TestLanguageVersionUpgradedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"">
+    <Project Language=""C#"" LanguageVersion=""6"" CommonReferences=""True"">
         <Document>
 class C
 {
-    void A(string? [|s|])
+    void A(string[|?|] s)
     {
     }
 }
@@ -469,7 +468,6 @@ class C
         [Fact]
         public async Task ListAllSuggestions_CSharp8()
         {
-            var versionPreview = LanguageVersion.Preview.ToDisplayString();
             await TestExactActionSetOfferedAsync(
 
 @"<Workspace>
@@ -489,7 +487,11 @@ class C
     <Project Language=""C#"" LanguageVersion=""800"">
     </Project>
 </Workspace>",
-                new string[0]
+                new[]
+                {
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "8.0")
+                }
     );
         }
 
@@ -577,7 +579,6 @@ class C
         [Fact]
         public async Task OnlyOfferFixAllProjectsToCSharp8WhenApplicable()
         {
-            var previewVersion = LanguageVersion.Preview.ToDisplayString();
             await TestExactActionSetOfferedAsync(
 
 @"<Workspace>
@@ -594,13 +595,15 @@ class C
     <Project Language=""Visual Basic"">
     </Project>
 </Workspace>",
-                new string[0]);
+            new[] {
+                string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
+                });
         }
 
         [Fact]
         public async Task OnlyOfferFixAllProjectsToDefaultWhenApplicable()
         {
-            string defaultEffectiveVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString();
+            var defaultEffectiveVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString();
             await TestExactActionSetOfferedAsync(
 
 $@"<Workspace>
@@ -750,14 +753,14 @@ class Test
         [Fact]
         public async Task UpgradeProjectForDefaultInterfaceImplementation_CS8703()
         {
-            await TestLanguageVersionNotUpgradedAsync(
+            await TestLanguageVersionUpgradedAsync(
 @"
 public interface I1
 {
     public void [|M01|]();
 }
 ",
-                expected: LanguageVersion.Preview,
+                expected: LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
 
@@ -793,40 +796,161 @@ public interface I1
         [Fact]
         public async Task UpgradeProjectWithOpenTypeMatchingConstantPattern_01()
         {
-            await TestLanguageVersionNotUpgradedAsync(
+            await TestLanguageVersionUpgradedAsync(
 @"
 class Test
 {
     bool M<T>(T t) => t is [|null|];
 }",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
 
         [Fact]
         public async Task UpgradeProjectWithOpenTypeMatchingConstantPattern_02()
         {
-            await TestLanguageVersionNotUpgradedAsync(
+            await TestLanguageVersionUpgradedAsync(
 @"
 class Test
 {
     bool M<T>(T t) => t is [|100|];
 }",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
 
         [Fact]
         public async Task UpgradeProjectWithOpenTypeMatchingConstantPattern_03()
         {
-            await TestLanguageVersionNotUpgradedAsync(
+            await TestLanguageVersionUpgradedAsync(
 @"
 class Test
 {
     bool M<T>(T t) => t is [|""frog""|];
 }",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp8,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_Type()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Test<T> where T : [|notnull|]
+{
+}",
+                LanguageVersion.CSharp8,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_Type_AlreadyDefined()
+        {
+            await TestExactActionSetOfferedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""703"">
+        <Document>
+interface notnull { }
+class Test&lt;T&gt; where T : [|notnull|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>",
+                expectedActionSet: Enumerable.Empty<string>());
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_Method()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Test
+{
+    public void M<T>() where T : [|notnull|] { }
+}",
+                LanguageVersion.CSharp8,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_Method_AlreadyDefined()
+        {
+            await TestExactActionSetOfferedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""703"">
+        <Document>
+interface notnull { }
+class Test
+{
+    public void M&lt;T&gt;() where T : [|notnull|] { }
+}
+        </Document>
+    </Project>
+</Workspace>",
+                expectedActionSet: Enumerable.Empty<string>());
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_Delegate()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"delegate void D<T>() where T : [|notnull|];",
+                LanguageVersion.CSharp8,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_Delegate_AlreadyDefined()
+        {
+            await TestExactActionSetOfferedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""703"">
+        <Document>
+interface notnull { }
+delegate void D&lt;T&gt;() where T : [| notnull |];
+        </Document>
+    </Project>
+</Workspace>",
+                expectedActionSet: Enumerable.Empty<string>());
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_LocalFunction()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Test
+{
+    public void N()
+    {
+        void M<T>() where T : [|notnull|] { }
+    }
+}",
+                LanguageVersion.CSharp8,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithNotNullConstraintTo8_0_LocalFunction_AlreadyDefined()
+        {
+            await TestExactActionSetOfferedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""703"">
+        <Document>
+interface notnull { }
+class Test
+{
+    public void N()
+    {
+        void M&lt;T&gt;() where T : [|notnull|] { }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+                expectedActionSet: Enumerable.Empty<string>());
         }
     }
 }

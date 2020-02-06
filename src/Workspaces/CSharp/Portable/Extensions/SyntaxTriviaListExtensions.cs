@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -28,21 +30,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return triviaList
                 .Where(t => t.Kind() == SyntaxKind.EndOfLineTrivia)
-                .FirstOrNullable();
+                .FirstOrNull();
         }
 
         public static SyntaxTrivia? GetLastComment(this SyntaxTriviaList triviaList)
         {
             return triviaList
                 .Where(t => t.IsRegularComment())
-                .LastOrNullable();
+                .LastOrNull();
         }
 
         public static SyntaxTrivia? GetLastCommentOrWhitespace(this SyntaxTriviaList triviaList)
         {
             return triviaList
                 .Where(t => t.MatchesKind(SyntaxKind.SingleLineCommentTrivia, SyntaxKind.MultiLineCommentTrivia, SyntaxKind.WhitespaceTrivia))
-                .LastOrNullable();
+                .LastOrNull();
         }
 
         public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this SyntaxTriviaList triviaList)
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 currentLine.Add(trivia);
                 if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
                 {
-                    bool currentLineIsBlank = currentLine.All(t =>
+                    var currentLineIsBlank = currentLine.All(t =>
                         t.Kind() == SyntaxKind.EndOfLineTrivia ||
                         t.Kind() == SyntaxKind.WhitespaceTrivia);
                     if (!currentLineIsBlank)

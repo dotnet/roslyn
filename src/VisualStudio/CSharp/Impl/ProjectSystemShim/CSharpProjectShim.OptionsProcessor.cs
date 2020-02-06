@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -202,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             private string GetStringOption(CompilerOptions optionID, string defaultValue)
             {
-                string value = (string)_options[(int)optionID];
+                var value = (string)_options[(int)optionID];
 
                 if (string.IsNullOrEmpty(value))
                 {
@@ -220,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
                 // The base implementation of OptionsProcessor already tried this, but it didn't have the real documentation
                 // path so we have to do it a second time
-                DocumentationMode documentationMode = DocumentationMode.Parse;
+                var documentationMode = DocumentationMode.Parse;
                 if (GetStringOption(CompilerOptions.OPTID_XML_DOCFILE, defaultValue: null) != null)
                 {
                     documentationMode = DocumentationMode.Diagnose;
@@ -236,37 +238,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             public void SetOutputFileType(OutputFileType fileType)
             {
-                OutputKind newOutputKind;
-                switch (fileType)
+                var newOutputKind = fileType switch
                 {
-                    case OutputFileType.Console:
-                        newOutputKind = OutputKind.ConsoleApplication;
-                        break;
-
-                    case OutputFileType.Windows:
-                        newOutputKind = OutputKind.WindowsApplication;
-                        break;
-
-                    case OutputFileType.Library:
-                        newOutputKind = OutputKind.DynamicallyLinkedLibrary;
-                        break;
-
-                    case OutputFileType.Module:
-                        newOutputKind = OutputKind.NetModule;
-                        break;
-
-                    case OutputFileType.AppContainer:
-                        newOutputKind = OutputKind.WindowsRuntimeApplication;
-                        break;
-
-                    case OutputFileType.WinMDObj:
-                        newOutputKind = OutputKind.WindowsRuntimeMetadata;
-                        break;
-
-                    default:
-
-                        throw new ArgumentException("fileType was not a valid OutputFileType", nameof(fileType));
-                }
+                    OutputFileType.Console => OutputKind.ConsoleApplication,
+                    OutputFileType.Windows => OutputKind.WindowsApplication,
+                    OutputFileType.Library => OutputKind.DynamicallyLinkedLibrary,
+                    OutputFileType.Module => OutputKind.NetModule,
+                    OutputFileType.AppContainer => OutputKind.WindowsRuntimeApplication,
+                    OutputFileType.WinMDObj => OutputKind.WindowsRuntimeMetadata,
+                    _ => throw new ArgumentException("fileType was not a valid OutputFileType", nameof(fileType)),
+                };
 
                 if (_outputKind != newOutputKind)
                 {

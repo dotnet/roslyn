@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -23,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         private int _counter;
         private bool _trackActiveTokens;
 
-        public AsynchronousOperationListener() :
-            this(featureName: "noname", enableDiagnosticTokens: false)
+        public AsynchronousOperationListener()
+            : this(featureName: "noname", enableDiagnosticTokens: false)
         {
         }
 
@@ -38,18 +40,17 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public async Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
         {
             var expeditedDelayCancellationToken = _expeditedDelayCancellationTokenSource.Token;
-            using (var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken))
+            using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken);
+
+            try
             {
-                try
-                {
-                    await Task.Delay(delay, cancellationTokenSource.Token).ConfigureAwait(false);
-                    return true;
-                }
-                catch (OperationCanceledException) when (expeditedDelayCancellationToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
-                {
-                    // The cancellation only occurred due to a request to expedite the operation
-                    return false;
-                }
+                await Task.Delay(delay, cancellationTokenSource.Token).ConfigureAwait(false);
+                return true;
+            }
+            catch (OperationCanceledException) when (expeditedDelayCancellationToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+            {
+                // The cancellation only occurred due to a request to expedite the operation
+                return false;
             }
         }
 
@@ -100,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
             if (_trackActiveTokens)
             {
-                int i = 0;
-                bool removed = false;
+                var i = 0;
+                var removed = false;
                 while (i < _diagnosticTokenList.Count)
                 {
                     if (_diagnosticTokenList[i] == token)

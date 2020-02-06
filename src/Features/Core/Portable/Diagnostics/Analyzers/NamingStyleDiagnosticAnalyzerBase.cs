@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -8,13 +10,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
-        : AbstractBuiltInCodeStyleDiagnosticAnalyzer, IInProcessAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
     {
         private static readonly LocalizableString s_localizableMessageFormat = new LocalizableResourceString(nameof(FeaturesResources.Naming_rule_violation_0), FeaturesResources.ResourceManager, typeof(FeaturesResources));
@@ -22,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         protected NamingStyleDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.NamingRuleId,
+                   option: null,    // No unique option to configure the diagnosticId
                    s_localizableTitleNamingStyle,
                    s_localizableMessageFormat)
         {
@@ -39,8 +43,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         // Workaround: RegisterSymbolAction doesn't work with locals, local functions, parameters, or type parameters.
         // see https://github.com/dotnet/roslyn/issues/14061
         protected abstract ImmutableArray<TLanguageKindEnum> SupportedSyntaxKinds { get; }
-
-        public override bool OpenFileOnly(Workspace workspace) => true;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(CompilationStartAction);

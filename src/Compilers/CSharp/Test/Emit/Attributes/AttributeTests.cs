@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -4741,7 +4743,7 @@ class C
         }
 
         [WorkItem(546621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546621")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/41280")]
         public void TestUnicodeAttributeArgumentsStrings()
         {
             string HighSurrogateCharacter = "\uD800";
@@ -7711,11 +7713,11 @@ public class IA
             var compilation = CreateCompilation(source2, new[] { reference1 });
             compilation.VerifyDiagnostics();
             var assembly = compilation.Assembly;
-            Assert.Equal(assembly.GetAttributes().Length, 0);
+            Assert.Equal(0, assembly.GetAttributes().Length);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(type.GetAttributes().Length, 0);
+            Assert.Equal(0, type.GetAttributes().Length);
             var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
-            Assert.Equal(method.GetAttributes().Length, 0);
+            Assert.Equal(0, method.GetAttributes().Length);
             Assert.True(method.TestIsExtensionBitSet);
             Assert.True(method.TestIsExtensionBitTrue);
             Assert.True(method.IsExtensionMethod);
@@ -7754,11 +7756,11 @@ public class IA
             compilation.VerifyDiagnostics(); // we now recognize the extension method even without the assembly-level attribute
 
             var assembly = compilation.Assembly;
-            Assert.Equal(assembly.GetAttributes().Length, 0);
+            Assert.Equal(0, assembly.GetAttributes().Length);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(type.GetAttributes().Length, 0);
+            Assert.Equal(0, type.GetAttributes().Length);
             var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
-            Assert.Equal(method.GetAttributes().Length, 0);
+            Assert.Equal(0, method.GetAttributes().Length);
             Assert.True(method.TestIsExtensionBitSet);
             Assert.True(method.TestIsExtensionBitTrue);
             Assert.True(method.IsExtensionMethod);
@@ -8793,9 +8795,9 @@ class Target<T>
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Target");
 
-            var typeInAttribute = (NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
+            var typeInAttribute = (INamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
             Assert.True(typeInAttribute.IsUnboundGenericType);
-            Assert.True(((INamedTypeSymbol)typeInAttribute).IsUnboundGenericType);
+            Assert.True(((NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().ValueInternal).IsUnboundGenericType);
             Assert.Equal("Target<>", typeInAttribute.ToTestDisplayString());
 
             var comp2 = CreateCompilation("", new[] { comp.EmitToImageReference() });
@@ -8803,9 +8805,9 @@ class Target<T>
 
             Assert.IsAssignableFrom<PENamedTypeSymbol>(type);
 
-            typeInAttribute = (NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
+            typeInAttribute = (INamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
             Assert.True(typeInAttribute.IsUnboundGenericType);
-            Assert.True(((INamedTypeSymbol)typeInAttribute).IsUnboundGenericType);
+            Assert.True(((NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().ValueInternal).IsUnboundGenericType);
             Assert.Equal("Target<>", typeInAttribute.ToTestDisplayString());
         }
 
@@ -8901,10 +8903,9 @@ public static class LanguageNames
 ";
             var compilation1 = CreateCompilationWithMscorlib40(source1, options: TestOptions.DebugDll);
             compilation1.VerifyDiagnostics(
-    // (10,18): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
-    //     public const xyz CSharp = "C#";
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "xyz").WithArguments("xyz").WithLocation(10, 18)
-                );
+                // (10,18): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
+                //     public const xyz CSharp = "C#";
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "xyz").WithArguments("xyz").WithLocation(10, 18));
 
             var source2 =
 @"
@@ -8920,26 +8921,23 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
             var emitResult2 = compilation2.Emit(peStream: new MemoryStream(), options: new EmitOptions(metadataOnly: true));
             Assert.False(emitResult2.Success);
             emitResult2.Diagnostics.Verify(
-    // error CS7038: Failed to emit module 'Test.dll'.
-    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("Test.dll").WithLocation(1, 1)
-                );
+                // error CS7038: Failed to emit module 'Test.dll': Module has invalid attributes.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("Test.dll", "Module has invalid attributes.").WithLocation(1, 1));
 
             // Use different mscorlib to test retargeting scenario
             var compilation3 = CreateCompilationWithMscorlib45(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll);
             Assert.NotSame(compilation1.Assembly, compilation3.SourceModule.ReferencedAssemblySymbols[1]);
             compilation3.VerifyDiagnostics(
-    // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
-    // [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35)
-                );
+                // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
+                // [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35));
 
             var emitResult3 = compilation3.Emit(peStream: new MemoryStream(), options: new EmitOptions(metadataOnly: true));
             Assert.False(emitResult3.Success);
             emitResult3.Diagnostics.Verify(
-    // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
-    // [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35)
-                );
+                // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
+                // [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35));
         }
 
         [Fact, WorkItem(30833, "https://github.com/dotnet/roslyn/issues/30833")]

@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -23,10 +24,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, span, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start, findInsideTrivia: true);
 
@@ -155,9 +153,11 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
         private void RegisterRefactoring(
             CodeRefactoringContext context, TextSpan expandedSpan, string replacement)
         {
-            context.RegisterRefactoring(new MyCodeAction(
-                string.Format(FeaturesResources.Use_0, replacement),
-                c => ReplaceTextAsync(context.Document, expandedSpan, replacement, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    string.Format(FeaturesResources.Use_0, replacement),
+                    c => ReplaceTextAsync(context.Document, expandedSpan, replacement, c)),
+                expandedSpan);
         }
 
         private async Task<Document> ReplaceTextAsync(

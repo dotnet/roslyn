@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     optionsService.UpdatedSignature = updatedSignature;
 
                     var refactoring = await GetCodeRefactoringAsync(workspace, testOptions);
-                    await TestActionAsync(workspace, expectedCode, refactoring.Actions[index],
+                    await TestActionAsync(workspace, expectedCode, refactoring.CodeActions[index].action,
                         conflictSpans: ImmutableArray<TextSpan>.Empty,
                         renameSpans: ImmutableArray<TextSpan>.Empty,
                         warningSpans: ImmutableArray<TextSpan>.Empty,
@@ -133,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             if (totalParameters.HasValue)
             {
                 var removed = new List<int>();
-                for (int i = 0; i < totalParameters; i++)
+                for (var i = 0; i < totalParameters; i++)
                 {
                     if (!signature.Contains(i))
                     {
@@ -180,9 +182,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         private IEnumerable<int[]> GetAllSignatureSpecifications(int[] signaturePartCounts)
         {
-            int regularParameterStartIndex = signaturePartCounts[0];
-            int defaultValueParameterStartIndex = signaturePartCounts[0] + signaturePartCounts[1];
-            int paramParameterIndex = signaturePartCounts[0] + signaturePartCounts[1] + signaturePartCounts[2];
+            var regularParameterStartIndex = signaturePartCounts[0];
+            var defaultValueParameterStartIndex = signaturePartCounts[0] + signaturePartCounts[1];
+            var paramParameterIndex = signaturePartCounts[0] + signaturePartCounts[1] + signaturePartCounts[2];
 
             var regularParameterArrangements = GetPermutedSubsets(regularParameterStartIndex, signaturePartCounts[1]);
             var defaultValueParameterArrangements = GetPermutedSubsets(defaultValueParameterStartIndex, signaturePartCounts[2]);
@@ -223,8 +225,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 yield break;
             }
 
-            int index = 0;
-            foreach (int element in list)
+            var index = 0;
+            foreach (var element in list)
             {
                 var permutationsWithoutElement = GetPermutations(GetListWithoutElementAtIndex(list, index));
                 foreach (var perm in permutationsWithoutElement)
@@ -238,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         private IEnumerable<int> GetListWithoutElementAtIndex(IEnumerable<int> list, int skippedIndex)
         {
-            int index = 0;
+            var index = 0;
             foreach (var x in list)
             {
                 if (index != skippedIndex)

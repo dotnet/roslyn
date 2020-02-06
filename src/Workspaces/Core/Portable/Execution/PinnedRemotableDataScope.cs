@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -59,27 +64,36 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public readonly PinnedSolutionInfo SolutionInfo;
 
-        public PinnedRemotableDataScope(
+        private PinnedRemotableDataScope(
+            AssetStorages storages,
+            AssetStorages.Storage storage,
+            PinnedSolutionInfo solutionInfo)
+        {
+            _storages = storages;
+            _storage = storage;
+            SolutionInfo = solutionInfo;
+        }
+
+        public Workspace Workspace => _storage.SolutionState.Workspace;
+        public Checksum SolutionChecksum => SolutionInfo.SolutionChecksum;
+
+        public static PinnedRemotableDataScope Create(
             AssetStorages storages,
             AssetStorages.Storage storage,
             Checksum solutionChecksum)
         {
             Contract.ThrowIfNull(solutionChecksum);
 
-            _storages = storages;
-            _storage = storage;
-
-            SolutionInfo = new PinnedSolutionInfo(
+            var solutionInfo = new PinnedSolutionInfo(
                 Interlocked.Increment(ref s_scopeId),
-                _storage.SolutionState.BranchId == Workspace.PrimaryBranchId,
-                _storage.SolutionState.WorkspaceVersion,
+                storage.SolutionState.BranchId == storage.SolutionState.Workspace.PrimaryBranchId,
+                storage.SolutionState.WorkspaceVersion,
                 solutionChecksum);
 
-            _storages.RegisterSnapshot(this, storage);
-        }
+            storages.RegisterSnapshot(solutionInfo.ScopeId, storage);
 
-        public Workspace Workspace => _storage.SolutionState.Workspace;
-        public Checksum SolutionChecksum => SolutionInfo.SolutionChecksum;
+            return new PinnedRemotableDataScope(storages, storage, solutionInfo);
+        }
 
         /// <summary>
         /// Add asset that is not part of solution to be part of this snapshot.
@@ -92,19 +106,19 @@ namespace Microsoft.CodeAnalysis.Execution
             _storage.AddAdditionalAsset(asset);
         }
 
-        public RemotableData GetRemotableData(Checksum checksum, CancellationToken cancellationToken)
+        public async ValueTask<RemotableData?> GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
             {
-                return _storages.GetRemotableData(SolutionInfo.ScopeId, checksum, cancellationToken);
+                return await _storages.GetRemotableDataAsync(SolutionInfo.ScopeId, checksum, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask<IReadOnlyDictionary<Checksum, RemotableData>> GetRemotableDataAsync(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
-                return _storages.GetRemotableData(SolutionInfo.ScopeId, checksums, cancellationToken);
+                return await _storages.GetRemotableDataAsync(SolutionInfo.ScopeId, checksums, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -113,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Execution
             if (!_disposed)
             {
                 _disposed = true;
-                _storages.UnregisterSnapshot(this);
+                _storages.UnregisterSnapshot(SolutionInfo.ScopeId);
             }
 
             GC.SuppressFinalize(this);

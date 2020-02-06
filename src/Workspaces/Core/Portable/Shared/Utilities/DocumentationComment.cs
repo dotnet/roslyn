@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 if (reader.NodeType == XmlNodeType.Element)
                 {
-                    string localName = reader.LocalName;
+                    var localName = reader.LocalName;
                     if (XmlNames.ElementEquals(localName, XmlNames.ExampleElementName) && _comment.ExampleText == null)
                     {
                         _comment.ExampleText = TrimEachLine(reader.ReadInnerXml());
@@ -188,8 +190,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.ParameterElementName))
                     {
-                        string name = reader.GetAttribute(XmlNames.NameAttributeName);
-                        string paramText = reader.ReadInnerXml();
+                        var name = reader.GetAttribute(XmlNames.NameAttributeName);
+                        var paramText = reader.ReadInnerXml();
 
                         if (!string.IsNullOrWhiteSpace(name) && !_comment._parameterTexts.ContainsKey(name))
                         {
@@ -199,8 +201,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.TypeParameterElementName))
                     {
-                        string name = reader.GetAttribute(XmlNames.NameAttributeName);
-                        string typeParamText = reader.ReadInnerXml();
+                        var name = reader.GetAttribute(XmlNames.NameAttributeName);
+                        var typeParamText = reader.ReadInnerXml();
 
                         if (!string.IsNullOrWhiteSpace(name) && !_comment._typeParameterTexts.ContainsKey(name))
                         {
@@ -210,8 +212,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.ExceptionElementName))
                     {
-                        string type = reader.GetAttribute(XmlNames.CrefAttributeName);
-                        string exceptionText = reader.ReadInnerXml();
+                        var type = reader.GetAttribute(XmlNames.CrefAttributeName);
+                        var exceptionText = reader.ReadInnerXml();
 
                         if (!string.IsNullOrWhiteSpace(type))
                         {
@@ -226,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.CompletionListElementName))
                     {
-                        string cref = reader.GetAttribute(XmlNames.CrefAttributeName);
+                        var cref = reader.GetAttribute(XmlNames.CrefAttributeName);
                         if (!string.IsNullOrWhiteSpace(cref))
                         {
                             _comment.CompletionListCref = cref;

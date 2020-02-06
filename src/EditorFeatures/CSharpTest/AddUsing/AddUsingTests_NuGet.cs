@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -24,15 +26,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 
     public class AddUsingNuGetTests : AbstractAddUsingTests
     {
+        const string NugetOrgSource = "nuget.org";
+
         private static readonly ImmutableArray<PackageSource> NugetPackageSources =
-            ImmutableArray.Create(new PackageSource(SymbolSearchUpdateEngine.NugetOrgSourceName, SymbolSearchUpdateEngine.NugetOrgSourceUri));
+            ImmutableArray.Create(new PackageSource(NugetOrgSource, "http://nuget.org/"));
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
         {
             var workspace = base.CreateWorkspaceFromFile(initialMarkup, parameters);
-            workspace.Options = workspace.Options
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp, true)
-                .WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true);
+                .WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true)));
             return workspace;
         }
 
@@ -61,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
-                SymbolSearchUpdateEngine.NugetOrgSourceName, "NuGetType", 0, It.IsAny<CancellationToken>()))
+                NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
             await TestInRegularAndScriptAsync(
@@ -92,7 +96,7 @@ class C
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
-                SymbolSearchUpdateEngine.NugetOrgSourceName, "NuGetType", 0, It.IsAny<CancellationToken>()))
+                NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
             await TestInRegularAndScriptAsync(
@@ -121,7 +125,7 @@ class C
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
-                SymbolSearchUpdateEngine.NugetOrgSourceName, "NuGetType", 0, It.IsAny<CancellationToken>()))
+                NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
             await TestMissingInRegularAndScriptAsync(
@@ -147,7 +151,7 @@ class C
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
-                SymbolSearchUpdateEngine.NugetOrgSourceName, "NuGetType", 0, It.IsAny<CancellationToken>()))
+                NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
             var data = new FixProviderData(installerServiceMock.Object, packageServiceMock.Object);
@@ -191,7 +195,7 @@ parameters: new TestParameters(index: 2, fixProviderData: data));
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
-                SymbolSearchUpdateEngine.NugetOrgSourceName, "NuGetType", 0, It.IsAny<CancellationToken>()))
+                NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
             await TestInRegularAndScriptAsync(
@@ -224,7 +228,7 @@ class C
             var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
-            packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "NuGetType", 0, It.IsAny<CancellationToken>()))
+            packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
             await TestInRegularAndScriptAsync(
@@ -258,7 +262,7 @@ class C
             var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult<IList<ReferenceAssemblyWithTypeResult>>(new List<ReferenceAssemblyWithTypeResult>()));
-            packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "NuGetType", 0, It.IsAny<CancellationToken>()))
+            packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
             await TestInRegularAndScriptAsync(

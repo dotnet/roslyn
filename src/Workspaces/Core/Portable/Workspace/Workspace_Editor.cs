@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +10,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -289,7 +293,7 @@ namespace Microsoft.CodeAnalysis
 
         private DocumentId GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
         {
-            bool foundValue = _bufferToDocumentInCurrentContextMap.TryGetValue(container, out var docId);
+            var foundValue = _bufferToDocumentInCurrentContextMap.TryGetValue(container, out var docId);
 
             if (foundValue)
             {
@@ -639,7 +643,7 @@ namespace Microsoft.CodeAnalysis
 
         private void UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId id, bool isCurrentContext)
         {
-            if (_bufferToAssociatedDocumentsMap.TryGetValue(textContainer, out OneOrMany<DocumentId> docIds))
+            if (_bufferToAssociatedDocumentsMap.TryGetValue(textContainer, out var docIds))
             {
                 Contract.ThrowIfFalse(_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer));
                 if (!docIds.Contains(id))
@@ -665,7 +669,7 @@ namespace Microsoft.CodeAnalysis
         private DocumentId UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId closedDocumentId)
         {
             // Check if we are tracking this textContainer.
-            if (!_bufferToAssociatedDocumentsMap.TryGetValue(textContainer, out OneOrMany<DocumentId> docIds))
+            if (!_bufferToAssociatedDocumentsMap.TryGetValue(textContainer, out var docIds))
             {
                 Contract.ThrowIfFalse(!_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer));
                 return null;
@@ -753,6 +757,19 @@ namespace Microsoft.CodeAnalysis
                 var newSolution = this.SetCurrentSolution(oldSolution.WithProjectOptionsChanged(projectId));
 
                 RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            }
+        }
+
+        internal void RegisterDocumentOptionProviders(IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> documentOptionsProviderFactories)
+        {
+            foreach (var providerFactory in ExtensionOrderer.Order(documentOptionsProviderFactories))
+            {
+                var optionsProvider = providerFactory.Value.TryCreate(this);
+
+                if (optionsProvider != null)
+                {
+                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
+                }
             }
         }
     }

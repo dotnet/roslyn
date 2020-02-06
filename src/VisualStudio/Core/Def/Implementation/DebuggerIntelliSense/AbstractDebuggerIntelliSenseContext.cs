@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -122,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         {
             // Get the workspace, and from there, the solution and document containing this buffer.
             // If there's an ExternalSource, we won't get a document. Give up in that case.
-            Document document = ContextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = ContextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 _projectionBuffer = null;
@@ -256,7 +258,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         private int GetQuestionIndex(string text)
         {
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (!char.IsWhiteSpace(text[i]))
                 {
@@ -274,7 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             Marshal.ThrowExceptionForHR(shellService.GetToolWindowEnum(out var windowEnum));
             Marshal.ThrowExceptionForHR(textView.GetBuffer(out var buffer));
 
-            IVsWindowFrame[] frame = new IVsWindowFrame[1];
+            var frame = new IVsWindowFrame[1];
             var immediateWindowGuid = Guid.Parse(ToolWindowGuids80.ImmediateWindow);
 
             while (windowEnum.Next(1, frame, out var value) == VSConstants.S_OK)

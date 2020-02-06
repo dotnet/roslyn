@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,10 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // hold last async token
             private IAsyncToken _lastToken;
 
-            public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken) :
-                base(service.Listener,
-                     service.Workspace.Services.GetService<IGlobalOperationNotificationService>(),
-                     service.Workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
+            public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken)
+                : base(service.Listener,
+                       service.Workspace.Services.GetService<IGlobalOperationNotificationService>(),
+                       service.Workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
             {
                 _service = service;
                 _textChangeQueue = new SimpleTaskQueue(TaskScheduler.Default);
@@ -111,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 lock (_gate)
                 {
-                    _lastToken = _lastToken ?? Listener.BeginAsyncOperation(nameof(SolutionChecksumUpdater));
+                    _lastToken ??= Listener.BeginAsyncOperation(nameof(SolutionChecksumUpdater));
                 }
 
                 _event.Release();
@@ -149,10 +151,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // VS side. this optimization saves times we need to do full text
                 // synchronization for typing scenario.
 
-                SourceText oldText = null;
-                SourceText newText = null;
-                if ((oldDocument.TryGetText(out oldText) == false) ||
-                    (newDocument.TryGetText(out newText) == false))
+                if ((oldDocument.TryGetText(out var oldText) == false) ||
+                    (newDocument.TryGetText(out var newText) == false))
                 {
                     // we only support case where text already exist
                     return;
@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var token = Listener.BeginAsyncOperation(nameof(PushTextChanges));
                 _textChangeQueue.ScheduleTask(async () =>
                 {
-                    var client = await _service.Workspace.TryGetRemoteHostClientAsync(CancellationToken).ConfigureAwait(false);
+                    var client = await RemoteHostClient.TryGetClientAsync(_service.Workspace, CancellationToken).ConfigureAwait(false);
                     if (client == null)
                     {
                         return;
@@ -185,9 +185,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     var state = await oldDocument.State.GetStateChecksumsAsync(CancellationToken).ConfigureAwait(false);
 
-                    await client.TryRunRemoteAsync(
-                        WellKnownRemoteHostServices.RemoteHostService, nameof(IRemoteHostService.SynchronizeTextAsync),
-                        new object[] { oldDocument.Id, state.Text, textChanges }, CancellationToken).ConfigureAwait(false);
+                    _ = await client.TryRunRemoteAsync(
+                        WellKnownRemoteHostServices.RemoteHostService,
+                        nameof(IRemoteHostService.SynchronizeTextAsync),
+                        new object[] { oldDocument.Id, state.Text, textChanges },
+                        solution: null,
+                        callbackTarget: null,
+                        CancellationToken).ConfigureAwait(false);
+
                 }, CancellationToken).CompletesAsyncOperation(token);
             }
         }

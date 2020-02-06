@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (IsTupleTypeElement(token, semanticModel, position, cancellationToken, out var result)
                     || IsParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
-                    || IsTypeParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
+                    || IsTypeParameterDeclaration(token, semanticModel, position, out result)
                     || IsLocalFunctionDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsLocalVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsEmbeddedVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
@@ -355,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             private static bool IsTypeParameterDeclaration(SyntaxToken token, SemanticModel semanticModel,
-                int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
+                int position, out NameDeclarationInfo result)
             {
                 if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.CommaToken) &&
                     token.Parent.IsKind(SyntaxKind.TypeParameterList))
@@ -515,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             private static Accessibility? GetAccessibility(SyntaxTokenList modifiers)
             {
-                for (int i = modifiers.Count - 1; i >= 0; i--)
+                for (var i = modifiers.Count - 1; i >= 0; i--)
                 {
                     var modifier = modifiers[i];
                     switch (modifier.Kind())

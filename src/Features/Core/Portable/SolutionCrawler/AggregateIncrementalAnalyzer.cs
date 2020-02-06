@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,13 +18,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public AggregateIncrementalAnalyzer(Workspace workspace, IncrementalAnalyzerProviderBase owner, List<Lazy<IPerLanguageIncrementalAnalyzerProvider, PerLanguageIncrementalAnalyzerProviderMetadata>> providers)
         {
-            this.Analyzers = providers.ToImmutableDictionary(
+            Analyzers = providers.ToImmutableDictionary(
                 p => p.Metadata.Language, p => new Lazy<IIncrementalAnalyzer>(() => p.Value.CreatePerLanguageIncrementalAnalyzer(workspace, owner), isThreadSafe: true));
         }
 
         public async Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
-            foreach (var (_, analyzer) in this.Analyzers)
+            foreach (var (_, analyzer) in Analyzers)
             {
                 if (analyzer.IsValueCreated)
                 {
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         private bool TryGetAnalyzer(Project project, out IIncrementalAnalyzer analyzer)
         {
-            if (!this.Analyzers.TryGetValue(project.Language, out var lazyAnalyzer))
+            if (!Analyzers.TryGetValue(project.Language, out var lazyAnalyzer))
             {
                 analyzer = null;
                 return false;
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public void RemoveDocument(DocumentId documentId)
         {
-            foreach (var (_, analyzer) in this.Analyzers)
+            foreach (var (_, analyzer) in Analyzers)
             {
                 if (analyzer.IsValueCreated)
                 {
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public void RemoveProject(ProjectId projectId)
         {
-            foreach (var (_, analyzer) in this.Analyzers)
+            foreach (var (_, analyzer) in Analyzers)
             {
                 if (analyzer.IsValueCreated)
                 {

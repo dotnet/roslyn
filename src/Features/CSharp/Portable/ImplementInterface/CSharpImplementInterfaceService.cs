@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -40,10 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                         var interfaceSymbolInfo = model.GetSymbolInfo(interfaceNode, cancellationToken);
                         if (interfaceSymbolInfo.CandidateReason != CandidateReason.WrongArity)
                         {
-                            var interfaceType = interfaceSymbolInfo.GetAnySymbol() as INamedTypeSymbol;
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            if (interfaceType != null && interfaceType.TypeKind == TypeKind.Interface)
+                            if (interfaceSymbolInfo.GetAnySymbol() is INamedTypeSymbol interfaceType && interfaceType.TypeKind == TypeKind.Interface)
                             {
                                 classOrStructDecl = interfaceNode.Parent.Parent.Parent as TypeDeclarationSyntax;
                                 classOrStructType = model.GetDeclaredSymbol(classOrStructDecl, cancellationToken) as INamedTypeSymbol;

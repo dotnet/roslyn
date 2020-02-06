@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -2163,15 +2165,12 @@ class C<T> : System.Attribute { }";
                 // (3,20): error CS0751: A partial method must be declared within a partial class, partial struct, or partial interface
                 //     partial void I.M();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 20),
-                // (3,20): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,20): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("default interface implementation").WithLocation(3, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("default interface implementation", "8.0").WithLocation(3, 20),
                 // (3,18): error CS0540: 'I.M()': containing type does not implement interface 'I'
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I").WithArguments("I.M()", "I").WithLocation(3, 18),
-                // (3,20): error CS0539: 'I.M()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M").WithArguments("I.M()").WithLocation(3, 20)
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I").WithArguments("I.M()", "I").WithLocation(3, 18)
                 );
         }
 

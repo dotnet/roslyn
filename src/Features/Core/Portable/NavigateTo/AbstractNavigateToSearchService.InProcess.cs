@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
-        private static ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>> s_lastProjectSearchCache =
+        private static readonly ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>> s_lastProjectSearchCache =
             new ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>>();
 
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
@@ -174,7 +176,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             Debug.Assert(priorityDocuments.All(d => project.ContainsDocument(d.Id)), "Priority docs included doc not from project.");
             Debug.Assert(orderedDocs.Length == project.Documents.Count(), "Didn't have the same number of project after ordering them!");
-            Debug.Assert(orderedDocs.Distinct().Count() == orderedDocs.Count(), "Ordered list contained a duplicate!");
+            Debug.Assert(orderedDocs.Distinct().Length == orderedDocs.Length, "Ordered list contained a duplicate!");
             Debug.Assert(project.Documents.All(d => orderedDocs.Contains(d)), "At least one document from the project was missing from the ordered list!");
 
             foreach (var document in orderedDocs)

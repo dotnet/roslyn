@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1063,7 +1065,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LegacyObjectIdSyntax = 2043,
         ERR_SourceLinkRequiresPdb = 2044,
         ERR_CannotEmbedWithoutPdb = 2045,
-        // unused 2046-2999
+        ERR_BadSwitchValue = 2046,
+        // unused 2047-2999
         WRN_CLS_NoVarArgs = 3000,
         WRN_CLS_BadArgType = 3001, // Requires SymbolDistinguisher.
         WRN_CLS_BadReturnType = 3002,
@@ -1488,9 +1491,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoRefOutWhenRefOnly = 8308,
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
         ERR_BadOpOnNullOrDefault = 8310,
-        ERR_BadDynamicMethodArgDefaultLiteral = 8311,
+        // ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
-        ERR_DefaultInSwitch = 8313,
+        // ERR_DefaultInSwitch = 8313,
         ERR_PatternWrongGenericTypeInVersion = 8314,
         ERR_AmbigBinaryOpsOnDefault = 8315,
 
@@ -1583,7 +1586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for C# 8.0
         ERR_FeatureNotAvailableInVersion8 = 8400,
         ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
-        WRN_DefaultLiteralConvertedToNullIsNotIntended = 8402,
+        // Unused 8402
         ERR_IteratorMustBeAsync = 8403,
 
         ERR_NoConvToIAsyncDisp = 8410,
@@ -1603,6 +1606,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnconsumedEnumeratorCancellationAttributeUsage = 8424,
         WRN_UndecoratedCancellationTokenParameter = 8425,
         ERR_MultipleEnumeratorCancellationAttributes = 8426,
+        ERR_VarianceInterfaceNesting = 8427,
+        ERR_ImplicitIndexIndexerWithName = 8428,
+        ERR_ImplicitRangeIndexerWithName = 8429,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -1639,8 +1645,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullReferenceReturn = 8603,
         WRN_NullReferenceArgument = 8604,
         WRN_UnboxPossibleNull = 8605,
-        WRN_NullReferenceIterationVariable = 8606,
-        // Unused 8607-8608
+        // WRN_NullReferenceIterationVariable = 8606 (unavailable, may be used in warning suppressions in early C# 8.0 code)
+        WRN_DisallowNullAttributeForbidsMaybeNullAssignment = 8607,
+        WRN_NullabilityMismatchInTypeOnOverride = 8608,
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
         WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
         WRN_NullabilityMismatchInParameterTypeOnPartial = 8611,
@@ -1658,7 +1665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitNullableAttribute = 8623,
         WRN_NullabilityMismatchInArgumentForOutput = 8624,
         WRN_NullAsNonNullable = 8625,
-        WRN_AsOperatorMayReturnNull = 8626,
+        //WRN_AsOperatorMayReturnNull = 8626,
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
         WRN_NullableValueTypeMayBeNull = 8629,
@@ -1670,7 +1677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TripleDotNotAllowed = 8635,
         ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
-        WRN_ConditionalAccessMayReturnNull = 8638,
+        //WRN_ConditionalAccessMayReturnNull = 8638,
         ERR_BadNullableTypeof = 8639,
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
@@ -1685,8 +1692,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_IsNullableType = 8650,
         ERR_AsNullableType = 8651,
         ERR_FeatureInPreview = 8652,
-        WRN_DefaultExpressionMayIntroduceNullT = 8653,
-        WRN_NullLiteralMayIntroduceNullT = 8654,
+        //WRN_DefaultExpressionMayIntroduceNullT = 8653,
+        //WRN_NullLiteralMayIntroduceNullT = 8654,
         WRN_SwitchExpressionNotExhaustiveForNull = 8655,
 
         WRN_ImplicitCopyInReadOnlyMember = 8656,
@@ -1702,6 +1709,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OverrideValConstraintNotSatisfied = 8666,
 
         WRN_NullabilityMismatchInConstraintsOnPartialImplementation = 8667,
+        ERR_NullableDirectiveTargetExpected = 8668,
+        WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode = 8669,
+        WRN_NullReferenceInitializer = 8670,
 
         ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 
@@ -1721,9 +1731,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AbstractEventHasAccessors = 8712,
         ERR_NotNullConstraintMustBeFirst = 8713,
         WRN_NullabilityMismatchInTypeParameterNotNullConstraint = 8714,
-        WRN_SpecialTypeAsBound = 8715,
+
+        ERR_DuplicateNullSuppression = 8715,
+        ERR_DefaultLiteralNoTargetType = 8716,
+
+        ERR_ReAbstractionInNoPIAType = 8750,
 
         #endregion diagnostics introduced for C# 8.0
+
+        ERR_InternalError = 8751,
+
+        ERR_ExternEventInitializer = 8760,
+        ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
+        WRN_ParameterConditionallyDisallowsNull = 8762,
+        WRN_ShouldNotReturn = 8763,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

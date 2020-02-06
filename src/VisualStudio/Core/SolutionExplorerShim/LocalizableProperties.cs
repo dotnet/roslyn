@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -21,37 +23,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         public AttributeCollection GetAttributes()
         {
-            AttributeCollection col = TypeDescriptor.GetAttributes(this, true);
+            var col = TypeDescriptor.GetAttributes(this, true);
             return col;
         }
 
         public EventDescriptor GetDefaultEvent()
         {
-            EventDescriptor ed = TypeDescriptor.GetDefaultEvent(this, true);
+            var ed = TypeDescriptor.GetDefaultEvent(this, true);
             return ed;
         }
 
         public PropertyDescriptor GetDefaultProperty()
         {
-            PropertyDescriptor pd = TypeDescriptor.GetDefaultProperty(this, true);
+            var pd = TypeDescriptor.GetDefaultProperty(this, true);
             return pd;
         }
 
         public object GetEditor(Type editorBaseType)
         {
-            object o = TypeDescriptor.GetEditor(this, editorBaseType, true);
+            var o = TypeDescriptor.GetEditor(this, editorBaseType, true);
             return o;
         }
 
         public EventDescriptorCollection GetEvents()
         {
-            EventDescriptorCollection edc = TypeDescriptor.GetEvents(this, true);
+            var edc = TypeDescriptor.GetEvents(this, true);
             return edc;
         }
 
         public EventDescriptorCollection GetEvents(System.Attribute[] attributes)
         {
-            EventDescriptorCollection edc = TypeDescriptor.GetEvents(this, attributes, true);
+            var edc = TypeDescriptor.GetEvents(this, attributes, true);
             return edc;
         }
 
@@ -71,16 +73,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public PropertyDescriptorCollection GetProperties()
         {
-            PropertyDescriptorCollection pcol = GetProperties(null);
+            var pcol = GetProperties(null);
             return pcol;
         }
 
         public PropertyDescriptorCollection GetProperties(System.Attribute[] attributes)
         {
-            ArrayList newList = new ArrayList();
-            PropertyDescriptorCollection props = TypeDescriptor.GetProperties(this, attributes, true);
+            var newList = new ArrayList();
+            var props = TypeDescriptor.GetProperties(this, attributes, true);
 
-            for (int i = 0; i < props.Count; i++)
+            for (var i = 0; i < props.Count; i++)
             {
                 newList.Add(CreateDesignPropertyDescriptor(props[i]));
             }
@@ -95,13 +97,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public virtual string GetComponentName()
         {
-            string name = TypeDescriptor.GetComponentName(this, true);
+            var name = TypeDescriptor.GetComponentName(this, true);
             return name;
         }
 
         public virtual TypeConverter GetConverter()
         {
-            TypeConverter tc = TypeDescriptor.GetConverter(this, true);
+            var tc = TypeDescriptor.GetConverter(this, true);
             return tc;
         }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Roslyn.Utilities;
@@ -10,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     public struct ForEachStatementInfo : IEquatable<ForEachStatementInfo>
     {
+        /// <summary>
+        /// Whether this is an asynchronous foreach.
+        /// </summary>
+        public bool IsAsynchronous { get; }
+
         /// <summary>
         /// Gets the &quot;GetEnumerator&quot; method.
         /// </summary>
@@ -55,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Initializes a new instance of the <see cref="ForEachStatementInfo" /> structure.
         /// </summary>
-        internal ForEachStatementInfo(IMethodSymbol getEnumeratorMethod,
+        internal ForEachStatementInfo(bool isAsync,
+                                      IMethodSymbol getEnumeratorMethod,
                                       IMethodSymbol moveNextMethod,
                                       IPropertySymbol currentProperty,
                                       IMethodSymbol disposeMethod,
@@ -63,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       Conversion elementConversion,
                                       Conversion currentConversion)
         {
+            this.IsAsynchronous = isAsync;
             this.GetEnumeratorMethod = getEnumeratorMethod;
             this.MoveNextMethod = moveNextMethod;
             this.CurrentProperty = currentProperty;
@@ -79,7 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool Equals(ForEachStatementInfo other)
         {
-            return object.Equals(this.GetEnumeratorMethod, other.GetEnumeratorMethod)
+            return this.IsAsynchronous == other.IsAsynchronous
+                && object.Equals(this.GetEnumeratorMethod, other.GetEnumeratorMethod)
                 && object.Equals(this.MoveNextMethod, other.MoveNextMethod)
                 && object.Equals(this.CurrentProperty, other.CurrentProperty)
                 && object.Equals(this.DisposeMethod, other.DisposeMethod)
@@ -90,13 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override int GetHashCode()
         {
-            return Hash.Combine(GetEnumeratorMethod,
+            return Hash.Combine(IsAsynchronous,
+                   Hash.Combine(GetEnumeratorMethod,
                    Hash.Combine(MoveNextMethod,
                    Hash.Combine(CurrentProperty,
                    Hash.Combine(DisposeMethod,
                    Hash.Combine(ElementType,
                    Hash.Combine(ElementConversion.GetHashCode(),
-                                CurrentConversion.GetHashCode()))))));
+                                CurrentConversion.GetHashCode())))))));
         }
     }
 }

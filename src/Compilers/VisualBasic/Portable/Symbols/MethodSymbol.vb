@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -10,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Friend MustInherit Class MethodSymbol
         Inherits Symbol
-        Implements IMethodSymbolInternal
+        Implements IMethodSymbol, IMethodSymbolInternal
 
         ''' <summary>
         ''' Gets what kind of method this is. There are several different kinds of things in the
@@ -243,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Forces binding and decoding of attributes.
         ''' NOTE: Conditional symbols on the overridden method must be inherited by the overriding method, but the native VB compiler doesn't do so. We maintain compatibility.
         ''' </remarks>
-        Friend ReadOnly Property IsConditional As Boolean
+        Public ReadOnly Property IsConditional As Boolean Implements IMethodSymbol.IsConditional
             Get
                 Return Me.GetAppliedConditionalSymbols.Any()
             End Get
@@ -894,7 +896,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IMethodSymbol_ReceiverNullableAnnotation As NullableAnnotation Implements IMethodSymbol.ReceiverNullableAnnotation
             Get
-                Return NullableAnnotation.NotApplicable
+                Return NullableAnnotation.None
             End Get
         End Property
 
@@ -997,7 +999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IMethodSymbol_ReturnNullableAnnotation As NullableAnnotation Implements IMethodSymbol.ReturnNullableAnnotation
             Get
-                Return NullableAnnotation.NotApplicable
+                Return NullableAnnotation.None
             End Get
         End Property
 
@@ -1007,9 +1009,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodSymbol_TypeArgumentsNullableAnnotation As ImmutableArray(Of NullableAnnotation) Implements IMethodSymbol.TypeArgumentsNullableAnnotations
+        Private ReadOnly Property IMethodSymbol_TypeArgumentsNullableAnnotation As ImmutableArray(Of NullableAnnotation) Implements IMethodSymbol.TypeArgumentNullableAnnotations
             Get
-                Return Me.TypeArguments.SelectAsArray(Function(t) NullableAnnotation.NotApplicable)
+                Return Me.TypeArguments.SelectAsArray(Function(t) NullableAnnotation.None)
             End Get
         End Property
 
@@ -1031,7 +1033,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodSymbol_IsAsync As Boolean Implements IMethodSymbol.IsAsync
+        Private ReadOnly Property IMethodSymbol_IsAsync As Boolean Implements IMethodSymbol.IsAsync, IMethodSymbolInternal.IsAsync
             Get
                 Return Me.IsAsync
             End Get
@@ -1059,12 +1061,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return ImmutableArrayExtensions.Cast(Of VisualBasicAttributeData, AttributeData)(Me.GetReturnTypeAttributes)
         End Function
 
-        Private Function IMethodSymbol_Construct(ParamArray arguments() As ITypeSymbol) As IMethodSymbol Implements IMethodSymbol.Construct
-            For Each arg In arguments
-                arg.EnsureVbSymbolOrNothing(Of TypeSymbol)("typeArguments")
-            Next
+        Private Function IMethodSymbol_Construct(ParamArray typeArguments() As ITypeSymbol) As IMethodSymbol Implements IMethodSymbol.Construct
+            Return Construct(ConstructTypeArguments(typeArguments))
+        End Function
 
-            Return Construct(arguments.Cast(Of TypeSymbol).ToArray())
+        Private Function IMethodSymbolInternal_Construct(ParamArray typeArguments() As ITypeSymbolInternal) As IMethodSymbolInternal Implements IMethodSymbolInternal.Construct
+            Return Construct(DirectCast(typeArguments, TypeSymbol()))
+        End Function
+
+        Private Function IMethodSymbol_Construct(typeArguments As ImmutableArray(Of ITypeSymbol), typeArgumentNullableAnnotations As ImmutableArray(Of CodeAnalysis.NullableAnnotation)) As IMethodSymbol Implements IMethodSymbol.Construct
+            Return Construct(ConstructTypeArguments(typeArguments, typeArgumentNullableAnnotations))
         End Function
 
         Private ReadOnly Property IMethodSymbol_AssociatedAnonymousDelegate As INamedTypeSymbol Implements IMethodSymbol.AssociatedAnonymousDelegate

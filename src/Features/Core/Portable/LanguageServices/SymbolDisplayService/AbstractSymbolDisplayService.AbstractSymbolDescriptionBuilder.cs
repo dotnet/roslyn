@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -94,8 +96,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 _displayService = displayService;
                 _anonymousTypeDisplayService = anonymousTypeDisplayService;
-                this.Workspace = workspace;
-                this.CancellationToken = cancellationToken;
+                Workspace = workspace;
+                CancellationToken = cancellationToken;
                 _semanticModel = semanticModel;
                 _position = position;
             }
@@ -109,19 +111,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstantsAndModifiers { get; }
-
-            protected void AddPrefixTextForAwaitKeyword()
-            {
-                AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    PlainText(FeaturesResources.Awaited_task_returns),
-                    Space());
-            }
-
-            protected void AddTextForSystemVoid()
-            {
-                AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    PlainText(FeaturesResources.no_value));
-            }
 
             protected SemanticModel GetSemanticModel(SyntaxTree tree)
             {
@@ -152,6 +141,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 return null;
             }
 
+            protected Compilation GetCompilation()
+                => _semanticModel.Compilation;
+
             private async Task AddPartsAsync(ImmutableArray<ISymbol> symbols)
             {
                 await AddDescriptionPartAsync(symbols[0]).ConfigureAwait(false);
@@ -164,7 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private void AddExceptions(ISymbol symbol)
             {
-                var exceptionTypes = symbol.GetDocumentationComment().ExceptionTypes;
+                var exceptionTypes = symbol.GetDocumentationComment(GetCompilation(), expandIncludes: true, expandInheritdoc: true).ExceptionTypes;
                 if (exceptionTypes.Any())
                 {
                     var parts = new List<SymbolDisplayPart>();
@@ -214,7 +206,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     var parts = new List<SymbolDisplayPart>();
                     parts.AddLineBreak();
                     parts.AddText(WorkspacesResources.Variables_captured_colon);
-                    bool first = true;
+                    var first = true;
                     foreach (var captured in captures)
                     {
                         if (!first)
@@ -242,7 +234,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 await AddPartsAsync(symbolGroup).ConfigureAwait(false);
 
-                return this.BuildDescription(groups);
+                return BuildDescription(groups);
             }
 
             public async Task<IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>> BuildDescriptionSectionsAsync(ImmutableArray<ISymbol> symbolGroup)
@@ -251,7 +243,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 await AddPartsAsync(symbolGroup).ConfigureAwait(false);
 
-                return this.BuildDescriptionSections();
+                return BuildDescriptionSections();
             }
 
             private async Task AddDescriptionPartAsync(ISymbol symbol)
@@ -261,7 +253,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     AddDeprecatedPrefix();
                 }
 
-                if (symbol is IDynamicTypeSymbol)
+                if (symbol is IDiscardSymbol discard)
+                {
+                    AddDescriptionForDiscard(discard);
+                }
+                else if (symbol is IDynamicTypeSymbol)
                 {
                     AddDescriptionForDynamicType();
                 }
@@ -283,7 +279,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
                 else if (symbol is INamedTypeSymbol namedType)
                 {
-                    await AddDescriptionForNamedTypeAsync(namedType).ConfigureAwait(false);
+                    if (namedType.IsTupleType)
+                    {
+                        AddToGroup(SymbolDescriptionGroups.MainDescription,
+                            ToDisplayParts(symbol, s_descriptionStyle));
+                    }
+                    else
+                    {
+                        await AddDescriptionForNamedTypeAsync(namedType).ConfigureAwait(false);
+                    }
                 }
                 else if (symbol is INamespaceSymbol namespaceSymbol)
                 {
@@ -385,31 +389,29 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     AddAwaitablePrefix();
                 }
 
-                var token = await _semanticModel.SyntaxTree.GetTouchingTokenAsync(_position, this.CancellationToken).ConfigureAwait(false);
+                var token = await _semanticModel.SyntaxTree.GetTouchingTokenAsync(_position, CancellationToken).ConfigureAwait(false);
                 if (token != default)
                 {
-                    var syntaxFactsService = this.Workspace.Services.GetLanguageServices(token.Language).GetService<ISyntaxFactsService>();
+                    var syntaxFactsService = Workspace.Services.GetLanguageServices(token.Language).GetService<ISyntaxFactsService>();
                     if (syntaxFactsService.IsAwaitKeyword(token))
                     {
-                        AddPrefixTextForAwaitKeyword();
                         if (symbol.SpecialType == SpecialType.System_Void)
                         {
-                            AddTextForSystemVoid();
+                            AddToGroup(SymbolDescriptionGroups.MainDescription,
+                                PlainText(FeaturesResources.Awaited_task_returns_no_value));
                             return;
                         }
-                    }
-                }
 
-                if (symbol.TypeKind == TypeKind.Delegate)
-                {
-                    var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-                    AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToDisplayParts(symbol.OriginalDefinition, style));
+                        AddAwaitSymbolDescription(symbol);
+                    }
+                    else
+                    {
+                        AddSymbolDescription(symbol);
+                    }
                 }
                 else
                 {
-                    AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToDisplayParts(symbol.OriginalDefinition, s_descriptionStyle));
+                    AddSymbolDescription(symbol);
                 }
 
                 if (!symbol.IsUnboundGenericType && !TypeArgumentsAndParametersAreSame(symbol))
@@ -421,12 +423,39 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
             }
 
+            private void AddAwaitSymbolDescription(INamedTypeSymbol symbol)
+            {
+                var defaultSymbol = "{0}";
+                var symbolIndex = FeaturesResources.Awaited_task_returns_0.IndexOf(defaultSymbol);
+
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    PlainText(FeaturesResources.Awaited_task_returns_0.Substring(0, symbolIndex)));
+                AddSymbolDescription(symbol);
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    PlainText(FeaturesResources.Awaited_task_returns_0.Substring(symbolIndex + defaultSymbol.Length)));
+            }
+
+            private void AddSymbolDescription(INamedTypeSymbol symbol)
+            {
+                if (symbol.TypeKind == TypeKind.Delegate)
+                {
+                    var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+                    AddToGroup(SymbolDescriptionGroups.MainDescription,
+                        ToDisplayParts(symbol.OriginalDefinition, style));
+                }
+                else
+                {
+                    AddToGroup(SymbolDescriptionGroups.MainDescription,
+                        ToDisplayParts(symbol.OriginalDefinition, s_descriptionStyle));
+                }
+            }
+
             private bool TypeArgumentsAndParametersAreSame(INamedTypeSymbol symbol)
             {
                 var typeArguments = symbol.GetAllTypeArguments().ToList();
                 var typeParameters = symbol.GetAllTypeParameters().ToList();
 
-                for (int i = 0; i < typeArguments.Count; i++)
+                for (var i = 0; i < typeArguments.Count; i++)
                 {
                     var typeArgument = typeArguments[i];
                     var typeParameter = typeParameters[i];
@@ -562,14 +591,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     ToMinimalDisplayParts(method, s_memberSignatureDisplayFormat));
-
-                if (awaitable)
-                {
-                    AddAwaitableUsageText(method, _semanticModel, _position);
-                }
             }
-
-            protected abstract void AddAwaitableUsageText(IMethodSymbol method, SemanticModel semanticModel, int position);
 
             private async Task AddDescriptionForParameterAsync(IParameterSymbol symbol)
             {
@@ -592,7 +614,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
 
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    Description(FeaturesResources.parameter),
+                    Description(symbol.IsDiscard ? FeaturesResources.discard : FeaturesResources.parameter),
+                    ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstants));
+            }
+
+            private void AddDescriptionForDiscard(IDiscardSymbol symbol)
+            {
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    Description(FeaturesResources.discard),
                     ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstants));
             }
 
@@ -652,7 +681,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 var parts = new List<SymbolDisplayPart>();
 
                 var count = typeParameters.Count;
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     parts.AddRange(TypeParameterName(typeParameters[i].Name));
                     parts.AddRange(Space());
@@ -706,7 +735,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             protected IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)
             {
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     yield return new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
                 }
@@ -729,7 +758,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             protected ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
             {
-                format = format ?? MinimallyQualifiedFormat;
+                format ??= MinimallyQualifiedFormat;
                 return _displayService.ToMinimalDisplayParts(_semanticModel, _position, symbol, format);
             }
 

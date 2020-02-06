@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -80,9 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result._statements = _statements;
                 return result;
             }
-
-            protected override BoundExpression ShallowClone()
-                => throw ExceptionUtilities.Unreachable;
 
             public void Free()
             {
@@ -546,7 +545,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSpillSequence(BoundSpillSequence node)
         {
-            Debug.Assert(node.Locals.All(l => l.SynthesizedKind.IsLongLived()));
             var builder = new BoundSpillSequenceBuilder();
 
             // Ensure later errors (e.g. in async rewriting) are associated with the correct node.
@@ -555,7 +553,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.AddStatements(VisitList(node.SideEffects));
             builder.AddLocals(node.Locals);
             var value = VisitExpression(ref builder, node.Value);
-            value = Spill(builder, value);
             return builder.Update(value);
         }
 
@@ -772,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 receiver = VisitExpression(ref builder, node.ReceiverOpt);
             }
-            else if (!node.Method.IsStatic)
+            else if (node.Method.RequiresInstanceReceiver)
             {
                 // spill the receiver if there were await expressions in the arguments
                 var receiverBuilder = new BoundSpillSequenceBuilder();
@@ -844,19 +841,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConversion(BoundConversion node)
         {
+            if (node.ConversionKind == ConversionKind.AnonymousFunction && node.Type.IsExpressionTree())
+            {
+                // Expression trees do not contain any code that requires spilling.
+                return node;
+            }
+
             BoundSpillSequenceBuilder builder = null;
             var operand = VisitExpression(ref builder, node.Operand);
             return UpdateExpression(
                 builder,
-                node.Update(
-                    operand,
-                    node.Conversion,
-                    isBaseConversion: node.IsBaseConversion,
-                    @checked: node.Checked,
-                    explicitCastInCode: node.ExplicitCastInCode,
-                    conversionGroupOpt: node.ConversionGroupOpt,
-                    constantValueOpt: node.ConstantValueOpt,
-                    type: node.Type));
+                node.UpdateOperand(operand));
         }
 
         public override BoundNode VisitPassByCopy(BoundPassByCopy node)
@@ -1182,6 +1177,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundSpillSequenceBuilder builder = null;
             BoundExpression operand = VisitExpression(ref builder, node.Operand);
             return UpdateExpression(builder, node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type));
+        }
+
+        public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            BoundExpression operand = VisitExpression(ref builder, node.Operand);
+            return UpdateExpression(builder, node.Update(operand, node.ConversionMethod, node.Type));
         }
 
         #endregion

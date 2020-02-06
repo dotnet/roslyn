@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -20,17 +22,33 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
     internal sealed class DisposableFieldsShouldBeDisposedDiagnosticAnalyzer
         : AbstractCodeQualityDiagnosticAnalyzer
     {
-        private static readonly DiagnosticDescriptor s_disposableFieldsShouldBeDisposedRule = CreateDescriptor(
-            IDEDiagnosticIds.DisposableFieldsShouldBeDisposedDiagnosticId,
-            title: new LocalizableResourceString(nameof(FeaturesResources.Disposable_fields_should_be_disposed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Disposable_field_0_is_never_disposed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            description: new LocalizableResourceString(nameof(FeaturesResources.DisposableFieldsShouldBeDisposedDescription), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            isUnneccessary: false);
+        private readonly DiagnosticDescriptor _disposableFieldsShouldBeDisposedRule;
 
         public DisposableFieldsShouldBeDisposedDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_disposableFieldsShouldBeDisposedRule), GeneratedCodeAnalysisFlags.Analyze)
+            : this(isEnabledByDefault: false)
         {
         }
+
+        // internal for test purposes.
+        internal DisposableFieldsShouldBeDisposedDiagnosticAnalyzer(bool isEnabledByDefault)
+            : this(CreateDescriptor(isEnabledByDefault))
+        {
+        }
+
+        private DisposableFieldsShouldBeDisposedDiagnosticAnalyzer(DiagnosticDescriptor descriptor)
+            : base(ImmutableArray.Create(descriptor), GeneratedCodeAnalysisFlags.Analyze)
+        {
+            _disposableFieldsShouldBeDisposedRule = descriptor;
+        }
+
+        private static DiagnosticDescriptor CreateDescriptor(bool isEnabledByDefault)
+            => CreateDescriptor(
+                IDEDiagnosticIds.DisposableFieldsShouldBeDisposedDiagnosticId,
+                title: new LocalizableResourceString(nameof(FeaturesResources.Disposable_fields_should_be_disposed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Disposable_field_0_is_never_disposed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                description: new LocalizableResourceString(nameof(FeaturesResources.DisposableFieldsShouldBeDisposedDescription), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                isUnneccessary: false,
+                isEnabledByDefault: isEnabledByDefault);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
@@ -45,29 +63,32 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
                 // Register a symbol start action to analyze all named types.
                 compilationContext.RegisterSymbolStartAction(
-                    symbolStartContext => SymbolAnalyzer.OnSymbolStart(symbolStartContext, disposeAnalysisHelper),
+                    symbolStartContext => SymbolAnalyzer.OnSymbolStart(symbolStartContext, _disposableFieldsShouldBeDisposedRule, disposeAnalysisHelper),
                     SymbolKind.NamedType);
             });
         }
 
         private sealed class SymbolAnalyzer
         {
+            private readonly DiagnosticDescriptor _disposableFieldsShouldBeDisposedRule;
             private readonly ImmutableHashSet<IFieldSymbol> _disposableFields;
             private readonly ConcurrentDictionary<IFieldSymbol, /*disposed*/bool> _fieldDisposeValueMap;
             private readonly DisposeAnalysisHelper _disposeAnalysisHelper;
             private bool _hasErrors;
+            private bool _hasDisposeMethod;
 
-            public SymbolAnalyzer(ImmutableHashSet<IFieldSymbol> disposableFields, DisposeAnalysisHelper disposeAnalysisHelper)
+            public SymbolAnalyzer(DiagnosticDescriptor disposableFieldsShouldBeDisposedRule, ImmutableHashSet<IFieldSymbol> disposableFields, DisposeAnalysisHelper disposeAnalysisHelper)
             {
                 Debug.Assert(!disposableFields.IsEmpty);
 
+                _disposableFieldsShouldBeDisposedRule = disposableFieldsShouldBeDisposedRule;
                 _disposableFields = disposableFields;
                 _disposeAnalysisHelper = disposeAnalysisHelper;
                 _fieldDisposeValueMap = new ConcurrentDictionary<IFieldSymbol, bool>();
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            public static void OnSymbolStart(SymbolStartAnalysisContext symbolStartContext, DisposeAnalysisHelper disposeAnalysisHelper)
+            public static void OnSymbolStart(SymbolStartAnalysisContext symbolStartContext, DiagnosticDescriptor disposableFieldsShouldBeDisposedRule, DisposeAnalysisHelper disposeAnalysisHelper)
             {
                 // We only want to analyze types which are disposable (implement System.IDisposable directly or indirectly)
                 // and have at least one disposable field.
@@ -83,7 +104,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                     return;
                 }
 
-                var analyzer = new SymbolAnalyzer(disposableFields, disposeAnalysisHelper);
+                var analyzer = new SymbolAnalyzer(disposableFieldsShouldBeDisposedRule, disposableFields, disposeAnalysisHelper);
 
                 // Register an operation block action to analyze disposable assignments and dispose invocations for fields.
                 symbolStartContext.RegisterOperationBlockStartAction(analyzer.OnOperationBlockStart);
@@ -111,19 +132,19 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
             private void OnSymbolEnd(SymbolAnalysisContext symbolEndContext)
             {
-                if (_hasErrors)
+                if (_hasErrors || !_hasDisposeMethod)
                 {
                     return;
                 }
 
                 foreach (var kvp in _fieldDisposeValueMap)
                 {
-                    IFieldSymbol field = kvp.Key;
-                    bool disposed = kvp.Value;
+                    var field = kvp.Key;
+                    var disposed = kvp.Value;
                     if (!disposed)
                     {
                         // Disposable field '{0}' is never disposed
-                        var diagnostic = Diagnostic.Create(s_disposableFieldsShouldBeDisposedRule, field.Locations[0], field.Name);
+                        var diagnostic = Diagnostic.Create(_disposableFieldsShouldBeDisposedRule, field.Locations[0], field.Name);
                         symbolEndContext.ReportDiagnostic(diagnostic);
                     }
                 }
@@ -209,6 +230,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
                     // We have a field reference for a disposable field.
                     // Check if it is being assigned a locally created disposable object.
+                    // PERF: Do not perform interprocedural analysis for this detection.
                     if (fieldReference.Parent is ISimpleAssignmentOperation simpleAssignmentOperation &&
                         simpleAssignmentOperation.Target == fieldReference)
                     {
@@ -216,7 +238,8 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                         {
                             if (_disposeAnalysisHelper.TryGetOrComputeResult(
                                 operationBlockStartContext, containingMethod,
-                                s_disposableFieldsShouldBeDisposedRule,
+                                _disposableFieldsShouldBeDisposedRule,
+                                InterproceduralAnalysisKind.None,
                                 trackInstanceFields: false,
                                 out _, out var pointsToAnalysisResult) &&
                                 pointsToAnalysisResult != null)
@@ -230,7 +253,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                             }
                         }
 
-                        PointsToAbstractValue assignedPointsToValue = lazyPointsToAnalysisResult[simpleAssignmentOperation.Value.Kind, simpleAssignmentOperation.Value.Syntax];
+                        var assignedPointsToValue = lazyPointsToAnalysisResult[simpleAssignmentOperation.Value.Kind, simpleAssignmentOperation.Value.Syntax];
                         foreach (var location in assignedPointsToValue.Locations)
                         {
                             if (_disposeAnalysisHelper.IsDisposableCreationOrDisposeOwnershipTransfer(location, containingMethod))
@@ -244,6 +267,8 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
                 void AnalyzeDisposeMethod()
                 {
+                    _hasDisposeMethod = true;
+
                     if (_hasErrors)
                     {
                         return;
@@ -251,26 +276,28 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
                     // Perform dataflow analysis to compute dispose value of disposable fields at the end of dispose method.
                     if (_disposeAnalysisHelper.TryGetOrComputeResult(operationBlockStartContext, containingMethod,
-                        s_disposableFieldsShouldBeDisposedRule, trackInstanceFields: true,
+                        _disposableFieldsShouldBeDisposedRule,
+                        InterproceduralAnalysisKind.ContextSensitive,
+                        trackInstanceFields: true,
                         disposeAnalysisResult: out var disposeAnalysisResult,
                         pointsToAnalysisResult: out var pointsToAnalysisResult))
                     {
-                        BasicBlock exitBlock = disposeAnalysisResult.ControlFlowGraph.GetExit();
+                        var exitBlock = disposeAnalysisResult.ControlFlowGraph.ExitBlock();
                         foreach (var fieldWithPointsToValue in disposeAnalysisResult.TrackedInstanceFieldPointsToMap)
                         {
-                            IFieldSymbol field = fieldWithPointsToValue.Key;
-                            PointsToAbstractValue pointsToValue = fieldWithPointsToValue.Value;
+                            var field = fieldWithPointsToValue.Key;
+                            var pointsToValue = fieldWithPointsToValue.Value;
 
                             if (!_disposableFields.Contains(field))
                             {
                                 continue;
                             }
 
-                            ImmutableDictionary<AbstractLocation, DisposeAbstractValue> disposeDataAtExit = disposeAnalysisResult.ExitBlockOutput.Data;
+                            var disposeDataAtExit = disposeAnalysisResult.ExitBlockOutput.Data;
                             var disposed = false;
                             foreach (var location in pointsToValue.Locations)
                             {
-                                if (disposeDataAtExit.TryGetValue(location, out DisposeAbstractValue disposeValue))
+                                if (disposeDataAtExit.TryGetValue(location, out var disposeValue))
                                 {
                                     switch (disposeValue.Kind)
                                     {

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -94,6 +96,35 @@ End Class")
             Await TestDiagnosticMissingAsync(
 $"Class C
     [|Sub M(_0 As Integer, _1 As Char, _3 As C)|]
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(36816, "https://github.com/dotnet/roslyn/issues/36816")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function PartialMethodParameter_NoDiagnostic() As Task
+            Await TestDiagnosticMissingAsync(
+$"Class C
+    [|Partial Private Sub M(str As String)|]
+    End Sub
+End Class
+
+Partial Class C
+    Private Sub M(str As String)
+        Dim x = str.ToString()
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(37988, "https://github.com/dotnet/roslyn/issues/37988")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function XmlLiteral_NoDiagnostic() As Task
+            Await TestDiagnosticMissingAsync(
+$"Public Class C
+    Sub M([|param|] As System.Xml.Linq.XElement)
+        Dim a = param.<Test>
+        Dim b = param.@Test
+        Dim c = param...<Test>
     End Sub
 End Class")
         End Function

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-
     internal enum TupleBinaryOperatorInfoKind
     {
         Single,
@@ -44,20 +45,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal class Single : TupleBinaryOperatorInfo
         {
             internal readonly BinaryOperatorKind Kind;
-            internal readonly Conversion LeftConversion;
-            internal readonly Conversion RightConversion;
             internal readonly MethodSymbol MethodSymbolOpt; // User-defined comparison operator, if applicable
 
             internal readonly Conversion ConversionForBool; // If a conversion to bool exists, then no operator needed. If an operator is needed, this holds the conversion for input to that operator.
             internal readonly UnaryOperatorSignature BoolOperator; // Information for op_true or op_false
 
             internal Single(TypeSymbol leftConvertedTypeOpt, TypeSymbol rightConvertedTypeOpt, BinaryOperatorKind kind,
-                Conversion leftConversion, Conversion rightConversion, MethodSymbol methodSymbolOpt,
+                MethodSymbol methodSymbolOpt,
                 Conversion conversionForBool, UnaryOperatorSignature boolOperator) : base(leftConvertedTypeOpt, rightConvertedTypeOpt)
             {
                 Kind = kind;
-                LeftConversion = leftConversion;
-                RightConversion = rightConversion;
                 MethodSymbolOpt = methodSymbolOpt;
                 ConversionForBool = conversionForBool;
                 BoolOperator = boolOperator;

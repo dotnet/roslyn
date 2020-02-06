@@ -1,16 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal interface ICodeStyleOption
     {
         XElement ToXElement();
+        object Value { get; }
+        NotificationOption Notification { get; }
+        ICodeStyleOption WithValue(object value);
+        ICodeStyleOption WithNotification(NotificationOption notification);
     }
 
     /// <summary>
@@ -33,17 +38,27 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private const int SerializationVersion = 1;
 
+        private NotificationOption _notification;
+
         public CodeStyleOption(T value, NotificationOption notification)
         {
             Value = value;
-            Notification = notification ?? throw new ArgumentNullException(nameof(notification));
+            _notification = notification ?? throw new ArgumentNullException(nameof(notification));
         }
 
         public T Value { get; set; }
 
+        object ICodeStyleOption.Value => this.Value;
+        ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption<T>((T)value, Notification);
+        ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption notification) => new CodeStyleOption<T>(Value, notification);
+
         private int EnumValueAsInt32 => (int)(object)Value;
 
-        public NotificationOption Notification { get; set; }
+        public NotificationOption Notification
+        {
+            get => _notification;
+            set => _notification = value ?? throw new ArgumentNullException(nameof(value));
+        }
 
         public XElement ToXElement() =>
             new XElement(nameof(CodeStyleOption<T>), // `nameof()` returns just "CodeStyleOption"
@@ -116,45 +131,28 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var value = parser(valueAttribute.Value);
             var severity = (DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), severityAttribute.Value);
 
-            NotificationOption notificationOption;
-            switch (severity)
+            return new CodeStyleOption<T>(value, severity switch
             {
-                case DiagnosticSeverity.Hidden:
-                    notificationOption = NotificationOption.Silent;
-                    break;
-                case DiagnosticSeverity.Info:
-                    notificationOption = NotificationOption.Suggestion;
-                    break;
-                case DiagnosticSeverity.Warning:
-                    notificationOption = NotificationOption.Warning;
-                    break;
-                case DiagnosticSeverity.Error:
-                    notificationOption = NotificationOption.Error;
-                    break;
-                default:
-                    throw new ArgumentException(nameof(element));
-            }
-
-            return new CodeStyleOption<T>(value, notificationOption);
+                DiagnosticSeverity.Hidden => NotificationOption.Silent,
+                DiagnosticSeverity.Info => NotificationOption.Suggestion,
+                DiagnosticSeverity.Warning => NotificationOption.Warning,
+                DiagnosticSeverity.Error => NotificationOption.Error,
+                _ => throw new ArgumentException(nameof(element)),
+            });
         }
 
         private static Func<string, T> GetParser(string type)
-        {
-            switch (type)
+            => type switch
             {
-                case nameof(Boolean):
+                nameof(Boolean) =>
                     // Try to map a boolean value.  Either map it to true/false if we're a 
                     // CodeStyleOption<bool> or map it to the 0 or 1 value for an enum if we're
                     // a CodeStyleOption<SomeEnumType>.
-                    return v => Convert(bool.Parse(v));
-                case nameof(Int32):
-                    return v => Convert(int.Parse(v));
-                case nameof(String):
-                    return v => (T)(object)v;
-                default:
-                    throw new ArgumentException(nameof(type));
-            }
-        }
+                    (Func<string, T>)(v => Convert(bool.Parse(v))),
+                nameof(Int32) => v => Convert(int.Parse(v)),
+                nameof(String) => v => (T)(object)v,
+                _ => throw new ArgumentException(nameof(type)),
+            };
 
         private static T Convert(bool b)
         {

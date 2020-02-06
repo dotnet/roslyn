@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -127,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureTuples = MessageBase + 12711,
         IDS_FeatureOutVar = MessageBase + 12713,
 
-        IDS_FeaturePragmaWarningEnable = MessageBase + 12714,
+        // IDS_FeaturePragmaWarningEnable = MessageBase + 12714,
         IDS_FeatureExpressionBodiedAccessor = MessageBase + 12715,
         IDS_FeatureExpressionBodiedDeOrConstructor = MessageBase + 12716,
         IDS_ThrowExpression = MessageBase + 12717,
@@ -165,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureAltInterpolatedVerbatimStrings = MessageBase + 12745,
         IDS_FeatureCoalesceAssignmentExpression = MessageBase + 12746,
         IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator = MessageBase + 12747,
-        IDS_FeatureObjectGenericTypeConstraint = MessageBase + 12748,
+        IDS_FeatureNotNullGenericTypeConstraint = MessageBase + 12748,
         IDS_FeatureIndexOperator = MessageBase + 12749,
         IDS_FeatureRangeOperator = MessageBase + 12750,
         IDS_FeatureAsyncStreams = MessageBase + 12751,
@@ -180,7 +184,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_DefaultInterfaceImplementation = MessageBase + 12760,
         IDS_OverrideWithConstraints = MessageBase + 12761,
         IDS_FeatureNestedStackalloc = MessageBase + 12762,
-        IDS_NotNullGenericTypeConstraint = MessageBase + 12763,
+        IDS_FeatureSwitchExpression = MessageBase + 12763,
+        IDS_FeatureAsyncUsing = MessageBase + 12764,
+        IDS_FeatureLambdaDiscardParameters = MessageBase + 12765,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -199,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToString(null, null);
         }
 
-        public string ToString(string format, IFormatProvider formatProvider)
+        public string ToString(string? format, IFormatProvider? formatProvider)
         {
             return ErrorFacts.GetMessage(_id, formatProvider as System.Globalization.CultureInfo);
         }
@@ -220,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //   If this method returns non-null, use that.
         // Features should be mutually exclusive between RequiredFeature and RequiredVersion.
         //   (hence the above rule - RequiredVersion throws when RequiredFeature returns non-null)
-        internal static string RequiredFeature(this MessageID feature)
+        internal static string? RequiredFeature(this MessageID feature)
         {
             // Check for current experimental features, if any, in the current branch.
             switch (feature)
@@ -230,26 +236,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool CheckFeatureAvailability(this MessageID feature, DiagnosticBag diagnostics, Location errorLocation)
+        internal static bool CheckFeatureAvailability(
+            this MessageID feature,
+            DiagnosticBag diagnostics,
+            SyntaxNode syntax,
+            Location? location = null)
         {
-            var diag = GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpParseOptions)errorLocation.SourceTree.Options);
-            if (!(diag is null))
+            var diag = GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)syntax.SyntaxTree.Options);
+            if (diag is object)
             {
-                diagnostics.Add(diag, errorLocation);
+                diagnostics.Add(diag, location ?? syntax.GetLocation());
                 return false;
             }
             return true;
         }
 
-        internal static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfoOpt(this MessageID feature, CSharpParseOptions options)
+        internal static bool CheckFeatureAvailability(
+            this MessageID feature,
+            DiagnosticBag diagnostics,
+            Compilation compilation,
+            Location location)
+        {
+            if (GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpCompilation)compilation) is { } diagInfo)
+            {
+                diagnostics.Add(diagInfo, location);
+                return false;
+            }
+            return true;
+        }
+
+        internal static CSDiagnosticInfo? GetFeatureAvailabilityDiagnosticInfo(this MessageID feature, CSharpParseOptions options)
             => options.IsFeatureEnabled(feature) ? null : GetDisabledFeatureDiagnosticInfo(feature, options.LanguageVersion);
 
-        internal static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfoOpt(this MessageID feature, CSharpCompilation compilation)
+        internal static CSDiagnosticInfo? GetFeatureAvailabilityDiagnosticInfo(this MessageID feature, CSharpCompilation compilation)
             => compilation.IsFeatureEnabled(feature) ? null : GetDisabledFeatureDiagnosticInfo(feature, compilation.LanguageVersion);
 
         private static CSDiagnosticInfo GetDisabledFeatureDiagnosticInfo(MessageID feature, LanguageVersion availableVersion)
         {
-            string requiredFeature = feature.RequiredFeature();
+            string? requiredFeature = feature.RequiredFeature();
             if (requiredFeature != null)
             {
                 return new CSDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
@@ -261,7 +285,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
         }
 
-
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             Debug.Assert(RequiredFeature(feature) == null);
@@ -270,13 +293,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // Preview features.
+                case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
+                    return LanguageVersion.Preview;
+
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
                 case MessageID.IDS_FeatureCoalesceAssignmentExpression:
                 case MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator:
                 case MessageID.IDS_FeatureNullableReferenceTypes: // syntax and semantic check
-                case MessageID.IDS_FeaturePragmaWarningEnable:
-                case MessageID.IDS_FeatureObjectGenericTypeConstraint:   // semantic check
                 case MessageID.IDS_FeatureIndexOperator: // semantic check
                 case MessageID.IDS_FeatureRangeOperator: // semantic check
                 case MessageID.IDS_FeatureAsyncStreams:
@@ -290,7 +315,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_DefaultInterfaceImplementation: // semantic check
                 case MessageID.IDS_OverrideWithConstraints: // semantic check
                 case MessageID.IDS_FeatureNestedStackalloc: // semantic check
-                case MessageID.IDS_NotNullGenericTypeConstraint:// semantic check
+                case MessageID.IDS_FeatureNotNullGenericTypeConstraint:// semantic check
+                case MessageID.IDS_FeatureSwitchExpression:
+                case MessageID.IDS_FeatureAsyncUsing:
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.

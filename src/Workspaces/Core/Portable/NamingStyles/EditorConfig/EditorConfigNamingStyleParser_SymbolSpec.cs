@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             out SymbolSpecification symbolSpec)
         {
             symbolSpec = null;
-            if (!TryGetSymbolSpecNameForNamingRule(namingRuleTitle, conventionsDictionary, out string symbolSpecName))
+            if (!TryGetSymbolSpecNameForNamingRule(namingRuleTitle, conventionsDictionary, out var symbolSpecName))
             {
                 return false;
             }
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             string symbolSpecName,
             IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_kinds", out string result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_kinds", out var result))
             {
                 return ParseSymbolKindList(result ?? string.Empty);
             }
@@ -163,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             string symbolSpecName,
             IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_accessibilities", out string result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_accessibilities", out var result))
             {
                 return ParseAccessibilityKindList(result ?? string.Empty);
             }
@@ -225,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             string symbolSpecName,
             IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.required_modifiers", out string result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.required_modifiers", out var result))
             {
                 return ParseModifiers(result ?? string.Empty);
             }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -836,9 +838,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequence(Syntax, ImmutableArray<LocalSymbol>.Empty, sideEffects.AsImmutableOrNull(), result, type ?? result.Type) { WasCompilerGenerated = true };
         }
 
-        public BoundSequence Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
+        public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
         {
-            return new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
+            return
+                locals.IsDefaultOrEmpty && sideEffects.IsDefaultOrEmpty
+                ? result
+                : new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
 
         public BoundSpillSequence SpillSequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression result)

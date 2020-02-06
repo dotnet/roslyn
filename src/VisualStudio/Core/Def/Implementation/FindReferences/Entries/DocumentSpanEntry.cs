@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -17,6 +19,8 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -32,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             private readonly HighlightSpanKind _spanKind;
             private readonly ExcerptResult _excerptResult;
+            private readonly SymbolReferenceKinds _symbolReferenceKinds;
             private readonly ImmutableDictionary<string, string> _customColumnsData;
 
             public DocumentSpanEntry(
@@ -43,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 MappedSpanResult mappedSpanResult,
                 ExcerptResult excerptResult,
                 SourceText lineText,
+                SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> customColumnsData)
                 : base(context,
                       definitionBucket,
@@ -53,6 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 _spanKind = spanKind;
                 _excerptResult = excerptResult;
+                _symbolReferenceKinds = symbolUsageInfo.ToSymbolReferenceKinds();
                 _customColumnsData = customColumnsData;
             }
 
@@ -67,7 +74,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var properties = Presenter.FormatMapService
                                           .GetEditorFormatMap("text")
                                           .GetProperties(propertyId);
-                var highlightBrush = properties["Background"] as Brush;
 
                 // Remove additive classified spans before creating classified text.
                 // Otherwise the text will be repeated since there are two classifications
@@ -83,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     Presenter.TypeMap,
                     runCallback: (run, classifiedText, position) =>
                     {
-                        if (highlightBrush != null)
+                        if (properties["Background"] is Brush highlightBrush)
                         {
                             if (position == _excerptResult.MappedSpan.Start)
                             {
@@ -116,7 +122,19 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             protected override object GetValueWorker(string keyName)
-                => _customColumnsData.TryGetValue(keyName, out var value) ? value : base.GetValueWorker(keyName);
+            {
+                if (keyName == StandardTableKeyNames2.SymbolKind)
+                {
+                    return _symbolReferenceKinds;
+                }
+
+                if (_customColumnsData.TryGetValue(keyName, out var value))
+                {
+                    return value;
+                }
+
+                return base.GetValueWorker(keyName);
+            }
 
             private DisposableToolTip CreateDisposableToolTip(Document document, TextSpan sourceSpan)
             {

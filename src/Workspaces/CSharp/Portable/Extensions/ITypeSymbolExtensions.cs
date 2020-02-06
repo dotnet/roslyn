@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -97,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static async Task<ISymbol> FindApplicableAlias(this ITypeSymbol type, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public static async Task<ISymbol?> FindApplicableAlias(this ITypeSymbol type, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             try
             {
@@ -109,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-                IEnumerable<UsingDirectiveSyntax> applicableUsings = GetApplicableUsings(position, root as CompilationUnitSyntax);
+                var applicableUsings = GetApplicableUsings(position, (CompilationUnitSyntax)root);
                 foreach (var applicableUsing in applicableUsings)
                 {
                     var alias = semanticModel.GetOriginalSemanticModel().GetDeclaredSymbol(applicableUsing, cancellationToken);
@@ -129,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static IEnumerable<UsingDirectiveSyntax> GetApplicableUsings(int position, SyntaxNode root)
         {
-            var namespaceUsings = root.FindToken(position).Parent.GetAncestors<NamespaceDeclarationSyntax>().SelectMany(n => n.Usings);
+            var namespaceUsings = root.FindToken(position).Parent!.GetAncestors<NamespaceDeclarationSyntax>().SelectMany(n => n.Usings);
             var allUsings = root is CompilationUnitSyntax
                 ? ((CompilationUnitSyntax)root).Usings.Concat(namespaceUsings)
                 : namespaceUsings;

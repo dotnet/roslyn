@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -54,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
 
         private ImmutableArray<PackageSource> _packageSources;
+        private IVsPackage _nugetPackageManager;
 
         private CancellationTokenSource _tokenSource = new CancellationTokenSource();
 
@@ -61,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         // refresh on the UI thread.  If we hear about project changes, we only refresh that
         // project.  If we hear about a solution level change, we'll refresh all projects.
         private bool _solutionChanged;
-        private HashSet<ProjectId> _changedProjects = new HashSet<ProjectId>();
+        private readonly HashSet<ProjectId> _changedProjects = new HashSet<ProjectId>();
 
         private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion =
             new ConcurrentDictionary<ProjectId, ProjectState>();
@@ -108,6 +111,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
             {
                 // These exceptions can happen when the nuget.config file is broken.
+                packageSources = ImmutableArray<PackageSource>.Empty;
+            }
+            catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
+            {
+                // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
+                // https://github.com/dotnet/roslyn/issues/40857
                 packageSources = ImmutableArray<PackageSource>.Empty;
             }
 
@@ -341,7 +350,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             ThisCanBeCalledOnAnyThread();
 
-            bool localSolutionChanged = false;
+            var localSolutionChanged = false;
             ProjectId localChangedProject = null;
             switch (e.Kind)
             {
@@ -608,19 +617,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return result;
         }
 
-        public void ShowManagePackagesDialog(string packageName)
+        public bool CanShowManagePackagesDialog()
+            => TryGetOrLoadNuGetPackageManager(out _);
+
+        private bool TryGetOrLoadNuGetPackageManager(out IVsPackage nugetPackageManager)
         {
             this.AssertIsForeground();
 
+            if (_nugetPackageManager != null)
+            {
+                nugetPackageManager = _nugetPackageManager;
+                return true;
+            }
+
+            nugetPackageManager = null;
             var shell = (IVsShell)_serviceProvider.GetService(typeof(SVsShell));
             if (shell == null)
             {
-                return;
+                return false;
             }
 
             var nugetGuid = new Guid("5fcc8577-4feb-4d04-ad72-d6c629b083cc");
-            shell.LoadPackage(ref nugetGuid, out var nugetPackage);
-            if (nugetPackage == null)
+            shell.LoadPackage(ref nugetGuid, out nugetPackageManager);
+            _nugetPackageManager = nugetPackageManager;
+            return nugetPackageManager != null;
+        }
+
+        public void ShowManagePackagesDialog(string packageName)
+        {
+            if (!TryGetOrLoadNuGetPackageManager(out var nugetPackageManager))
             {
                 return;
             }
@@ -631,7 +656,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // We get that interface for it and then pass it a SearchQuery that effectively
             // wraps the package name we're looking for.  The NuGet package will then read
             // out that string and populate their search box with it.
-            var extensionProvider = (IVsPackageExtensionProvider)nugetPackage;
+            var extensionProvider = (IVsPackageExtensionProvider)nugetPackageManager;
             var extensionGuid = new Guid("042C2B4B-C7F7-49DB-B7A2-402EB8DC7892");
             var emptyGuid = Guid.Empty;
             var searchProvider = (IVsSearchProvider)extensionProvider.CreateExtensionInstance(ref emptyGuid, ref extensionGuid);

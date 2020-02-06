@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -313,24 +315,11 @@ Next
             TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Sub
 
-        <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
+        <WpfTheory, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub TestSnippetFormatting_TabSize_3()
-            TestFormattingWithTabSize(3)
-        End Sub
-
-        <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
-        <Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub TestSnippetFormatting_TabSize_4()
-            TestFormattingWithTabSize(4)
-        End Sub
-
-        <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
-        <Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub TestSnippetFormatting_TabSize_5()
-            TestFormattingWithTabSize(5)
-        End Sub
-
+        <InlineData(3)>
+        <InlineData(4)>
+        <InlineData(5)>
         Public Sub TestFormattingWithTabSize(tabSize As Integer)
             Dim workspaceXml =
 <Workspace>
@@ -353,19 +342,19 @@ End Class</Document>
 	End Sub
 End Class</Test>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml, openDocuments:=False)
                 Dim document = workspace.Documents.Single()
 
-                workspace.Options = workspace.Options _
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                     .WithChangedOption(FormattingOptions.UseTabs, document.Project.Language, True) _
                     .WithChangedOption(FormattingOptions.TabSize, document.Project.Language, tabSize) _
-                    .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)
+                    .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)))
 
                 Dim snippetExpansionClient = New SnippetExpansionClient(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.CSharpLanguageServiceId,
                     document.GetTextView(),
-                    document.TextBuffer,
+                    document.GetTextBuffer(),
                     Nothing)
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
@@ -426,14 +415,13 @@ End Class</Test>
                 Dim surfaceBufferDocument = workspace.CreateProjectionBufferDocument(
                     surfaceBufferDocumentXml.NormalizedValue,
                     {subjectBufferDocument},
-                    LanguageNames.VisualBasic,
                     options:=ProjectionBufferOptions.WritableLiteralSpans)
 
                 Dim snippetExpansionClient = New SnippetExpansionClient(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.CSharpLanguageServiceId,
                     surfaceBufferDocument.GetTextView(),
-                    subjectBufferDocument.TextBuffer,
+                    subjectBufferDocument.GetTextBuffer(),
                     Nothing)
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, subjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
             else if (x is IdentifierNameSyntax && y is GenericNameSyntax)
             {
-                int compare = _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
+                var compare = _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
                 if (compare != 0)
                 {
                     return compare;
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
             else if (x is GenericNameSyntax && y is IdentifierNameSyntax)
             {
-                int compare = _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
+                var compare = _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
                 if (compare != 0)
                 {
                     return compare;
@@ -95,9 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var xNameParts = DecomposeNameParts(x);
             var yNameParts = DecomposeNameParts(y);
 
-            for (int i = 0; i < xNameParts.Count && i < yNameParts.Count; i++)
+            for (var i = 0; i < xNameParts.Count && i < yNameParts.Count; i++)
             {
-                int compare = Compare(xNameParts[i], yNameParts[i]);
+                var compare = Compare(xNameParts[i], yNameParts[i]);
                 if (compare != 0)
                 {
                     return compare;
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         private int Compare(GenericNameSyntax x, GenericNameSyntax y)
         {
-            int compare = _tokenComparer.Compare(x.Identifier, y.Identifier);
+            var compare = _tokenComparer.Compare(x.Identifier, y.Identifier);
             if (compare != 0)
             {
                 return compare;
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             // Same name, same parameter count.  Compare each parameter.
-            for (int i = 0; i < x.Arity; i++)
+            for (var i = 0; i < x.Arity; i++)
             {
                 var xArg = x.TypeArgumentList.Arguments[i];
                 var yArg = y.TypeArgumentList.Arguments[i];

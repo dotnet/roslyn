@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
-        private TypeWithAnnotations _lazyType;
+        private TypeWithAnnotations.Boxed _lazyType;
 
         public RetargetingPropertySymbol(RetargetingModuleSymbol retargetingModule, PropertySymbol underlyingProperty)
             : base(underlyingProperty)
@@ -59,16 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                if (_lazyType.IsDefault)
+                if (_lazyType is null)
                 {
                     var type = this.RetargetingTranslator.Retarget(_underlyingProperty.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
                     if (type.Type.TryAsDynamicIfNoPia(this.ContainingType, out TypeSymbol asDynamic))
                     {
                         type = TypeWithAnnotations.Create(asDynamic);
                     }
-                    _lazyType = type;
+                    Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
                 }
-                return _lazyType;
+                return _lazyType.Value;
             }
         }
 

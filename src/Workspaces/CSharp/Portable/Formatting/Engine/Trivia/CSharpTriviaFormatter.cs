@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -25,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SyntaxToken token2,
             string originalString,
             int lineBreaks,
-            int spaces) :
-            base(context, formattingRules, token1, token2, originalString, lineBreaks, spaces)
+            int spaces)
+            : base(context, formattingRules, token1, token2, originalString, lineBreaks, spaces)
         {
         }
 
@@ -126,8 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // comments case
             if (trivia2.IsRegularOrDocComment())
             {
-                // start of new comments group
-                if (!trivia1.IsRegularComment() || existingWhitespaceBetween.Lines > 1)
+                // Start of new comments group.
+                //
+                // 1. Comment groups must contain the same kind of comments
+                // 2. Every block comment is a group of its own
+                if (!trivia1.IsKind(trivia2.Kind()) || trivia2.IsMultiLineComment() || trivia2.IsMultiLineDocComment() || existingWhitespaceBetween.Lines > 1)
                 {
                     if (this.FormattingRules.GetAdjustNewLinesOperation(this.Token1, this.Token2) != null)
                     {

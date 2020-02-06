@@ -1,11 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
@@ -13,11 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer
     {
-        protected override Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption
-            => CSharpCodeStyleOptions.UnusedValueExpressionStatement;
-
-        protected override Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption
-            => CSharpCodeStyleOptions.UnusedValueAssignment;
+        public CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer()
+            : base(unusedValueExpressionStatementOption: CSharpCodeStyleOptions.UnusedValueExpressionStatement,
+                   unusedValueAssignmentOption: CSharpCodeStyleOptions.UnusedValueAssignment,
+                   LanguageNames.CSharp)
+        {
+        }
 
         protected override bool SupportsDiscard(SyntaxTree tree)
             => ((CSharpParseOptions)tree.Options).LanguageVersion >= LanguageVersion.CSharp7;

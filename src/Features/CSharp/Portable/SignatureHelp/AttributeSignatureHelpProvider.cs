@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -71,8 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(attribute, cancellationToken).ConfigureAwait(false);
-            var attributeType = semanticModel.GetTypeInfo(attribute, cancellationToken).Type as INamedTypeSymbol;
-            if (attributeType == null)
+            if (!(semanticModel.GetTypeInfo(attribute, cancellationToken).Type is INamedTypeSymbol attributeType))
             {
                 return null;
             }
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
-                GetPostambleParts(constructor),
+                GetPostambleParts(),
                 GetParameters(constructor, semanticModel, position, namedParameters, documentationCommentFormatter, cancellationToken));
             return item;
         }
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 result.Add(Convert(parameter, semanticModel, position, documentationCommentFormatter, cancellationToken));
             }
 
-            for (int i = 0; i < namedParameters.Count; i++)
+            for (var i = 0; i < namedParameters.Count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method)
+        private IList<SymbolDisplayPart> GetPostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseParenToken));

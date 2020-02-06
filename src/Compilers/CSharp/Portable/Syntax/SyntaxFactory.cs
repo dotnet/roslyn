@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -752,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a syntax node for a priliminary element within a xml documentation comment.
+        /// Creates a syntax node for a preliminary element within a xml documentation comment.
         /// </summary>
         public static XmlEmptyElementSyntax XmlPreliminaryElement()
         {
@@ -1557,9 +1559,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             string path = "",
             Encoding encoding = null,
             ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            bool? isGeneratedCode = null,
+            CancellationToken cancellationToken = default)
         {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, cancellationToken);
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 
         /// <summary>
@@ -1570,9 +1573,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParseOptions options = null,
             string path = "",
             ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            bool? isGeneratedCode = null,
+            CancellationToken cancellationToken = default)
         {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, diagnosticOptions, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -2507,18 +2511,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
                 => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, default(BlockSyntax), expressionBody, semicolonToken);
 
-        /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
-        public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-            return PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword: default, errorCodes, endOfDirectiveToken, isActive);
-        }
-
-        /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
-        public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-            return PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes: default, endOfDirectiveToken, isActive);
-        }
-
         public static EnumMemberDeclarationSyntax EnumMemberDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken identifier, EqualsValueClauseSyntax equalsValue)
             => EnumMemberDeclaration(attributeLists, modifiers: default,
                 identifier, equalsValue);
@@ -2543,6 +2535,89 @@ namespace Microsoft.CodeAnalysis.CSharp
             return EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList: null, semicolonToken);
         }
 
+        /// <summary>Creates a new SwitchStatementSyntax instance.</summary>
+        public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expression, SyntaxList<SwitchSectionSyntax> sections)
+        {
+            bool needsParens = !(expression is TupleExpressionSyntax);
+            var openParen = needsParens ? SyntaxFactory.Token(SyntaxKind.OpenParenToken) : default;
+            var closeParen = needsParens ? SyntaxFactory.Token(SyntaxKind.CloseParenToken) : default;
+            return SyntaxFactory.SwitchStatement(
+                SyntaxFactory.Token(SyntaxKind.SwitchKeyword),
+                openParen,
+                expression,
+                closeParen,
+                SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
+                sections,
+                SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+        }
+
+        /// <summary>Creates a new SwitchStatementSyntax instance.</summary>
+        public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expression)
+        {
+            return SyntaxFactory.SwitchStatement(expression, default(SyntaxList<SwitchSectionSyntax>));
+        }
+
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? SimpleLambdaExpression(parameter, block, null)
+                : SimpleLambdaExpression(parameter, null, (ExpressionSyntax)body);
+
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, block, null)
+                : SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, null, (ExpressionSyntax)body);
+
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(CSharpSyntaxNode body)
+            => ParenthesizedLambdaExpression(ParameterList(), body);
+
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(ParameterListSyntax parameterList, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? ParenthesizedLambdaExpression(parameterList, block, null)
+                : ParenthesizedLambdaExpression(parameterList, null, (ExpressionSyntax)body);
+
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, block, null)
+                : ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, null, (ExpressionSyntax)body);
+
+        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(CSharpSyntaxNode body)
+            => AnonymousMethodExpression(parameterList: null, body);
+
+        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(ParameterListSyntax parameterList, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? AnonymousMethodExpression(default, SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, block, null)
+                : AnonymousMethodExpression(default, SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, null, (ExpressionSyntax)null);
+
+        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, block, null)
+                : AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, null, (ExpressionSyntax)body);
+
+        // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree ParseSyntaxTree(
+            string text,
+            ParseOptions options,
+            string path,
+            Encoding encoding,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
+            CancellationToken cancellationToken)
+        {
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode: null, cancellationToken);
+        }
+
+        // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree ParseSyntaxTree(
+            SourceText text,
+            ParseOptions options,
+            string path,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
+            CancellationToken cancellationToken)
+        {
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, diagnosticOptions, isGeneratedCode: null, cancellationToken);
+        }
+
         // BACK COMPAT OVERLOAD DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseSyntaxTree(
@@ -2552,7 +2627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Encoding encoding,
             CancellationToken cancellationToken)
         {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions: null, cancellationToken);
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions: null, isGeneratedCode: null, cancellationToken);
         }
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY

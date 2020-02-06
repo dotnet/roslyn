@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class EditorFeaturesWpfResources {
@@ -84,6 +84,24 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Downloading_IntelliSense_index_for_0 {
             get {
                 return ResourceManager.GetString("Downloading_IntelliSense_index_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Gathering Suggestions - &apos;{0}&apos;.
+        /// </summary>
+        internal static string Gathering_Suggestions_0 {
+            get {
+                return ResourceManager.GetString("Gathering_Suggestions_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Gathering Suggestions - Waiting for the solution to fully load.
+        /// </summary>
+        internal static string Gathering_Suggestions_Waiting_for_the_solution_to_fully_load {
+            get {
+                return ResourceManager.GetString("Gathering_Suggestions_Waiting_for_the_solution_to_fully_load", resourceCulture);
             }
         }
         
@@ -165,6 +183,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Regex_Text {
             get {
                 return ResourceManager.GetString("Regex_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suppress or Configure issues.
+        /// </summary>
+        internal static string Suppress_or_Configure_issues {
+            get {
+                return ResourceManager.GetString("Suppress_or_Configure_issues", resourceCulture);
             }
         }
     }

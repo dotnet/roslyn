@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -86,7 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id, span));
+                location: new DiagnosticDataLocation(document.Id, span),
+                language: document.Project.Language);
         }
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
@@ -104,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             public bool SupportGetDiagnostics => false;
 
-            public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
+            public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
             {
                 return includeSuppressedDiagnostics ? _diagnostics : _diagnostics.WhereAsArray(d => !d.IsSuppressed);
             }

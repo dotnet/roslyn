@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #define dark_theme
 
@@ -162,11 +164,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         // User Types - * and User Members - * are ordered after Keyword
         // so that, in the case both classifications are applied to the same
-        // span, the styling for the identifier type would be choosen.
+        // span, the styling for the identifier type would be chosen.
 
         // User Types - * and User Members - * are ordered before Symbol - Static 
-        // so that the font styling choosen for static symbols would override the
-        // styling choosen for specific identifier types.
+        // so that the font styling chosen for static symbols would override the
+        // styling chosen for specific identifier types.
         #region User Types - Classes
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ClassName)]

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -270,7 +272,9 @@ End Class
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1)))
 
             diff1.EmitResult.Diagnostics.Verify(
-                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C"))
+                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C",
+                    String.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
+                        "Lib, Version=1.0.2000.1001, Culture=neutral, PublicKeyToken=null", "1.0.2000.1002")))
         End Sub
 
         <Fact, WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")>
@@ -338,7 +342,9 @@ End Class
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1)))
 
             diff1.EmitResult.Diagnostics.Verify(
-                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C"))
+                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C",
+                    String.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
+                        "Lib, Version=1.0.0.1, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "1.0.0.2")))
         End Sub
 
         Public Sub VerifyAssemblyReferences(reader As AggregatedMetadataReader, expected As String())

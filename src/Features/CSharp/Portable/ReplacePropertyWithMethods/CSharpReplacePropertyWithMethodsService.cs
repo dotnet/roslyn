@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -21,33 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 {
     [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
     internal partial class CSharpReplacePropertyWithMethodsService :
-        AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax>
+        AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax, PropertyDeclarationSyntax>
     {
         [ImportingConstructor]
         public CSharpReplacePropertyWithMethodsService()
         {
-        }
-
-        public override SyntaxNode GetPropertyDeclaration(SyntaxToken token)
-        {
-            var containingProperty = token.Parent.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
-            if (containingProperty == null)
-            {
-                return null;
-            }
-
-            var start = containingProperty.AttributeLists.Count > 0
-                ? containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart
-                : containingProperty.SpanStart;
-
-            // Offer this refactoring anywhere in the signature of the property.
-            var position = token.SpanStart;
-            if (position < start || position > containingProperty.Identifier.Span.End)
-            {
-                return null;
-            }
-
-            return containingProperty;
         }
 
         public override async Task<IList<SyntaxNode>> GetReplacementMembersAsync(
@@ -59,8 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             string desiredSetMethodName,
             CancellationToken cancellationToken)
         {
-            var propertyDeclaration = propertyDeclarationNode as PropertyDeclarationSyntax;
-            if (propertyDeclaration == null)
+            if (!(propertyDeclarationNode is PropertyDeclarationSyntax propertyDeclaration))
             {
                 return SpecializedCollections.EmptyList<SyntaxNode>();
             }
@@ -152,6 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         {
             var setAccessorDeclaration = (AccessorDeclarationSyntax)setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
             var methodDeclaration = (MethodDeclarationSyntax)generator.MethodDeclaration(setMethod, desiredSetMethodName);
+
+            // property has unsafe, but generator didn't add it to the method, so we have to add it here
+            if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
+                && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
+            {
+                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+            }
 
             if (setAccessorDeclaration.Body != null)
             {
@@ -265,6 +250,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             CancellationToken cancellationToken)
         {
             var methodDeclaration = (MethodDeclarationSyntax)generator.MethodDeclaration(getMethod, desiredGetMethodName);
+
+            // property has unsafe, but generator didn't add it to the method, so we have to add it here
+            if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
+                && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
+            {
+                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+            }
 
             if (propertyDeclaration.ExpressionBody != null)
             {

@@ -1,12 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -53,15 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            switch (node)
+            return node switch
             {
-                case SwitchSectionSyntax switchSection:
-                    return ValueTuple.Create(switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
-                case AnonymousMethodExpressionSyntax anonymousMethod:
-                    return ValueTuple.Create(anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
-            }
-
-            return default;
+                SwitchSectionSyntax switchSection => ValueTuple.Create(switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true)),
+                AnonymousMethodExpressionSyntax anonymousMethod => ValueTuple.Create(anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true)),
+                _ => default,
+            };
         }
 
         private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
@@ -75,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
-            var statementNode = node as StatementSyntax;
-            if (statementNode == null || statementNode.Kind() == SyntaxKind.Block)
+            if (!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block)
             {
                 return;
             }
@@ -89,8 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void RemoveSuppressOperationForStatementMethodDeclaration(List<SuppressOperation> list, SyntaxNode node)
         {
-            var statementNode = node as StatementSyntax;
-            if (!(statementNode == null || statementNode.Kind() == SyntaxKind.Block))
+            if (!(!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block))
             {
                 var firstToken = statementNode.GetFirstToken(includeZeroWidth: true);
                 var lastToken = statementNode.GetLastToken(includeZeroWidth: true);
@@ -164,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             var span = TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
 
-            for (int i = 0; i < list.Count; i++)
+            for (var i = 0; i < list.Count; i++)
             {
                 if (list[i] != null && list[i].TextSpan.Start >= span.Start && list[i].TextSpan.End <= span.End && list[i].Option.HasFlag(SuppressOption.NoWrappingIfOnSingleLine))
                 {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -51,9 +53,40 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 return null;
             }
 
+            if (selectedItem < 0)
+            {
+                selectedItem = null;
+            }
+
             (items, selectedItem) = Filter(items, state.ArgumentNames, selectedItem);
             return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName, selectedItem);
         }
+
+        protected static SignatureHelpItems CreateCollectionInitializerSignatureHelpItems(
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
+        {
+            // We will have added all the accessible '.Add' methods that take at least one
+            // arguments. However, in general the one-arg Add method is the least likely for the
+            // user to invoke. For example, say there is:
+            //
+            //      new JObject { { $$ } }
+            //
+            // Technically, the user could be calling the `.Add(object)` overload in this case.
+            // However, normally in that case, they would just supply the value directly like so:
+            //
+            //      new JObject { new JProperty(...), new JProperty(...) }
+            //
+            // So, it's a strong signal when they're inside another `{ $$ }` that they want to call
+            // the .Add methods that take multiple args, like so:
+            //
+            //      new JObject { { propName, propValue }, { propName, propValue } }
+            // 
+            // So, we include all the .Add methods, but we prefer selecting the first that has
+            // at least two parameters.
+            return CreateSignatureHelpItems(
+                items, applicableSpan, state, items.IndexOf(i => i.Parameters.Length >= 2));
+        }
+
 
         private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames, int? selectedItem)
         {
@@ -63,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             var filteredList = items.Where(i => Include(i, parameterNames)).ToList();
-            bool isEmpty = filteredList.Count == 0;
+            var isEmpty = filteredList.Count == 0;
             if (!selectedItem.HasValue || isEmpty)
             {
                 return (isEmpty ? items.ToList() : filteredList, selectedItem);
@@ -87,6 +120,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return GetCurrentArgumentState(root, position, document.GetLanguageService<ISyntaxFactsService>(), currentSpan, cancellationToken);
         }
 
+        // TODO: remove once Pythia moves to ExternalAccess APIs
         protected SignatureHelpItem CreateItem(
             ISymbol orderSymbol,
             SemanticModel semanticModel,
@@ -100,6 +134,24 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SymbolDisplayPart> suffixParts,
             IList<SignatureHelpSymbolParameter> parameters,
             IList<SymbolDisplayPart> descriptionParts = null)
+        {
+            return CreateItemImpl(orderSymbol, semanticModel, position, symbolDisplayService, anonymousTypeDisplayService,
+                isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
+        }
+
+        protected static SignatureHelpItem CreateItemImpl(
+            ISymbol orderSymbol,
+            SemanticModel semanticModel,
+            int position,
+            ISymbolDisplayService symbolDisplayService,
+            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            bool isVariadic,
+            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            IList<SymbolDisplayPart> prefixParts,
+            IList<SymbolDisplayPart> separatorParts,
+            IList<SymbolDisplayPart> suffixParts,
+            IList<SignatureHelpSymbolParameter> parameters,
+            IList<SymbolDisplayPart> descriptionParts)
         {
             prefixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(prefixParts, semanticModel, position, symbolDisplayService);
             separatorParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(separatorParts, semanticModel, position, symbolDisplayService);
@@ -153,7 +205,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 descriptionParts.ToTaggedText());
         }
 
-        private SignatureHelpSymbolParameter ReplaceAnonymousTypes(
+        private static SignatureHelpSymbolParameter ReplaceAnonymousTypes(
             SignatureHelpSymbolParameter parameter,
             AnonymousTypeDisplayInfo info)
         {
@@ -165,7 +217,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 info.ReplaceAnonymousTypes(parameter.SelectedDisplayParts));
         }
 
-        private SignatureHelpSymbolParameter InlineDelegateAnonymousTypes(
+        private static SignatureHelpSymbolParameter InlineDelegateAnonymousTypes(
             SignatureHelpSymbolParameter parameter,
             SemanticModel semanticModel,
             int position,
@@ -288,7 +340,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             foreach (var relatedDocumentId in relatedDocuments)
             {
                 var relatedDocument = document.Project.Solution.GetDocument(relatedDocumentId);
-                var semanticModel = await relatedDocument.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
                 var result = await GetItemsWorkerAsync(relatedDocument, position, triggerInfo, cancellationToken).ConfigureAwait(false);
 
                 supportedPlatforms.Add(Tuple.Create(relatedDocument, result != null ? result.Items : SpecializedCollections.EmptyEnumerable<SignatureHelpItem>()));

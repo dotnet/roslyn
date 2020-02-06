@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 
@@ -5035,6 +5037,128 @@ class C
             Await TestAsync(input, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_DoNotSimplifyNullableGeneric() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+#nullable enable
+using System.Threading.Tasks;
+class Program
+{
+    Task<string?> M()
+    {
+        string s1 = "test";
+        return {|Simplify:Task.FromResult<string?>|}(s1);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+#nullable enable
+using System.Threading.Tasks;
+class Program
+{
+    Task<string?> M()
+    {
+        string s1 = "test";
+        return Task.FromResult<string?>(s1);
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_SimplifyNullableWithNullableSuppressionOperator() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+#nullable enable
+class Program
+{
+    void M()
+    {
+        string? s1 = null;
+        string s2 = {|Simplify:M1<string>|}(s1!, "hello");
+    }
+
+    static T M1<T>(T t1, T t2) where T : class? =>
+        t1 ?? t2;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+#nullable enable
+class Program
+{
+    void M()
+    {
+        string? s1 = null;
+        string s2 = M1(s1!, "hello");
+    }
+
+    static T M1<T>(T t1, T t2) where T : class? =>
+        t1 ?? t2;
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/36884"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_SimplifyNullableMethodTypeArgument() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+#nullable enable
+class Program
+{
+    void M()
+    {
+        string? s1 = null;
+        string? s2 = {|Simplify:M1<string?>|}(s1);
+    }
+
+    static T M1<T>(T t) where T : class? => t;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+#nullable enable
+class Program
+{
+    void M()
+    {
+        string? s1 = null;
+        string? s2 = M1(s1);
+    }
+
+    static T M1<T>(T t) where T : class? => t;
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
 #End Region
 
 #Region "Visual Basic tests"

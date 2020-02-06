@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -171,7 +173,7 @@ partial class Goo
 Class Program { FileStyleUriParser f; }", async w =>
             {
                 var items = await _aggregator.GetItemsAsync("FileStyleUriParser");
-                Assert.Equal(items.Count(), 0);
+                Assert.Equal(0, items.Count());
             });
         }
 
@@ -996,7 +998,7 @@ class D
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task NavigateToGeneratedFiles()
         {
-            using (var workspace = TestWorkspace.Create(@"
+            using var workspace = TestWorkspace.Create(@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"">
         <Document FilePath=""File1.cs"">
@@ -1019,22 +1021,20 @@ class D
         </Document>
     </Project>
 </Workspace>
-", exportProvider: TestExportProvider.ExportProviderWithCSharpAndVisualBasic))
-            {
-                _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
-                _aggregator = new NavigateToTestAggregator(_provider);
+", exportProvider: TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _aggregator = new NavigateToTestAggregator(_provider);
 
-                var items = await _aggregator.GetItemsAsync("VisibleMethod");
-                var expectedItems = new List<NavigateToItem>()
+            var items = await _aggregator.GetItemsAsync("VisibleMethod");
+            var expectedItems = new List<NavigateToItem>()
                 {
                     new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
                     new NavigateToItem("VisibleMethod_Generated", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)
                 };
 
-                // The pattern matcher should match 'VisibleMethod' to both 'VisibleMethod' and 'VisibleMethod_Not', except that
-                // the _Not method is declared in a generated file.
-                VerifyNavigateToResultItems(expectedItems, items);
-            }
+            // The pattern matcher should match 'VisibleMethod' to both 'VisibleMethod' and 'VisibleMethod_Not', except that
+            // the _Not method is declared in a generated file.
+            VerifyNavigateToResultItems(expectedItems, items);
         }
 
         [WorkItem(11474, "https://github.com/dotnet/roslyn/pull/11474")]

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Test.Utilities;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private static Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
             {
                 var appSettings = new NameValueCollection();
-                return new DesktopBuildServerController(appSettings).RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken);
+                return new BuildServerController(appSettings).RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken);
             }
 
             [Fact]

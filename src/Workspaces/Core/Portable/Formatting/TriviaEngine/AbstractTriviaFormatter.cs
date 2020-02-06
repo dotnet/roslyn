@@ -1,14 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -23,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         static AbstractTriviaFormatter()
         {
             s_spaceCache = new string[20];
-            for (int i = 0; i < 20; i++)
+            for (var i = 0; i < 20; i++)
             {
                 s_spaceCache[i] = new string(' ', i);
             }
@@ -136,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return true;
             }
 
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (!IsWhitespace(text[i]) || !IsNewLine(text[i]))
                 {
@@ -465,7 +472,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             var span = TextSpan.FromBounds(start, end);
 
-            for (int i = span.Start - this.Token1.Span.End; i < span.Length; i++)
+            for (var i = span.Start - this.Token1.Span.End; i < span.Length; i++)
             {
                 if (!char.IsWhiteSpace(this.OriginalString[i]))
                 {
@@ -495,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return IsNullOrWhitespace(this.OriginalString);
             }
 
-            for (int i = 0; i < index; i++)
+            for (var i = 0; i < index; i++)
             {
                 if (!IsWhitespace(this.OriginalString[i]))
                 {
@@ -536,40 +543,24 @@ namespace Microsoft.CodeAnalysis.Formatting
             // next trivia is moved to next line or already on a new line, use indentation
             if (rule.Lines > 0 || lineColumnAfterExistingWhitespace.WhitespaceOnly)
             {
-                switch (rule.IndentationOperation)
+                return rule.IndentationOperation switch
                 {
-                    case LineColumnRule.IndentationOperations.Absolute:
-                        return Math.Max(0, rule.Indentation);
-
-                    case LineColumnRule.IndentationOperations.Default:
-                        return this.Context.GetBaseIndentation(trivia2.RawKind == 0 ? this.EndPosition : trivia2.SpanStart);
-
-                    case LineColumnRule.IndentationOperations.Given:
-                        return (trivia2.RawKind == 0) ? this.Spaces : Math.Max(0, _indentation);
-
-                    case LineColumnRule.IndentationOperations.Follow:
-                        return Math.Max(0, lineColumnBeforeTrivia1.Column);
-
-                    case LineColumnRule.IndentationOperations.Preserve:
-                        return existingWhitespaceBetween.Spaces;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(rule.IndentationOperation);
-                }
+                    LineColumnRule.IndentationOperations.Absolute => Math.Max(0, rule.Indentation),
+                    LineColumnRule.IndentationOperations.Default => this.Context.GetBaseIndentation(trivia2.RawKind == 0 ? this.EndPosition : trivia2.SpanStart),
+                    LineColumnRule.IndentationOperations.Given => (trivia2.RawKind == 0) ? this.Spaces : Math.Max(0, _indentation),
+                    LineColumnRule.IndentationOperations.Follow => Math.Max(0, lineColumnBeforeTrivia1.Column),
+                    LineColumnRule.IndentationOperations.Preserve => existingWhitespaceBetween.Spaces,
+                    _ => throw ExceptionUtilities.UnexpectedValue(rule.IndentationOperation),
+                };
             }
 
             // okay, we are not on a its own line, use space information
-            switch (rule.SpaceOperation)
+            return rule.SpaceOperation switch
             {
-                case LineColumnRule.SpaceOperations.Preserve:
-                    return Math.Max(rule.Spaces, existingWhitespaceBetween.Spaces);
-
-                case LineColumnRule.SpaceOperations.Force:
-                    return Math.Max(rule.Spaces, 0);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(rule.SpaceOperation);
-            }
+                LineColumnRule.SpaceOperations.Preserve => Math.Max(rule.Spaces, existingWhitespaceBetween.Spaces),
+                LineColumnRule.SpaceOperations.Force => Math.Max(rule.Spaces, 0),
+                _ => throw ExceptionUtilities.UnexpectedValue(rule.SpaceOperation),
+            };
         }
 
         private int GetRuleLines(LineColumnRule rule, LineColumn lineColumnAfterTrivia1, LineColumnDelta existingWhitespaceBetween)
@@ -631,7 +622,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // try to find end of line
-            for (int i = changes.Count - 1; i >= 0; i--)
+            for (var i = changes.Count - 1; i >= 0; i--)
             {
                 // insert right after existing end of line trivia
                 if (IsEndOfLine(changes[i]))
@@ -641,7 +632,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // can't find any line, put blank line right after any trivia that has lines in them
-            for (int i = changes.Count - 1; i >= 0; i--)
+            for (var i = changes.Count - 1; i >= 0; i--)
             {
                 if (changes[i].ToFullString().ContainsLineBreak())
                 {
@@ -696,7 +687,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             index = -1;
             var insertionPoint = GetInsertionSpan(changes);
 
-            for (int i = 0; i < changes.Count; i++)
+            for (var i = 0; i < changes.Count; i++)
             {
                 var change = changes[i];
                 if (change.Span.Contains(insertionPoint) && IsNullOrWhitespace(change.NewText))
@@ -720,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // try to find end of line
-            for (int i = this.OriginalString.Length - 1; i >= 0; i--)
+            for (var i = this.OriginalString.Length - 1; i >= 0; i--)
             {
                 if (this.OriginalString[i] == '\n')
                 {
@@ -753,7 +744,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            for (int i = 0; i < delta.Lines; i++)
+            for (var i = 0; i < delta.Lines; i++)
             {
                 changes.Add(CreateEndOfLine());
             }
@@ -782,7 +773,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var sb = StringBuilderPool.Allocate();
 
             var newLine = this.OptionSet.GetOption(FormattingOptions.NewLine, this.Language);
-            for (int i = 0; i < delta.Lines; i++)
+            for (var i = 0; i < delta.Lines; i++)
             {
                 sb.Append(newLine);
             }

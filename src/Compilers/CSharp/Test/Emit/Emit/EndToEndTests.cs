@@ -1,11 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Test.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -37,9 +36,57 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             thread.Start();
             thread.Join();
 
-            if (!(exception is null))
+            if (exception is object)
             {
                 throw exception;
+            }
+        }
+
+        private static void RunTest(int expectedDepth, Action<int> runTest)
+        {
+            if (runTestAndCatch(expectedDepth))
+            {
+                return;
+            }
+
+            int minDepth = 0;
+            int maxDepth = expectedDepth;
+            int actualDepth;
+            while (true)
+            {
+                int depth = (maxDepth - minDepth) / 2 + minDepth;
+                if (depth <= minDepth)
+                {
+                    actualDepth = minDepth;
+                    break;
+                }
+                if (depth >= maxDepth)
+                {
+                    actualDepth = maxDepth;
+                    break;
+                }
+                if (runTestAndCatch(depth))
+                {
+                    minDepth = depth;
+                }
+                else
+                {
+                    maxDepth = depth;
+                }
+            }
+            Assert.Equal(expectedDepth, actualDepth);
+
+            bool runTestAndCatch(int depth)
+            {
+                try
+                {
+                    runTest(depth);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
             }
         }
 
@@ -172,6 +219,51 @@ public class Test
                     // PEVerify is skipped here as it doesn't scale to this level of nested generics. After 
                     // about 600 levels of nesting it will not return in any reasonable amount of time.
                     CompileAndVerify(compilation, expectedOutput: "Pass", verify: Verification.Skipped);
+                });
+            }
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void NestedIfStatements()
+        {
+            int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
+            {
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 310,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1650,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 200,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 780,
+                _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
+            };
+
+            RunTest(nestingLevel, runTest);
+
+            static void runTest(int nestingLevel)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine(
+@"class Program
+{
+    static bool F(int i) => true;
+    static void Main()
+    {");
+                for (int i = 0; i < nestingLevel; i++)
+                {
+                    builder.AppendLine(
+$@"        if (F({i}))
+        {{");
+                }
+                for (int i = 0; i < nestingLevel; i++)
+                {
+                    builder.AppendLine("        }");
+                }
+                builder.AppendLine(
+@"    }
+}");
+                var source = builder.ToString();
+                RunInThread(() =>
+                {
+                    var comp = CreateCompilation(source);
+                    comp.VerifyDiagnostics();
                 });
             }
         }

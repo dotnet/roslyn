@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -15,6 +17,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
     {
         protected PreferFrameworkTypeDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
+                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -26,11 +29,11 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         private static PerLanguageOption<CodeStyleOption<bool>> GetOptionForMemberAccessContext
             => CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
 
-        public override bool OpenFileOnly(Workspace workspace)
+        public override bool OpenFileOnly(OptionSet options)
         {
-            var preferTypeKeywordInDeclarationOption = workspace.Options.GetOption(
+            var preferTypeKeywordInDeclarationOption = options.GetOption(
                 CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
-            var preferTypeKeywordInMemberAccessOption = workspace.Options.GetOption(
+            var preferTypeKeywordInMemberAccessOption = options.GetOption(
                 CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
 
             return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
@@ -77,8 +80,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             }
 
             // check we have a symbol so that the fixer can generate the right type syntax from it.
-            var typeSymbol = semanticModel.GetSymbolInfo(predefinedTypeNode, cancellationToken).Symbol as ITypeSymbol;
-            if (typeSymbol == null)
+            if (!(semanticModel.GetSymbolInfo(predefinedTypeNode, cancellationToken).Symbol is ITypeSymbol typeSymbol))
             {
                 return;
             }

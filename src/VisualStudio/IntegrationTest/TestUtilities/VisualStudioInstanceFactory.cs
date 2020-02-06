@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -328,22 +330,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable background download UI to avoid toasts
                 Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0").WaitForExit();
 
-                // Enable or disable async completion as necessary for integration testing
-                var usingAsyncCompletion = LegacyCompletionCondition.Instance.ShouldSkip;
-                var useAsyncCompletionSetting = usingAsyncCompletion ? 1 : -1;
-                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\WindowManagement\\Options\" UseAsyncCompletion string \"1*System.Int32*{useAsyncCompletionSetting}\"").WaitForExit();
-
+                // Remove legacy experiment setting for controlling async completion to ensure it does not interfere.
+                // We no longer set this value, but it could be in place from an earlier test run on the same machine.
                 var disabledFlights = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", Array.Empty<string>()) as string[] ?? Array.Empty<string>();
-                if (usingAsyncCompletion)
+                if (disabledFlights.Any(flight => string.Equals(flight, "completionapi", StringComparison.OrdinalIgnoreCase)))
                 {
                     disabledFlights = disabledFlights.Where(flight => !string.Equals(flight, "completionapi", StringComparison.OrdinalIgnoreCase)).ToArray();
+                    Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", disabledFlights, RegistryValueKind.MultiString);
                 }
-                else if (!disabledFlights.Contains("completionapi", StringComparer.OrdinalIgnoreCase))
-                {
-                    disabledFlights = disabledFlights.Concat(new[] { "completionapi" }).ToArray();
-                }
-
-                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", disabledFlights, RegistryValueKind.MultiString);
 
                 // Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
                 // custom handler or fail silently and continue testing.

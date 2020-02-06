@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -111,40 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Is this a context in which a stackalloc expression could be converted to the corresponding pointer
-        /// type? The only context that permits it is the initialization of a local variable declaration (when
-        /// the declaration appears as a statement or as the first part of a for loop).
-        /// </summary>
-        internal static bool IsLocalVariableDeclarationInitializationForPointerStackalloc(this SyntaxNode node)
-        {
-            Debug.Assert(node != null);
-
-            SyntaxNode equalsValueClause = node.Parent;
-
-            if (!equalsValueClause.IsKind(SyntaxKind.EqualsValueClause))
-            {
-                return false;
-            }
-
-            SyntaxNode variableDeclarator = equalsValueClause.Parent;
-
-            if (!variableDeclarator.IsKind(SyntaxKind.VariableDeclarator))
-            {
-                return false;
-            }
-
-            SyntaxNode variableDeclaration = variableDeclarator.Parent;
-            if (!variableDeclaration.IsKind(SyntaxKind.VariableDeclaration))
-            {
-                return false;
-            }
-
-            return
-                variableDeclaration.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ||
-                variableDeclaration.Parent.IsKind(SyntaxKind.ForStatement);
-        }
-
-        /// <summary>
         /// Because the instruction cannot have any values on the stack before CLR execution
         /// we limited it to assignments and conditional expressions in C# 7.
         /// See https://github.com/dotnet/roslyn/issues/22046.
@@ -193,20 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static CSharpSyntaxNode AnonymousFunctionBody(this SyntaxNode lambda)
-        {
-            switch (lambda.Kind())
-            {
-                case SyntaxKind.SimpleLambdaExpression:
-                    return ((SimpleLambdaExpressionSyntax)lambda).Body;
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                    return ((ParenthesizedLambdaExpressionSyntax)lambda).Body;
-                case SyntaxKind.AnonymousMethodExpression:
-                    return ((AnonymousMethodExpressionSyntax)lambda).Block;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(lambda.Kind());
-            }
-        }
+            => ((AnonymousFunctionExpressionSyntax)lambda).Body;
 
         /// <summary>
         /// Given an initializer expression infer the name of anonymous property or tuple element.

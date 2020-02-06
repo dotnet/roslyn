@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -26,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private readonly Action<ObjectWriter, CancellationToken> _writer;
 
-        public SimpleCustomAsset(WellKnownSynchronizationKind kind, Action<ObjectWriter, CancellationToken> writer) :
-            base(CreateChecksumFromStreamWriter(kind, writer), kind)
+        public SimpleCustomAsset(WellKnownSynchronizationKind kind, Action<ObjectWriter, CancellationToken> writer)
+            : base(CreateChecksumFromStreamWriter(kind, writer), kind)
         {
             // unlike SolutionAsset which gets checksum from solution states, this one build one by itself.
             _writer = writer;
@@ -41,13 +43,16 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private static Checksum CreateChecksumFromStreamWriter(WellKnownSynchronizationKind kind, Action<ObjectWriter, CancellationToken> writer)
         {
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var objectWriter = new ObjectWriter(stream))
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
             {
                 objectWriter.WriteInt32((int)kind);
                 writer(objectWriter, CancellationToken.None);
-                return Checksum.Create(stream);
             }
+
+            stream.Position = 0;
+            return Checksum.Create(stream);
         }
     }
 
@@ -82,8 +87,8 @@ namespace Microsoft.CodeAnalysis.Execution
             return new WorkspaceAnalyzerReferenceAsset(reference, serializer, checksum);
         }
 
-        private WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, ISerializerService serializer, Checksum checksum) :
-            base(checksum, WellKnownSynchronizationKind.AnalyzerReference)
+        private WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, ISerializerService serializer, Checksum checksum)
+            : base(checksum, WellKnownSynchronizationKind.AnalyzerReference)
         {
             _reference = reference;
             _serializer = serializer;

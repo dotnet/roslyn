@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Linq;
@@ -349,38 +353,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.Nullable = "disable";
             Assert.Equal("/nullable:disable /out:test.exe test.cs", csc.GenerateResponseFileContents());
-        }
-
-        [Theory]
-        [InlineData(null, "disable")]
-        [InlineData("", "disable")]
-        [InlineData("enable", "disable")]
-        [InlineData("other", "disable")]
-        [InlineData("disable", null)]
-        [InlineData("disable", "")]
-        public void NullableReferenceTypes_NullableWins_Disable(string nullableContextOptions, string nullable)
-        {
-            var csc = new Csc();
-            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            csc.NullableContextOptions = nullableContextOptions;
-            csc.Nullable = nullable;
-            Assert.Equal("/nullable:disable /out:test.exe test.cs", csc.GenerateResponseFileContents());
-        }
-
-        [Theory]
-        [InlineData(null, "enable")]
-        [InlineData("", "enable")]
-        [InlineData("disable", "enable")]
-        [InlineData("other", "enable")]
-        [InlineData("enable", null)]
-        [InlineData("enable", "")]
-        public void NullableReferenceTypes_NullableWins_Enable(string nullableContextOptions, string nullable)
-        {
-            var csc = new Csc();
-            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            csc.NullableContextOptions = nullableContextOptions;
-            csc.Nullable = nullable;
-            Assert.Equal("/nullable:enable /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
 
         [Fact]

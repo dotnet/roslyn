@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Text
 Imports System.Threading
@@ -16,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                                                   spans As ArrayBuilder(Of BlockSpan),
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
-            Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNullable()
-            Dim lastCommentToken = documentationComment.ChildNodesAndTokens().LastOrNullable()
+            Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNull()
+            Dim lastCommentToken = documentationComment.ChildNodesAndTokens().LastOrNull()
             If firstCommentToken Is Nothing Then
                 Return
             End If

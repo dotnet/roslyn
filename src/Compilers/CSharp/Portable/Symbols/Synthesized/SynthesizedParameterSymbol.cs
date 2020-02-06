@@ -1,11 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -39,15 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = name;
         }
 
-        public override TypeWithAnnotations TypeWithAnnotations
-        {
-            get { return _type; }
-        }
+        public override TypeWithAnnotations TypeWithAnnotations => _type;
 
-        public override RefKind RefKind
-        {
-            get { return _refKind; }
-        }
+        public override RefKind RefKind => _refKind;
+
+        public sealed override bool IsDiscard => false;
 
         internal override bool IsMetadataIn => RefKind == RefKind.In;
 
@@ -120,6 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return FlowAnalysisAnnotations.None; }
         }
 
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get { return ImmutableHashSet<string>.Empty; }
+        }
+
         public override Symbol ContainingSymbol
         {
             get { return _container; }
@@ -159,9 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
-            if (TypeWithAnnotations.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeWithAnnotations));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, GetNullableContextValue(), type));
             }
 
             if (this.RefKind == RefKind.RefReadOnly)

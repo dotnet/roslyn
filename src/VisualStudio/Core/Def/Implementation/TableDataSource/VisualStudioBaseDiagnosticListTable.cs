@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,10 +29,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StandardTableColumnDefinitions.BuildTool,
             StandardTableColumnDefinitions.ErrorSource,
             StandardTableColumnDefinitions.DetailsExpander,
-            SuppressionStateColumnDefinition.ColumnName
+            StandardTableColumnDefinitions.SuppressionState
         };
 
-        protected VisualStudioBaseDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
+        protected VisualStudioBaseDiagnosticListTable(Workspace workspace, ITableManagerProvider provider) :
             base(workspace, provider, StandardTables.ErrorsTable)
         {
         }
@@ -40,54 +42,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static __VSERRORCATEGORY GetErrorCategory(DiagnosticSeverity severity)
         {
             // REVIEW: why is it using old interface for new API?
-            switch (severity)
+            return severity switch
             {
-                case DiagnosticSeverity.Error:
-                    return __VSERRORCATEGORY.EC_ERROR;
-                case DiagnosticSeverity.Warning:
-                    return __VSERRORCATEGORY.EC_WARNING;
-                case DiagnosticSeverity.Info:
-                    return __VSERRORCATEGORY.EC_MESSAGE;
-                default:
-                    return Contract.FailWithReturn<__VSERRORCATEGORY>();
-            }
-        }
-
-        public static string GetHelpLink(Workspace workspace, DiagnosticData data)
-        {
-            if (BrowserHelper.TryGetUri(data.HelpLink, out var link))
-            {
-                return link.AbsoluteUri;
-            }
-
-            if (!string.IsNullOrWhiteSpace(data.Id))
-            {
-                return BrowserHelper.CreateBingQueryUri(workspace, data).AbsoluteUri;
-            }
-
-            return null;
-        }
-
-        public static string GetHelpLinkToolTipText(Workspace workspace, DiagnosticData item)
-        {
-            var isBing = false;
-            if (!BrowserHelper.TryGetUri(item.HelpLink, out var helpUri) && !string.IsNullOrWhiteSpace(item.Id))
-            {
-                helpUri = BrowserHelper.CreateBingQueryUri(workspace, item);
-                isBing = true;
-            }
-
-            // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url displayed in the tooltip stays human readable.
-            if (helpUri != null)
-            {
-                var prefix = isBing
-                    ? string.Format(ServicesVSResources.Get_help_for_0_from_Bing, item.Id)
-                    : string.Format(ServicesVSResources.Get_help_for_0, item.Id);
-
-                return $"{prefix}\r\n{helpUri}";
-            }
-
-            return null;
+                DiagnosticSeverity.Error => __VSERRORCATEGORY.EC_ERROR,
+                DiagnosticSeverity.Warning => __VSERRORCATEGORY.EC_WARNING,
+                DiagnosticSeverity.Info => __VSERRORCATEGORY.EC_MESSAGE,
+                _ => Contract.FailWithReturn<__VSERRORCATEGORY>(),
+            };
         }
 
         protected abstract class DiagnosticTableEntriesSource : AbstractTableEntriesSource<DiagnosticTableItem>
@@ -112,8 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override bool Equals(object obj)
             {
-                var other = obj as AggregatedKey;
-                if (other == null)
+                if (!(obj is AggregatedKey other))
                 {
                     return false;
                 }

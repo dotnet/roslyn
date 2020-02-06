@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -179,8 +181,13 @@ namespace Microsoft.CodeAnalysis.Rename
 
                     switch (target)
                     {
-                        case INamedTypeSymbol nt: return nt.ConstructedFrom.Equals(referencedSymbol);
-                        case INamespaceOrTypeSymbol s: return s.Equals(referencedSymbol);
+                        case INamedTypeSymbol nt:
+                            return nt.ConstructedFrom.Equals(referencedSymbol)
+                                || IsConstructorForType(possibleConstructor: referencedSymbol, possibleType: nt);
+
+                        case INamespaceOrTypeSymbol s:
+                            return s.Equals(referencedSymbol);
+
                         default: return false;
                     }
                 }
@@ -188,6 +195,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 // cascade from property accessor to property (someone in C# renames base.get_X, or the accessor override)
                 if (await IsPropertyAccessorOrAnOverride(referencedSymbol, solution, cancellationToken).ConfigureAwait(false) ||
                     await IsPropertyAccessorOrAnOverride(originalSymbol, solution, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+
+                // cascade from constructor to named type
+                if (IsConstructorForType(possibleConstructor: referencedSymbol, possibleType: originalSymbol))
                 {
                     return true;
                 }
@@ -201,6 +214,14 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
 
                 return false;
+
+                // Local functions
+                static bool IsConstructorForType(ISymbol possibleConstructor, ISymbol possibleType)
+                {
+                    return possibleConstructor.IsConstructor()
+                        && possibleType is INamedTypeSymbol namedType
+                        && Equals(possibleConstructor.ContainingType.ConstructedFrom, namedType.ConstructedFrom);
+                }
             }
 
             internal static async Task<SymbolAndProjectId> GetPropertyFromAccessorOrAnOverride(
@@ -255,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             private static string TrimNameToAfterLastDot(string name)
             {
-                int position = name.LastIndexOf('.');
+                var position = name.LastIndexOf('.');
 
                 if (position == -1)
                 {
@@ -419,8 +440,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
 
                 var renameText = originalSymbol.Name;
-                List<RenameLocation> stringLocations = renameInStrings ? new List<RenameLocation>() : null;
-                List<RenameLocation> commentLocations = renameInComments ? new List<RenameLocation>() : null;
+                var stringLocations = renameInStrings ? new List<RenameLocation>() : null;
+                var commentLocations = renameInComments ? new List<RenameLocation>() : null;
 
                 foreach (var documentsGroupedByLanguage in RenameUtilities.GetDocumentsAffectedByRename(originalSymbol, solution, renameLocations).GroupBy(d => d.Project.Language))
                 {
@@ -493,15 +514,15 @@ namespace Microsoft.CodeAnalysis.Rename
                 var regex = GetRegexForMatch(renameText);
                 foreach (var renameStringAndPosition in renameStringsAndPositions)
                 {
-                    string renameString = renameStringAndPosition.Item1;
-                    int renameStringPosition = renameStringAndPosition.Item2;
+                    var renameString = renameStringAndPosition.Item1;
+                    var renameStringPosition = renameStringAndPosition.Item2;
                     var containingSpan = renameStringAndPosition.Item3;
 
-                    MatchCollection matches = regex.Matches(renameString);
+                    var matches = regex.Matches(renameString);
 
                     foreach (Match match in matches)
                     {
-                        int start = renameStringPosition + match.Index;
+                        var start = renameStringPosition + match.Index;
                         Debug.Assert(renameText.Length == match.Length);
                         var matchTextSpan = new TextSpan(start, renameText.Length);
                         var matchLocation = tree.GetLocation(matchTextSpan);

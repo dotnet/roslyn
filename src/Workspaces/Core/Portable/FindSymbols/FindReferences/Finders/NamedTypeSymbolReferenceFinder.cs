@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -86,71 +88,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var namedTypeReferences = await FindReferencesInDocumentWorker(
-                namedType, document, semanticModel, cancellationToken).ConfigureAwait(false);
-
-            // Mark any references that are also Constructor references.  Some callers
-            // will want to know about these so they won't display duplicates.
-            return await MarkConstructorReferences(
-                namedType, document, semanticModel, namedTypeReferences, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<ImmutableArray<FinderLocation>> MarkConstructorReferences(
-            INamedTypeSymbol namedType, Document document,
-            SemanticModel semanticModel,
-            ImmutableArray<FinderLocation> namedTypeReferences,
-            CancellationToken cancellationToken)
-        {
-            var constructorReferences = ArrayBuilder<FinderLocation>.GetInstance();
-            foreach (var constructor in namedType.Constructors)
-            {
-                var references = await ConstructorSymbolReferenceFinder.Instance.FindAllReferencesInDocumentAsync(
-                    constructor, document, semanticModel, cancellationToken).ConfigureAwait(false);
-                constructorReferences.AddRange(references);
-            }
-
-            var result = ArrayBuilder<FinderLocation>.GetInstance();
-            foreach (var finderLocation in namedTypeReferences)
-            {
-                if (Contains(constructorReferences, finderLocation))
-                {
-                    var location = finderLocation.Location;
-                    location.IsDuplicateReferenceLocation = true;
-                    result.Add(finderLocation);
-                }
-                else
-                {
-                    result.Add(finderLocation);
-                }
-            }
-
-            return result.ToImmutableAndFree();
-        }
-
-        private bool Contains(
-            ArrayBuilder<FinderLocation> constructorReferences,
-            FinderLocation reference)
-        {
-            foreach (var constructorRef in constructorReferences)
-            {
-                if (reference.Location.Location == constructorRef.Location.Location)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentWorker(
-            INamedTypeSymbol namedType,
-            Document document,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
             var nonAliasReferences = await FindNonAliasReferencesAsync(namedType, document, semanticModel, cancellationToken).ConfigureAwait(false);
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
-            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, namedType, document, semanticModel, symbolsMatch, cancellationToken).ConfigureAwait(false);
+            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, document, semanticModel, symbolsMatch, cancellationToken).ConfigureAwait(false);
             return nonAliasReferences.Concat(aliasReferences);
         }
 
@@ -191,7 +131,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            return FindReferencesInDocumentAsync(symbol, document, semanticModel, t =>
+            return FindReferencesInDocumentAsync(document, semanticModel, t =>
                 IsPotentialReference(predefinedType, syntaxFacts, t),
                 (t, m) => (matched: true, reason: CandidateReason.None),
                 cancellationToken);

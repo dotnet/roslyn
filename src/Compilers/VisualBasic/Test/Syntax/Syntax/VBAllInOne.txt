@@ -861,7 +861,7 @@ Class Customer
 
     Public AGe As Integer
 
-    Public Postion As String
+    Public Position As String
 
     Public Level As Integer = 0
 
@@ -946,8 +946,8 @@ Class GooGen(Of t)
         End Sub
 
         Sub Method1()
-            Dim x As New Customer With {.name = "Test", .AGe = 30, .Level = 1, .Postion = "SDET"}
-            Dim x2 As New Customer With {.name = "Test", .AGe = 30, .Level = 1, .Postion = "SDET", .age2 =.AGe}
+            Dim x As New Customer With {.name = "Test", .AGe = 30, .Level = 1, .Position = "SDET"}
+            Dim x2 As New Customer With {.name = "Test", .AGe = 30, .Level = 1, .Position = "SDET", .age2 =.AGe}
         End Sub
     End Structure
 End Class

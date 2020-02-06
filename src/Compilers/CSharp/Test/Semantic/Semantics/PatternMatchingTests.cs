@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -1156,7 +1158,7 @@ True");
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
 
-            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl[0])).TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((ILocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl[0])).Type.ToTestDisplayString());
 
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (12,40): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
@@ -3478,13 +3480,13 @@ unsafe struct S
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").Single();
-            Assert.True(((TypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type).IsErrorType());
+            Assert.True(((ITypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type).IsErrorType());
             VerifyModelNotSupported(model, x1Decl, x1Ref);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelNotSupported(model, x2Decl, x2Ref);
-            Assert.True(((TypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x2Ref).Type).IsErrorType());
+            Assert.True(((ITypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x2Ref).Type).IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (5,17): error CS7092: A fixed buffer may only have one dimension.
@@ -4461,12 +4463,12 @@ unsafe public class Typ
                 // (13,31): error CS1525: Invalid expression term 'int'
                 //             switch (a) { case int* b: break; }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(13, 31),
-                // (5,37): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
+                // (5,42): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
                 //     public static void Main(int* a, var* c, Typ* e)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "var*").WithArguments("var").WithLocation(5, 37),
-                // (5,45): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Typ')
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("var").WithLocation(5, 42),
+                // (5,50): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Typ')
                 //     public static void Main(int* a, var* c, Typ* e)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "Typ*").WithArguments("Typ").WithLocation(5, 45),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "e").WithArguments("Typ").WithLocation(5, 50),
                 // (8,27): error CS0103: The name 'b' does not exist in the current context
                 //             if (a is int* b) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(8, 27),
@@ -6023,25 +6025,31 @@ unsafe public class C {
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 23),
                 // (7,23): error CS1525: Invalid expression term 'ref'
                 //         var r1 = z is ref int z0;        // syntax error 2
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(7, 23),
-                // (7,23): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref int").WithArguments("ref").WithLocation(7, 23),
+                // (7,27): error CS1525: Invalid expression term 'int'
                 //         var r1 = z is ref int z0;        // syntax error 2
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(7, 23),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 27),
+                // (7,31): error CS1002: ; expected
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "z0").WithLocation(7, 31),
                 // (6,28): error CS0103: The name 'p0' does not exist in the current context
                 //         var p1 = p is int* p0;           // syntax error 1
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "p0").WithArguments("p0").WithLocation(6, 28),
-                // (7,31): error CS8174: A declaration of a by-reference variable must have an initializer
+                // (7,23): error CS1073: Unexpected token 'ref'
                 //         var r1 = z is ref int z0;        // syntax error 2
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "z0").WithLocation(7, 31),
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(7, 23),
+                // (7,31): error CS0103: The name 'z0' does not exist in the current context
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z0").WithArguments("z0").WithLocation(7, 31),
+                // (7,31): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "z0").WithLocation(7, 31),
                 // (9,23): error CS8121: An expression of type 'TypedReference' cannot be handled by a pattern of type 'object'.
                 //         var b1 = x is object o1;         // not allowed 1
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.TypedReference", "object").WithLocation(9, 23),
-                // (10,23): error CS8421: Pattern-matching is not permitted for pointer types.
+                // (10,23): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         var b2 = p is object o2;         // not allowed 2
-                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "object").WithLocation(10, 23),
-                // (7,31): warning CS0168: The variable 'z0' is declared but never used
-                //         var r1 = z is ref int z0;        // syntax error 2
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "z0").WithArguments("z0").WithLocation(7, 31)
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "object").WithLocation(10, 23)
                 );
         }
 
@@ -6396,28 +6404,35 @@ False";
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (6,18): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (6,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default) {} // error 1
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 18),
-                // (7,19): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (7,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default)) {} // error 2
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(7, 19),
-                // (8,21): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (8,21): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (((default)))) {} // error 3
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(8, 21),
-                // (9,27): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                // (9,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case default: break; } // error 4
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(9, 27),
-                // (10,28): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(9, 27),
+                // (10,28): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case (default): break; } // error 5
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(10, 28),
-                // (11,27): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 28),
+                // (11,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case default when true: break; } // error 6
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(11, 27),
-                // (12,28): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (12,28): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case (default) when true: break; } // error 7
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(12, 28)
                 );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var caseDefault = tree.GetRoot().DescendantNodes().OfType<CasePatternSwitchLabelSyntax>().First();
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+            Assert.Equal("System.Int32", model.GetTypeInfo(caseDefault.Pattern).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(caseDefault.Pattern).ConvertedType.ToTestDisplayString());
+            Assert.False(model.GetConstantValue(caseDefault.Pattern).HasValue);
         }
 
         [Fact]
@@ -6840,6 +6855,83 @@ public class C
 }
 ").VerifyDiagnostics(
                 );
+        }
+
+        [Fact]
+        [WorkItem(39960, "https://github.com/dotnet/roslyn/issues/39960")]
+        public void MissingExceptionType()
+        {
+            var source = @"
+class C
+{
+    void M(bool b, dynamic d)
+    {
+        _ = b
+            ? throw new System.NullReferenceException()
+            : throw null;
+        L();
+        throw null;
+        void L() => throw d;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //             ? throw new System.NullReferenceException()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new System.NullReferenceException()").WithArguments("System.Exception").WithLocation(7, 21),
+                // (8,21): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //             : throw null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "null").WithArguments("System.Exception").WithLocation(8, 21),
+                // (10,15): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //         throw null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "null").WithArguments("System.Exception").WithLocation(10, 15),
+                // (11,27): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //         void L() => throw d;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Exception").WithLocation(11, 27)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS0155: The type caught or thrown must be derived from System.Exception
+                //             ? throw new System.NullReferenceException()
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "new System.NullReferenceException()").WithLocation(7, 21),
+                // (11,27): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         void L() => throw d;
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "d").WithLocation(11, 27)
+                );
+        }
+
+        [Fact]
+        public void MissingExceptionType_In7()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            Test();
+        }
+        catch
+        {
+            System.Console.WriteLine(""in catch"");
+        }
+    }
+
+    static void Test()
+    {
+        throw null;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                );
+            CompileAndVerify(comp, expectedOutput: "in catch");
         }
     }
 }

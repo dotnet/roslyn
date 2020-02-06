@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -144,6 +146,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
             get { return null; }
@@ -179,7 +186,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _returnType; }
         }
 
-        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         // In error recovery and type inference scenarios we do not know the return type
         // until after the body is bound, but the symbol is created before the body
@@ -188,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void SetInferredReturnType(RefKind refKind, TypeWithAnnotations inferredReturnType)
         {
             Debug.Assert(inferredReturnType.HasType);
-            Debug.Assert((object)_returnType.Type == ReturnTypeIsBeingInferred);
+            Debug.Assert(_returnType.Type.IsErrorType());
             _refKind = refKind;
             _returnType = inferredReturnType;
         }
@@ -357,7 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
-                var parameter = new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
+
+                var parameter = new SourceSimpleParameterSymbol(owner: this, type, ordinal: p, refKind, name, unboundLambda.ParameterIsDiscard(p), locations);
 
                 builder.Add(parameter);
             }
@@ -367,17 +379,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        public sealed override bool Equals(object symbol)
+        public sealed override bool Equals(Symbol symbol, TypeCompareKind compareKind)
         {
             if ((object)this == symbol) return true;
 
-            var lambda = symbol as LambdaSymbol;
-            return (object)lambda != null
+            return symbol is LambdaSymbol lambda
                 && lambda._syntax == _syntax
                 && lambda._refKind == _refKind
-                && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, TypeCompareKind.ConsiderEverything2)
-                && System.Linq.ImmutableArrayExtensions.SequenceEqual(lambda.ParameterTypesWithAnnotations, this.ParameterTypesWithAnnotations, (p1, p2) => p1.Type.Equals(p2.Type))
-                && Equals(lambda.ContainingSymbol, this.ContainingSymbol);
+                && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, compareKind)
+                && ParameterTypesWithAnnotations.SequenceEqual(lambda.ParameterTypesWithAnnotations, compareKind,
+                                                               (p1, p2, compareKind) => p1.Equals(p2, compareKind))
+                && lambda.ContainingSymbol.Equals(ContainingSymbol, compareKind);
         }
 
         public override int GetHashCode()

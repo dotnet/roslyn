@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -491,8 +493,15 @@ public class P2 { }");
                 "Generate nested class 'Stream'",
                 "Generate new type...",
                 "Remove unused variable",
+                "Suppress or Configure issues",
                 "Suppress CS0168",
-                "in Source"
+                "in Source",
+                "Configure CS0168 severity",
+                "None",
+                "Silent",
+                "Suggestion",
+                "Warning",
+                "Error",
             };
 
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
@@ -531,8 +540,15 @@ namespace NS
                 "Generate nested class 'Foober'",
                 "Generate new type...",
                 "Goober - using N;",
+                "Suppress or Configure issues",
                 "Suppress CS0168",
                 "in Source",
+                "Configure CS0168 severity",
+                "None",
+                "Silent",
+                "Suggestion",
+                "Warning",
+                "Error",
             };
 
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
@@ -564,10 +580,17 @@ class Program
                 "Introduce constant for all occurrences of '2'",
                 "Introduce local constant for '2'",
                 "Introduce local constant for all occurrences of '2'",
-                "Extract Method",
+                "Extract method",
                 generateImplicitTitle,
+                "Suppress or Configure issues",
                 "Suppress CS0612",
                 "in Source",
+                "Configure CS0612 severity",
+                "None",
+                "Silent",
+                "Suggestion",
+                "Warning",
+                "Error",
             };
 
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: generateImplicitTitle, ensureExpectedItemsAreOrdered: true);
@@ -621,6 +644,61 @@ public class Program
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
             VisualStudio.Editor.Verify.TextContains("using System.Runtime.InteropServices");
 
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        public void ConfigureCodeStyleOptionValueAndSeverity()
+        {
+            SetUpEditor(@"
+using System;
+public class Program
+{
+    static void Main(string[] args)
+    {
+        var $$x = new Program();
+    }
+}");
+            VisualStudio.Editor.InvokeCodeActionList();
+            var expectedItems = new[]
+            {
+                "Use discard '__'",  // IDE0059
+                "Use explicit type instead of 'var'",   // IDE0008
+                "Introduce local",
+                    "Introduce local for 'new Program()'",
+                    "Introduce local for all occurrences of 'new Program()'",
+                "Suppress or Configure issues",
+                    "Configure IDE0008 code style",
+                        "csharp__style__var__elsewhere",
+                            "true",
+                            "false",
+                        "csharp__style__var__for__built__in__types",
+                            "true",
+                            "false",
+                        "csharp__style__var__when__type__is__apparent",
+                            "true",
+                            "false",
+                    "Configure IDE0008 severity",
+                        "None",
+                        "Silent",
+                        "Suggestion",
+                        "Warning",
+                        "Error",
+                    "Suppress IDE0059",
+                        "in Source",
+                        "in Suppression File",
+                        "in Source (attribute)",
+                    "Configure IDE0059 code style",
+                        "unused__local__variable",
+                        "discard__variable",
+                    "Configure IDE0059 severity",
+                        "None",
+                        "Silent",
+                        "Suggestion",
+                        "Warning",
+                        "Error",
+            };
+
+            VisualStudio.Editor.Verify.CodeActions(expectedItems, ensureExpectedItemsAreOrdered: true);
         }
     }
 }

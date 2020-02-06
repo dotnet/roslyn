@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -133,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 {
                     _trackingPoint = textView.TextSnapshot.CreateTrackingPoint(0, PointTrackingMode.Negative);
                     _trackingSpan = textView.TextSnapshot.CreateTrackingSpan(new Span(), SpanTrackingMode.EdgeInclusive);
-                    this.GetEventNameTask = SpecializedTasks.Default<string>();
+                    this.GetEventNameTask = SpecializedTasks.Null<string>();
                     eventHookupSessionManager.CancelAndDismissExistingSessions();
                 }
             }
@@ -191,8 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             private IEventSymbol GetEventSymbol(SemanticModel semanticModel, SyntaxToken plusEqualsToken, CancellationToken cancellationToken)
             {
                 AssertIsBackground();
-                var parentToken = plusEqualsToken.Parent as AssignmentExpressionSyntax;
-                if (parentToken == null)
+                if (!(plusEqualsToken.Parent is AssignmentExpressionSyntax parentToken))
                 {
                     return null;
                 }

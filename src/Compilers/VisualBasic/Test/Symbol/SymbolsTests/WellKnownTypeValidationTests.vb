@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -513,6 +515,8 @@ End Namespace
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
                          WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_NullableContextAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
                          WellKnownType.System_Index,
@@ -574,6 +578,8 @@ End Namespace
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
                          WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_NullableContextAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
                          WellKnownType.System_Index,
@@ -641,6 +647,8 @@ End Namespace
                     Case WellKnownMember.System_Array__Empty,
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor,
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
@@ -778,6 +786,8 @@ End Namespace
                     Case WellKnownMember.System_Array__Empty,
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor,
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,

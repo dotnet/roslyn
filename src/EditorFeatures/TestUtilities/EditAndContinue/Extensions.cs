@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             return diagnostics.Select(d => new RudeEditDiagnosticDescription(
                 d.Kind,
-                d.Span == default(TextSpan) ? null : newSource.Substring(d.Span.Start, d.Span.Length),
+                d.Span == default ? null : newSource.Substring(d.Span.Start, d.Span.Length),
                 d.Arguments,
                 firstLine: includeFirstLines ? GetLineAt(newSource, d.Span.Start) : null));
         }
@@ -30,17 +32,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private static string GetLineAt(string source, int position)
         {
-            int start = source.LastIndexOf(LineSeparator, position, position);
-            int end = source.IndexOf(LineSeparator, position);
+            var start = source.LastIndexOf(LineSeparator, position, position);
+            var end = source.IndexOf(LineSeparator, position);
             return source.Substring(start + 1, end - start).Trim();
         }
 
         public static IEnumerable<string> ToLines(this string str)
         {
-            int i = 0;
+            var i = 0;
             while (true)
             {
-                int eoln = str.IndexOf(LineSeparator, i, StringComparison.Ordinal);
+                var eoln = str.IndexOf(LineSeparator, i, StringComparison.Ordinal);
                 if (eoln < 0)
                 {
                     yield return str.Substring(i);

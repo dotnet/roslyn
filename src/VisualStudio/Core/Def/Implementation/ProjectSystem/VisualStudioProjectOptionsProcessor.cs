@@ -1,12 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private CommandLineArguments _commandLineArgumentsForCommandLine;
         private string _explicitRuleSetFilePath;
         private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>> _ruleSetFile = null;
-        private readonly IOptionService _optionService;
 
         public VisualStudioProjectOptionsProcessor(VisualStudioProject project, HostWorkspaceServices workspaceServices)
         {
@@ -36,15 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in the constructor so nothing can race.
             ReparseCommandLine_NoLock();
-
-            _optionService = workspaceServices.GetRequiredService<IOptionService>();
-
-            // For C#, we need to listen to the options for NRT analysis 
-            // that can change in VS through tools > options
-            if (_project.Language == LanguageNames.CSharp)
-            {
-                _optionService.OptionChanged += OptionService_OptionChanged;
-            }
         }
 
         public string CommandLine
@@ -112,15 +102,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
-        {
-            if (e.Option.Name == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Name
-                && e.Option.Feature == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Feature)
-            {
-                UpdateProjectForNewHostValues();
-            }
-        }
-
         private void DisposeOfRuleSetFile_NoLock()
         {
             if (_ruleSetFile != null)
@@ -177,8 +158,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var parseOptions = _commandLineArgumentsForCommandLine.ParseOptions
                 .WithDocumentationMode(documentationMode);
 
-            parseOptions = ComputeOptionsServiceParseOptions(parseOptions);
-
             // We've computed what the base values should be; we now give an opportunity for any host-specific settings to be computed
             // before we apply them
             compilationOptions = ComputeCompilationOptionsWithHostValues(compilationOptions, this._ruleSetFile?.Target.Value);
@@ -189,31 +168,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project.AssemblyName = _commandLineArgumentsForCommandLine.CompilationName ?? _project.AssemblyName;
             _project.CompilationOptions = compilationOptions;
 
-            string fullIntermediateOutputPath = _commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null
+            var fullIntermediateOutputPath = _commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null
                                                     ? Path.Combine(_commandLineArgumentsForCommandLine.OutputDirectory, _commandLineArgumentsForCommandLine.OutputFileName)
                                                     : _commandLineArgumentsForCommandLine.OutputFileName;
 
             _project.IntermediateOutputFilePath = fullIntermediateOutputPath ?? _project.IntermediateOutputFilePath;
             _project.ParseOptions = parseOptions;
-        }
-
-        private ParseOptions ComputeOptionsServiceParseOptions(ParseOptions parseOptions)
-        {
-            if (_project.Language == LanguageNames.CSharp)
-            {
-                var useNullableReferenceAnalysisOption = _optionService.GetOption(FeatureOnOffOptions.UseNullableReferenceTypeAnalysis);
-
-                if (useNullableReferenceAnalysisOption == -1)
-                {
-                    parseOptions = parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "false") });
-                }
-                else if (useNullableReferenceAnalysisOption == 1)
-                {
-                    parseOptions = parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "true") });
-                }
-            }
-
-            return parseOptions;
         }
 
         private void RuleSetFile_UpdatedOnDisk(object sender, EventArgs e)
@@ -274,7 +234,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 DisposeOfRuleSetFile_NoLock();
-                _optionService.OptionChanged -= OptionService_OptionChanged;
             }
         }
     }

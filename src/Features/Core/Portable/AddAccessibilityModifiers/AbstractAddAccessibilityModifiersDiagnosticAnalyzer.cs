@@ -1,7 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
     {
         protected AbstractAddAccessibilityModifiersDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
+                   CodeStyleOptions.RequireAccessibilityModifiers,
                    new LocalizableResourceString(nameof(FeaturesResources.Add_accessibility_modifiers), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Accessibility_modifiers_required), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -30,8 +31,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             var cancellationToken = context.CancellationToken;
             var syntaxTree = context.Tree;
 
-            var workspaceAnalyzerOptions = context.Options as WorkspaceAnalyzerOptions;
-            if (workspaceAnalyzerOptions == null)
+            if (!(context.Options is WorkspaceAnalyzerOptions workspaceAnalyzerOptions))
             {
                 return;
             }

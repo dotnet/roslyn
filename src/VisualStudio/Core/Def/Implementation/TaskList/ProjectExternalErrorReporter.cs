@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,8 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -17,47 +21,38 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
-    internal class ProjectExternalErrorReporter : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
+    internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
     {
         internal static readonly IReadOnlyList<string> CustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry);
         internal static readonly IReadOnlyList<string> CompilerDiagnosticCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry);
 
         private readonly ProjectId _projectId;
         private readonly string _errorCodePrefix;
+        private readonly string _language;
 
-        private readonly VisualStudioWorkspace _workspace;
-        private readonly ExternalErrorDiagnosticUpdateSource _diagnosticProvider;
+        private readonly VisualStudioWorkspaceImpl _workspace;
 
-        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspace workspace, ExternalErrorDiagnosticUpdateSource diagnosticProvider)
+        [Obsolete("This is a compatibility shim for F#; please do not use it.")]
+        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
+            : this(projectId, errorCodePrefix, LanguageNames.FSharp, (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>())
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            _workspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
+        }
+
+        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, string language, VisualStudioWorkspaceImpl workspace)
         {
             Debug.Assert(projectId != null);
             Debug.Assert(errorCodePrefix != null);
             Debug.Assert(workspace != null);
-            Debug.Assert(diagnosticProvider != null);
 
             _projectId = projectId;
             _errorCodePrefix = errorCodePrefix;
+            _language = language;
             _workspace = workspace;
-            _diagnosticProvider = diagnosticProvider;
-
-            KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
-            {
-                KnownUIContexts.SolutionBuildingContext.UIContextChanged += OnSolutionBuild;
-                _diagnosticProvider.OnSolutionBuildStarted();
-            });
         }
 
-        private void OnSolutionBuild(object sender, UIContextChangedEventArgs e)
-        {
-            if (e.Activated)
-            {
-                _diagnosticProvider.OnSolutionBuildStarted();
-            }
-            else
-            {
-                _diagnosticProvider.OnSolutionBuildCompleted();
-            }
-        }
+        private ExternalErrorDiagnosticUpdateSource DiagnosticProvider => _workspace.ExternalErrorDiagnosticUpdateSource;
 
         private bool CanHandle(string errorId)
         {
@@ -76,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return true;
             }
 
-            return _diagnosticProvider.IsSupportedDiagnosticId(_projectId, errorId);
+            return DiagnosticProvider.IsSupportedDiagnosticId(_projectId, errorId);
         }
 
         public int AddNewErrors(IVsEnumExternalErrors pErrors)
@@ -105,6 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     GetErrorId(error),
                     error.bstrText,
                     GetDiagnosticSeverity(error),
+                    _language,
                     mappedFilePath: null,
                     mappedStartLine: 0,
                     mappedStartColumn: 0,
@@ -117,13 +113,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     originalEndColumn: 0));
             }
 
-            _diagnosticProvider.AddNewErrors(_projectId, projectErrors, documentErrorsMap);
+            DiagnosticProvider.AddNewErrors(_projectId, projectErrors, documentErrorsMap);
             return VSConstants.S_OK;
         }
 
         public int ClearAllErrors()
         {
-            _diagnosticProvider.ClearErrors(_projectId);
+            DiagnosticProvider.ClearErrors(_projectId);
             return VSConstants.S_OK;
         }
 
@@ -187,6 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 GetErrorId(error),
                 message: error.bstrText,
                 GetDiagnosticSeverity(error),
+                _language,
                 mappedFilePath: null,
                 mappedStartLine: error.iLine,
                 mappedStartColumn: error.iCol,
@@ -247,6 +244,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 bstrErrorId,
                 bstrErrorMessage,
                 severity,
+                language: _language,
                 mappedFilePath: null,
                 iStartLine, iStartColumn, iEndLine, iEndColumn,
                 bstrFileName,
@@ -254,17 +252,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             if (documentId == null)
             {
-                _diagnosticProvider.AddNewErrors(_projectId, diagnostic);
+                DiagnosticProvider.AddNewErrors(_projectId, diagnostic);
             }
             else
             {
-                _diagnosticProvider.AddNewErrors(documentId, diagnostic);
+                DiagnosticProvider.AddNewErrors(documentId, diagnostic);
             }
         }
 
         public int ClearErrors()
         {
-            _diagnosticProvider.ClearErrors(_projectId);
+            DiagnosticProvider.ClearErrors(_projectId);
             return VSConstants.S_OK;
         }
 
@@ -274,6 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             string errorId,
             string message,
             DiagnosticSeverity severity,
+            string language,
             string mappedFilePath,
             int mappedStartLine,
             int mappedStartColumn,
@@ -310,7 +309,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     mappedStartLine: mappedStartLine,
                     mappedStartColumn: mappedStartColumn,
                     mappedEndLine: mappedEndLine,
-                    mappedEndColumn: mappedEndColumn));
+                    mappedEndColumn: mappedEndColumn),
+                language: language);
         }
 
         private static bool IsCompilerDiagnostic(string errorId)

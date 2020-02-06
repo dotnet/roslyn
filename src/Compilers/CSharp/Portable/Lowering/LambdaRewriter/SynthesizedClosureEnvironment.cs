@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -126,9 +129,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Symbol ContainingSymbol => _topLevelMethod.ContainingSymbol;
 
+        // Closures in the same method share the same SynthesizedClosureEnvironment. We must
+        // always return true because two closures in the same method might have different
+        // AreLocalsZeroed flags.
+        public sealed override bool AreLocalsZeroed => true;
+
         // The lambda method contains user code from the lambda
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;
 
-        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
     }
 }

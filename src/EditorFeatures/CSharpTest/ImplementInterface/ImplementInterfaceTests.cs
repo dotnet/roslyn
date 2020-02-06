@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -49,6 +51,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
         private static readonly ParseOptions CSharp7_1 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1);
+
+        private const string NullableAttributesCode = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false)]
+    internal sealed class AllowNullAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false)]
+    internal sealed class DisallowNullAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
+    internal sealed class MaybeNullAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
+    internal sealed class NotNullAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    internal sealed class MaybeNullWhenAttribute : Attribute
+    {
+        public MaybeNullWhenAttribute(bool returnValue) => ReturnValue = returnValue;
+        public bool ReturnValue { get; }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    internal sealed class NotNullWhenAttribute : Attribute
+    {
+        public NotNullWhenAttribute(bool returnValue) => ReturnValue = returnValue;
+        public bool ReturnValue { get; }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
+    internal sealed class NotNullIfNotNullAttribute : Attribute
+    {
+        public NotNullIfNotNullAttribute(string parameterName) => ParameterName = parameterName;
+        public string ParameterName { get; }
+    }
+
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    internal sealed class DoesNotReturnAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    internal sealed class DoesNotReturnIfAttribute : Attribute
+    {
+        public DoesNotReturnIfAttribute(bool parameterValue) => ParameterValue = parameterValue;
+        public bool ParameterValue { get; }
+    }
+}";
 
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
@@ -334,6 +383,63 @@ class Class : IInterface
         throw new System.NotImplementedException();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task NoNullableAttributesInMethodFromMetadata()
+        {
+            var initial = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <MetadataReferenceFromSource Language=""C#"" CommonReferences=""true"">
+            <Document>
+#nullable enable
+
+public interface IInterface
+{
+    void M(string? s1, string s2);
+    string this[string? s1, string s2] { get; set; }
+}
+            </Document>
+        </MetadataReferenceFromSource>
+        <Document>
+#nullable enable
+
+using System;
+
+class C : [|IInterface|]
+{
+}</Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C : IInterface
+{
+    public string this[string? s1, string s2]
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public void M(string? s1, string s2)
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+            await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6035,6 +6141,56 @@ class C : I
             await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementationOfIndexerWithInaccessibleAttributes()
+        {
+            var initial = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+internal class ShouldBeRemovedAttribute : Attribute { }
+public interface I
+{
+    string this[[ShouldBeRemovedAttribute] int i] { get; set; }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+using System;
+
+class C : [|I|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+using System;
+
+class C : I
+{
+    public string this[int i]
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+        ";
+
+            await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
+        }
+
 #if false
         [WorkItem(13677)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -7869,6 +8025,214 @@ abstract class Class : IInterface
     public abstract void Method1();
 }",
 index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNotNullConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"public interface ITest
+{
+    void M<T>() where T : notnull;
+}
+public class Test : [|ITest|]
+{
+}",
+@"public interface ITest
+{
+    void M<T>() where T : notnull;
+}
+public class Test : ITest
+{
+    public void M<T>() where T : notnull
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+public class Test : ITest
+{
+    public string? P => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullablePropertyAlreadyImplemented()
+        {
+            await TestMissingAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+public class Test : [|ITest|]
+{
+    public string? P => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P();
+}
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P();
+}
+public class Test : ITest
+{
+    public string? P()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableEvent()
+        {
+            // Question whether this is needed,
+            // see https://github.com/dotnet/roslyn/issues/36673 
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+using System;
+
+public interface ITest
+{
+    event EventHandler? SomeEvent;
+}
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+using System;
+
+public interface ITest
+{
+    event EventHandler? SomeEvent;
+}
+public class Test : ITest
+{
+    public event EventHandler? SomeEvent;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableDisabled()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+
+#nullable disable
+
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+
+#nullable disable
+
+public class Test : ITest
+{
+    public string P => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task GenericInterfaceNotNull1()
+        {
+            await TestInRegularAndScriptAsync(
+@$"#nullable enable 
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IFoo<T>
+{{
+    [return: NotNull]
+    T Bar([DisallowNull] T bar);
+
+    [return: MaybeNull]
+    T Baz([AllowNull] T bar);
+}}
+
+class A : [|IFoo<int>|]
+{{
+}}",
+@$"#nullable enable 
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IFoo<T>
+{{
+    [return: NotNull]
+    T Bar([DisallowNull] T bar);
+
+    [return: MaybeNull]
+    T Baz([AllowNull] T bar);
+}}
+
+class A : [|IFoo<int>|]
+{{
+    [return: NotNull]
+    public int Bar([DisallowNull] int bar)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    [return: MaybeNull]
+    public int Baz([AllowNull] int bar)
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
         }
     }
 }

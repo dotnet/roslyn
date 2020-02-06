@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -18,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new AddConstructorParametersFromMembersCodeRefactoringProvider();
+
+        private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
@@ -1206,6 +1211,232 @@ class C : ISerializable
     }
 }
 ");
+        }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNoFieldNamingStyle_ParameterPrefixAndSuffix()
+        {
+            var source =
+@"
+class C
+{
+    private int [|v|];
+    public C()
+    {
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    private int v;
+    public C(int p_v_End)
+    {
+        v = p_v_End;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix);
+        }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestCommonFieldNamingStyle()
+        {
+            var source =
+@"
+class C
+{
+    private int [|t_v|];
+    public C()
+    {
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    private int t_v;
+    public C(int p_v)
+    {
+        t_v = p_v;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
+        }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestSpecifiedFieldNamingStyle()
+        {
+            var source =
+@"
+class C
+{
+    private int [|field_v|];
+    public C()
+    {
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    private int field_v;
+    public C(int p_v)
+    {
+        field_v = p_v;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(
+                options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+        }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestSpecifiedAndCommonFieldNamingStyle()
+        {
+            var source =
+@"
+class C
+{
+    private int [|field_s_v|];
+    public C()
+    {
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    private int field_s_v;
+    public C(int p_v)
+    {
+        field_s_v = p_v;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(
+                options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+        }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestSpecifiedAndCommonFieldNamingStyle2()
+        {
+            var source =
+@"
+class C
+{
+    private int [|s_field_v|];
+    public C()
+    {
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    private int s_field_v;
+    public C(int p_v)
+    {
+        s_field_v = p_v;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(
+                options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+        }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestBaseNameEmpty()
+        {
+            var source =
+@"
+class C
+{
+    private int [|field__End|];
+    public C()
+    {
+    }
+}
+";
+            await TestMissingAsync(source, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix));
+        }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestSomeBaseNamesAreEmpty()
+        {
+            var source =
+@"
+class C
+{
+    private int [|field_test_End;
+    private int field__End|];
+    public C()
+    {
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    private int field_test_End;
+    private int field__End;
+    public C(int p_test)
+    {
+        field_test_End = p_test;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(
+                options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+        }
+
+        [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestManyCommonPrefixes()
+        {
+            var source =
+@"
+class C
+{
+    private int [|______test|];
+    public C()
+    {
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    private int ______test;
+    public C(int p_test)
+    {
+        ______test = p_test;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
         }
     }
 }

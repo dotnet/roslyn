@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -2099,10 +2101,11 @@ class C
             var loopSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
 
             var loopInfo = model.GetForEachStatementInfo(loopSyntax);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator), loopInfo.GetEnumeratorMethod);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), loopInfo.CurrentProperty);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), loopInfo.MoveNextMethod);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), loopInfo.DisposeMethod);
+            Assert.False(loopInfo.IsAsynchronous);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator).GetPublicSymbol(), loopInfo.GetEnumeratorMethod);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current).GetPublicSymbol(), loopInfo.CurrentProperty);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext).GetPublicSymbol(), loopInfo.MoveNextMethod);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose).GetPublicSymbol(), loopInfo.DisposeMethod);
 
             // The spec says that the element type is object.
             // Therefore, we should infer object for "var".
@@ -2151,10 +2154,10 @@ class C
             Assert.Equal(2, loopSyntaxes.Length);
 
             var loopInfo0 = model.GetForEachStatementInfo(loopSyntaxes[0]);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator), loopInfo0.GetEnumeratorMethod);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), loopInfo0.CurrentProperty);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), loopInfo0.MoveNextMethod);
-            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), loopInfo0.DisposeMethod);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator).GetPublicSymbol(), loopInfo0.GetEnumeratorMethod);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current).GetPublicSymbol(), loopInfo0.CurrentProperty);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext).GetPublicSymbol(), loopInfo0.MoveNextMethod);
+            Assert.Equal<ISymbol>(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose).GetPublicSymbol(), loopInfo0.DisposeMethod);
             Assert.Equal(SpecialType.System_String, loopInfo0.ElementType.SpecialType);
             Assert.Equal(udc, loopInfo0.ElementConversion.Method);
             Assert.Equal(ConversionKind.ExplicitReference, loopInfo0.CurrentConversion.Kind);
@@ -2285,17 +2288,14 @@ class C
 ";
             var expected = new[]
             {
-                // (28,55): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (28,55): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(28, 55)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(28, 55)
             };
             var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateEmptyCompilation(text, parseOptions: TestOptions.RegularDefault, skipUsesIsNullable: true);
-            comp.VerifyDiagnostics(expected);
-
-            comp = CreateEmptyCompilation(text, parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
+            comp = CreateEmptyCompilation(text, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
                 // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
@@ -3159,15 +3159,15 @@ ref struct DisposableEnumerator
             }
             else
             {
-                Assert.Equal(enumeratorInfo.GetEnumeratorMethod, statementInfo.GetEnumeratorMethod);
-                Assert.Equal(enumeratorInfo.CurrentPropertyGetter, statementInfo.CurrentProperty.GetMethod);
-                Assert.Equal(enumeratorInfo.MoveNextMethod, statementInfo.MoveNextMethod);
+                Assert.Equal(enumeratorInfo.GetEnumeratorMethod.GetPublicSymbol(), statementInfo.GetEnumeratorMethod);
+                Assert.Equal(enumeratorInfo.CurrentPropertyGetter.GetPublicSymbol(), statementInfo.CurrentProperty.GetMethod);
+                Assert.Equal(enumeratorInfo.MoveNextMethod.GetPublicSymbol(), statementInfo.MoveNextMethod);
 
                 if (enumeratorInfo.NeedsDisposal)
                 {
-                    if (!(enumeratorInfo.DisposeMethod is null))
+                    if (enumeratorInfo.DisposeMethod is object)
                     {
-                        Assert.Equal(enumeratorInfo.DisposeMethod, statementInfo.DisposeMethod);
+                        Assert.Equal(enumeratorInfo.DisposeMethod.GetPublicSymbol(), statementInfo.DisposeMethod);
                     }
                     else if (enumeratorInfo.IsAsync)
                     {
@@ -3184,7 +3184,7 @@ ref struct DisposableEnumerator
                     Assert.Null(statementInfo.DisposeMethod);
                 }
 
-                Assert.Equal(enumeratorInfo.ElementType, statementInfo.ElementType);
+                Assert.Equal(enumeratorInfo.ElementType.GetPublicSymbol(), statementInfo.ElementType);
                 Assert.Equal(boundNode.ElementConversion, statementInfo.ElementConversion);
                 Assert.Equal(enumeratorInfo.CurrentConversion, statementInfo.CurrentConversion);
             }

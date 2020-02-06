@@ -17,6 +17,16 @@
         <target state="translated">正在為 {0} 下載 IntelliSense 索引</target>
         <note />
       </trans-unit>
+      <trans-unit id="Gathering_Suggestions_0">
+        <source>Gathering Suggestions - '{0}'</source>
+        <target state="translated">正在蒐集建議 - '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
+        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
+        <target state="translated">正在蒐集建議 - 正在等候解決方案完整載入</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Regex_Comment">
         <source>Regex - Comment</source>
         <target state="translated">Regex - 註解</target>
@@ -60,6 +70,11 @@
       <trans-unit id="Regex_OtherEscape">
         <source>Regex - Other Escape</source>
         <target state="translated">Regex - 其他逸出</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_or_Configure_issues">
+        <source>Suppress or Configure issues</source>
+        <target state="translated">設定或隱藏問題</target>
         <note />
       </trans-unit>
     </body>

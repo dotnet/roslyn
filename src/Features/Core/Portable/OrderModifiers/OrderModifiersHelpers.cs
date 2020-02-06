@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,26 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         private Tuple<string, Dictionary<int, int>> _lastParsed;
 
         protected abstract int GetKeywordKind(string trimmed);
+
+        public static bool IsOrdered(Dictionary<int, int> preferredOrder, SyntaxTokenList modifiers)
+        {
+            if (modifiers.Count >= 2)
+            {
+                var lastOrder = int.MinValue;
+                foreach (var modifier in modifiers)
+                {
+                    var currentOrder = preferredOrder.TryGetValue(modifier.RawKind, out var value) ? value : int.MaxValue;
+                    if (currentOrder < lastOrder)
+                    {
+                        return false;
+                    }
+
+                    lastOrder = currentOrder;
+                }
+            }
+
+            return true;
+        }
 
         public bool TryGetOrComputePreferredOrder(string value, out Dictionary<int, int> preferredOrder)
         {

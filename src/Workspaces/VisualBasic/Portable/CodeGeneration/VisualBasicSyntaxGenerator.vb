@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -143,6 +145,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides Function Interpolation(syntaxNode As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.Interpolation(DirectCast(syntaxNode, ExpressionSyntax))
+        End Function
+
+        Friend Overrides Function InterpolationAlignmentClause(alignment As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.InterpolationAlignmentClause(
+                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                DirectCast(alignment, ExpressionSyntax))
+        End Function
+
+        Friend Overrides Function InterpolationFormatClause(format As String) As SyntaxNode
+            Return SyntaxFactory.InterpolationFormatClause(
+                SyntaxFactory.Token(SyntaxKind.ColonToken),
+                SyntaxFactory.InterpolatedStringTextToken(format, format))
         End Function
 
         Friend Overrides Function NumericLiteralToken(text As String, value As ULong) As SyntaxToken
@@ -370,6 +384,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function ThrowExpression(expression As SyntaxNode) As SyntaxNode
             Throw New NotSupportedException("ThrowExpressions are not supported in Visual Basic")
+        End Function
+
+        Friend Overrides Function SupportsThrowExpression() As Boolean
+            Return False
         End Function
 
         Public Overrides Function NameExpression(namespaceOrTypeSymbol As INamespaceOrTypeSymbol) As SyntaxNode
@@ -1654,7 +1672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             ElseIf existingAttributes.Count > 0 Then
                 Return Me.InsertNodesAfter(declaration, existingAttributes(existingAttributes.Count - 1), newAttributes)
             Else
-                Dim lists = Me.GetAttributeLists(declaration)
+                Dim lists = GetAttributeLists(declaration)
                 Return Me.WithAttributeLists(declaration, lists.AddRange(AsAttributeLists(attributes)))
             End If
         End Function
@@ -1747,7 +1765,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Private Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
+        Friend Shared Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
             Select Case node.Kind
                 Case SyntaxKind.CompilationUnit
                     Return SyntaxFactory.List(DirectCast(node, CompilationUnitSyntax).Attributes.SelectMany(Function(s) s.AttributeLists))
@@ -2633,6 +2651,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     If IsChildOf(declaration, SyntaxKind.VariableDeclarator) Then
                         Return GetModifierTokens(declaration.Parent)
                     End If
+                Case SyntaxKind.LocalDeclarationStatement
+                    Return DirectCast(declaration, LocalDeclarationStatementSyntax).Modifiers
                 Case SyntaxKind.VariableDeclarator
                     If IsChildOfVariableDeclaration(declaration) Then
                         Return GetModifierTokens(declaration.Parent)
@@ -3028,7 +3048,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declaration
         End Function
 
-        Friend Overrides Function WithExplicitInterfaceImplementations(declaration As SyntaxNode, explicitInterfaceImplementations As ImmutableArray(Of IMethodSymbol)) As SyntaxNode
+        Friend Overrides Function WithExplicitInterfaceImplementations(declaration As SyntaxNode, explicitInterfaceImplementations As ImmutableArray(Of ISymbol)) As SyntaxNode
             If TypeOf declaration Is MethodStatementSyntax Then
                 Dim methodStatement = DirectCast(declaration, MethodStatementSyntax)
 
@@ -3040,12 +3060,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Dim methodBlock = DirectCast(declaration, MethodBlockSyntax)
                 Return methodBlock.WithSubOrFunctionStatement(
                     DirectCast(WithExplicitInterfaceImplementations(methodBlock.SubOrFunctionStatement, explicitInterfaceImplementations), MethodStatementSyntax))
+            Else
+                Debug.Fail("Unhandled kind to add explicit implementations for: " & declaration.Kind())
             End If
 
             Return declaration
         End Function
 
-        Private Function GenerateInterfaceMember(method As IMethodSymbol) As QualifiedNameSyntax
+        Private Function GenerateInterfaceMember(method As ISymbol) As QualifiedNameSyntax
             Dim interfaceName = method.ContainingType.GenerateTypeSyntax()
             Return SyntaxFactory.QualifiedName(
                 DirectCast(interfaceName, NameSyntax),
@@ -4187,6 +4209,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 #Region "Patterns"
 
         Friend Overrides Function SupportsPatterns(options As ParseOptions) As Boolean
+            Return False
+        End Function
+
+        Friend Overrides Function RequiresLocalDeclarationType() As Boolean
+            ' VB supports `dim x = ...` as well as `dim x as Y = ...`.  The local declaration type
+            ' is not required.
             Return False
         End Function
 

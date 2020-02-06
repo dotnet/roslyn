@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -4650,7 +4652,7 @@ class C
         var [|x|] = (X)(0, 0);
         var x2 = x;
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+}",
 @"using X = System.ValueTuple<int, int>;
 
 class C
@@ -4659,7 +4661,7 @@ class C
     {
         var x2 = (X)(0, 0);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}");
         }
 
         [WorkItem(30903, "https://github.com/dotnet/roslyn/issues/30903")]
@@ -4676,7 +4678,7 @@ class C
         var [|x|] = (X)(0, (0, 0));
         var x2 = x;
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+}",
 @"using X = System.ValueTuple<int, (int, int)>;
 
 class C
@@ -4685,7 +4687,7 @@ class C
     {
         var x2 = (X)(0, (0, 0));
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4705,6 +4707,148 @@ class C : IDisposable
 }";
 
             await TestMissingInRegularAndScriptAsync(code, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)));
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Selections1()
+        {
+            await TestFixOneAsync(
+    @"{ [|int x = 0;|]
+
+Console.WriteLine(x); }",
+    @"{
+        Console.WriteLine(0); }");
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Selections2()
+        {
+            await TestFixOneAsync(
+    @"{ int [|x = 0|], y = 1;
+
+Console.WriteLine(x); }",
+    @"{
+        int y = 1;
+
+        Console.WriteLine(0); }");
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Selections3()
+        {
+            await TestFixOneAsync(
+    @"{ int x = 0, [|y = 1|], z = 2;
+
+Console.WriteLine(y); }",
+    @"{
+        int x = 0, z = 2;
+
+        Console.WriteLine(1); }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnOnInlineIntoConditional1()
+        {
+            await TestFixOneAsync(
+    @"{ var [|x = true|];
+
+System.Diagnostics.Debug.Assert(x); }",
+    @"{
+        {|Warning:System.Diagnostics.Debug.Assert(true)|}; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnOnInlineIntoConditional2()
+        {
+            await TestFixOneAsync(
+    @"{ var [|x = true|];
+
+System.Diagnostics.Debug.Assert(x == true); }",
+    @"{
+        {|Warning:System.Diagnostics.Debug.Assert(true == true)|}; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnOnInlineIntoMultipleConditionalLocations()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        var [|x = true|];
+        System.Diagnostics.Debug.Assert(x);
+        System.Diagnostics.Debug.Assert(x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {|Warning:System.Diagnostics.Debug.Assert(true)|};
+        {|Warning:System.Diagnostics.Debug.Assert(true)|};
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task OnlyWarnOnConditionalLocations()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        var [|x = true|];
+        System.Diagnostics.Debug.Assert(x);
+        Console.Writeline(x);
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        {|Warning:System.Diagnostics.Debug.Assert(true)|};
+        Console.Writeline(true);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(40201, "https://github.com/dotnet/roslyn/issues/40201")]
+        public async Task TestUnaryNegationOfDeclarationPattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+
+class C
+{
+    void Test()
+    {
+        var [|ct|] = CancellationToken.None;
+        if (!(Helper(ct) is string notDiscard)) { }
+    }
+
+    object Helper(CancellationToken ct) { return null; }
+}",
+@"using System.Threading;
+
+class C
+{
+    void Test()
+    {
+        if (!(Helper(CancellationToken.None) is string notDiscard)) { }
+    }
+
+    object Helper(CancellationToken ct) { return null; }
+}");
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -239,11 +241,6 @@ Friend Module CompilationUtils
 
         If sources.@name IsNot Nothing Then
             assemblyName = sources.@name
-        End If
-
-        ' https://github.com/dotnet/roslyn/issues/29819 remove when VB 16 is latest
-        If parseOptions Is Nothing Then
-            parseOptions = TestOptions.Regular
         End If
 
         Dim sourcesTreesAndSpans = From f In sources.<file> Select CreateParseTreeAndSpans(f, parseOptions)

@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -19,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
-        private TypeWithAnnotations _iteratorElementType;
+        private TypeWithAnnotations.Boxed _iteratorElementType;
 
         protected SynthesizedMethodBaseSymbol(NamedTypeSymbol containingType,
                                               MethodSymbol baseMethod,
@@ -139,7 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnTypeWithAnnotations); }
         }
 
-        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => BaseMethod.ReturnTypeAnnotationAttributes;
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => BaseMethod.ReturnTypeFlowAnalysisAnnotations;
+
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => BaseMethod.ReturnNotNullIfParameterNotNull;
+
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public sealed override bool IsVararg
         {
@@ -165,16 +172,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_iteratorElementType.IsDefault)
+                if (_iteratorElementType is null)
                 {
-                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementTypeWithAnnotations.Type);
+                    Interlocked.CompareExchange(ref _iteratorElementType,
+                                                new TypeWithAnnotations.Boxed(TypeMap.SubstituteType(BaseMethod.IteratorElementTypeWithAnnotations.Type)),
+                                                null);
                 }
-                return _iteratorElementType;
+
+                return _iteratorElementType.Value;
             }
             set
             {
                 Debug.Assert(!value.IsDefault);
-                _iteratorElementType = value;
+                Interlocked.Exchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(value));
             }
         }
     }

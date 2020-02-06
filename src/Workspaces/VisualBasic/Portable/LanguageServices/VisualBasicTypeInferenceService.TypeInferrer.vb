@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -862,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '
                     '      await goo.ConfigureAwait()
                     '
-                    ' then we can figure out what 'goo' should be based on teh await
+                    ' then we can figure out what 'goo' should be based on the await
                     ' context.
                     If expressionOpt Is memberAccessExpression.Expression Then
                         Return InferTypeForExpressionOfMemberAccessExpression(memberAccessExpression)
@@ -1003,7 +1005,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If expression IsNot Nothing Then
                     Dim expressionAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(expression).GetAllSymbols()
                     Dim expressionAddMethodParameterTypes = expressionAddMethodSymbols _
-                        .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Count() = 1) _
+                        .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Length = 1) _
                         .Select(Function(a) New TypeInferenceInfo(DirectCast(a, IMethodSymbol).Parameters(0).Type))
 
                     If expressionAddMethodParameterTypes.Any() Then
@@ -1018,7 +1020,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim initializerAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(collectionInitializer).GetAllSymbols()
                 Dim initializerAddMethodParameterTypes = initializerAddMethodSymbols _
-                    .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Count() = collectionInitializer.Initializers.Count) _
+                    .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Length = collectionInitializer.Initializers.Count) _
                     .Select(Function(a) DirectCast(a, IMethodSymbol).Parameters.ElementAtOrDefault(parameterIndex)?.Type) _
                     .WhereNotNull() _
                     .Select(Function(a) New TypeInferenceInfo(a))

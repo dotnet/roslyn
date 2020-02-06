@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -57,50 +59,49 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return;
             }
 
-            using (var pooledMap = SharedPools.Default<Dictionary<int, string>>().GetPooledObject())
-            using (var pooledSet = SharedPools.Default<HashSet<int>>().GetPooledObject())
-            using (var pooledList = SharedPools.Default<List<double>>().GetPooledObject())
+            using var pooledMap = SharedPools.Default<Dictionary<int, string>>().GetPooledObject();
+            using var pooledSet = SharedPools.Default<HashSet<int>>().GetPooledObject();
+            using var pooledList = SharedPools.Default<List<double>>().GetPooledObject();
+
+            var reverseMap = pooledMap.Object;
+            AnalyzerNumberAssigner.Instance.GetReverseMap(reverseMap);
+
+            var analyzerSet = pooledSet.Object;
+
+            // get all analyzers
+            foreach (var snapshot in _snapshots)
             {
-                var reverseMap = pooledMap.Object;
-                AnalyzerNumberAssigner.Instance.GetReverseMap(reverseMap);
+                snapshot.AppendAnalyzers(analyzerSet);
+            }
 
-                var analyzerSet = pooledSet.Object;
+            var list = pooledList.Object;
 
-                // get all analyzers
+            // calculate aggregated data per analyzer
+            foreach (var assignedAnalyzerNumber in analyzerSet)
+            {
                 foreach (var snapshot in _snapshots)
                 {
-                    snapshot.AppendAnalyzers(analyzerSet);
-                }
-
-                var list = pooledList.Object;
-
-                // calculate aggregated data per analyzer
-                foreach (var assignedAnalyzerNumber in analyzerSet)
-                {
-                    foreach (var snapshot in _snapshots)
+                    var timeSpan = snapshot.GetTimeSpanInMillisecond(assignedAnalyzerNumber);
+                    if (timeSpan == null)
                     {
-                        var timeSpan = snapshot.GetTimeSpanInMillisecond(assignedAnalyzerNumber);
-                        if (timeSpan == null)
-                        {
-                            // not all snapshot contains all analyzers
-                            continue;
-                        }
-
-                        list.Add(timeSpan.Value);
-                    }
-
-                    // data is only stable once we have more than certain set
-                    // of samples
-                    if (list.Count < MinSampleSize)
-                    {
+                        // not all snapshot contains all analyzers
                         continue;
                     }
 
-                    // set performance data
-                    aggregatedPerformanceDataPerAnalyzer[reverseMap[assignedAnalyzerNumber]] = GetAverageAndAdjustedStandardDeviation(list);
-
-                    list.Clear();
+                    list.Add(timeSpan.Value);
                 }
+
+                // data is only stable once we have more than certain set
+                // of samples
+                if (list.Count < MinSampleSize)
+                {
+                    continue;
+                }
+
+                // set performance data
+                aggregatedPerformanceDataPerAnalyzer[reverseMap[assignedAnalyzerNumber]] = GetAverageAndAdjustedStandardDeviation(list);
+
+                list.Clear();
             }
         }
 

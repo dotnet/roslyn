@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -30,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
             return new SemanticModelService();
         }
 
-        private class SemanticModelService : ISemanticModelService
+        private sealed class SemanticModelService : ISemanticModelService
         {
             private static readonly ConditionalWeakTable<Workspace, ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>>> s_map =
                 new ConditionalWeakTable<Workspace, ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>>>();
@@ -45,16 +49,16 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                 var semanticFactsService = document.GetLanguageService<ISemanticFactsService>();
 
-                if (syntaxFactsService == null || semanticFactsService == null || node == null)
+                if (syntaxFactsService == null || semanticFactsService == null)
                 {
                     // it only works if we can track member
-                    return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                 }
 
                 if (IsPrimaryBranch(document) && !document.IsOpen())
                 {
                     // for ones in primary branch, we only support opened documents (mostly to help typing scenario)
-                    return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                 }
 
                 var versionMap = GetVersionMapFromBranchOrPrimary(document.Project.Solution.Workspace, document.Project.Solution.BranchId);
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 var projectId = document.Project.Id;
                 var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
-                CompilationSet compilationSet;
+                CompilationSet? compilationSet;
                 using (_gate.DisposableRead())
                 {
                     versionMap.TryGetValue(projectId, out compilationSet);
@@ -75,33 +79,37 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     await AddVersionCacheAsync(document.Project, version, cancellationToken).ConfigureAwait(false);
 
                     // get the base one
-                    return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                 }
 
                 // we have compilation set check whether it is something we can use
                 if (version.Equals(compilationSet.Version))
                 {
-                    if (!compilationSet.Compilation.TryGetValue(out var oldCompilation))
+                    if (!compilationSet.Compilation.TryGetValue(out var oldCompilationOpt) || !oldCompilationOpt.HasValue)
                     {
                         await AddVersionCacheAsync(document.Project, version, cancellationToken).ConfigureAwait(false);
 
                         // get the base one
-                        return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                     }
+
+                    var oldCompilation = oldCompilationOpt.Value;
+
                     // first check whether the set has this document
                     if (!compilationSet.Trees.TryGetValue(document.Id, out var oldTree))
                     {
                         // noop.
-                        return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                     }
 
                     // Yes, we have compilation we might be able to re-use
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(root, "We should support syntax trees if we're this far.");
                     if (root.SyntaxTree == oldTree)
                     {
                         // the one we have and the one in the document is same one. but tree in other file might
                         // have changed (no top level change). in that case, just use one from the document.
-                        return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                     }
 
                     // let's track member that we can re-use
@@ -109,7 +117,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     if (!syntaxFactsService.IsMethodLevelMember(member))
                     {
                         // oops, given node is not something we can support
-                        return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                     }
 
                     // check whether we already have speculative semantic model for this
@@ -133,13 +141,13 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         // sources get changed without proper version changes in some rare situations,
                         // so in those rare cases which we can't control until we move to content based versioning,
                         // just bail out and use full semantic model
-                        return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                     }
 
                     var oldModel = oldCompilation.GetSemanticModel(oldTree);
                     if (!semanticFactsService.TryGetSpeculativeSemanticModel(oldModel, oldMember, member, out var model))
                     {
-                        return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                     }
 
                     // cache the new speculative semantic model for the given node
@@ -152,7 +160,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 await UpdateVersionCacheAsync(document.Project, version, compilationSet, cancellationToken).ConfigureAwait(false);
 
                 // get the base one
-                return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
             }
 
             private bool IsPrimaryBranch(Document document)
@@ -165,11 +173,12 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 return UpdateVersionCacheAsync(project, version, primarySet: null, cancellationToken: cancellationToken);
             }
 
-            private async Task UpdateVersionCacheAsync(Project project, VersionStamp version, CompilationSet primarySet, CancellationToken cancellationToken)
+            private async Task UpdateVersionCacheAsync(Project project, VersionStamp version, CompilationSet? primarySet, CancellationToken cancellationToken)
             {
                 var versionMap = GetVersionMapFromBranch(project.Solution.Workspace, project.Solution.BranchId);
                 if (!AlreadyHasLatestCompilationSet(versionMap, project.Id, version, out var compilationSet) ||
-                    !compilationSet.Compilation.TryGetValue(out var compilation))
+                    !compilationSet.Compilation.TryGetValue(out var compilationOpt) ||
+                    !compilationOpt.HasValue)
                 {
                     var newSet = await CompilationSet.CreateAsync(project, compilationSet ?? primarySet, cancellationToken).ConfigureAwait(false);
 
@@ -200,18 +209,10 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
             private static readonly ConditionalWeakTable<Compilation, ConditionalWeakTable<SyntaxNode, WeakReference<SemanticModel>>>.CreateValueCallback s_createNodeMap =
                 _ => new ConditionalWeakTable<SyntaxNode, WeakReference<SemanticModel>>();
 
-            private static SemanticModel GetCachedSemanticModel(
-                ConditionalWeakTable<SyntaxNode, WeakReference<SemanticModel>> nodeMap, SyntaxNode newMember)
-            {
-                if (!nodeMap.TryGetValue(newMember, out var cached) || !cached.TryGetTarget(out var model))
-                {
-                    return null;
-                }
+            private static SemanticModel? GetCachedSemanticModel(ConditionalWeakTable<SyntaxNode, WeakReference<SemanticModel>> nodeMap, SyntaxNode newMember)
+                => nodeMap.TryGetValue(newMember, out var cached) && cached.TryGetTarget(out var model) ? model : null;
 
-                return model;
-            }
-
-            private static SemanticModel GetCachedSemanticModel(Compilation oldCompilation, SyntaxNode newMember)
+            private static SemanticModel? GetCachedSemanticModel(Compilation oldCompilation, SyntaxNode newMember)
             {
                 var nodeMap = s_semanticModelMap.GetValue(oldCompilation, s_createNodeMap);
 
@@ -362,32 +363,34 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
                 using (_gate.DisposableWrite())
                 {
-                    using (var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
+                    using var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                    var set = pooledObject.Object;
+
+                    set.UnionWith(versionMap.Keys);
+                    set.ExceptWith(projectIds);
+
+                    foreach (var projectId in set)
                     {
-                        var set = pooledObject.Object;
-
-                        set.UnionWith(versionMap.Keys);
-                        set.ExceptWith(projectIds);
-
-                        foreach (var projectId in set)
-                        {
-                            versionMap.Remove(projectId);
-                        }
+                        versionMap.Remove(projectId);
                     }
                 }
             }
 
-            private class CompilationSet
+            private sealed class CompilationSet
             {
                 private const int RebuildThreshold = 3;
 
                 public readonly VersionStamp Version;
-                public readonly ValueSource<Compilation> Compilation;
+                public readonly ValueSource<Optional<Compilation>> Compilation;
                 public readonly ImmutableDictionary<DocumentId, SyntaxTree> Trees;
 
-                public static async Task<CompilationSet> CreateAsync(Project project, CompilationSet oldCompilationSet, CancellationToken cancellationToken)
+                public static async Task<CompilationSet> CreateAsync(Project project, CompilationSet? oldCompilationSet, CancellationToken cancellationToken)
                 {
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                    // project must support compilations
+                    Contract.ThrowIfNull(compilation);
+
                     var version = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
                     var map = GetTreeMap(project, compilation, oldCompilationSet, cancellationToken);
 
@@ -395,14 +398,14 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     return new CompilationSet(version, GetCompilation(project, compilation), map);
                 }
 
-                private CompilationSet(VersionStamp version, ValueSource<Compilation> compilation, ImmutableDictionary<DocumentId, SyntaxTree> map)
+                private CompilationSet(VersionStamp version, ValueSource<Optional<Compilation>> compilation, ImmutableDictionary<DocumentId, SyntaxTree> map)
                 {
-                    this.Version = version;
-                    this.Compilation = compilation;
-                    this.Trees = map;
+                    Version = version;
+                    Compilation = compilation;
+                    Trees = map;
                 }
 
-                private static ImmutableDictionary<DocumentId, SyntaxTree> GetTreeMap(Project project, Compilation compilation, CompilationSet oldCompilationSet, CancellationToken cancellationToken)
+                private static ImmutableDictionary<DocumentId, SyntaxTree> GetTreeMap(Project project, Compilation compilation, CompilationSet? oldCompilationSet, CancellationToken cancellationToken)
                 {
                     // enumerable count should take a quick path since ImmutableArray implements ICollection
                     var newTreeCount = compilation.SyntaxTrees.Count();
@@ -460,7 +463,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 private static ImmutableDictionary<DocumentId, SyntaxTree> AddOrUpdateNewTreeToOldMap(
                     Project newProject, Compilation newCompilation, CompilationSet oldSet, CancellationToken cancellationToken)
                 {
-                    if (!oldSet.Compilation.TryGetValue(out var oldCompilation))
+                    if (!oldSet.Compilation.TryGetValue(out var oldCompilationOpt) || !oldCompilationOpt.HasValue)
                     {
                         return ImmutableDictionary.CreateRange(GetNewTreeMap(newProject, newCompilation));
                     }
@@ -470,7 +473,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        if (oldCompilation.ContainsSyntaxTree(newTree))
+                        if (oldCompilationOpt.Value.ContainsSyntaxTree(newTree))
                         {
                             continue;
                         }
@@ -504,15 +507,15 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     }
                 }
 
-                private static ValueSource<Compilation> GetCompilation(Project project, Compilation compilation)
+                private static ValueSource<Optional<Compilation>> GetCompilation(Project project, Compilation compilation)
                 {
                     var cache = project.Solution.Workspace.Services.GetService<IProjectCacheHostService>();
                     if (cache != null && project.Solution.BranchId == project.Solution.Workspace.PrimaryBranchId)
                     {
-                        return new WeakConstantValueSource<Compilation>(cache.CacheObjectIfCachingEnabledForKey(project.Id, project, compilation));
+                        return new WeakValueSource<Compilation>(cache.CacheObjectIfCachingEnabledForKey(project.Id, project, compilation));
                     }
 
-                    return new ConstantValueSource<Compilation>(compilation);
+                    return new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
 
                 [Conditional("DEBUG")]

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -229,7 +231,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentForEachStatement(BoundForEachStatement original, BoundStatement rewritten)
         {
             var forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
-            BoundSequencePointWithSpan foreachKeywordSequencePoint = new BoundSequencePointWithSpan(forEachSyntax, null, forEachSyntax.ForEachKeyword.Span);
+            var span = forEachSyntax.AwaitKeyword != default
+                ? TextSpan.FromBounds(forEachSyntax.AwaitKeyword.Span.Start, forEachSyntax.ForEachKeyword.Span.End)
+                : forEachSyntax.ForEachKeyword.Span;
+
+            var foreachKeywordSequencePoint = new BoundSequencePointWithSpan(forEachSyntax, null, span);
             return new BoundStatementList(forEachSyntax,
                                             ImmutableArray.Create<BoundStatement>(foreachKeywordSequencePoint,
                                                                                 base.InstrumentForEachStatement(original, rewritten)));

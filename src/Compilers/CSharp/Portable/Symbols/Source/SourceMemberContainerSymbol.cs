@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -55,15 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // More flags.
             //
-            // |                           |zzzz|f|
+            // |                       |vvv|zzzz|f|
             //
             // f = FlattenedMembersIsSorted.  1 bit.
             // z = TypeKind. 4 bits.
+            // v = NullableContext. 3 bits.
             private const int TypeKindOffset = 1;
-
             private const int TypeKindMask = 0xF;
 
             private const int FlattenedMembersIsSortedBit = 1 << 0;
+
+            private const int NullableContextOffset = 5;
+            private const int NullableContextMask = 0x7;
 
             private int _flags2;
 
@@ -98,20 +104,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return (TypeKind)((_flags2 >> TypeKindOffset) & TypeKindMask); }
             }
 
-
 #if DEBUG
             static Flags()
             {
-                // Verify a few things about the values we combine into flags.  This way, if they ever
-                // change, this will get hit and you will know you have to update this type as well.
-
-                // 1) Verify that the range of special types doesn't fall outside the bounds of the
-                // special type mask.
+                // Verify masks are sufficient for values.
                 Debug.Assert(EnumUtilities.ContainsAllValues<SpecialType>(SpecialTypeMask));
-
-                // 2) Verify that the range of declaration modifiers doesn't fall outside the bounds of
-                // the declaration modifier mask.
                 Debug.Assert(EnumUtilities.ContainsAllValues<DeclarationModifiers>(DeclarationModifiersMask));
+                Debug.Assert(EnumUtilities.ContainsAllValues<NullableContextKind>(NullableContextMask));
             }
 #endif
 
@@ -146,6 +145,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(BitsAreUnsetOrSame(_flags, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _flags, bitsToSet);
             }
+
+            public bool TryGetNullableContext(out byte? value)
+            {
+                return ((NullableContextKind)((_flags2 >> NullableContextOffset) & NullableContextMask)).TryGetByte(out value);
+            }
+
+            public bool SetNullableContext(byte? value)
+            {
+                return ThreadSafeFlagOperations.Set(ref _flags2, (((int)value.ToNullableContextFlags() & NullableContextMask) << NullableContextOffset));
+            }
         }
 
         protected SymbolCompletionState state;
@@ -174,7 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceMemberContainerTypeSymbol(
             NamespaceOrTypeSymbol containingSymbol,
             MergedTypeDeclaration declaration,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            TupleExtraData tupleData = null)
+            : base(tupleData)
         {
             _containingSymbol = containingSymbol;
             this.declaration = declaration;
@@ -1072,7 +1083,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override IEnumerable<string> MemberNames
         {
-            get { return this.declaration.MemberNames; }
+            get
+            {
+                return IsTupleType ? GetMembers().Select(m => m.Name).Distinct() : this.declaration.MemberNames;
+            }
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
@@ -1408,23 +1422,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForUnmatchedOperators(diagnostics);
 
             var location = Locations[0];
+            var compilation = DeclaringCompilation;
+
             if (this.IsRefLikeType)
             {
-                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
             if (this.IsReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
             var baseType = BaseTypeNoUseSiteDiagnostics;
-            var interfaces = InterfacesNoUseSiteDiagnostics();
-            if (baseType?.NeedsNullableAttribute() == true ||
-                interfaces.Any(t => t.NeedsNullableAttribute()))
+            var interfaces = GetInterfacesToEmit();
+            if (compilation.ShouldEmitNullableAttributes(this))
             {
-                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                if (ShouldEmitNullableContextValue(out _))
+                {
+                    compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
+                }
+
+                // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
+                if (baseType?.NeedsNullableAttribute() == true ||
+                     interfaces.Any(t => t.NeedsNullableAttribute()))
+                {
+                    compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                }
+            }
+
+            if (interfaces.Any(t => needsTupleElementNamesAttribute(t)))
+            {
+                // Note: we don't need to check base type or directly implemented interfaces (which will be reported during binding)
+                // so the checking of all interfaces here involves some redundancy.
+                Binder.ReportMissingTupleElementNamesAttributesIfNeeded(compilation, location, diagnostics);
+            }
+
+            static bool needsTupleElementNamesAttribute(TypeSymbol type)
+            {
+                if (type is null)
+                {
+                    return false;
+                }
+
+                var resultType = type.VisitType(
+                    predicate: (t, a, b) => !t.TupleElementNames.IsDefaultOrEmpty && !t.IsErrorType(),
+                    arg: (object)null);
+                return resultType is object;
             }
         }
 
@@ -2207,7 +2251,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Most types don't have indexers.  If this is one of those types,
             // just reuse the dictionary we build for early attribute decoding.
-            if (membersAndInitializers.IndexerDeclarations.Length == 0)
+            // For tuples, we also need to take the slow path.
+            if (membersAndInitializers.IndexerDeclarations.Length == 0 && !this.IsTupleType)
             {
                 return GetEarlyAttributeDecodingMembersDictionary();
             }
@@ -2235,58 +2280,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddAccessorIfAvailable(indexerMembers, indexer.SetMethod, diagnostics, checkName: true);
             }
 
-            var membersByName = MergeIndexersAndNonIndexers(membersAndInitializers.NonTypeNonIndexerMembers, indexerMembers);
+            var membersByName = mergeIndexersAndNonIndexers(membersAndInitializers.NonTypeNonIndexerMembers, indexerMembers);
             indexerMembers.Free();
 
             // Merge types into the member dictionary
             AddNestedTypesToDictionary(membersByName, GetTypeMembersDictionary());
 
             return membersByName;
-        }
 
-        /// <summary>
-        /// Merge (already ordered) non-type, non-indexer members with (already ordered) indexer members.
-        /// </summary>
-        private static Dictionary<string, ImmutableArray<Symbol>> MergeIndexersAndNonIndexers(ImmutableArray<Symbol> nonIndexerMembers, ArrayBuilder<Symbol> indexerMembers)
-        {
-            int nonIndexerCount = nonIndexerMembers.Length;
-            int indexerCount = indexerMembers.Count;
-
-            var merged = ArrayBuilder<Symbol>.GetInstance(nonIndexerCount + indexerCount);
-
-            int nonIndexerPos = 0;
-            int indexerPos = 0;
-
-            while (nonIndexerPos < nonIndexerCount && indexerPos < indexerCount)
+            // Merge (already ordered) non-type, non-indexer members with (already ordered) indexer members.
+            static Dictionary<string, ImmutableArray<Symbol>> mergeIndexersAndNonIndexers(ImmutableArray<Symbol> nonIndexerMembers, ArrayBuilder<Symbol> indexerMembers)
             {
-                var nonIndexer = nonIndexerMembers[nonIndexerPos];
-                var indexer = indexerMembers[indexerPos];
-                if (LexicalOrderSymbolComparer.Instance.Compare(nonIndexer, indexer) < 0)
+                int nonIndexerCount = nonIndexerMembers.Length;
+                int indexerCount = indexerMembers.Count;
+
+                var merged = ArrayBuilder<Symbol>.GetInstance(nonIndexerCount + indexerCount);
+
+                int nonIndexerPos = 0;
+                int indexerPos = 0;
+
+                while (nonIndexerPos < nonIndexerCount && indexerPos < indexerCount)
                 {
-                    merged.Add(nonIndexer);
-                    nonIndexerPos++;
+                    var nonIndexer = nonIndexerMembers[nonIndexerPos];
+                    var indexer = indexerMembers[indexerPos];
+                    if (LexicalOrderSymbolComparer.Instance.Compare(nonIndexer, indexer) < 0)
+                    {
+                        merged.Add(nonIndexer);
+                        nonIndexerPos++;
+                    }
+                    else
+                    {
+                        merged.Add(indexer);
+                        indexerPos++;
+                    }
                 }
-                else
+
+                for (; nonIndexerPos < nonIndexerCount; nonIndexerPos++)
                 {
-                    merged.Add(indexer);
-                    indexerPos++;
+                    merged.Add(nonIndexerMembers[nonIndexerPos]);
                 }
+
+                for (; indexerPos < indexerCount; indexerPos++)
+                {
+                    merged.Add(indexerMembers[indexerPos]);
+                }
+
+                var membersByName = merged.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
+                merged.Free();
+
+                return membersByName;
             }
-
-            for (; nonIndexerPos < nonIndexerCount; nonIndexerPos++)
-            {
-                merged.Add(nonIndexerMembers[nonIndexerPos]);
-            }
-
-            for (; indexerPos < indexerCount; indexerPos++)
-            {
-                merged.Add(indexerMembers[indexerPos]);
-            }
-
-            var membersByName = merged.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
-            merged.Free();
-
-            return membersByName;
         }
 
         private static void AddNestedTypesToDictionary(Dictionary<string, ImmutableArray<Symbol>> membersByName, Dictionary<string, ImmutableArray<NamedTypeSymbol>> typesByName)
@@ -2311,7 +2354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private class MembersAndInitializersBuilder
         {
-            public readonly ArrayBuilder<Symbol> NonTypeNonIndexerMembers = ArrayBuilder<Symbol>.GetInstance();
+            public ArrayBuilder<Symbol> NonTypeNonIndexerMembers { get; private set; } = ArrayBuilder<Symbol>.GetInstance();
             public readonly ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance();
             public readonly ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> InstanceInitializers = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance();
             public readonly ArrayBuilder<SyntaxReference> IndexerDeclarations = ArrayBuilder<SyntaxReference>.GetInstance();
@@ -2336,6 +2379,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 StaticInitializers.Free();
                 InstanceInitializers.Free();
                 IndexerDeclarations.Free();
+            }
+
+            internal void AddOrWrapTupleMembers(SourceMemberContainerTypeSymbol type)
+            {
+                this.NonTypeNonIndexerMembers = type.AddOrWrapTupleMembers(this.NonTypeNonIndexerMembers.ToImmutableAndFree());
             }
         }
 
@@ -2366,6 +2414,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 default:
                     break;
+            }
+
+            if (IsTupleType)
+            {
+                builder.AddOrWrapTupleMembers(this);
             }
 
             // We already built the members and initializers on another thread, we might have detected that condition
@@ -3297,6 +3350,81 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (checkName)
                 {
                     CheckMemberNameDistinctFromType(accessorOpt, diagnostics);
+                }
+            }
+        }
+
+        internal override byte? GetLocalNullableContextValue()
+        {
+            byte? value;
+            if (!_flags.TryGetNullableContext(out value))
+            {
+                value = ComputeNullableContextValue();
+                _flags.SetNullableContext(value);
+            }
+            return value;
+        }
+
+        private byte? ComputeNullableContextValue()
+        {
+            var compilation = DeclaringCompilation;
+            if (!compilation.ShouldEmitNullableAttributes(this))
+            {
+                return null;
+            }
+
+            var builder = new MostCommonNullableValueBuilder();
+            var baseType = BaseTypeNoUseSiteDiagnostics;
+            if (baseType is object)
+            {
+                builder.AddValue(TypeWithAnnotations.Create(baseType));
+            }
+            foreach (var @interface in GetInterfacesToEmit())
+            {
+                builder.AddValue(TypeWithAnnotations.Create(@interface));
+            }
+            foreach (var typeParameter in TypeParameters)
+            {
+                typeParameter.GetCommonNullableValues(compilation, ref builder);
+            }
+            foreach (var member in GetMembersUnordered())
+            {
+                member.GetCommonNullableValues(compilation, ref builder);
+            }
+            // Not including lambdas or local functions.
+            return builder.MostCommonValue;
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            var compilation = DeclaringCompilation;
+            NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
+
+            if (baseType is object)
+            {
+                if (baseType.ContainsDynamic())
+                {
+                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(baseType, customModifiersCount: 0));
+                }
+
+                if (baseType.ContainsTupleNames())
+                {
+                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(baseType));
+                }
+            }
+
+            if (compilation.ShouldEmitNullableAttributes(this))
+            {
+                if (ShouldEmitNullableContextValue(out byte nullableContextValue))
+                {
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableContextAttribute(this, nullableContextValue));
+                }
+
+                if (baseType is object)
+                {
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, nullableContextValue, TypeWithAnnotations.Create(baseType)));
                 }
             }
         }

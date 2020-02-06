@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -20,6 +23,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public CSharpIntelliSense(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
             : base(instanceFactory, testOutputHelper, nameof(CSharpIntelliSense))
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
+
+            // Disable import completion.
+            VisualStudio.Workspace.SetImportCompletionOption(false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -160,18 +171,15 @@ class Class1
             VisualStudio.Editor.SendKeys("<s");
             VisualStudio.Editor.Verify.CompletionItemsExist("see", "seealso", "summary");
 
-            if (LegacyCompletionCondition.Instance.ShouldSkip)
+            // 🐛 Workaround for https://github.com/dotnet/roslyn/issues/33824
+            var completionItems = VisualStudio.Editor.GetCompletionItems();
+            var targetIndex = Array.IndexOf(completionItems, "see");
+            var currentIndex = Array.IndexOf(completionItems, VisualStudio.Editor.GetCurrentCompletionItem());
+            if (currentIndex != targetIndex)
             {
-                // 🐛 Workaround for https://github.com/dotnet/roslyn/issues/33824
-                var completionItems = VisualStudio.Editor.GetCompletionItems();
-                var targetIndex = Array.IndexOf(completionItems, "see");
-                var currentIndex = Array.IndexOf(completionItems, VisualStudio.Editor.GetCurrentCompletionItem());
-                if (currentIndex != targetIndex)
-                {
-                    var key = currentIndex < targetIndex ? VirtualKey.Down : VirtualKey.Up;
-                    var keys = Enumerable.Repeat(key, Math.Abs(currentIndex - targetIndex)).Cast<object>().ToArray();
-                    VisualStudio.Editor.SendKeys(keys);
-                }
+                var key = currentIndex < targetIndex ? VirtualKey.Down : VirtualKey.Up;
+                var keys = Enumerable.Repeat(key, Math.Abs(currentIndex - targetIndex)).Cast<object>().ToArray();
+                VisualStudio.Editor.SendKeys(keys);
             }
 
             VisualStudio.Editor.SendKeys(VirtualKey.Enter);
@@ -219,7 +227,7 @@ class Class1
         }
 
         // 🐛 The async completion controller in 16.0 Preview 4 fails to account for brace completion sessions.
-        [ConditionalWpfFact(typeof(LegacyCompletionCondition)), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/33825"), Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(33825, "https://github.com/dotnet/roslyn/issues/33825")]
         public void CompletionUsesTrackingPointsInTheFaceOfAutomaticBraceCompletion()
         {
@@ -270,10 +278,7 @@ class Class1
                 'M',
                 Shift(VirtualKey.Enter));
 
-            if (LegacyCompletionCondition.Instance.ShouldSkip)
-            {
-                // Async completion commits the item and inserts a blank line
-                VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 class Class1
 {
     void Main(string[] args)
@@ -283,19 +288,6 @@ $$
     }
 }",
 assertCaretPosition: true);
-            }
-            else
-            {
-                VisualStudio.Editor.Verify.TextContains(@"
-class Class1
-{
-    void Main(string[] args)
-    {
-        Main$$
-    }
-}",
-assertCaretPosition: true);
-            }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -316,10 +308,7 @@ class Class1
                 'M',
                 Shift(VirtualKey.Enter));
 
-            if (LegacyCompletionCondition.Instance.ShouldSkip)
-            {
-                // Async completion commits the item (even in suggestion mode) and inserts a blank line
-                VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 class Class1
 {
     void Main(string[] args)
@@ -329,20 +318,7 @@ $$
     }
 }",
 assertCaretPosition: true);
-            }
-            else
-            {
-                VisualStudio.Editor.Verify.TextContains(@"
-class Class1
-{
-    void Main(string[] args)
-    {
-        M
-$$
-    }
-}",
-assertCaretPosition: true);
-            }
+
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -399,10 +375,10 @@ public class Program
             SetUpEditor(@"$$");
 
             VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.Space));
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.A));
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
         }
     }
 }

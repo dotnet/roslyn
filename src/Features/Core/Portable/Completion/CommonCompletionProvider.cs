@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 case CompletionTriggerKind.Insertion when position > 0:
                     var insertedCharacterPosition = position - 1;
-                    return this.IsInsertionTrigger(text, insertedCharacterPosition, options);
+                    return IsInsertionTrigger(text, insertedCharacterPosition, options);
 
                 default:
                     return false;
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // Get the actual description provided by whatever subclass we are.
             // Then, if we would commit text that could be expanded as a snippet, 
             // put that information in the description so that the user knows.
-            var description = await this.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
+            var description = await GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
             var parts = await TryAddSnippetInvocationPart(document, item, description.TaggedParts, cancellationToken).ConfigureAwait(false);
 
             return description.WithTaggedParts(parts);
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return Task.FromResult<TextChange?>(null);
         }
 
-        private static CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
+        private static readonly CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
         protected CompletionItem CreateSuggestionModeItem(string displayText, string description)
         {

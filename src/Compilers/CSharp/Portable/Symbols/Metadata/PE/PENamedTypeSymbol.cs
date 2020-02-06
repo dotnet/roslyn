@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,10 +13,9 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -63,6 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private TypeKind _lazyKind;
 
+        private NullableContextKind _lazyNullableContextValue;
+
         private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyInterfaces = default(ImmutableArray<NamedTypeSymbol>);
         private NamedTypeSymbol _lazyDeclaredBaseType = ErrorTypeSymbol.UnknownResultType;
@@ -71,7 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private Tuple<CultureInfo, string> _lazyDocComment;
 
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
-
 
         // There is a bunch of type properties relevant only for enums or types with custom attributes.
         // It is fairly easy to check whether a type s is not "uncommon". So we store uncommon properties in 
@@ -426,14 +428,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
-            return GetDeclaredBaseType();
+            return GetDeclaredBaseType(skipTransformsIfNecessary: false);
         }
 
-        private NamedTypeSymbol GetDeclaredBaseType()
+        private NamedTypeSymbol GetDeclaredBaseType(bool skipTransformsIfNecessary)
         {
             if (ReferenceEquals(_lazyDeclaredBaseType, ErrorTypeSymbol.UnknownResultType))
             {
-                Interlocked.CompareExchange(ref _lazyDeclaredBaseType, MakeDeclaredBaseType(), ErrorTypeSymbol.UnknownResultType);
+                var baseType = MakeDeclaredBaseType();
+                if (baseType is object)
+                {
+                    if (skipTransformsIfNecessary)
+                    {
+                        // If the transforms are not necessary, return early without updating the
+                        // base type field. This avoids cycles decoding nullability in particular.
+                        return baseType;
+                    }
+
+                    var moduleSymbol = ContainingPEModule;
+                    TypeSymbol decodedType = DynamicTypeDecoder.TransformType(baseType, 0, _handle, moduleSymbol);
+                    decodedType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType, _handle, moduleSymbol);
+                    baseType = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(decodedType), _handle, moduleSymbol, accessSymbol: this, nullableContext: this).Type;
+                }
+
+                Interlocked.CompareExchange(ref _lazyDeclaredBaseType, baseType, ErrorTypeSymbol.UnknownResultType);
             }
 
             return _lazyDeclaredBaseType;
@@ -457,17 +475,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var moduleSymbol = ContainingPEModule;
                     EntityHandle token = moduleSymbol.Module.GetBaseTypeOfTypeOrThrow(_handle);
-
                     if (!token.IsNil)
                     {
-                        TypeSymbol decodedType = new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
-                        decodedType = DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
-                        decodedType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType,
-                                                                                    _handle,
-                                                                                    moduleSymbol);
-                        return (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(decodedType),
-                                                                                  _handle,
-                                                                                  moduleSymbol).Type;
+                        return (NamedTypeSymbol)new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
                     }
                 }
                 catch (BadImageFormatException mrEx)
@@ -497,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
 
                         typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceImpl, moduleSymbol);
-                        typeSymbol = NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(typeSymbol), interfaceImpl, moduleSymbol).Type;
+                        typeSymbol = NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(typeSymbol), interfaceImpl, moduleSymbol, accessSymbol: this, nullableContext: this).Type;
 
                         var namedTypeSymbol = typeSymbol as NamedTypeSymbol ?? new UnsupportedMetadataTypeSymbol(); // interface list contains a bad type
                         symbols.Add(namedTypeSymbol);
@@ -632,6 +642,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             return GetAttributes();
+        }
+
+        internal override byte? GetNullableContextValue()
+        {
+            byte? value;
+            if (!_lazyNullableContextValue.TryGetByte(out value))
+            {
+                value = ContainingPEModule.Module.HasNullableContextAttribute(_handle, out byte arg) ?
+                    arg :
+                    _container.GetNullableContextValue();
+                _lazyNullableContextValue = value.ToNullableContextFlags();
+            }
+            return value;
+        }
+
+        internal override byte? GetLocalNullableContextValue()
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IEnumerable<string> MemberNames
@@ -1253,12 +1281,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // Sort the types based on row id.
                 members.Sort(membersCount, DeclarationOrderTypeSymbolComparer.Instance);
 
-                var membersInDeclarationOrder = members.ToImmutable();
-
 #if DEBUG
-                ISymbol previous = null;
+                Symbol previous = null;
 
-                foreach (var s in membersInDeclarationOrder)
+                foreach (var s in members)
                 {
                     if (previous == null)
                     {
@@ -1266,12 +1292,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else
                     {
-                        ISymbol current = s;
+                        Symbol current = s;
                         Debug.Assert(previous.Kind.ToSortOrder() <= current.Kind.ToSortOrder());
                         previous = current;
                     }
                 }
 #endif
+
+                if (IsTupleType)
+                {
+                    members = AddOrWrapTupleMembers(members.ToImmutableAndFree());
+                    Debug.Assert(members is object);
+                }
+
+                var membersInDeclarationOrder = members.ToImmutable();
 
                 if (!ImmutableInterlocked.InterlockedInitialize(ref _lazyMembersInDeclarationOrder, membersInDeclarationOrder))
                 {
@@ -1545,6 +1579,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public sealed override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         public override bool MightContainExtensionMethods
         {
             get
@@ -1603,7 +1642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else
                     {
-                        TypeSymbol @base = GetDeclaredBaseType();
+                        TypeSymbol @base = GetDeclaredBaseType(skipTransformsIfNecessary: true);
 
                         result = TypeKind.Class;
 
@@ -1666,7 +1705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return null;
             }
 
-            if (BaseTypeAnalysis.ClassDependsOn(declaredBase, this))
+            if (BaseTypeAnalysis.TypeDependsOn(declaredBase, this))
             {
                 return CyclicInheritanceError(this, declaredBase);
             }
@@ -1685,7 +1724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return declaredInterfaces
-                .SelectAsArray(t => BaseTypeAnalysis.InterfaceDependsOn(t, this) ? CyclicInheritanceError(this, t) : t);
+                .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, this) ? CyclicInheritanceError(this, t) : t);
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
@@ -2252,6 +2291,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
             }
 
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
+
             public override int Arity
             {
                 get
@@ -2310,6 +2352,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _genericParameterHandles = genericParameterHandles;
                 _mangleName = mangleName;
             }
+
+            protected sealed override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
 
             public override int Arity
             {

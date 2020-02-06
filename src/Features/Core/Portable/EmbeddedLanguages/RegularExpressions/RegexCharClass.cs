@@ -221,16 +221,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             int mySetLength = set[start + SETLENGTH];
             int myCategoryLength = set[start + CATEGORYLENGTH];
-            int myEndPosition = start + SETSTART + mySetLength + myCategoryLength;
+            var myEndPosition = start + SETSTART + mySetLength + myCategoryLength;
 
-            bool subtracted = false;
+            var subtracted = false;
 
             if (set.Length > myEndPosition)
             {
                 subtracted = CharInClassRecursive(ch, set, myEndPosition);
             }
 
-            bool b = CharInClassInternal(ch, set, start, mySetLength, myCategoryLength);
+            var b = CharInClassInternal(ch, set, start, mySetLength, myCategoryLength);
 
             // Note that we apply the negation *before* performing the subtraction.  This is because
             // the negation only applies to the first char class, not the entire subtraction.
@@ -281,10 +281,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private static bool CharInCategory(char ch, string set, int start, int mySetLength, int myCategoryLength)
         {
-            UnicodeCategory chcategory = CharUnicodeInfo.GetUnicodeCategory(ch);
+            var chcategory = CharUnicodeInfo.GetUnicodeCategory(ch);
 
-            int i = start + SETSTART + mySetLength;
-            int end = i + myCategoryLength;
+            var i = start + SETSTART + mySetLength;
+            var end = i + myCategoryLength;
             while (i < end)
             {
                 int curcat = unchecked((short)set[i]);
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (curcat > 0)
             {
                 // positive case - the character must be in ANY of the categories in the group
-                bool answer = false;
+                var answer = false;
 
                 while (curcat != 0)
                 {
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             else
             {
                 // negative case - the character must be in NONE of the categories in the group
-                bool answer = true;
+                var answer = true;
 
                 while (curcat != 0)
                 {

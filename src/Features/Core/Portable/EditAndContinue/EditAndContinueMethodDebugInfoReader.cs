@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
@@ -23,6 +26,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public abstract bool IsPortable { get; }
         public abstract EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle);
         public abstract StandaloneSignatureHandle GetLocalSignature(MethodDefinitionHandle methodHandle);
+
+        /// <summary>
+        /// Reads document checksum.
+        /// </summary>
+        /// <returns>True if a document with given path is listed in the PDB.</returns>
+        /// <exception cref="Exception">Error reading debug information from the PDB.</exception>
+        public abstract bool TryGetDocumentChecksum(string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId);
 
         private sealed class Native : EditAndContinueMethodDebugInfoReader
         {
@@ -50,7 +60,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             public override EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle)
             {
-                int methodToken = MetadataTokens.GetToken(methodHandle);
+                var methodToken = MetadataTokens.GetToken(methodHandle);
 
                 byte[] debugInfo;
                 try
@@ -89,6 +99,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     throw new InvalidDataException(e.Message, e);
                 }
             }
+
+            public override bool TryGetDocumentChecksum(string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId)
+                => TryGetDocumentChecksum(_symReader, documentPath, out checksum, out algorithmId);
         }
 
         private sealed class Portable : EditAndContinueMethodDebugInfoReader
@@ -117,7 +130,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             /// <exception cref="BadImageFormatException">Invalid data format.</exception>
             private static bool TryGetCustomDebugInformation(MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
             {
-                bool foundAny = false;
+                var foundAny = false;
                 customDebugInfo = default;
                 foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
                 {
@@ -136,6 +149,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 return foundAny;
+            }
+
+            public override bool TryGetDocumentChecksum(string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId)
+            {
+                foreach (var documentHandle in _pdbReader.Documents)
+                {
+                    var document = _pdbReader.GetDocument(documentHandle);
+                    if (_pdbReader.StringComparer.Equals(document.Name, documentPath))
+                    {
+                        checksum = _pdbReader.GetBlobContent(document.Hash);
+                        algorithmId = _pdbReader.GetGuid(document.HashAlgorithm);
+                        return true;
+                    }
+                }
+
+                checksum = default;
+                algorithmId = default;
+                return false;
             }
         }
 
@@ -165,7 +196,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 throw new ArgumentOutOfRangeException(nameof(version));
             }
 
-            int hr = symReader.GetPortableDebugMetadataByVersion(version, metadata: out byte* metadata, size: out int size);
+            var hr = symReader.GetPortableDebugMetadataByVersion(version, metadata: out var metadata, size: out var size);
             Marshal.ThrowExceptionForHR(hr);
 
             if (hr == 0)
@@ -188,5 +219,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </returns>
         public unsafe static EditAndContinueMethodDebugInfoReader Create(MetadataReader pdbReader)
            => new Portable(pdbReader ?? throw new ArgumentNullException(nameof(pdbReader)));
+
+        internal static bool TryGetDocumentChecksum(ISymUnmanagedReader5 symReader, string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId)
+        {
+            var symDocument = symReader.GetDocument(documentPath);
+
+            // Make sure the full path matches.
+            // Native SymReader allows partial match on the document file name.
+            if (symDocument == null || !StringComparer.Ordinal.Equals(symDocument.GetName(), documentPath))
+            {
+                checksum = default;
+                algorithmId = default;
+                return false;
+            }
+
+            algorithmId = symDocument.GetHashAlgorithm();
+            checksum = symDocument.GetChecksum().ToImmutableArray();
+            return true;
+        }
     }
 }

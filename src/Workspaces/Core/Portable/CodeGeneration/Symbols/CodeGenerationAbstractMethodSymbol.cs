@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -48,9 +50,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract IMethodSymbol PartialDefinitionPart { get; }
         public abstract IMethodSymbol PartialImplementationPart { get; }
 
-        public NullableAnnotation ReceiverNullableAnnotation => throw new NotImplementedException();
-        public NullableAnnotation ReturnNullableAnnotation => throw new NotImplementedException();
-        public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations => throw new NotImplementedException();
+        public NullableAnnotation ReceiverNullableAnnotation => ReceiverType.NullableAnnotation;
+        public NullableAnnotation ReturnNullableAnnotation => ReturnType.NullableAnnotation;
+        public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => TypeArguments.SelectAsArray(a => a.NullableAnnotation);
 
         public virtual ITypeSymbol ReceiverType
         {
@@ -118,7 +120,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public INamedTypeSymbol AssociatedAnonymousDelegate => null;
 
+        public bool IsConditional => false;
+
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
+        {
+            return new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());
+        }
+
+        public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
         {
             return new CodeGenerationConstructedMethodSymbol(this, typeArguments);
         }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -85,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim lastSpanEnd = 0
             While position < endPosition
                 Dim span As TextSpan = Nothing
-                If BreakpointSpans.TryGetEnclosingBreakpointSpan(root, position, span) AndAlso span.End > lastSpanEnd Then
+                If BreakpointSpans.TryGetEnclosingBreakpointSpan(root, position, minLength:=0, span) AndAlso span.End > lastSpanEnd Then
                     position = span.End
                     lastSpanEnd = span.End
                     Yield span
@@ -2109,6 +2111,16 @@ End Class</text>)
 Class C
   Sub Goo()
     Console.WriteLine([|$$Async Function()|] x + x)
+  End Sub
+End Class</text>)
+        End Sub
+
+        <Fact>
+        Public Sub Lambda_SingleLine_Header_Nested()
+            TestSpan(<text>
+Class C
+  Sub Goo()
+    Dim x = Function(a) [|$$Function(b)|] a + b
   End Sub
 End Class</text>)
         End Sub

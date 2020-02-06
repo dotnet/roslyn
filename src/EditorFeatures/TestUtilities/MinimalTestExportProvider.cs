@@ -1,13 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.ExperimentationService;
+using Microsoft.CodeAnalysis.UnitTests.Fakes;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
@@ -90,6 +91,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             // Consider removing the internal service from the output: https://github.com/dotnet/roslyn/issues/30249
             return ExportProviderCache.GetOrCreateAssemblyCatalog(assemblies, ExportProviderCache.CreateResolver())
                 .WithPart(typeof(TestExperimentationServiceInternal));
+        }
+
+        public static ComposableCatalog WithDefaultFakes(this ComposableCatalog catalog)
+        {
+            return catalog
+                .WithPart(typeof(StubStreamingFindUsagesPresenter));
         }
     }
 }

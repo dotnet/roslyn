@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
@@ -226,12 +228,11 @@ namespace Microsoft.CodeAnalysis.Host
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadText, cancellationToken))
                     {
-                        using (var stream = _memoryMappedInfo.CreateReadableStream())
-                        using (var reader = CreateTextReaderFromTemporaryStorage((ISupportDirectMemoryAccess)stream, (int)stream.Length, cancellationToken))
-                        {
-                            // we pass in encoding we got from original source text even if it is null.
-                            return _service._textFactory.CreateText(reader, _encoding, cancellationToken);
-                        }
+                        using var stream = _memoryMappedInfo.CreateReadableStream();
+                        using var reader = CreateTextReaderFromTemporaryStorage((ISupportDirectMemoryAccess)stream, (int)stream.Length);
+
+                        // we pass in encoding we got from original source text even if it is null.
+                        return _service._textFactory.CreateText(reader, _encoding, cancellationToken);
                     }
                 }
 
@@ -266,13 +267,10 @@ namespace Microsoft.CodeAnalysis.Host
                         _memoryMappedInfo = _service.CreateTemporaryStorage(size);
 
                         // Write the source text out as Unicode. We expect that to be cheap.
-                        using (var stream = _memoryMappedInfo.CreateWritableStream())
-                        {
-                            using (var writer = new StreamWriter(stream, Encoding.Unicode))
-                            {
-                                text.Write(writer, cancellationToken);
-                            }
-                        }
+                        using var stream = _memoryMappedInfo.CreateWritableStream();
+                        using var writer = new StreamWriter(stream, Encoding.Unicode);
+
+                        text.Write(writer, cancellationToken);
                     }
                 }
 
@@ -282,9 +280,9 @@ namespace Microsoft.CodeAnalysis.Host
                     return Task.Factory.StartNew(() => WriteText(text, cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
                 }
 
-                private unsafe TextReader CreateTextReaderFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength, CancellationToken cancellationToken)
+                private unsafe TextReader CreateTextReaderFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength)
                 {
-                    char* src = (char*)accessor.GetPointer();
+                    var src = (char*)accessor.GetPointer();
 
                     // BOM: Unicode, little endian
                     // Skip the BOM when creating the reader
@@ -375,35 +373,34 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         var size = stream.Length;
                         _memoryMappedInfo = _service.CreateTemporaryStorage(size);
-                        using (var viewStream = _memoryMappedInfo.CreateWritableStream())
+                        using var viewStream = _memoryMappedInfo.CreateWritableStream();
+
+                        var buffer = SharedPools.ByteArray.Allocate();
+                        try
                         {
-                            var buffer = SharedPools.ByteArray.Allocate();
-                            try
+                            while (true)
                             {
-                                while (true)
+                                int count;
+                                if (useAsync)
                                 {
-                                    int count;
-                                    if (useAsync)
-                                    {
-                                        count = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
-                                    }
-                                    else
-                                    {
-                                        count = stream.Read(buffer, 0, buffer.Length);
-                                    }
-
-                                    if (count == 0)
-                                    {
-                                        break;
-                                    }
-
-                                    viewStream.Write(buffer, 0, count);
+                                    count = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
                                 }
+                                else
+                                {
+                                    count = stream.Read(buffer, 0, buffer.Length);
+                                }
+
+                                if (count == 0)
+                                {
+                                    break;
+                                }
+
+                                viewStream.Write(buffer, 0, count);
                             }
-                            finally
-                            {
-                                SharedPools.ByteArray.Free(buffer);
-                            }
+                        }
+                        finally
+                        {
+                            SharedPools.ByteArray.Free(buffer);
                         }
                     }
                 }
@@ -415,8 +412,8 @@ namespace Microsoft.CodeAnalysis.Host
             private char* _position;
             private readonly char* _end;
 
-            public DirectMemoryAccessStreamReader(char* src, int length) :
-                base(length)
+            public DirectMemoryAccessStreamReader(char* src, int length)
+                : base(length)
             {
                 Debug.Assert(src != null);
                 Debug.Assert(length >= 0);

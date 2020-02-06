@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -1972,6 +1974,237 @@ class C : IGoo
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task IgnoreIfTopLevelNullableIsDifferent_GetterNullable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string name)
+    {
+        this.name = name;
+    }
+
+    public string? [||]GetName()
+    {
+        return this.name;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string name)
+    {
+        this.name = name;
+    }
+
+    public string? Name => this.name;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task IgnoreIfTopLevelNullableIsDifferent_SetterNullable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string? name)
+    {
+        this.name = name;
+    }
+
+    public string [||]GetName()
+    {
+        return this.name ?? """";
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string? name)
+    {
+        this.name = name;
+    }
+
+    public string Name => this.name ?? """";
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task IgnoreIfNestedNullableIsDifferent_GetterNullable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string?> [||]GetNames()
+    {
+        return this.names;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string?> Names => this.names;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task IgnoreIfNestedNullableIsDifferent_SetterNullable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+using System.Linq;
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string?> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string> [||]GetNames()
+    {
+        return this.names.Where(n => n is object);
+    }
+}",
+@"
+#nullable enable
+
+using System.Linq;
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string?> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string> Names => this.names.Where(n => n is object);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task NullabilityOfFieldDifferentThanProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    private string name;
+    
+    public string? [||]GetName()
+    {
+        return name;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    private string name;
+
+    public string? Name => name;
+}");
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUnsafeGetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe int [||]GetP()
+    {
+        return 0;
+    }
+
+    public void SetP(int value)
+    { }
+}",
+@"class C
+{
+    public unsafe int P
+    {
+        get => 0;
+        set
+        { }
+    }
+}", index: 1);
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUnsafeSetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public int [||]GetP()
+    {
+        return 0;
+    }
+
+    public unsafe void SetP(int value)
+    { }
+}",
+@"class C
+{
+    public unsafe int P
+    {
+        get => 0;
+        set
+        { }
+    }
+}", index: 1);
         }
 
         private async Task TestWithAllCodeStyleOff(

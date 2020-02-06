@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -101,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 {
                     // We now check the children of the old and new types against each other. If any of them have changed,
                     // it means that the old type has essentially been removed and a new one added.
-                    for (int i = 0; i < oldCount; i++)
+                    for (var i = 0; i < oldCount; i++)
                     {
                         if (!compare(oldChildren[i], newChildren[i], newNodeParent, null))
                         {
@@ -144,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     ? eventQueue.Count
                     : 0;
 
-                bool hasChanges = false;
+                var hasChanges = false;
 
                 // Find first child that is different.
                 int i;
@@ -226,7 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 if (firstAdded >= 0)
                 {
-                    for (int i = 0; i < delta; i++)
+                    for (var i = 0; i < delta; i++)
                     {
                         EnqueueAddEvent(newChildren[firstAdded + i], newNodeParent, eventQueue);
                     }
@@ -278,7 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 if (firstRemoved >= 0)
                 {
-                    for (int i = 0; i < delta; i++)
+                    for (var i = 0; i < delta; i++)
                     {
                         EnqueueRemoveEvent(oldChildren[firstRemoved + i], newNodeParent, eventQueue);
                     }

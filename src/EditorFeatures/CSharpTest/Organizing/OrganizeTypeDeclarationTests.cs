@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +8,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1080,7 +1083,7 @@ interface I
                 .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
                 .CreateExportProvider();
 
-            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
+            using var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C
@@ -1090,21 +1093,19 @@ interface I
                     </Submission>
                 </Workspace> "),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider))
-            {
-                // Force initialization.
-                workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+                exportProvider: exportProvider);
+            // Force initialization.
+            workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
-                var textView = workspace.Documents.Single().GetTextView();
+            var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new OrganizeDocumentCommandHandler();
+            var handler = new OrganizeDocumentCommandHandler(exportProvider.GetExportedValue<IThreadingContext>());
 
-                var state = handler.GetCommandState(new SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer));
-                Assert.True(state.IsUnspecified);
+            var state = handler.GetCommandState(new SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer));
+            Assert.True(state.IsUnspecified);
 
-                state = handler.GetCommandState(new OrganizeDocumentCommandArgs(textView, textView.TextBuffer));
-                Assert.True(state.IsUnspecified);
-            }
+            state = handler.GetCommandState(new OrganizeDocumentCommandArgs(textView, textView.TextBuffer));
+            Assert.True(state.IsUnspecified);
         }
     }
 }

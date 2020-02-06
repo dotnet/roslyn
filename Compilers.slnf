@@ -44,6 +44,7 @@
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\BoundTreeGenerator\\CompilersBoundTreeGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\CSharpErrorFactsGenerator\\CSharpErrorFactsGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\CSharpSyntaxGenerator\\CSharpSyntaxGenerator.csproj",
+      "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\IOperationGenerator\\CompilersIOperationGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\VisualBasicErrorFactsGenerator\\VisualBasicErrorFactsGenerator.vbproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\VisualBasicSyntaxGenerator\\VisualBasicSyntaxGenerator.vbproj"
     ]

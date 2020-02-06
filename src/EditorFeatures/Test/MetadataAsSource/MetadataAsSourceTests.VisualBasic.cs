@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -42,6 +44,7 @@ End Module");
 ' mscorlib.v4_6_1038_0.dll
 #End Region
 
+Imports System
 Imports System.Runtime.InteropServices
 
 Namespace System
@@ -63,10 +66,8 @@ Namespace System
     End Class
 End Namespace";
 
-                using (var context = TestContext.Create(LanguageNames.VisualBasic))
-                {
-                    await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected);
-                }
+                using var context = TestContext.Create(LanguageNames.VisualBasic);
+                await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]

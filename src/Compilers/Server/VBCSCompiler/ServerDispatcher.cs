@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -296,22 +298,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     case CompletionReason.ClientDisconnect:
                         // Have to assume the worst here which is user pressing Ctrl+C at the command line and
                         // hence wanting all compilation to end.
-                        _diagnosticListener.ConnectionRudelyEnded();
                         shutdown = true;
                         break;
                     case CompletionReason.ClientException:
                     case CompletionReason.ClientShutdownRequest:
-                        _diagnosticListener.ConnectionRudelyEnded();
                         shutdown = true;
                         break;
                     default:
                         throw new InvalidOperationException($"Unexpected enum value {connectionData.CompletionReason}");
                 }
-            }
 
-            if (processedCount > 0)
-            {
-                _diagnosticListener.ConnectionCompleted(processedCount);
+                _diagnosticListener.ConnectionCompleted(connectionData.CompletionReason);
             }
 
             if (shutdown)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -54,9 +56,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
                 // tooltips text is: Program_MyEvents;      (Press TAB to insert)
                 // GetEventNameTask() gets back the event name, only needs to add a semicolon after it.
-                var eventText = analyzedSession.GetEventNameTask.Result + ";";
-                var texts = new[] { eventText, CSharpEditorResources.Press_TAB_to_insert };
-                var textRuns = texts.Select(s => new ClassifiedTextRun(ClassificationTypeNames.Text, s));
+                var textRuns = new[]
+                {
+                    new ClassifiedTextRun(ClassificationTypeNames.MethodName, analyzedSession.GetEventNameTask.Result, ClassifiedTextRunStyle.UseClassificationFont),
+                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ";", ClassifiedTextRunStyle.UseClassificationFont),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpEditorResources.Press_TAB_to_insert),
+                };
                 var content = new[] { new ClassifiedTextElement(textRuns) };
 
                 _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, content);

@@ -1,16 +1,20 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateConstructorFromMembers
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PickMembers
+Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructorFromMembers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructorFromMembers
     Public Class GenerateConstructorFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New GenerateConstructorFromMembersCodeRefactoringProvider(DirectCast(parameters.fixProviderData, IPickMembersService))
+            Return New VisualBasicGenerateConstructorFromMembersCodeRefactoringProvider(DirectCast(parameters.fixProviderData, IPickMembersService))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
@@ -358,6 +362,34 @@ End Class",
         Me.i = i
     End Sub
 End Class", chosenSymbols:={"i"})
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialog1WithNullCheck() As Task
+            Dim options = New Dictionary(Of OptionKey, Object)
+            options(New OptionKey(GenerateConstructorFromMembersOptions.AddNullChecks, language:=LanguageNames.VisualBasic)) = True
+
+            Dim parameters = New TestParameters()
+            parameters = parameters.WithOptions(options)
+
+            Await TestWithPickMembersDialogAsync(
+"Class Program
+    Private s As String
+    [||]
+End Class",
+"Imports System
+
+Class Program
+    Private s As String
+
+    Public Sub New(s As String{|Navigation:)|}
+        If s Is Nothing Then
+            Throw New ArgumentNullException(NameOf(s))
+        End If
+
+        Me.s = s
+    End Sub
+End Class", chosenSymbols:={"s"}, parameters:=parameters)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>

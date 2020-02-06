@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,11 +15,11 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
-    [Export(typeof(ExternalErrorDiagnosticUpdateSource))]
     internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
         private readonly Workspace _workspace;
@@ -31,7 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private InProgressState _stateDoNotAccessDirectly = null;
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
-        [ImportingConstructor]
         public ExternalErrorDiagnosticUpdateSource(
             VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
@@ -168,20 +169,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     return;
                 }
 
+                // explicitly start solution crawler if it didn't start yet. since solution crawler is lazy, 
+                // user might have built solution before workspace fires its first event yet (which is when solution crawler is initialized)
+                // here we give initializeLazily: false so that solution crawler is fully initialized when we do de-dup live and build errors,
+                // otherwise, we will think none of error we have here belong to live errors since diagnostic service is not initialized yet.
+                var registrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+                registrationService.EnsureRegistration(_workspace, initializeLazily: false);
+
                 _lastBuiltResult = inProgressState.GetBuildDiagnostics();
 
                 // we are about to update live analyzer data using one from build.
                 // pause live analyzer
-                using (var operation = _notificationService.Start("BuildDone"))
+                using var operation = _notificationService.Start("BuildDone");
+                if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
                 {
-                    if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
-                    {
-                        await CleanupAllLiveErrorsAsync(diagnosticService, inProgressState.GetProjectsWithoutErrors()).ConfigureAwait(false);
-                        await SyncBuildErrorsAndReportAsync(diagnosticService, inProgressState).ConfigureAwait(false);
-                    }
-
-                    inProgressState.Done();
+                    await CleanupAllLiveErrorsAsync(diagnosticService, inProgressState.GetProjectsWithoutErrors()).ConfigureAwait(false);
+                    await SyncBuildErrorsAndReportAsync(diagnosticService, inProgressState).ConfigureAwait(false);
                 }
+
+                inProgressState.Done();
             }).CompletesAsyncOperation(asyncToken);
         }
 
@@ -419,7 +425,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     // set ids set
                     var builder = ImmutableHashSet.CreateBuilder<string>();
-                    var descriptorMap = _owner._diagnosticService.CreateDiagnosticDescriptorsPerReference(project);
+                    var descriptorMap = _owner._diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project);
                     builder.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
 
                     var set = builder.ToImmutable();
@@ -507,7 +513,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // REVIEW: current design is that we special case compiler analyzer case and we accept only document level
                 //         diagnostic as live. otherwise, we let them be build errors. we changed compiler analyzer accordingly as well
                 //         so that it doesn't report project level diagnostic as live errors.
-                if (_owner._diagnosticService.IsCompilerDiagnostic(project.Language, diagnosticData) &&
+                if (_owner._diagnosticService.AnalyzerInfoCache.IsCompilerDiagnostic(project.Language, diagnosticData) &&
                     !IsDocumentLevelDiagnostic(diagnosticData))
                 {
                     // compiler error but project level error
@@ -542,7 +548,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // 
                     // but also we can't simply say it is a document level error because it has file path
                     // since project level error can have a file path pointing to a file such as dll
-                    // , pdb, embeded files and etc.
+                    // , pdb, embedded files and etc.
                     // 
                     // unfortunately, there is no 100% correct way to do this.
                     // so we will use a heuristic that will most likely work for most of common cases.
@@ -563,7 +569,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         return ids.Contains(id);
                     }
 
-                    var fullSolutionAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project);
+                    var fullSolutionAnalysis = SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution;
                     if (!project.SupportsCompilation || fullSolutionAnalysis)
                     {
                         return IsSupportedDiagnosticId(project.Id, id);
@@ -572,15 +578,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // set ids set
                     var builder = ImmutableHashSet.CreateBuilder<string>();
                     var diagnosticService = _owner._diagnosticService;
-                    foreach (var analyzer in diagnosticService.GetDiagnosticAnalyzers(project))
-                    {
-                        if (diagnosticService.IsCompilationEndAnalyzer(analyzer, project, compilation))
-                        {
-                            continue;
-                        }
+                    var infoCache = diagnosticService.AnalyzerInfoCache;
 
-                        var diagnosticIds = diagnosticService.GetDiagnosticDescriptors(analyzer).Select(d => d.Id);
-                        builder.UnionWith(diagnosticIds);
+                    foreach (var analyzersPerReference in infoCache.CreateDiagnosticAnalyzersPerReference(project))
+                    {
+                        foreach (var analyzer in analyzersPerReference.Value)
+                        {
+                            if (diagnosticService.IsCompilationEndAnalyzer(analyzer, project, compilation))
+                            {
+                                continue;
+                            }
+
+                            var diagnosticIds = infoCache.GetDiagnosticDescriptors(analyzer).Select(d => d.Id);
+                            builder.UnionWith(diagnosticIds);
+                        }
                     }
 
                     var set = builder.ToImmutable();
@@ -656,15 +667,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             public override bool Equals(object obj)
-            {
-                var other = obj as ArgumentKey;
-                if (other == null)
-                {
-                    return false;
-                }
-
-                return base.Equals(obj);
-            }
+                => obj is ArgumentKey &&
+                   base.Equals(obj);
 
             public override int GetHashCode()
             {
@@ -698,7 +702,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public int GetHashCode(DiagnosticData obj)
             {
-                int result =
+                var result =
                     Hash.Combine(obj.Id,
                     Hash.Combine(obj.Message,
                     Hash.Combine(obj.ProjectId,

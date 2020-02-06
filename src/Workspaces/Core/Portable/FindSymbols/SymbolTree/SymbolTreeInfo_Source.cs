@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly: false,
                 createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: "_Source_" + project.FilePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(project.Solution, checksum, project.FilePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerTask(project.Solution, checksum, project.FilePath, names, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
             return result;
@@ -86,6 +89,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 allChecksums.Add(compilationOptionsChecksum);
                 allChecksums.Add(parseOptionsChecksum);
 
+                // Include serialization format version in our checksum.  That way if the 
+                // version ever changes, all persisted data won't match the current checksum
+                // we expect, and we'll recompute things.
+                allChecksums.Add(SerializationFormatChecksum);
+
                 var checksum = Checksum.Create(WellKnownSynchronizationKind.SymbolTreeInfo, allChecksums);
                 return checksum;
             }
@@ -112,7 +120,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return CreateSymbolTreeInfo(
                 project.Solution, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(),
-                inheritanceMap: new OrderPreservingMultiDictionary<string, string>());
+                inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
+                simpleMethods: null,
+                complexMethods: ImmutableArray<ExtensionMethodInfo>.Empty);
         }
 
         // generate nodes for the global namespace an all descendants

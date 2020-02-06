@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -6,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     Partial Friend Class ImportsOrganizer
-        Private Shared ReadOnly s_newLine As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
+        Private Shared ReadOnly s_newLine As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
 
         Public Shared Function Organize([imports] As SyntaxList(Of ImportsStatementSyntax),
                                         placeSystemNamespaceFirst As Boolean,
@@ -134,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Public Shared Function Organize(clauses As SeparatedSyntaxList(Of ImportsClauseSyntax),
                                         placeSystemNamespaceFirst As Boolean) As SeparatedSyntaxList(Of ImportsClauseSyntax)
             If clauses.Count > 0 Then
-                Dim result = clauses.OrderBy(ImportsClauseComparer.Instance).ToList()
+                Dim result = clauses.OrderBy(ImportsClauseComparer.NormalInstance).ToList()
 
                 If Not result.SequenceEqual(clauses) Then
                     Return SyntaxFactory.SeparatedList(result, clauses.GetSeparators())

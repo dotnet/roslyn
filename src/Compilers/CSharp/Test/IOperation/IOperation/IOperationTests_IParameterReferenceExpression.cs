@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -810,15 +812,18 @@ internal class Class
 ";
             string expectedOperationTree = @"
 IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw new A ... (nameof(x))')
-  IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException) (Syntax: 'new Argumen ... (nameof(x))')
-    Arguments(1):
-        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null) (Syntax: 'nameof(x)')
-          INameOfOperation (OperationKind.NameOf, Type: System.String, Constant: ""x"") (Syntax: 'nameof(x)')
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
-          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    Initializer: 
-      null
+  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, IsImplicit) (Syntax: 'new Argumen ... (nameof(x))')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+    Operand: 
+      IObjectCreationOperation (Constructor: System.ArgumentNullException..ctor(System.String paramName)) (OperationKind.ObjectCreation, Type: System.ArgumentNullException) (Syntax: 'new Argumen ... (nameof(x))')
+        Arguments(1):
+            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: paramName) (OperationKind.Argument, Type: null) (Syntax: 'nameof(x)')
+              INameOfOperation (OperationKind.NameOf, Type: System.String, Constant: ""x"") (Syntax: 'nameof(x)')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
