@@ -380,14 +380,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority,
             TestParameters parameters)
         {
-            MarkupTestFile.GetSpans(
+            MarkupTestFile.GetNamedSpans(
                 initialMarkup.NormalizeLineEndings(),
                 out var initialMarkupWithoutSpans, out IDictionary<string, ImmutableArray<TextSpan>> initialSpanMap);
 
             const string UnnecessaryMarkupKey = "Unnecessary";
             var unnecessarySpans = initialSpanMap.GetOrAdd(UnnecessaryMarkupKey, _ => ImmutableArray<TextSpan>.Empty);
 
-            MarkupTestFile.GetSpans(
+            MarkupTestFile.GetNamedSpans(
                 expectedMarkup.NormalizeLineEndings(),
                 out var expected, out IDictionary<string, ImmutableArray<TextSpan>> expectedSpanMap);
 

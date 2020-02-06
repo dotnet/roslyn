@@ -37,7 +37,7 @@ Class C
         {|writtenReference:Goo|} = 4
     End Function
 End Class";
-            Test.Utilities.MarkupTestFile.GetSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+            Test.Utilities.MarkupTestFile.GetNamedSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
             VisualStudio.Editor.SetText(text);
             Verify("Goo", spans);
 

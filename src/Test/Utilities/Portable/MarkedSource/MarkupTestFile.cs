@@ -206,23 +206,20 @@ namespace Roslyn.Test.Utilities
         }
 
         private static void GetPositionAndSpans(
-            string input, out string output, out int? cursorPositionOpt, out ImmutableArray<TextSpan> spans)
+            string input, out string output, out int? cursorPosition, out ImmutableArray<TextSpan> spans)
         {
-            Parse(input, out output, out cursorPositionOpt, out var dictionary);
+            Parse(input, out output, out cursorPosition, out var dictionary);
 
             var builder = GetOrAdd(dictionary, string.Empty, _ => ArrayBuilder<TextSpan>.GetInstance());
             spans = builder.ToImmutableAndFree();
         }
 
-        public static void GetPositionAndSpans(
-            string input, out string output, out int? cursorPositionOpt, out IDictionary<string, ImmutableArray<TextSpan>> spans)
+        public static void GetPositionAndNamedSpans(
+            string input, out string output, out int? cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans)
         {
-            Parse(input, out output, out cursorPositionOpt, out var dictionary);
+            Parse(input, out output, out cursorPosition, out var dictionary);
             spans = dictionary.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
         }
-
-        public static void GetSpans(string input, out string output, out IDictionary<string, ImmutableArray<TextSpan>> spans)
-            => GetPositionAndSpans(input, out output, out var cursorPositionOpt, out spans);
 
         public static void GetPositionAndSpans(string input, out string output, out int cursorPosition, out ImmutableArray<TextSpan> spans)
         {
@@ -231,14 +228,14 @@ namespace Roslyn.Test.Utilities
         }
 
         public static void GetPosition(string input, out string output, out int? cursorPosition)
-            => GetPositionAndSpans(input, out output, out cursorPosition, out ImmutableArray<TextSpan> spans);
+            => GetPositionAndSpans(input, out output, out cursorPosition, out _);
 
         public static void GetPosition(string input, out string output, out int cursorPosition)
-            => GetPositionAndSpans(input, out output, out cursorPosition, out var spans);
+            => GetPositionAndSpans(input, out output, out cursorPosition, out _);
 
         public static void GetPositionAndSpan(string input, out string output, out int? cursorPosition, out TextSpan? textSpan)
         {
-            GetPositionAndSpans(input, out output, out cursorPosition, out ImmutableArray<TextSpan> spans);
+            GetPositionAndSpans(input, out output, out cursorPosition, out var spans);
             textSpan = spans.Length == 0 ? null : (TextSpan?)spans.Single();
         }
 
@@ -248,14 +245,15 @@ namespace Roslyn.Test.Utilities
             textSpan = spans.Single();
         }
 
+        public static void GetNamedSpans(string input, out string output, out IDictionary<string, ImmutableArray<TextSpan>> spans)
+            => GetPositionAndNamedSpans(input, out output, out _, out spans);
+
         public static void GetSpans(string input, out string output, out ImmutableArray<TextSpan> spans)
-        {
-            GetPositionAndSpans(input, out output, out int? pos, out spans);
-        }
+            => GetPositionAndSpans(input, out output, out int? _, out spans);
 
         public static void GetSpan(string input, out string output, out TextSpan textSpan)
         {
-            GetSpans(input, out output, out ImmutableArray<TextSpan> spans);
+            GetSpans(input, out output, out var spans);
             textSpan = spans.Single();
         }
     }

@@ -71,7 +71,7 @@ namespace ClassLibrary1[|
 #endif
     }|]
 }|]";
-            MarkupTestFile.GetSpans(input, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+            MarkupTestFile.GetNamedSpans(input, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
             VisualStudio.Editor.SetText(text);
 
             VerifySpansInConfiguration(spans, "Release");

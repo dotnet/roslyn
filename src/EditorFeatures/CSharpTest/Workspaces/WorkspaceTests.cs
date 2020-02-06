@@ -198,10 +198,10 @@ class D { }
         public async Task TestAddedSubmissionParseTreeHasEmptyFilePath()
         {
             using var workspace = CreateWorkspace();
-            var document1 = new TestHostDocument("var x = 1;", displayName: "Sub1", sourceCodeKind: SourceCodeKind.Script);
+            var document1 = new TestHostDocument("var x = 1;", displayName: "Sub1", codeKind: SourceCodeKind.Script);
             var project1 = new TestHostProject(workspace, document1, name: "Submission");
 
-            var document2 = new TestHostDocument("var x = 2;", displayName: "Sub2", sourceCodeKind: SourceCodeKind.Script, filePath: "a.csx");
+            var document2 = new TestHostDocument("var x = 2;", displayName: "Sub2", codeKind: SourceCodeKind.Script, filePath: "a.csx");
             var project2 = new TestHostProject(workspace, document2, name: "Script");
 
             workspace.AddTestProject(project1);

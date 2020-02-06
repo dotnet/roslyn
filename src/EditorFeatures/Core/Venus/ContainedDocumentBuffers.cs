@@ -590,21 +590,18 @@ namespace Microsoft.CodeAnalysis.Editor.Venus
         }
 
         private IEnumerable<TextSpan> GetEditorVisibleSpans()
-        {
-            var subjectBuffer = (IProjectionBuffer)SubjectBuffer;
+            => (DataBuffer is IProjectionBuffer projectionDataBuffer) ?
+                GetEditorVisibleSpans(projectionDataBuffer, (IProjectionBuffer)SubjectBuffer) :
+                SpecializedCollections.EmptyEnumerable<TextSpan>();
 
-            if (DataBuffer is IProjectionBuffer projectionDataBuffer)
-            {
-                return projectionDataBuffer.CurrentSnapshot
-                    .GetSourceSpans()
-                    .Where(ss => ss.Snapshot.TextBuffer == subjectBuffer)
-                    .Select(s => s.Span.ToTextSpan())
-                    .OrderBy(s => s.Start);
-            }
-            else
-            {
-                return SpecializedCollections.EmptyEnumerable<TextSpan>();
-            }
+        // internal for testing
+        internal static IEnumerable<TextSpan> GetEditorVisibleSpans(IProjectionBuffer projectionDataBuffer, IProjectionBuffer subjectBuffer)
+        {
+            return projectionDataBuffer.CurrentSnapshot
+                .GetSourceSpans()
+                .Where(ss => ss.Snapshot.TextBuffer == subjectBuffer)
+                .Select(s => s.Span.ToTextSpan())
+                .OrderBy(s => s.Start);
         }
 
         private static void ApplyChanges(
@@ -664,6 +661,9 @@ namespace Microsoft.CodeAnalysis.Editor.Venus
             var editorOptions = _editorOptionsFactory.GetOptions(DataBuffer);
             int indentationSize = editorOptions.GetIndentSize();
 
+            // Is this right?  We should probably get this from the IVsContainedLanguageHost instead.
+            int tabSize = editorOptions.GetTabSize();
+
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
             var spans = pooledObject.Object;
 
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.Editor.Venus
                 var visibleSpan = spans[i];
                 if (visibleSpan.IntersectsWith(position) || visibleSpan.End == position)
                 {
-                    return GetBaseIndentationRule(root, text, spans, i, indentationSize);
+                    return GetBaseIndentationRule(root, text, spans, i, indentationSize, tabSize);
                 }
             }
 
@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.Editor.Venus
                     var visibleSpan = spans[i];
                     if (visibleSpan.IntersectsWith(line.Span))
                     {
-                        return GetBaseIndentationRule(root, text, spans, i, indentationSize);
+                        return GetBaseIndentationRule(root, text, spans, i, indentationSize, tabSize);
                     }
                 }
             }
@@ -741,11 +741,12 @@ namespace Microsoft.CodeAnalysis.Editor.Venus
 
             var editorOptions = _editorOptionsFactory.GetOptions(DataBuffer);
             int indentationSize = editorOptions.GetIndentSize();
+            int tabSize = editorOptions.GetTabSize();
 
             var options = solution.Options
                 .WithChangedOption(FormattingOptions.NewLine, Language, editorOptions.GetNewLineCharacter())
                 .WithChangedOption(FormattingOptions.UseTabs, Language, !editorOptions.IsConvertTabsToSpacesEnabled())
-                .WithChangedOption(FormattingOptions.TabSize, Language, editorOptions.GetTabSize())
+                .WithChangedOption(FormattingOptions.TabSize, Language, tabSize)
                 .WithChangedOption(FormattingOptions.IndentationSize, Language, indentationSize);
 
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
@@ -757,7 +758,7 @@ namespace Microsoft.CodeAnalysis.Editor.Venus
 
             foreach (var spanIndex in visibleSpanIndex)
             {
-                var rule = GetBaseIndentationRule(root, originalText, spans, spanIndex, indentationSize);
+                var rule = GetBaseIndentationRule(root, originalText, spans, spanIndex, indentationSize, tabSize);
 
                 var visibleSpan = spans[spanIndex];
                 AdjustIndentationForSpan(_diffService, document, edit, visibleSpan, rule, options);
@@ -796,7 +797,7 @@ namespace Microsoft.CodeAnalysis.Editor.Venus
             }
         }
 
-        public BaseIndentationFormattingRule GetBaseIndentationRule(SyntaxNode root, SourceText text, List<TextSpan> spans, int spanIndex, int indentationSize)
+        public BaseIndentationFormattingRule GetBaseIndentationRule(SyntaxNode root, SourceText text, List<TextSpan> spans, int spanIndex, int indentationSize, int tabSize)
         {
             if (_hostType == HostType.Razor)
             {
@@ -812,7 +813,7 @@ namespace Microsoft.CodeAnalysis.Editor.Venus
                         var blockType = GetRazorCodeBlockType(visibleSpan.Start);
                         if (blockType == RazorCodeBlockType.Explicit)
                         {
-                            var baseIndentation = GetBaseIndentation(root, text, visibleSpan, indentationSize);
+                            var baseIndentation = GetBaseIndentation(root, text, visibleSpan, indentationSize, tabSize);
                             return new BaseIndentationFormattingRule(root, TextSpan.FromBounds(visibleSpan.Start, end), baseIndentation, _vbHelperFormattingRule);
                         }
                     }
@@ -822,7 +823,7 @@ namespace Microsoft.CodeAnalysis.Editor.Venus
                         var blockType = GetRazorCodeBlockType(visibleSpan.Start);
                         if (blockType == RazorCodeBlockType.Block || blockType == RazorCodeBlockType.Helper)
                         {
-                            var baseIndentation = GetBaseIndentation(root, text, visibleSpan, indentationSize);
+                            var baseIndentation = GetBaseIndentation(root, text, visibleSpan, indentationSize, tabSize);
                             return new BaseIndentationFormattingRule(root, TextSpan.FromBounds(visibleSpan.Start, end), baseIndentation, _vbHelperFormattingRule);
                         }
 
@@ -840,7 +841,7 @@ namespace Microsoft.CodeAnalysis.Editor.Venus
             }
 
             var span = spans[spanIndex];
-            var indentation = GetBaseIndentation(root, text, span, indentationSize);
+            var indentation = GetBaseIndentation(root, text, span, indentationSize, tabSize);
             return new BaseIndentationFormattingRule(root, span, indentation, _vbHelperFormattingRule);
         }
 
@@ -856,11 +857,8 @@ namespace Microsoft.CodeAnalysis.Editor.Venus
             }
         }
 
-        private int GetBaseIndentation(SyntaxNode root, SourceText text, TextSpan span, int indentationSize)
+        private int GetBaseIndentation(SyntaxNode root, SourceText text, TextSpan span, int indentationSize, int tabSize)
         {
-            // Is this right?  We should probably get this from the IVsContainedLanguageHost instead.
-            var editorOptions = _editorOptionsFactory.GetOptions(DataBuffer);
-
             var additionalIndentation = GetAdditionalIndentation(root, text, span, indentationSize);
 
             // Skip over the first line, since it's in "Venus space" anyway.
@@ -870,7 +868,7 @@ namespace Microsoft.CodeAnalysis.Editor.Venus
                 var baseIndentationString = _hostIndentationProvider(line.LineNumber);
                 if (!baseIndentationString.IsEmpty())
                 {
-                    return baseIndentationString.GetColumnFromLineOffset(baseIndentationString.Length, editorOptions.GetTabSize()) + additionalIndentation;
+                    return baseIndentationString.GetColumnFromLineOffset(baseIndentationString.Length, tabSize) + additionalIndentation;
                 }
             }
 

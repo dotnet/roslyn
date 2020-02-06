@@ -2,24 +2,40 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+#nullable enable
 
 namespace Roslyn.Test.Utilities
 {
     public static class StringExtensions
     {
+        public static string? GetLineBreak(this string str)
+            => str.Contains("\r\n") ? "\r\n" : str.Contains("\n") ? "\n" : str.Contains("\r") ? "\r" : null;
+
+        /// <summary>
+        /// Normalize line endings to Windows style.
+        /// </summary>
         public static string NormalizeLineEndings(this string input)
         {
-            if (input.Contains("\n") && !input.Contains("\r\n"))
+            var lineBreak = input.GetLineBreak();
+            return (lineBreak == "\n" || lineBreak == "\r") ? input.Replace(lineBreak, "\r\n") : input;
+        }
+
+        /// <summary>
+        /// Normalize line endings to specified style ("\r\n", "\n", "\r").
+        /// </summary>
+        public static string NormalizeLineEndings(this string input, string lineBreak)
+        {
+            if (lineBreak == "\n")
             {
-                input = input.Replace("\n", "\r\n");
+                return input.Replace("\r\n", lineBreak).Replace("\r", lineBreak);
             }
 
-            return input;
+            if (lineBreak == "\r")
+            {
+                return input.Replace("\r\n", lineBreak).Replace("\n", lineBreak);
+            }
+
+            return input.NormalizeLineEndings();
         }
     }
 }

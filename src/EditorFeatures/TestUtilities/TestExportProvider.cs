@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -20,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     /// </summary>
     public static class TestExportProvider
     {
-        private static Lazy<ComposableCatalog> s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic =
+        private static readonly Lazy<ComposableCatalog> s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => CreateAssemblyCatalogWithCSharpAndVisualBasic());
 
-        private static Lazy<IExportProviderFactory> s_lazyExportProviderFactoryWithCSharpAndVisualBasic =
+        private static readonly Lazy<IExportProviderFactory> s_lazyExportProviderFactoryWithCSharpAndVisualBasic =
             new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic));
 
         public static ComposableCatalog EntireAssemblyCatalogWithCSharpAndVisualBasic
@@ -35,12 +36,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public static ExportProvider ExportProviderWithCSharpAndVisualBasic
             => ExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
 
-        private static Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
+        private static readonly Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => ExportProviderCache.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
                         .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog())
                         .WithDefaultFakes());
 
-        private static Lazy<IExportProviderFactory> s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic =
+        private static readonly Lazy<IExportProviderFactory> s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic =
             new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(MinimumCatalogWithCSharpAndVisualBasic));
 
         public static ComposableCatalog MinimumCatalogWithCSharpAndVisualBasic
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 // ROSLYN
                 typeof(CodeAnalysis.CSharp.IntroduceVariable.CSharpIntroduceVariableService), // Ensures that CSharpFeatures is included in the composition
                 typeof(CodeAnalysis.VisualBasic.IntroduceVariable.VisualBasicIntroduceVariableService), // Ensures that BasicFeatures is included in the composition
+                typeof(TestContentTypeDefinitions), // CSharp Content Type
                 typeof(CSharp.ContentType.ContentTypeDefinitions), // CSharp Content Type
                 typeof(VisualBasic.ContentType.ContentTypeDefinitions), // VB Content Type
                 typeof(CodeAnalysis.VisualBasic.Indentation.VisualBasicIndentationService),

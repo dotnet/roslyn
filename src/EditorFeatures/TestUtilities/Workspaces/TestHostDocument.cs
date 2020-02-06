@@ -70,15 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public string Name { get; }
         public SourceCodeKind SourceCodeKind { get; }
         public string? FilePath { get; }
-
-        public bool IsGenerated
-        {
-            get
-            {
-                return false;
-            }
-        }
-
+        public bool IsGenerated => false;
         public TextLoader Loader { get; }
         public int? CursorPosition { get; }
         public IList<TextSpan> SelectedSpans { get; } = new List<TextSpan>();
@@ -91,67 +83,56 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public bool IsLinkFile { get; internal set; }
 
         internal TestHostDocument(
-            ExportProvider exportProvider,
-            HostLanguageServices? languageServiceProvider,
-            string code,
-            string filePath,
-            int? cursorPosition,
-            IDictionary<string, ImmutableArray<TextSpan>> spans,
-            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
+            string code = "",
+            string displayName = "",
+            SourceCodeKind codeKind = SourceCodeKind.Regular,
+            DocumentId? id = null,
+            string? filePath = null,
+            int? cursorPosition = null,
+            IDictionary<string, ImmutableArray<TextSpan>>? selectedSpans = null,
             IReadOnlyList<string>? folders = null,
             bool isLinkFile = false,
+            ExportProvider? exportProvider = null,
+            HostLanguageServices? languageServiceProvider = null,
             IDocumentServiceProvider? documentServiceProvider = null,
             ImmutableArray<string> roles = default,
-            ITextBuffer? textBuffer = null)
+            ITextBuffer? textBuffer = null,
+            TextLoader? textLoader = null)
         {
-            Contract.ThrowIfNull(filePath);
-
-            _exportProvider = exportProvider;
+            _exportProvider = exportProvider ?? TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
             _languageServiceProvider = languageServiceProvider;
+
             _initialText = code;
+            Loader = textLoader ?? new TestDocumentLoader(code, filePath);
+
             FilePath = filePath;
             _folders = folders;
-            Name = filePath;
-            this.CursorPosition = cursorPosition;
-            SourceCodeKind = sourceCodeKind;
-            this.IsLinkFile = isLinkFile;
+            _id = id;
+            Name = RoslynString.IsNullOrEmpty(displayName) ? (filePath ?? "") : displayName;
+            CursorPosition = cursorPosition;
+            SourceCodeKind = codeKind;
+            IsLinkFile = isLinkFile;
             _documentServiceProvider = documentServiceProvider;
             _roles = roles.IsDefault ? s_defaultRoles : roles;
 
-            if (spans.ContainsKey(string.Empty))
+            if (selectedSpans != null)
             {
-                this.SelectedSpans = spans[string.Empty];
-            }
+                if (selectedSpans.ContainsKey(string.Empty))
+                {
+                    SelectedSpans = selectedSpans[string.Empty];
+                }
 
-            foreach (var namedSpanList in spans.Where(s => s.Key != string.Empty))
-            {
-                this.AnnotatedSpans.Add(namedSpanList);
+                foreach (var namedSpanList in selectedSpans.Where(s => s.Key != string.Empty))
+                {
+                    AnnotatedSpans.Add(namedSpanList);
+                }
             }
-
-            Loader = new TestDocumentLoader(this, _initialText);
 
             if (textBuffer != null)
             {
                 _textBuffer = textBuffer;
                 _initialTextSnapshot = textBuffer.CurrentSnapshot;
             }
-        }
-
-        public TestHostDocument(
-            string text = "", string displayName = "",
-            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
-            DocumentId? id = null, string? filePath = null,
-            IReadOnlyList<string>? folders = null)
-        {
-            _exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
-            _id = id;
-            _initialText = text;
-            Name = displayName;
-            SourceCodeKind = sourceCodeKind;
-            Loader = new TestDocumentLoader(this, text);
-            FilePath = filePath;
-            _folders = folders;
-            _roles = s_defaultRoles;
         }
 
         internal void SetProject(TestHostProject project)
@@ -173,20 +154,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        private class TestDocumentLoader : TextLoader
+        private sealed class TestDocumentLoader : TextLoader
         {
-            private readonly TestHostDocument _hostDocument;
             private readonly string _text;
+            private readonly string? _filePath;
 
-            internal TestDocumentLoader(TestHostDocument hostDocument, string text)
+            internal TestDocumentLoader(string text, string? filePath)
             {
-                _hostDocument = hostDocument;
+                _filePath = filePath;
                 _text = text;
             }
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
-                return Task.FromResult(TextAndVersion.Create(SourceText.From(_text), VersionStamp.Create(), _hostDocument.FilePath));
+                return Task.FromResult(TextAndVersion.Create(SourceText.From(_text), VersionStamp.Create(), _filePath));
             }
         }
 
@@ -231,21 +212,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 _initialTextSnapshot = _textBuffer.CurrentSnapshot;
             }
 
-            if (workspace != null)
+            if (workspace != null && _id != null)
             {
                 // Open (or reopen) any files that were closed in this call. We do this for all linked copies at once.
-                foreach (var linkedId in workspace.CurrentSolution.GetDocumentIdsWithFilePath(FilePath).Concat(this.Id))
+                foreach (var linkedId in workspace.CurrentSolution.GetDocumentIdsWithFilePath(FilePath).Concat(_id))
                 {
                     var testDocument = workspace.GetTestDocument(linkedId);
-
-                    if (testDocument != null)
+                    if (testDocument != null && !workspace.IsDocumentOpen(linkedId))
                     {
-                        if (!workspace.IsDocumentOpen(linkedId))
-                        {
-                            // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
-                            workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
-                        }
-                    };
+                        // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
+                        workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
+                    }
                 }
             }
 

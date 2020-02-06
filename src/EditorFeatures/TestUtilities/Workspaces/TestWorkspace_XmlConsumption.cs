@@ -201,14 +201,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 // The document
                 var markupCode = submissionElement.NormalizedValue();
-                MarkupTestFile.GetPositionAndSpans(markupCode,
+                MarkupTestFile.GetPositionAndNamedSpans(markupCode,
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
                 var languageServices = workspace.Services.GetLanguageServices(languageName);
 
                 // The project
 
-                var document = new TestHostDocument(exportProvider, languageServices, code, submissionName, cursorPosition, spans, SourceCodeKind.Script);
+                var document = new TestHostDocument(
+                    code,
+                    submissionName,
+                    codeKind: SourceCodeKind.Script,
+                    cursorPosition: cursorPosition,
+                    selectedSpans: spans,
+                    exportProvider: exportProvider,
+                    languageServiceProvider: languageServices);
+
                 var documents = new List<TestHostDocument> { document };
 
                 if (languageName == NoCompilationConstants.LanguageName)
@@ -743,7 +751,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var contentTypeLanguageService = languageServiceProvider.GetService<IContentTypeLanguageService>();
             var contentType = contentTypeLanguageService.GetDefaultContentType();
 
-            MarkupTestFile.GetPositionAndSpans(markupCode,
+            MarkupTestFile.GetPositionAndNamedSpans(markupCode,
                 out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             var testDocumentServiceProvider = GetDocumentServiceProvider(documentElement);
@@ -758,7 +766,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             return new TestHostDocument(
-                exportProvider, languageServiceProvider, code, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
+                code,
+                codeKind: codeKind,
+                filePath: filePath,
+                cursorPosition: cursorPosition,
+                selectedSpans: spans,
+                folders: folders,
+                isLinkFile: isLinkFile,
+                exportProvider: exportProvider,
+                languageServiceProvider: languageServiceProvider,
+                documentServiceProvider: documentServiceProvider);
         }
 
         internal static TestHostDocument CreateDocument(
@@ -781,13 +798,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     : (SourceCodeKind)Enum.Parse(typeof(SourceCodeKind), attr.Value);
             }
 
-            MarkupTestFile.GetPositionAndSpans(markupCode,
+            MarkupTestFile.GetPositionAndNamedSpans(markupCode,
                 out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             var documentServiceProvider = GetDocumentServiceProvider(documentElement);
 
             return new TestHostDocument(
-                exportProvider, languageServiceProvider, code, filePath: string.Empty, cursorPosition, spans, codeKind, folders, isLinkFile: false, documentServiceProvider, roles: roles);
+                code, filePath: string.Empty, cursorPosition: cursorPosition, selectedSpans: spans, codeKind: codeKind, folders: folders, isLinkFile: false, exportProvider: exportProvider, languageServiceProvider: languageServiceProvider, documentServiceProvider: documentServiceProvider, roles: roles);
         }
 
 #nullable enable
