@@ -702,6 +702,11 @@
         <target state="translated">Použít jednoduchý příkaz using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="new">Value:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">Upozornění: Změna oboru názvů může vést k vytvoření neplatného kódu a změnit význam kódu.</target>
