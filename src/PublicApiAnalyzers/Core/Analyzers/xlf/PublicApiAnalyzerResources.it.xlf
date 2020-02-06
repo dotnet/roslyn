@@ -19,32 +19,32 @@
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInDocumentToThePublicApiTitle">
         <source>Annotate all items in document '{0}' in the public API</source>
-        <target state="new">Annotate all items in document '{0}' in the public API</target>
+        <target state="translated">Annota tutti gli elementi del documento '{0}' nell'API pubblica</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInProjectToThePublicApiTitle">
         <source>Annotate all items in project '{0}' in the public API</source>
-        <target state="new">Annotate all items in project '{0}' in the public API</target>
+        <target state="translated">Annota tutti gli elementi del progetto '{0}' nell'API pubblica</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInTheSolutionToThePublicApiTitle">
         <source>Annotate all items in the solution in the public API</source>
-        <target state="new">Annotate all items in the solution in the public API</target>
+        <target state="translated">Annota tutti gli elementi della soluzione nell'API pubblica</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">Tutti i tipi e i membri public devono essere dichiarati con annotazioni di supporto dei valori Null in PublicAPI.txt. In questo modo si richiama l'attenzione sulle modifiche del supporto dei valori Null all'API nelle revisioni del codice e nella cronologia del controllo del codice sorgente e si contribuisce a evitare modifiche che causano un'interruzione.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
-        <target state="new">Symbol '{0}' is missing nullability annotations in the declared API.</target>
+        <target state="translated">Nel simbolo '{0}' mancano le annotazioni di supporto dei valori Null nell'API dichiarata.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
         <source>Annotate nullability of public types and members in the declared API</source>
-        <target state="new">Annotate nullability of public types and members in the declared API</target>
+        <target state="translated">Annota il supporto dei valori Null di tipi e membri public nell'API dichiarata</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="EnableNullableInProjectToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for project '{0}'</source>
-        <target state="new">Enable nullability annotations in the public API for project '{0}'</target>
+        <target state="translated">Abilita le annotazioni di supporto dei valori Null nell'API pubblica per il progetto '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableNullableInTheSolutionToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for the solution</source>
-        <target state="new">Enable nullability annotations in the public API for the solution</target>
+        <target state="translated">Abilita le annotazioni di supporto dei valori Null nell'API pubblica per la soluzione</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
@@ -164,17 +164,17 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">Tutti i tipi e i membri public devono essere dichiarati con annotazioni di supporto dei valori Null in PublicAPI.txt. In questo modo si richiama l'attenzione sulle modifiche del supporto dei valori Null all'API nelle revisioni del codice e nella cronologia del controllo del codice sorgente e si contribuisce a evitare modifiche che causano un'interruzione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
         <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
-        <target state="new">PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</target>
+        <target state="translated">In PublicAPI.txt manca '#nullable enable', di conseguenza le annotazioni di supporto dei valori Null dell'API non sono registrate. È consigliabile abilitare questa verifica.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
         <source>Annotate nullability of types and members in the declared API</source>
-        <target state="new">Annotate nullability of types and members in the declared API</target>
+        <target state="translated">Annota il supporto dei valori Null di tipi e membri nell'API dichiarata</target>
         <note />
       </trans-unit>
     </body>

@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor,
                 disposeOwnershipTransferAtMethodCall, trackInstanceFields, exceptionPathsAnalysis,
                 performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
-                excludedSymbols: analyzerOptions.GetExcludedSymbolNamesOption(rule, wellKnownTypeProvider.Compilation, cancellationToken),
+                excludedSymbols: analyzerOptions.GetExcludedSymbolNamesWithValueOption(rule, wellKnownTypeProvider.Compilation, cancellationToken),
                 out pointsToAnalysisResult);
         }
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             bool trackInstanceFields,
             bool exceptionPathsAnalysis,
             bool performCopyAnalysis,
-            SymbolNamesOption excludedSymbols,
+            SymbolNamesWithValueOption<Unit> excludedSymbols,
             out PointsToAnalysisResult? pointsToAnalysisResult)
         {
             Debug.Assert(wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable, out _));

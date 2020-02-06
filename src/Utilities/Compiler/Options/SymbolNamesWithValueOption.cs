@@ -13,21 +13,21 @@ using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
 {
-    internal sealed class SymbolNamesOption : IEquatable<SymbolNamesOption?>
+    internal sealed class SymbolNamesWithValueOption<TValue> : IEquatable<SymbolNamesWithValueOption<TValue>?>
     {
         private const SymbolKind AllKinds = SymbolKind.ErrorType;
         private const char WildcardChar = '*';
 
-        private static readonly KeyValuePair<string, string?> NoWildcardMatch = default;
+        private static readonly KeyValuePair<string, TValue> NoWildcardMatch = default;
 
-        public static readonly SymbolNamesOption Empty = new SymbolNamesOption();
+        public static readonly SymbolNamesWithValueOption<TValue> Empty = new SymbolNamesWithValueOption<TValue>();
 
-        private readonly ImmutableDictionary<string, string?> _names;
-        private readonly ImmutableDictionary<ISymbol, string?> _symbols;
-        private readonly ImmutableDictionary<SymbolKind, ImmutableDictionary<string, string?>> _wildcardNamesBySymbolKind;
+        private readonly ImmutableDictionary<string, TValue> _names;
+        private readonly ImmutableDictionary<ISymbol, TValue> _symbols;
+        private readonly ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> _wildcardNamesBySymbolKind;
 
-        private SymbolNamesOption(ImmutableDictionary<string, string?> names, ImmutableDictionary<ISymbol, string?> symbols,
-            ImmutableDictionary<SymbolKind, ImmutableDictionary<string, string?>> wildcardNamesBySymbolKind)
+        private SymbolNamesOption(ImmutableDictionary<string, TValue> names, ImmutableDictionary<ISymbol, TValue> symbols,
+            ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> wildcardNamesBySymbolKind)
         {
             Debug.Assert(!names.IsEmpty || !symbols.IsEmpty || !wildcardNamesBySymbolKind.IsEmpty);
 
@@ -36,14 +36,16 @@ namespace Analyzer.Utilities
             _wildcardNamesBySymbolKind = wildcardNamesBySymbolKind;
         }
 
-        private SymbolNamesOption()
+        private SymbolNamesWithValueOption()
         {
-            _names = ImmutableDictionary<string, string?>.Empty;
-            _symbols = ImmutableDictionary<ISymbol, string?>.Empty;
-            _wildcardNamesBySymbolKind = ImmutableDictionary<SymbolKind, ImmutableDictionary<string, string?>>.Empty;
+            _names = ImmutableDictionary<string, TValue>.Empty;
+            _symbols = ImmutableDictionary<ISymbol, TValue>.Empty;
+            _wildcardNamesBySymbolKind = ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>>.Empty;
         }
 
-        public static SymbolNamesOption Create(ImmutableArray<string> symbolNames, Compilation compilation, string? optionalPrefix,
+#pragma warning disable CA1000 // Do not declare static members on generic types
+        public static SymbolNamesWithValueOption<TValue> Create(ImmutableArray<string> symbolNames, Compilation compilation, string? optionalPrefix,
+#pragma warning restore CA1000 // Do not declare static members on generic types
             Func<string, NameParts>? getSymbolNamePartsFunc = null)
         {
             if (symbolNames.IsEmpty)
@@ -51,9 +53,9 @@ namespace Analyzer.Utilities
                 return Empty;
             }
 
-            var namesBuilder = PooledDictionary<string, string?>.GetInstance();
-            var symbolsBuilder = PooledDictionary<ISymbol, string?>.GetInstance();
-            var wildcardNamesBuilder = PooledDictionary<SymbolKind, PooledDictionary<string, string?>>.GetInstance();
+            var namesBuilder = PooledDictionary<string, TValue>.GetInstance();
+            var symbolsBuilder = PooledDictionary<ISymbol, TValue>.GetInstance();
+            var wildcardNamesBuilder = PooledDictionary<SymbolKind, PooledDictionary<string, TValue>>.GetInstance();
 
             foreach (var symbolName in symbolNames)
             {
@@ -78,7 +80,7 @@ namespace Analyzer.Utilities
                     {
                         if (!wildcardNamesBuilder.ContainsKey(AllKinds))
                         {
-                            wildcardNamesBuilder.Add(AllKinds, PooledDictionary<string, string?>.GetInstance());
+                            wildcardNamesBuilder.Add(AllKinds, PooledDictionary<string, TValue>.GetInstance());
                         }
                         wildcardNamesBuilder[AllKinds].Add(parts.SymbolName.Substring(0, parts.SymbolName.Length - 1), parts.Value);
                         continue;
@@ -99,7 +101,7 @@ namespace Analyzer.Utilities
                     {
                         if (!wildcardNamesBuilder.ContainsKey(symbolKind.Value))
                         {
-                            wildcardNamesBuilder.Add(symbolKind.Value, PooledDictionary<string, string?>.GetInstance());
+                            wildcardNamesBuilder.Add(symbolKind.Value, PooledDictionary<string, TValue>.GetInstance());
                         }
                         wildcardNamesBuilder[symbolKind.Value].Add(parts.SymbolName.Substring(2, parts.SymbolName.Length - 3), parts.Value);
                     }
@@ -110,7 +112,7 @@ namespace Analyzer.Utilities
                 {
                     if (!namesBuilder.ContainsKey(parts.SymbolName))
                     {
-                        namesBuilder.Add(parts.SymbolName, parts.Value);
+                        namesBuilder.Add(parts.SymbolName, parts.AssociatedValue);
                     }
                 }
                 else
@@ -141,14 +143,14 @@ namespace Analyzer.Utilities
                             {
                                 if (!symbolsBuilder.ContainsKey(constituentNamespace))
                                 {
-                                    symbolsBuilder.Add(constituentNamespace, parts.Value);
+                                    symbolsBuilder.Add(constituentNamespace, parts.AssociatedValue);
                                 }
                             }
                         }
 
                         if (!symbolsBuilder.ContainsKey(symbol))
                         {
-                            symbolsBuilder.Add(symbol, parts.Value);
+                            symbolsBuilder.Add(symbol, parts.AssociatedValue);
                         }
                     }
                 }
@@ -160,7 +162,7 @@ namespace Analyzer.Utilities
             }
 
             return new SymbolNamesOption(namesBuilder.ToImmutableDictionaryAndFree(), symbolsBuilder.ToImmutableDictionaryAndFree(),
-                wildcardNamesBuilder.ToImmutableDictionaryAndFree(x => x.Key, x => x.Value.ToImmutableDictionaryAndFree(), wildcardNamesBuilder.Comparer));
+                wildcardNamesBuilder.ToImmutableDictionaryAndFree(x => x.Key, x => x.AssociatedValue.ToImmutableDictionaryAndFree(), wildcardNamesBuilder.Comparer));
         }
 
         public bool IsEmpty => ReferenceEquals(this, Empty);
@@ -171,7 +173,7 @@ namespace Analyzer.Utilities
         /// <summary>
         /// Gets the value associated with the specified symbol in the option specification.
         /// </summary>
-        public bool TryGetValue(ISymbol symbol, [NotNullWhen(true)] out string? value)
+        public bool TryGetValue(ISymbol symbol, [NotNullWhen(true)] out TValue value)
         {
             if (_symbols.TryGetValue(symbol, out value) || _names.TryGetValue(symbol.Name, out value))
             {
@@ -188,15 +190,15 @@ namespace Analyzer.Utilities
             return false;
         }
 
-        public override bool Equals(object obj) => Equals(obj as SymbolNamesOption);
+        public override bool Equals(object obj) => Equals(obj as SymbolNamesWithValueOption<TValue>);
 
-        public bool Equals(SymbolNamesOption? other)
+        public bool Equals(SymbolNamesWithValueOption<TValue>? other)
             => other != null && _names.IsEqualTo(other._names) && _symbols.IsEqualTo(other._symbols) && _wildcardNamesBySymbolKind.IsEqualTo(other._wildcardNamesBySymbolKind);
 
         public override int GetHashCode()
             => HashUtilities.Combine(HashUtilities.Combine(_names), HashUtilities.Combine(_symbols), HashUtilities.Combine(_wildcardNamesBySymbolKind));
 
-        private bool TryGetFirstWildcardMatch(ISymbol symbol, out KeyValuePair<string, string?> firstMatch)
+        private bool TryGetFirstWildcardMatch(ISymbol symbol, out KeyValuePair<string, TValue> firstMatch)
         {
             firstMatch = NoWildcardMatch;
 
@@ -269,7 +271,7 @@ namespace Analyzer.Utilities
             Debug.Assert(firstMatch.Equals(NoWildcardMatch));
             return false;
 
-            bool TryGetSymbolPartialMatch(StringBuilder builder, ISymbol symbol, out KeyValuePair<string, string?> firstMatch)
+            bool TryGetSymbolPartialMatch(StringBuilder builder, ISymbol symbol, out KeyValuePair<string, TValue> firstMatch)
             {
                 if (builder.Length > 0)
                 {
@@ -281,7 +283,7 @@ namespace Analyzer.Utilities
                 return TryGetFirstWildcardMatch(AllKinds, symbol.Name, out firstMatch);
             }
 
-            bool TryGetFirstWildcardMatch(SymbolKind kind, string symbolName, out KeyValuePair<string, string?> firstMatch)
+            bool TryGetFirstWildcardMatch(SymbolKind kind, string symbolName, out KeyValuePair<string, TValue> firstMatch)
             {
                 if (!_wildcardNamesBySymbolKind.ContainsKey(kind))
                 {
@@ -304,14 +306,14 @@ namespace Analyzer.Utilities
         /// </example>
         public sealed class NameParts
         {
-            public NameParts(string symbolName, string? value = null)
+            public NameParts(string symbolName, TValue associatedValue = default)
             {
                 SymbolName = symbolName.Trim();
-                Value = value?.Trim();
+                AssociatedValue = associatedValue;
             }
 
             public string SymbolName { get; }
-            public string? Value { get; }
+            public TValue AssociatedValue { get; }
         }
     }
 }

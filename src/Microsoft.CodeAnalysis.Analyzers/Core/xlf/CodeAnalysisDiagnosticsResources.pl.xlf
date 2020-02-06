@@ -54,17 +54,17 @@
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
         <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
-        <target state="new">'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</target>
+        <target state="translated">Wywołanie metody „GetSemanticModel” w analizatorze diagnostycznym jest kosztowne, ponieważ powoduje utworzenie całkowicie nowego modelu semantycznego, który nie współdzieli danych kompilacji z kompilatorem ani innymi analizatorami. Wiąże się to z dodatkowym kosztem wydajności podczas analizy semantycznej. Zamiast tego rozważ zarejestrowanie innej akcji analizatora, która umożliwia użycie współdzielonego modelu „SemanticModel”, takiego jak „RegisterOperationAction”, „RegisterSyntaxNodeAction” lub „RegisterSemanticModelAction”.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelMessage">
         <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
-        <target state="new">Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</target>
+        <target state="translated">Nie wywołuj metody Compilation.GetSemanticModel() w analizatorze diagnostycznym</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelTitle">
         <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
-        <target state="new">Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</target>
+        <target state="translated">Nie wywołuj metody Compilation.GetSemanticModel() w analizatorze diagnostycznym</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
