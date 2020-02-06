@@ -222,6 +222,11 @@
         <target state="translated">인터페이스에는 필드가 포함될 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="IntroduceUndefinedTodoVariables">
+        <source>Introduce undefined TODO variables</source>
+        <target state="new">Introduce undefined TODO variables</target>
+        <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
+      </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
         <target state="translated">모든 괄호 유지:</target>
@@ -432,9 +437,19 @@
         <target state="translated">public이 아닌 메서드</target>
         <note />
       </trans-unit>
+      <trans-unit id="Omit_only_for_optional_parameters">
+        <source>Omit (only for optional parameters)</source>
+        <target state="new">Omit (only for optional parameters)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Open_documents">
         <source>Open documents</source>
         <target state="new">Open documents</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optional_with_default_value_colon">
+        <source>Optional with default value:</source>
+        <target state="new">Optional with default value:</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Details">
@@ -445,6 +460,11 @@
       <trans-unit id="Parameter_Name">
         <source>Parameter name:</source>
         <target state="new">Parameter name:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_kind_colon">
+        <source>Parameter kind:</source>
+        <target state="new">Parameter kind:</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_name_contains_invalid_characters">
@@ -525,6 +545,11 @@
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">잘못된 정규식 보고</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Required">
+        <source>Required</source>
+        <target state="new">Required</target>
         <note />
       </trans-unit>
       <trans-unit id="Requires_System_HashCode_be_present_in_project">
@@ -657,14 +682,29 @@
         <target state="translated">로컬 함수에 식 본문 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_named_argument">
+        <source>Use named argument</source>
+        <target state="new">Use named argument</target>
+        <note>"argument" is a programming term for a value passed to a function</note>
+      </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
         <target state="translated">여기에 할당된 값은 사용되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="new">Value:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
         <source>Value returned by invocation is implicitly ignored</source>
         <target state="translated">호출로 반환된 값은 암시적으로 무시됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_to_inject_at_call_sites_colon">
+        <source>Value to inject at call sites:</source>
+        <target state="new">Value to inject at call sites:</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">

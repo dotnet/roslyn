@@ -1533,6 +1533,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Introduce undefined TODO variables.
+        /// </summary>
+        internal static string IntroduceUndefinedTodoVariables {
+            get {
+                return ResourceManager.GetString("IntroduceUndefinedTodoVariables", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid access..
         /// </summary>
         internal static string Invalid_access {
@@ -2218,11 +2227,29 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Omit (only for optional parameters).
+        /// </summary>
+        internal static string Omit_only_for_optional_parameters {
+            get {
+                return ResourceManager.GetString("Omit_only_for_optional_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Open documents.
         /// </summary>
         internal static string Open_documents {
             get {
                 return ResourceManager.GetString("Open_documents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Optional with default value:.
+        /// </summary>
+        internal static string Optional_with_default_value_colon {
+            get {
+                return ResourceManager.GetString("Optional_with_default_value_colon", resourceCulture);
             }
         }
         
@@ -2313,6 +2340,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Parameter_Details {
             get {
                 return ResourceManager.GetString("Parameter_Details", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter kind:.
+        /// </summary>
+        internal static string Parameter_kind_colon {
+            get {
+                return ResourceManager.GetString("Parameter_kind_colon", resourceCulture);
             }
         }
         
@@ -2904,6 +2940,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Report_invalid_regular_expressions {
             get {
                 return ResourceManager.GetString("Report_invalid_regular_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Required.
+        /// </summary>
+        internal static string Required {
+            get {
+                return ResourceManager.GetString("Required", resourceCulture);
             }
         }
         
@@ -3678,6 +3723,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use named argument.
+        /// </summary>
+        internal static string Use_named_argument {
+            get {
+                return ResourceManager.GetString("Use_named_argument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Validating breakpoint location....
         /// </summary>
         internal static string Validating_breakpoint_location {
@@ -3696,11 +3750,29 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Value:.
+        /// </summary>
+        internal static string Value_colon {
+            get {
+                return ResourceManager.GetString("Value_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value returned by invocation is implicitly ignored.
         /// </summary>
         internal static string Value_returned_by_invocation_is_implicitly_ignored {
             get {
                 return ResourceManager.GetString("Value_returned_by_invocation_is_implicitly_ignored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value to inject at call sites:.
+        /// </summary>
+        internal static string Value_to_inject_at_call_sites_colon {
+            get {
+                return ResourceManager.GetString("Value_to_inject_at_call_sites_colon", resourceCulture);
             }
         }
         
