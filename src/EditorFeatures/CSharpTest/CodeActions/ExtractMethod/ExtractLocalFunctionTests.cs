@@ -4282,6 +4282,158 @@ class C
             await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
 
+        [WorkItem(40555, "https://github.com/dotnet/roslyn/issues/40555")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestOnLocalFunctionHeader_Parameter()
+        {
+            var input = @"
+using System;
+class C
+{
+    void M(Action a)
+    {
+        M(() =>
+        {
+            void F(int [|x|])
+            {
+            }
+        });
+    }
+}";
+            var expected = @"
+using System;
+class C
+{
+    void M(Action a)
+    {
+        M({|Rename:NewMethod|}());
+
+        static Action NewMethod()
+        {
+            return () =>
+            {
+                void F(int x)
+                {
+                }
+            };
+        }
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [WorkItem(40555, "https://github.com/dotnet/roslyn/issues/40555")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestOnLocalFunctionHeader_Parameter_ExpressionBody()
+        {
+            var input = @"
+using System;
+class C
+{
+    void M(Action a)
+    {
+        M(() =>
+        {
+            int F(int [|x|]) => 1;
+        });
+    }
+}";
+            var expected = @"
+using System;
+class C
+{
+    void M(Action a)
+    {
+        M({|Rename:NewMethod|}());
+
+        static Action NewMethod()
+        {
+            return () =>
+            {
+                int F(int x) => 1;
+            };
+        }
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [WorkItem(40555, "https://github.com/dotnet/roslyn/issues/40555")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestOnLocalFunctionHeader_Identifier()
+        {
+            var input = @"
+using System;
+class C
+{
+    void M(Action a)
+    {
+        M(() =>
+        {
+            void [|F|](int x)
+            {
+            }
+        });
+    }
+}";
+            var expected = @"
+using System;
+class C
+{
+    void M(Action a)
+    {
+        M({|Rename:NewMethod|}());
+
+        static Action NewMethod()
+        {
+            return () =>
+            {
+                void F(int x)
+                {
+                }
+            };
+        }
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [WorkItem(40555, "https://github.com/dotnet/roslyn/issues/40555")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestOnLocalFunctionHeader_Identifier_ExpressionBody()
+        {
+            var input = @"
+using System;
+class C
+{
+    void M(Action a)
+    {
+        M(() =>
+        {
+            int [|F|](int x) => 1;
+        });
+    }
+}";
+            var expected = @"
+using System;
+class C
+{
+    void M(Action a)
+    {
+        M({|Rename:NewMethod|}());
+
+        static Action NewMethod()
+        {
+            return () =>
+            {
+                int F(int x) => 1;
+            };
+        }
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
         [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingOnUsingStatement()
