@@ -223,7 +223,7 @@ public class Test
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly), AlwaysSkip = "PROTOTYPE(local-function-attributes)")]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NestedIfStatements()
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
@@ -234,6 +234,8 @@ public class Test
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 780,
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
+
+            nestingLevel = 5000;
 
             RunTest(nestingLevel, runTest);
 

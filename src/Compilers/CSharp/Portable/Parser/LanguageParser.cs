@@ -202,10 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 return parseFunc();
             }
-            catch (InsufficientExecutionStackException)
-            {
-                return CreateForGlobalFailure(lexer.TextWindow.Position, createEmptyNodeFunc());
-            }
+            finally { }
+            //catch (InsufficientExecutionStackException)
+            //{
+            //    return CreateForGlobalFailure(lexer.TextWindow.Position, createEmptyNodeFunc());
+            //}
         }
 
         private TNode CreateForGlobalFailure<TNode>(int position, TNode node) where TNode : CSharpSyntaxNode
