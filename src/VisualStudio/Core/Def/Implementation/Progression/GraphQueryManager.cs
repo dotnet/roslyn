@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,13 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private readonly IAsynchronousOperationListener _asyncListener;
 
         /// <summary>
-        /// This gate locks manipulation of trackedQueries.
+        /// This gate locks manipulation of <see cref="_trackedQueries"/>.
         /// </summary>
         private readonly object _gate = new object();
         private readonly List<ValueTuple<WeakReference<IGraphContext>, List<IGraphQuery>>> _trackedQueries = new List<ValueTuple<WeakReference<IGraphContext>, List<IGraphQuery>>>();
 
         // We update all of our tracked queries when this delay elapses.
-        private ResettableDelay _delay;
+        private ResettableDelay? _delay;
 
         internal GraphQueryManager(Workspace workspace, IAsynchronousOperationListener asyncListener)
         {
@@ -116,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             List<ValueTuple<IGraphContext, List<IGraphQuery>>> liveQueries;
             lock (_gate)
             {
-                liveQueries = _trackedQueries.Select(t => ValueTuple.Create(t.Item1.GetTarget(), t.Item2)).Where(t => t.Item1 != null).ToList();
+                liveQueries = _trackedQueries.Select(t => ValueTuple.Create(t.Item1.GetTarget(), t.Item2)).Where(t => t.Item1 != null).ToList()!;
             }
 
             var solution = _workspace.CurrentSolution;
