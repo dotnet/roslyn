@@ -15,8 +15,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Workspaces
         public event SymbolRenamedEventHandler OnAfterRename;
         public event SymbolRenamedEventHandler OnBeforeRename;
 
+        public int OnBeforeSymbolRenamedCount { get; private set; }
+        public int OnAfterSymbolRenamedCount {get; private set;}
+
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
+            OnBeforeSymbolRenamedCount++;
+
             var succeeded = OnAfterRename?.Invoke(new SymbolRenameEventArgs(workspace, changedDocumentIDs, symbol, newName)) ?? true;
 
             if (throwOnFailure && !succeeded)
@@ -29,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Workspaces
 
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
+            OnAfterSymbolRenamedCount++;
+
             var succeeded = OnBeforeRename?.Invoke(new SymbolRenameEventArgs(workspace, changedDocumentIDs, symbol, newName)) ?? true;
 
             if (throwOnFailure && !succeeded)

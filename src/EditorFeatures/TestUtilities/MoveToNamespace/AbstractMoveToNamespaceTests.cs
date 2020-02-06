@@ -106,12 +106,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                 var expectedRenameTracking = expectedRenames.First(r => r.New == args.NewName);
                 Assert.False(expectedRenameTracking.OnBeforeCalled);
                 expectedRenameTracking.OnBeforeCalled = true;
+
+                return true;
             };
 
             TestRefactorNotify.SymbolRenamedEventHandler afterRename = (args) =>
             {
                 var expectedRenameTracking = expectedRenames.First(r => r.New == args.NewName);
                 expectedRenameTracking.OnAfterCalled = true;
+
+                return true;
             };
 
             if (refactorNotify is object)
