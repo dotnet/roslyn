@@ -20,15 +20,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void FillCallSiteField(string callSiteValue)
         {
-            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
-            {
-                JoinableTaskFactory.Run(async () =>
-                {
-                    await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
-                    var dialog = await GetDialogAsync(cancellationTokenSource.Token);
-                    dialog.CallSiteValueTextBox.Text = callSiteValue;
-                });
-            }
+            // TODO
+
+            //using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            //{
+            //    JoinableTaskFactory.Run(async () =>
+            //    {
+            //        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
+            //        var dialog = await GetDialogAsync(cancellationTokenSource.Token);
+            //        dialog.CallSiteValueTextBox.Text = callSiteValue;
+            //    });
+            //}
         }
 
         public void FillNameField(string parameterName)
