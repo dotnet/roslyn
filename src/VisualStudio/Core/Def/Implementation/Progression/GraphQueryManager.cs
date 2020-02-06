@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 using Roslyn.Utilities;
@@ -154,33 +155,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         /// <summary>
         /// Populate the graph of the context with the values for the given Solution.
         /// </summary>
-        private static Task PopulateContextGraphAsync(Solution solution, List<IGraphQuery> graphQueries, IGraphContext context)
+        private static async Task PopulateContextGraphAsync(Solution solution, List<IGraphQuery> graphQueries, IGraphContext context)
         {
-            var cancellationToken = context.CancelToken;
-            var graphTasks = graphQueries.Select(q => q.GetGraphAsync(solution, context, cancellationToken)).ToArray();
-            var whenAllTask = Task.WhenAll(graphTasks);
-            return whenAllTask.SafeContinueWith(
-                t => ProcessGraphTasks(t.Result, context),
-                cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
-        }
-
-        private static void ProcessGraphTasks(GraphBuilder[] graphBuilders, IGraphContext context)
-        {
-            // Perform the actual graph transaction 
-            using var transaction = new GraphTransactionScope();
-            // Remove any links that may have been added by a previous population. We don't
-            // remove nodes to maintain node identity, matching the behavior of the old
-            // providers.
-            context.Graph.Links.Clear();
-
-            foreach (var graphBuilder in graphBuilders)
+            try
             {
-                graphBuilder.ApplyToGraph(context.Graph);
+                var cancellationToken = context.CancelToken;
+                var graphBuilderTasks = graphQueries.Select(q => q.GetGraphAsync(solution, context, cancellationToken)).ToArray();
+                var graphBuilders = await Task.WhenAll(graphBuilderTasks).ConfigureAwait(false);
 
-                context.OutputNodes.AddAll(graphBuilder.CreatedNodes);
+                // Perform the actual graph transaction 
+                using var transaction = new GraphTransactionScope();
+
+                // Remove any links that may have been added by a previous population. We don't
+                // remove nodes to maintain node identity, matching the behavior of the old
+                // providers.
+                context.Graph.Links.Clear();
+
+                foreach (var graphBuilder in graphBuilders)
+                {
+                    graphBuilder.ApplyToGraph(context.Graph);
+
+                    context.OutputNodes.AddAll(graphBuilder.CreatedNodes);
+                }
+
+                transaction.Complete();
             }
-
-            transaction.Complete();
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
     }
 }
