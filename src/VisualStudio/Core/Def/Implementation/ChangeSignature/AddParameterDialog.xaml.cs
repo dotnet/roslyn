@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             // TODO take these values from IntellisenseTextBoxViewModels not from controls.
             // https://github.com/dotnet/roslyn/issues/41149
             _viewModel.ParameterName = ((IntellisenseTextBox)NameContentControl.Content).Text;
-            _viewModel.CallSiteValue = CallSiteValueTextBox.Text;
+            //_viewModel.CallSiteValue = CallSiteValueTextBox.Text;
             _viewModel.UpdateTypeSymbol(((IntellisenseTextBox)TypeContentControl.Content).Text);
 
             if (_viewModel.TrySubmit(_document))
