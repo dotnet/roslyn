@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         protected TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters, IExportProviderFactory exportProviderFactory)
             => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, exportProvider: exportProviderFactory.CreateExportProvider());
 
-
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpNamingStyleDiagnosticAnalyzer(), new NamingStyleCodeFixProvider());
 
@@ -1234,8 +1233,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             using var workspace = CreateWorkspaceFromOptions(markup, testParameters);
 
-            var refactorNotify = workspace.GetService<IRefactorNotifyService>() as TestRefactorNotify;
-            Assert.NotNull(refactorNotify);
+            var refactorNotify = (TestRefactorNotify)workspace.GetService<IRefactorNotifyService>();
 
             var beforeCalled = false;
             var afterCalled = false;
@@ -1244,13 +1242,18 @@ namespace Microsoft.CodeAnalysis.Host
                 Assert.Equal("C", args.NewName);
                 Assert.False(beforeCalled);
                 beforeCalled = true;
+
+                return true;
             };
 
             TestRefactorNotify.SymbolRenamedEventHandler afterRename = (args) =>
             {
                 Assert.Equal("C", args.NewName);
+                Assert.True(beforeCalled);
                 Assert.False(afterCalled);
                 afterCalled = true;
+
+                return true;
             };
 
             refactorNotify.OnBeforeRename += beforeRename;

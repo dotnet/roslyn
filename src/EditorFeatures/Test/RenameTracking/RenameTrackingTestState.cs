@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.Workspaces;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.VisualStudio.Composition;
@@ -41,14 +42,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         private readonly ITextUndoHistoryRegistry _historyRegistry;
         private string _notificationMessage = null;
 
-        private readonly TestHostDocument _hostDocument;
-        public TestHostDocument HostDocument { get { return _hostDocument; } }
+        public TestHostDocument HostDocument { get; }
 
-        private readonly IEditorOperations _editorOperations;
-        public IEditorOperations EditorOperations { get { return _editorOperations; } }
-
-        private readonly MockRefactorNotifyService _mockRefactorNotifyService;
-        public MockRefactorNotifyService RefactorNotifyService { get { return _mockRefactorNotifyService; } }
+        public IEditorOperations EditorOperations { get; }
+        public TestRefactorNotify RefactorNotifyService { get; }
 
         private readonly CodeFixProvider _codeFixProvider;
         private readonly RenameTrackingCancellationCommandHandler _commandHandler = new RenameTrackingCancellationCommandHandler();
@@ -84,15 +81,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         {
             this.Workspace = workspace;
 
-            _hostDocument = Workspace.Documents.First();
-            _view = _hostDocument.GetTextView();
-            _view.Caret.MoveTo(new SnapshotPoint(_view.TextSnapshot, _hostDocument.CursorPosition.Value));
-            _editorOperations = Workspace.GetService<IEditorOperationsFactoryService>().GetEditorOperations(_view);
+            HostDocument = Workspace.Documents.First();
+            _view = HostDocument.GetTextView();
+            _view.Caret.MoveTo(new SnapshotPoint(_view.TextSnapshot, HostDocument.CursorPosition.Value));
+            EditorOperations = Workspace.GetService<IEditorOperationsFactoryService>().GetEditorOperations(_view);
             _historyRegistry = Workspace.ExportProvider.GetExport<ITextUndoHistoryRegistry>().Value;
-            _mockRefactorNotifyService = new MockRefactorNotifyService
+            RefactorNotifyService = new TestRefactorNotify();
+
+            RefactorNotifyService.OnBeforeRename += (_) =>
             {
-                OnBeforeSymbolRenamedReturnValue = onBeforeGlobalSymbolRenamedReturnValue,
-                OnAfterSymbolRenamedReturnValue = onAfterGlobalSymbolRenamedReturnValue
+                return onBeforeGlobalSymbolRenamedReturnValue;
+            };
+
+            RefactorNotifyService.OnAfterRename += (_) =>
+            {
+                return onAfterGlobalSymbolRenamedReturnValue;
             };
 
             // Mock the action taken by the workspace INotificationService
@@ -106,22 +109,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 Workspace.ExportProvider.GetExport<Host.IWaitIndicator>().Value,
                 Workspace.ExportProvider.GetExport<IInlineRenameService>().Value,
                 Workspace.ExportProvider.GetExport<IDiagnosticAnalyzerService>().Value,
-                SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService),
+                SpecializedCollections.SingletonEnumerable(RefactorNotifyService),
                 Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
-            _tagger = tracker.CreateTagger<RenameTrackingTag>(_hostDocument.GetTextBuffer());
+            _tagger = tracker.CreateTagger<RenameTrackingTag>(HostDocument.GetTextBuffer());
 
             if (languageName == LanguageNames.CSharp)
             {
                 _codeFixProvider = new CSharpRenameTrackingCodeFixProvider(
                     _historyRegistry,
-                    SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService));
+                    SpecializedCollections.SingletonEnumerable(RefactorNotifyService));
             }
             else if (languageName == LanguageNames.VisualBasic)
             {
                 _codeFixProvider = new VisualBasicRenameTrackingCodeFixProvider(
                     _historyRegistry,
-                    SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService));
+                    SpecializedCollections.SingletonEnumerable(RefactorNotifyService));
             }
             else
             {
@@ -175,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
         public async Task<IList<Diagnostic>> GetDocumentDiagnosticsAsync(Document document = null)
         {
-            document ??= this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
+            document ??= this.Workspace.CurrentSolution.GetDocument(HostDocument.Id);
             var analyzer = new RenameTrackingDiagnosticAnalyzer();
             return (await DiagnosticProviderTestUtilities.GetDocumentDiagnosticsAsync(analyzer, document,
                 (await document.GetSyntaxRootAsync()).FullSpan)).ToList();
@@ -192,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
             var tag = tags.Single();
 
-            var document = this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
+            var document = this.Workspace.CurrentSolution.GetDocument(HostDocument.Id);
             var diagnostics = await GetDocumentDiagnosticsAsync(document);
 
             // There should be a single rename tracking diagnostic

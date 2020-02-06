@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.Workspaces
@@ -10,20 +11,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Workspaces
     [PartNotDiscoverable]
     internal class TestRefactorNotify : IRefactorNotifyService
     {
-        public delegate void SymbolRenamedEventHandler(SymbolRenameEventArgs args);
+        public delegate bool SymbolRenamedEventHandler(SymbolRenameEventArgs args);
         public event SymbolRenamedEventHandler OnAfterRename;
         public event SymbolRenamedEventHandler OnBeforeRename;
 
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
-            OnAfterRename?.Invoke(new SymbolRenameEventArgs(workspace, changedDocumentIDs, symbol, newName));
-            return true;
+            var succeeded = OnAfterRename?.Invoke(new SymbolRenameEventArgs(workspace, changedDocumentIDs, symbol, newName)) ?? true;
+
+            if (throwOnFailure && !succeeded)
+            {
+                Marshal.ThrowExceptionForHR(unchecked((int)0x80004004)); // E_ABORT
+            }
+
+            return succeeded;
         }
 
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
-            OnBeforeRename?.Invoke(new SymbolRenameEventArgs(workspace, changedDocumentIDs, symbol, newName));
-            return true;
+            var succeeded = OnBeforeRename?.Invoke(new SymbolRenameEventArgs(workspace, changedDocumentIDs, symbol, newName)) ?? true;
+
+            if (throwOnFailure && !succeeded)
+            {
+                Marshal.ThrowExceptionForHR(unchecked((int)0x80004004)); // E_ABORT
+            }
+
+            return succeeded;
         }
     }
 }

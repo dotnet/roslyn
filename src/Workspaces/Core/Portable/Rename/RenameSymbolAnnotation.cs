@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Rename
     /// in some cases to notify the workspace host of refactorings.
     /// </summary>
     /// <remarks>
-    /// This annotation is applied to a symbol that has been renamed. 
+    /// This annotation is applied to the declaring syntax of a symbol that has been renamed. 
     /// When Workspace.TryApplyChanges happens in Visual Studio, we raise rename events for that symbol.
     /// </remarks>
     internal static class RenameSymbolAnnotation
@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.Rename
                         }
 
                         var newSemanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        var currentSemanticModel = await oldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        var oldSemanticModel = await oldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                        var oldSymbol = ResolveSymbol(annotation, currentSemanticModel.Compilation);
+                        var oldSymbol = ResolveSymbol(annotation, oldSemanticModel.Compilation);
                         var newSymbol = newSemanticModel.GetDeclaredSymbol(node);
 
                         changedSymbols.Add(oldSymbol, newSymbol);
