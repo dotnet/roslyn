@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void ReportMissingTupleElementNamesAttributesIfNeeded(CSharpCompilation compilation, Location location, BindingDiagnosticBag diagnostics)
         {
             var bag = BindingDiagnosticBag.GetInstance(diagnostics);
-            if (!Compilation.HasTupleNamesAttributes(bag, location))
+            if (!compilation.HasTupleNamesAttributes(bag, location))
             {
                 var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
                     AttributeDescription.TupleElementNamesAttribute.FullName);

@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // If the member is in an assembly with unified references, 
                 // we check if its definition depends on a type from a unified reference.
                 HashSet<TypeSymbol>? unificationCheckedTypes = null;
-                DiagnosticInfo diagnosticInfo = result.DiagnosticInfo;
+                DiagnosticInfo? diagnosticInfo = result.DiagnosticInfo;
                 if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this, ref unificationCheckedTypes))
                 {
                     result = result.AdjustDiagnosticInfo(diagnosticInfo);

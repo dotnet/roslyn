@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
             catch (BadImageFormatException mrEx)
             {
-                _name ??= string.Empty;
+                _name = _name ?? string.Empty;
                 _lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
 
                 if (eventType.IsNil)
