@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Rename
 
             foreach (var changedDocId in changedDocumentIds)
             {
-                var newDocument = newSolution.GetDocument(changedDocId);
+                var newDocument = newSolution.GetRequiredDocument(changedDocId);
 
                 // Documents without syntax tree won't have the annotations attached
-                if (newDocument is null || !(newDocument.SupportsSyntaxTree))
+                if (!newDocument.SupportsSyntaxTree)
                 {
                     continue;
                 }
