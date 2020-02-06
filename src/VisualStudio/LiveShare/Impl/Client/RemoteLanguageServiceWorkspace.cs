@@ -128,8 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             };
         }
 
-        public string? IsExternalLocalUri(string localPath)
-            => _registeredExternalPaths.FirstOrDefault(externalPath => localPath.StartsWith(externalPath) && localPath.Length > externalPath.Length + 1);
+        public string? GetRemoteExternalRoot(string filePath)
+            => _registeredExternalPaths.SingleOrDefault(externalPath => filePath.StartsWith(externalPath));
 
         public string? GetRemoteWorkspaceRoot(string filePath)
             => _remoteWorkspaceRootPaths.SingleOrDefault(remoteWorkspaceRoot => filePath.StartsWith(remoteWorkspaceRoot));
@@ -177,12 +177,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             foreach (var localRoot in localPathsOfRemoteRoots)
             {
-                var remoteRootPath = localRoot.Substring(0, localRoot.Length - 1);
-                var lastSlash = remoteRootPath.LastIndexOf('\\');
-                var externalPath = remoteRootPath.Substring(0, lastSlash + 1);
-                externalPath += "~external";
+                // The local root is something like tmp\\xxx\\<workspace name>
+                // The external root should be tmp\\xxx\\~external, so replace the workspace name with ~external.
+                var splitRoot = localRoot.TrimEnd('\\').Split('\\');
+                splitRoot[splitRoot.Length - 1] = "~external";
+                var externalPath = string.Join("\\", splitRoot) + "\\";
 
-                remoteRootPaths.Add(remoteRootPath);
+                remoteRootPaths.Add(localRoot);
                 externalPaths.Add(externalPath);
             }
 
@@ -260,14 +261,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             // If the document is within the joined folder or it's a registered external file,
             // add it to the workspace, otherwise bail out.
             var remoteWorkspaceRoot = GetRemoteWorkspaceRoot(filePath);
-            var remoteExternalRoot = IsExternalLocalUri(filePath);
+            var remoteExternalRoot = GetRemoteExternalRoot(filePath);
             if (!string.IsNullOrEmpty(remoteWorkspaceRoot))
             {
-                return AddDocumentToProject(filePath, language, Path.GetFileNameWithoutExtension(remoteWorkspaceRoot));
+                return AddDocumentToProject(filePath, language, Path.GetFileName(Path.GetDirectoryName(remoteWorkspaceRoot)));
             }
             else if (!string.IsNullOrEmpty(remoteExternalRoot))
             {
-                return AddDocumentToProject(filePath, language, Path.GetFileNameWithoutExtension(remoteExternalRoot));
+                return AddDocumentToProject(filePath, language, Path.GetFileName(Path.GetDirectoryName(remoteExternalRoot)));
             }
             else
             {
