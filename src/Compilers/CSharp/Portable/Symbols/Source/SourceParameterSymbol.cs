@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     identifier.Parent.GetLocation());
             }
 
-            ImmutableArray<CustomModifier> inModifiers = ParameterHelpers.CreateInModifiers(refKind, addRefReadOnlyModifier, context, declarationDiagnostics, syntax);
+            ImmutableArray<CustomModifier> inModifiers = ParameterHelpers.ConditionallyCreateInModifiers(refKind, addRefReadOnlyModifier, context, declarationDiagnostics, syntax);
 
             if (!inModifiers.IsDefaultOrEmpty)
             {

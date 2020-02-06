@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
                                         DiagnosticBag diagnostics) =>
                 {
-                    ImmutableArray<CustomModifier> customModifiers = CreateInModifiers(refKind, addRefReadOnlyModifier, binder, diagnostics, syntax);
+                    ImmutableArray<CustomModifier> customModifiers = ConditionallyCreateInModifiers(refKind, addRefReadOnlyModifier, binder, diagnostics, syntax);
 
                     if (parameterType.IsVoidType())
                     {
@@ -686,17 +686,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return refKind;
         }
 
-        internal static ImmutableArray<CustomModifier> CreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static ImmutableArray<CustomModifier> ConditionallyCreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
         {
             if (addRefReadOnlyModifier && refKind == RefKind.In)
             {
-                var modifierType = binder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax);
-                return ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
+                return CreateInModifiers(binder, diagnostics, syntax);
             }
             else
             {
                 return ImmutableArray<CustomModifier>.Empty;
             }
+        }
+
+        internal static ImmutableArray<CustomModifier> CreateInModifiers(Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
+        {
+            var modifierType = binder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax);
+            return ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
         }
     }
 }

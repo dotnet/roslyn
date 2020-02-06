@@ -158,6 +158,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return If(namedType IsNot Nothing AndAlso namedType.IsGenericType, UnboundGenericType.Create(namedType), type)
         End Function
 
+        Friend Overrides Function MakeFunctionPointerTypeSymbol(callingConvention As Cci.CallingConvention, retAndParamTypes As ImmutableArray(Of ParamInfo(Of TypeSymbol))) As TypeSymbol
+            ' PROTOTYPE(func-ptr): Support loading from metadata in VB
+            Throw ExceptionUtilities.Unreachable
+        End Function
     End Class
 
 End Namespace

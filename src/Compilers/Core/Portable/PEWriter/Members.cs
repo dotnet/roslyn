@@ -70,6 +70,31 @@ namespace Microsoft.Cci
         ExplicitThis = SignatureAttributes.ExplicitThis,
     }
 
+    internal static class CallingConventionUtils
+    {
+        private const SignatureCallingConvention SignatureMask =
+            SignatureCallingConvention.Default
+            | SignatureCallingConvention.CDecl
+            | SignatureCallingConvention.StdCall
+            | SignatureCallingConvention.ThisCall
+            | SignatureCallingConvention.FastCall
+            | SignatureCallingConvention.VarArgs;
+
+        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention, bool throwOnInvalidConvention = false)
+        {
+            var callingConvention = (CallingConvention)(convention & SignatureMask);
+            if (throwOnInvalidConvention && callingConvention != (CallingConvention)convention)
+            {
+                throw new UnsupportedSignatureContent();
+            }
+
+            return callingConvention;
+        }
+
+        internal static SignatureCallingConvention ToSignatureConvention(this CallingConvention convention)
+            => (SignatureCallingConvention)convention & SignatureMask;
+    }
+
     /// <summary>
     /// An event is a member that enables an object or class to provide notifications. Clients can attach executable code for events by supplying event handlers.
     /// This interface models the metadata representation of an event.

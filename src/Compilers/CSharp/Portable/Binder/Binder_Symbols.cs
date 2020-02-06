@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.FunctionPointerType:
                     return TypeWithAnnotations.Create(
-                        FunctionPointerTypeSymbol.CreateFunctionPointerTypeSymbolFromSource(
+                        FunctionPointerTypeSymbol.CreateFromSource(
                             (FunctionPointerTypeSyntax)syntax,
                             this,
                             diagnostics,

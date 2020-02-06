@@ -3682,10 +3682,16 @@ namespace Microsoft.Cci
                 }
 
                 var primitiveType = typeReference.TypeCode;
-                if (primitiveType != PrimitiveTypeCode.Pointer && primitiveType != PrimitiveTypeCode.NotPrimitive)
+                switch (primitiveType)
                 {
-                    SerializePrimitiveType(encoder, primitiveType);
-                    return;
+                    case PrimitiveTypeCode.Pointer:
+                    case PrimitiveTypeCode.FunctionPointer:
+                    case PrimitiveTypeCode.NotPrimitive:
+                        break;
+
+                    default:
+                        SerializePrimitiveType(encoder, primitiveType);
+                        return;
                 }
 
                 if (typeReference is IPointerTypeReference pointerTypeReference)
@@ -3693,6 +3699,14 @@ namespace Microsoft.Cci
                     typeReference = pointerTypeReference.GetTargetType(Context);
                     encoder = encoder.Pointer();
                     continue;
+                }
+
+                if (typeReference is IFunctionPointerTypeReference functionPointerTypeReference)
+                {
+                    var signature = functionPointerTypeReference.Signature;
+                    var signatureEncoder = encoder.FunctionPointer(convention: signature.CallingConvention.ToSignatureConvention());
+                    SerializeReturnValueAndParameters(signatureEncoder, signature, varargParameters: ImmutableArray<IParameterTypeInformation>.Empty);
+                    return;
                 }
 
                 IGenericTypeParameterReference genericTypeParameterReference = typeReference.AsGenericTypeParameterReference;

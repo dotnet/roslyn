@@ -147,6 +147,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddPunctuation(SyntaxKind.AsteriskToken);
         }
 
+        // PROTOTYPE(func-ptr): test
+        public override void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+        {
+            AddKeyword(SyntaxKind.DelegateKeyword);
+            AddPunctuation(SyntaxKind.AsteriskToken);
+
+            // PROTOTYPE(func-ptr): Expose calling convention and format here
+
+            AddPunctuation(SyntaxKind.LessThanToken);
+
+            symbol.Signature.ReturnType.Accept(this);
+
+            foreach (var param in symbol.Signature.Parameters)
+            {
+                AddPunctuation(SyntaxKind.CommaToken);
+                param.Accept(this);
+            }
+
+            AddPunctuation(SyntaxKind.GreaterThanToken);
+        }
+
         public override void VisitTypeParameter(ITypeParameterSymbol symbol)
         {
             if (this.isFirstSymbolVisited)

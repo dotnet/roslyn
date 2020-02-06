@@ -147,6 +147,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         [return: MaybeNull]
+        public virtual TResult VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+        {
+            return DefaultVisit(symbol);
+        }
+
+        [return: MaybeNull]
         public virtual TResult VisitProperty(IPropertySymbol symbol)
         {
 #pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
