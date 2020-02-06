@@ -62,6 +62,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 Assert.DoesNotContain("\r\n", expectedOutputMarkup);
             }
 
+            if (lineEnding == "\r\n" && inputMarkup != null)
+            {
+                Assert.DoesNotMatch("[^\r]\n", inputMarkup);
+            }
+
+            if (lineEnding == "\r\n" && expectedOutputMarkup != null)
+            {
+                Assert.DoesNotMatch("[^\r]\n", expectedOutputMarkup);
+            }
+
             var document = workspace.Documents.Single();
             var view = document.GetTextView();
 
