@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             // Make sure we update our references to the remote roots and iterate RDT only one at a time.
             using (await s_RemotePathsGate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
             {
-                if (!_remoteWorkspaceRootPaths.Equals(remoteRootPaths) || !_registeredExternalPaths.Equals(externalPaths))
+                if (IsRemoteSession && (!_remoteWorkspaceRootPaths.Equals(remoteRootPaths) || !_registeredExternalPaths.Equals(externalPaths)))
                 {
                     _remoteWorkspaceRootPaths = remoteRootPaths;
                     _registeredExternalPaths = externalPaths;
@@ -167,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             }
         }
 
-        private async Task<(ImmutableHashSet<string> remoteRootPath, ImmutableHashSet<string> externalPath)> GetLocalPathsOfRemoteRoots(CollaborationSession session)
+        private static async Task<(ImmutableHashSet<string> remoteRootPaths, ImmutableHashSet<string> externalPaths)> GetLocalPathsOfRemoteRoots(CollaborationSession session)
         {
             var roots = await session.ListRootsAsync(CancellationToken.None).ConfigureAwait(false);
             var localPathsOfRemoteRoots = roots.Select(root => session.ConvertSharedUriToLocalPath(root)).ToImmutableArray();
@@ -193,6 +193,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             _session = null;
             StopSolutionCrawler();
+
+            // Clear the remote paths on end of session.  Live share handles closing all the files.
+            using (s_RemotePathsGate.DisposableWait())
+            {
+                _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
+                _registeredExternalPaths = ImmutableHashSet<string>.Empty;
+            }
         }
 
         /// <inheritdoc />
