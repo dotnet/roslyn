@@ -3,7 +3,7 @@
 source_directory=$BUILD_SOURCESDIRECTORY
 core_root_directory=
 baseline_core_root_directory=
-architecture=x64
+architecture=$archType
 framework=netcoreapp5.0
 compilation_mode=tiered
 repository=$BUILD_REPOSITORY_NAME
@@ -15,7 +15,7 @@ compare=false
 kind="micro"
 run_categories="Libraries Runtime"
 csproj="src\benchmarks\micro\MicroBenchmarks.csproj"
-configurations=
+configurations="CompliationMode=$compilation_mode RunKind=$kind"
 run_from_perf_repo=false
 use_core_run=true
 use_baseline_core_run=true

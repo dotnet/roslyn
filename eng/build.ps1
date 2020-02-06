@@ -571,6 +571,9 @@ function Setup-IntegrationTestRun() {
 }
 
 function Prepare-TempDir() {
+  $env:TEMP=$TempDir
+  $env:TMP=$TempDir
+
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
@@ -652,6 +655,10 @@ try {
   }
 
   if ($launch) {
+    if (-not $build) {
+      InitializeBuildTool
+    }
+
     $devenvExe = Join-Path $env:VSINSTALLDIR 'Common7\IDE\devenv.exe'
     &$devenvExe /rootSuffix RoslynDev
   }

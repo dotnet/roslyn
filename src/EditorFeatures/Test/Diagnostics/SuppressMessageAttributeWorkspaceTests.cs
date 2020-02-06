@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -74,7 +75,7 @@ public class C2
 {
 }
 ",
-                new[] { new ThrowExceptionForEachNamedTypeAnalyzer() },
+                new[] { new ThrowExceptionForEachNamedTypeAnalyzer(ExceptionDispatchInfo.Capture(new Exception())) },
                 diagnostics: new[] { diagnostic, diagnostic, diagnostic });
         }
 
@@ -84,7 +85,7 @@ public class C2
             var diagnostic = Diagnostic("AD0001", null);
 
             await VerifyCSharpAsync("public class C { }",
-                new[] { new ThrowExceptionFromSupportedDiagnostics() },
+                new[] { new ThrowExceptionFromSupportedDiagnostics(new Exception()) },
                 diagnostics: new[] { diagnostic });
         }
     }

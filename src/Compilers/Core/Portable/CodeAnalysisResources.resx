@@ -392,9 +392,14 @@
   </data>
   <data name="CompilerAnalyzerFailure" xml:space="preserve">
     <value>Analyzer Failure</value>
+    <comment>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</comment>
   </data>
   <data name="CompilerAnalyzerThrows" xml:space="preserve">
-    <value>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</value>
+    <value>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</value>
   </data>
   <data name="CompilerAnalyzerThrowsDescription" xml:space="preserve">
     <value>Analyzer '{0}' threw the following exception:
@@ -677,5 +682,9 @@
   </data>
   <data name="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging" xml:space="preserve">
     <value>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</value>
+  </data>
+  <data name="DisableAnalyzerDiagnosticsMessage" xml:space="preserve">
+    <value>Suppress the following diagnostics to disable this analyzer: {0}</value>
+    <comment>{0}: Comma-separated list of diagnostic IDs</comment>
   </data>
 </root>

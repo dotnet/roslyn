@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -62,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Editing
                 isVirtual: symbol.IsVirtual,
                 isOverride: symbol.IsOverride,
                 isSealed: symbol.IsSealed,
-                isConst: field != null && field.IsConst);
+                isConst: field != null && field.IsConst,
+                isUnsafe: symbol.IsUnsafe());
         }
 
         public bool IsStatic => (_modifiers & Modifiers.Static) != 0;

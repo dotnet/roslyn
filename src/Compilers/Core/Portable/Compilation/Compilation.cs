@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis
         public INamedTypeSymbol CreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string?> elementNames = default,
-            ImmutableArray<Location> elementLocations = default,
+            ImmutableArray<Location?> elementLocations = default,
             ImmutableArray<NullableAnnotation> elementNullableAnnotations = default)
         {
             if (elementTypes.IsDefault)
@@ -1017,7 +1017,7 @@ namespace Microsoft.CodeAnalysis
         public INamedTypeSymbol CreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string?> elementNames,
-            ImmutableArray<Location> elementLocations)
+            ImmutableArray<Location?> elementLocations)
         {
             return CreateTupleTypeSymbol(elementTypes, elementNames, elementLocations, elementNullableAnnotations: default);
         }
@@ -1067,7 +1067,7 @@ namespace Microsoft.CodeAnalysis
 
         protected static void CheckTupleElementLocations(
             int cardinality,
-            ImmutableArray<Location> elementLocations)
+            ImmutableArray<Location?> elementLocations)
         {
             if (!elementLocations.IsDefault)
             {
@@ -1081,7 +1081,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string?> elementNames,
-            ImmutableArray<Location> elementLocations,
+            ImmutableArray<Location?> elementLocations,
             ImmutableArray<NullableAnnotation> elementNullableAnnotations);
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -1093,7 +1093,7 @@ namespace Microsoft.CodeAnalysis
         public INamedTypeSymbol CreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
             ImmutableArray<string?> elementNames = default,
-            ImmutableArray<Location> elementLocations = default,
+            ImmutableArray<Location?> elementLocations = default,
             ImmutableArray<NullableAnnotation> elementNullableAnnotations = default)
         {
             if ((object)underlyingType == null)
@@ -1113,7 +1113,7 @@ namespace Microsoft.CodeAnalysis
         public INamedTypeSymbol CreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
             ImmutableArray<string?> elementNames,
-            ImmutableArray<Location> elementLocations)
+            ImmutableArray<Location?> elementLocations)
         {
             return CreateTupleTypeSymbol(underlyingType, elementNames, elementLocations, elementNullableAnnotations: default);
         }
@@ -1121,7 +1121,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
             ImmutableArray<string?> elementNames,
-            ImmutableArray<Location> elementLocations,
+            ImmutableArray<Location?> elementLocations,
             ImmutableArray<NullableAnnotation> elementNullableAnnotations);
 
         /// <summary>
