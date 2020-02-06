@@ -1,11 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
-#if !CODE_STYLE
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
 using Microsoft.CodeAnalysis.Options;
 #endif
 
@@ -312,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,
                                                SyntaxKind.NameColon,
-                                               SyntaxKindEx.SwitchExpressionArm))
+                                               SyntaxKind.SwitchExpressionArm))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
@@ -384,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // suppress warning operator: null! or x! or x++! or x[i]! or (x)! or ...
             if (currentToken.Kind() == SyntaxKind.ExclamationToken &&
-                currentToken.Parent.Kind() == SyntaxKindEx.SuppressNullableWarningExpression)
+                currentToken.Parent.Kind() == SyntaxKind.SuppressNullableWarningExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -419,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // ! *, except where ! is the suppress nullable warning operator
             if (previousToken.Kind() == SyntaxKind.ExclamationToken
-                && previousToken.Parent.Kind() != SyntaxKindEx.SuppressNullableWarningExpression)
+                && previousToken.Parent.Kind() != SyntaxKind.SuppressNullableWarningExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

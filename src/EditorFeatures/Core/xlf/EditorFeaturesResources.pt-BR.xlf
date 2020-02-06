@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Removal_of_document_not_supported">
         <source>Removal of document not supported</source>
-        <target state="new">Removal of document not supported</target>
+        <target state="translated">Não há suporte para a remoção do documento</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file">
@@ -669,7 +669,7 @@
       </trans-unit>
       <trans-unit id="The_token_is_not_contained_in_the_workspace">
         <source>The token is not contained in the workspace.</source>
-        <target state="translated">O token não está contido na área de trabalho.</target>
+        <target state="translated">O token não está contido no workspace.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_rename_an_identifier">

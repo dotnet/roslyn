@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -57,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         {
             // Get all the liveshare request handlers in this assembly.
             var liveShareRequestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(LoadHandler).Assembly, typeof(ILspRequestHandler));
+                    typeof(LiveShareConstants).Assembly, typeof(ILspRequestHandler));
             // Get all of the roslyn request helpers in M.CA.LanguageServer
             var roslynRequestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(RoslynHandlers.IRequestHandler).Assembly, typeof(RoslynHandlers.IRequestHandler));
