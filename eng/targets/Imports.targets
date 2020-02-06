@@ -19,6 +19,11 @@
     -->
     <UserRuntimeConfig Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(OutputType)' == 'Exe'">$(RepositoryEngineeringDir)config\runtimeconfig.template.json</UserRuntimeConfig>
 
+    <!--
+      Disable nullable warnings when targeting anything other than our supported .NET core version(s). 
+      This condition will be evaluated multiple times in multi-targeted projects hence need to be careful
+      to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
+    -->
     <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND '$(TargetFramework)' != '' AND '$(TargetFramework)' != 'netcoreapp3.1'">true</DisableNullableWarnings>
   </PropertyGroup>
 
@@ -43,7 +48,7 @@
 
     <!-- Bypass a check in msbuild that .NET Framework 3.5 is installed on the machine when targeting .NET < 4.0 -->
     <BypassFrameworkInstallChecks>true</BypassFrameworkInstallChecks>
- </PropertyGroup>
+  </PropertyGroup>
 
   <!-- Add the UnitTestContainer project capability -->
   <ItemGroup Condition="'$(IsTestProject)' == 'true'">
