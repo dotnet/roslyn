@@ -128,8 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             };
         }
 
-        public bool IsExternalLocalUri(string localPath)
-            => _registeredExternalPaths.Any(externalPath => localPath.StartsWith(externalPath) && localPath.Length > externalPath.Length + 1);
+        public string? IsExternalLocalUri(string localPath)
+            => _registeredExternalPaths.FirstOrDefault(externalPath => localPath.StartsWith(externalPath) && localPath.Length > externalPath.Length + 1);
 
         public string? GetRemoteWorkspaceRoot(string filePath)
             => _remoteWorkspaceRootPaths.SingleOrDefault(remoteWorkspaceRoot => filePath.StartsWith(remoteWorkspaceRoot));
@@ -250,15 +250,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return null;
             }
 
-            // If the document is within the joined folder or it's a registered external file,
-            // add it to the workspace, otherwise bail out.
-            var remoteWorkspaceRoot = GetRemoteWorkspaceRoot(filePath);
-            if (string.IsNullOrEmpty(remoteWorkspaceRoot) &&
-                    !IsExternalLocalUri(filePath))
-            {
-                return null;
-            }
-
             var language = GetLanguage(filePath);
             // Unsupported language.
             if (language == null)
@@ -266,8 +257,22 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return null;
             }
 
-            var folderName = Path.GetFileNameWithoutExtension(remoteWorkspaceRoot);
-            return AddDocumentToProject(filePath, language, folderName);
+            // If the document is within the joined folder or it's a registered external file,
+            // add it to the workspace, otherwise bail out.
+            var remoteWorkspaceRoot = GetRemoteWorkspaceRoot(filePath);
+            var remoteExternalRoot = IsExternalLocalUri(filePath);
+            if (!string.IsNullOrEmpty(remoteWorkspaceRoot))
+            {
+                return AddDocumentToProject(filePath, language, Path.GetFileNameWithoutExtension(remoteWorkspaceRoot));
+            }
+            else if (!string.IsNullOrEmpty(remoteExternalRoot))
+            {
+                return AddDocumentToProject(filePath, language, Path.GetFileNameWithoutExtension(remoteExternalRoot));
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public Document? GetOrAddExternalDocument(string filePath, string language)
