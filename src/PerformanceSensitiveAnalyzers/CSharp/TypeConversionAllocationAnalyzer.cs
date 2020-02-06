@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         public const string ValueTypeToReferenceTypeConversionRuleId = "HAA0601";
         public const string DelegateOnStructInstanceRuleId = "HAA0602";
         public const string MethodGroupAllocationRuleId = "HAA0603";
-        public const string ReadonlyMethodGroupAllocationRuleId = "HeapAnalyzerReadonlyMethodGroupAllocationRule";
+        public const string ReadonlyMethodGroupAllocationRuleId = "HAA0604";
 
         private static readonly LocalizableString s_localizableValueTypeToReferenceTypeConversionRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeConversionRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly LocalizableString s_localizableValueTypeToReferenceTypeConversionRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeConversionRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
