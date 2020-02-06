@@ -1,4 +1,4 @@
-﻿﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 #nullable enable
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>True if the expression is awaitable; false otherwise.</returns>
         internal bool GetAwaitableExpressionInfo(
             BoundExpression expression,
-            [NotNullWhen(true)] out BoundExpression? getAwaiterGetResultCall,
+            out BoundExpression? getAwaiterGetResultCall,
             SyntaxNode node,
             DiagnosticBag diagnostics)
         {
@@ -244,10 +244,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression,
             BoundExpression getAwaiterArgument,
             out bool isDynamic,
-            [NotNullWhen(true)] out BoundExpression? getAwaiter,
-            [NotNullWhen(true)] out PropertySymbol? isCompleted,
+            out BoundExpression? getAwaiter,
+            out PropertySymbol? isCompleted,
             out MethodSymbol? getResult,
-            [NotNullWhen(true)] out BoundExpression? getAwaiterGetResultCall,
+            out BoundExpression? getAwaiterGetResultCall,
             SyntaxNode node,
             DiagnosticBag diagnostics)
         {

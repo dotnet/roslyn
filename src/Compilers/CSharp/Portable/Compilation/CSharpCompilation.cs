@@ -1786,6 +1786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? result;
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out result, syntax, diagnostics);
 
+            RoslynDebug.Assert(!namedType.IsDynamic());
             return success &&
                 (result!.Type!.IsVoidType() || result.Type!.SpecialType == SpecialType.System_Int32);
         }
