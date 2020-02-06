@@ -3153,7 +3153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string?> elementNames,
-            ImmutableArray<Location> elementLocations,
+            ImmutableArray<Location?> elementLocations,
             ImmutableArray<CodeAnalysis.NullableAnnotation> elementNullableAnnotations)
         {
             var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(elementTypes.Length);
@@ -3168,7 +3168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return NamedTypeSymbol.CreateTuple(
                 locationOpt: null, // no location for the type declaration
                 elementTypesWithAnnotations: typesBuilder.ToImmutableAndFree(),
-                elementLocations: elementLocations!,
+                elementLocations: elementLocations,
                 elementNames: elementNames,
                 compilation: this,
                 shouldCheckConstraints: false,
@@ -3179,7 +3179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
             ImmutableArray<string?> elementNames,
-            ImmutableArray<Location> elementLocations,
+            ImmutableArray<Location?> elementLocations,
             ImmutableArray<CodeAnalysis.NullableAnnotation> elementNullableAnnotations)
         {
             NamedTypeSymbol csharpUnderlyingTuple = underlyingType.EnsureCSharpSymbolOrNull(nameof(underlyingType));
