@@ -353,6 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [InlineData("property,method", new object[] { SymbolKind.Property, MethodKind.Ordinary })]
         [InlineData("namespace", new object[] { SymbolKind.Namespace })]
         [InlineData("type_parameter", new object[] { SymbolKind.TypeParameter })]
+        [InlineData("interface", new object[] { TypeKind.Interface })]
         [InlineData("*", new object[] { SymbolKind.Namespace, TypeKind.Class, TypeKind.Struct, TypeKind.Interface, TypeKind.Enum, SymbolKind.Property, MethodKind.Ordinary, MethodKind.LocalFunction, SymbolKind.Field, SymbolKind.Event, TypeKind.Delegate, SymbolKind.Parameter, SymbolKind.TypeParameter, SymbolKind.Local })]
         [InlineData(null, new object[] { SymbolKind.Namespace, TypeKind.Class, TypeKind.Struct, TypeKind.Interface, TypeKind.Enum, SymbolKind.Property, MethodKind.Ordinary, MethodKind.LocalFunction, SymbolKind.Field, SymbolKind.Event, TypeKind.Delegate, SymbolKind.Parameter, SymbolKind.TypeParameter, SymbolKind.Local })]
         [InlineData("property,method,invalid", new object[] { SymbolKind.Property, MethodKind.Ordinary })]
@@ -436,6 +437,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                          vbResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.Modifier)));
             Assert.Equal(csharpResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.ModifierKindWrapper)),
                          vbResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.ModifierKindWrapper)));
+        }
+
+        [Fact]
+        [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
+        public static void TestPrefixParse()
+        {
+            var rule = new Dictionary<string, string>()
+            {
+                ["dotnet_naming_style.pascal_case_and_prefix_style.required_prefix"] = "I",
+                ["dotnet_naming_style.pascal_case_and_prefix_style.capitalization"] = "pascal_case",
+                ["dotnet_naming_symbols.symbols.applicable_kinds"] = "interface",
+                ["dotnet_naming_symbols.symbols.applicable_accessibilities"] = "*",
+                ["dotnet_naming_rule.must_be_pascal_cased_and_prefixed.symbols"] = "symbols",
+                ["dotnet_naming_rule.must_be_pascal_cased_and_prefixed.style"] = "pascal_case_and_prefix_style",
+                ["dotnet_naming_rule.must_be_pascal_cased_and_prefixed.severity"] = "warning",
+            };
+
+            var result = ParseDictionary(rule);
+            Assert.Single(result.NamingRules);
+            var namingRule = result.NamingRules.Single();
+            Assert.Single(result.NamingStyles);
+            var namingStyle = result.NamingStyles.Single();
+            Assert.Single(result.SymbolSpecifications);
+            var symbolSpec = result.SymbolSpecifications.Single();
+            Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
+            Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
+            Assert.Equal(ReportDiagnostic.Warn, namingRule.EnforcementLevel);
+            Assert.Equal("symbols", symbolSpec.Name);
+            var expectedApplicableTypeKindList = new[] { new SymbolKindOrTypeKind(TypeKind.Interface) };
+            AssertEx.SetEqual(expectedApplicableTypeKindList, symbolSpec.ApplicableSymbolKindList);
+            Assert.Equal("pascal_case_and_prefix_style", namingStyle.Name);
+            Assert.Equal("I", namingStyle.Prefix);
+            Assert.Equal("", namingStyle.Suffix);
+            Assert.Equal("", namingStyle.WordSeparator);
+            Assert.Equal(Capitalization.PascalCase, namingStyle.CapitalizationScheme);
         }
     }
 }
