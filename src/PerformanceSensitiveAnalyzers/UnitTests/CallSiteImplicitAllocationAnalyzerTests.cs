@@ -25,7 +25,7 @@ public class MyClass
     public void Testing()
     {
 
-        Params(); //no allocation, because compiler will implicitly substitute Array<int>.Empty
+        Params(); //no allocation, because compiler will implicitly substitute Array.Empty<int>()
         Params(1, 2);
         Params(new [] { 1, 2}); // explicit, so no warning
         ParamsWithObjects(new [] { 1, 2}); // explicit, but converted to objects, so stil la warning?!
