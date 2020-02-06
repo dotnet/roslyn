@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,8 +10,13 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -47,24 +54,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // ex: `e is Type ( /* positional */ )`
-            if (node.IsKind(SyntaxKindEx.RecursivePattern))
+            if (node.IsKind(SyntaxKind.RecursivePattern))
             {
-#if !CODE_STYLE
                 var positional = ((RecursivePatternSyntax)node).PositionalPatternClause;
                 var property = ((RecursivePatternSyntax)node).PropertyPatternClause;
-#else
-                var positional = node.ChildNodes().SingleOrDefault(child => child.IsKind(SyntaxKindEx.PositionalPatternClause));
-                var property = node.ChildNodes().SingleOrDefault(child => child.IsKind(SyntaxKindEx.PropertyPatternClause));
-#endif
                 if (positional != null)
                 {
-#if !CODE_STYLE
                     var openParenToken = positional.OpenParenToken;
                     var closeParenToken = positional.CloseParenToken;
-#else
-                    var openParenToken = positional.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.OpenParenToken));
-                    var closeParenToken = positional.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.CloseParenToken));
-#endif
                     // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
                     AddSuppressWrappingIfOnSingleLineOperation(list, openParenToken, closeParenToken);
                     if (property != null)
@@ -76,13 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // ex: `Property: <pattern>` inside a recursive pattern, such as `e is { Property: <pattern>, ... }`
                 else if (property != null)
                 {
-#if !CODE_STYLE
                     var openBraceToken = property.OpenBraceToken;
                     var closeBraceToken = property.CloseBraceToken;
-#else
-                    var openBraceToken = property.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.OpenBraceToken));
-                    var closeBraceToken = property.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.CloseBraceToken));
-#endif
                     // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
                     AddSuppressWrappingIfOnSingleLineOperation(list, openBraceToken, closeBraceToken);
                 }
@@ -91,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // ex: `<pattern>: expression` inside a switch expression, such as `e switch { <pattern>: expression, ... }`
-            if (node.IsKind(SyntaxKindEx.SwitchExpressionArm))
+            if (node.IsKind(SyntaxKind.SwitchExpressionArm))
             {
                 // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
                 AddSuppressWrappingIfOnSingleLineOperation(list, node.GetFirstToken(), node.GetLastToken());
@@ -99,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // ex: `e switch { <pattern>: expression, ... }`
-            if (node.IsKind(SyntaxKindEx.SwitchExpression))
+            if (node.IsKind(SyntaxKind.SwitchExpression))
             {
                 // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
                 AddSuppressWrappingIfOnSingleLineOperation(list, node.GetFirstToken(), node.GetLastToken());
@@ -120,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
                 AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.GetFirstToken(), isPattern.GetLastToken());
 
-                if (isPattern.Pattern.IsKind(SyntaxKindEx.RecursivePattern))
+                if (isPattern.Pattern.IsKind(SyntaxKind.RecursivePattern))
                 {
                     // ex:
                     // ```
@@ -132,11 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     // _ = expr is { }$$
                     // M();
                     // ```
-#if !CODE_STYLE
                     var propertyPatternClause = ((RecursivePatternSyntax)isPattern.Pattern).PropertyPatternClause;
-#else
-                    var propertyPatternClause = isPattern.Pattern.ChildNodes().SingleOrDefault(child => child.IsKind(SyntaxKindEx.PropertyPatternClause));
-#endif
                     if (propertyPatternClause != null)
                     {
                         AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.IsKeyword, propertyPatternClause.GetLastToken());

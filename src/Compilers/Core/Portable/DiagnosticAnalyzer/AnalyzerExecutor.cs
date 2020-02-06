@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -56,7 +58,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
         private readonly CancellationToken _cancellationToken;
 
+        private Func<IOperation, ControlFlowGraph> _lazyGetControlFlowGraph;
+
         private ConcurrentDictionary<IOperation, ControlFlowGraph> _lazyControlFlowGraphMap;
+
+        private Func<IOperation, ControlFlowGraph> GetControlFlowGraph
+            => _lazyGetControlFlowGraph ??= GetControlFlowGraphImpl;
 
         /// <summary>
         /// Creates <see cref="AnalyzerExecutor"/> to execute analyzer actions with given arguments
@@ -1441,32 +1448,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                PooledStopwatch timer = null;
+                SharedStopwatch timer = default;
                 if (_analyzerExecutionTimeMapOpt != null)
                 {
-                    timer = PooledStopwatch.StartInstance();
+                    timer = SharedStopwatch.StartNew();
 
-                    // This call to Restart isn't required by the API, but is included to avoid measurement errors which
-                    // can occur during periods of high allocation activity. In some cases, calls to Stopwatch
+                    // This call to StartNew isn't required by the API, but is included to avoid measurement errors
+                    // which can occur during periods of high allocation activity. In some cases, calls to Stopwatch
                     // operations can block at their return point on the completion of a background GC operation. When
                     // this occurs, the GC wait time ends up included in the measured time span. In the event the first
-                    // call to Restart blocked on a GC operation, this call to Restart will most likely occur when the
+                    // call to StartNew blocked on a GC operation, this call to StartNew will most likely occur when the
                     // GC is no longer active. In practice, a substantial improvement to the consistency of analyzer
                     // timing data was observed.
                     //
-                    // Note that the call to Stopwatch.Stop() is not affected, because the GC wait will occur after the
-                    // timer has already recorded its stop time.
-                    timer.Restart();
+                    // Note that the call to SharedStopwatch.Elapsed is not affected, because the GC wait will occur
+                    // after the timer has already recorded its stop time.
+                    timer = SharedStopwatch.StartNew();
                 }
 
                 analyze(argument);
 
-                if (timer != null)
+                if (_analyzerExecutionTimeMapOpt != null)
                 {
-                    timer.Stop();
+                    var elapsed = timer.Elapsed.Ticks;
                     StrongBox<long> totalTicks = _analyzerExecutionTimeMapOpt.GetOrAdd(analyzer, _ => new StrongBox<long>(0));
-                    Interlocked.Add(ref totalTicks.Value, timer.Elapsed.Ticks);
-                    timer.Free();
+                    Interlocked.Add(ref totalTicks.Value, elapsed);
                 }
             }
             catch (Exception e) when (ExceptionFilter(e))
@@ -1504,7 +1510,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerName = analyzer.ToString();
             var title = CodeAnalysisResources.CompilerAnalyzerFailure;
             var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
-            var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message };
+            var contextInformation = string.Join(Environment.NewLine, CreateDiagnosticDescription(info, e), CreateDisablingMessage(analyzer)).Trim();
+            var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message, contextInformation };
             var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, CreateDiagnosticDescription(info, e));
             var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerExceptionDiagnosticId, title, description, messageFormat);
             return Diagnostic.Create(descriptor, Location.None, messageArguments);
@@ -1519,6 +1526,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return string.Join(Environment.NewLine,
                 string.Format(CodeAnalysisResources.ExceptionContext, info?.GetContext()), e.CreateDiagnosticDescription());
+        }
+
+        private static string CreateDisablingMessage(DiagnosticAnalyzer analyzer)
+        {
+            var diagnosticIds = ImmutableSortedSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                foreach (var diagnostic in analyzer.SupportedDiagnostics)
+                {
+                    diagnosticIds = diagnosticIds.Add(diagnostic.Id);
+                }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            {
+                // Intentionally empty
+            }
+
+            if (diagnosticIds.IsEmpty)
+            {
+                return "";
+            }
+
+            return string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, string.Join(", ", diagnosticIds));
         }
 
         internal static Diagnostic CreateDriverExceptionDiagnostic(Exception e)
@@ -1886,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return TimeSpan.FromTicks(executionTime.Value);
         }
 
-        private ControlFlowGraph GetControlFlowGraph(IOperation operation)
+        private ControlFlowGraph GetControlFlowGraphImpl(IOperation operation)
         {
             Debug.Assert(operation != null);
             Debug.Assert(operation.Parent == null);

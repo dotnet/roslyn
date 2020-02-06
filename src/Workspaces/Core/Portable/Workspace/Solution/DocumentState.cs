@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -307,23 +309,16 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        /// <summary>
-        /// True if the content (text/tree) has changed.
-        /// </summary>
         public bool HasContentChanged(DocumentState oldState)
         {
             return oldState._treeSource != _treeSource
-                || oldState.sourceText != sourceText
-                || oldState.TextAndVersionSource != TextAndVersionSource;
+                || HasTextChanged(oldState, ignoreUnchangeableDocument: false);
         }
 
-        /// <summary>
-        /// True if the Text has changed
-        /// </summary>
+        [Obsolete("Use TextDocumentState.HasTextChanged")]
         public bool HasTextChanged(DocumentState oldState)
         {
-            return oldState.sourceText != sourceText
-                || oldState.TextAndVersionSource != TextAndVersionSource;
+            return HasTextChanged(oldState, ignoreUnchangeableDocument: false);
         }
 
         public DocumentState UpdateParseOptions(ParseOptions options)

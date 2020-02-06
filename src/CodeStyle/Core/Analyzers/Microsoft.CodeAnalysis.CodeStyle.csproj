@@ -1,15 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.CodingConventions" Version="$(MicrosoftVisualStudioCodingConventionsVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(MicrosoftCodeAnalysisCommonFixedVersion)" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
   </ItemGroup>
@@ -153,7 +152,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\IntervalTree`1.cs" Link="Formatting\Context\IntervalTree`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\IntervalTree`1.Node.cs" Link="Formatting\Context\IntervalTree`1.Node.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\SimpleIntervalTree.cs" Link="Formatting\SimpleIntervalTree.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\SimpleIntervalTree`1.cs" Link="Formatting\Context\SimpleIntervalTree`1.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\SimpleIntervalTree`2.cs" Link="Formatting\Context\SimpleIntervalTree`2.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\TextSpanIntervalIntrospector.cs" Link="Formatting\TextSpanIntervalIntrospector.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\ChildSyntaxListExtensions.cs" Link="Formatting\ChildSyntaxListExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\LinkedListExtensions.cs" Link="Formatting\LinkedListExtensions.cs" />
