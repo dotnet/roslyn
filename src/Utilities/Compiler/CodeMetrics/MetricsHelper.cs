@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
                 if (usedType.IsGenericType && !usedType.IsUnboundGenericType)
                 {
-                    builder.Add(usedType.ConstructUnboundGenericType());
+                    builder.Add(usedType.OriginalDefinition);
                     foreach (var type in usedType.TypeArguments)
                     {
                         AddCoupledNamedTypesCore(builder, type);
