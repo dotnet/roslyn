@@ -19,14 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             protected static readonly SyntaxAnnotation RightNodeAnnotation = new SyntaxAnnotation();
 
             protected readonly SyntaxToken PlusNewLineToken;
-
             protected readonly Document Document;
             protected readonly int CursorPosition;
             protected readonly SourceText SourceText;
             protected readonly SyntaxNode Root;
             protected readonly int TabSize;
             protected readonly bool UseTabs;
-            protected readonly SyntaxTriviaList NewLineTrivia;
             protected readonly CancellationToken CancellationToken;
 
             private readonly IndentStyle _indentStyle;
@@ -45,13 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 UseTabs = useTabs;
                 TabSize = tabSize;
                 _indentStyle = indentStyle;
-                NewLineTrivia = newLineTrivia;
                 CancellationToken = cancellationToken;
-
-                PlusNewLineToken = SyntaxFactory.Token(
-                    leading: default,
-                    SyntaxKind.PlusToken,
-                    NewLineTrivia);
+                PlusNewLineToken = SyntaxFactory.Token(leading: default, SyntaxKind.PlusToken, newLineTrivia);
             }
 
             public static StringSplitter Create(
