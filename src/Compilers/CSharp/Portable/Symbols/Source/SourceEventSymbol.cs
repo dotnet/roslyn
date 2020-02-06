@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -30,10 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal readonly SourceMemberContainerTypeSymbol containingType;
 
         private SymbolCompletionState _state;
-        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
-        private string _lazyDocComment;
-        private string _lazyExpandedDocComment;
-        private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
+        private CustomAttributesBag<CSharpAttributeData>? _lazyCustomAttributesBag;
+        private string? _lazyDocComment;
+        private string? _lazyExpandedDocComment;
+        private OverriddenOrHiddenMembersResult? _lazyOverriddenOrHiddenMembers;
         private ThreeState _lazyIsWindowsRuntimeEvent = ThreeState.Unknown;
 
         // TODO: CLSCompliantAttribute
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode syntax,
             SyntaxTokenList modifiers,
             bool isFieldLike,
-            ExplicitInterfaceSpecifierSyntax interfaceSpecifierSyntaxOpt,
+            ExplicitInterfaceSpecifierSyntax? interfaceSpecifierSyntaxOpt,
             SyntaxToken nameTokenSyntax,
             BindingDiagnosticBag diagnostics)
         {
@@ -69,16 +71,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
             _state.DefaultForceComplete(this, cancellationToken);
         }
 
         public override abstract string Name { get; }
 
-        public override abstract MethodSymbol AddMethod { get; }
+        public override abstract MethodSymbol? AddMethod { get; }
 
-        public override abstract MethodSymbol RemoveMethod { get; }
+        public override abstract MethodSymbol? RemoveMethod { get; }
 
         public override abstract ImmutableArray<EventSymbol> ExplicitInterfaceImplementations { get; }
 
@@ -188,6 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(wasCompletedThisThread);
             }
 
+            RoslynDebug.AssertNotNull(_lazyCustomAttributesBag);
             return _lazyCustomAttributesBag;
         }
 
@@ -239,10 +242,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (CommonEventEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
         }
 
-        internal override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        internal override CSharpAttributeData? EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
-            CSharpAttributeData boundAttribute;
-            ObsoleteAttributeData obsoleteData;
+            CSharpAttributeData? boundAttribute;
+            ObsoleteAttributeData? obsoleteData;
 
             if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
             {
@@ -261,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal override ObsoleteAttributeData ObsoleteAttributeData
+        internal override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get
             {
@@ -295,6 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
             {
                 // NullableAttribute should not be set explicitly.
+                RoslynDebug.AssertNotNull(arguments.AttributeSyntaxOpt);
                 diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
@@ -303,6 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
+                RoslynDebug.AssertNotNull(arguments.AttributeSyntaxOpt);
                 diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
@@ -311,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData>? attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -596,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(location, useSiteInfo);
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             ref var lazyDocComment = ref expandIncludes ? ref _lazyExpandedDocComment : ref _lazyDocComment;
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
@@ -604,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeWithAnnotations type, AssemblySymbol containingAssembly)
         {
-            Debug.Assert((object)eventWithCustomModifiers != null);
+            RoslynDebug.Assert((object)eventWithCustomModifiers != null);
 
             TypeSymbol overriddenEventType = eventWithCustomModifiers.Type;
 
@@ -653,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // If there could be more than one, we'd have to worry about conflicts, but that's impossible for source events.
                 Debug.Assert(explicitInterfaceImplementations.Length == 1);
                 // Don't have to worry about conflicting with the override rule, since explicit impls are never overrides (in source).
-                Debug.Assert((object)this.OverriddenEvent == null);
+                Debug.Assert((object?)this.OverriddenEvent == null);
 
                 return explicitInterfaceImplementations[0].IsWindowsRuntimeEvent;
             }
@@ -666,8 +671,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // If you override an event, then you're a WinRT event if and only if it's a WinRT event.
-            EventSymbol overriddenEvent = this.OverriddenEvent;
-            if ((object)overriddenEvent != null)
+            EventSymbol? overriddenEvent = this.OverriddenEvent;
+            if ((object?)overriddenEvent != null)
             {
                 return overriddenEvent.IsWindowsRuntimeEvent;
             }

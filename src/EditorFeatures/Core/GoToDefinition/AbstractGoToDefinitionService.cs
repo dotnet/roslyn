@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -17,9 +18,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     // GoToDefinition
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {
-        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
+        /// <summary>
+        /// Used to present go to definition results in <see cref="TryGoToDefinition(Document, int, CancellationToken)"/>
+        /// This is lazily created as the LSP server only calls <see cref="FindDefinitionsAsync(Document, int, CancellationToken)"/>
+        /// and therefore never needs to construct the presenter.
+        /// </summary>
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
-        protected AbstractGoToDefinitionService(IStreamingFindUsagesPresenter streamingPresenter)
+        protected AbstractGoToDefinitionService(Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
             _streamingPresenter = streamingPresenter;
         }
@@ -54,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             return GoToDefinitionHelpers.TryGoToDefinition(symbol,
                 document.Project,
-                _streamingPresenter,
+                _streamingPresenter.Value,
                 thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
                 throwOnHiddenDefinition: true,
                 cancellationToken: cancellationToken);

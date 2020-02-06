@@ -488,9 +488,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        public static SpecialType GetSpecialTypeSafe(this TypeSymbol type)
+        public static SpecialType GetSpecialTypeSafe(this TypeSymbol? type)
         {
-            return (object)type != null ? type.SpecialType : SpecialType.None;
+            return type is object ? type.SpecialType : SpecialType.None;
         }
 
         public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1458,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         && attr.CommonConstructorArguments.Length == 1
                         && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                     {
-                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal;
+                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal!;
                         return true;
                     }
                 }

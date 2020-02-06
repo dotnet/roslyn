@@ -639,19 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the tuple type with names is bound we must have the TupleElementNamesAttribute to emit
                 // it is typically there though, if we have ValueTuple at all
-                var bag = BindingDiagnosticBag.GetInstance(diagnostics);
-                if (!Compilation.HasTupleNamesAttributes(bag, syntax.Location))
-                {
-                    var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
-                        AttributeDescription.TupleElementNamesAttribute.FullName);
-                    Error(diagnostics, info, syntax);
-                }
-                else
-                {
-                    diagnostics.AddRange(bag);
-                }
-
-                bag.Free();
+                ReportMissingTupleElementNamesAttributesIfNeeded(Compilation, syntax.GetLocation(), diagnostics);
             }
 
             var typesArray = types.ToImmutableAndFree();
@@ -675,6 +663,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                                           errorPositions: default(ImmutableArray<bool>),
                                           syntax: syntax,
                                           diagnostics: diagnostics);
+        }
+
+        internal static void ReportMissingTupleElementNamesAttributesIfNeeded(CSharpCompilation compilation, Location location, BindingDiagnosticBag diagnostics)
+        {
+            var bag = BindingDiagnosticBag.GetInstance(diagnostics);
+            if (!Compilation.HasTupleNamesAttributes(bag, location))
+            {
+                var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
+                    AttributeDescription.TupleElementNamesAttribute.FullName);
+                Error(diagnostics, info, location);
+            }
+            else
+            {
+                diagnostics.AddRange(bag);
+            }
+
+            bag.Free();
         }
 
         private static void CollectTupleFieldMemberName(string name, int elementIndex, int tupleSize, ref ArrayBuilder<string> elementNames)

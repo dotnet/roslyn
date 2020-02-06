@@ -1750,6 +1750,26 @@
         <target state="translated">O tipo de valor de nulidade pode ser nulo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
+        <source>Parameter '{0}' may not have a null value when exiting with '{1}'.</source>
+        <target state="new">Parameter '{0}' may not have a null value when exiting with '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
+        <source>Parameter may not have a null value when exiting in some condition.</source>
+        <target state="new">Parameter may not have a null value when exiting in some condition.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ShouldNotReturn">
+        <source>A method marked [DoesNotReturn] should not return.</source>
+        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ShouldNotReturn_Title">
+        <source>A method marked [DoesNotReturn] should not return.</source>
+        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
         <target state="translated">A expressão switch não manipula todos os valores possíveis de seu tipo de entrada (não é finita).</target>

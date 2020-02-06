@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private ImmutableArray<TextSpan> GetNonOverlappingSpans(ISyntaxFactsService syntaxFactsService, SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
             // Create interval tree for spans
-            var intervalTree = SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, spans);
+            var intervalTree = SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), spans);
 
             // Find tokens that are outside of spans
             var tokenSpans = new List<TextSpan>();

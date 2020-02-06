@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override LocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
+        protected override (LocalState initialState, LocalState afterSwitchState) VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
             // first, learn from any null tests in the patterns
             int slot = node.Expression.IsSuppressed ? GetOrCreatePlaceholderSlot(node.Expression) : MakeSlot(node.Expression);
@@ -185,8 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            var afterSwitchState = labelStateMap.TryGetValue(node.BreakLabel, out var stateAndReachable) ? stateAndReachable.state : UnreachableState();
             labelStateMap.Free();
-            return initialState;
+            return (initialState, afterSwitchState);
         }
 
         protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
@@ -404,17 +405,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(foundTemp);
                             var (tempSlot, tempType) = tempSlotAndType;
                             var tempState = this.State[tempSlot];
-                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local })
+                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local } boundLocal)
                             {
-                                var inferredType = TypeWithState.Create(tempType, tempState).ToTypeWithAnnotations();
+                                var value = TypeWithState.Create(tempType, tempState);
+                                var type = boundLocal.DeclarationKind == BoundLocalDeclarationKind.WithInferredType ? value.ToAnnotatedTypeWithAnnotations() : value.ToTypeWithAnnotations();
                                 if (_variableTypes.TryGetValue(local, out var existingType))
                                 {
                                     // merge inferred nullable annotation from different branches of the decision tree
-                                    _variableTypes[local] = TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation));
+                                    _variableTypes[local] = TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(type.NullableAnnotation));
                                 }
                                 else
                                 {
-                                    _variableTypes[local] = inferredType;
+                                    _variableTypes[local] = type;
                                 }
 
                                 int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);

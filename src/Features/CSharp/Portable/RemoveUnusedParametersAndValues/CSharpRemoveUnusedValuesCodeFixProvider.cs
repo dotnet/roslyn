@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                     var catchDeclaration = (CatchDeclarationSyntax)node;
                     return catchDeclaration.WithIdentifier(newName.WithTriviaFrom(catchDeclaration.Identifier));
 
+                case SyntaxKind.VarPattern:
+                    return SyntaxFactory.DiscardPattern().WithTriviaFrom(node);
+
                 default:
                     Debug.Fail($"Unexpected node kind for local/parameter declaration or reference: '{node.Kind()}'");
                     return null;

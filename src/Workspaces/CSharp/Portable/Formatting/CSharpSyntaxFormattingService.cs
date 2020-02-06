@@ -10,7 +10,9 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
-#if !CODE_STYLE
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return _rules;
         }
 
-        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan> formattingSpans = null)
+        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> formattingSpans = null)
         {
             return new AggregatedFormattingResult(node, results, formattingSpans);
         }

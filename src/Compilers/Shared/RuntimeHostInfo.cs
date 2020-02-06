@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
 
 namespace Microsoft.CodeAnalysis
@@ -27,10 +30,10 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(!toolFilePathWithoutExtension.EndsWith(".dll") && !toolFilePathWithoutExtension.EndsWith(".exe"));
 
             var toolFilePath = $"{toolFilePathWithoutExtension}.{ToolExtension}";
-            if (IsDotNetHost(out string pathToDotNet))
+            if (IsDotNetHost(out string? pathToDotNet))
             {
                 commandLineArguments = $@"exec ""{toolFilePath}"" {commandLineArguments}";
-                return (pathToDotNet, commandLineArguments, toolFilePath);
+                return (pathToDotNet!, commandLineArguments, toolFilePath);
             }
             else
             {
@@ -41,7 +44,7 @@ namespace Microsoft.CodeAnalysis
 #if NET472
         internal static bool IsDesktopRuntime => true;
 
-        internal static bool IsDotNetHost(out string pathToDotNet)
+        internal static bool IsDotNetHost([NotNullWhen(true)] out string? pathToDotNet)
         {
             pathToDotNet = null;
             return false;
@@ -50,12 +53,12 @@ namespace Microsoft.CodeAnalysis
         internal static NamedPipeClientStream CreateNamedPipeClient(string serverName, string pipeName, PipeDirection direction, PipeOptions options) =>
             new NamedPipeClientStream(serverName, pipeName, direction, options);
 
-#elif NETCOREAPP2_1
+#elif NETCOREAPP3_1
         internal static bool IsDesktopRuntime => false;
 
         private static string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
 
-        private static bool IsDotNetHost(out string pathToDotNet)
+        private static bool IsDotNetHost(out string? pathToDotNet)
         {
             pathToDotNet = GetDotNetPathOrDefault();
             return true;
