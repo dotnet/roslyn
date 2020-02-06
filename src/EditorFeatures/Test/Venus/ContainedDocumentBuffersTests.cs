@@ -65,20 +65,12 @@ namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
             // Construct document for Razor text
             MarkupTestFile.GetNamedSpans(razorBufferMarkup, out var razorBufferText, out var razorSpans);
             var razorTextBuffer = EditorFactory.CreateBuffer(exportProvider, razorContentType, razorBufferText);
-            var razorBaseDocument = new TestHostDocument(
-                razorBufferText,
-                selectedSpans: razorSpans,
-                textBuffer: razorTextBuffer,
-                textLoader: TextLoader.From(razorTextBuffer.AsTextContainer(), VersionStamp.Default));
+            var razorBaseDocument = new TestHostDocument(razorBufferText, selectedSpans: razorSpans,textBuffer: razorTextBuffer);
 
             // Construct document for language text
             MarkupTestFile.GetNamedSpans(languageBufferMarkup, out var languageBufferText, out var languageSpans);
             var languageTextBuffer = EditorFactory.CreateBuffer(exportProvider, languageContentType, languageBufferText);
-            var languageBaseDocument = new TestHostDocument(
-                languageBufferText,
-                selectedSpans: languageSpans,
-                textBuffer: languageTextBuffer,
-                textLoader: TextLoader.From(languageTextBuffer.AsTextContainer(), VersionStamp.Default));
+            var languageBaseDocument = new TestHostDocument(languageBufferText, selectedSpans: languageSpans, textBuffer: languageTextBuffer);
 
             ValidateMarkupSpans(razorBufferText, razorSpans, languageBufferText, languageSpans);
 
@@ -92,11 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 new[] { razorBaseDocument },
                 text => EditorFactory.CreateBuffer(exportProvider, languageContentType, text));
 
-            var languageProjectionDocument = new TestHostDocument(
-                languageBufferText,
-                selectedSpans: languageSpans,
-                textBuffer: languageProjection,
-                textLoader: TextLoader.From(languageProjection.AsTextContainer(), VersionStamp.Default));
+            var languageProjectionDocument = new TestHostDocument(languageBufferText, selectedSpans: languageSpans, textBuffer: languageProjection);
 
             // Projects language code snippets from language base buffer
             var xhtmlProjection = workspace.CreateProjectionBuffer(razorBufferMarkup, new[] { languageProjectionDocument },

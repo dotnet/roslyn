@@ -96,14 +96,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             HostLanguageServices? languageServiceProvider = null,
             IDocumentServiceProvider? documentServiceProvider = null,
             ImmutableArray<string> roles = default,
-            ITextBuffer? textBuffer = null,
-            TextLoader? textLoader = null)
+            ITextBuffer? textBuffer = null)
         {
             _exportProvider = exportProvider ?? TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
             _languageServiceProvider = languageServiceProvider;
 
             _initialText = code;
-            Loader = textLoader ?? new TestDocumentLoader(code, filePath);
 
             FilePath = filePath;
             _folders = folders;
@@ -132,6 +130,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 _textBuffer = textBuffer;
                 _initialTextSnapshot = textBuffer.CurrentSnapshot;
+                Loader = TextLoader.From(textBuffer.AsTextContainer(), VersionStamp.Default, filePath);
+            }
+            else
+            {
+                Loader = new TestDocumentLoader(code, filePath);
             }
         }
 
