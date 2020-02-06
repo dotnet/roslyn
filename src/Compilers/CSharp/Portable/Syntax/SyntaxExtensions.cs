@@ -417,6 +417,13 @@ recurse:
                     var pointerTypeSyntax = (PointerTypeSyntax)type;
                     type = pointerTypeSyntax.ElementType;
                     goto recurse;
+                case SyntaxKind.FunctionPointerType:
+                    var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)type;
+                    foreach (var param in functionPointerTypeSyntax.Parameters)
+                    {
+                        param.Type.VisitRankSpecifiers(action, argument);
+                    }
+                    break;
                 case SyntaxKind.TupleType:
                     var tupleTypeSyntax = (TupleTypeSyntax)type;
                     var elementsCount = tupleTypeSyntax.Elements.Count;

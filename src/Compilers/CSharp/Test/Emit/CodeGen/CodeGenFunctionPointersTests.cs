@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenFunctionPointersTests : CSharpTestBase
     {
+        private CompilationVerifier CompileAndVerifyFunctionPointers(string source, Action<ModuleSymbol>? symbolValidator = null)
+        {
+            return CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll, symbolValidator: symbolValidator);
+        }
+
         [Theory]
         [InlineData("", CallingConvention.Default)]
         [InlineData("cdecl", CallingConvention.CDecl)]
@@ -23,11 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         [InlineData("stdcall", CallingConvention.Standard)]
         internal void CallingConventions(string conventionString, CallingConvention expectedConvention)
         {
-            var comp = CompileAndVerify(@$"
+            var comp = CompileAndVerifyFunctionPointers(@$"
 class C
 {{
-    public delegate* {conventionString}<string, int> M() => throw null;
-}}", parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator);
+    public unsafe delegate* {conventionString}<string, int> M() => throw null;
+}}", symbolValidator: symbolValidator);
 
             void symbolValidator(ModuleSymbol module)
             {
@@ -44,11 +49,11 @@ class C
         [Fact]
         public void RefParameters()
         {
-            var comp = CompileAndVerify(@"
+            var comp = CompileAndVerifyFunctionPointers(@"
 class C
 {
-    public void M(delegate*<ref C, ref string, ref int[]> param1) => throw null;
-}", parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator);
+    public unsafe void M(delegate*<ref C, ref string, ref int[]> param1) => throw null;
+}", symbolValidator: symbolValidator);
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -66,14 +71,14 @@ class C
         [Fact]
         public void NestedFunctionPointers()
         {
-            var comp = CompileAndVerify(@"
+            var comp = CompileAndVerifyFunctionPointers(@"
 public class C
 {
-    public delegate* cdecl<delegate* stdcall<int, void>, void> M(delegate*<C, delegate*<S>> param1) => throw null;
+    public unsafe delegate* cdecl<delegate* stdcall<int, void>, void> M(delegate*<C, delegate*<S>> param1) => throw null;
 }
 public struct S
 {
-}", parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator);
+}", symbolValidator: symbolValidator);
             static void symbolValidator(ModuleSymbol module)
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -98,11 +103,11 @@ public struct S
         [Fact]
         public void InModifier()
         {
-            var comp = CompileAndVerify(@"
+            var comp = CompileAndVerifyFunctionPointers(@"
 public class C
 {
-    public void M(delegate*<in string, in int, ref readonly bool> param) {}
-}", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll, symbolValidator: symbolValidator);
+    public unsafe void M(delegate*<in string, in int, ref readonly bool> param) {}
+}", symbolValidator: symbolValidator);
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -120,11 +125,11 @@ public class C
         [Fact]
         public void NestedPointerTypes()
         {
-            var comp = CompileAndVerify(@"
+            var comp = CompileAndVerifyFunctionPointers(@"
 public class C
 {
-    public delegate* cdecl<ref delegate*<ref readonly string>, void> M(delegate*<in delegate* stdcall<delegate*<void>>, delegate*<int>> param) => throw null;
-}", parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator);
+    public unsafe delegate* cdecl<ref delegate*<ref readonly string>, void> M(delegate*<in delegate* stdcall<delegate*<void>>, delegate*<int>> param) => throw null;
+}", symbolValidator: symbolValidator);
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -210,8 +215,8 @@ public class C
         [Fact]
         public void MultipleFunctionPointerArguments()
         {
-            CompileAndVerify(@"
-public class C
+            CompileAndVerifyFunctionPointers(@"
+public unsafe class C
 {
 	public void M(delegate*<ref int, ref bool> param1,
                   delegate*<ref int, ref bool> param2,
@@ -219,7 +224,7 @@ public class C
                   delegate*<ref int, ref bool> param4,
                   delegate*<ref int, ref bool> param5) {}
                      
-}", parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator);
+}", symbolValidator: symbolValidator);
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -238,12 +243,12 @@ public class C
         [Fact]
         public void FunctionPointersInProperties()
         {
-            var compVerifier = CompileAndVerify(@"
-public class C
+            var compVerifier = CompileAndVerifyFunctionPointers(@"
+public unsafe class C
 {
     public delegate*<string, void> Prop1 { get; set; }
     public delegate* stdcall<int> Prop2 { get => throw null; set => throw null; }
-}", parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator, verify: Verification.Skipped);
+}", symbolValidator: symbolValidator);
 
             compVerifier.VerifyIL("C.Prop1.get", expectedIL: @"
 {
@@ -289,11 +294,11 @@ public class C
         [Fact]
         public void FunctionPointersInFields()
         {
-            CompileAndVerify(@"
-public class C
+            CompileAndVerifyFunctionPointers(@"
+public unsafe class C
 {
     public readonly delegate*<C, C> _field;
-}", parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator);
+}", symbolValidator: symbolValidator);
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -336,10 +341,10 @@ public class C
             var source = @"
 class D : C
 {
-    public override delegate*<ref int, ref bool> M() => throw null;
+    public unsafe override delegate*<ref int, ref bool> M() => throw null;
 }";
 
-            var comp = CreateCompilationWithIL(source, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(source, ilSource: ilSource, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
             CompileAndVerify(comp, symbolValidator: symbolValidator);
 
             static void symbolValidator(ModuleSymbol module)

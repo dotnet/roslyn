@@ -13,18 +13,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FunctionPointerTypeSymbolTests : CSharpTestBase
     {
+        private static CSharpCompilation CreateFunctionPointerCompilation(string source)
+        {
+            return CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+        }
+
         [InlineData("", RefKind.None)]
         [InlineData("ref", RefKind.Ref)]
         [InlineData("ref readonly", RefKind.RefReadOnly)]
         [Theory]
         public void ValidReturnModifiers(string modifier, RefKind expectedKind)
         {
-            var comp = CreateCompilation($@"
+            var comp = CreateFunctionPointerCompilation($@"
 class C
 {{
-    void M(delegate*<{modifier} object> p) {{}}
+    unsafe void M(delegate*<{modifier} object> p) {{}}
 
-}}", parseOptions: TestOptions.RegularPreview);
+}}");
             comp.VerifyDiagnostics();
 
             var c = comp.GetTypeByMetadataName("C");
@@ -39,10 +44,10 @@ class C
         [Fact]
         public void InvalidReturnModifiers()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(
+    unsafe void M(
         delegate*<readonly string> p1,
         delegate*<readonly ref string> p2,
         delegate*<ref ref readonly string> p3,
@@ -52,7 +57,7 @@ class C
         delegate*<ref ref string> p7)
     {}
 }
-", parseOptions: TestOptions.RegularPreview);
+");
             comp.VerifyDiagnostics(
                     // (5,19): error CS8753: 'readonly' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<readonly string> p1,
@@ -83,13 +88,13 @@ class C
         [Fact]
         public void InvalidModifiersOnVoidReturnType()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(
+    unsafe void M(
         delegate*<ref void> p1,
         delegate*<ref readonly void> p2) {}
-}", parseOptions: TestOptions.RegularPreview);
+}");
             comp.VerifyDiagnostics(
                     // (5,19): error CS1547: Keyword 'void' cannot be used in this context
                     //         delegate*<ref void> p1,
@@ -116,11 +121,11 @@ class C
         [Theory]
         internal void ValidCallingConventions(string convention, CallingConvention expectedConvention)
         {
-            var comp = CreateCompilation($@"
+            var comp = CreateFunctionPointerCompilation($@"
 class C
 {{
-    public void M(delegate* {convention}<string> p) {{}}
-}}", parseOptions: TestOptions.RegularPreview);
+    public unsafe void M(delegate* {convention}<string> p) {{}}
+}}");
 
             comp.VerifyDiagnostics();
             var c = comp.GetTypeByMetadataName("C");
@@ -134,15 +139,15 @@ class C
         [Fact]
         public void InvalidCallingConventions()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    public void M(delegate* invalid<void> p) {}
-}", parseOptions: TestOptions.RegularPreview);
+    public unsafe void M(delegate* invalid<void> p) {}
+}");
             comp.VerifyDiagnostics(
-                    // (4,29): error CS8752: 'invalid' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.
+                    // (4,36): error CS8752: 'invalid' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.
                     //     public void M(delegate* invalid<void> p) {}
-                    Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "invalid").WithArguments("invalid").WithLocation(4, 29));
+                    Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "invalid").WithArguments("invalid").WithLocation(4, 36));
 
             var c = comp.GetTypeByMetadataName("C");
             var m = c.GetMethod("M");
@@ -154,17 +159,17 @@ class C
         [Fact]
         public void Parameters()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    public void M<T>(
+    public unsafe void M<T>(
         delegate*<int, void> p1,
         delegate*<object, void> p2,
         delegate*<C, void> p3,
         delegate*<object, object, void> p4,
         delegate*<T, object, void> p5,
         delegate*<delegate*<T>, void> p6) {}
-}", parseOptions: TestOptions.RegularPreview);
+}");
             comp.VerifyDiagnostics();
 
             var c = comp.GetTypeByMetadataName("C");
@@ -208,15 +213,15 @@ class C
         [Fact]
         public void ValidParameterModifiers()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    public void M(
+    public unsafe void M(
         delegate*<ref string, void> p1,
         delegate*<in string, void> p2,
         delegate*<out string, void> p3,
         delegate*<string, void> p4) {}
-}", parseOptions: TestOptions.RegularPreview);
+}");
 
             comp.VerifyDiagnostics();
 
@@ -248,10 +253,10 @@ class C
         [Fact]
         public void InvalidParameterModifiers()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    public void M(
+    public unsafe void M(
         delegate*<params string[], void> p1,
         delegate*<this string, void> p2,
         delegate*<readonly ref string, void> p3,
@@ -262,7 +267,7 @@ class C
         delegate*<out ref string, void> p8,
         delegate*<ref out string, void> p9) {}
         
-}", parseOptions: TestOptions.RegularPreview);
+}");
 
             comp.VerifyDiagnostics(
                     // (5,19): error CS8755: 'params' cannot be used as a modifier on a function pointer parameter.
@@ -335,16 +340,16 @@ class C
         [Fact]
         public void VoidAsParameterType()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(delegate*<void, void> p1) {}
-}", parseOptions: TestOptions.RegularPreview);
+    unsafe void M(delegate*<void, void> p1) {}
+}");
 
             comp.VerifyDiagnostics(
-                    // (4,22): error CS1536: Invalid parameter type 'void'
+                    // (4,29): error CS1536: Invalid parameter type 'void'
                     //     void M(delegate*<void, void> p1) {}
-                    Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(4, 22));
+                    Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(4, 29));
 
             var c = comp.GetTypeByMetadataName("C");
             var m = c.GetMethod("M");
@@ -355,12 +360,12 @@ class C
         [Fact]
         public void Equality_ReturnVoid()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(delegate*<void> p1,
+    unsafe void M(delegate*<void> p1,
            delegate*<void> p2) {}
-}", parseOptions: TestOptions.RegularPreview);
+}");
 
             comp.VerifyDiagnostics();
             var c = comp.GetTypeByMetadataName("C");
@@ -371,13 +376,13 @@ class C
         [Fact]
         public void EqualityDifferingNullability()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 #nullable enable
 class C
 {
-    void M(delegate*<string, string, string?> p1,
-           delegate*<string, string?, string> p2) {}
-}", parseOptions: TestOptions.RegularPreview);
+    unsafe void M(delegate*<string, string, string?> p1,
+                  delegate*<string, string?, string> p2) {}
+}");
 
             comp.VerifyDiagnostics();
             var c = comp.GetTypeByMetadataName("C");
@@ -391,12 +396,12 @@ class C
         [Fact]
         public void EqualityMultipleParameters()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(delegate*<string, object, C, int, void> p1,
-           delegate*<string, object, C, int, void> p2) {}
-}", parseOptions: TestOptions.RegularPreview);
+    unsafe void M(delegate*<string, object, C, int, void> p1,
+                  delegate*<string, object, C, int, void> p2) {}
+}");
 
             comp.VerifyDiagnostics();
             var c = comp.GetTypeByMetadataName("C");
@@ -409,12 +414,12 @@ class C
         [Fact]
         public void EqualityNestedFunctionPointers()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(delegate*<delegate*<string, object>, delegate*<C, int>> p1,
-           delegate*<delegate*<string, object>, delegate*<C, int>> p2) {}
-}", parseOptions: TestOptions.RegularPreview);
+    unsafe void M(delegate*<delegate*<string, object>, delegate*<C, int>> p1,
+                  delegate*<delegate*<string, object>, delegate*<C, int>> p2) {}
+}");
 
             comp.VerifyDiagnostics();
             var c = comp.GetTypeByMetadataName("C");
@@ -427,13 +432,13 @@ class C
         [Fact]
         public void EqualityNestedFunctionPointersDifferingNullability()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 #nullable enable
 class C
 {
-    void M(delegate*<delegate*<string, object?>, delegate*<C?, int>> p1,
-           delegate*<delegate*<string?, object>, delegate*<C, int>> p2) {}
-}", parseOptions: TestOptions.RegularPreview);
+    unsafe void M(delegate*<delegate*<string, object?>, delegate*<C?, int>> p1,
+                  delegate*<delegate*<string?, object>, delegate*<C, int>> p2) {}
+}");
 
             comp.VerifyDiagnostics();
             var c = comp.GetTypeByMetadataName("C");
@@ -446,12 +451,12 @@ class C
         [Fact]
         public void Equality_ReturnNotEqual()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(delegate*<string, object, C, int, string> p1,
-           delegate*<string, object, C, int, void> p2) {}
-}", parseOptions: TestOptions.RegularPreview);
+    unsafe void M(delegate*<string, object, C, int, string> p1,
+                  delegate*<string, object, C, int, void> p2) {}
+}");
 
             comp.VerifyDiagnostics();
             var c = comp.GetTypeByMetadataName("C");
@@ -464,12 +469,12 @@ class C
         [Fact]
         public void Equality_ParameterTypeNotEqual()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(delegate*<string, object, C, object, void> p1,
-           delegate*<string, object, C, int, void> p2) {}
-}", parseOptions: TestOptions.RegularPreview);
+    unsafe void M(delegate*<string, object, C, object, void> p1,
+                  delegate*<string, object, C, int, void> p2) {}
+}");
 
             comp.VerifyDiagnostics();
             var c = comp.GetTypeByMetadataName("C");
@@ -482,12 +487,12 @@ class C
         [Fact]
         public void Equality_CallingConvetionNotEqual()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(delegate* cdecl<string, object, C, object, void> p1,
-           delegate* thiscall<string, object, C, object, void> p2) {}
-}", parseOptions: TestOptions.RegularPreview);
+    unsafe void M(delegate* cdecl<string, object, C, object, void> p1,
+                  delegate* thiscall<string, object, C, object, void> p2) {}
+}");
 
             comp.VerifyDiagnostics();
             var c = comp.GetTypeByMetadataName("C");
@@ -500,12 +505,12 @@ class C
         [Fact]
         public void Equality_ParameterModifiersDifferent()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(delegate*<ref string, object, C, object, void> p1,
+    unsafe void M(delegate*<ref string, object, C, object, void> p1,
            delegate*<string, in object, out C, object, void> p2) {}
-}", parseOptions: TestOptions.RegularPreview);
+}");
 
             comp.VerifyDiagnostics();
             var c = comp.GetTypeByMetadataName("C");
@@ -518,12 +523,12 @@ class C
         [Fact]
         public void Equality_ReturnTypeDifferent()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(delegate*<string, object, C, object, ref string> p1,
-           delegate*<string, object, C, object, ref readonly string> p2) {}
-}", parseOptions: TestOptions.RegularPreview);
+    unsafe void M(delegate*<string, object, C, object, ref string> p1,
+                  delegate*<string, object, C, object, ref readonly string> p2) {}
+}");
 
             comp.VerifyDiagnostics();
             var c = comp.GetTypeByMetadataName("C");
@@ -536,12 +541,12 @@ class C
         [Fact]
         public void Equality_InParameter()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(delegate*<in string, void> p1,
-           delegate*<in string, void> p2) {}
-}", parseOptions: TestOptions.RegularPreview);
+    unsafe void M(delegate*<in string, void> p1,
+                  delegate*<in string, void> p2) {}
+}");
 
             comp.VerifyDiagnostics();
             var c = comp.GetTypeByMetadataName("C");
@@ -624,11 +629,11 @@ class C
         [Fact]
         public void NoInAttribute_NoInParameter()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(delegate*<string, void> p1) {}
-}", parseOptions: TestOptions.RegularPreview);
+    unsafe void M(delegate*<string, void> p1) {}
+}");
 
             comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
             comp.VerifyDiagnostics();
@@ -637,17 +642,17 @@ class C
         [Fact]
         public void NoInAttribute_InParameter()
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    void M(delegate*<in string, void> p1) {}
-}", parseOptions: TestOptions.RegularPreview);
+    unsafe void M(delegate*<in string, void> p1) {}
+}");
 
             comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
             comp.VerifyDiagnostics(
-                    // (4,22): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
+                    // (4,29): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                     //     void M(delegate*<in string, void> p1) {}
-                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in string").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(4, 22));
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in string").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(4, 29));
         }
 
         [Fact]
@@ -691,6 +696,45 @@ class C
                     Assert.True(param1.Type.Equals(param2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
                 }
             }
+        }
+
+        [Fact]
+        public void RequiresUnsafeInSignature()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+class C
+{
+    delegate*<void> _field;
+    delegate*<void> Property { get; set; }
+    delegate*<void> M(delegate*<void> param)
+    {
+        delegate*<void> local;
+        throw null;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                    // (4,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //     delegate*<void> _field;
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*<void>").WithLocation(4, 5),
+                    // (4,21): warning CS0169: The field 'C._field' is never used
+                    //     delegate*<void> _field;
+                    Diagnostic(ErrorCode.WRN_UnreferencedField, "_field").WithArguments("C._field").WithLocation(4, 21),
+                    // (5,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //     delegate*<void> Property { get; set; }
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*<void>").WithLocation(5, 5),
+                    // (6,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //     delegate*<void> M(delegate*<void> param)
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*<void>").WithLocation(6, 5),
+                    // (6,23): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //     delegate*<void> M(delegate*<void> param)
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*<void>").WithLocation(6, 23),
+                    // (8,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //         delegate*<void> local;
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*<void>").WithLocation(8, 9),
+                    // (8,25): warning CS0168: The variable 'local' is declared but never used
+                    //         delegate*<void> local;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(8, 25));
         }
     }
 }
