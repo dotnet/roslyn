@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -19,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ExportIncrementalAnalyzerProvider(WellKnownSolutionCrawlerAnalyzers.Diagnostic, workspaceKinds: null)]
     internal partial class DefaultDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
     {
-        private readonly IDiagnosticAnalyzerService _analyzerService;
+        private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
         [ImportingConstructor]
         public DefaultDiagnosticAnalyzerService(
             IDiagnosticAnalyzerService analyzerService,
             IDiagnosticUpdateSourceRegistrationService registrationService)
         {
-            _analyzerService = analyzerService;
+            _analyzerInfoCache = analyzerService.AnalyzerInfoCache;
             registrationService.Register(this);
         }
 
@@ -152,35 +155,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
                 }
 
-                // given service must be DiagnosticAnalyzerService
-                var diagnosticService = (DiagnosticAnalyzerService)_service._analyzerService;
+                var analyzerInfoCache = _service._analyzerInfoCache;
+                var analyzers = GetAnalyzers(analyzerInfoCache, document.Project);
 
-                var analyzers = GetAnalyzers(diagnosticService, document.Project);
-
-                var compilationWithAnalyzers = await diagnosticService.CreateCompilationWithAnalyzers(
-                    document.Project, analyzers, includeSuppressedDiagnostics: false, logAggregator: null, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
+                    document.Project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
 
                 var builder = ArrayBuilder<DiagnosticData>.GetInstance();
                 foreach (var analyzer in analyzers)
                 {
-                    builder.AddRange(await diagnosticService.ComputeDiagnosticsAsync(
-                        compilationWithAnalyzers, document, analyzer, kind, span: null, logAggregator: null, cancellationToken).ConfigureAwait(false));
+                    builder.AddRange(await AnalyzerHelper.ComputeDiagnosticsAsync(analyzer,
+                        document, kind, analyzerInfoCache, compilationWithAnalyzers, span: null, cancellationToken).ConfigureAwait(false));
                 }
 
                 return builder.ToImmutableAndFree();
             }
 
-            private static IEnumerable<DiagnosticAnalyzer> GetAnalyzers(DiagnosticAnalyzerService service, Project project)
+            private static IEnumerable<DiagnosticAnalyzer> GetAnalyzers(DiagnosticAnalyzerInfoCache analyzerInfoCache, Project project)
             {
                 // C# or VB document that supports compiler
-                var compilerAnalyzer = service.GetCompilerDiagnosticAnalyzer(project.Language);
+                var compilerAnalyzer = analyzerInfoCache.GetCompilerDiagnosticAnalyzer(project.Language);
                 if (compilerAnalyzer != null)
                 {
                     return SpecializedCollections.SingletonEnumerable(compilerAnalyzer);
                 }
 
                 // document that doesn't support compiler diagnostics such as FSharp or TypeScript
-                return service.GetDiagnosticAnalyzers(project);
+                return analyzerInfoCache.CreateDiagnosticAnalyzersPerReference(project).Values.SelectMany(v => v);
             }
 
             public void RemoveDocument(DocumentId documentId)

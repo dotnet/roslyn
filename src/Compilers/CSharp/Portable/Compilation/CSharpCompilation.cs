@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -1017,7 +1019,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MetadataReference? GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
         {
             RoslynDebug.Assert(directive.SyntaxTree.FilePath is object);
-            RoslynDebug.Assert(directive.File.ValueText is object);
 
             MetadataReference reference;
             return ReferenceDirectiveMap.TryGetValue((directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
@@ -2927,7 +2928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var checksumDirective = (PragmaChecksumDirectiveTriviaSyntax)directive;
                 var path = checksumDirective.File.ValueText;
 
-                var checksumText = checksumDirective.Bytes.ValueText!;
+                var checksumText = checksumDirective.Bytes.ValueText;
                 var normalizedPath = documentsBuilder.NormalizeDebugDocumentPath(path, basePath: tree.FilePath);
                 var existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
 

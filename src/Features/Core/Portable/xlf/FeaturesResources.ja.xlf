@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
-        <target state="new">Awaited task returns '{0}'</target>
+        <target state="translated">待機中のタスクから '{0}' が返されました</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
         <source>Awaited task returns no value</source>
-        <target state="new">Awaited task returns no value</target>
+        <target state="translated">待機中のタスクは値を返しません</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="needs-review-translation">ソース ファイル '{0}' の現在の内容はビルドされたソースと一致しません。ソース ファイルの内容が復元されるまで、デバッグ セッションを続行できません。</target>
+        <target state="new">The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -224,22 +224,22 @@
       </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
-        <target state="new">Extract interface...</target>
+        <target state="translated">インターフェイスの抽出...</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_local_function">
         <source>Extract local function</source>
-        <target state="new">Extract local function</target>
+        <target state="translated">ローカル関数の抽出</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_method">
         <source>Extract method</source>
-        <target state="new">Extract method</target>
+        <target state="translated">メソッドを抽出する</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_method_plus_local">
         <source>Extract method + local</source>
-        <target state="new">Extract method + local</target>
+        <target state="translated">メソッドとローカルの抽出</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
@@ -274,37 +274,37 @@
       </trans-unit>
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
-        <target state="new">'GetHashCode' implementation can be simplified</target>
+        <target state="translated">'GetHashCode' の実装を簡略化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement all interfaces explicitly">
         <source>Implement all interfaces explicitly</source>
-        <target state="new">Implement all interfaces explicitly</target>
+        <target state="translated">すべてのインターフェイスを明示的に実装する</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement explicitly">
         <source>Implement explicitly</source>
-        <target state="new">Implement explicitly</target>
+        <target state="translated">明示的に実装する</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
-        <target state="new">Implement '{0}' explicitly</target>
+        <target state="translated">'{0}' を明示的に実装する</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_0_implicitly">
         <source>Implement '{0}' implicitly</source>
-        <target state="new">Implement '{0}' implicitly</target>
+        <target state="translated">'{0}' を暗黙的に実装する</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
-        <target state="new">Implement all interfaces implicitly</target>
+        <target state="translated">すべてのインターフェイスを暗黙的に実装する</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
-        <target state="new">Implement implicitly</target>
+        <target state="translated">暗黙的に実装する</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
-        <target state="new">Interpolation can be simplified</target>
+        <target state="translated">補間を簡略化することができます</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant">
@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Make_member_static">
         <source>Make static</source>
-        <target state="new">Make static</target>
+        <target state="translated">静的にする</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
@@ -534,7 +534,7 @@
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
         <source>Simplify interpolation</source>
-        <target state="new">Simplify interpolation</target>
+        <target state="translated">補間の簡略化</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -564,7 +564,7 @@
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
-        <target state="new">The selection contains a local function call without its declaration.</target>
+        <target state="translated">選択範囲に、宣言のないローカル関数呼び出しが含まれています。</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="Use_System_HashCode">
         <source>Use 'System.HashCode'</source>
-        <target state="new">Use 'System.HashCode'</target>
+        <target state="translated">'System.HashCode' を使用する</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -774,7 +774,7 @@
       </trans-unit>
       <trans-unit id="discard">
         <source>discard</source>
-        <target state="new">discard</target>
+        <target state="translated">破棄</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -1159,7 +1159,7 @@
       </trans-unit>
       <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
         <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">コンストラクターの可視性を変更すると、デバッグ セッションを続行できなくなります。</target>
+        <target state="translated">コンストラクターの表示範囲を変更すると、デバッグ セッションを続行できなくなります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">

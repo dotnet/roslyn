@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,10 +8,15 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -151,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case ImplicitArrayCreationExpressionSyntax implicitArrayCreation when implicitArrayCreation.Initializer != null:
                     SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
-                case CSharpSyntaxNode syntaxNode when syntaxNode.IsKind(SyntaxKindEx.SwitchExpression):
+                case CSharpSyntaxNode syntaxNode when syntaxNode.IsKind(SyntaxKind.SwitchExpression):
                     SetAlignmentBlockOperation(
                         list,
                         syntaxNode.GetFirstToken(),
@@ -184,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // for lambda, set alignment around braces so that users can put brace wherever they want
-            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock() || node.IsKind(SyntaxKindEx.PropertyPatternClause) || node.IsKind(SyntaxKindEx.SwitchExpression))
+            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock() || node.IsKind(SyntaxKind.PropertyPatternClause) || node.IsKind(SyntaxKind.SwitchExpression))
             {
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
             }

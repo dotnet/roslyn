@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -770,7 +772,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
             Assert.Empty(diagnostics);
 
-            // an error occured so we need to call update to determine whether we have changes to apply or not:
+            // an error occurred so we need to call update to determine whether we have changes to apply or not:
             Assert.True(await service.HasChangesAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
             Assert.Empty(_emitDiagnosticsUpdated);
@@ -838,7 +840,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
             Assert.Empty(diagnostics);
 
-            // an error occured so we need to call update to determine whether we have changes to apply or not:
+            // an error occurred so we need to call update to determine whether we have changes to apply or not:
             Assert.True(await service.HasChangesAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
             Assert.Empty(_emitDiagnosticsUpdated);

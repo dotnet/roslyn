@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -179,22 +181,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return (anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken);
                 case InitializerExpressionSyntax initializeExpressionNode:
                     return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
-#if !CODE_STYLE
                 case SwitchExpressionSyntax switchExpression:
                     return (switchExpression.OpenBraceToken, switchExpression.CloseBraceToken);
-#else
-                case SyntaxNode node0 when node0.IsKind(SyntaxKindEx.SwitchExpression):
-                    return (node0.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.OpenBraceToken)),
-                            node0.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.CloseBraceToken)));
-#endif
-#if !CODE_STYLE
                 case PropertyPatternClauseSyntax property:
                     return (property.OpenBraceToken, property.CloseBraceToken);
-#else
-                case SyntaxNode property when property.IsKind(SyntaxKindEx.PropertyPatternClause):
-                    return (property.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.OpenBraceToken)),
-                            property.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.CloseBraceToken)));
-#endif
             }
 
             return default;

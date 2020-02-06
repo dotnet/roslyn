@@ -1,8 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.Collections
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
@@ -33,7 +37,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         Private ReadOnly _analyzer As VisualBasicSimplifyTypeNamesDiagnosticAnalyzer
         Private ReadOnly _semanticModel As SemanticModel
         Private ReadOnly _optionSet As OptionSet
+        Private ReadOnly _ignoredSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
         Private ReadOnly _cancellationToken As CancellationToken
+
+        Private _diagnostics As List(Of Diagnostic)
 
         ''' <summary>
         ''' Set of type and namespace names that have an alias associated with them.  i.e. if the
@@ -43,14 +50,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         ''' </summary>
         Private ReadOnly _aliasedNames As ImmutableHashSet(Of String)
 
-        Public ReadOnly Property Diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
+        Public ReadOnly Property HasDiagnostics As Boolean
+            Get
+                Return _diagnostics IsNot Nothing AndAlso _diagnostics.Count > 0
+            End Get
+        End Property
 
-        Public Sub New(analyzer As VisualBasicSimplifyTypeNamesDiagnosticAnalyzer, semanticModel As SemanticModel, optionSet As OptionSet, cancellationToken As CancellationToken)
+        Public ReadOnly Property Diagnostics As List(Of Diagnostic)
+            Get
+                If _diagnostics Is Nothing Then
+                    Interlocked.CompareExchange(_diagnostics, New List(Of Diagnostic)(), Nothing)
+                End If
+
+                Return _diagnostics
+            End Get
+        End Property
+
+        Public Sub New(analyzer As VisualBasicSimplifyTypeNamesDiagnosticAnalyzer, semanticModel As SemanticModel, optionSet As OptionSet, ignoredSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector), cancellationToken As CancellationToken)
             MyBase.New(SyntaxWalkerDepth.StructuredTrivia)
 
             _analyzer = analyzer
             _semanticModel = semanticModel
             _optionSet = optionSet
+            _ignoredSpans = ignoredSpans
             _cancellationToken = cancellationToken
 
             Dim root = semanticModel.SyntaxTree.GetRoot(cancellationToken)
@@ -93,6 +115,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         End Sub
 
         Public Overrides Sub VisitQualifiedName(node As QualifiedNameSyntax)
+            If _ignoredSpans IsNot Nothing AndAlso _ignoredSpans.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length) Then
+                Return
+            End If
+
             If node.IsKind(SyntaxKind.QualifiedName) AndAlso TrySimplify(node) Then
                 Return
             End If
@@ -101,6 +127,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         End Sub
 
         Public Overrides Sub VisitMemberAccessExpression(node As MemberAccessExpressionSyntax)
+            If _ignoredSpans IsNot Nothing AndAlso _ignoredSpans.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length) Then
+                Return
+            End If
+
             If node.IsKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso TrySimplify(node) Then
                 Return
             End If
@@ -109,6 +139,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         End Sub
 
         Public Overrides Sub VisitIdentifierName(node As IdentifierNameSyntax)
+            If _ignoredSpans IsNot Nothing AndAlso _ignoredSpans.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length) Then
+                Return
+            End If
+
             ' Always try to simplify identifiers with an 'Attribute' suffix.
             '
             ' In other cases, don't bother looking at the right side of A.B or A!B. We will process those in
@@ -137,6 +171,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         End Function
 
         Public Overrides Sub VisitGenericName(node As GenericNameSyntax)
+            If _ignoredSpans IsNot Nothing AndAlso _ignoredSpans.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length) Then
+                Return
+            End If
+
             If node.IsKind(SyntaxKind.GenericName) AndAlso TrySimplify(node) Then
                 Return
             End If

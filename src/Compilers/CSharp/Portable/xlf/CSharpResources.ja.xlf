@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
-        <target state="translated">挿入される verbatim 文字列で '$@' の代わりに '@$' を使用するには、言語バージョン '{0}' 以上をご使用ください。</target>
+        <target state="translated">挿入される逐語的文字列で '$@' の代わりに '@$' を使用するには、言語バージョン '{0}' 以上をご使用ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">コマンドライン構文エラー: '{0}' は、'{1}' オプションの有効な値ではありません。値は '{2}' の形式にする必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -119,7 +119,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNoTargetType">
         <source>There is no target type for the default literal.</source>
-        <target state="new">There is no target type for the default literal.</target>
+        <target state="translated">既定のリテラルのターゲット型がありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -164,7 +164,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeCantContainNullCoalescingAssignment">
         <source>An expression tree may not contain a null coalescing assignment</source>
-        <target state="translated">式ツリーに null 合体割り当てを含めることはできません</target>
+        <target state="translated">式ツリーに null 合体代入を含めることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeCantContainRefStruct">
@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
-        <target state="new">'{0}': extern event cannot have initializer</target>
+        <target state="translated">'{0}': extern イベントは初期化子を持つことができません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
@@ -234,17 +234,17 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
         <source>Invocation of implicit Index Indexer cannot name the argument.</source>
-        <target state="new">Invocation of implicit Index Indexer cannot name the argument.</target>
+        <target state="translated">暗黙的なインデックス インデクサーの呼び出しでは、引数に名前を付けることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
-        <target state="new">Invocation of implicit Range Indexer cannot name the argument.</target>
+        <target state="translated">暗黙的な範囲インデクサーの呼び出しでは、引数に名前を付けることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
-        <target state="translated">'in' 修飾子を持つ引数を、動的にディスパッチされる式で使用することはできません。</target>
+        <target state="translated">'in' 修飾子を持つ引数を、動的ディスパッチされる式で使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
-        <target state="new">Internal error in the C# compiler.</target>
+        <target state="translated">C# コンパイラで内部エラーが発生しました。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -314,12 +314,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。'await using' ではなく 'using' ですか?</target>
+        <target state="translated">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。'await using' ではなく 'using' ですか?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' に変換可能であるか、適切な 'Dispose' メソッドを実装する必要があります。'using' ではなく 'await using' ですか?</target>
+        <target state="translated">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' への変換が可能でなければなりません。'using' ではなく 'await using' ですか?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -389,7 +389,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">型 '{0}' には基底インターフェイスからの再抽象化があるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
@@ -404,7 +404,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="translated">ref 割り当ての左辺は、ref ローカルまたはパラメーターにする必要があります。</target>
+        <target state="translated">ref 代入の左辺は、ref ローカルまたはパラメーターにする必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
@@ -494,7 +494,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceInterfaceNesting">
         <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
-        <target state="new">Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</target>
+        <target state="translated">'in' または 'out' の型パラメーターを持つインターフェイス内では、列挙体、クラス、および構造体を宣言することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
@@ -659,7 +659,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Visual C# コンパイラのオプション
 
                        - 出力ファイル -
@@ -680,7 +680,7 @@
 -refout:&lt;file&gt;                生成する参照アセンブリの出力
 -platform:&lt;string&gt;            このコードを実行できるプラットフォームを x86、
                               Itanium、x64、arm、arm64、anycpu32bitpreferred、
-                              anycpu に限定します。既定は anycpu です。
+                              anycpu に限定します。既定値は anycpu です。
 
                        - 入力ファイル -
 -recurse:&lt;wildcard&gt;           ワイルドカードの指定に従い、現行ディレクトリおよび
@@ -714,7 +714,7 @@
                        - コード生成 -
 -debug[+|-]                   デバッグ情報を出力します
 -debug:{full|pdbonly|portable|embedded}
-                              デバッグの種類を指定します ('full' が既定です。
+                              デバッグの種類を指定します ('full' が既定値です。
                               'portable' はクロスプラットフォーム形式です。
                               'embedded' は、ターゲット .dll または .exe に
                               埋め込まれるクロスプラットフォーム形式です)
@@ -733,8 +733,11 @@
 -nowarn:&lt;warn list&gt;           特定の警告メッセージを無効にします
 -ruleset:&lt;file&gt;               特定の診断を無効にするルールセット ファイルを
                               指定します。
--errorlog:&lt;file&gt;              すべてのコンパイラとアナライザーの診断をログに記録するための
-                              ファイルを指定します。
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              すべてのコンパイラおよびアナライザーの診断を
+                              ログに記録するためのファイルを指定します。
+                              sarif_version:{1|2|2.1} 既定値は 1 です。2 と 2.1 は、
+                              どちらも SARIF バージョン 2.1.0 を意味します。
 -reportanalyzer               追加のアナライザー情報を報告します
                               (実行時間など)。
 
@@ -821,17 +824,17 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureAltInterpolatedVerbatimStrings">
         <source>alternative interpolated verbatim strings</source>
-        <target state="translated">代替的な挿入 verbatim 文字列</target>
+        <target state="translated">代替的な挿入逐語的文字列</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncUsing">
         <source>asynchronous using</source>
-        <target state="new">asynchronous using</target>
+        <target state="translated">非同期 using</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
-        <target state="translated">合体割り当て</target>
+        <target state="translated">合体代入</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
@@ -866,7 +869,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaDiscardParameters">
         <source>lambda discard parameters</source>
-        <target state="new">lambda discard parameters</target>
+        <target state="translated">ラムダ ディスカード パラメーター</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -931,7 +934,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefReassignment">
         <source>ref reassignment</source>
-        <target state="translated">ref 再割り当て</target>
+        <target state="translated">ref 再代入</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
@@ -1346,7 +1349,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureTypeVariance">
         <source>type variance</source>
-        <target state="translated">型分散</target>
+        <target state="translated">型変性</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
@@ -1446,12 +1449,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">Null 許容参照型の注釈は、'#nullable' 注釈のコンテキスト内のコードでのみ使用する必要があります。自動生成されたコードには、ソースに明示的な '#nullable' ディレクティブが必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <target state="translated">Null 許容参照型の注釈は、'#nullable' 注釈のコンテキスト内のコードでのみ使用する必要があります。自動生成されたコードには、ソースに明示的な '#nullable' ディレクティブが必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
@@ -1481,22 +1484,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceAssignment">
         <source>Possible null reference assignment.</source>
-        <target state="translated">Null 参照割り当ての可能性があります。</target>
+        <target state="translated">Null 参照代入の可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceAssignment_Title">
         <source>Possible null reference assignment.</source>
-        <target state="translated">Null 参照割り当ての可能性があります。</target>
+        <target state="translated">Null 参照代入の可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer">
         <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <target state="translated">オブジェクトまたはコレクション初期化子が、null の可能性があるメンバー '{0}' を暗黙的に逆参照しています。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
+        <target state="translated">オブジェクトまたはコレクション初期化子が、null の可能性があるメンバーを暗黙的に逆参照しています。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
@@ -1749,9 +1752,29 @@
         <target state="translated">Null 許容値型は Null になる場合があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
+        <source>Parameter '{0}' may not have a null value when exiting with '{1}'.</source>
+        <target state="new">Parameter '{0}' may not have a null value when exiting with '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
+        <source>Parameter may not have a null value when exiting in some condition.</source>
+        <target state="new">Parameter may not have a null value when exiting in some condition.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ShouldNotReturn">
+        <source>A method marked [DoesNotReturn] should not return.</source>
+        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ShouldNotReturn_Title">
+        <source>A method marked [DoesNotReturn] should not return.</source>
+        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">switch 式がすべての可能な入力を処理しません (すべてを網羅していません)。</target>
+        <target state="translated">switch 式が入力の種類のうちすべての可能な入力を処理していません (すべてを網羅していません)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1766,7 +1789,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="needs-review-translation">switch 式がすべての可能な入力を処理しません (すべてを網羅していません)。</target>
+        <target state="translated">switch 式が入力の種類のうちすべての可能な入力を処理していません (すべてを網羅していません)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -1831,7 +1854,7 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">Null 非許容の {0} '{1}' が初期化されていません。{0} を null 許容として宣言することを検討してください。</target>
+        <target state="translated">Null 非許容の{0} '{1}' が初期化されていません。{0}を null 許容として宣言することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
@@ -2736,12 +2759,12 @@
       </trans-unit>
       <trans-unit id="WRN_ByRefNonAgileField">
         <source>Using '{0}' as a ref or out value or taking its address may cause a runtime exception because it is a field of a marshal-by-reference class</source>
-        <target state="translated">参照マーシャリング クラスのフィールドであるため、'{0}' を ref 値または out 値として使用したり、そのアドレスを取得したりすると、ランタイム例外が発生する可能性があります</target>
+        <target state="translated">参照渡しのマーシャリングクラスのフィールドであるため、'{0}' を ref 値または out 値として使用したり、そのアドレスを取得したりすると、ランタイム例外が発生する可能性があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByRefNonAgileField_Title">
         <source>Using a field of a marshal-by-reference class as a ref or out value or taking its address may cause a runtime exception</source>
-        <target state="translated">参照マーシャリング クラスのフィールドを ref 値または out 値として使用するか、そのフィールドのアドレスを取得すると、ランタイム例外が発生する可能性があります</target>
+        <target state="translated">参照渡しのマーシャリングクラスのフィールドを ref 値または out 値として使用するか、そのフィールドのアドレスを取得すると、ランタイム例外が発生する可能性があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonlyStatic">
@@ -2761,7 +2784,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="translated">割り当て、呼び出し、インクリメント、デクリメント、新しいオブジェクトの式のみがステートメントとして使用できます。</target>
+        <target state="translated">代入、呼び出し、インクリメント、デクリメント、新しいオブジェクトの式のみがステートメントとして使用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -2996,7 +3019,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadCastInFixed">
         <source>The right hand side of a fixed statement assignment may not be a cast expression</source>
-        <target state="translated">固定ステートメントの代入式の右辺はキャスト式ではない可能性があります。</target>
+        <target state="translated">fixed ステートメントの代入式の右辺はキャスト式ではない可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StackallocInCatchFinally">
@@ -3011,7 +3034,7 @@
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
         <source>Missing partial modifier on declaration of type '{0}'; another partial declaration of this type exists</source>
-        <target state="translated">partial 識別子が型 '{0}' にありません。この型の別の部分宣言が存在します。</target>
+        <target state="translated">partial 修飾子が型 '{0}' にありません。この型の別の部分宣言が存在します。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
@@ -3046,7 +3069,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</source>
-        <target state="translated">partial' 識別子は、'class'、'struct'、'interface'、または 'void' の直前にのみ指定できます</target>
+        <target state="translated">partial' 修飾子は、'class'、'struct'、'interface'、または 'void' の直前にのみ指定できます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -4330,12 +4353,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_IncorrectBooleanAssg">
         <source>Assignment in conditional expression is always constant; did you mean to use == instead of = ?</source>
-        <target state="translated">条件式の割り当ては常に定数です。== を使用するつもりで = を使用しましたか?</target>
+        <target state="translated">条件式の代入は常に定数です。== を使用するつもりで = を使用しましたか?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IncorrectBooleanAssg_Title">
         <source>Assignment in conditional expression is always constant</source>
-        <target state="translated">条件式の割り当ては常に定数です</target>
+        <target state="translated">条件式の代入は常に定数です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ProtectedInStruct">
@@ -4605,12 +4628,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_AssignmentToLockOrDispose">
         <source>Possibly incorrect assignment to local '{0}' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.</source>
-        <target state="translated">using または lock ステートメントの引数であるローカルの '{0}' への割り当てが間違っている可能性があります。Dispose の呼び出しまたはロック解除がローカルの元の値で実行されます。</target>
+        <target state="translated">using または lock ステートメントの引数であるローカルの '{0}' への代入が間違っている可能性があります。Dispose の呼び出しまたはロック解除がローカルの元の値で実行されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AssignmentToLockOrDispose_Title">
         <source>Possibly incorrect assignment to local which is the argument to a using or lock statement</source>
-        <target state="translated">using または lock ステートメントの引数であるローカルへの割り当てが正しくない可能性があります</target>
+        <target state="translated">using または lock ステートメントの引数であるローカルへの代入が正しくない可能性があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForwardedTypeInThisAssembly">
@@ -4685,7 +4708,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InvalidAnonymousTypeMemberDeclarator">
         <source>Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.</source>
-        <target state="translated">匿名型のメンバー宣言子が無効です。メンバー割り当て、簡易名、またはメンバー アクセスを使用して、匿名型メンバーを宣言する必要があります。</target>
+        <target state="translated">匿名型のメンバー宣言子が無効です。メンバー代入、簡易名、またはメンバー アクセスを使用して、匿名型メンバーを宣言する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidInitializerElementInitializer">
@@ -5045,7 +5068,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_EndOfPPLineExpected">
         <source>Single-line comment or end-of-line expected</source>
-        <target state="translated">単一行コメントか行の終わりが必要です。</target>
+        <target state="translated">単一行コメントか行末が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseParenExpected">
@@ -5170,7 +5193,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_UnreachableGeneralCatch">
         <source>A previous catch clause already catches all exceptions. All non-exceptions thrown will be wrapped in a System.Runtime.CompilerServices.RuntimeWrappedException.</source>
-        <target state="translated">前の catch 句は、すべての例外を既にキャッチしています。スローされる例外以外のものはすべて System.Runtime.CompilerServices.RuntimeWrappedException にラップされます。</target>
+        <target state="translated">前の catch 句は、すべての例外を既にキャッチしています。スローされる例外以外のものはすべて System.Runtime.CompilerServices.RuntimeWrappedException に折り返saます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreachableGeneralCatch_Title">
@@ -5184,7 +5207,7 @@ If such a class is used as a base class and if the deriving class defines a dest
 A catch() block after a catch (System.Exception e) block can catch non-CLS exceptions if the RuntimeCompatibilityAttribute is set to false in the AssemblyInfo.cs file: [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]. If this attribute is not set explicitly to false, all thrown non-CLS exceptions are wrapped as Exceptions and the catch (System.Exception e) block catches them.</source>
         <target state="translated">この警告は、catch (System.Exception e) ブロックの後に catch() ブロックに指定された例外の型がない場合に発生します。警告は、catch() ブロックが例外をキャッチしないことを通知します。
 
-AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設定されている場合 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]、catch (System.Exception e) ブロックの後の catch() ブロックは、CLS でない例外をキャッチできます。この属性が明示的に false に設定されていない場合、すべてのスローされた CLS でない例外は例外としてラップされ、catch (System.Exception e) ブロックによってキャッチされます。</target>
+AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設定されている場合 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]、catch (System.Exception e) ブロックの後の catch() ブロックは、CLS でない例外をキャッチできます。この属性が明示的に false に設定されていない場合、すべてのスローされた CLS でない例外は例外として折り返され、catch (System.Exception e) ブロックによってキャッチされます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IncrementLvalueExpected">
@@ -5259,7 +5282,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBaseCtor">
         <source>The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.</source>
-        <target state="translated">コンストラクターの呼び出しは動的にディスパッチされる必要がありますが、この呼び出しはコンストラクター初期化子の一部であるためディスパッチできません。動的な引数をキャストしてください。</target>
+        <target state="translated">コンストラクターの呼び出しは動的ディスパッチされる必要がありますが、この呼び出しはコンストラクター初期化子の一部であるためディスパッチできません。動的な引数をキャストしてください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueTypeExtDelegate">
@@ -5569,7 +5592,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_MissingPPFile">
         <source>Quoted file name, single-line comment or end-of-line expected</source>
-        <target state="translated">引用符付きのファイル名、単一行コメント、または行の終わりが必要です。</target>
+        <target state="translated">引用符付きのファイル名、単一行コメント、または行末が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedPPFile">
@@ -5939,7 +5962,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
         <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
-        <target state="needs-review-translation">読み取り専用フィールドに割り当てることはできません (コンストラクター、変数初期化子では可 )。</target>
+        <target state="new">A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -6109,7 +6132,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
-        <target state="needs-review-translation">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' に変換可能であるか、適切な 'Dispose' メソッドを実装する必要があります。</target>
+        <target state="translated">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' への変換が可能でなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -6194,17 +6217,17 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="WRN_CallOnNonAgileField">
         <source>Accessing a member on '{0}' may cause a runtime exception because it is a field of a marshal-by-reference class</source>
-        <target state="translated">参照マーシャリング クラスのフィールドであるため、'{0}' のメンバーにアクセスすると、ランタイム例外が発生する可能性があります</target>
+        <target state="translated">参照渡しのマーシャリングクラスのフィールドであるため、'{0}' のメンバーにアクセスすると、ランタイム例外が発生する可能性があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallOnNonAgileField_Title">
         <source>Accessing a member on a field of a marshal-by-reference class may cause a runtime exception</source>
-        <target state="translated">参照マーシャリング クラスのフィールドのメンバーにアクセスすると、ランタイム例外が発生する可能性があります</target>
+        <target state="translated">参照渡しのマーシャリングクラスのフィールドのメンバーにアクセスすると、ランタイム例外が発生する可能性があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallOnNonAgileField_Description">
         <source>This warning occurs when you try to call a method, property, or indexer on a member of a class that derives from MarshalByRefObject, and the member is a value type. Objects that inherit from MarshalByRefObject are typically intended to be marshaled by reference across an application domain. If any code ever attempts to directly access the value-type member of such an object across an application domain, a runtime exception will occur. To resolve the warning, first copy the member into a local variable and call the method on that variable.</source>
-        <target state="translated">この警告は、MarshalByRefObject から派生したクラスのメンバーにあるメソッド、プロパティ、またはインデクサーを呼び出し、かつメンバーが値の型である場合に発生します。MarshalByRefObject から継承するオブジェクトは、通常はアプリケーション ドメイン間の参照によってマーシャリングされることになっています。コードがこのようなアプリケーション ドメイン間のオブジェクトの値の型のメンバーに直接アクセスすると、ランタイム例外が発生します。警告を解決するには、まずメンバーをローカル変数にコピーしてから、その変数でメソッドを呼び出します。</target>
+        <target state="translated">この警告は、MarshalByRefObject から派生したクラスのメンバーにあるメソッド、プロパティ、またはインデクサーを呼び出し、かつメンバーが値の型である場合に発生します。MarshalByRefObject から継承するオブジェクトは、通常はアプリケーション ドメイン間の参照渡しによってマーシャリングされることになっています。コードがこのようなアプリケーション ドメイン間のオブジェクトの値の型のメンバーに直接アクセスすると、ランタイム例外が発生します。警告を解決するには、まずメンバーをローカル変数にコピーしてから、その変数でメソッドを呼び出します。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadWarningNumber">
@@ -6254,12 +6277,12 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="WRN_EndOfPPLineExpected">
         <source>Single-line comment or end-of-line expected</source>
-        <target state="translated">単一行コメントか行の終わりが必要です。</target>
+        <target state="translated">単一行コメントか行末が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EndOfPPLineExpected_Title">
         <source>Single-line comment or end-of-line expected after #pragma directive</source>
-        <target state="translated">#pragma ディレクティブの後に、単一行コメントか行の終わりが必要です</target>
+        <target state="translated">#pragma ディレクティブの後に、単一行コメントか行末が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConflictingChecksum">
@@ -6389,12 +6412,12 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="WRN_AssignmentToSelf">
         <source>Assignment made to same variable; did you mean to assign something else?</source>
-        <target state="translated">同じ変数に割り当てられました。他の変数に割り当てますか?</target>
+        <target state="translated">同じ変数に代入られました。他の変数に代入しますか?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AssignmentToSelf_Title">
         <source>Assignment made to same variable</source>
-        <target state="translated">同じ変数に割り当てられました</target>
+        <target state="translated">同じ変数に代入されました</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ComparisonToSelf">
@@ -6494,7 +6517,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_BadResourceVis">
         <source>Invalid option '{0}'; Resource visibility must be either 'public' or 'private'</source>
-        <target state="translated">無効なオプション '{0}' です。リソースの参照可能範囲は 'public' または 'private' でなければなりません。</target>
+        <target state="translated">無効なオプション '{0}' です。リソースの表示範囲は 'public' または 'private' でなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueTypeMustMatch">
@@ -7343,7 +7366,7 @@ An equally important issue is what happens to exceptions that are raised in the 
 As a best practice, you should always await the call.
 
 You should consider suppressing the warning only if you're sure that you don't want to wait for the asynchronous call to complete and that the called method won't raise any exceptions. In that case, you can suppress the warning by assigning the task result of the call to a variable.</source>
-        <target state="translated">現在のメソッドでは、Task または Task&lt;TResult&gt; を返す非同期メソッドを呼び出すため、await 演算子は結果に適用されません。非同期メソッドの呼び出しにより、非同期タスクが開始されます。しかし、await 演算子が適用されないため、プログラムはタスクが完了するのを待たずに継続されます。ほとんどの場合、この動作は期待されているものではありません。通常、呼び出しているメソッドの他のアスペクトは呼び出し結果に依存します。または最低限でも、呼び出されたメソッドは、呼び出しを含んでいるメソッドから復帰する前に完了していることが必要とされます。
+        <target state="translated">現在のメソッドでは、Task または Task&lt;TResult&gt; を返す非同期メソッドを呼び出すため、await 演算子は結果に適用されません。非同期メソッド呼び出しにより、非同期タスクが開始されます。しかし、await 演算子が適用されないため、プログラムはタスクが完了するのを待たずに継続されます。ほとんどの場合、この動作は期待されているものではありません。通常、呼び出しているメソッドの他のアスペクトは呼び出し結果に依存します。または最低限でも、呼び出されたメソッドは、呼び出しを含んでいるメソッドから復帰する前に完了していることが必要とされます。
 
 同様に重要な問題として、呼び出された非同期メソッドでどんな例外が発生するかということがあります。Task または Task&lt;TResult&gt; を返すメソッドで発生した例外は、返されたタスクに保管されます。タスクを待機しないか例外を明示的にチェックしない場合、例外は失われます。タスクを待機する場合、例外は再スローされます。
 
@@ -7434,7 +7457,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_IllegalVarianceSyntax">
         <source>Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.</source>
-        <target state="translated">無効な分散修飾子です。バリアントとして指定できるのは、インターフェイスおよびデリゲートの型パラメーターだけです。</target>
+        <target state="translated">無効な変性修飾子です。バリアントとして指定できるのは、インターフェイスおよびデリゲートの型パラメーターだけです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedAliasedName">
@@ -7454,7 +7477,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_GlobalStatement">
         <source>Expressions and statements can only occur in a method body</source>
-        <target state="translated">式とステートメントはメソッドの本体でのみ発生します。</target>
+        <target state="translated">式とステートメントはメソッド本体でのみ発生します。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedArgumentForArray">
@@ -7499,12 +7522,12 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParamsVariance">
         <source>Partial declarations of '{0}' must have the same type parameter names and variance modifiers in the same order</source>
-        <target state="translated">{0}' の partial 宣言では、同じ型パラメーター名と分散修飾子を同じ順序で指定しなければなりません。</target>
+        <target state="translated">{0}' の partial 宣言では、同じ型パラメーター名と変性修飾子を同じ順序で指定しなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedVariance">
         <source>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}'. '{1}' is {2}.</source>
-        <target state="translated">分散が無効です: 型のパラメーター '{1}' は '{0}' で有効な {3} である必要があります。'{1}' は {2} です。</target>
+        <target state="translated">変性が無効です: 型のパラメーター '{1}' は '{0}' で有効な {3} である必要があります。'{1}' は {2} です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeriveFromDynamic">
@@ -7789,7 +7812,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
         <source>Failed to emit module '{0}': {1}</source>
-        <target state="new">Failed to emit module '{0}': {1}</target>
+        <target state="translated">モジュール '{0}' の生成に失敗しました: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedLocalInLambda">
@@ -7924,22 +7947,22 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_BadDynamicMethodArg">
         <source>Cannot use an expression of type '{0}' as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">型 '{0}' の式を、動的にディスパッチされる操作の引数として使用することはできません。</target>
+        <target state="translated">型 '{0}' の式を、動的ディスパッチされる操作の引数として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicMethodArgLambda">
         <source>Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.</source>
-        <target state="translated">最初にデリゲートまたは式ツリー型にキャストしていない場合は、ラムダ式を、動的にディスパッチされる操作の引数として使用することはできません。</target>
+        <target state="translated">最初にデリゲートまたは式ツリー型にキャストしていない場合は、ラムダ式を、動的ディスパッチされる操作の引数として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicMethodArgMemgrp">
         <source>Cannot use a method group as an argument to a dynamically dispatched operation. Did you intend to invoke the method?</source>
-        <target state="translated">メソッドのグループを動的にディスパッチされる操作の引数として使用することはできません。このメソッドを呼び出しますか?</target>
+        <target state="translated">メソッドのグループを動的ディスパッチされる操作の引数として使用することはできません。このメソッドを呼び出しますか?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBase">
         <source>The call to method '{0}' needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.</source>
-        <target state="translated">メソッド '{0}' の呼び出しは動的にディスパッチされる必要がありますが、ベース アクセス式の一部であるためディスパッチできません。動的引数のキャストまたはベース アクセスの削除を検討してください。</target>
+        <target state="translated">メソッド '{0}' の呼び出しは動的ディスパッチされる必要がありますが、ベース アクセス式の一部であるためディスパッチできません。動的引数のキャストまたはベース アクセスの削除を検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicQuery">
@@ -7949,22 +7972,22 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_NoDynamicPhantomOnBaseIndexer">
         <source>The indexer access needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.</source>
-        <target state="translated">インデクサー アクセスは動的にディスパッチされる必要がありますが、ベース アクセス式の一部であるためディスパッチできません。動的引数のキャストまたはベース アクセスの削除を検討してください。</target>
+        <target state="translated">インデクサー アクセスは動的ディスパッチされる必要がありますが、ベース アクセス式の一部であるためディスパッチできません。動的引数のキャストまたはベース アクセスの削除を検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToConditionalMethod">
         <source>The dynamically dispatched call to method '{0}' may fail at runtime because one or more applicable overloads are conditional methods.</source>
-        <target state="translated">適用可能な 1 つ以上のオーバーロードが条件付きメソッドであるため、動的にディスパッチされたメソッド '{0}' の呼び出しは実行時に失敗する可能性があります。</target>
+        <target state="translated">適用可能な 1 つ以上のオーバーロードが条件付きメソッドであるため、動的ディスパッチされたメソッド '{0}' の呼び出しは実行時に失敗する可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToConditionalMethod_Title">
         <source>Dynamically dispatched call may fail at runtime because one or more applicable overloads are conditional methods</source>
-        <target state="translated">適用可能な 1 つ以上のオーバーロードが条件付きメソッドであるため、動的にディスパッチされた呼び出しは実行時に失敗することがあります</target>
+        <target state="translated">適用可能な 1 つ以上のオーバーロードが条件付きメソッドであるため、動的ディスパッチされた呼び出しは実行時に失敗することがあります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgTypeDynamicExtension">
         <source>'{0}' has no applicable method named '{1}' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.</source>
-        <target state="translated">'{0}' には、'{1}'という名前の該当するメソッドがありませんが、同じ名前の拡張メソッドがあるようです。拡張メソッドは動的にディスパッチできません。動的引数をキャストするか、または拡張メソッド構文を使用しないで拡張メソッドを呼び出すことを検討してください。</target>
+        <target state="translated">'{0}' には、'{1}'という名前の該当するメソッドがありませんが、同じ名前の拡張メソッドがあるようです。拡張メソッドは動的ディスパッチできません。動的引数をキャストするか、または拡張メソッド構文を使用しないで拡張メソッドを呼び出すことを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerFilePathPreferredOverCallerMemberName">
@@ -8792,7 +8815,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_SingleLineCommentInExpressionHole">
         <source>A single-line comment may not be used in an interpolated string.</source>
-        <target state="translated">挿入された文字列の中で単一行コメントを使用することはできません。</target>
+        <target state="translated">補間された文字列の中で単一行コメントを使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InsufficientStack">
@@ -8837,7 +8860,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="IDS_FeatureInterpolatedStrings">
         <source>interpolated strings</source>
-        <target state="translated">挿入文字列</target>
+        <target state="translated">補間された文字列</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_AwaitInCatchAndFinally">
@@ -8862,12 +8885,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_UnescapedCurly">
         <source>A '{0}' character must be escaped (by doubling) in an interpolated string.</source>
-        <target state="translated">文字 '{0}' は、挿入文字列内で (二重にすることで) エスケープする必要があります。</target>
+        <target state="translated">文字 '{0}' は、補間された文字列内で (二重にすることで) エスケープする必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapedCurly">
         <source>A '{0}' character may only be escaped by doubling '{0}{0}' in an interpolated string.</source>
-        <target state="translated">文字 '{0}' は、挿入文字列内で '{0}{0}' を二重にすることでのみエスケープできます。</target>
+        <target state="translated">文字 '{0}' は、補間された文字列内で '{0}{0}' を二重にすることでのみエスケープできます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TrailingWhitespaceInFormatSpecifier">
@@ -8922,7 +8945,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">文字列定数の長さが現在のメモリの制限を超えています。文字列を複数の定数に分割してください。</target>
+        <target state="translated">連結の結果による文字列定数の長さが、System.Int32.MaxValue を超えています。文字列を複数の定数に分割してみてください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -9027,7 +9050,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_RefReturnLvalueExpected">
         <source>An expression cannot be used in this context because it may not be passed or returned by reference</source>
-        <target state="translated">参照によって渡したり返したりすることができないため、このコンテキストで使用できない式があります</target>
+        <target state="translated">参照渡しによって渡したり返したりすることができないため、このコンテキストで使用できない式があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnNonreturnableLocal">
@@ -9152,7 +9175,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_RefAssignmentMustHaveIdentityConversion">
         <source>The expression must be of type '{0}' because it is being assigned by reference</source>
-        <target state="translated">式は参照で割り当てられるため、型 '{0}' でなければなりません</target>
+        <target state="translated">式は参照渡しで割り当てられるため、型 '{0}' でなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByReferenceVariableMustBeInitialized">
@@ -9257,7 +9280,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_DeconstructRequiresExpression">
         <source>Deconstruct assignment requires an expression with a type on the right-hand-side.</source>
-        <target state="translated">分解の割り当てには、右側の型を持つ式が必要です。</target>
+        <target state="translated">分解の代入には、右側の型を持つ式が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchExpressionValueExpected">
@@ -9337,7 +9360,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="WRN_TupleLiteralNameMismatch_Title">
         <source>The tuple element name is ignored because a different name or no name is specified by the assignment target.</source>
-        <target state="translated">割り当て先によって異なる名前が指定されているか、名前が何も指定されていないため、タプル要素名は無視されます。</target>
+        <target state="translated">代入先によって異なる名前が指定されているか、名前が何も指定されていないため、タプル要素名は無視されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PredefinedValueTupleTypeMustBeStruct">
@@ -9642,7 +9665,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ICompoundAssignmentOperationIsNotCSharpCompoundAssignment">
         <source>{0} is not a valid C# compound assignment operation</source>
-        <target state="translated">{0} は有効な C# の複合割り当て操作ではありません</target>
+        <target state="translated">{0} は有効な C# の複合代入操作ではありません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FilterIsConstantFalse">
@@ -9702,7 +9725,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。</target>
+        <target state="translated">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
