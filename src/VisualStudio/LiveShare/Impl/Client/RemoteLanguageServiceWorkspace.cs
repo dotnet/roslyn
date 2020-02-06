@@ -93,7 +93,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _threadingContext = threadingContext;
 
             _vsFolderWorkspaceService = vsFolderWorkspaceService;
-            _vsFolderWorkspaceService.OnActiveWorkspaceChanged += OnActiveWorkspaceChangedAsync;
 
             _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
             _registeredExternalPaths = ImmutableHashSet<string>.Empty;
@@ -122,6 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             // Get the initial workspace roots and update any files that have been opened.
             await UpdatePathsToRemoteFilesAsync(session).ConfigureAwait(false);
 
+            _vsFolderWorkspaceService.OnActiveWorkspaceChanged += OnActiveWorkspaceChangedAsync;
             session.RemoteServicesChanged += (object sender, RemoteServicesChangedEventArgs e) =>
             {
                 _remoteDiagnosticListTable.UpdateWorkspaceDiagnosticsPresent(_session.RemoteServiceNames.Contains("workspaceDiagnostics"));
@@ -193,6 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         public void EndSession()
         {
             _session = null;
+            _vsFolderWorkspaceService.OnActiveWorkspaceChanged -= OnActiveWorkspaceChangedAsync;
             StopSolutionCrawler();
 
             // Clear the remote paths on end of session.  Live share handles closing all the files.
@@ -446,7 +447,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
-            _vsFolderWorkspaceService.OnActiveWorkspaceChanged -= OnActiveWorkspaceChangedAsync;
             base.Dispose(disposing);
         }
 
