@@ -289,8 +289,13 @@ namespace Microsoft.CodeAnalysis.Editor.Venus
             return false;
         }
 
-        private static IEnumerable<TextChange> GetSubTextChanges(ITextDifferencingService diffService,
-            SourceText originalText, TextSpan visibleSpanInOriginalText, string leftText, string rightText, int offsetInOriginalText)
+        private static IEnumerable<TextChange> GetSubTextChanges(
+            ITextDifferencingService diffService,
+            SourceText originalText,
+            TextSpan visibleSpanInOriginalText,
+            string leftText,
+            string rightText,
+            int offsetInOriginalText)
         {
             // these are expensive. but hopefully we don't hit this as much except the boundary cases.
             using var leftPool = SharedPools.Default<List<ValueTuple<int, int>>>().GetPooledObject();

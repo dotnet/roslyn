@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         // disconnects the subject buffer from the view temporarily (which they do frequently).  Otherwise, we have to
         // re-compute all of the tag data when they re-connect it, and this causes issues like classification
         // flickering.
-        private ITagAggregator<ITag> _bufferTagAggregator;
+        private readonly ITagAggregator<ITag> _bufferTagAggregator;
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal ContainedLanguage(

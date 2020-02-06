@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
     {
         private static readonly ConcurrentDictionary<DocumentId, ContainedDocument> s_containedDocuments = new ConcurrentDictionary<DocumentId, ContainedDocument>();
 
-        public static ContainedDocument? TryGetContainedDocument(DocumentId id)
+        public static ContainedDocument? TryGetContainedDocument(DocumentId? id)
         {
             if (id == null)
             {
