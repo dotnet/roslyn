@@ -63,10 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         public async Task<ICollaborationService> CreateServiceAsync(CollaborationSession collaborationSession, CancellationToken cancellationToken)
         {
-            await _remoteLanguageServiceWorkspace.SetSession(collaborationSession).ConfigureAwait(false);
-
             await LoadRoslynPackage(cancellationToken).ConfigureAwait(false);
-            _remoteLanguageServiceWorkspace.Init();
+
+            await _remoteLanguageServiceWorkspace.SetSessionAsync(collaborationSession).ConfigureAwait(false);
 
             // Kick off loading the projects in the background.
             // Clients can call EnsureProjectsLoadedAsync to await completion.
