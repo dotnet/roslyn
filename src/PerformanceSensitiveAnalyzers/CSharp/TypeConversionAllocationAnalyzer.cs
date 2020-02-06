@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
-            return symbolInfo != null && symbolInfo.Kind == SymbolKind.Method && symbolInfo.IsStatic == false && symbolInfo.ContainingType?.IsValueType == true;
+            return symbolInfo?.Kind == SymbolKind.Method && !symbolInfo.IsStatic && symbolInfo.ContainingType?.IsValueType == true;
         }
     }
 }
