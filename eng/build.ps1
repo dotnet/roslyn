@@ -468,7 +468,7 @@ function Deploy-VsixViaTool() {
   $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
 
   $hive = "RoslynDev"
-  Write-Host "Using VS Instance $vsId at `"$vsDir`""
+  Write-Host "Using VS Instance $vsId ($vsInfo.catalog.productDisplayVersion) at `"$vsDir`""
   $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
 
   Write-Host "Uninstalling old Roslyn VSIX"
