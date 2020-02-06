@@ -26,7 +26,6 @@ usage()
   echo "  --pack                     Package build outputs into NuGet packages and Willow components"
   echo "  --sign                     Sign build outputs"
   echo "  --publish                  Publish artifacts (e.g. symbols)"
-  echo "  --clean                    Clean the solution"
   echo ""
 
   echo "Advanced settings:"
@@ -63,7 +62,6 @@ publish=false
 sign=false
 public=false
 ci=false
-clean=false
 
 warn_as_error=true
 node_reuse=true
@@ -83,9 +81,6 @@ while [[ $# > 0 ]]; do
     -help|-h)
       usage
       exit 0
-      ;;
-    -clean)
-      clean=true
       ;;
     -configuration|-c)
       configuration=$2
@@ -201,15 +196,20 @@ function Build {
   ExitWithExitCode 0
 }
 
-if [[ "$clean" == true ]]; then
-  if [ -d "$artifacts_dir" ]; then
-    rm -rf $artifacts_dir
-    echo "Artifacts directory deleted."
-  fi
-  exit 0
+# Import custom tools configuration, if present in the repo.
+configure_toolset_script="$eng_root/configure-toolset.sh"
+if [[ -a "$configure_toolset_script" ]]; then
+  . "$configure_toolset_script"
 fi
 
-if [[ "$restore" == true ]]; then
+# TODO: https://github.com/dotnet/arcade/issues/1468
+# Temporary workaround to avoid breaking change.
+# Remove once repos are updated.
+if [[ -n "${useInstalledDotNetCli:-}" ]]; then
+  use_installed_dotnet_cli="$useInstalledDotNetCli"
+fi
+
+if [[ "$restore" == true && -z ${DisableNativeToolsetInstalls:-} ]]; then
   InitializeNativeTools
 fi
 
