@@ -105,6 +105,8 @@
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.Internal.VisualStudio.'))"/>
       <_Dependency Remove="EnvDTE"/>
       <_Dependency Remove="EnvDTE80"/>
+      <_Dependency Remove="MessagePack"/>
+      <_Dependency Remove="MessagePack.Annotations"/>
       <_Dependency Remove="Microsoft.Build"/>
       <_Dependency Remove="Microsoft.Build.Framework"/>
       <_Dependency Remove="Microsoft.MSXML"/>
