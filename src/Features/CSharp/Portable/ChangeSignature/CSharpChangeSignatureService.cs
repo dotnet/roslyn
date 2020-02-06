@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
@@ -338,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             if (updatedNode.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
             {
-                var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
                 var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
                 var isReducedExtensionMethod = false;
@@ -404,36 +405,114 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
             var newParameters = new List<T>();
-            for (var index = 0; index < reorderedParameters.Count; index++)
+            var newSeparators = new SyntaxToken[list.Count];
+            for (var newIndex = 0; newIndex < reorderedParameters.Count; newIndex++)
             {
-                var newParam = reorderedParameters[index];
-                var pos = originalParameters.IndexOf(newParam);
-                var param = list[pos];
+                var newParamSymbol = reorderedParameters[newIndex];
+                var originalIndex = originalParameters.IndexOf(newParamSymbol);
 
-                // copy whitespace trivia from original position
-                param = TransferLeadingWhitespaceTrivia(param, list[index]);
+                // Transferring over trivia both from the node any associated separator.
+                var (newParamNode, newSeparator) = TransferTrivia(list, originalIndex, newIndex);
 
-                newParameters.Add(param);
+                newParameters.Add(newParamNode);
+                newSeparators[newIndex] = newSeparator;
             }
 
-            var numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count;
-            return SyntaxFactory.SeparatedList(newParameters, GetSeparators(list, numSeparatorsToSkip));
+            return SyntaxFactory.SeparatedList(newParameters, newSeparators.ToList().GetRange(0, reorderedParameters.Count == 0 ? 0 : reorderedParameters.Count - 1));
+        }
+
+        private static (T newParamNode, SyntaxToken newSeparators) TransferTrivia<T>(SeparatedSyntaxList<T> list, int originalIndex, int newIndex) where T : SyntaxNode
+        {
+            var newParamNode = list[originalIndex];
+
+            // Copy whitespace trivia from original position.
+            newParamNode = TransferLeadingWhitespaceTrivia(newParamNode, list[newIndex]);
+
+            // The separator associated with the node should have its trivia transferred over as well. If we're looking at the last node, then there is no associated separator.
+            var originalSeparator = originalIndex == list.Count - 1 ? SyntaxFactory.Token(SyntaxKind.None) : list.GetSeparator(originalIndex);
+            var newSeparator = newIndex == list.Count - 1 ? SyntaxFactory.Token(SyntaxKind.None) : list.GetSeparator(newIndex);
+
+            // If we have a comment of format '//' and the associated node is switching positions, we switch the trivia notation to /* */.
+            if (list[newIndex] != list[originalIndex])
+            {
+                (newParamNode, originalSeparator) = ChangeSingleLineCommentToMultiLine(newParamNode, originalSeparator);
+            }
+
+            // Case 1: The current node in the updated configuration is the last parameter.
+            // Append any trailing trivia from the original separator to the trailing trivia of the new node, as long as it's not all whitespace. We also want to ignore end-of-line trivia.
+            if (newSeparator.IsKind(SyntaxKind.None))
+            {
+                if (originalSeparator.TrailingTrivia.Any(trivia => !trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
+                {
+                    newParamNode = newParamNode.WithAppendedTrailingTrivia(originalSeparator.TrailingTrivia.Where(trivia => !trivia.IsKind(SyntaxKind.EndOfLineTrivia)));
+                }
+            }
+            // Case 2: The current node in the updated configuration is not the last parameter.
+            else
+            {
+                // We want to transfer over the comments from the original separator to the new separator. However, we also want to preserve the new
+                // signature's formatting. To accomplish this, if the original separator has any comments, we will append them at the end of the new separator's
+                // trailing trivia, but before any end-of-line trivia the new separator may have. Existing comments in the new separator will be removed, as they
+                // will be placed in the correct locations in previous or future iterations of the loop.
+                var originalSeparatorComments = originalSeparator.TrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia));
+
+                // If there are multiple comments, preserve the trivia between them.
+                if (originalSeparatorComments.Count() > 1)
+                {
+                    var originalSeparatorCommentsWithTrivia = originalSeparator.TrailingTrivia.TakeWhile(trivia => !trivia.Equals(originalSeparatorComments.Last()));
+                    originalSeparatorCommentsWithTrivia = originalSeparatorCommentsWithTrivia.Concat(originalSeparatorComments.Last());
+
+                    originalSeparatorComments = originalSeparatorCommentsWithTrivia;
+                }
+
+                // Remove end-of-line trivia and comments from the new separator, and add any comments from the original separator.
+                var updatedTrivia = newSeparator.TrailingTrivia.Where(trivia => !trivia.IsKind(SyntaxKind.EndOfLineTrivia) && !trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                                                                      && !trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)).Concat(originalSeparatorComments);
+
+                // Add end-of-line trivia back, if there were any to begin with.
+                updatedTrivia = updatedTrivia.Concat(newSeparator.TrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)));
+                newSeparator = newSeparator.WithTrailingTrivia(updatedTrivia);
+            }
+
+            return (newParamNode, newSeparator);
         }
 
         private static T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode
         {
             var oldTrivia = oldArgument.GetLeadingTrivia();
-            var oldOnlyHasWhitespaceTrivia = oldTrivia.All(t => t.IsKind(SyntaxKind.WhitespaceTrivia));
-
             var newTrivia = newArgument.GetLeadingTrivia();
-            var newOnlyHasWhitespaceTrivia = newTrivia.All(t => t.IsKind(SyntaxKind.WhitespaceTrivia));
 
-            if (oldOnlyHasWhitespaceTrivia && newOnlyHasWhitespaceTrivia)
+            var oldLeadingWhitespaceTrivia = oldTrivia.TakeWhile(t => t.IsKind(SyntaxKind.WhitespaceTrivia));
+            var newLeadingWhitespaceTrivia = newTrivia.TakeWhile(t => t.IsKind(SyntaxKind.WhitespaceTrivia));
+            var newLeadingNonWhitespaceTrivia = newTrivia.TakeRange(newLeadingWhitespaceTrivia.Count(), newTrivia.Count - 1);
+
+            return newArgument.WithLeadingTrivia(oldLeadingWhitespaceTrivia.Concat(newLeadingNonWhitespaceTrivia));
+        }
+
+        private static (T, SyntaxToken) ChangeSingleLineCommentToMultiLine<T>(T param, SyntaxToken separator) where T : SyntaxNode
+        {
+            var paramTrailingTrivia = param.GetTrailingTrivia();
+            var separatorTrailingTrivia = separator.TrailingTrivia;
+
+            var paramSingleLineCommentTrivia = paramTrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)).FirstOrDefault();
+            if (paramSingleLineCommentTrivia != default)
             {
-                newArgument = newArgument.WithLeadingTrivia(oldTrivia);
+                param = param.ReplaceTrivia(paramSingleLineCommentTrivia, GenerateMultiLineComment(paramSingleLineCommentTrivia));
             }
 
-            return newArgument;
+            var separatorSingleLineCommentTrivia = separatorTrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)).FirstOrDefault();
+            if (separatorSingleLineCommentTrivia != default)
+            {
+                separator = separator.ReplaceTrivia(separatorSingleLineCommentTrivia, GenerateMultiLineComment(separatorSingleLineCommentTrivia));
+            }
+
+            return (param, separator);
+
+            static SyntaxTrivia GenerateMultiLineComment(SyntaxTrivia singleLineComment)
+            {
+                var commentText = singleLineComment.GetCommentText();
+                return SyntaxFactory.Comment("/* " + commentText + " */");
+            }
         }
 
         private static SeparatedSyntaxList<AttributeArgumentSyntax> PermuteAttributeArgumentList(

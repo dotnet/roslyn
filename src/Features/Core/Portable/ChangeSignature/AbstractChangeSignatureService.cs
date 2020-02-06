@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         internal ChangeSignatureResult ChangeSignature(Document document, int position, Action<string, NotificationSeverity> errorHandler, CancellationToken cancellationToken)
         {
-            var context = GetContextAsync(document, position, restrictToDeclarations: false, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            var context = GetContextAsync(document, position, restrictToDeclarations: false, cancellationToken: cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             if (context.CanChangeSignature)
             {
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             var symbols = FindChangeSignatureReferencesAsync(
                 SymbolAndProjectId.Create(declaredSymbol, context.Project.Id),
-                context.Solution, cancellationToken).WaitAndGetResult(cancellationToken);
+                context.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             foreach (var symbol in symbols)
             {
@@ -354,7 +354,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     changeSignatureFormattingAnnotation,
                     doc.Project.Solution.Workspace,
                     options: null,
-                    rules: GetFormattingRules(doc),
                     cancellationToken: CancellationToken.None);
 
                 updatedRoots[docId] = formattedRoot;
