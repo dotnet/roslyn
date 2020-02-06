@@ -10,14 +10,14 @@ using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
 {
-    internal sealed class SymbolNamesOption : IEquatable<SymbolNamesOption?>
+    internal sealed class SymbolNamesWithValueOption<TValue> : IEquatable<SymbolNamesWithValueOption<TValue>?>
     {
-        public static readonly SymbolNamesOption Empty = new SymbolNamesOption();
+        public static readonly SymbolNamesWithValueOption<TValue> Empty = new SymbolNamesWithValueOption<TValue>();
 
-        private readonly ImmutableDictionary<string, string?> _names;
-        private readonly ImmutableDictionary<ISymbol, string?> _symbols;
+        private readonly ImmutableDictionary<string, TValue> _names;
+        private readonly ImmutableDictionary<ISymbol, TValue> _symbols;
 
-        private SymbolNamesOption(ImmutableDictionary<string, string?> names, ImmutableDictionary<ISymbol, string?> symbols)
+        private SymbolNamesWithValueOption(ImmutableDictionary<string, TValue> names, ImmutableDictionary<ISymbol, TValue> symbols)
         {
             Debug.Assert(!names.IsEmpty || !symbols.IsEmpty);
 
@@ -25,13 +25,15 @@ namespace Analyzer.Utilities
             _symbols = symbols;
         }
 
-        private SymbolNamesOption()
+        private SymbolNamesWithValueOption()
         {
-            _names = ImmutableDictionary<string, string?>.Empty;
-            _symbols = ImmutableDictionary<ISymbol, string?>.Empty;
+            _names = ImmutableDictionary<string, TValue>.Empty;
+            _symbols = ImmutableDictionary<ISymbol, TValue>.Empty;
         }
 
-        public static SymbolNamesOption Create(ImmutableArray<string> symbolNames, Compilation compilation, string? optionalPrefix,
+#pragma warning disable CA1000 // Do not declare static members on generic types
+        public static SymbolNamesWithValueOption<TValue> Create(ImmutableArray<string> symbolNames, Compilation compilation, string? optionalPrefix,
+#pragma warning restore CA1000 // Do not declare static members on generic types
             Func<string, NameParts>? getSymbolNamePartsFunc = null)
         {
             if (symbolNames.IsEmpty)
@@ -39,8 +41,8 @@ namespace Analyzer.Utilities
                 return Empty;
             }
 
-            var namesBuilder = PooledDictionary<string, string?>.GetInstance();
-            var symbolsBuilder = PooledDictionary<ISymbol, string?>.GetInstance();
+            var namesBuilder = PooledDictionary<string, TValue>.GetInstance();
+            var symbolsBuilder = PooledDictionary<ISymbol, TValue>.GetInstance();
 
             foreach (var symbolName in symbolNames)
             {
@@ -54,7 +56,7 @@ namespace Analyzer.Utilities
                 {
                     if (!namesBuilder.ContainsKey(parts.SymbolName))
                     {
-                        namesBuilder.Add(parts.SymbolName, parts.Value);
+                        namesBuilder.Add(parts.SymbolName, parts.AssociatedValue);
                     }
                 }
                 else
@@ -85,14 +87,14 @@ namespace Analyzer.Utilities
                             {
                                 if (!symbolsBuilder.ContainsKey(constituentNamespace))
                                 {
-                                    symbolsBuilder.Add(constituentNamespace, parts.Value);
+                                    symbolsBuilder.Add(constituentNamespace, parts.AssociatedValue);
                                 }
                             }
                         }
 
                         if (!symbolsBuilder.ContainsKey(symbol))
                         {
-                            symbolsBuilder.Add(symbol, parts.Value);
+                            symbolsBuilder.Add(symbol, parts.AssociatedValue);
                         }
                     }
                 }
@@ -103,7 +105,7 @@ namespace Analyzer.Utilities
                 return Empty;
             }
 
-            return new SymbolNamesOption(namesBuilder.ToImmutableDictionaryAndFree(), symbolsBuilder.ToImmutableDictionaryAndFree());
+            return new SymbolNamesWithValueOption<TValue>(namesBuilder.ToImmutableDictionaryAndFree(), symbolsBuilder.ToImmutableDictionaryAndFree());
         }
 
         public bool IsEmpty => ReferenceEquals(this, Empty);
@@ -114,12 +116,12 @@ namespace Analyzer.Utilities
         /// <summary>
         /// Gets the value associated with the specified symbol in the option specification.
         /// </summary>
-        public bool TryGetValue(ISymbol symbol, [NotNullWhen(true)] out string? value) =>
+        public bool TryGetValue(ISymbol symbol, [NotNullWhen(true)] out TValue value) =>
             _symbols.TryGetValue(symbol, out value) || _names.TryGetValue(symbol.Name, out value);
 
-        public override bool Equals(object obj) => Equals(obj as SymbolNamesOption);
+        public override bool Equals(object obj) => Equals(obj as SymbolNamesWithValueOption<TValue>);
 
-        public bool Equals(SymbolNamesOption? other)
+        public bool Equals(SymbolNamesWithValueOption<TValue>? other)
             => other != null && _names.IsEqualTo(other._names) && _symbols.IsEqualTo(other._symbols);
 
         public override int GetHashCode()
@@ -135,14 +137,14 @@ namespace Analyzer.Utilities
         /// </example>
         public sealed class NameParts
         {
-            public NameParts(string symbolName, string? value = null)
+            public NameParts(string symbolName, TValue associatedValue = default)
             {
                 SymbolName = symbolName.Trim();
-                Value = value?.Trim();
+                AssociatedValue = associatedValue;
             }
 
             public string SymbolName { get; }
-            public string? Value { get; }
+            public TValue AssociatedValue { get; }
         }
     }
 }
