@@ -115,11 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add Explicit Cast.
+        ///   Looks up a localized string similar to Add explicit cast.
         /// </summary>
-        internal static string Add_Explicit_Cast {
+        internal static string Add_explicit_cast {
             get {
-                return ResourceManager.GetString("Add_Explicit_Cast", resourceCulture);
+                return ResourceManager.GetString("Add_explicit_cast", resourceCulture);
             }
         }
         
@@ -508,6 +508,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Convert_to_switch_statement {
             get {
                 return ResourceManager.GetString("Convert_to_switch_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert type to &apos;{0}&apos;.
+        /// </summary>
+        internal static string Convert_type_to_0 {
+            get {
+                return ResourceManager.GetString("Convert_type_to_0", resourceCulture);
             }
         }
         

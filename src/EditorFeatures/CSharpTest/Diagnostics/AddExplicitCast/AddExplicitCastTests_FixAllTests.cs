@@ -52,11 +52,11 @@ public class Program1
 		yield return b;
 	}
 
-    <![CDATA[ IEnumerable<Derived> ReturnDerived() ]]>
+    <![CDATA[ IEnumerable<Derived> ReturnDerived()
 	{
 		Base b;
 		return b;
-	}
+	} ]]>
 
 	<![CDATA[ async Task<Derived> M() ]]>
 	{
@@ -173,11 +173,11 @@ public class Program1
 		yield return (Derived)b;
 	}
 
-    <![CDATA[ IEnumerable<Derived> ReturnDerived() ]]>
+    <![CDATA[ IEnumerable<Derived> ReturnDerived()
 	{
 		Base b;
-		return b;
-	}
+		return (IEnumerable<Derived>)b;
+	} ]]>
 
 	<![CDATA[ async Task<Derived> M() ]]>
 	{
@@ -200,7 +200,7 @@ public class Program1
 	{
 		Base b;
 		Derived d = (Derived)b;
-		d = (Derived)new Base() { };
+		d = new Base() { };
 
 		Derived d2 = (Derived)ReturnBase();
 
@@ -303,11 +303,11 @@ public class Program1
 		yield return b;
 	}
 
-    <![CDATA[ IEnumerable<Derived> ReturnDerived() ]]>
+    <![CDATA[ IEnumerable<Derived> ReturnDerived()
 	{
 		Base b;
 		return b;
-	}
+	} ]]>
 
 	<![CDATA[ async Task<Derived> M() ]]>
 	{
@@ -424,11 +424,11 @@ public class Program1
 		yield return (Derived)b;
 	}
 
-    <![CDATA[ IEnumerable<Derived> ReturnDerived() ]]>
+    <![CDATA[ IEnumerable<Derived> ReturnDerived()
 	{
 		Base b;
-		return b;
-	}
+		return (IEnumerable<Derived>)b;
+	} ]]>
 
 	<![CDATA[ async Task<Derived> M() ]]>
 	{
@@ -451,7 +451,7 @@ public class Program1
 	{
 		Base b;
 		Derived d = (Derived)b;
-		d = (Derived)new Base() { };
+		d = new Base() { };
 
 		Derived d2 = (Derived)ReturnBase();
 
@@ -553,11 +553,11 @@ public class Program1
 		yield return b;
 	}
 
-    <![CDATA[ IEnumerable<Derived> ReturnDerived() ]]>
+    <![CDATA[ IEnumerable<Derived> ReturnDerived()
 	{
 		Base b;
 		return b;
-	}
+	} ]]>
 
 	<![CDATA[ async Task<Derived> M() ]]>
 	{
@@ -674,11 +674,11 @@ public class Program1
 		yield return (Derived)b;
 	}
 
-    <![CDATA[ IEnumerable<Derived> ReturnDerived() ]]>
+    <![CDATA[ IEnumerable<Derived> ReturnDerived()
 	{
 		Base b;
-		return b;
-	}
+		return (IEnumerable<Derived>)b;
+	} ]]>
 
 	<![CDATA[ async Task<Derived> M() ]]>
 	{
@@ -701,7 +701,7 @@ public class Program1
 	{
 		Base b;
 		Derived d = (Derived)b;
-		d = (Derived)new Base() { };
+		d = new Base() { };
 
 		Derived d2 = (Derived)ReturnBase();
 

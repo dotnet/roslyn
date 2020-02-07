@@ -10,11 +10,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -59,23 +61,53 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             if (root != null && TryGetTargetNode(root, diagnostic.Location.SourceSpan) is ExpressionSyntax targetNode)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                if (semanticModel != null && CanReplace(semanticModel, root, targetNode, cancellationToken))
+                if (semanticModel != null)
                 {
-                    context.RegisterCodeFix(new MyCodeAction(
-                        CSharpFeaturesResources.Add_Explicit_Cast,
+                    var exactSolution = GetTypeInfo(semanticModel, root, targetNode, cancellationToken, out var nodeType, out var conversionType, out var potentialConvTypes);
+                    if (exactSolution)
+                    {
+                        context.RegisterCodeFix(new MyCodeAction(
+                        CSharpFeaturesResources.Add_explicit_cast,
                         c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                         context.Diagnostics);
+                    }
+                    else if (potentialConvTypes.Length > 1)
+                    {
+                        var actions = new ArrayBuilder<CodeAction>();
+                        foreach (var convType in potentialConvTypes)
+                        {
+                            actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.Name),
+                                c => FixIt(context.Document, root, targetNode, convType, c)));
+                        }
+
+                        context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
+                        CSharpFeaturesResources.Add_explicit_cast,
+                        actions.ToImmutableArray(), false),
+                        context.Diagnostics);
+                    }
                 }
             }
         }
 
-        // Output the current type info of the target node and the conversion type that the target node is going to be casted by
-        private bool GetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode? targetNode, CancellationToken cancellationToken, out ITypeSymbol? nodeType, out ITypeSymbol? conversionType)
+        private async Task<Document> FixIt(Document document, SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType, CancellationToken cancellationToken)
         {
+            var castExpression = targetNode.Cast(conversionType);
+            var newRoot = currentRoot.ReplaceNode(targetNode, castExpression.WithAdditionalAnnotations(Simplifier.Annotation));
+            return document.WithSyntaxRoot(newRoot);
+        }
+
+        // Output the current type info of the target node and the conversion type that the target node is going to be cast by
+        // Implicit downcast can appear on Variable Declaration, Return Statement, and Function Invocation, for example:
+        // Base b; Derived d = [||]b;       
+        // object b is the current node with type *Base*, and the conversion type which object b is going to be cast by is *Derived*
+        private bool GetTypeInfo(SemanticModel semanticModel, SyntaxNode root, SyntaxNode? targetNode, CancellationToken cancellationToken,
+            out ITypeSymbol? nodeType, out ITypeSymbol? conversionType, out ImmutableArray<ITypeSymbol> potentialConvTypes)
+        {
+            nodeType = null;
+            conversionType = null;
+            potentialConvTypes = ImmutableArray<ITypeSymbol>.Empty;
             if (targetNode == null)
             {
-                nodeType = null;
-                conversionType = null;
                 return false;
             }
 
@@ -83,16 +115,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             nodeType = nodeInfo.Type;
             conversionType = nodeInfo.ConvertedType;
 
-            // CS1503 
             var textSpan = targetNode.GetLocation().SourceSpan;
             if (TryGetNode(root, textSpan, SyntaxKind.Argument, targetNode, out var argumentNode) && argumentNode is ArgumentSyntax argument &&
                 argument.Parent is ArgumentListSyntax argumentList && argumentList.Parent is SyntaxNode invocationNode)
             {
+                // Implicit downcast appears on the arguments of function invocation, get all candidate functions and extract potential conversion types 
                 conversionType = null;
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
                 var candidateSymbols = symbolInfo.CandidateSymbols;
 
-                // Find all valid candidates and extract potential conversion types 
                 var potentialConversionTypes = new List<ITypeSymbol> { };
                 foreach (var candidcateSymbol in candidateSymbols)
                 {
@@ -108,12 +139,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                         continue;
                     }
 
-                    // Test if all parameters are convertible, otherwise it is not the perfect match function
+                    // Test if all parameters are convertible, otherwise it is not the perfect match function. For example:
+                    // class Base { }
+                    // class Derived1 : Base { }
+                    // class Derived2 : Base { }
+                    // void DoSomething(int i, Derived1 d) { }
+                    // void DoSomething(string s, Derived2 d) { }
+                    // 
+                    // Base b;
+                    // DoSomething(1, [||]b);
+                    //
+                    // *void DoSomething(string s, Derived2 d) { }* is not the perfect match candidate function for
+                    // *DoSomething(1, [||]b)* because int and string are not ancestor-descendant relationship. Thus,
+                    // Derived2 is not a potential conversion type
                     var allValid = true;
                     for (var i = 0; i < parameterList.Length; i++)
                     {
                         var argType = semanticModel.GetTypeInfo(argumentList.Arguments[i].Expression, cancellationToken);
-                        if (argType.Type == null || !IsTypeConvertible(argType.Type, parameterList[i].Type))
+                        if (argType.Type == null || !semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameterList[i].Type).Exists)
                         {
                             allValid = false;
                             break;
@@ -127,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                         potentialConversionTypes.Add(correspondingParameter.Type);
                     }
                 }
-
+                potentialConvTypes = potentialConversionTypes.ToImmutableArray();
                 // If there is no exact solution, then don't provide suggestions
                 if (potentialConversionTypes.Count != 1)
                 {
@@ -136,38 +179,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                 conversionType = potentialConversionTypes[0];
             }
-            return nodeType != null && conversionType != null;
-        }
 
-        private bool IsTypeConvertible(ITypeSymbol nodeType, ITypeSymbol? conversionType)
-        {
-            if (conversionType == null)
+            if (nodeType == null || conversionType == null)
             {
                 return false;
             }
-            if (nodeType.Equals(conversionType))
-            {
-                return true;
-            }
 
-            var convertible = false;
-            if (conversionType.Interfaces.Length != 0)
+            var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(nodeType, conversionType);
+            if (targetNode.IsKind(SyntaxKind.ObjectCreationExpression) && !commonConversion.IsUserDefined)
             {
-                foreach (var interface_type in conversionType.Interfaces)
-                {
-                    convertible |= IsTypeConvertible(nodeType, interface_type);
-                }
+                conversionType = null;
+                return false;
             }
-            convertible |= IsTypeConvertible(nodeType, conversionType.BaseType);
-
-            return convertible;
+            return commonConversion.Exists;
         }
 
-        private bool CanReplace(SemanticModel semanticModel, SyntaxNode root, SyntaxNode? targetNode, CancellationToken cancellationToken)
-        {
-            GetTypeInfo(semanticModel, root, targetNode, cancellationToken, out var nodeType, out var conversionType);
-            return nodeType != null && !nodeType.Equals(conversionType) && IsTypeConvertible(nodeType, conversionType);
-        }
 
         protected SyntaxNode? TryGetTargetNode(SyntaxNode root, TextSpan span)
         {
@@ -202,13 +228,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 (semanticModel, targetNode) => true,
                 (semanticModel, currentRoot, targetNode) =>
                 {
-                    GetTypeInfo(semanticModel, currentRoot, targetNode, cancellationToken, out var nodeType, out var conversionType);
-                    if (nodeType != null && !nodeType.Equals(conversionType) && conversionType != null &&
-                        IsTypeConvertible(nodeType, conversionType) &&
+                    if (GetTypeInfo(semanticModel, currentRoot, targetNode, cancellationToken, out var nodeType, out var conversionType, out var potentialConvTypes) &&
+                    nodeType != null && conversionType != null && !nodeType.Equals(conversionType) &&
                         targetNode is ExpressionSyntax expression)
                     {
                         var castExpression = expression.Cast(conversionType);
-                        return currentRoot.ReplaceNode(expression, castExpression);
+
+                        // TODO: castExpression.WithAdditionalAnnotations(Simplifier.Annotation) - the simplifier doesn't simplify the 
+                        return currentRoot.ReplaceNode(expression, castExpression.WithAdditionalAnnotations(Simplifier.Annotation));
                     }
 
                     return currentRoot;

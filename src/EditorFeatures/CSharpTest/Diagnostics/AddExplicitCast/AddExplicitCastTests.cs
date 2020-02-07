@@ -110,10 +110,11 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
-        public async Task ReturnStatementTypeMismatch()
+        public async Task ReturnStatementWithIEnumerable()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
             @"
+using System.Collections.Generic;
 class Program
 {
     class Base {}
@@ -122,6 +123,48 @@ class Program
     IEnumerable<Derived> returnBase() {
         Base b;
         return b[||];
+    }
+}",
+            @"
+using System.Collections.Generic;
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    IEnumerable<Derived> returnBase() {
+        Base b;
+        return (IEnumerable<Derived>)b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task ReturnStatementWithIEnumerator()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+using System.Collections.Generic;
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    IEnumerator<Derived> returnBase() {
+        Base b;
+        return b[||];
+    }
+}",
+            @"
+using System.Collections.Generic;
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    IEnumerator<Derived> returnBase() {
+        Base b;
+        return (IEnumerator<Derived>)b;
     }
 }");
         }
@@ -1045,6 +1088,466 @@ class Program
     {
         Base b = new Base();
         Foo((Derived)b);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task GenericType()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+using System;
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    void M()
+    {
+        Func<Base, Base> func1 = b => b;
+        Func<Derived, Derived> func2 = [||]func1;
+    }
+}",
+            @"
+using System;
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    void M()
+    {
+        Func<Base, Base> func1 = b => b;
+        Func<Derived, Derived> func2 = (Func<Derived, Derived>)func1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task GenericType2()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+using System;
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    void Foo(Func<Derived, Derived> func) { }
+
+    void M()
+    {
+        Func<Base, Base> func1 = b => b;
+        Foo(func1[||]);
+    }
+}",
+            @"
+using System;
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    void Foo(Func<Derived, Derived> func) { }
+
+    void M()
+    {
+        Func<Base, Base> func1 = b => b;
+        Foo((Func<Derived, Derived>)func1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task GenericType3()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+using System;
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    Func<Derived, Derived> Foo(Func<Derived, Derived> func)
+    {
+        Func<Base, Base> func1 = b => b;
+        return func1[||];
+    }
+}",
+            @"
+using System;
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    Func<Derived, Derived> Foo(Func<Derived, Derived> func)
+    {
+        Func<Base, Base> func1 = b => b;
+        return (Func<Derived, Derived>)func1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task GenericType4()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    void Foo()
+    {
+        B<CB> b = null;
+        A<IA> c1 = [||]b;
+    }
+
+    public interface IA { }
+    public class CB : IA { }
+    public interface A<T> where T : IA { }
+
+    public class B<T> : A<T> where T : CB { }
+}",
+            @"
+class Program
+{
+    void Foo()
+    {
+        B<CB> b = null;
+        A<IA> c1 = (A<IA>)b;
+    }
+
+    public interface IA { }
+    public class CB : IA { }
+    public interface A<T> where T : IA { }
+
+    public class B<T> : A<T> where T : CB { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task GenericType5()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+class Program
+{
+    void Foo()
+    {
+        B<IB> b = null;
+        A<IA> c1 = [||]b;
+    }
+
+    public interface IA { }
+    public interface IB : IA { }
+    public class A<T> where T : IA { }
+
+    public class B<T> : A<T> where T : IB { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task GenericType6()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    void Foo()
+    {
+        B<IB, int> b = null;
+        A<IA, string> c1 = [||]b;
+    }
+
+    public interface IA { }
+    public class IB : IA { }
+    public interface A<T, U> where T : IA { }
+
+    public class B<T, U> : A<T, U> where T : IB { }
+}",
+            @"
+class Program
+{
+    void Foo()
+    {
+        B<IB, int> b = null;
+        A<IA, string> c1 = (A<IA, string>)b;
+    }
+
+    public interface IA { }
+    public class IB : IA { }
+    public interface A<T, U> where T : IA { }
+
+    public class B<T, U> : A<T, U> where T : IB { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task ObjectInitializer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    class Test
+	{
+		static public explicit operator Derived(Test t) { return new Derived();  }
+    }
+    void M() {
+        Derived d = [||]new Base();
+        Derived d2 = new Test();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task ObjectInitializer2()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    class Test
+	{
+		static public explicit operator Derived(Test t) { return new Derived();  }
+    }
+    void M() {
+        Derived d = new Base();
+        Derived d2 = [||]new Test();
+    }
+}",
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    class Test
+	{
+		static public explicit operator Derived(Test t) { return new Derived();  }
+    }
+    void M() {
+        Derived d = new Base();
+        Derived d2 = (Derived)new Test();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task ObjectInitializer3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    class Test
+	{
+		static public explicit operator Derived(Test t) { return new Derived();  }
+    }
+    Derived returnDerived() {
+        return [||]new Base();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task ObjectInitializer4()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    class Test
+	{
+		static public explicit operator Derived(Test t) { return new Derived();  }
+    }
+    Derived returnDerived() {
+        return [||]new Test();
+    }
+}",
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    class Test
+	{
+		static public explicit operator Derived(Test t) { return new Derived();  }
+    }
+    Derived returnDerived() {
+        return (Derived)new Test();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task ObjectInitializer5()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    class Test
+	{
+		static public explicit operator Derived(Test t) { return new Derived();  }
+    }
+    void M(Dervied d) { }
+    void Foo() {
+        M([||]new Base());
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task ObjectInitializer6()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    class Test
+	{
+		static public explicit operator Derived(Test t) { return new Derived();  }
+    }
+    void M(Derived d) { }
+    void Foo() {
+        M([||]new Test());
+    }
+}",
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    class Test
+	{
+		static public explicit operator Derived(Test t) { return new Derived();  }
+    }
+    void M(Derived d) { }
+    void Foo() {
+        M((Derived)new Test());
+    }
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41500")]
+        public async Task RedundantCast1()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    void Foo() {
+        Base b;
+        Derived d = [||](Base)b;
+    }
+}",
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    void Foo() {
+        Base b;
+        Derived d = (Derived)b;
+    }
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41500")]
+        public async Task RedundantCast2()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived1 : Base { }
+    class Derived2 : Derived1 { }
+    void Foo() {
+        Base b;
+        Derived2 d = [||](Derived1)b;
+    }
+}",
+            @"
+class Program
+{
+    class Base { }
+    class Derived1 : Base { }
+    class Derived2 : Derived1 { }
+    void Foo() {
+        Base b;
+        Derived2 d = (Derived2)b;
+    }
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41500")]
+        public async Task RedundantCast3()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    void M(Derived d) { }
+    void Foo() {
+        Base b;
+        M([||](Base)b);
+    }
+}",
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    void M(Derived d) { }
+    void Foo() {
+        Base b;
+        M((Derived)b);
+    }
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41500")]
+        public async Task RedundantCast4()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived1 : Base { }
+    class Derived2 : Derived1 { }
+    void M(Derived2 d) { }
+    void Foo() {
+        Base b;
+        M([||](Derived1)b);
+    }
+}",
+            @"
+class Program
+{
+    class Base { }
+    class Derived1 : Base { }
+    class Derived2 : Derived1 { }
+    void M(Derived2 d) { }
+    void Foo() {
+        Base b;
+        M((Derived2)b);
     }
 }");
         }
