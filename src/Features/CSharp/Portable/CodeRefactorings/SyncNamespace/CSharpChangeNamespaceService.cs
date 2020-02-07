@@ -328,9 +328,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             SemanticModel semanticModel)
         {
             Debug.Assert(!compilationUnit.Members.Any(m => m is NamespaceDeclarationSyntax));
-            compilationUnit = compilationUnit.ReplaceNodes(
-                compilationUnit.Members,
-                (original, current) => semanticModel.GetDeclaredSymbol(current) is null ? current : current.WithRenameSymbolAnnotation(semanticModel));
 
             var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
                 name: CreateNamespaceAsQualifiedName(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
