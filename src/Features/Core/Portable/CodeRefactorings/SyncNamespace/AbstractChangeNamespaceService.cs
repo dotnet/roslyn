@@ -193,10 +193,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     ImmutableArray.Create(declaredNamespace, targetNamespace),
                     cancellationToken).ConfigureAwait(false);
 
-                var mergedSolution = await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
-                (_, mergedSolution) = await mergedSolution.ExcludeDisallowedDocumentTextChangesAsync(solution, cancellationToken).ConfigureAwait(false);
-
-                return mergedSolution;
+                return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -589,13 +586,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             string newNamespace,
             CancellationToken cancellationToken)
         {
-            // Can't apply change to certain document, simply return unchanged.
-            // e.g. Razor document (*.g.cs file, not *.cshtml)
-            if (!document.CanApplyChange())
-            {
-                return document;
-            }
-
             // 1. Fully qualify all simple references (i.e. not via an alias) with new namespace.
             // 2. Add using of new namespace (for each reference's container).
             // 3. Try to simplify qualified names introduced from step(1).

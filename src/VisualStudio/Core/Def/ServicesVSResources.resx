@@ -1354,6 +1354,9 @@ I agree to all of the foregoing:</value>
     <value>Live Share C#/Visual Basic Language Server Client</value>
     <comment>'Live Share' is a product name and does not need to be localized.</comment>
   </data>
+  <data name="Value_colon" xml:space="preserve">
+    <value>Value:</value>
+  </data>
   <data name="Editor_Color_Scheme" xml:space="preserve">
     <value>Editor Color Scheme</value>
   </data>

@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 // This method is only called when the EnC is about to apply changes, at which point all active statements and 
-                // their exception regions will be needed. Hence it's not neccessary to scope this query down to just the instruction
+                // their exception regions will be needed. Hence it's not necessary to scope this query down to just the instruction
                 // the debugger is interested at this point while not calculating the others.
 
                 var baseActiveStatements = await editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
