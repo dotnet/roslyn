@@ -248,8 +248,9 @@ namespace Analyzer.Utilities
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
+            string defaultForcedValue,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalInheritanceExcludedSymbolNames, rule, compilation, cancellationToken, optionForcedValue: "N:System.*");
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalInheritanceExcludedSymbolNames, rule, compilation, cancellationToken, optionForcedValue: defaultForcedValue);
 
         private static SymbolNamesWithValueOption<TValue> GetSymbolNamesWithValueOption<TValue>(
             this AnalyzerOptions options,
