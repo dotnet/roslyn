@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             info = default;
 
-            if (isCompilerDiagnostic(diagnostic))
+            if (diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Compiler))
             {
                 // SuppressMessage attributes do not apply to compiler diagnostics.
                 return false;
@@ -197,19 +197,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     inImmediatelyContainingSymbol = false;
                 }
                 while (namespaceSymbol != null);
-
-                return false;
-            }
-
-            static bool isCompilerDiagnostic(Diagnostic diagnostic)
-            {
-                foreach (var customTag in diagnostic.CustomTags)
-                {
-                    if (customTag == WellKnownDiagnosticTags.Compiler)
-                    {
-                        return true;
-                    }
-                }
 
                 return false;
             }
