@@ -18,7 +18,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// </summary>
     internal abstract class DocumentBasedFixAllProvider : FixAllProvider
     {
-        protected abstract string GetCodeActionTitle(FixAllContext fixAllContext);
+        protected abstract string CodeActionTitle
+        {
+            get;
+        }
 
         public override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
         {
@@ -27,21 +30,21 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 case FixAllScope.Document:
                     fixAction = CodeAction.Create(
-                        GetCodeActionTitle(fixAllContext),
+                        CodeActionTitle,
                         cancellationToken => GetDocumentFixesAsync(fixAllContext.WithCancellationToken(cancellationToken)),
                         nameof(DocumentBasedFixAllProvider));
                     break;
 
                 case FixAllScope.Project:
                     fixAction = CodeAction.Create(
-                        GetCodeActionTitle(fixAllContext),
+                        CodeActionTitle,
                         cancellationToken => GetProjectFixesAsync(fixAllContext.WithCancellationToken(cancellationToken), fixAllContext.Project),
                         nameof(DocumentBasedFixAllProvider));
                     break;
 
                 case FixAllScope.Solution:
                     fixAction = CodeAction.Create(
-                        GetCodeActionTitle(fixAllContext),
+                        CodeActionTitle,
                         cancellationToken => GetSolutionFixesAsync(fixAllContext.WithCancellationToken(cancellationToken)),
                         nameof(DocumentBasedFixAllProvider));
                     break;
@@ -61,8 +64,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <param name="fixAllContext">The context for the Fix All operation.</param>
         /// <param name="document">The document to fix.</param>
         /// <param name="diagnostics">The diagnostics to fix in the document.</param>
-        /// <returns>New fixed <see cref="Document"/> or original document if no changes were made to the document.</returns>
-        protected abstract Task<Document> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
+        /// <returns>
+        /// <para>The new <see cref="SyntaxNode"/> representing the root of the fixed document.</para>
+        /// <para>-or-</para>
+        /// <para><see langword="null"/>, if no changes were made to the document.</para>
+        /// </returns>
+        protected abstract Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
 
         private async Task<Document> GetDocumentFixesAsync(FixAllContext fixAllContext)
         {
@@ -72,7 +79,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 return fixAllContext.Document;
             }
 
-            return await FixAllInDocumentAsync(fixAllContext, fixAllContext.Document, diagnostics).ConfigureAwait(false);
+            var newRoot = await FixAllInDocumentAsync(fixAllContext, fixAllContext.Document, diagnostics).ConfigureAwait(false);
+            if (newRoot == null)
+            {
+                return fixAllContext.Document;
+            }
+
+            return fixAllContext.Document.WithSyntaxRoot(newRoot);
         }
 
         private async Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext, ImmutableArray<Document> documents)
@@ -80,20 +93,27 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext, progressTrackerOpt: null).ConfigureAwait(false);
 
             var solution = fixAllContext.Solution;
-            var newDocuments = new Dictionary<DocumentId, Task<Document>>(documents.Length);
+            var newDocuments = new List<Task<SyntaxNode>>(documents.Length);
             foreach (var document in documents)
             {
-                if (documentDiagnosticsToFix.TryGetValue(document, out var diagnostics))
+                if (!documentDiagnosticsToFix.TryGetValue(document, out var diagnostics))
                 {
-                    newDocuments.Add(document.Id, FixAllInDocumentAsync(fixAllContext, document, diagnostics));
+                    newDocuments.Add(document.GetSyntaxRootAsync(fixAllContext.CancellationToken));
+                    continue;
                 }
+
+                newDocuments.Add(FixAllInDocumentAsync(fixAllContext, document, diagnostics));
             }
 
-            foreach (var documentIdAndTask in newDocuments)
+            for (var i = 0; i < documents.Length; i++)
             {
-                var newDocument = await documentIdAndTask.Value.ConfigureAwait(false);
-                var newDocumentRoot = await newDocument.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
-                solution = solution.WithDocumentSyntaxRoot(documentIdAndTask.Key, newDocumentRoot);
+                var newDocumentRoot = await newDocuments[i].ConfigureAwait(false);
+                if (newDocumentRoot == null)
+                {
+                    continue;
+                }
+
+                solution = solution.WithDocumentSyntaxRoot(documents[i].Id, newDocumentRoot);
             }
 
             return solution;
