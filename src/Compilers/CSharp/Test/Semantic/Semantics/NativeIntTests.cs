@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -549,11 +550,11 @@ unsafe class Program
         }
 
         /// <summary>
-        /// Verify there is exactly one built in operator for { nint, nuint, nint?, nuint? }
+        /// Verify there is the number of built in operators for { nint, nuint, nint?, nuint? }
         /// for each operator kind.
         /// </summary>
         [Fact]
-        public void BinaryOperators_BuiltInOperators()
+        public void BuiltInOperators()
         {
             var source = "";
 
@@ -567,7 +568,18 @@ unsafe class Program
 
             static void verifyOperators(CSharpCompilation comp)
             {
-                var operatorKinds = new[]
+                var unaryOperators = new[]
+                {
+                    UnaryOperatorKind.PostfixIncrement,
+                    UnaryOperatorKind.PostfixDecrement,
+                    UnaryOperatorKind.PrefixIncrement,
+                    UnaryOperatorKind.PrefixDecrement,
+                    UnaryOperatorKind.UnaryPlus,
+                    UnaryOperatorKind.UnaryMinus,
+                    UnaryOperatorKind.BitwiseComplement,
+                };
+
+                var binaryOperators = new[]
                 {
                     BinaryOperatorKind.Addition,
                     BinaryOperatorKind.Subtraction,
@@ -587,15 +599,29 @@ unsafe class Program
                     BinaryOperatorKind.Xor,
                 };
 
-                foreach (var operatorKind in operatorKinds)
+                foreach (var operatorKind in unaryOperators)
+                {
+                    var builder = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
+                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder);
+                    var operators = builder.ToImmutableAndFree();
+                    int expectedUnsigned = (operatorKind == UnaryOperatorKind.UnaryMinus) ? 0 : 1;
+                    VerifyOperators(operators, (op, signed) => isNativeInt(op.OperandType, signed), 1, expectedUnsigned);
+                    VerifyOperators(operators, (op, signed) => isNullableNativeInt(op.OperandType, signed), 1, expectedUnsigned);
+                }
+
+                foreach (var operatorKind in binaryOperators)
                 {
                     var builder = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
                     comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder);
                     var operators = builder.ToImmutableAndFree();
-                    _ = operators.Single(op => isNativeInt(op.LeftType, signed: true));
-                    _ = operators.Single(op => isNativeInt(op.LeftType, signed: false));
-                    _ = operators.Single(op => isNullableNativeInt(op.LeftType, signed: true));
-                    _ = operators.Single(op => isNullableNativeInt(op.LeftType, signed: false));
+                    VerifyOperators(operators, (op, signed) => isNativeInt(op.LeftType, signed), 1, 1);
+                    VerifyOperators(operators, (op, signed) => isNullableNativeInt(op.LeftType, signed), 1, 1);
+                }
+
+                static void VerifyOperators<T>(ImmutableArray<T> operators, Func<T, bool, bool> predicate, int expectedSigned, int expectedUnsigned)
+                {
+                    Assert.Equal(expectedSigned, operators.Count(op => predicate(op, true)));
+                    Assert.Equal(expectedUnsigned, operators.Count(op => predicate(op, false)));
                 }
 
                 static bool isNativeInt(TypeSymbol underlyingType, bool signed)
@@ -3051,13 +3077,14 @@ class Program
             }
         }
 
-        [Fact(Skip = "CS0023: Operator '++' cannot be applied to operand of type 'MyInt'")]
-        public void Increment_UserDefinedConversions_Int()
+        [Fact]
+        public void UnaryOperators_UserDefinedConversions_NInt()
         {
             string source =
-@"class MyInt
+@"using System;
+class MyInt
 {
-    private nint _i;
+    private readonly nint _i;
     internal MyInt(nint i) => _i = i;
     public static implicit operator nint(MyInt i) => i._i;
     public static implicit operator MyInt(nint i) => new MyInt(i);
@@ -3067,133 +3094,759 @@ class Program
 {
     static void Main()
     {
-        Increment(int.MinValue);
-        Increment(-1);
-        Increment(0);
-        Decrement(int.MaxValue);
-        Decrement(1);
-        Decrement(0);
+        // ++i;
+        Evaluate(int.MinValue, PrefixIncrement);
+        Evaluate(-1, PrefixIncrement);
+        Evaluate(0, PrefixIncrement);
+        // i++;
+        Evaluate(int.MinValue, PostfixIncrement);
+        Evaluate(-1, PostfixIncrement);
+        Evaluate(0, PostfixIncrement);
+        // --i;
+        Evaluate(int.MaxValue, PrefixDecrement);
+        Evaluate(1, PrefixDecrement);
+        Evaluate(0, PrefixDecrement);
+        // i--;
+        Evaluate(int.MaxValue, PostfixDecrement);
+        Evaluate(1, PostfixDecrement);
+        Evaluate(0, PostfixDecrement);
+        // +i;
+        Evaluate(int.MinValue, Plus);
+        Evaluate(0, Plus);
+        Evaluate(int.MaxValue, Plus);
+        // -i;
+        Evaluate(int.MinValue, Minus);
+        Evaluate(0, Minus);
+        Evaluate(int.MaxValue, Minus);
+        // ~i;
+        Evaluate(int.MinValue, Complement);
+        Evaluate(0, Complement);
+        Evaluate(int.MaxValue, Complement);
     }
-    static void Increment(nint i)
+    static void Evaluate(nint i, Func<MyInt, MyInt> f)
     {
-        MyInt m = new MyInt(i);
-        m++;
-        System.Console.WriteLine(m);
+        MyInt m = f(new MyInt(i));
+        Console.WriteLine(m);
     }
-    static void Decrement(nint i)
-    {
-        MyInt m = new MyInt(i);
-        m--;
-        System.Console.WriteLine(m);
-    }
+    static MyInt PrefixIncrement(MyInt i) => ++i;
+    static MyInt PostfixIncrement(MyInt i) { i++; return i; }
+    static MyInt PrefixDecrement(MyInt i) => --i;
+    static MyInt PostfixDecrement(MyInt i) { i--; return i; }
+    static MyInt Plus(MyInt i) => +i;
+    static MyInt Minus(MyInt i) => -i;
+    static MyInt Complement(MyInt i) => ~i;
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             string expectedOutput =
 @"-2147483647
 0
 1
+-2147483647
+0
+1
 2147483646
 0
--1";
+-1
+2147483646
+0
+-1
+-2147483648
+0
+2147483647
+2147483648
+0
+-2147483647
+2147483647
+-1
+-2147483648";
             var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
-            verifier.VerifyIL("Program.Increment",
+            verifier.VerifyIL("Program.PrefixIncrement",
 @"{
-  // Code size       29 (0x1d)
+  // Code size       17 (0x11)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  newobj     ""MyInt..ctor(int)""
-  IL_0006:  call       ""int MyInt.op_Implicit(MyInt)""
-  IL_000b:  ldc.i4.1
-  IL_000c:  add
-  IL_000d:  call       ""MyInt MyInt.op_Implicit(int)""
-  IL_0012:  call       ""int MyInt.op_Implicit(MyInt)""
-  IL_0017:  call       ""void System.Console.WriteLine(int)""
-  IL_001c:  ret
+  IL_0001:  call       ""nint MyInt.op_Implicit(MyInt)""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  call       ""MyInt MyInt.op_Implicit(nint)""
+  IL_000d:  dup
+  IL_000e:  starg.s    V_0
+  IL_0010:  ret
 }");
-            verifier.VerifyIL("Program.Decrement",
+            verifier.VerifyIL("Program.PostfixIncrement",
 @"{
-  // Code size       29 (0x1d)
+  // Code size       17 (0x11)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  newobj     ""MyInt..ctor(int)""
-  IL_0006:  call       ""int MyInt.op_Implicit(MyInt)""
-  IL_000b:  ldc.i4.1
-  IL_000c:  sub
-  IL_000d:  call       ""MyInt MyInt.op_Implicit(int)""
-  IL_0012:  call       ""int MyInt.op_Implicit(MyInt)""
-  IL_0017:  call       ""void System.Console.WriteLine(int)""
-  IL_001c:  ret
+  IL_0001:  call       ""nint MyInt.op_Implicit(MyInt)""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  call       ""MyInt MyInt.op_Implicit(nint)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ldarg.0
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("Program.PrefixDecrement",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nint MyInt.op_Implicit(MyInt)""
+  IL_0006:  ldc.i4.1
+  IL_0007:  sub
+  IL_0008:  call       ""MyInt MyInt.op_Implicit(nint)""
+  IL_000d:  dup
+  IL_000e:  starg.s    V_0
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("Program.PostfixDecrement",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nint MyInt.op_Implicit(MyInt)""
+  IL_0006:  ldc.i4.1
+  IL_0007:  sub
+  IL_0008:  call       ""MyInt MyInt.op_Implicit(nint)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ldarg.0
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("Program.Plus",
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nint MyInt.op_Implicit(MyInt)""
+  IL_0006:  call       ""MyInt MyInt.op_Implicit(nint)""
+  IL_000b:  ret
+}");
+            verifier.VerifyIL("Program.Minus",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nint MyInt.op_Implicit(MyInt)""
+  IL_0006:  neg
+  IL_0007:  call       ""MyInt MyInt.op_Implicit(nint)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("Program.Complement",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nint MyInt.op_Implicit(MyInt)""
+  IL_0006:  not
+  IL_0007:  call       ""MyInt MyInt.op_Implicit(nint)""
+  IL_000c:  ret
 }");
         }
 
-        [Fact(Skip = "CS0023: Operator '++' cannot be applied to operand of type 'MyUInt'")]
-        public void Increment_UserDefinedConversions_UInt()
+        [Fact]
+        public void UnaryOperators_UserDefinedConversions_NUInt()
         {
             string source =
-@"class MyUInt
+@"using System;
+class MyInt
 {
-    private nuint _i;
-    internal MyUInt(nuint i) => _i = i;
-    public static implicit operator nuint(MyUInt i) => i._i;
-    public static implicit operator MyUInt(nuint i) => new MyUInt(i);
+    private readonly nuint _i;
+    internal MyInt(nuint i) => _i = i;
+    public static implicit operator nuint(MyInt i) => i._i;
+    public static implicit operator MyInt(nuint i) => new MyInt(i);
     public override string ToString() => _i.ToString();
 }
 class Program
 {
     static void Main()
     {
-        Increment(0);
-        Increment(uint.MaxValue - 1);
-        Decrement(1);
-        Increment(uint.MaxValue);
+        // ++i;
+        Evaluate(0, PrefixIncrement);
+        Evaluate(uint.MaxValue - 1, PrefixIncrement);
+        // i++;
+        Evaluate(0, PostfixIncrement);
+        Evaluate(uint.MaxValue - 1, PostfixIncrement);
+        // --i;
+        Evaluate(1, PrefixDecrement);
+        Evaluate(uint.MaxValue, PrefixDecrement);
+        // i--;
+        Evaluate(1, PostfixDecrement);
+        Evaluate(uint.MaxValue, PostfixDecrement);
+        // +i;
+        Evaluate(0, Plus);
+        Evaluate(uint.MaxValue, Plus);
+        // ~i;
+        Evaluate(0, Complement);
+        Evaluate(uint.MaxValue, Complement);
     }
-    static void Increment(nuint i)
+    static void Evaluate(nuint i, Func<MyInt, MyInt> f)
     {
-        MyUInt m = new MyUInt(i);
-        m++;
-        System.Console.WriteLine(m);
+        MyInt m = f(new MyInt(i));
+        Console.WriteLine(m);
     }
-    static void Decrement(nuint i)
-    {
-        MyUInt m = new MyUInt(i);
-        m--;
-        System.Console.WriteLine(m);
-    }
+    static MyInt PrefixIncrement(MyInt i) => ++i;
+    static MyInt PostfixIncrement(MyInt i) { i++; return i; }
+    static MyInt PrefixDecrement(MyInt i) => --i;
+    static MyInt PostfixDecrement(MyInt i) { i--; return i; }
+    static MyInt Plus(MyInt i) => +i;
+    static MyInt Complement(MyInt i) => ~i;
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             string expectedOutput =
 @"1
 4294967295
+1
+4294967295
 0
-4294967294";
+4294967294
+0
+4294967294
+0
+4294967295
+18446744073709551615
+18446744069414584320";
             var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
-            verifier.VerifyIL("Program.Increment",
+            verifier.VerifyIL("Program.PrefixIncrement",
 @"{
-  // Code size       29 (0x1d)
+  // Code size       17 (0x11)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  newobj     ""MyUInt..ctor(int)""
-  IL_0006:  call       ""int MyUInt.op_Implicit(MyUInt)""
-  IL_000b:  ldc.i4.1
-  IL_000c:  add
-  IL_000d:  call       ""MyUInt MyUInt.op_Implicit(int)""
-  IL_0012:  call       ""int MyUInt.op_Implicit(MyUInt)""
-  IL_0017:  call       ""void System.Console.WriteLine(int)""
-  IL_001c:  ret
+  IL_0001:  call       ""nuint MyInt.op_Implicit(MyInt)""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  call       ""MyInt MyInt.op_Implicit(nuint)""
+  IL_000d:  dup
+  IL_000e:  starg.s    V_0
+  IL_0010:  ret
 }");
-            verifier.VerifyIL("Program.Decrement",
+            verifier.VerifyIL("Program.PostfixIncrement",
 @"{
-  // Code size       29 (0x1d)
+  // Code size       17 (0x11)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  newobj     ""MyUInt..ctor(int)""
-  IL_0006:  call       ""int MyUInt.op_Implicit(MyUInt)""
-  IL_000b:  ldc.i4.1
-  IL_000c:  sub
-  IL_000d:  call       ""MyUInt MyUInt.op_Implicit(int)""
-  IL_0012:  call       ""int MyUInt.op_Implicit(MyUInt)""
-  IL_0017:  call       ""void System.Console.WriteLine(int)""
-  IL_001c:  ret
+  IL_0001:  call       ""nuint MyInt.op_Implicit(MyInt)""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  call       ""MyInt MyInt.op_Implicit(nuint)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ldarg.0
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("Program.PrefixDecrement",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nuint MyInt.op_Implicit(MyInt)""
+  IL_0006:  ldc.i4.1
+  IL_0007:  sub
+  IL_0008:  call       ""MyInt MyInt.op_Implicit(nuint)""
+  IL_000d:  dup
+  IL_000e:  starg.s    V_0
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("Program.PostfixDecrement",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nuint MyInt.op_Implicit(MyInt)""
+  IL_0006:  ldc.i4.1
+  IL_0007:  sub
+  IL_0008:  call       ""MyInt MyInt.op_Implicit(nuint)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ldarg.0
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("Program.Plus",
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nuint MyInt.op_Implicit(MyInt)""
+  IL_0006:  call       ""MyInt MyInt.op_Implicit(nuint)""
+  IL_000b:  ret
+}");
+            verifier.VerifyIL("Program.Complement",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nuint MyInt.op_Implicit(MyInt)""
+  IL_0006:  not
+  IL_0007:  call       ""MyInt MyInt.op_Implicit(nuint)""
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
+        public void UnaryOperators_UserDefinedConversions_LiftedNInt()
+        {
+            string source =
+@"using System;
+class MyInt
+{
+    private readonly nint? _i;
+    internal MyInt(nint? i) => _i = i;
+    public static implicit operator nint?(MyInt i) => i._i;
+    public static implicit operator MyInt(nint? i) => new MyInt(i);
+    public override string ToString() => _i.ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        // ++i;
+        Evaluate(int.MinValue, PrefixIncrement);
+        Evaluate(-1, PrefixIncrement);
+        Evaluate(0, PrefixIncrement);
+        // i++;
+        Evaluate(int.MinValue, PostfixIncrement);
+        Evaluate(-1, PostfixIncrement);
+        Evaluate(0, PostfixIncrement);
+        // --i;
+        Evaluate(int.MaxValue, PrefixDecrement);
+        Evaluate(1, PrefixDecrement);
+        Evaluate(0, PrefixDecrement);
+        // i--;
+        Evaluate(int.MaxValue, PostfixDecrement);
+        Evaluate(1, PostfixDecrement);
+        Evaluate(0, PostfixDecrement);
+        // +i;
+        Evaluate(int.MinValue, Plus);
+        Evaluate(0, Plus);
+        Evaluate(int.MaxValue, Plus);
+        // -i;
+        Evaluate(int.MinValue, Minus);
+        Evaluate(0, Minus);
+        Evaluate(int.MaxValue, Minus);
+        // ~i;
+        Evaluate(int.MinValue, Complement);
+        Evaluate(0, Complement);
+        Evaluate(int.MaxValue, Complement);
+    }
+    static void Evaluate(nint i, Func<MyInt, MyInt> f)
+    {
+        MyInt m = f(new MyInt(i));
+        Console.WriteLine(m);
+    }
+    static MyInt PrefixIncrement(MyInt i) => ++i;
+    static MyInt PostfixIncrement(MyInt i) { i++; return i; }
+    static MyInt PrefixDecrement(MyInt i) => --i;
+    static MyInt PostfixDecrement(MyInt i) { i--; return i; }
+    static MyInt Plus(MyInt i) => +i;
+    static MyInt Minus(MyInt i) => -i;
+    static MyInt Complement(MyInt i) => ~i;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            string expectedOutput =
+$@"-2147483647
+0
+1
+-2147483647
+0
+1
+2147483646
+0
+-1
+2147483646
+0
+-1
+-2147483648
+0
+2147483647
+{(IntPtr.Size == 4 ? "-2147483648" : "2147483648")}
+0
+-2147483647
+2147483647
+-1
+-2147483648";
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+            verifier.VerifyIL("Program.PrefixIncrement",
+@"{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nint? MyInt.op_Implicit(MyInt)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool nint?.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    ""nint?""
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0029
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0022:  ldc.i4.1
+  IL_0023:  add
+  IL_0024:  newobj     ""nint?..ctor(nint)""
+  IL_0029:  call       ""MyInt MyInt.op_Implicit(nint?)""
+  IL_002e:  dup
+  IL_002f:  starg.s    V_0
+  IL_0031:  ret
+}");
+            verifier.VerifyIL("Program.PostfixIncrement",
+@"{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nint? MyInt.op_Implicit(MyInt)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool nint?.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    ""nint?""
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0029
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0022:  ldc.i4.1
+  IL_0023:  add
+  IL_0024:  newobj     ""nint?..ctor(nint)""
+  IL_0029:  call       ""MyInt MyInt.op_Implicit(nint?)""
+  IL_002e:  starg.s    V_0
+  IL_0030:  ldarg.0
+  IL_0031:  ret
+}");
+            verifier.VerifyIL("Program.PrefixDecrement",
+@"{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nint? MyInt.op_Implicit(MyInt)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool nint?.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    ""nint?""
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0029
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0022:  ldc.i4.1
+  IL_0023:  sub
+  IL_0024:  newobj     ""nint?..ctor(nint)""
+  IL_0029:  call       ""MyInt MyInt.op_Implicit(nint?)""
+  IL_002e:  dup
+  IL_002f:  starg.s    V_0
+  IL_0031:  ret
+}");
+            verifier.VerifyIL("Program.PostfixDecrement",
+@"{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nint? MyInt.op_Implicit(MyInt)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool nint?.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    ""nint?""
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0029
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0022:  ldc.i4.1
+  IL_0023:  sub
+  IL_0024:  newobj     ""nint?..ctor(nint)""
+  IL_0029:  call       ""MyInt MyInt.op_Implicit(nint?)""
+  IL_002e:  starg.s    V_0
+  IL_0030:  ldarg.0
+  IL_0031:  ret
+}");
+            verifier.VerifyIL("Program.Plus",
+@"{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nint? MyInt.op_Implicit(MyInt)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool nint?.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    ""nint?""
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0027
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0022:  newobj     ""nint?..ctor(nint)""
+  IL_0027:  call       ""MyInt MyInt.op_Implicit(nint?)""
+  IL_002c:  ret
+}");
+            verifier.VerifyIL("Program.Minus",
+@"{
+  // Code size       46 (0x2e)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nint? MyInt.op_Implicit(MyInt)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool nint?.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    ""nint?""
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0028
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0022:  neg
+  IL_0023:  newobj     ""nint?..ctor(nint)""
+  IL_0028:  call       ""MyInt MyInt.op_Implicit(nint?)""
+  IL_002d:  ret
+}");
+            verifier.VerifyIL("Program.Complement",
+@"{
+  // Code size       46 (0x2e)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nint? MyInt.op_Implicit(MyInt)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool nint?.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    ""nint?""
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0028
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0022:  not
+  IL_0023:  newobj     ""nint?..ctor(nint)""
+  IL_0028:  call       ""MyInt MyInt.op_Implicit(nint?)""
+  IL_002d:  ret
+}");
+        }
+
+        [Fact]
+        public void UnaryOperators_UserDefinedConversions_LiftedNUInt()
+        {
+            string source =
+@"using System;
+class MyInt
+{
+    private readonly nuint? _i;
+    internal MyInt(nuint? i) => _i = i;
+    public static implicit operator nuint?(MyInt i) => i._i;
+    public static implicit operator MyInt(nuint? i) => new MyInt(i);
+    public override string ToString() => _i.ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        // ++i;
+        Evaluate(0, PrefixIncrement);
+        Evaluate(uint.MaxValue - 1, PrefixIncrement);
+        // i++;
+        Evaluate(0, PostfixIncrement);
+        Evaluate(uint.MaxValue - 1, PostfixIncrement);
+        // --i;
+        Evaluate(1, PrefixDecrement);
+        Evaluate(uint.MaxValue, PrefixDecrement);
+        // i--;
+        Evaluate(1, PostfixDecrement);
+        Evaluate(uint.MaxValue, PostfixDecrement);
+        // +i;
+        Evaluate(0, Plus);
+        Evaluate(uint.MaxValue, Plus);
+        // ~i;
+        Evaluate(0, Complement);
+        Evaluate(uint.MaxValue, Complement);
+    }
+    static void Evaluate(nuint i, Func<MyInt, MyInt> f)
+    {
+        MyInt m = f(new MyInt(i));
+        Console.WriteLine(m);
+    }
+    static MyInt PrefixIncrement(MyInt i) => ++i;
+    static MyInt PostfixIncrement(MyInt i) { i++; return i; }
+    static MyInt PrefixDecrement(MyInt i) => --i;
+    static MyInt PostfixDecrement(MyInt i) { i--; return i; }
+    static MyInt Plus(MyInt i) => +i;
+    static MyInt Complement(MyInt i) => ~i;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            string expectedOutput =
+$@"1
+4294967295
+1
+4294967295
+0
+4294967294
+0
+4294967294
+0
+4294967295
+{(IntPtr.Size == 4 ? "4294967295" : "18446744073709551615")}
+{(IntPtr.Size == 4 ? "0" : "18446744069414584320")}";
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+            verifier.VerifyIL("Program.PrefixIncrement",
+@"{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nuint? MyInt.op_Implicit(MyInt)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool nuint?.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    ""nuint?""
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0029
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0022:  ldc.i4.1
+  IL_0023:  add
+  IL_0024:  newobj     ""nuint?..ctor(nuint)""
+  IL_0029:  call       ""MyInt MyInt.op_Implicit(nuint?)""
+  IL_002e:  dup
+  IL_002f:  starg.s    V_0
+  IL_0031:  ret
+}");
+            verifier.VerifyIL("Program.PostfixIncrement",
+@"{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nuint? MyInt.op_Implicit(MyInt)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool nuint?.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    ""nuint?""
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0029
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0022:  ldc.i4.1
+  IL_0023:  add
+  IL_0024:  newobj     ""nuint?..ctor(nuint)""
+  IL_0029:  call       ""MyInt MyInt.op_Implicit(nuint?)""
+  IL_002e:  starg.s    V_0
+  IL_0030:  ldarg.0
+  IL_0031:  ret
+}");
+            verifier.VerifyIL("Program.PrefixDecrement",
+@"{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nuint? MyInt.op_Implicit(MyInt)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool nuint?.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    ""nuint?""
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0029
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0022:  ldc.i4.1
+  IL_0023:  sub
+  IL_0024:  newobj     ""nuint?..ctor(nuint)""
+  IL_0029:  call       ""MyInt MyInt.op_Implicit(nuint?)""
+  IL_002e:  dup
+  IL_002f:  starg.s    V_0
+  IL_0031:  ret
+}");
+            verifier.VerifyIL("Program.PostfixDecrement",
+@"{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nuint? MyInt.op_Implicit(MyInt)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool nuint?.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    ""nuint?""
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0029
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0022:  ldc.i4.1
+  IL_0023:  sub
+  IL_0024:  newobj     ""nuint?..ctor(nuint)""
+  IL_0029:  call       ""MyInt MyInt.op_Implicit(nuint?)""
+  IL_002e:  starg.s    V_0
+  IL_0030:  ldarg.0
+  IL_0031:  ret
+}");
+            verifier.VerifyIL("Program.Plus",
+@"{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nuint? MyInt.op_Implicit(MyInt)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool nuint?.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    ""nuint?""
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0027
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0022:  newobj     ""nuint?..ctor(nuint)""
+  IL_0027:  call       ""MyInt MyInt.op_Implicit(nuint?)""
+  IL_002c:  ret
+}");
+            verifier.VerifyIL("Program.Complement",
+@"{
+  // Code size       46 (0x2e)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""nuint? MyInt.op_Implicit(MyInt)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool nuint?.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    ""nuint?""
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0028
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0022:  not
+  IL_0023:  newobj     ""nuint?..ctor(nuint)""
+  IL_0028:  call       ""MyInt MyInt.op_Implicit(nuint?)""
+  IL_002d:  ret
 }");
         }
 
