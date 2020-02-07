@@ -15,10 +15,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using SyntaxNodeOrTokenExtensions = Microsoft.CodeAnalysis.Shared.Extensions.SyntaxNodeOrTokenExtensions;
 
-#if CODE_STYLE
-#else
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxNodeExtensions
