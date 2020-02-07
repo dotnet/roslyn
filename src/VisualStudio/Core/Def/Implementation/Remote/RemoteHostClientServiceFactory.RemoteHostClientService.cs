@@ -295,7 +295,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     // s_lastRemoteClientTask info should be saved in the dump
                     // report NFW when connection is closed unless it is proper shutdown
-                    WatsonReporter.Report(new Exception("Connection to remote host closed"), WatsonSeverity.Critical);
+                    FatalError.ReportWithoutCrash(new InvalidOperationException("Connection to remote host closed"));
 
                     RemoteHostCrashInfoBar.ShowInfoBar(_workspace);
                 }

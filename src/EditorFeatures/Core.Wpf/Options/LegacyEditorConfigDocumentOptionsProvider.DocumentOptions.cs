@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.ErrorLogger;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
 
@@ -20,14 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         private class DocumentOptions : IDocumentOptions
         {
             private readonly ICodingConventionsSnapshot _codingConventionSnapshot;
-            private readonly IErrorLoggerService _errorLogger;
             private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object?>, IReadOnlyDictionary<string, string?>> s_convertedDictionaryCache =
                 new ConditionalWeakTable<IReadOnlyDictionary<string, object?>, IReadOnlyDictionary<string, string?>>();
 
-            public DocumentOptions(ICodingConventionsSnapshot codingConventionSnapshot, IErrorLoggerService errorLogger)
+            public DocumentOptions(ICodingConventionsSnapshot codingConventionSnapshot)
             {
                 _codingConventionSnapshot = codingConventionSnapshot;
-                _errorLogger = errorLogger;
             }
 
             public bool TryGetDocumentOption(OptionKey option, out object? value)
@@ -54,9 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 {
                     return editorConfigPersistence.TryGetOption(allRawConventions, option.Option.Type, out value);
                 }
-                catch (Exception ex)
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                 {
-                    _errorLogger?.LogException(this, ex);
                     value = null;
                     return false;
                 }

@@ -98,3 +98,10 @@ namespace System.Runtime.Versioning
             => FrameworkName = frameworkName;
     }
 }
+
+namespace System.Threading
+{
+    public struct CancellationToken
+    {
+    }
+}

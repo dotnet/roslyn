@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return true;
             }
 
-            ReportNonFatalWatson(ex, UnexpectedExceptionLogMessage);
+            ReportNonFatalWatson(ex);
             return true;
         }
 
@@ -323,76 +323,18 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (!cancellationToken.IsCancellationRequested)
             {
-                ReportNonFatalWatson(ex, UnexpectedExceptionLogMessage);
+                ReportNonFatalWatson(ex);
             }
 
             return true;
         }
 
-        private void ReportNonFatalWatson(Exception ex, string message)
+        private void ReportNonFatalWatson(Exception exception)
         {
             s_debuggingLastDisconnectReason = _debuggingLastDisconnectReason;
             s_debuggingLastDisconnectCallstack = _debuggingLastDisconnectCallstack;
 
-            ReportNonFatalWatsonWithServiceHubLogs(ex, message);
-        }
-
-        public static void ReportNonFatalWatsonWithServiceHubLogs(Exception ex, string message)
-        {
-            WatsonReporter.Report(message, ex, AddServiceHubLogFiles, WatsonSeverity.Critical);
-        }
-
-        /// <summary>
-        /// Use in an exception filter on the receiving end of a remote call to report a non-fatal Watson for the exception thrown by the method being called remotely.
-        /// </summary>
-        public bool ReportAndPropagateUnexpectedException(Exception ex, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
-        {
-            // The exception is unexpected unless it's a cancelation exception and the cancelation is requested on the current token.
-            if (!(ex is OperationCanceledException && cancellationToken.IsCancellationRequested))
-            {
-                var logMessage = "Unexpected exception from " + callerName;
-                LogError($"{logMessage}: {ex}");
-                ReportNonFatalWatson(ex, logMessage);
-            }
-
-            return false;
-        }
-
-        private static int AddServiceHubLogFiles(IFaultUtility faultUtility)
-        {
-            // 0 means send watson, otherwise, cancel watson
-            // we always send watson since dump itself can have valuable data
-            var exitCode = 0;
-
-            try
-            {
-                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
-                if (!Directory.Exists(logPath))
-                {
-                    return exitCode;
-                }
-
-                // attach all log files that are modified less than 1 day before.
-                var now = DateTime.UtcNow;
-                var oneDay = TimeSpan.FromDays(1);
-
-                foreach (var file in Directory.EnumerateFiles(logPath, "*.log"))
-                {
-                    var lastWrite = File.GetLastWriteTimeUtc(file);
-                    if (now - lastWrite > oneDay)
-                    {
-                        continue;
-                    }
-
-                    faultUtility.AddFile(file);
-                }
-            }
-            catch (Exception)
-            {
-                // it is okay to fail on reporting watson
-            }
-
-            return exitCode;
+            FatalError.ReportWithoutCrash(exception);
         }
 
         private SoftCrashException CreateSoftCrashException(Exception ex, CancellationToken cancellationToken)

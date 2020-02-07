@@ -10,6 +10,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -82,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         combinedCancellationToken.Token).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) when (_endPoint.ReportAndPropagateUnexpectedException(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -97,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 return Task.FromResult(_workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
             }
-            catch (Exception ex) when (_endPoint.ReportAndPropagateUnexpectedException(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

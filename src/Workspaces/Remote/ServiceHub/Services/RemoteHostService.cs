@@ -181,14 +181,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
             EnsureCulture(uiCultureLCID, cultureLCID);
 
+            WatsonReporter.InitializeFatalErrorHandlers(session);
+            WatsonReporter.InitializeLogger(Logger);
+
             // set roslyn loggers
             RoslynServices.SetTelemetrySession(session);
 
             RoslynLogger.SetLogger(AggregateLogger.Create(new VSTelemetryLogger(session), RoslynLogger.GetLogger()));
-
-            // set both handler as NFW
-            FatalError.Handler = ex => WatsonReporter.Report(ex, WatsonSeverity.Critical);
-            FatalError.NonFatalHandler = ex => WatsonReporter.Report(ex);
 
             // start performance reporter
             var diagnosticAnalyzerPerformanceTracker = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
@@ -218,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private static bool ExpectedCultureIssue(Exception ex)
         {
             // report exception
-            WatsonReporter.Report(ex);
+            WatsonReporter.ReportNonFatal(ex);
 
             // ignore expected exception
             return ex is ArgumentOutOfRangeException || ex is CultureNotFoundException;
