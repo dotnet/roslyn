@@ -2097,7 +2097,7 @@ tryAgain:
                     _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
 
                     // Any expression is allowed, not just expression statements:
-                    var statement = this.TryParseStatementNoDeclaration(attributes, allowAnyExpression: true);
+                    var statement = this.TryParseStatementNoDeclaration((attributes, allowAnyExpression: true));
 
                     _termState = saveTerm;
                     if (statement != null)
@@ -6284,7 +6284,7 @@ done:;
         /// <returns><c>null</c> when a statement cannot be parsed at this location.</returns>
         private StatementSyntax TryParseStatementCore()
         {
-            var resetPointBeforeStatement = this.GetResetPoint();
+            var resetPointBeforeStatement = ref this.GetResetPoint();
             try
             {
                 _recursionDepth++;
@@ -6300,7 +6300,7 @@ done:;
                 // parse the actual construct that follows.
                 var attributes = this.ParseAttributeDeclarations();
 
-                StatementSyntax result = TryParseStatementNoDeclaration(attributes, allowAnyExpression: false);
+                StatementSyntax result = TryParseStatementNoDeclaration((attributes, false));
                 if (result != null)
                 {
                     return result;
@@ -6393,7 +6393,7 @@ done:;
 
             this.Reset(ref resetPointBeforeStatement);
             IsInAsync = true;
-            result = TryParseStatementNoDeclaration(attributes, allowAnyExpression: false);
+            result = TryParseStatementNoDeclaration((attributes, allowAnyExpression: false));
             IsInAsync = false;
 
             if (!result.ContainsDiagnostics)
@@ -6421,60 +6421,59 @@ done:;
         /// Variable declarations in global code are parsed as field declarations so we need to fallback if we encounter a declaration statement.
         /// </remarks>
         /// <returns><c>null</c> when a statement cannot be parsed at this location.</returns>
-        private StatementSyntax TryParseStatementNoDeclaration(SyntaxList<AttributeListSyntax> attributes, bool allowAnyExpression)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private StatementSyntax TryParseStatementNoDeclaration((SyntaxList<AttributeListSyntax> attributes, bool allowAnyExpression) args)
         {
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.FixedKeyword:
-                    return this.ParseFixedStatement(attributes);
-                case SyntaxKind.BreakKeyword:
-                    return this.ParseBreakStatement(attributes);
-                case SyntaxKind.ContinueKeyword:
-                    return this.ParseContinueStatement(attributes);
+                    return this.ParseFixedStatement(args.attributes);
                 case SyntaxKind.TryKeyword:
                 case SyntaxKind.CatchKeyword:
                 case SyntaxKind.FinallyKeyword:
-                    return this.ParseTryStatement(attributes);
+                    return this.ParseTryStatement(args.attributes);
                 case SyntaxKind.CheckedKeyword:
                 case SyntaxKind.UncheckedKeyword:
-                    return this.ParseCheckedStatement(attributes);
-                case SyntaxKind.ConstKeyword:
-                    return null;
+                    return this.ParseCheckedStatement(args.attributes);
                 case SyntaxKind.DoKeyword:
-                    return this.ParseDoStatement(attributes);
+                    return this.ParseDoStatement(args.attributes);
                 case SyntaxKind.ForKeyword:
-                    return this.ParseForOrForEachStatement(attributes);
-                case SyntaxKind.GotoKeyword:
-                    return this.ParseGotoStatement(attributes);
+                    return this.ParseForOrForEachStatement(args.attributes);
                 case SyntaxKind.IfKeyword:
                 case SyntaxKind.ElseKeyword: // Including 'else' keyword to handle 'else without if' error cases 
-                    return this.ParseIfStatement(attributes);
+                    return this.ParseIfStatement(args.attributes);
                 case SyntaxKind.LockKeyword:
-                    return this.ParseLockStatement(attributes);
-                case SyntaxKind.ReturnKeyword:
-                    return this.ParseReturnStatement(attributes);
+                    return this.ParseLockStatement(args.attributes);
                 case SyntaxKind.SwitchKeyword:
-                    return this.ParseSwitchStatement(attributes);
-                case SyntaxKind.ThrowKeyword:
-                    return this.ParseThrowStatement(attributes);
+                    return this.ParseSwitchStatement(args.attributes);
                 case SyntaxKind.WhileKeyword:
-                    return this.ParseWhileStatement(attributes);
+                    return this.ParseWhileStatement(args.attributes);
                 case SyntaxKind.OpenBraceToken:
-                    return this.ParseBlock(attributes);
+                    return this.ParseBlock(args.attributes);
                 case SyntaxKind.ForEachKeyword:
-                    return this.ParseForEachStatement(attributes, awaitTokenOpt: null);
+                    return this.ParseForEachStatement(args.attributes, awaitTokenOpt: null);
                 default:
                     // Factoring out more complex switch cases in order to get this method
                     // to inline or tail call for cases which are more likely to use deep nesting.
-                    return tryParseComplexStatement();
+                    return tryParseComplexStatement(args.attributes, args.allowAnyExpression);
             }
 
-            // note that variable captures of this kind are expected to just pass a struct by ref.
-            // so there's not an additional stack or heap allocation cost.
-            StatementSyntax tryParseComplexStatement()
+            StatementSyntax tryParseComplexStatement(SyntaxList<AttributeListSyntax> attributes, bool allowAnyExpression)
             {
                 switch (this.CurrentToken.Kind)
                 {
+                    case SyntaxKind.ReturnKeyword:
+                        return this.ParseReturnStatement(attributes);
+                    case SyntaxKind.GotoKeyword:
+                        return this.ParseGotoStatement(attributes);
+                    case SyntaxKind.ConstKeyword:
+                        return null;
+                    case SyntaxKind.BreakKeyword:
+                        return this.ParseBreakStatement(attributes);
+                    case SyntaxKind.ContinueKeyword:
+                        return this.ParseContinueStatement(attributes);
+                    case SyntaxKind.ThrowKeyword:
+                        return this.ParseThrowStatement(attributes);
                     case SyntaxKind.UnsafeKeyword:
                         // Checking for brace to disambiguate between unsafe statement and unsafe local function
                         if (this.IsPossibleUnsafeStatement())
@@ -7756,8 +7755,20 @@ tryAgain:
             var statement = firstTokenIsElse
                 ? this.ParseExpressionStatement(attributes: default)
                 : this.ParseEmbeddedStatement();
-            var elseClause = this.ParseElseClauseOpt();
+            return ParseIfStatementContinued(attributes, @if, openParen, condition, closeParen, statement);
+        }
 
+        // factored out to reduce stack pressure for highly nested if statements.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private IfStatementSyntax ParseIfStatementContinued(
+            SyntaxList<AttributeListSyntax> attributes,
+            SyntaxToken @if,
+            SyntaxToken openParen,
+            ExpressionSyntax condition,
+            SyntaxToken closeParen,
+            StatementSyntax statement)
+        {
+            var elseClause = this.ParseElseClauseOpt();
             return _syntaxFactory.IfStatement(attributes, @if, openParen, condition, closeParen, statement, elseClause);
         }
 
