@@ -2445,7 +2445,7 @@ $@"{{
 
             incrementOps("++", "nint", "nint nint.op_Increment(nint value)", useChecked: false,
                 values: $"{int.MinValue}, -1, 0, {int.MaxValue - 1}, {int.MaxValue}",
-                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "0" : "2147483648")}",
+                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "-2147483648" : "2147483648")}",
 @"{
   // Code size        7 (0x7)
   .maxstack  2
@@ -2816,7 +2816,7 @@ class Program
 
             incrementOps("++", "nint", "nint nint.op_Increment(nint value)",
                 values: $"{int.MinValue}, -1, 0, {int.MaxValue - 1}, {int.MaxValue}",
-                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "0" : "2147483648")}",
+                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "-2147483648" : "2147483648")}",
 @"{
   // Code size        7 (0x7)
   .maxstack  3
