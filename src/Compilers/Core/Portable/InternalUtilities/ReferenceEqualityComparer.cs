@@ -32,7 +32,7 @@ namespace Roslyn.Utilities
 
         public static int GetHashCode(object? a)
         {
-            return RuntimeHelpers.GetHashCode(a);
+            return a is object ? RuntimeHelpers.GetHashCode(a) : 0;
         }
     }
 }

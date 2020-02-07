@@ -278,7 +278,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             int code = (int)(flags) ^ kind;
             // the only child is never null
-            code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child1), code);
+            code = Hash.Combine(
+                child1 is object ? System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child1) : 0,
+                code);
 
             // ensure nonnegative hash
             return code & Int32.MaxValue;
