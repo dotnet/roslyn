@@ -870,7 +870,6 @@ End Class</text>.Value
                     clrt:=ContainedLanguageRenameType.CLRT_CLASSMEMBER,
                     oldFullyQualifiedName:="_Default.Page_Load",
                     newFullyQualifiedName:="_Default.Page_Load1",
-                    refactorNotifyServices:=SpecializedCollections.EmptyEnumerable(Of IRefactorNotifyService),
                     cancellationToken:=Nothing)
 
                 Assert.True(renameSucceeded)
@@ -895,7 +894,6 @@ End Class</text>.Value
                     clrt:=ContainedLanguageRenameType.CLRT_CLASSMEMBER,
                     oldFullyQualifiedName:="_Default.Fictional",
                     newFullyQualifiedName:="_Default.Fictional1",
-                    refactorNotifyServices:=SpecializedCollections.EmptyEnumerable(Of IRefactorNotifyService),
                     cancellationToken:=Nothing)
 
                 Assert.False(renameSucceeded)
@@ -915,7 +913,6 @@ End Class</text>.Value
                     clrt:=ContainedLanguageRenameType.CLRT_CLASS,
                     oldFullyQualifiedName:="Goo",
                     newFullyQualifiedName:="Bar",
-                    refactorNotifyServices:=SpecializedCollections.EmptyEnumerable(Of IRefactorNotifyService),
                     cancellationToken:=Nothing)
 
                 Assert.True(renameSucceeded)
@@ -934,7 +931,6 @@ End Namespace</text>.Value
                     clrt:=ContainedLanguageRenameType.CLRT_NAMESPACE,
                     oldFullyQualifiedName:="Goo",
                     newFullyQualifiedName:="Bar",
-                    refactorNotifyServices:=SpecializedCollections.EmptyEnumerable(Of IRefactorNotifyService),
                     cancellationToken:=Nothing)
 
                 Assert.True(renameSucceeded)
@@ -964,7 +960,6 @@ End Class</text>.Value
                     clrt:=ContainedLanguageRenameType.CLRT_CLASSMEMBER,
                     oldFullyQualifiedName:="_Default.button",
                     newFullyQualifiedName:="_Default.button1",
-                    refactorNotifyServices:=SpecializedCollections.EmptyEnumerable(Of IRefactorNotifyService),
                     cancellationToken:=Nothing)
 
                 Assert.True(renameSucceeded)
