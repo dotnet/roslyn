@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 Document document, int position,
                 SyntaxNode root, SourceText sourceText,
                 bool useTabs, int tabSize,
-                IndentStyle indentStyle, 
+                IndentStyle indentStyle,
                 SyntaxTriviaList newLineTrivia, CancellationToken cancellationToken)
             {
                 Document = document;
