@@ -95,12 +95,12 @@ namespace SampleNamespace
         }
     }
 }";
-            
+
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 20, 13, 30), after);
         }
 
         [Fact]
-        public async Task should_replace_empty_list_creation_with_array_empty_for_arrow_expression()
+        public async Task ShouldReplaceEmptyLisCreationWithArrayEmptyForArrowExpression()
         {
             var before = @"
 using System;
@@ -132,7 +132,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(11, 48, 11, 63), after);
         }
         [Fact]
-        public async Task should_replace_empty_list_creation_with_array_empty_for_readonly_property()
+        public async Task ShouldReplaceEmptyListCreationWithArrayEmptyForReadonlyProperty()
         {
             var before = @"
 using System;
@@ -164,7 +164,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(11, 59, 11, 74), after);
         }
         [Fact]
-        public async Task should_replace_empty_list_with_creation_with_predefined_size_with_array_empty()
+        public async Task ShouldReplaceEmptyListWithCreationWithPredefinedSizeWithArrayEmpty()
         {
             var before = @"
 using System;
@@ -202,7 +202,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 20, 13, 37), after);
         }
         [Fact]
-        public async Task should_not_propose_code_fix_when_non_empty_list_created()
+        public async Task ShouldNotProposeCodeFixWhenNonEmptyListCreated()
         {
             var code = @"
 using System;
@@ -224,7 +224,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(code, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 20, 13, 41), code);
         }
         [Fact]
-        public async Task should_not_propose_code_fix_when_return_type_inherit_form_enumerable()
+        public async Task ShouldNotProposeCodeFixWhenReturnTypeInheritFormEnumerable()
         {
             var code = @"
 using System;
@@ -246,7 +246,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(code, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 20, 13, 35), code);
         }
         [Fact]
-        public async Task should_not_propose_code_fix_when_for_collection_creation_using_copy_constructor()
+        public async Task ShouldNotProposeCodeFixWhenForCollectionCreationUsingCopyConstructor()
         {
             var code = @"
 using System;
@@ -267,7 +267,7 @@ namespace SampleNamespace
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(code, 
+            await VerifyCS.VerifyCodeFixAsync(code,
                 new[]
                 {
                     VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(14, 29, 14, 50),
@@ -275,7 +275,7 @@ namespace SampleNamespace
                 }, code);
         }
         [Fact]
-        public async Task should_replace_empty_collection_creation_with_array_empty()
+        public async Task ShouldReplacEmptyCollectionCreationWithArrayEmpty()
         {
             var before = @"
 using System;
@@ -315,7 +315,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(14, 20, 14, 41), after);
         }
         [Fact]
-        public async Task should_replace_empty_array_creation_with_array_empty()
+        public async Task ShouldReplaceEmptyArrayCreationWithArrayEmpty()
         {
             var before = @"
 using System;
@@ -353,7 +353,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 20, 13, 30), after);
         }
         [Fact]
-        public async Task should_not_propose_code_fix_when_non_empty_array_creation()
+        public async Task ShouldNotProposeCodeFixWhenNonEmptyArrayCreation()
         {
             var code = @"
 using System;
@@ -375,7 +375,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(code, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 20, 13, 35), code);
         }
         [Fact]
-        public async Task should_replace_empty_array_creation_with_init_block_with_array_empty()
+        public async Task ShouldReplaceEmptyArrayCreationWithInitBlockWithArrayEmpty()
         {
             var before = @"
 using System;
@@ -413,7 +413,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 20, 13, 33), after);
         }
         [Fact]
-        public async Task should_replace_list_creation_as_method_invocation_parameter_with_array_empty()
+        public async Task ShouldReplaceListCreationAsMethodInvocationParameterWithArrayEmpty()
         {
             var before = @"
 using System;
@@ -461,7 +461,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(13, 16, 13, 31), after);
         }
         [Fact]
-        public async Task should_replace_array_creation_as_method_invocation_parameter_with_array_empty()
+        public async Task ShouldReplaceArrayCreationAsMethodInvocationParameterWithArrayEmpty()
         {
             var before = @"
 using System;
@@ -509,7 +509,7 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(before, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 16, 13, 26), after);
         }
         [Fact]
-        public async Task should_replace_array_creation_as_delegate_invocation_parameter_with_array_empty()
+        public async Task ShouldReplaceArrayCreationAsDelegateInvocationParameterWithArrayEmpty()
         {
             var before = @"
 using System;
