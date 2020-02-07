@@ -77,6 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         private static void CheckParam(InvocationExpressionSyntax invocationExpression, IMethodSymbol methodInfo, SemanticModel semanticModel, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             var arguments = invocationExpression.ArgumentList.Arguments;
+            if (arguments.Count == methodInfo.Parameters.Length - 1)
+            {
+                return;
+            }
+
             if (arguments.Count != methodInfo.Parameters.Length)
             {
                 reportDiagnostic(Diagnostic.Create(ParamsParameterRule, invocationExpression.GetLocation(), EmptyMessageArgs));
