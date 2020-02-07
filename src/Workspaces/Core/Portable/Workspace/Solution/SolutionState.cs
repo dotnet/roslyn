@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis
         private readonly IReadOnlyList<ProjectId> _projectIds;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
-        private readonly Lazy<VersionStamp> _lazyLatestProjectVersion;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
         // Values for all these are created on demand.
@@ -63,8 +62,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
-            ProjectDependencyGraph dependencyGraph,
-            Lazy<VersionStamp> lazyLatestProjectVersion)
+            ProjectDependencyGraph dependencyGraph)
         {
             _branchId = branchId;
             _workspaceVersion = workspaceVersion;
@@ -76,7 +74,6 @@ namespace Microsoft.CodeAnalysis
             _projectIdToTrackerMap = projectIdToTrackerMap;
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
             _dependencyGraph = dependencyGraph;
-            _lazyLatestProjectVersion = lazyLatestProjectVersion;
 
             // when solution state is changed, we re-calcuate its checksum
             _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
@@ -99,12 +96,8 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
                 filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
-                dependencyGraph: ProjectDependencyGraph.Empty,
-#nullable disable warnings // we are passing null here but we're immediately overwriting it -- better to keep the parameter non-null
-                lazyLatestProjectVersion: null)
-#nullable enable warnings
+                dependencyGraph: ProjectDependencyGraph.Empty)
         {
-            _lazyLatestProjectVersion = new Lazy<VersionStamp>(() => ComputeLatestProjectVersion());
         }
 
         public SolutionState WithNewWorkspace(Workspace workspace, int workspaceVersion)
@@ -116,19 +109,6 @@ namespace Microsoft.CodeAnalysis
             // Note: this will potentially have problems if the workspace services are different, as some services
             // get locked-in by document states and project states when first constructed.
             return CreatePrimarySolution(branchId: workspace.PrimaryBranchId, workspaceVersion: workspaceVersion, services: services);
-        }
-
-        private VersionStamp ComputeLatestProjectVersion()
-        {
-            // this may produce a version that is out of sync with the actual Document versions.
-            var latestVersion = VersionStamp.Default;
-            foreach (var projectId in this.ProjectIds)
-            {
-                var project = this.GetProjectState(projectId);
-                latestVersion = project!.Version.GetNewerVersion(latestVersion);
-            }
-
-            return latestVersion;
         }
 
         public SolutionInfo.SolutionAttributes SolutionAttributes => _solutionAttributes;
@@ -195,8 +175,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, CompilationTracker>? projectIdToTrackerMap = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? filePathToDocumentIdsMap = null,
-            ProjectDependencyGraph? dependencyGraph = null,
-            Lazy<VersionStamp>? lazyLatestProjectVersion = null)
+            ProjectDependencyGraph? dependencyGraph = null)
         {
             var branchId = GetBranchId();
 
@@ -207,7 +186,6 @@ namespace Microsoft.CodeAnalysis
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
             dependencyGraph ??= _dependencyGraph;
-            lazyLatestProjectVersion ??= _lazyLatestProjectVersion;
 
             if (branchId == _branchId &&
                 solutionAttributes == _solutionAttributes &&
@@ -216,8 +194,7 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap == _projectIdToProjectStateMap &&
                 projectIdToTrackerMap == _projectIdToTrackerMap &&
                 filePathToDocumentIdsMap == _filePathToDocumentIdsMap &&
-                dependencyGraph == _dependencyGraph &&
-                lazyLatestProjectVersion == _lazyLatestProjectVersion)
+                dependencyGraph == _dependencyGraph)
             {
                 return this;
             }
@@ -233,8 +210,7 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap,
                 projectIdToTrackerMap,
                 filePathToDocumentIdsMap,
-                dependencyGraph,
-                lazyLatestProjectVersion);
+                dependencyGraph);
         }
 
         private SolutionState CreatePrimarySolution(
@@ -259,8 +235,7 @@ namespace Microsoft.CodeAnalysis
                 _projectIdToProjectStateMap,
                 _projectIdToTrackerMap,
                 _filePathToDocumentIdsMap,
-                _dependencyGraph,
-                _lazyLatestProjectVersion);
+                _dependencyGraph);
         }
 
         private BranchId GetBranchId()
@@ -277,7 +252,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public VersionStamp GetLatestProjectVersion()
         {
-            return _lazyLatestProjectVersion.Value;
+            // this may produce a version that is out of sync with the actual Document versions.
+            var latestVersion = VersionStamp.Default;
+            foreach (var project in this.ProjectStates.Values)
+            {
+                latestVersion = project.Version.GetNewerVersion(latestVersion);
+            }
+
+            return latestVersion;
         }
 
         /// <summary>
@@ -489,8 +471,7 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
-                dependencyGraph: newDependencyGraph,
-                lazyLatestProjectVersion: new Lazy<VersionStamp>(() => projectState.Version)); // this is the newest!
+                dependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
@@ -1772,15 +1753,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var modifiedDocumentOnly = translate is CompilationTranslationAction.TouchDocumentAction;
-            var newLatestProjectVersion = modifiedDocumentOnly ? _lazyLatestProjectVersion : new Lazy<VersionStamp>(() => newProjectState.Version);
-
             return this.Branch(
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
                 dependencyGraph: newDependencyGraph,
-                filePathToDocumentIdsMap: newFilePathToDocumentIdsMap ?? _filePathToDocumentIdsMap,
-                lazyLatestProjectVersion: newLatestProjectVersion);
+                filePathToDocumentIdsMap: newFilePathToDocumentIdsMap ?? _filePathToDocumentIdsMap);
         }
 
         /// <summary>
