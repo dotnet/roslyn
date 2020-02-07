@@ -797,9 +797,15 @@ public struct MyStruct
         Array.Sort(ints, (x, y) => x - y);
         DoSomething(() => throw new Exception());
         DoSomething(delegate() { throw new Exception(); });
+
+        DoSomething2(x => throw new Exception());
     }
 
     private static void DoSomething(Action action)
+    {
+    }
+
+    private static void DoSomething2(Action<int> action)
     {
     }
 }
