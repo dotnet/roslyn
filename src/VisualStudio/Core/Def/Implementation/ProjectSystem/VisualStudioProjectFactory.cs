@@ -21,6 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     [Export(typeof(VisualStudioProjectFactory))]
     internal sealed class VisualStudioProjectFactory
     {
+        private const string SolutionContextName = "Solution";
+        private const string SolutionSessionIdPropertyName = "SolutionSessionID";
+
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
@@ -120,9 +123,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             static Guid GetSolutionSessionId()
             {
-                var solutionContext = TelemetryHelper.DataModelTelemetrySession.GetContext("Solution");
+                var solutionContext = TelemetryHelper.DataModelTelemetrySession.GetContext(SolutionContextName);
                 var sessionIdProperty = solutionContext is object
-                    ? (string)solutionContext.SharedProperties["SolutionSessionID"]
+                    ? (string)solutionContext.SharedProperties[SolutionSessionIdPropertyName]
                     : "";
                 _ = Guid.TryParse(sessionIdProperty, out var solutionSessionId);
                 return solutionSessionId;
