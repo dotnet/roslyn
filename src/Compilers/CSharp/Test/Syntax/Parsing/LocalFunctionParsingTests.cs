@@ -828,7 +828,6 @@ class C
         [A] object local;
     }
 }", TestOptions.RegularPreview);
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -853,18 +852,6 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.AttributeList);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Attribute);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "A");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
                                 N(SyntaxKind.VariableDeclaration);
                                 {
                                     N(SyntaxKind.PredefinedType);
@@ -908,7 +895,6 @@ class C
         [A] object local1, local2;
     }
 }", TestOptions.RegularPreview);
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -933,18 +919,6 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.AttributeList);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Attribute);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "A");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
                                 N(SyntaxKind.VariableDeclaration);
                                 {
                                     N(SyntaxKind.PredefinedType);
@@ -1019,20 +993,8 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.ExpressionStatement);
+                            M(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.AttributeList);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Attribute);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "A");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
                                 M(SyntaxKind.IdentifierName);
                                 {
                                     M(SyntaxKind.IdentifierToken);
@@ -1049,12 +1011,12 @@ class C
             EOF();
 
             tree.GetDiagnostics().Verify(
-                // (6,12): error CS1525: Invalid expression term '}'
-                //         [A]
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 12),
-                // (6,12): error CS1002: ; expected
-                //         [A]
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 12)
+                // (5,6): error CS1525: Invalid expression term '}'
+                //     {
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(5, 6),
+                // (5,6): error CS1002: ; expected
+                //     {
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 6)
             );
         }
 

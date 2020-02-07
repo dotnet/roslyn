@@ -24,9 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return semicolon.IsMissing && !semicolon.ContainsDiagnostics;
             }
         }
-
-        public ExpressionStatementSyntax Update(ExpressionSyntax expression, SyntaxToken semicolonToken)
-            => Update(attributeLists: default, expression, semicolonToken);
     }
 }
 
@@ -34,7 +31,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class SyntaxFactory
     {
-        public static ExpressionStatementSyntax ExpressionStatement(ExpressionSyntax expression, SyntaxToken semicolonToken)
-            => ExpressionStatement(attributeLists: default, expression, semicolonToken);
     }
 }

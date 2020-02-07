@@ -169,7 +169,7 @@ argument_list
   ;
 
 block
-  : attribute_list* '{' statement* '}'
+  : '{' statement* '}'
   ;
 
 arrow_expression_clause
@@ -406,11 +406,12 @@ statement
   ;
 
 break_statement
-  : attribute_list* 'break' ';'
+  : 'break' ';'
   ;
 
 checked_statement
-  : attribute_list* ('checked' | 'unchecked') block
+  : 'checked' block
+  | 'unchecked' block
   ;
 
 common_for_each_statement
@@ -419,43 +420,43 @@ common_for_each_statement
   ;
 
 for_each_statement
-  : attribute_list* 'await'? 'foreach' '(' type identifier_token 'in' expression ')' statement
+  : 'await'? 'foreach' '(' type identifier_token 'in' expression ')' statement
   ;
 
 for_each_variable_statement
-  : attribute_list* 'await'? 'foreach' '(' expression 'in' expression ')' statement
+  : 'await'? 'foreach' '(' expression 'in' expression ')' statement
   ;
 
 continue_statement
-  : attribute_list* 'continue' ';'
+  : 'continue' ';'
   ;
 
 do_statement
-  : attribute_list* 'do' statement 'while' '(' expression ')' ';'
+  : 'do' statement 'while' '(' expression ')' ';'
   ;
 
 empty_statement
-  : attribute_list* ';'
+  : ';'
   ;
 
 expression_statement
-  : attribute_list* expression ';'
+  : expression ';'
   ;
 
 fixed_statement
-  : attribute_list* 'fixed' '(' variable_declaration ')' statement
+  : 'fixed' '(' variable_declaration ')' statement
   ;
 
 for_statement
-  : attribute_list* 'for' '(' (variable_declaration? | (expression (',' expression)*)?) ';' expression? ';' (expression (',' expression)*)? ')' statement
+  : 'for' '(' (variable_declaration? | (expression (',' expression)*)?) ';' expression? ';' (expression (',' expression)*)? ')' statement
   ;
 
 goto_statement
-  : attribute_list* 'goto' ('case' | 'default')? expression? ';'
+  : 'goto' ('case' | 'default')? expression? ';'
   ;
 
 if_statement
-  : attribute_list* 'if' '(' expression ')' statement else_clause?
+  : 'if' '(' expression ')' statement else_clause?
   ;
 
 else_clause
@@ -463,11 +464,11 @@ else_clause
   ;
 
 labeled_statement
-  : attribute_list* identifier_token ':' statement
+  : identifier_token ':' statement
   ;
 
 local_declaration_statement
-  : attribute_list* 'await'? 'using'? modifier* variable_declaration ';'
+  : 'await'? 'using'? modifier* variable_declaration ';'
   ;
 
 local_function_statement
@@ -475,15 +476,15 @@ local_function_statement
   ;
 
 lock_statement
-  : attribute_list* 'lock' '(' expression ')' statement
+  : 'lock' '(' expression ')' statement
   ;
 
 return_statement
-  : attribute_list* 'return' expression? ';'
+  : 'return' expression? ';'
   ;
 
 switch_statement
-  : attribute_list* 'switch' '('? expression ')'? '{' switch_section* '}'
+  : 'switch' '('? expression ')'? '{' switch_section* '}'
   ;
 
 switch_section
@@ -571,11 +572,11 @@ default_switch_label
   ;
 
 throw_statement
-  : attribute_list* 'throw' expression? ';'
+  : 'throw' expression? ';'
   ;
 
 try_statement
-  : attribute_list* 'try' block catch_clause* finally_clause?
+  : 'try' block catch_clause* finally_clause?
   ;
 
 catch_clause
@@ -595,19 +596,19 @@ finally_clause
   ;
 
 unsafe_statement
-  : attribute_list* 'unsafe' block
+  : 'unsafe' block
   ;
 
 using_statement
-  : attribute_list* 'await'? 'using' '(' (variable_declaration | expression) ')' statement
+  : 'await'? 'using' '(' (variable_declaration | expression) ')' statement
   ;
 
 while_statement
-  : attribute_list* 'while' '(' expression ')' statement
+  : 'while' '(' expression ')' statement
   ;
 
 yield_statement
-  : attribute_list* 'yield' ('return' | 'break') expression? ';'
+  : 'yield' ('return' | 'break') expression? ';'
   ;
 
 expression
