@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -45,6 +46,11 @@ namespace Analyzer.Utilities
         ///     Analyzer.Utilities.SymbolNamesWithValueOption.MyProperty -> ""
         /// </example>
         private readonly ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> _wildcardNamesBySymbolKind;
+
+        /// <summary>
+        /// Cache for the wildcard matching algorithm. The current implementation can be slow so we want to make sure that once a match is performed we save its result.
+        /// </summary>
+        private readonly ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>> _wildcardMatchResult = new ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>>();
 
         private SymbolNamesWithValueOption(ImmutableDictionary<string, TValue> names, ImmutableDictionary<ISymbol, TValue> symbols,
             ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> wildcardNamesBySymbolKind)
@@ -255,13 +261,19 @@ namespace Analyzer.Utilities
 
             Debug.Assert(symbol.Kind == SymbolKind.Event || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Method || symbol.Kind == SymbolKind.NamedType || symbol.Kind == SymbolKind.Namespace || symbol.Kind == SymbolKind.Property);
 
+            // The matching was already processed
+            if (_wildcardMatchResult.ContainsKey(symbol))
+            {
+                firstMatch = _wildcardMatchResult[symbol];
+                return !firstMatch.Equals(NoWildcardMatch);
+            }
+
             var symbolFullNameBuilder = new StringBuilder();
             var symbolKindsToCheck = new HashSet<SymbolKind> { symbol.Kind };
 
             // Try a partial check on the symbol...
             if (TryGetSymbolPartialMatch(symbolFullNameBuilder, symbol, out firstMatch))
             {
-                Debug.Assert(!string.IsNullOrWhiteSpace(firstMatch.Key));
                 return true;
             }
 
@@ -271,7 +283,6 @@ namespace Analyzer.Utilities
             {
                 if (TryGetSymbolPartialMatch(symbolFullNameBuilder, currentType, out firstMatch))
                 {
-                    Debug.Assert(!string.IsNullOrWhiteSpace(firstMatch.Key));
                     return true;
                 }
 
@@ -285,7 +296,6 @@ namespace Analyzer.Utilities
             {
                 if (TryGetSymbolPartialMatch(symbolFullNameBuilder, currentNamespace, out firstMatch))
                 {
-                    Debug.Assert(!string.IsNullOrWhiteSpace(firstMatch.Key));
                     return true;
                 }
 
@@ -308,15 +318,16 @@ namespace Analyzer.Utilities
 
                 if (TryGetFirstWildcardMatch(kind, symbolFullName, out firstMatch))
                 {
-                    Debug.Assert(!string.IsNullOrWhiteSpace(firstMatch.Key));
                     return true;
                 }
             }
 
             // ...No match
             Debug.Assert(firstMatch.Equals(NoWildcardMatch));
+            _wildcardMatchResult.AddOrUpdate(symbol, NoWildcardMatch, (s, kvp) => NoWildcardMatch);
             return false;
 
+            // Local functions.
             bool TryGetSymbolPartialMatch(StringBuilder builder, ISymbol symbol, out KeyValuePair<string, TValue> firstMatch)
             {
                 if (builder.Length > 0)
@@ -338,7 +349,15 @@ namespace Analyzer.Utilities
                 }
 
                 firstMatch = _wildcardNamesBySymbolKind[kind].FirstOrDefault(x => symbolName.StartsWith(x.Key, StringComparison.Ordinal));
-                return firstMatch.Key != null;
+
+                if (string.IsNullOrWhiteSpace(firstMatch.Key))
+                {
+                    return false;
+                }
+
+                var match = firstMatch;
+                _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, kvp) => match);
+                return true;
             }
         }
 
