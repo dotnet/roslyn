@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
             public string? FilePath { get; }
 
             /// <summary>
-            /// The id report during telementry events.
+            /// The id report during telemetry events.
             /// </summary>
             public Guid TelemetryId { get; }
 

@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis
             public bool RunAnalyzers { get; }
 
             /// <summary>
-            /// The id report during telementry events.
+            /// The id report during telemetry events.
             /// </summary>
             public Guid TelemetryId { get; }
 
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis
                 var isSubmission = reader.ReadBoolean();
                 var hasAllInformation = reader.ReadBoolean();
                 var runAnalyzers = reader.ReadBoolean();
-                var telementryId = reader.ReadGuid();
+                var telemetryId = reader.ReadGuid();
 
                 return new ProjectAttributes(
                     projectId,
@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis
                     isSubmission,
                     hasAllInformation,
                     runAnalyzers,
-                    telementryId);
+                    telemetryId);
             }
 
             Checksum IChecksummedObject.Checksum
