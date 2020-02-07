@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
-    <DefineConstants>$(DefineConstants);NETFX20</DefineConstants>
+    <DefineConstants>$(DefineConstants);NET20</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net20</TargetFramework>
     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
