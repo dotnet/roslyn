@@ -26,7 +26,7 @@ namespace Analyzer.Utilities
         private readonly ImmutableDictionary<ISymbol, TValue> _symbols;
         private readonly ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> _wildcardNamesBySymbolKind;
 
-        private SymbolNamesOption(ImmutableDictionary<string, TValue> names, ImmutableDictionary<ISymbol, TValue> symbols,
+        private SymbolNamesWithValueOption(ImmutableDictionary<string, TValue> names, ImmutableDictionary<ISymbol, TValue> symbols,
             ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> wildcardNamesBySymbolKind)
         {
             Debug.Assert(!names.IsEmpty || !symbols.IsEmpty || !wildcardNamesBySymbolKind.IsEmpty);
@@ -63,96 +63,35 @@ namespace Analyzer.Utilities
                     ? getSymbolNamePartsFunc(symbolName)
                     : new NameParts(symbolName);
 
-                var numberOfWildcards = symbolName.Count(c => c == WildcardChar);
+                var numberOfWildcards = parts.SymbolName.Count(c => c == WildcardChar);
 
-                // More than one wildcard, or wildcard char is not last, bail-out.
-                if (numberOfWildcards > 1 ||
-                    (numberOfWildcards == 1 && symbolName[symbolName.Length - 1] != WildcardChar))
+                // More than one wildcard, bail-out.
+                if (numberOfWildcards > 1)
+                {
+                    continue;
+                }
+
+                // Wildcard is not last or is the only char, bail-out
+                if (numberOfWildcards == 1 &&
+                    (parts.SymbolName[parts.SymbolName.Length - 1] != WildcardChar ||
+                    parts.SymbolName.Length == 1))
                 {
                     continue;
                 }
 
                 if (numberOfWildcards == 1)
                 {
-                    Debug.Assert(parts.SymbolName[parts.SymbolName.Length - 1] == WildcardChar);
-
-                    if (parts.SymbolName[1] != ':')
-                    {
-                        if (!wildcardNamesBuilder.ContainsKey(AllKinds))
-                        {
-                            wildcardNamesBuilder.Add(AllKinds, PooledDictionary<string, TValue>.GetInstance());
-                        }
-                        wildcardNamesBuilder[AllKinds].Add(parts.SymbolName.Substring(0, parts.SymbolName.Length - 1), parts.Value);
-                        continue;
-                    }
-
-                    var symbolKind = parts.SymbolName[0] switch
-                    {
-                        'E' => (SymbolKind?)SymbolKind.Event,
-                        'F' => SymbolKind.Field,
-                        'M' => SymbolKind.Method,
-                        'N' => SymbolKind.Namespace,
-                        'P' => SymbolKind.Property,
-                        'T' => SymbolKind.NamedType,
-                        _ => null,
-                    };
-
-                    if (symbolKind != null)
-                    {
-                        if (!wildcardNamesBuilder.ContainsKey(symbolKind.Value))
-                        {
-                            wildcardNamesBuilder.Add(symbolKind.Value, PooledDictionary<string, TValue>.GetInstance());
-                        }
-                        wildcardNamesBuilder[symbolKind.Value].Add(parts.SymbolName.Substring(2, parts.SymbolName.Length - 3), parts.Value);
-                    }
+                    ProcessWildcardName(parts, wildcardNamesBuilder);
                 }
                 else if (parts.SymbolName.Equals(".ctor", StringComparison.Ordinal) ||
                     parts.SymbolName.Equals(".cctor", StringComparison.Ordinal) ||
                     !parts.SymbolName.Contains(".") && !parts.SymbolName.Contains(":"))
                 {
-                    if (!namesBuilder.ContainsKey(parts.SymbolName))
-                    {
-                        namesBuilder.Add(parts.SymbolName, parts.AssociatedValue);
-                    }
+                    ProcessName(parts, namesBuilder);
                 }
                 else
                 {
-                    var nameWithPrefix = (string.IsNullOrEmpty(optionalPrefix) || parts.SymbolName.StartsWith(optionalPrefix, StringComparison.Ordinal))
-                        ? parts.SymbolName
-                        : optionalPrefix + parts.SymbolName;
-
-#pragma warning disable CA1307 // Specify StringComparison - https://github.com/dotnet/roslyn-analyzers/issues/1552
-                    // Documentation comment ID for constructors uses '#ctor', but '#' is a comment start token for editorconfig.
-                    // We instead search for a '..ctor' in editorconfig and replace it with a '.#ctor' here.
-                    // Similarly, handle static constructors ".cctor"
-                    nameWithPrefix = nameWithPrefix.Replace("..ctor", ".#ctor");
-                    nameWithPrefix = nameWithPrefix.Replace("..cctor", ".#cctor");
-#pragma warning restore
-
-                    foreach (var symbol in DocumentationCommentId.GetSymbolsForDeclarationId(nameWithPrefix, compilation))
-                    {
-                        if (symbol == null)
-                        {
-                            continue;
-                        }
-
-                        if (symbol is INamespaceSymbol namespaceSymbol &&
-                            namespaceSymbol.ConstituentNamespaces.Length > 1)
-                        {
-                            foreach (var constituentNamespace in namespaceSymbol.ConstituentNamespaces)
-                            {
-                                if (!symbolsBuilder.ContainsKey(constituentNamespace))
-                                {
-                                    symbolsBuilder.Add(constituentNamespace, parts.AssociatedValue);
-                                }
-                            }
-                        }
-
-                        if (!symbolsBuilder.ContainsKey(symbol))
-                        {
-                            symbolsBuilder.Add(symbol, parts.AssociatedValue);
-                        }
-                    }
+                    ProcessSymbolName(parts, compilation, optionalPrefix, symbolsBuilder);
                 }
             }
 
@@ -161,8 +100,95 @@ namespace Analyzer.Utilities
                 return Empty;
             }
 
-            return new SymbolNamesOption(namesBuilder.ToImmutableDictionaryAndFree(), symbolsBuilder.ToImmutableDictionaryAndFree(),
-                wildcardNamesBuilder.ToImmutableDictionaryAndFree(x => x.Key, x => x.AssociatedValue.ToImmutableDictionaryAndFree(), wildcardNamesBuilder.Comparer));
+            return new SymbolNamesWithValueOption<TValue>(namesBuilder.ToImmutableDictionaryAndFree(),
+                symbolsBuilder.ToImmutableDictionaryAndFree(),
+                wildcardNamesBuilder.ToImmutableDictionaryAndFree(x => x.Key, x => x.Value.ToImmutableDictionaryAndFree(), wildcardNamesBuilder.Comparer));
+
+            // Local functions
+
+            static void ProcessWildcardName(NameParts parts, PooledDictionary<SymbolKind, PooledDictionary<string, TValue>> wildcardNamesBuilder)
+            {
+                Debug.Assert(parts.SymbolName[parts.SymbolName.Length - 1] == WildcardChar);
+                Debug.Assert(parts.SymbolName.Length >= 2);
+
+                if (parts.SymbolName[1] != ':')
+                {
+                    if (!wildcardNamesBuilder.ContainsKey(AllKinds))
+                    {
+                        wildcardNamesBuilder.Add(AllKinds, PooledDictionary<string, TValue>.GetInstance());
+                    }
+                    wildcardNamesBuilder[AllKinds].Add(parts.SymbolName.Substring(0, parts.SymbolName.Length - 1), parts.AssociatedValue);
+                    return;
+                }
+
+                var symbolKind = parts.SymbolName[0] switch
+                {
+                    'E' => (SymbolKind?)SymbolKind.Event,
+                    'F' => SymbolKind.Field,
+                    'M' => SymbolKind.Method,
+                    'N' => SymbolKind.Namespace,
+                    'P' => SymbolKind.Property,
+                    'T' => SymbolKind.NamedType,
+                    _ => null,
+                };
+
+                if (symbolKind != null)
+                {
+                    if (!wildcardNamesBuilder.ContainsKey(symbolKind.Value))
+                    {
+                        wildcardNamesBuilder.Add(symbolKind.Value, PooledDictionary<string, TValue>.GetInstance());
+                    }
+                    wildcardNamesBuilder[symbolKind.Value].Add(parts.SymbolName.Substring(2, parts.SymbolName.Length - 3), parts.AssociatedValue);
+                }
+            }
+
+            static void ProcessName(NameParts parts, PooledDictionary<string, TValue> namesBuilder)
+            {
+                if (!namesBuilder.ContainsKey(parts.SymbolName))
+                {
+                    namesBuilder.Add(parts.SymbolName, parts.AssociatedValue);
+                }
+            }
+
+            static void ProcessSymbolName(NameParts parts, Compilation compilation, string? optionalPrefix, PooledDictionary<ISymbol, TValue> symbolsBuilder)
+            {
+                var nameWithPrefix = (string.IsNullOrEmpty(optionalPrefix) || parts.SymbolName.StartsWith(optionalPrefix, StringComparison.Ordinal))
+                    ? parts.SymbolName
+                    : optionalPrefix + parts.SymbolName;
+
+#pragma warning disable CA1307 // Specify StringComparison - https://github.com/dotnet/roslyn-analyzers/issues/1552
+                // Documentation comment ID for constructors uses '#ctor', but '#' is a comment start token for editorconfig.
+                // We instead search for a '..ctor' in editorconfig and replace it with a '.#ctor' here.
+                // Similarly, handle static constructors ".cctor"
+                nameWithPrefix = nameWithPrefix.Replace("..ctor", ".#ctor");
+                nameWithPrefix = nameWithPrefix.Replace("..cctor", ".#cctor");
+#pragma warning restore
+
+                foreach (var symbol in DocumentationCommentId.GetSymbolsForDeclarationId(nameWithPrefix, compilation))
+                {
+                    if (symbol == null)
+                    {
+                        continue;
+                    }
+
+                    if (symbol is INamespaceSymbol namespaceSymbol &&
+                        namespaceSymbol.ConstituentNamespaces.Length > 1)
+                    {
+                        foreach (var constituentNamespace in namespaceSymbol.ConstituentNamespaces)
+                        {
+                            if (!symbolsBuilder.ContainsKey(constituentNamespace))
+                            {
+                                symbolsBuilder.Add(constituentNamespace, parts.AssociatedValue);
+                            }
+                        }
+                    }
+
+                    if (!symbolsBuilder.ContainsKey(symbol))
+                    {
+                        symbolsBuilder.Add(symbol, parts.AssociatedValue);
+                    }
+                }
+            }
         }
 
         public bool IsEmpty => ReferenceEquals(this, Empty);
@@ -186,7 +212,7 @@ namespace Analyzer.Utilities
                 return true;
             }
 
-            value = null;
+            value = default;
             return false;
         }
 

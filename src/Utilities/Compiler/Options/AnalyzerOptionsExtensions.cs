@@ -133,35 +133,35 @@ namespace Analyzer.Utilities
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesWithValueOption(EditorConfigOptionNames.NullCheckValidationMethods, rule, compilation, cancellationToken, namePrefixOpt: "M:");
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.NullCheckValidationMethods, rule, compilation, cancellationToken, namePrefixOpt: "M:");
 
         public static SymbolNamesWithValueOption<Unit> GetAdditionalStringFormattingMethodsOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesOption(EditorConfigOptionNames.AdditionalStringFormattingMethods, rule, compilation, cancellationToken, namePrefixOpt: "M:");
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalStringFormattingMethods, rule, compilation, cancellationToken, namePrefixOpt: "M:");
 
         public static SymbolNamesWithValueOption<Unit> GetExcludedSymbolNamesWithValueOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesWithValueOption(EditorConfigOptionNames.ExcludedSymbolNames, rule, compilation, cancellationToken);
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.ExcludedSymbolNames, rule, compilation, cancellationToken);
 
         public static SymbolNamesWithValueOption<Unit> GetExcludedTypeNamesWithDerivedTypesOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesWithValueOption(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, rule, compilation, cancellationToken, namePrefixOpt: "T:");
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, rule, compilation, cancellationToken, namePrefixOpt: "T:");
 
         public static SymbolNamesWithValueOption<Unit> GetDisallowedSymbolNamesWithValueOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesWithValueOption(EditorConfigOptionNames.DisallowedSymbolNames, rule, compilation, cancellationToken);
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.DisallowedSymbolNames, rule, compilation, cancellationToken);
 
         public static SymbolNamesWithValueOption<string> GetAdditionalRequiredSuffixesOption(
             this AnalyzerOptions options,
@@ -211,7 +211,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             CancellationToken cancellationToken)
         {
-            return options.GetSymbolNamesWithValueOption(EditorConfigOptionNames.AdditionalRequiredGenericInterfaces, namePrefixOpt: "T:", rule, compilation, cancellationToken, x => GetParts(x, compilation));
+            return options.GetSymbolNamesWithValueOption(EditorConfigOptionNames.AdditionalRequiredGenericInterfaces, rule, compilation, cancellationToken, namePrefixOpt: "T:", getTypeAndSuffixFunc: x => GetParts(x, compilation));
 
             static SymbolNamesWithValueOption<INamedTypeSymbol>.NameParts GetParts(string name, Compilation compilation)
             {
@@ -249,7 +249,7 @@ namespace Analyzer.Utilities
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesOption(EditorConfigOptionNames.AdditionalInheritanceExcludedSymbolNames, rule, compilation, cancellationToken, optionForcedValue: "N:System.*");
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalInheritanceExcludedSymbolNames, rule, compilation, cancellationToken, optionForcedValue: "N:System.*");
 
         private static SymbolNamesWithValueOption<TValue> GetSymbolNamesWithValueOption<TValue>(
             this AnalyzerOptions options,
