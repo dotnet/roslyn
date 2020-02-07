@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                      asterisk.LeadingWidth + asterisk.Width;
 
                         RoslynDebug.Assert(@delegate.SyntaxTree is object);
-                        diagnostics.Add(info, Location.Create(@delegate.SyntaxTree, new TextSpan(@delegate.SpanStart, length)));
+                        diagnostics.Add(info, Location.Create(@delegate.SyntaxTree, TextSpan.FromBounds(@delegate.SpanStart, asterisk.Span.End)));
                     }
 
                     return TypeWithAnnotations.Create(

@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static FunctionPointerTypeSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
             => new FunctionPointerTypeSymbol(
-                           FunctionPointerMethodSymbol.CreateFromSource(
-                               syntax,
-                               typeBinder,
-                               diagnostics,
-                               basesBeingResolved,
-                               suppressUseSiteDiagnostics));
+                FunctionPointerMethodSymbol.CreateFromSource(
+                    syntax,
+                    typeBinder,
+                    diagnostics,
+                    basesBeingResolved,
+                    suppressUseSiteDiagnostics));
 
         public static FunctionPointerTypeSymbol CreateFromMetadata(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
             => new FunctionPointerTypeSymbol(

@@ -422,6 +422,17 @@ class D : C
                 (RefKind.None, IsVoidType()));
         }
 
+        [Fact]
+        public void StructWithFunctionPointerThatReferencesStruct()
+        {
+            CompileAndVerifyFunctionPointers(@"
+unsafe struct S
+{
+    public delegate*<S, S> Field;
+    public delegate*<S, S> Property { get; set; }
+}");
+        }
+
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
         {
             FunctionPointerTypeSymbol funcPtr = (FunctionPointerTypeSymbol)type;
