@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
         {
             public Task<SemanticModel> GetSemanticModelForNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken = default)
             {
-                // get the base one
+                // TODO: port the GetSemanticModelForNodeAsync implementation from Workspaces layer,
+                // which currently relies on a bunch of internal APIs.
+                // For now, we fall back to the public API to fetch document's SemanticModel.
                 return document.GetSemanticModelAsync(cancellationToken);
             }
         }
