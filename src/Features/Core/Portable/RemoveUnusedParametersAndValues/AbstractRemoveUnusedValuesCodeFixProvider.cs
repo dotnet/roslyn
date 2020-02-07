@@ -199,10 +199,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private static bool NeedsToMoveNewLocalDeclarationsNearReference(string diagnosticId)
             => diagnosticId == IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId;
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, FixAllContext fixAllContext)
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string equivalenceKey, CancellationToken cancellationToken)
         {
-            return fixAllContext.CodeActionEquivalenceKey == GetEquivalenceKey(diagnostic) &&
-                !IsForEachIterationVariableDiagnostic(diagnostic, fixAllContext.Document, fixAllContext.CancellationToken);
+            return equivalenceKey == GetEquivalenceKey(diagnostic) &&
+                !IsForEachIterationVariableDiagnostic(diagnostic, document, cancellationToken);
         }
 
         private IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
