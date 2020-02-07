@@ -26,6 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     // TODO - This should move to the ILanguageClient when we remove the UI thread dependency.
     // https://github.com/dotnet/roslyn/issues/38477
+    // The VS LSP client supports streaming using IProgress<T> on various requests.
+    // However, this is not yet supported through Live Share, so deserialization fails on the IProgress<T> property.
+    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043376 tracks Live Share support for this (committed for 16.6).
     internal class FindAllReferencesHandler : ILspRequestHandler<object, object[], Solution>
     {
         private readonly IThreadingContext _threadingContext;
