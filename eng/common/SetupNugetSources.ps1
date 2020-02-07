@@ -2,7 +2,7 @@
 # This file should be removed as part of this issue: https://github.com/dotnet/arcade/issues/4080
 #
 # What the script does is iterate over all package sources in the pointed NuGet.config and add a credential entry
-# under <packageSourceCredentials> for each Maestro managed private feed. Two additional credential 
+# under <packageSourceCredentials> for each Maestro managed private feed. Two additional credential
 # entries are also added for the two private static internal feeds: dotnet3-internal and dotnet3-internal-transport.
 #
 # This script needs to be called in every job that will restore packages and which the base repo has
@@ -35,7 +35,7 @@ Set-StrictMode -Version 2.0
 # Add source entry to PackageSources
 function AddPackageSource($sources, $SourceName, $SourceEndPoint, $creds, $Username, $Password) {
     $packageSource = $sources.SelectSingleNode("add[@key='$SourceName']")
-    
+
     if ($packageSource -eq $null)
     {
         $packageSource = $doc.CreateElement("add")
@@ -46,7 +46,7 @@ function AddPackageSource($sources, $SourceName, $SourceEndPoint, $creds, $Usern
     else {
         Write-Host "Package source $SourceName already present."
     }
-    
+
     AddCredential -Creds $creds -Source $SourceName -Username $Username -Password $Password
 }
 
@@ -83,11 +83,11 @@ function AddCredential($creds, $source, $username, $password) {
     $passwordElement.SetAttribute("value", $Password)
 }
 
-function InsertMaestroPrivateFeedCredentials($Sources, $Creds, $Password) {
+function InsertMaestroPrivateFeedCredentials($Sources, $Creds, $Username, $Password) {
     $maestroPrivateSources = $Sources.SelectNodes("add[contains(@key,'darc-int')]")
 
     Write-Host "Inserting credentials for $($maestroPrivateSources.Count) Maestro's private feeds."
-    
+
     ForEach ($PackageSource in $maestroPrivateSources) {
         Write-Host "`tInserting credential for Maestro's feed:" $PackageSource.Key
         AddCredential -Creds $creds -Source $PackageSource.Key -Username $Username -Password $Password
@@ -123,19 +123,21 @@ if ($creds -eq $null) {
     $doc.DocumentElement.AppendChild($creds) | Out-Null
 }
 
+$userName = "dn-bot"
+
 # Insert credential nodes for Maestro's private feeds
-InsertMaestroPrivateFeedCredentials -Sources $sources -Creds $creds -Password $Password
+InsertMaestroPrivateFeedCredentials -Sources $sources -Creds $creds -Username $userName -Password $Password
 
 $dotnet3Source = $sources.SelectSingleNode("add[@key='dotnet3']")
 if ($dotnet3Source -ne $null) {
-    AddPackageSource -Sources $sources -SourceName "dotnet3-internal" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3-internal/nuget/v2" -Creds $creds -Username "dn-bot" -Password $Password
-    AddPackageSource -Sources $sources -SourceName "dotnet3-internal-transport" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3-internal-transport/nuget/v2" -Creds $creds -Username "dn-bot" -Password $Password
+    AddPackageSource -Sources $sources -SourceName "dotnet3-internal" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3-internal/nuget/v2" -Creds $creds -Username $userName -Password $Password
+    AddPackageSource -Sources $sources -SourceName "dotnet3-internal-transport" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3-internal-transport/nuget/v2" -Creds $creds -Username $userName -Password $Password
 }
 
 $dotnet31Source = $sources.SelectSingleNode("add[@key='dotnet3.1']")
 if ($dotnet31Source -ne $null) {
-    AddPackageSource -Sources $sources -SourceName "dotnet3.1-internal" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3.1-internal/nuget/v2" -Creds $creds -Username "dn-bot" -Password $Password
-    AddPackageSource -Sources $sources -SourceName "dotnet3.1-internal-transport" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3.1-internal-transport/nuget/v2" -Creds $creds -Username "dn-bot" -Password $Password
+    AddPackageSource -Sources $sources -SourceName "dotnet3.1-internal" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3.1-internal/nuget/v2" -Creds $creds -Username $userName -Password $Password
+    AddPackageSource -Sources $sources -SourceName "dotnet3.1-internal-transport" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3.1-internal-transport/nuget/v2" -Creds $creds -Username $userName -Password $Password
 }
 
 $doc.Save($filename)
