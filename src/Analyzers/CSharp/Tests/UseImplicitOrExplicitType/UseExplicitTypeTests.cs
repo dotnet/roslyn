@@ -476,6 +476,8 @@ struct Program
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
+#if !CODE_STYLE // Tests depending on product code which need new nullable APIs are disabled for Code Style layer
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
         public async Task NullableType()
@@ -969,6 +971,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
+#endif
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]

@@ -76,7 +76,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41484"), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         <WorkItem(11241, "https://github.com/dotnet/roslyn/issues/11241")>
         Public Async Function TestAddImportWithCaseChange() As Task
             Await TestAsync(
