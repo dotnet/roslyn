@@ -14,9 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private struct SingleTC : FloatingTC<float>, NumericTC<float>
         {
             float NumericTC<float>.MinValue => float.MinValue;
+
             float NumericTC<float>.MaxValue => float.MaxValue;
+
             float FloatingTC<float>.NaN => float.NaN;
+
             float FloatingTC<float>.MinusInf => float.NegativeInfinity;
+
             float FloatingTC<float>.PlusInf => float.PositiveInfinity;
 
             float NumericTC<float>.Next(float value)
@@ -32,12 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return UintAsFloat(FloatAsUint(value) + 1);
             }
+
             private unsafe static uint FloatAsUint(float d)
             {
                 float* dp = &d;
                 uint* lp = (uint*)dp;
                 return *lp;
             }
+
             private unsafe static float UintAsFloat(uint l)
             {
                 uint* lp = &l;
@@ -47,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (float leftMax, float rightMin) NumericTC<float>.Partition(float min, float max)
             {
+                Debug.Assert(min != max);
+
                 if (min == float.MinValue && max == float.MaxValue)
                     return (-UintAsFloat(1), 0.0f); // skip negative zero
 
@@ -67,19 +75,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool NumericTC<float>.Related(BinaryOperatorKind relation, float left, float right) => relation switch
+            bool NumericTC<float>.Related(BinaryOperatorKind relation, float left, float right)
             {
-                Equal => left == right || float.IsNaN(left) && float.IsNaN(right), // pretend NaNs are equal
-                GreaterThanOrEqual => left >= right,
-                GreaterThan => left > right,
-                LessThanOrEqual => left <= right,
-                LessThan => left < right,
-                _ => throw new ArgumentException("relation")
-            };
+                switch (relation)
+                {
+                    case Equal:
+                        return left == right || float.IsNaN(left) && float.IsNaN(right); // for our purposes, NaNs are equal
+                    case GreaterThanOrEqual:
+                        return left >= right;
+                    case GreaterThan:
+                        return left > right;
+                    case LessThanOrEqual:
+                        return left <= right;
+                    case LessThan:
+                        return left < right;
+                    default:
+                        throw new ArgumentException("relation");
+                }
+            }
 
             float EqualableValueTC<float>.FromConstantValue(ConstantValue constantValue) => constantValue.SingleValue;
-
-            string FloatingTC<float>.ToString(float value) => $"{value:G9}";
         }
     }
 }

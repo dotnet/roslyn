@@ -4,16 +4,22 @@
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// A value set factory, which can be used to create a value set instance.  A given instance of <see cref="IValueSetFactory"/>
+    /// supports only one type for the value sets it can produce.
+    /// </summary>
     internal interface IValueSetFactory
     {
         /// <summary>
         /// Returns a value set that includes all values of its type.
         /// </summary>
         IValueSet All { get; }
+
         /// <summary>
         /// Returns a value set that includes no values of its type.
         /// </summary>
         IValueSet None { get; }
+
         /// <summary>
         /// Returns a value set that includes any values that satisfy the given relation when compared to the given value.
         /// </summary>
@@ -21,7 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>
-    /// A value set factory, which can be used to create a value set instance.
+    /// A value set factory, which can be used to create a value set instance.  Like <see cref="ValueSetFactory"/> but strongly
+    /// typed to <typeparamref name="T"/>.
     /// </summary>
     internal interface IValueSetFactory<T> : IValueSetFactory
     {
@@ -29,10 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns a value set that includes all values of type <typeparamref name="T"/>
         /// </summary>
         new IValueSet<T> All { get; }
+
         /// <summary>
         /// Returns a value set that includes no values.
         /// </summary>
         new IValueSet<T> None { get; }
+
         /// <summary>
         /// Returns a value set that includes any values that satisfy the given relation when compared to the given value.
         /// </summary>

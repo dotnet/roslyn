@@ -16,20 +16,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private class BoolValueSetFactory : IValueSetFactory<bool>
         {
-            private BoolValueSetFactory() { }
             public static readonly BoolValueSetFactory Instance = new BoolValueSetFactory();
+
+            private BoolValueSetFactory() { }
+
             IValueSet<bool> IValueSetFactory<bool>.All => BoolValueSet.AllValues;
-            IValueSet<bool> IValueSetFactory<bool>.None => BoolValueSet.None;
 
             IValueSet IValueSetFactory.All => BoolValueSet.AllValues;
+
+            IValueSet<bool> IValueSetFactory<bool>.None => BoolValueSet.None;
+
             IValueSet IValueSetFactory.None => BoolValueSet.None;
 
-            public IValueSet<bool> Related(BinaryOperatorKind relation, bool value) => (relation, value) switch
+            public IValueSet<bool> Related(BinaryOperatorKind relation, bool value)
             {
-                (Equal, true) => BoolValueSet.OnlyTrue,
-                (Equal, false) => BoolValueSet.OnlyFalse,
-                var _ => throw new ArgumentException("relation"),
-            };
+                switch (relation, value)
+                {
+                    case (Equal, true):
+                        return BoolValueSet.OnlyTrue;
+                    case (Equal, false):
+                        return BoolValueSet.OnlyFalse;
+                    default:
+                        throw new ArgumentException("relation");
+                }
+            }
 
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value)
             {

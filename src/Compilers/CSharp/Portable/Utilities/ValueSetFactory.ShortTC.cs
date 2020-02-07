@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 
 #nullable enable
 
@@ -13,24 +14,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         private struct ShortTC : NumericTC<short>
         {
             short NumericTC<short>.MinValue => short.MinValue;
+
             short NumericTC<short>.MaxValue => short.MaxValue;
+
             (short leftMax, short rightMin) NumericTC<short>.Partition(short min, short max)
             {
+                Debug.Assert(min != max);
                 int half = (max - min) / 2;
                 short leftMax = (short)(min + half);
                 short rightMin = (short)(leftMax + 1);
                 return (leftMax, rightMin);
             }
-            bool NumericTC<short>.Related(BinaryOperatorKind relation, short left, short right) => relation switch
+
+            bool NumericTC<short>.Related(BinaryOperatorKind relation, short left, short right)
             {
-                Equal => left == right,
-                GreaterThanOrEqual => left >= right,
-                GreaterThan => left > right,
-                LessThanOrEqual => left <= right,
-                LessThan => left < right,
-                _ => throw new ArgumentException("relation")
-            };
-            short NumericTC<short>.Next(short value) => (short)(value + 1);
+                switch (relation)
+                {
+                    case Equal:
+                        return left == right;
+                    case GreaterThanOrEqual:
+                        return left >= right;
+                    case GreaterThan:
+                        return left > right;
+                    case LessThanOrEqual:
+                        return left <= right;
+                    case LessThan:
+                        return left < right;
+                    default:
+                        throw new ArgumentException("relation");
+                }
+            }
+
+            short NumericTC<short>.Next(short value)
+            {
+                Debug.Assert(value != short.MaxValue);
+                return (short)(value + 1);
+            }
+
             short EqualableValueTC<short>.FromConstantValue(ConstantValue constantValue) => constantValue.Int16Value;
         }
     }

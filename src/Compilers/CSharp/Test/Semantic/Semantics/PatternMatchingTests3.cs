@@ -2419,6 +2419,14 @@ class C
         _ = o is < 12m;
         _ = d is < 0;
         _ = o is < 10;
+        switch (d)
+        {
+            case < 0m:
+            case <= 0m:
+            case > 0m:
+            case >= 0m:
+                break;
+        }
     }
 }
 ";
@@ -2429,7 +2437,19 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 12m").WithArguments("decimal").WithLocation(6, 18),
                 // (7,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
                 //         _ = d is < 0;
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 0").WithArguments("decimal").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 0").WithArguments("decimal").WithLocation(7, 18),
+                // (11,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
+                //             case < 0m:
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 0m").WithArguments("decimal").WithLocation(11, 18),
+                // (12,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
+                //             case <= 0m:
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "<= 0m").WithArguments("decimal").WithLocation(12, 18),
+                // (13,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
+                //             case > 0m:
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "> 0m").WithArguments("decimal").WithLocation(13, 18),
+                // (14,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
+                //             case >= 0m:
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, ">= 0m").WithArguments("decimal").WithLocation(14, 18)
                 );
         }
 
@@ -2491,6 +2511,58 @@ class C
                 // (5,33): error CS8782: Relational patterns may not be used for a floating-point NaN.
                 //     bool M2(object o) => o is < (0.0f / 0.0f);
                 Diagnostic(ErrorCode.ERR_RelationalPatternWithNaN, "(0.0f / 0.0f)").WithLocation(5, 33));
+        }
+
+        [Fact]
+        public void Relational_07()
+        {
+            var source = @"
+class C
+{
+    public bool M(char c) => c switch
+    {
+        >= 'A' and <= 'Z' or >= 'a' and <= 'z' => true,
+        'a'                                    => true, // error 1
+        > 'k' and < 'o'                        => true, // error 2
+        '0'                                    => true,
+        >= '0' and <= '9'                      => true,
+        _                                      => false,
+    };
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (7,9): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                //         'a'                                    => true, // error 1
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "'a'").WithLocation(7, 9),
+                // (8,9): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                //         > 'k' and < 'o'                        => true, // error 2
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "> 'k' and < 'o'").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void Relational_08()
+        {
+            var source = @"
+class C
+{
+    public int M(uint c) => c switch
+    {
+        >= 5 => 1,
+        4 => 2,
+        3 => 3,
+        2 => 4,
+        1 => 5,
+        0 => 6,
+        _ => 7,
+    };
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                // (12,9): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                //         _ => 7,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(12, 9)
+                );
         }
     }
 }

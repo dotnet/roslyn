@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 
 #nullable enable
 
@@ -13,24 +14,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         private struct UShortTC : NumericTC<ushort>
         {
             ushort NumericTC<ushort>.MinValue => ushort.MinValue;
+
             ushort NumericTC<ushort>.MaxValue => ushort.MaxValue;
+
             (ushort leftMax, ushort rightMin) NumericTC<ushort>.Partition(ushort min, ushort max)
             {
+                Debug.Assert(min != max);
                 int half = (max - min) / 2;
                 ushort leftMax = (ushort)(min + half);
                 ushort rightMin = (ushort)(leftMax + 1);
                 return (leftMax, rightMin);
             }
-            bool NumericTC<ushort>.Related(BinaryOperatorKind relation, ushort left, ushort right) => relation switch
+
+            bool NumericTC<ushort>.Related(BinaryOperatorKind relation, ushort left, ushort right)
             {
-                Equal => left == right,
-                GreaterThanOrEqual => left >= right,
-                GreaterThan => left > right,
-                LessThanOrEqual => left <= right,
-                LessThan => left < right,
-                _ => throw new ArgumentException("relation")
-            };
-            ushort NumericTC<ushort>.Next(ushort value) => (ushort)(value + 1);
+                switch (relation)
+                {
+                    case Equal:
+                        return left == right;
+                    case GreaterThanOrEqual:
+                        return left >= right;
+                    case GreaterThan:
+                        return left > right;
+                    case LessThanOrEqual:
+                        return left <= right;
+                    case LessThan:
+                        return left < right;
+                    default:
+                        throw new ArgumentException("relation");
+                }
+            }
+
+            ushort NumericTC<ushort>.Next(ushort value)
+            {
+                Debug.Assert(value != ushort.MaxValue);
+                return (ushort)(value + 1);
+            }
+
             ushort EqualableValueTC<ushort>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt16Value;
         }
     }

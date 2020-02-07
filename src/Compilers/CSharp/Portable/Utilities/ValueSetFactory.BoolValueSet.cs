@@ -12,61 +12,95 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class BoolValueSet : IValueSet<bool>
         {
-            internal static BoolValueSet AllValues = new BoolValueSet(true, true);
-            internal static BoolValueSet None = new BoolValueSet(false, false);
-            internal static BoolValueSet OnlyTrue = new BoolValueSet(false, true);
-            internal static BoolValueSet OnlyFalse = new BoolValueSet(true, false);
-            public static BoolValueSet Create(bool hasFalse, bool hasTrue) => (hasFalse, hasTrue) switch
-            {
-                (false, false) => None,
-                (false, true) => OnlyTrue,
-                (true, false) => OnlyFalse,
-                (true, true) => AllValues,
-            };
-
             private readonly bool _hasFalse, _hasTrue;
+
+            internal static BoolValueSet AllValues = new BoolValueSet(hasFalse: true, hasTrue: true);
+            internal static BoolValueSet None = new BoolValueSet(hasFalse: false, hasTrue: false);
+            internal static BoolValueSet OnlyTrue = new BoolValueSet(hasFalse: false, hasTrue: true);
+            internal static BoolValueSet OnlyFalse = new BoolValueSet(hasFalse: true, hasTrue: false);
+
             private BoolValueSet(bool hasFalse, bool hasTrue) => (_hasFalse, _hasTrue) = (hasFalse, hasTrue);
+
+            public static BoolValueSet Create(bool hasFalse, bool hasTrue)
+            {
+                switch (hasFalse, hasTrue)
+                {
+                    case (false, false):
+                        return None;
+                    case (false, true):
+                        return OnlyTrue;
+                    case (true, false):
+                        return OnlyFalse;
+                    case (true, true):
+                        return AllValues;
+                }
+            }
+
             bool IValueSet.IsEmpty => !_hasFalse && !_hasTrue;
 
             IValueSetFactory<bool> IValueSet<bool>.Factory => BoolValueSetFactory.Instance;
 
             IValueSetFactory IValueSet.Factory => BoolValueSetFactory.Instance;
 
-            public bool Any(BinaryOperatorKind relation, bool value) => (relation, value) switch
+            public bool Any(BinaryOperatorKind relation, bool value)
             {
-                (Equal, true) => _hasTrue,
-                (Equal, false) => _hasFalse,
-                var _ => throw new ArgumentException("relation"),
-            };
+                switch (relation, value)
+                {
+                    case (Equal, true):
+                        return _hasTrue;
+                    case (Equal, false):
+                        return _hasFalse;
+                    default:
+                        throw new ArgumentException("relation");
+                }
+            }
+
             bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, value.BooleanValue);
-            public bool All(BinaryOperatorKind relation, bool value) => (relation, value) switch
+
+            public bool All(BinaryOperatorKind relation, bool value)
             {
-                (Equal, true) => !_hasFalse,
-                (Equal, false) => !_hasTrue,
-                var _ => throw new ArgumentException("relation"),
-            };
+                switch (relation, value)
+                {
+                    case (Equal, true):
+                        return !_hasFalse;
+                    case (Equal, false):
+                        return !_hasTrue;
+                    default:
+                        throw new ArgumentException("relation");
+                }
+            }
+
             bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, value.BooleanValue);
+
             public IValueSet<bool> Complement() => Create(!_hasFalse, !_hasTrue);
+
             IValueSet IValueSet.Complement() => this.Complement();
+
             public IValueSet<bool> Intersect(IValueSet<bool> other)
             {
                 if (this == other)
                     return this;
                 BoolValueSet o = (BoolValueSet)other;
-                return Create(this._hasFalse & o._hasFalse, this._hasTrue & o._hasTrue);
+                return Create(hasFalse: this._hasFalse & o._hasFalse, hasTrue: this._hasTrue & o._hasTrue);
             }
+
             public IValueSet Intersect(IValueSet other) => this.Intersect((IValueSet<bool>)other);
+
             public IValueSet<bool> Union(IValueSet<bool> other)
             {
                 if (this == other)
                     return this;
                 BoolValueSet o = (BoolValueSet)other;
-                return Create(this._hasFalse | o._hasFalse, this._hasTrue | o._hasTrue);
+                return Create(hasFalse: this._hasFalse | o._hasFalse, hasTrue: this._hasTrue | o._hasTrue);
             }
+
             IValueSet IValueSet.Union(IValueSet other) => this.Union((IValueSet<bool>)other);
+
             // Since we cache all distinct boolean value sets, we can use reference equality.
             public override bool Equals(object obj) => this == obj;
+
             public override int GetHashCode() => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
+
             public override string ToString() => (_hasFalse, _hasTrue) switch
             {
                 (false, false) => "{}",

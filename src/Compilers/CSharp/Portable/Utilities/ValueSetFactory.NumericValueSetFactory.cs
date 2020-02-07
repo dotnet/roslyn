@@ -17,13 +17,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private class NumericValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, NumericTC<T>
         {
-            private NumericValueSetFactory() { }
             public static readonly NumericValueSetFactory<T, TTC> Instance = new NumericValueSetFactory<T, TTC>();
+
             private static readonly IValueSet<T> _all = new NumericValueSet<T, TTC>(Interval.Included.Instance);
-            public IValueSet<T> All => _all;
-            IValueSet IValueSetFactory.All => _all;
+
             private static readonly IValueSet<T> _none = new NumericValueSet<T, TTC>(Interval.Excluded.Instance);
+
+            private NumericValueSetFactory() { }
+
+            public IValueSet<T> All => _all;
+
+            IValueSet IValueSetFactory.All => _all;
+
             public IValueSet<T> None => _none;
+
             IValueSet IValueSetFactory.None => _none;
 
             public IValueSet<T> Related(BinaryOperatorKind relation, T value)
@@ -31,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TTC tc = default;
                 return new NumericValueSet<T, TTC>(RelatedInterval(relation, value, tc.MinValue, tc.MaxValue));
             }
+
             /// <summary>
             /// Produce the interval underlying the representation of the result of <see cref="NumericValueSetFactory{T, TTC}"/>.
             /// </summary>
@@ -39,27 +47,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             private Interval RelatedInterval(BinaryOperatorKind relation, T value, T minValue, T maxValue)
             {
                 TTC tc = default;
-                return relation switch
+                switch (relation)
                 {
-                    Equal when tc.Related(LessThan, value, minValue) => Interval.Excluded.Instance,
-                    Equal when tc.Related(GreaterThan, value, maxValue) => Interval.Excluded.Instance,
-                    GreaterThan when tc.Related(LessThan, value, minValue) => Interval.Included.Instance,
-                    GreaterThan when tc.Related(GreaterThanOrEqual, value, maxValue) => Interval.Excluded.Instance,
-                    LessThan when tc.Related(LessThanOrEqual, value, minValue) => Interval.Excluded.Instance,
-                    LessThan when tc.Related(GreaterThan, value, maxValue) => Interval.Included.Instance,
-                    LessThanOrEqual when tc.Related(LessThan, value, minValue) => Interval.Excluded.Instance,
-                    LessThanOrEqual when tc.Related(GreaterThanOrEqual, value, maxValue) => Interval.Included.Instance,
-                    GreaterThanOrEqual when tc.Related(LessThanOrEqual, value, minValue) => Interval.Included.Instance,
-                    GreaterThanOrEqual when tc.Related(GreaterThan, value, maxValue) => Interval.Excluded.Instance,
-                    var _ when tc.Related(Equal, minValue, maxValue) =>
-                        tc.Related(relation, minValue, value) ? Interval.Included.Instance : Interval.Excluded.Instance,
-                    var _ when tc.Partition(minValue, maxValue) is var (leftMax, rightMin) =>
-                        Interval.Mixed.Create(RelatedInterval(relation, value, minValue, leftMax), RelatedInterval(relation, value, rightMin, maxValue)),
-                    var _ => throw new ArgumentException("relation"),
+                    case Equal when tc.Related(LessThan, value, minValue):
+                        return Interval.Excluded.Instance;
+                    case Equal when tc.Related(GreaterThan, value, maxValue):
+                        return Interval.Excluded.Instance;
+                    case GreaterThan when tc.Related(LessThan, value, minValue):
+                        return Interval.Included.Instance;
+                    case GreaterThan when tc.Related(GreaterThanOrEqual, value, maxValue):
+                        return Interval.Excluded.Instance;
+                    case LessThan when tc.Related(LessThanOrEqual, value, minValue):
+                        return Interval.Excluded.Instance;
+                    case LessThan when tc.Related(GreaterThan, value, maxValue):
+                        return Interval.Included.Instance;
+                    case LessThanOrEqual when tc.Related(LessThan, value, minValue):
+                        return Interval.Excluded.Instance;
+                    case LessThanOrEqual when tc.Related(GreaterThanOrEqual, value, maxValue):
+                        return Interval.Included.Instance;
+                    case GreaterThanOrEqual when tc.Related(LessThanOrEqual, value, minValue):
+                        return Interval.Included.Instance;
+                    case GreaterThanOrEqual when tc.Related(GreaterThan, value, maxValue):
+                        return Interval.Excluded.Instance;
+                    default:
+                        if (tc.Related(Equal, minValue, maxValue))
+                            return tc.Related(relation, minValue, value) ? Interval.Included.Instance : Interval.Excluded.Instance;
+                        var (leftMax, rightMin) = tc.Partition(minValue, maxValue);
+                        return Interval.Mixed.Create(RelatedInterval(relation, value, minValue, leftMax), RelatedInterval(relation, value, rightMin, maxValue));
                 };
             }
 
-            IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) => value.IsBad ? _all : Related(relation, default(TTC).FromConstantValue(value));
+            IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
+                value.IsBad ? _all : Related(relation, default(TTC).FromConstantValue(value));
         }
     }
 }

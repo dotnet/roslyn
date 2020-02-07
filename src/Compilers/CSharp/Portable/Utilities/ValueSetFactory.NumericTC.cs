@@ -16,14 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Compute the value of the binary relational operator on the given operands.
             /// </summary>
             bool Related(BinaryOperatorKind relation, T left, T right);
+
             /// <summary>
             /// The smallest value of <typeparamref name="T"/>.
             /// </summary>
             T MinValue { get; }
+
             /// <summary>
             /// The largest value of <typeparamref name="T"/>.
             /// </summary>
             T MaxValue { get; }
+
             /// <summary>
             /// Returns the midpoints when subdividing an interval, which becomes the
             /// left subinterval's max value and the right subinterval's min value.
@@ -32,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <param name="min">the parent interval's minimum value, inclusive.</param>
             /// <param name="max">the parent interval's maximum value, inclusive</param>
             (T leftMax, T rightMin) Partition(T min, T max);
+
             /// <summary>
             /// The successor (next larger) value to a given value. Used to determine when two intervals
             /// are contiguous to improve the output of <see cref="object.ToString"/>. The result is not defined

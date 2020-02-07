@@ -15,18 +15,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private class EnumeratedValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, EqualableValueTC<T>
         {
-            private EnumeratedValueSetFactory() { }
             public static EnumeratedValueSetFactory<T, TTC> Instance = new EnumeratedValueSetFactory<T, TTC>();
+
+            private EnumeratedValueSetFactory() { }
+
             IValueSet<T> IValueSetFactory<T>.All => EnumeratedValueSet<T, TTC>.AllValues;
+
             IValueSet IValueSetFactory.All => EnumeratedValueSet<T, TTC>.AllValues;
+
             IValueSet<T> IValueSetFactory<T>.None => EnumeratedValueSet<T, TTC>.None;
+
             IValueSet IValueSetFactory.None => EnumeratedValueSet<T, TTC>.None;
-            public IValueSet<T> Related(BinaryOperatorKind relation, T value) => relation switch
+
+            public IValueSet<T> Related(BinaryOperatorKind relation, T value)
             {
-                Equal => EnumeratedValueSet<T, TTC>.Including(value),
-                _ => EnumeratedValueSet<T, TTC>.AllValues, // supported for error recovery
-            };
-            IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) => value.IsBad ? EnumeratedValueSet<T, TTC>.AllValues : this.Related(relation, default(TTC).FromConstantValue(value));
+                switch (relation)
+                {
+                    case Equal:
+                        return EnumeratedValueSet<T, TTC>.Including(value);
+                    default:
+                        return EnumeratedValueSet<T, TTC>.AllValues; // supported for error recovery
+                }
+            }
+
+            IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
+                value.IsBad ? EnumeratedValueSet<T, TTC>.AllValues : this.Related(relation, default(TTC).FromConstantValue(value));
         }
     }
 }
