@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenFunctionPointersTests : CSharpTestBase
     {
-        private CompilationVerifier CompileAndVerifyFunctionPointers(string source, Action<ModuleSymbol>? symbolValidator = null)
+        private CompilationVerifier CompileAndVerifyFunctionPointers(string source, Action<ModuleSymbol>? symbolValidator = null, Verification verify = Verification.Passes)
         {
-            return CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll, symbolValidator: symbolValidator);
+            return CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll, symbolValidator: symbolValidator, verify: verify);
         }
 
         [Theory]
@@ -248,7 +248,7 @@ public unsafe class C
 {
     public delegate*<string, void> Prop1 { get; set; }
     public delegate* stdcall<int> Prop2 { get => throw null; set => throw null; }
-}", symbolValidator: symbolValidator);
+}", symbolValidator: symbolValidator, verify: Verification.Skipped);
 
             compVerifier.VerifyIL("C.Prop1.get", expectedIL: @"
 {

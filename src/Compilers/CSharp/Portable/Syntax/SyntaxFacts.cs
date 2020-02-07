@@ -91,6 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case PointerType:
                         return ((PointerTypeSyntax)parent).ElementType == node;
 
+                    case FunctionPointerType:
+                        // Any type children of a function pointer type are encapsulated
+                        // in a parameter syntax.
+                        return false;
+
                     case PredefinedType:
                         return true;
 

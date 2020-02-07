@@ -6,6 +6,7 @@
 using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
@@ -708,7 +709,8 @@ class C
     delegate*<void> Property { get; set; }
     delegate*<void> M(delegate*<void> param)
     {
-        delegate*<void> local;
+        delegate*<void> local1;
+        /**/delegate/**/*/**/<void> local2;
         throw null;
     }
 }");
@@ -716,25 +718,72 @@ class C
             comp.VerifyDiagnostics(
                     // (4,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                     //     delegate*<void> _field;
-                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*<void>").WithLocation(4, 5),
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(4, 5),
                     // (4,21): warning CS0169: The field 'C._field' is never used
                     //     delegate*<void> _field;
                     Diagnostic(ErrorCode.WRN_UnreferencedField, "_field").WithArguments("C._field").WithLocation(4, 21),
                     // (5,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                     //     delegate*<void> Property { get; set; }
-                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*<void>").WithLocation(5, 5),
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(5, 5),
                     // (6,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                     //     delegate*<void> M(delegate*<void> param)
-                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*<void>").WithLocation(6, 5),
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(6, 5),
                     // (6,23): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                     //     delegate*<void> M(delegate*<void> param)
-                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*<void>").WithLocation(6, 23),
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(6, 23),
                     // (8,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                    //         delegate*<void> local;
-                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*<void>").WithLocation(8, 9),
-                    // (8,25): warning CS0168: The variable 'local' is declared but never used
-                    //         delegate*<void> local;
-                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(8, 25));
+                    //         delegate*<void> local1;
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(8, 9),
+                    // (8,25): warning CS0168: The variable 'local1' is declared but never used
+                    //         delegate*<void> local1;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "local1").WithArguments("local1").WithLocation(8, 25),
+                    // (9,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //         /**/delegate/**/*/**/<void> local2;
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate/**/*").WithLocation(9, 13),
+                    // (9,37): warning CS0168: The variable 'local1' is declared but never used
+                    //         /**/delegate/**/*/**/<void> local2;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "local2").WithArguments("local2").WithLocation(9, 37));
+        }
+
+        [Fact]
+        public void MisdeclaredArraysWithLocalDeclarationsAreHandled()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+class C
+{
+    unsafe void M()
+    {
+        int a = 1;
+        delegate*<int[a]> local;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                    // (6,13): warning CS0219: The variable 'a' is assigned but its value is never used
+                    //         int a = 1;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(6, 13),
+                    // (7,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                    //         delegate*<int[a]> local;
+                    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[a]").WithLocation(7, 22),
+                    // (7,27): warning CS0168: The variable 'local' is declared but never used
+                    //         delegate*<int[a]> local;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(7, 27));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var misplacedDeclaration =
+                ((ArrayTypeSyntax)syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<FunctionPointerTypeSyntax>()
+                    .Single()
+                    .Parameters.Single().Type!)
+                    .RankSpecifiers.Single()
+                    .Sizes.Single();
+
+            var a = (ILocalSymbol)model.GetSymbolInfo(misplacedDeclaration).Symbol!;
+            Assert.NotNull(a);
+            Assert.Equal("System.Int32 a", a.ToTestDisplayString());
         }
     }
 }

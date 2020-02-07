@@ -374,9 +374,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyType != null)
                 {
                     Debug.Assert(_lazyType.Value.DefaultType.IsPointerType() ==
-                        IsPointerFieldSyntactically());
+                        IsPointerFieldSyntactically() ||
+                        _lazyType.Value.DefaultType.Kind == SymbolKind.FunctionPointer);
 
-                    return _lazyType.Value.DefaultType.IsPointerType();
+                    return _lazyType.Value.DefaultType.IsPointerType() || _lazyType.Value.DefaultType.Kind == SymbolKind.FunctionPointer;
                 }
 
                 return IsPointerFieldSyntactically();
@@ -386,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool IsPointerFieldSyntactically()
         {
             var declaration = GetFieldDeclaration(VariableDeclaratorNode).Declaration;
-            if (declaration.Type.Kind() == SyntaxKind.PointerType)
+            if (declaration.Type.Kind() == SyntaxKind.PointerType || declaration.Type.Kind() == SyntaxKind.FunctionPointerType)
             {
                 // public int * Blah;   // pointer
                 return true;

@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
                 RefKind refKind;
                 var typeSyntax = syntax.Type.SkipRef(out refKind);
-                return typeSyntax.Kind() == SyntaxKind.PointerType;
+                return typeSyntax.Kind() == SyntaxKind.PointerType || typeSyntax.Kind() == SyntaxKind.FunctionPointerType;
             }
         }
 
