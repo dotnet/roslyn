@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public string ReturnsText { get; private set; }
 
         /// <summary>
+        /// The text in the &lt;value&gt; tag. Null if no tag existed.
+        /// </summary>
+        public string ValueText { get; private set; }
+
+        /// <summary>
         /// The text in the &lt;remarks&gt; tag. Null if no tag existed.
         /// </summary>
         public string RemarksText { get; private set; }
@@ -183,6 +188,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     else if (XmlNames.ElementEquals(localName, XmlNames.ReturnsElementName) && _comment.ReturnsText == null)
                     {
                         _comment.ReturnsText = TrimEachLine(reader.ReadInnerXml());
+                    }
+                    else if (XmlNames.ElementEquals(localName, XmlNames.ValueElementName) && _comment.ValueText == null)
+                    {
+                        _comment.ValueText = TrimEachLine(reader.ReadInnerXml());
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.RemarksElementName) && _comment.RemarksText == null)
                     {
