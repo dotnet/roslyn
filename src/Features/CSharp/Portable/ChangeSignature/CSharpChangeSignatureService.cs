@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
+using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -349,13 +350,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     isReducedExtensionMethod = true;
                 }
 
-                var newArguments = PermuteArgumentList(document, declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod);
+                var newArguments = PermuteArgumentList(declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod);
                 return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objCreation))
             {
-                var newArguments = PermuteArgumentList(document, declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation);
+                var newArguments = PermuteArgumentList(declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation);
                 return objCreation.WithArgumentList(objCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -363,19 +364,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer))
             {
                 var constructorInit = (ConstructorInitializerSyntax)updatedNode;
-                var newArguments = PermuteArgumentList(document, declarationSymbol, constructorInit.ArgumentList.Arguments, signaturePermutation);
+                var newArguments = PermuteArgumentList(declarationSymbol, constructorInit.ArgumentList.Arguments, signaturePermutation);
                 return constructorInit.WithArgumentList(constructorInit.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax elementAccess))
             {
-                var newArguments = PermuteArgumentList(document, declarationSymbol, elementAccess.ArgumentList.Arguments, signaturePermutation);
+                var newArguments = PermuteArgumentList(declarationSymbol, elementAccess.ArgumentList.Arguments, signaturePermutation);
                 return elementAccess.WithArgumentList(elementAccess.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.Attribute, out AttributeSyntax attribute))
             {
-                var newArguments = PermuteAttributeArgumentList(document, declarationSymbol, attribute.ArgumentList.Arguments, signaturePermutation);
+                var newArguments = PermuteAttributeArgumentList(declarationSymbol, attribute.ArgumentList.Arguments, signaturePermutation);
                 return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -516,51 +517,52 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         private static SeparatedSyntaxList<AttributeArgumentSyntax> PermuteAttributeArgumentList(
-            Document document,
             ISymbol declarationSymbol,
             SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
             SignatureChange updatedSignature)
         {
-            var newArguments = PermuteArguments(document, declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(), updatedSignature);
-            var numSeparatorsToSkip = arguments.Count - newArguments.Count;
+            var originalArguments = arguments.Select(a => UnifiedArgumentSyntax.Create(a, arguments.IndexOf(a))).ToList();
+            var permutedArguments = PermuteArguments(declarationSymbol, originalArguments, updatedSignature);
 
-            // copy whitespace trivia from original position
-            var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(
-                newArguments.Select(a => (AttributeArgumentSyntax)(UnifiedArgumentSyntax)a), arguments);
+            var finalArguments = new List<AttributeArgumentSyntax>();
+            var newSeparators = new SyntaxToken[originalArguments.Count];
+            for (var newIndex = 0; newIndex < permutedArguments.Count; newIndex++)
+            {
+                var argument = permutedArguments[newIndex];
+                var originalIndex = ((UnifiedArgumentSyntax)argument).Index;
 
-            return SyntaxFactory.SeparatedList(newArgumentsWithTrivia, GetSeparators(arguments, numSeparatorsToSkip));
+                var (newParamNode, newSeparator) = TransferTrivia(arguments, originalIndex, newIndex);
+
+                finalArguments.Add(newParamNode);
+                newSeparators[newIndex] = newSeparator;
+            }
+
+            return SyntaxFactory.SeparatedList(finalArguments, newSeparators.ToList().GetRange(0, permutedArguments.Count == 0 ? 0 : permutedArguments.Count - 1));
         }
 
         private static SeparatedSyntaxList<ArgumentSyntax> PermuteArgumentList(
-            Document document,
             ISymbol declarationSymbol,
             SeparatedSyntaxList<ArgumentSyntax> arguments,
             SignatureChange updatedSignature,
             bool isReducedExtensionMethod = false)
         {
-            var newArguments = PermuteArguments(document, declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(), updatedSignature, isReducedExtensionMethod);
+            var originalArguments = arguments.Select(a => UnifiedArgumentSyntax.Create(a, arguments.IndexOf(a))).ToList();
+            var permutedArguments = PermuteArguments(declarationSymbol, originalArguments, updatedSignature, isReducedExtensionMethod);
 
-            // copy whitespace trivia from original position
-            var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(
-                newArguments.Select(a => (ArgumentSyntax)(UnifiedArgumentSyntax)a), arguments);
-
-            var numSeparatorsToSkip = arguments.Count - newArguments.Count;
-            return SyntaxFactory.SeparatedList(newArgumentsWithTrivia, GetSeparators(arguments, numSeparatorsToSkip));
-        }
-
-        private static List<T> TransferLeadingWhitespaceTrivia<T, U>(IEnumerable<T> newArguments, SeparatedSyntaxList<U> oldArguments)
-            where T : SyntaxNode
-            where U : SyntaxNode
-        {
-            var result = new List<T>();
-            var index = 0;
-            foreach (var newArgument in newArguments)
+            var finalArguments = new List<ArgumentSyntax>();
+            var newSeparators = new SyntaxToken[originalArguments.Count];
+            for (var newIndex = 0; newIndex < permutedArguments.Count; newIndex++)
             {
-                result.Add(TransferLeadingWhitespaceTrivia(newArgument, oldArguments[index]));
-                index++;
+                var argument = permutedArguments[newIndex];
+                var originalIndex = ((UnifiedArgumentSyntax)argument).Index;
+
+                var (newParamNode, newSeparator) = TransferTrivia(arguments, originalIndex, newIndex);
+
+                finalArguments.Add(newParamNode);
+                newSeparators[newIndex] = newSeparator;
             }
 
-            return result;
+            return SyntaxFactory.SeparatedList(finalArguments, newSeparators.ToList().GetRange(0, permutedArguments.Count == 0 ? 0 : permutedArguments.Count - 1));
         }
 
         private List<SyntaxTrivia> UpdateParamTagsInLeadingTrivia(CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature)
@@ -686,17 +688,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             return updatedLeadingTrivia;
-        }
-
-        private static List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip = 0) where T : SyntaxNode
-        {
-            var separators = new List<SyntaxToken>();
-            for (var i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
-            {
-                separators.Add(arguments.GetSeparator(i));
-            }
-
-            return separators;
         }
 
         public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(

@@ -398,7 +398,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         protected static List<IUnifiedArgumentSyntax> PermuteArguments(
-            Document document,
             ISymbol declarationSymbol,
             List<IUnifiedArgumentSyntax> arguments,
             SignatureChange updatedSignature,
