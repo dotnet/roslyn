@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly object _gate = new object();
 
             private readonly Document _document;
-            private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
             private Task<RenameLocations> _underlyingFindRenameLocationsTask;
 
@@ -55,7 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public ISymbol RenameSymbol => RenameSymbolAndProjectId.Symbol;
 
             public SymbolInlineRenameInfo(
-                IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 Document document,
                 TextSpan triggerSpan,
                 SymbolAndProjectId renameSymbolAndProjectId,
@@ -64,7 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 this.CanRename = true;
 
-                _refactorNotifyServices = refactorNotifyServices;
                 _document = document;
                 this.RenameSymbolAndProjectId = renameSymbolAndProjectId;
 
@@ -230,18 +227,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 return new InlineRenameLocationSet(this, locationSet);
-            }
-
-            public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
-            {
-                return _refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocumentIDs, RenameSymbol,
-                    this.GetFinalSymbolName(replacementText), throwOnFailure: false);
-            }
-
-            public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
-            {
-                return _refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocumentIDs, RenameSymbol,
-                    this.GetFinalSymbolName(replacementText), throwOnFailure: false);
             }
 
             public InlineRenameFileRenameInfo GetFileRenameInfo()

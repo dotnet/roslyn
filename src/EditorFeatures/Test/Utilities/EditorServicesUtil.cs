@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.Workspaces;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -17,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private static IExportProviderFactory CreateExportProviderFactory()
         {
             var catalog = TestExportProvider.GetCSharpAndVisualBasicAssemblyCatalog()
-                .WithParts(ExportProviderCache.GetOrCreateAssemblyCatalog(new[] { typeof(EditorServicesUtil).Assembly }, ExportProviderCache.CreateResolver()));
+                .WithParts(ExportProviderCache.GetOrCreateAssemblyCatalog(new[] { typeof(EditorServicesUtil).Assembly }, ExportProviderCache.CreateResolver()))
+                .WithPart(typeof(TestRefactorNotify));
             return ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
         }
     }

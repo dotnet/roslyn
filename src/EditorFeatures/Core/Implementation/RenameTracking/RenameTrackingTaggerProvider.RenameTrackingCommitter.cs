@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         {
             private readonly StateMachine _stateMachine;
             private readonly SnapshotSpan _snapshotSpan;
-            private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
             private readonly string _displayText;
             private readonly AsyncLazy<RenameTrackingSolutionSet> _renameSymbolResultGetter;
@@ -35,14 +34,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             public RenameTrackingCommitter(
                 StateMachine stateMachine,
                 SnapshotSpan snapshotSpan,
-                IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
                 string displayText)
                 : base(stateMachine.ThreadingContext)
             {
                 _stateMachine = stateMachine;
                 _snapshotSpan = snapshotSpan;
-                _refactorNotifyServices = refactorNotifyServices;
                 _undoHistoryRegistry = undoHistoryRegistry;
                 _displayText = displayText;
                 _renameSymbolResultGetter = new AsyncLazy<RenameTrackingSolutionSet>(c => RenameSymbolWorkerAsync(c), cacheResult: true);
@@ -142,19 +139,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 var trackingSessionId = _stateMachine.StoreCurrentTrackingSessionAndGenerateId();
                 UpdateWorkspaceForResetOfTypedIdentifier(workspace, renameTrackingSolutionSet.OriginalSolution, trackingSessionId);
-
-                // Now that the solution is back in its original state, notify third parties about
-                // the coming rename operation.
-                if (!_refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, renameTrackingSolutionSet.Symbol, newName, throwOnFailure: false))
-                {
-                    var notificationService = workspace.Services.GetService<INotificationService>();
-                    notificationService.SendNotification(
-                        EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid,
-                        EditorFeaturesResources.Rename_Symbol,
-                        NotificationSeverity.Error);
-
-                    return true;
-                }
 
                 // move all changes to final solution based on the workspace's current solution, since the current solution
                 // got updated when we reset it above.
@@ -272,15 +256,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 if (!workspace.TryApplyChanges(newSolution))
                 {
                     Contract.Fail("Rename Tracking could not update solution.");
-                }
-
-                if (!_refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: false))
-                {
-                    var notificationService = workspace.Services.GetService<INotificationService>();
-                    notificationService.SendNotification(
-                        EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
-                        EditorFeaturesResources.Rename_Symbol,
-                        NotificationSeverity.Information);
                 }
 
                 // Never resume tracking session on redo

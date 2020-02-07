@@ -421,7 +421,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void NotifyRefactorAfterChanges(ImmutableDictionary<ISymbol, ISymbol> changedSymbols, List<DocumentId> changedDocumentIds)
+        private void NotifyRefactorAfterChanges(ImmutableArray<(ISymbol originalSymbol, ISymbol newSymbol)> changedSymbols, List<DocumentId> changedDocumentIds)
         {
             foreach (var (oldSymbol, newSymbol) in changedSymbols)
             {
@@ -432,7 +432,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private bool TryNotifyRefactorBeforeChanges(ImmutableDictionary<ISymbol, ISymbol> changedSymbols, IEnumerable<DocumentId> changedDocumentIds)
+        private bool TryNotifyRefactorBeforeChanges(ImmutableArray<(ISymbol originalSymbol, ISymbol newSymbol)> changedSymbols, IEnumerable<DocumentId> changedDocumentIds)
         {
             foreach (var (oldSymbol, newSymbol) in changedSymbols)
             {

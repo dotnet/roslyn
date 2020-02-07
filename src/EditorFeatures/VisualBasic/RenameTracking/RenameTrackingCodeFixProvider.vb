@@ -4,7 +4,6 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 Imports Microsoft.VisualStudio.Text.Operations
 
@@ -34,8 +33,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking
         Inherits AbstractRenameTrackingCodeFixProvider
 
         <ImportingConstructor>
-        Public Sub New(undoHistoryRegistry As ITextUndoHistoryRegistry, <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService))
-            MyBase.New(undoHistoryRegistry, refactorNotifyServices)
+        Public Sub New(undoHistoryRegistry As ITextUndoHistoryRegistry)
+            MyBase.New(undoHistoryRegistry)
         End Sub
     End Class
 End Namespace

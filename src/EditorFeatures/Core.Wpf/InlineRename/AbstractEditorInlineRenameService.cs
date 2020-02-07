@@ -21,13 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal abstract partial class AbstractEditorInlineRenameService : IEditorInlineRenameService
     {
-        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
-
-        protected AbstractEditorInlineRenameService(IEnumerable<IRefactorNotifyService> refactorNotifyServices)
-        {
-            _refactorNotifyServices = refactorNotifyServices;
-        }
-
         public Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // This is unpleasant, but we do everything synchronously.  That's because we end up
@@ -50,11 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
             }
 
-            return GetRenameInfo(_refactorNotifyServices, document, triggerToken, cancellationToken);
+            return GetRenameInfo(document, triggerToken, cancellationToken);
         }
 
         internal static IInlineRenameInfo GetRenameInfo(
-            IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             Document document, SyntaxToken triggerToken, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
@@ -219,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             return new SymbolInlineRenameInfo(
-                refactorNotifyServices, document, triggerToken.Span,
+                document, triggerToken.Span,
                 symbolAndProjectId, forceRenameOverloads, cancellationToken);
         }
 

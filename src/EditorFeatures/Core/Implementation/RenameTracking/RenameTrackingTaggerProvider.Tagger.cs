@@ -21,15 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private readonly StateMachine _stateMachine;
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
             private readonly IWaitIndicator _waitIndicator;
-            private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged = delegate { };
 
             public Tagger(
                 StateMachine stateMachine,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
-                IWaitIndicator waitIndicator,
-                IEnumerable<IRefactorNotifyService> refactorNotifyServices)
+                IWaitIndicator waitIndicator)
             {
                 _stateMachine = stateMachine;
                 _stateMachine.Connect();
@@ -37,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _stateMachine.TrackingSessionCleared += StateMachine_TrackingSessionCleared;
                 _undoHistoryRegistry = undoHistoryRegistry;
                 _waitIndicator = waitIndicator;
-                _refactorNotifyServices = refactorNotifyServices;
             }
 
             private void StateMachine_TrackingSessionCleared(ITrackingSpan trackingSpanToClear)

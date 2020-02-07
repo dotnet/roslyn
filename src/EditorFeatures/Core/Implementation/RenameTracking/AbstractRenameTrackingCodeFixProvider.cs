@@ -14,14 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     internal abstract class AbstractRenameTrackingCodeFixProvider : CodeFixProvider
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         protected AbstractRenameTrackingCodeFixProvider(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEnumerable<IRefactorNotifyService> refactorNotifyServices)
+            ITextUndoHistoryRegistry undoHistoryRegistry)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
-            _refactorNotifyServices = refactorNotifyServices;
         }
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
@@ -40,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             // any fixes.
             if (RenameTrackingTaggerProvider.CanInvokeRename(document))
             {
-                var action = RenameTrackingTaggerProvider.CreateCodeAction(document, diagnostic, _refactorNotifyServices, _undoHistoryRegistry);
+                var action = RenameTrackingTaggerProvider.CreateCodeAction(document, diagnostic, _undoHistoryRegistry);
                 context.RegisterCodeFix(action, diagnostic);
             }
 

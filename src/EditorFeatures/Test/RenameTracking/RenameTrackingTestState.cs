@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             _view.Caret.MoveTo(new SnapshotPoint(_view.TextSnapshot, HostDocument.CursorPosition.Value));
             EditorOperations = Workspace.GetService<IEditorOperationsFactoryService>().GetEditorOperations(_view);
             _historyRegistry = Workspace.ExportProvider.GetExport<ITextUndoHistoryRegistry>().Value;
-            RefactorNotifyService = new TestRefactorNotify();
+            RefactorNotifyService = (TestRefactorNotify)Workspace.GetService<IRefactorNotifyService>();
 
             RefactorNotifyService.OnBeforeRename += (_) =>
             {
@@ -109,22 +109,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 Workspace.ExportProvider.GetExport<Host.IWaitIndicator>().Value,
                 Workspace.ExportProvider.GetExport<IInlineRenameService>().Value,
                 Workspace.ExportProvider.GetExport<IDiagnosticAnalyzerService>().Value,
-                SpecializedCollections.SingletonEnumerable(RefactorNotifyService),
                 Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
             _tagger = tracker.CreateTagger<RenameTrackingTag>(HostDocument.GetTextBuffer());
 
             if (languageName == LanguageNames.CSharp)
             {
-                _codeFixProvider = new CSharpRenameTrackingCodeFixProvider(
-                    _historyRegistry,
-                    SpecializedCollections.SingletonEnumerable(RefactorNotifyService));
+                _codeFixProvider = new CSharpRenameTrackingCodeFixProvider(_historyRegistry);
             }
             else if (languageName == LanguageNames.VisualBasic)
             {
-                _codeFixProvider = new VisualBasicRenameTrackingCodeFixProvider(
-                    _historyRegistry,
-                    SpecializedCollections.SingletonEnumerable(RefactorNotifyService));
+                _codeFixProvider = new VisualBasicRenameTrackingCodeFixProvider(_historyRegistry);
             }
             else
             {

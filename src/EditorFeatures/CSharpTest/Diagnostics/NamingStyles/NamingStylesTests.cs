@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -13,6 +15,8 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.Workspaces;
 using Microsoft.VisualStudio.Composition;
@@ -1226,38 +1230,14 @@ namespace Microsoft.CodeAnalysis.Host
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(16562, "https://github.com/dotnet/roslyn/issues/16562")]
-        public async Task TestRefactorNotify()
+        public async Task TestRenameSymbolAnnotation()
         {
             var markup = @"public class [|c|] { }";
             var testParameters = new TestParameters(options: options.ClassNamesArePascalCase);
 
             using var workspace = CreateWorkspaceFromOptions(markup, testParameters);
 
-            var refactorNotify = (TestRefactorNotify)workspace.GetService<IRefactorNotifyService>();
-
-            var beforeCalled = false;
-            var afterCalled = false;
-            TestRefactorNotify.SymbolRenamedEventHandler beforeRename = (args) =>
-            {
-                Assert.Equal("C", args.NewName);
-                Assert.False(beforeCalled);
-                beforeCalled = true;
-
-                return true;
-            };
-
-            TestRefactorNotify.SymbolRenamedEventHandler afterRename = (args) =>
-            {
-                Assert.Equal("C", args.NewName);
-                Assert.True(beforeCalled);
-                Assert.False(afterCalled);
-                afterCalled = true;
-
-                return true;
-            };
-
-            refactorNotify.OnBeforeRename += beforeRename;
-            refactorNotify.OnAfterRename += afterRename;
+            var originalSolution = workspace.CurrentSolution;
 
             var (_, action) = await GetCodeActionsAsync(workspace, testParameters);
             var operations = await action.GetOperationsAsync(CancellationToken.None);
@@ -1267,11 +1247,15 @@ namespace Microsoft.CodeAnalysis.Host
                 operation.Apply(workspace, CancellationToken.None);
             }
 
-            Assert.True(beforeCalled);
-            Assert.True(afterCalled);
+            var newSolution = workspace.CurrentSolution;
 
-            refactorNotify.OnBeforeRename -= beforeRename;
-            refactorNotify.OnAfterRename -= afterRename;
+            await Test.Utilities.Utilities.TestRenameSymbolAnnotation.ValidateRenameSymbolAnnotationsAsync(
+                originalSolution,
+                newSolution,
+                new Dictionary<string, string>()
+                {
+                    {"c", "C" }
+                }.ToImmutableDictionary());
         }
     }
 }
