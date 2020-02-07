@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Options.EditorConfig
 {
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
     {
         public static IDocumentOptionsProvider Create(Workspace workspace)
         {
-            return new EditorConfigDocumentOptionsProvider(workspace.Services.GetService<IErrorLoggerService>());
+            return new EditorConfigDocumentOptionsProvider();
         }
 
         private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
@@ -32,15 +33,8 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
             return !workspace.Options.GetOption(UseLegacyEditorConfigSupport);
         }
 
-        private class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
+        private sealed class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
         {
-            private readonly IErrorLoggerService? _errorLogger;
-
-            public EditorConfigDocumentOptionsProvider(IErrorLoggerService? errorLogger)
-            {
-                _errorLogger = errorLogger;
-            }
-
             public async Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
             {
                 if (!ShouldUseNativeEditorConfigSupport(document.Project.Solution.Workspace))
@@ -51,18 +45,15 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 
                 var options = await document.GetAnalyzerOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-                return new DocumentOptions(options, _errorLogger);
+                return new DocumentOptions(options);
             }
 
-            private class DocumentOptions : IDocumentOptions
+            private sealed class DocumentOptions : IDocumentOptions
             {
                 private readonly ImmutableDictionary<string, string> _options;
-                private readonly IErrorLoggerService? _errorLogger;
-
-                public DocumentOptions(ImmutableDictionary<string, string> options, IErrorLoggerService? errorLogger)
+                public DocumentOptions(ImmutableDictionary<string, string> options)
                 {
                     _options = options;
-                    _errorLogger = errorLogger;
                 }
 
                 public bool TryGetDocumentOption(OptionKey option, out object? value)
@@ -78,9 +69,8 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
                     {
                         return editorConfigPersistence.TryGetOption(_options.AsNullable(), option.Option.Type, out value);
                     }
-                    catch (Exception ex)
+                    catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                     {
-                        _errorLogger?.LogException(this, ex);
                         value = null;
                         return false;
                     }
