@@ -27,5 +27,4 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
   </ItemGroup>
-  <Import Project="..\..\..\Analyzers\Core\Tests\Analyzers.UnitTests.projitems" Label="Shared" />
 </Project>

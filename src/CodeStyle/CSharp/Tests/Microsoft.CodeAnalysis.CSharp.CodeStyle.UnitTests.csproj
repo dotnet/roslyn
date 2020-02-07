@@ -18,7 +18,7 @@
     <ProjectReference Include="..\..\Core\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj" />
     <ProjectReference Include="..\CodeFixes\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.csproj" />
-    <ProjectReference Include="..\..\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.UnitTests.csproj" />
+    <ProjectReference Include="..\..\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities.csproj" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <!-- TODO: Remove the below project reference to C# workspaces project once all analyzer/code fix tests are switched to Microsoft.CodeAnalysis.Testing -->
