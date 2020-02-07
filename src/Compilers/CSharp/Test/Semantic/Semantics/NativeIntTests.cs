@@ -828,6 +828,7 @@ $@"class Program
         F(int.MinValue);
         F({short.MinValue - 1});
         F(short.MinValue);
+        F(sbyte.MinValue);
         F(-2);
         F(-1);
         F(0);
@@ -840,7 +841,10 @@ $@"class Program
         F(7);
         F(8);
         F(9);
+        F(sbyte.MaxValue);
+        F(byte.MaxValue);
         F(short.MaxValue);
+        F(char.MaxValue);
         F(ushort.MaxValue);
         F({ushort.MaxValue + 1});
         F(int.MaxValue);
@@ -856,6 +860,7 @@ $@"class Program
 -2147483648
 -32769
 -32768
+-128
 -2
 -1
 0
@@ -868,14 +873,17 @@ $@"class Program
 7
 8
 9
+127
+255
 32767
+65535
 65535
 65536
 2147483647";
             var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
             string expectedIL =
 @"{
-  // Code size      171 (0xab)
+  // Code size      209 (0xd1)
   .maxstack  1
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i
@@ -889,59 +897,69 @@ $@"class Program
   IL_001d:  ldc.i4     0xffff8000
   IL_0022:  conv.i
   IL_0023:  call       ""void Program.F(nint)""
-  IL_0028:  ldc.i4.s   -2
+  IL_0028:  ldc.i4.s   -128
   IL_002a:  conv.i
   IL_002b:  call       ""void Program.F(nint)""
-  IL_0030:  ldc.i4.m1
-  IL_0031:  conv.i
-  IL_0032:  call       ""void Program.F(nint)""
-  IL_0037:  ldc.i4.0
-  IL_0038:  conv.i
-  IL_0039:  call       ""void Program.F(nint)""
-  IL_003e:  ldc.i4.1
-  IL_003f:  conv.i
-  IL_0040:  call       ""void Program.F(nint)""
-  IL_0045:  ldc.i4.2
-  IL_0046:  conv.i
-  IL_0047:  call       ""void Program.F(nint)""
-  IL_004c:  ldc.i4.3
-  IL_004d:  conv.i
-  IL_004e:  call       ""void Program.F(nint)""
-  IL_0053:  ldc.i4.4
-  IL_0054:  conv.i
-  IL_0055:  call       ""void Program.F(nint)""
-  IL_005a:  ldc.i4.5
-  IL_005b:  conv.i
-  IL_005c:  call       ""void Program.F(nint)""
-  IL_0061:  ldc.i4.6
-  IL_0062:  conv.i
-  IL_0063:  call       ""void Program.F(nint)""
-  IL_0068:  ldc.i4.7
-  IL_0069:  conv.i
-  IL_006a:  call       ""void Program.F(nint)""
-  IL_006f:  ldc.i4.8
-  IL_0070:  conv.i
-  IL_0071:  call       ""void Program.F(nint)""
-  IL_0076:  ldc.i4.s   9
+  IL_0030:  ldc.i4.s   -2
+  IL_0032:  conv.i
+  IL_0033:  call       ""void Program.F(nint)""
+  IL_0038:  ldc.i4.m1
+  IL_0039:  conv.i
+  IL_003a:  call       ""void Program.F(nint)""
+  IL_003f:  ldc.i4.0
+  IL_0040:  conv.i
+  IL_0041:  call       ""void Program.F(nint)""
+  IL_0046:  ldc.i4.1
+  IL_0047:  conv.i
+  IL_0048:  call       ""void Program.F(nint)""
+  IL_004d:  ldc.i4.2
+  IL_004e:  conv.i
+  IL_004f:  call       ""void Program.F(nint)""
+  IL_0054:  ldc.i4.3
+  IL_0055:  conv.i
+  IL_0056:  call       ""void Program.F(nint)""
+  IL_005b:  ldc.i4.4
+  IL_005c:  conv.i
+  IL_005d:  call       ""void Program.F(nint)""
+  IL_0062:  ldc.i4.5
+  IL_0063:  conv.i
+  IL_0064:  call       ""void Program.F(nint)""
+  IL_0069:  ldc.i4.6
+  IL_006a:  conv.i
+  IL_006b:  call       ""void Program.F(nint)""
+  IL_0070:  ldc.i4.7
+  IL_0071:  conv.i
+  IL_0072:  call       ""void Program.F(nint)""
+  IL_0077:  ldc.i4.8
   IL_0078:  conv.i
   IL_0079:  call       ""void Program.F(nint)""
-  IL_007e:  ldc.i4     0x7fff
-  IL_0083:  conv.i
-  IL_0084:  call       ""void Program.F(nint)""
-  IL_0089:  ldc.i4     0xffff
-  IL_008e:  conv.i
-  IL_008f:  call       ""void Program.F(nint)""
-  IL_0094:  ldc.i4     0x10000
-  IL_0099:  conv.i
-  IL_009a:  call       ""void Program.F(nint)""
-  IL_009f:  ldc.i4     0x7fffffff
-  IL_00a4:  conv.i
-  IL_00a5:  call       ""void Program.F(nint)""
-  IL_00aa:  ret
+  IL_007e:  ldc.i4.s   9
+  IL_0080:  conv.i
+  IL_0081:  call       ""void Program.F(nint)""
+  IL_0086:  ldc.i4.s   127
+  IL_0088:  conv.i
+  IL_0089:  call       ""void Program.F(nint)""
+  IL_008e:  ldc.i4     0xff
+  IL_0093:  conv.i
+  IL_0094:  call       ""void Program.F(nint)""
+  IL_0099:  ldc.i4     0x7fff
+  IL_009e:  conv.i
+  IL_009f:  call       ""void Program.F(nint)""
+  IL_00a4:  ldc.i4     0xffff
+  IL_00a9:  conv.i
+  IL_00aa:  call       ""void Program.F(nint)""
+  IL_00af:  ldc.i4     0xffff
+  IL_00b4:  conv.i
+  IL_00b5:  call       ""void Program.F(nint)""
+  IL_00ba:  ldc.i4     0x10000
+  IL_00bf:  conv.i
+  IL_00c0:  call       ""void Program.F(nint)""
+  IL_00c5:  ldc.i4     0x7fffffff
+  IL_00ca:  conv.i
+  IL_00cb:  call       ""void Program.F(nint)""
+  IL_00d0:  ret
 }";
             verifier.VerifyIL("Program.Main", expectedIL);
-
-            // PROTOTYPE: Test other source types.
         }
 
         [Fact]
@@ -963,7 +981,10 @@ $@"class Program
         F(7);
         F(8);
         F(9);
+        F(sbyte.MaxValue);
+        F(byte.MaxValue);
         F(short.MaxValue);
+        F(char.MaxValue);
         F(ushort.MaxValue);
         F(int.MaxValue);
         F({(uint)int.MaxValue + 1});
@@ -987,7 +1008,10 @@ $@"class Program
 7
 8
 9
+127
+255
 32767
+65535
 65535
 2147483647
 2147483648
@@ -995,7 +1019,7 @@ $@"class Program
             var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
             string expectedIL =
 @"{
-  // Code size      130 (0x82)
+  // Code size      160 (0xa0)
   .maxstack  1
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i
@@ -1030,26 +1054,33 @@ $@"class Program
   IL_0046:  ldc.i4.s   9
   IL_0048:  conv.i
   IL_0049:  call       ""void Program.F(nuint)""
-  IL_004e:  ldc.i4     0x7fff
-  IL_0053:  conv.i
-  IL_0054:  call       ""void Program.F(nuint)""
-  IL_0059:  ldc.i4     0xffff
-  IL_005e:  conv.i
-  IL_005f:  call       ""void Program.F(nuint)""
-  IL_0064:  ldc.i4     0x7fffffff
-  IL_0069:  conv.i
-  IL_006a:  call       ""void Program.F(nuint)""
-  IL_006f:  ldc.i4     0x80000000
-  IL_0074:  conv.u
-  IL_0075:  call       ""void Program.F(nuint)""
-  IL_007a:  ldc.i4.m1
-  IL_007b:  conv.u
-  IL_007c:  call       ""void Program.F(nuint)""
-  IL_0081:  ret
+  IL_004e:  ldc.i4.s   127
+  IL_0050:  conv.i
+  IL_0051:  call       ""void Program.F(nuint)""
+  IL_0056:  ldc.i4     0xff
+  IL_005b:  conv.i
+  IL_005c:  call       ""void Program.F(nuint)""
+  IL_0061:  ldc.i4     0x7fff
+  IL_0066:  conv.i
+  IL_0067:  call       ""void Program.F(nuint)""
+  IL_006c:  ldc.i4     0xffff
+  IL_0071:  conv.i
+  IL_0072:  call       ""void Program.F(nuint)""
+  IL_0077:  ldc.i4     0xffff
+  IL_007c:  conv.i
+  IL_007d:  call       ""void Program.F(nuint)""
+  IL_0082:  ldc.i4     0x7fffffff
+  IL_0087:  conv.i
+  IL_0088:  call       ""void Program.F(nuint)""
+  IL_008d:  ldc.i4     0x80000000
+  IL_0092:  conv.u
+  IL_0093:  call       ""void Program.F(nuint)""
+  IL_0098:  ldc.i4.m1
+  IL_0099:  conv.u
+  IL_009a:  call       ""void Program.F(nuint)""
+  IL_009f:  ret
 }";
             verifier.VerifyIL("Program.Main", expectedIL);
-
-            // PROTOTYPE: Test other source types.
         }
 
         [Fact]
@@ -3020,7 +3051,151 @@ class Program
             }
         }
 
-        // PROTOTYPE: Test ++x where there are user-defined conversions between X and nint. (See comments in LocalRewriter.MakeBuiltInIncrementOperator.)
+        [Fact(Skip = "CS0023: Operator '++' cannot be applied to operand of type 'MyInt'")]
+        public void Increment_UserDefinedConversions_Int()
+        {
+            string source =
+@"class MyInt
+{
+    private nint _i;
+    internal MyInt(nint i) => _i = i;
+    public static implicit operator nint(MyInt i) => i._i;
+    public static implicit operator MyInt(nint i) => new MyInt(i);
+    public override string ToString() => _i.ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Increment(int.MinValue);
+        Increment(-1);
+        Increment(0);
+        Decrement(int.MaxValue);
+        Decrement(1);
+        Decrement(0);
+    }
+    static void Increment(nint i)
+    {
+        MyInt m = new MyInt(i);
+        m++;
+        System.Console.WriteLine(m);
+    }
+    static void Decrement(nint i)
+    {
+        MyInt m = new MyInt(i);
+        m--;
+        System.Console.WriteLine(m);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            string expectedOutput =
+@"-2147483647
+0
+1
+2147483646
+0
+-1";
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+            verifier.VerifyIL("Program.Increment",
+@"{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""MyInt..ctor(int)""
+  IL_0006:  call       ""int MyInt.op_Implicit(MyInt)""
+  IL_000b:  ldc.i4.1
+  IL_000c:  add
+  IL_000d:  call       ""MyInt MyInt.op_Implicit(int)""
+  IL_0012:  call       ""int MyInt.op_Implicit(MyInt)""
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}");
+            verifier.VerifyIL("Program.Decrement",
+@"{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""MyInt..ctor(int)""
+  IL_0006:  call       ""int MyInt.op_Implicit(MyInt)""
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  call       ""MyInt MyInt.op_Implicit(int)""
+  IL_0012:  call       ""int MyInt.op_Implicit(MyInt)""
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}");
+        }
+
+        [Fact(Skip = "CS0023: Operator '++' cannot be applied to operand of type 'MyUInt'")]
+        public void Increment_UserDefinedConversions_UInt()
+        {
+            string source =
+@"class MyUInt
+{
+    private nuint _i;
+    internal MyUInt(nuint i) => _i = i;
+    public static implicit operator nuint(MyUInt i) => i._i;
+    public static implicit operator MyUInt(nuint i) => new MyUInt(i);
+    public override string ToString() => _i.ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Increment(0);
+        Increment(uint.MaxValue - 1);
+        Decrement(1);
+        Increment(uint.MaxValue);
+    }
+    static void Increment(nuint i)
+    {
+        MyUInt m = new MyUInt(i);
+        m++;
+        System.Console.WriteLine(m);
+    }
+    static void Decrement(nuint i)
+    {
+        MyUInt m = new MyUInt(i);
+        m--;
+        System.Console.WriteLine(m);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            string expectedOutput =
+@"1
+4294967295
+0
+4294967294";
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+            verifier.VerifyIL("Program.Increment",
+@"{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""MyUInt..ctor(int)""
+  IL_0006:  call       ""int MyUInt.op_Implicit(MyUInt)""
+  IL_000b:  ldc.i4.1
+  IL_000c:  add
+  IL_000d:  call       ""MyUInt MyUInt.op_Implicit(int)""
+  IL_0012:  call       ""int MyUInt.op_Implicit(MyUInt)""
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}");
+            verifier.VerifyIL("Program.Decrement",
+@"{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""MyUInt..ctor(int)""
+  IL_0006:  call       ""int MyUInt.op_Implicit(MyUInt)""
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  call       ""MyUInt MyUInt.op_Implicit(int)""
+  IL_0012:  call       ""int MyUInt.op_Implicit(MyUInt)""
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}");
+        }
 
         [Fact]
         public void BinaryOperators()

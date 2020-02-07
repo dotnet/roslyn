@@ -692,6 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (TypeSymbol binaryOperandType, ConstantValue constantOne) = GetConstantOneForIncrement(_compilation, binaryOperatorKind);
 
             Debug.Assert(constantOne != null);
+            Debug.Assert(constantOne.SpecialType != SpecialType.None);
             Debug.Assert(binaryOperandType.SpecialType != SpecialType.None);
             Debug.Assert(binaryOperatorKind.OperandTypes() != 0);
 
