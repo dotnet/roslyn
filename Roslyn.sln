@@ -458,6 +458,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compiler", "Compiler", "{7A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workspace", "Workspace", "{9C1BE25C-5926-4E56-84AE-D2242CB0627E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities", "src\EditorFeatures\DiagnosticsTestUtilities\Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities.csproj", "{1C2DAB75-D024-4C04-9F3F-B2F881D805EE}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -1201,6 +1203,10 @@ Global
 		{D55FB2BD-CC9E-454B-9654-94AF5D910BF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D55FB2BD-CC9E-454B-9654-94AF5D910BF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D55FB2BD-CC9E-454B-9654-94AF5D910BF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C2DAB75-D024-4C04-9F3F-B2F881D805EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C2DAB75-D024-4C04-9F3F-B2F881D805EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C2DAB75-D024-4C04-9F3F-B2F881D805EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C2DAB75-D024-4C04-9F3F-B2F881D805EE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1414,6 +1420,7 @@ Global
 		{DF17AF27-AA02-482B-8946-5CA8A50D5A2B} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{7A69EA65-4411-4CD0-B439-035E720C1BD3} = {DF17AF27-AA02-482B-8946-5CA8A50D5A2B}
 		{9C1BE25C-5926-4E56-84AE-D2242CB0627E} = {DF17AF27-AA02-482B-8946-5CA8A50D5A2B}
+		{1C2DAB75-D024-4C04-9F3F-B2F881D805EE} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
