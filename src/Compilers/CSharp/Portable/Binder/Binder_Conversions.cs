@@ -1271,7 +1271,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Single: return (double)(float)nuintValue;
                             case SpecialType.System_Double: return (double)nuintValue;
                             case SpecialType.System_Decimal: return (decimal)nuintValue;
-                            // PROTOTYPE: Test all destination types.
                             default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
                     case ConstantValueTypeDiscriminator.SByte:
@@ -1372,7 +1371,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Single: return (double)(float)nintValue;
                             case SpecialType.System_Double: return (double)nintValue;
                             case SpecialType.System_Decimal: return (decimal)nintValue;
-                            // PROTOTYPE: Test all destination types.
                             default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
                     case ConstantValueTypeDiscriminator.Single:

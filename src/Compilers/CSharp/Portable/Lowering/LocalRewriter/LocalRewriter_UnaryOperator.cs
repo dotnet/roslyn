@@ -687,8 +687,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorKind binaryOperatorKind = GetCorrespondingBinaryOperator(node);
             binaryOperatorKind |= IsIncrement(node) ? BinaryOperatorKind.Addition : BinaryOperatorKind.Subtraction;
 
-            // The "1" in the example above and
-            // the input/output type of the binary operand. "int" in the example. 
+            // The "1" in the example above.
+            // The input/output type of the binary operand. "int" in the example. 
             (TypeSymbol binaryOperandType, ConstantValue constantOne) = GetConstantOneForIncrement(_compilation, binaryOperatorKind);
 
             Debug.Assert(constantOne != null);
