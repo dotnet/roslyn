@@ -24,6 +24,26 @@ namespace Analyzer.Utilities
 
         private readonly ImmutableDictionary<string, TValue> _names;
         private readonly ImmutableDictionary<ISymbol, TValue> _symbols;
+        /// <summary>
+        /// Dictionary holding per symbol kind the wildcard entry with its suffix.
+        /// The implementation only supports the following SymbolKind: Namespace, Type, Event, Field, Method, Property and ErrorType (as a way to hold the non-fully qualified types).
+        /// </summary>
+        /// <example>
+        /// ErrorType ->
+        ///     Symbol* -> "some value"
+        /// Namespace ->
+        ///     Analyzer.Utilities -> ""
+        /// Type ->
+        ///     Analyzer.Utilities.SymbolNamesWithValueOption -> ""
+        /// Event ->
+        ///     Analyzer.Utilities.SymbolNamesWithValueOption.MyEvent -> ""
+        /// Field ->
+        ///     Analyzer.Utilities.SymbolNamesWithValueOption.myField -> ""
+        /// Method ->
+        ///     Analyzer.Utilities.SymbolNamesWithValueOption.MyMethod() -> ""
+        /// Property ->
+        ///     Analyzer.Utilities.SymbolNamesWithValueOption.MyProperty -> ""
+        /// </example>
         private readonly ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> _wildcardNamesBySymbolKind;
 
         private SymbolNamesWithValueOption(ImmutableDictionary<string, TValue> names, ImmutableDictionary<ISymbol, TValue> symbols,
