@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the text representation of the value of the token. For example, if the token represents an integer
         /// literal, then this property would return a string representing the integer.
         /// </summary>
-        public string? ValueText => Node?.GetValueText();
+        public string ValueText => Node?.GetValueText() ?? string.Empty;
 
         public string Text => ToString();
 

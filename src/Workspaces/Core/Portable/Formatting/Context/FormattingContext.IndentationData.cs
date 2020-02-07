@@ -9,9 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal partial class FormattingContext :
-        IIntervalIntrospector<FormattingContext.IndentationData>,
-        IIntervalIntrospector<FormattingContext.RelativeIndentationData>
+    internal partial class FormattingContext
     {
         /// <summary>
         /// data that will be used in an interval tree related to indentation.
@@ -77,26 +75,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 get { return this.Operation.EndToken; }
             }
-        }
-
-        int IIntervalIntrospector<IndentationData>.GetStart(IndentationData value)
-        {
-            return value.TextSpan.Start;
-        }
-
-        int IIntervalIntrospector<IndentationData>.GetLength(IndentationData value)
-        {
-            return value.TextSpan.Length;
-        }
-
-        int IIntervalIntrospector<RelativeIndentationData>.GetStart(RelativeIndentationData value)
-        {
-            return value.InseparableRegionSpan.Start;
-        }
-
-        int IIntervalIntrospector<RelativeIndentationData>.GetLength(RelativeIndentationData value)
-        {
-            return value.InseparableRegionSpan.Length;
         }
     }
 }

@@ -390,6 +390,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 emittedDocs = true;
             }
 
+            if (ShowValueDocumentation(symbol) && documentationComment.ValueText != null)
+            {
+                if (emittedDocs)
+                {
+                    AddLineBreak();
+                }
+
+                AddLineBreak();
+                AddName(ServicesVSResources.Value_colon);
+                AddLineBreak();
+
+                AddText(formattingService.Format(documentationComment.ValueText, compilation));
+                emittedDocs = true;
+            }
+
             if (documentationComment.RemarksText != null)
             {
                 if (emittedDocs)
@@ -447,6 +462,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return (symbol.Kind == SymbolKind.NamedType && ((INamedTypeSymbol)symbol).TypeKind == TypeKind.Delegate)
                 || symbol.Kind == SymbolKind.Method
                 || symbol.Kind == SymbolKind.Property;
+        }
+
+        private bool ShowValueDocumentation(ISymbol symbol)
+        {
+            // <returns> is often used in places where <value> was originally intended. Allow either to be used in
+            // documentation comments since they are not likely to be used together and it's not clear which one a
+            // particular code base will be using more often.
+            return ShowReturnsDocumentation(symbol);
         }
 
         internal bool TryBuild(_VSOBJDESCOPTIONS options)

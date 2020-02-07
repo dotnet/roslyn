@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
             Assert.Empty(diagnostics);
 
-            // an error occured so we need to call update to determine whether we have changes to apply or not:
+            // an error occurred so we need to call update to determine whether we have changes to apply or not:
             Assert.True(await service.HasChangesAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
             Assert.Empty(_emitDiagnosticsUpdated);
@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
             Assert.Empty(diagnostics);
 
-            // an error occured so we need to call update to determine whether we have changes to apply or not:
+            // an error occurred so we need to call update to determine whether we have changes to apply or not:
             Assert.True(await service.HasChangesAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
             Assert.Empty(_emitDiagnosticsUpdated);

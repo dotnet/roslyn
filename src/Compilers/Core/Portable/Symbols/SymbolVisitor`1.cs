@@ -31,145 +31,109 @@ namespace Microsoft.CodeAnalysis
         [return: MaybeNull]
         public virtual TResult VisitAlias(IAliasSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitArrayType(IArrayTypeSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitAssembly(IAssemblySymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitDiscard(IDiscardSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitDynamicType(IDynamicTypeSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitEvent(IEventSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitField(IFieldSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitLabel(ILabelSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitLocal(ILocalSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitMethod(IMethodSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitModule(IModuleSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitNamedType(INamedTypeSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitNamespace(INamespaceSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitParameter(IParameterSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitPointerType(IPointerTypeSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitProperty(IPropertySymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitRangeVariable(IRangeVariableSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         [return: MaybeNull]
         public virtual TResult VisitTypeParameter(ITypeParameterSymbol symbol)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return DefaultVisit(symbol);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
     }
 }
