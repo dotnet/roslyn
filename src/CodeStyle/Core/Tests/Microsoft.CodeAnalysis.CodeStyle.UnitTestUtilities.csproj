@@ -6,6 +6,7 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
     <TargetFramework>net472</TargetFramework>
+    <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\EditorFeatures\Test\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs" Link="TestFramework\AbstractCodeActionOrUserDiagnosticTest.cs" />
