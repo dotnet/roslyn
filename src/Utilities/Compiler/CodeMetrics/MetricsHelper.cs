@@ -267,17 +267,13 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             if (typeOpt is INamedTypeSymbol usedType &&
                 !isIgnoreableType(usedType))
             {
-                if (usedType.IsGenericType && !usedType.IsUnboundGenericType)
+                builder.Add(usedType.OriginalDefinition);
+                if (usedType.IsGenericType)
                 {
-                    builder.Add(usedType.OriginalDefinition);
                     foreach (var type in usedType.TypeArguments)
                     {
                         AddCoupledNamedTypesCore(builder, type);
                     }
-                }
-                else
-                {
-                    builder.Add(usedType);
                 }
             }
 
