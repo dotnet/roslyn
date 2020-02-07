@@ -441,9 +441,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var @delegate = functionPointerTypeSyntax.DelegateKeyword;
                         var asterisk = functionPointerTypeSyntax.AsteriskToken;
-                        var length = @delegate.Width + @delegate.TrailingWidth +
-                                     asterisk.LeadingWidth + asterisk.Width;
-
                         RoslynDebug.Assert(@delegate.SyntaxTree is object);
                         diagnostics.Add(info, Location.Create(@delegate.SyntaxTree, TextSpan.FromBounds(@delegate.SpanStart, asterisk.Span.End)));
                     }
