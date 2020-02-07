@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../AnalyzersResources.resx">
     <body>
+      <trans-unit id="AvoidAllocationByUsingArrayEmpty">
+        <source>Avoid allocation by using Array.Empty&lt;&gt;()</source>
+        <target state="new">Avoid allocation by using Array.Empty&lt;&gt;()</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ClosureCaptureRuleMessage">
         <source>The compiler will emit a class that will hold this as a field to allow capturing of this closure</source>
         <target state="translated">컴파일러는 이 Closure의 캡처를 허용하도록 이 항목을 필드로 포함할 클래스를 내보냅니다.</target>

@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AvoidAllocationByUsingArrayEmpty" xml:space="preserve">
+    <value>Avoid allocation by using Array.Empty&lt;&gt;()</value>
+  </data>
   <data name="ClosureCaptureRuleMessage" xml:space="preserve">
     <value>The compiler will emit a class that will hold this as a field to allow capturing of this closure</value>
   </data>

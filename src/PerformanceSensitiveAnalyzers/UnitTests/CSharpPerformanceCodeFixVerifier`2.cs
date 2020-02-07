@@ -88,7 +88,14 @@ namespace Roslyn.Utilities
                         ("PerformanceSensitiveAttribute.cs", PerformanceSensitiveAttributeSource)
                     },
                 },
-                FixedCode = fixedSource,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        fixedSource,
+                        ("PerformanceSensitiveAttribute.cs", PerformanceSensitiveAttributeSource)
+                    },
+                },
                 TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 

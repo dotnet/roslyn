@@ -13,4 +13,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.csproj" />
   </ItemGroup>
+  <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
 </Project>
