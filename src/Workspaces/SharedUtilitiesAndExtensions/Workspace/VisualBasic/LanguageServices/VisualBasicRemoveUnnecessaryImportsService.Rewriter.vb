@@ -7,17 +7,17 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
-    Partial Friend Class AbstractVisualBasicRemoveUnnecessaryImportsService
+    Partial Friend Class VisualBasicRemoveUnnecessaryImportsService
         Private Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly _unnecessaryImports As ISet(Of ImportsClauseSyntax)
             Private ReadOnly _cancellationToken As CancellationToken
             Private ReadOnly _annotation As New SyntaxAnnotation()
-            Private ReadOnly _importsService As AbstractVisualBasicRemoveUnnecessaryImportsService
+            Private ReadOnly _importsService As VisualBasicRemoveUnnecessaryImportsService
             Private ReadOnly _document As Document
 
-            Public Sub New(importsService As AbstractVisualBasicRemoveUnnecessaryImportsService,
+            Public Sub New(importsService As VisualBasicRemoveUnnecessaryImportsService,
                            document As Document,
                            unnecessaryImports As ISet(Of ImportsClauseSyntax),
                            cancellationToken As CancellationToken)

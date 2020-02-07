@@ -13,17 +13,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
-    internal partial class AbstractCSharpRemoveUnnecessaryImportsService
+    internal partial class CSharpRemoveUnnecessaryImportsService
     {
         private class Rewriter : CSharpSyntaxRewriter
         {
             private readonly ISet<UsingDirectiveSyntax> _unnecessaryUsingsDoNotAccessDirectly;
             private readonly CancellationToken _cancellationToken;
-            private readonly AbstractCSharpRemoveUnnecessaryImportsService _importsService;
+            private readonly CSharpRemoveUnnecessaryImportsService _importsService;
             private readonly Document _document;
 
             public Rewriter(
-                AbstractCSharpRemoveUnnecessaryImportsService importsService,
+                CSharpRemoveUnnecessaryImportsService importsService,
                 Document document,
                 ISet<UsingDirectiveSyntax> unnecessaryUsings,
                 CancellationToken cancellationToken)

@@ -4,12 +4,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -18,9 +19,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
-    internal partial class AbstractCSharpRemoveUnnecessaryImportsService :
+    [ExportLanguageService(typeof(IRemoveUnnecessaryImportsService), LanguageNames.CSharp), Shared]
+    internal partial class CSharpRemoveUnnecessaryImportsService :
         AbstractRemoveUnnecessaryImportsService<UsingDirectiveSyntax>
     {
+        public static readonly CSharpRemoveUnnecessaryImportsService Instance = new CSharpRemoveUnnecessaryImportsService();
+
+        [ImportingConstructor]
+        public CSharpRemoveUnnecessaryImportsService()
+        {
+        }
+
         protected override IUnnecessaryImportsProvider UnnecessaryImportsProvider
             => CSharpUnnecessaryImportsProvider.Instance;
 
