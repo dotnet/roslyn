@@ -1294,8 +1294,7 @@ Class C
     </hello>
 </xml>
     End Sub
-End Class
-"
+End Class"
             Dim expected = "
 Class C
     Sub Method(Optional ByVal i As Integer = 1)
@@ -2273,8 +2272,7 @@ End Module", "
 Module Program
     Sub Main(args As String())
     End Sub
-End Module
-")
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
