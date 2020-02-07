@@ -33,7 +33,7 @@ namespace Roslyn.Utilities
             int firstDead = -1;
             for (int i = 0; i < _items.Length; i++)
             {
-                if (!_items[i].TryGetTarget(out var _))
+                if (!_items[i].TryGetTarget(out _))
                 {
                     if (firstDead == -1)
                     {
@@ -112,8 +112,7 @@ namespace Roslyn.Utilities
             {
                 var item = _items[i];
 
-                T? target;
-                if (item.TryGetTarget(out target))
+                if (item.TryGetTarget(out _))
                 {
                     result[j++] = item;
                 }
