@@ -74,7 +74,7 @@ Here is an example from a test failure on Jenkins - it's reviewable even though 
     
     ![ServiceHub failure info-bar](images/how-to-investigate-ci-test-failures-servicehub-failure-infobar.png) 
     
-    This means the ServiceHub process crashed. To see why check ServiceHub logs, which are available in the log artifacts:
+    This means the ServiceHub process crashed. Check the ServiceHub logs to see why. They are available in the log artifacts:
     
     ![ServiceHub log artifacts](images/how-to-investigate-ci-test-failures-servicehub-log-artifacts.png)
  
