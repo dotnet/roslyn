@@ -6282,48 +6282,31 @@ done:;
         /// <returns><c>null</c> when a statement cannot be parsed at this location.</returns>
         private StatementSyntax TryParseStatementCore()
         {
-            var resetPointBeforeStatement = this.GetResetPoint();
-            try
+            _recursionDepth++;
+            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+
+            if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNode is CSharp.Syntax.StatementSyntax)
             {
-                _recursionDepth++;
-                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-
-                if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNode is CSharp.Syntax.StatementSyntax)
-                {
-                    return (StatementSyntax)this.EatNode();
-                }
-
-                // All statements allow attributes in the syntax model (though not all support them in terms of the langauge).
-                // Start by parsing out the optional attributes that can proceed everything. Then determine how to
-                // parse the actual construct that follows.
-                var attributes = this.ParseAttributeDeclarations();
-
-                StatementSyntax result = TryParseStatementNoDeclaration(allowAnyExpression: false);
-                if (result != null)
-                {
-                    return result;
-                }
-
-                // We could not successfully parse the statement as a non-declaration. Try to parse
-                // it as either a declaration or as an "await X();" statement that is in a non-async
-                // method. 
-
-                result = TryParsePossibleDeclarationOrBadAwaitStatement(attributes);
-                if (result != null)
-                {
-                    return result;
-                }
-
-                // We didn't successfully parse anything.  If we parsed any attributes, we have to rewind
-                // to before them so that they don't get lost.
-                this.Reset(ref resetPointBeforeStatement);
-                return null;
+                return (StatementSyntax)this.EatNode();
             }
-            finally
+
+            StatementSyntax result = TryParseStatementNoDeclaration(allowAnyExpression: false);
+            if (result != null)
             {
-                _recursionDepth--;
-                this.Release(ref resetPointBeforeStatement);
+                return result;
             }
+
+            // We could not successfully parse the statement as a non-declaration. Try to parse
+            // it as either a declaration or as an "await X();" statement that is in a non-async
+            // method. 
+
+            result = TryParsePossibleDeclarationOrBadAwaitStatement(attributes: default);
+            if (result != null)
+            {
+                return result;
+            }
+
+            return null;
         }
 
         /// <returns><c>null</c> when a statement cannot be parsed at this location.</returns>
@@ -6971,9 +6954,6 @@ done:;
             return null;
         }
 
-        private BlockSyntax ParsePossiblyAttributedBlock(bool isMethodBody = false, bool isAccessorBody = false)
-            => ParseBlock(isMethodBody, isAccessorBody);
-
         // If "isMethodBody" is true, then this is the immediate body of a method/accessor.
         // In this case, we create a many-child list if the body is not a small single statement.
         // This then allows a "with many weak children" red node when the red node is created.
@@ -7250,7 +7230,7 @@ done:;
             {
                 var saveTerm = _termState;
                 _termState |= TerminatorState.IsEndOfTryBlock;
-                block = this.ParsePossiblyAttributedBlock();
+                block = this.ParseBlock();
                 _termState = saveTerm;
             }
 
@@ -7274,7 +7254,7 @@ done:;
                 {
                     hasEnd = true;
                     var fin = this.EatToken();
-                    var finBlock = this.ParsePossiblyAttributedBlock();
+                    var finBlock = this.ParseBlock();
                     @finally = _syntaxFactory.FinallyClause(fin, finBlock);
                 }
 
@@ -7364,7 +7344,7 @@ done:;
             }
 
             _termState |= TerminatorState.IsEndOfCatchBlock;
-            var block = this.ParsePossiblyAttributedBlock();
+            var block = this.ParseBlock();
             _termState = saveTerm;
 
             return _syntaxFactory.CatchClause(@catch, decl, filter, block);
@@ -7404,7 +7384,7 @@ done:;
             }
 
             var spec = this.EatToken();
-            var block = this.ParsePossiblyAttributedBlock();
+            var block = this.ParseBlock();
             return _syntaxFactory.CheckedStatement(SyntaxFacts.GetCheckStatement(spec.Kind), spec, block);
         }
 
@@ -7963,7 +7943,7 @@ tryAgain:
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.UnsafeKeyword);
             var @unsafe = this.EatToken(SyntaxKind.UnsafeKeyword);
-            var block = this.ParsePossiblyAttributedBlock();
+            var block = this.ParseBlock();
             return _syntaxFactory.UnsafeStatement(@unsafe, block);
         }
 

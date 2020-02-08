@@ -828,6 +828,7 @@ class C
         [A] object local;
     }
 }", TestOptions.RegularPreview);
+
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -854,6 +855,33 @@ class C
                             {
                                 N(SyntaxKind.VariableDeclaration);
                                 {
+                                    N(SyntaxKind.ArrayType);
+                                    {
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.ArrayRankSpecifier);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "A");
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
+                                    }
+                                    M(SyntaxKind.VariableDeclarator);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
                                     N(SyntaxKind.PredefinedType);
                                     {
                                         N(SyntaxKind.ObjectKeyword);
@@ -875,9 +903,21 @@ class C
             EOF();
 
             CreateCompilation(tree).VerifyDiagnostics(
-                // (6,9): error CS7014: Attributes are not valid in this context.
+                // (5,6): error CS1031: Type expected
+                //     {
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(5, 6),
+                // (6,9): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         [A] object local;
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[A]").WithLocation(6, 9),
+                // (6,10): error CS0103: The name 'A' does not exist in the current context
+                //         [A] object local;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(6, 10),
+                // (6,13): error CS1001: Identifier expected
+                //         [A] object local;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "object").WithLocation(6, 13),
+                // (6,13): error CS1002: ; expected
+                //         [A] object local;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "object").WithLocation(6, 13),
                 // (6,20): warning CS0168: The variable 'local' is declared but never used
                 //         [A] object local;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(6, 20));
@@ -895,6 +935,7 @@ class C
         [A] object local1, local2;
     }
 }", TestOptions.RegularPreview);
+
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -917,6 +958,33 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.ArrayType);
+                                    {
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.ArrayRankSpecifier);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "A");
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
+                                    }
+                                    M(SyntaxKind.VariableDeclarator);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
                             N(SyntaxKind.LocalDeclarationStatement);
                             {
                                 N(SyntaxKind.VariableDeclaration);
@@ -947,15 +1015,27 @@ class C
             EOF();
 
             CreateCompilation(tree).VerifyDiagnostics(
-                // (6,9): error CS7014: Attributes are not valid in this context.
-                //         [A] object local1, local2;
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
-                // (6,20): warning CS0168: The variable 'local1' is declared but never used
-                //         [A] object local1, local2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local1").WithArguments("local1").WithLocation(6, 20),
-                // (6,28): warning CS0168: The variable 'local2' is declared but never used
-                //         [A] object local1, local2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local2").WithArguments("local2").WithLocation(6, 28));
+                    // (5,6): error CS1031: Type expected
+                    //     {
+                    Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(5, 6),
+                    // (6,9): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                    //         [A] object local1, local2;
+                    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[A]").WithLocation(6, 9),
+                    // (6,10): error CS0103: The name 'A' does not exist in the current context
+                    //         [A] object local1, local2;
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(6, 10),
+                    // (6,13): error CS1001: Identifier expected
+                    //         [A] object local1, local2;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "object").WithLocation(6, 13),
+                    // (6,13): error CS1002: ; expected
+                    //         [A] object local1, local2;
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "object").WithLocation(6, 13),
+                    // (6,20): warning CS0168: The variable 'local1' is declared but never used
+                    //         [A] object local1, local2;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "local1").WithArguments("local1").WithLocation(6, 20),
+                    // (6,28): warning CS0168: The variable 'local2' is declared but never used
+                    //         [A] object local1, local2;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "local2").WithArguments("local2").WithLocation(6, 28));
         }
 
         [Fact]
@@ -970,7 +1050,6 @@ class C
         [A]
     }
 }");
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -993,11 +1072,30 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.ExpressionStatement);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                M(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
-                                    M(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.ArrayType);
+                                    {
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.ArrayRankSpecifier);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "A");
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
+                                    }
+                                    M(SyntaxKind.VariableDeclarator);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
                                 }
                                 M(SyntaxKind.SemicolonToken);
                             }
@@ -1011,12 +1109,15 @@ class C
             EOF();
 
             tree.GetDiagnostics().Verify(
-                // (5,6): error CS1525: Invalid expression term '}'
-                //     {
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(5, 6),
-                // (5,6): error CS1002: ; expected
-                //     {
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 6)
+                    // (5,6): error CS1031: Type expected
+                    //     {
+                    Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(5, 6),
+                    // (6,12): error CS1001: Identifier expected
+                    //         [A]
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(6, 12),
+                    // (6,12): error CS1002: ; expected
+                    //         [A]
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 12)
             );
         }
 

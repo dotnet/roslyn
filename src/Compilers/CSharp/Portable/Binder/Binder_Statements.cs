@@ -566,7 +566,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_ExternHasBody, localSymbol.Locations[0], localSymbol);
             }
 
-            Debug.Assert(blockBody != null || expressionBody != null || (localSymbol.IsExtern && localSymbol.IsStatic) || hasErrors);
+            if (node.AttributeLists.FirstOrDefault() is AttributeListSyntax attributes)
+            {
+                CheckFeatureAvailability(attributes, MessageID.IDS_FeatureLocalFunctionAttributes, diagnostics);
+            }
+
+            Debug.Assert(blockBody != null || expressionBody != null ||
+                (localSymbol.IsExtern && localSymbol.IsStatic) ||
+                hasErrors);
 
             localSymbol.GetDeclarationDiagnostics(diagnostics);
 
