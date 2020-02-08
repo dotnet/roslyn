@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -34,7 +35,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
             }
 
-            internal sealed override async Task<CodeAction> GetFixAsync(
+            private async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
+            {
+                var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext).ConfigureAwait(false);
+
+                // Filter out any documents that we don't have any diagnostics for.
+                return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
+
+                static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(FixAllContext fixAllContext)
+                {
+                    return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
+                        fixAllContext,
+                        progressTrackerOpt: null).ConfigureAwait(false);
+                }
+            }
+
+            private async Task<CodeAction> GetFixAsync(
                 ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
                 FixAllState fixAllState, CancellationToken cancellationToken)
             {
