@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => (node as ParameterSyntax)?.Default;
 
         public SyntaxNode GetParameterList(SyntaxNode node)
-            => CSharpSyntaxGenerator.GetParameterList(node);
+            => node.GetParameterList();
 
         public bool IsSkippedTokensTrivia(SyntaxNode node)
             => node is SkippedTokensTriviaSyntax;
@@ -1956,6 +1956,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node)
-            => CSharpSyntaxGenerator.GetAttributeLists(node);
+            => node.GetAttributeLists();
     }
 }
