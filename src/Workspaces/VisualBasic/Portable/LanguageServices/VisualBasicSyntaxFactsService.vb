@@ -194,6 +194,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             whenNotNull = conditionalAccess.WhenNotNull
         End Sub
 
+        Private Function ISyntaxFacts_IsInvocationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInvocationExpression
+            Return IsInvocationExpression(node)
+        End Function
+
         Public Function IsAnonymousFunction(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAnonymousFunction
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
