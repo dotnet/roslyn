@@ -20,10 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
             Return VisualBasicSyntaxFactsService.Instance
         End Function
 
-        Protected Overrides Function GetSyntaxKindToAnalyze() As SyntaxKind
-            Return SyntaxKind.TernaryConditionalExpression
-        End Function
-
         Protected Overrides Function IsEquals(condition As BinaryExpressionSyntax) As Boolean
             Return condition.Kind() = SyntaxKind.IsExpression
         End Function

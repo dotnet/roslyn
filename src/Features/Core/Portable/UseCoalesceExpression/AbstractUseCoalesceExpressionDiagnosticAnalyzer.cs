@@ -33,13 +33,16 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract bool IsEquals(TBinaryExpressionSyntax condition);
         protected abstract bool IsNotEquals(TBinaryExpressionSyntax condition);
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
+        {
+            var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+            context.RegisterSyntaxNodeAction(AnalyzeSyntax,
+                syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.TernaryConditionalExpression));
+        }
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
