@@ -19,11 +19,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression
     {
         protected override ISyntaxFactsService GetSyntaxFactsService()
             => CSharpSyntaxFactsService.Instance;
-
-        protected override bool IsEquals(BinaryExpressionSyntax condition)
-            => condition.Kind() == SyntaxKind.EqualsExpression;
-
-        protected override bool IsNotEquals(BinaryExpressionSyntax condition)
-            => condition.Kind() == SyntaxKind.NotEqualsExpression;
     }
 }

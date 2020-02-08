@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
-        protected abstract bool IsEquals(TBinaryExpressionSyntax condition);
-        protected abstract bool IsNotEquals(TBinaryExpressionSyntax condition);
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -75,8 +73,9 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 return;
             }
 
-            var isEquals = IsEquals(condition);
-            var isNotEquals = IsNotEquals(condition);
+            var syntaxKinds = syntaxFacts.SyntaxKinds;
+            var isEquals = syntaxKinds.ReferenceEqualsExpression == condition.RawKind;
+            var isNotEquals = syntaxKinds.ReferenceNotEqualsExpression == condition.RawKind;
             if (!isEquals && !isNotEquals)
             {
                 return;

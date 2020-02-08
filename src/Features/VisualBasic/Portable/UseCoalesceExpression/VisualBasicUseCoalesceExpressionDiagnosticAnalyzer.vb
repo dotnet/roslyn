@@ -19,13 +19,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
         Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
             Return VisualBasicSyntaxFactsService.Instance
         End Function
-
-        Protected Overrides Function IsEquals(condition As BinaryExpressionSyntax) As Boolean
-            Return condition.Kind() = SyntaxKind.IsExpression
-        End Function
-
-        Protected Overrides Function IsNotEquals(condition As BinaryExpressionSyntax) As Boolean
-            Return condition.Kind() = SyntaxKind.IsNotExpression
-        End Function
     End Class
 End Namespace
