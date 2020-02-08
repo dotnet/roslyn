@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -46,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
                         fixAllContext,
-                        progressTrackerOpt: null).ConfigureAwait(false);
+                        progressTrackerOpt: null,
+                        DocumentExtensions.IsGeneratedCode).ConfigureAwait(false);
                 }
             }
 

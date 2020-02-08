@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public abstract class DiagnosticProvider
         {
-            internal virtual bool IsFixMultiple => false;
-
             /// <summary>
             /// Gets all the diagnostics to fix in the given document in a <see cref="FixAllContext"/>.
             /// </summary>
@@ -42,27 +40,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             /// </summary>
             public abstract Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken);
 
-            internal async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
-                FixAllContext fixAllContext)
+            internal async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
             {
                 var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext).ConfigureAwait(false);
 
                 // Filter out any documents that we don't have any diagnostics for.
                 return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
-            }
 
-            internal virtual async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(
-                FixAllContext fixAllContext)
-            {
-                using (Logger.LogBlock(
-                    FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
-                    FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
-                    fixAllContext.CancellationToken))
+                static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(FixAllContext fixAllContext)
                 {
-                    return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
-                        fixAllContext,
-                        fixAllContext.ProgressTracker,
-                        (document, cancellationToken) => document.IsGeneratedCode(cancellationToken)).ConfigureAwait(false);
+                    if (fixAllContext.State.DiagnosticProvider is FixAllState.FixMultipleDiagnosticProvider fixMultipleDiagnosticProvider)
+                    {
+                        return fixMultipleDiagnosticProvider.DocumentDiagnosticsMap;
+                    }
+
+                    using (Logger.LogBlock(
+                            FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
+                            FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
+                            fixAllContext.CancellationToken))
+                    {
+                        return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
+                            fixAllContext,
+                            fixAllContext.ProgressTracker,
+                            DocumentExtensions.IsGeneratedCode).ConfigureAwait(false);
+                    }
                 }
             }
 
