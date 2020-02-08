@@ -30,9 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         protected override ISemanticFactsService GetSemanticFactsService()
             => CSharpSemanticFactsService.Instance;
 
-        protected override SyntaxKind GetSyntaxKindToAnalyze()
-            => SyntaxKind.ConditionalExpression;
-
         protected override bool IsEquals(BinaryExpressionSyntax condition)
             => condition.Kind() == SyntaxKind.EqualsExpression;
 

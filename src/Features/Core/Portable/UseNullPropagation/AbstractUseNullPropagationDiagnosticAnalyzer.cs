@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
         protected abstract bool IsEquals(TBinaryExpressionSyntax condition);
         protected abstract bool IsNotEquals(TBinaryExpressionSyntax condition);
         protected abstract bool ShouldAnalyze(ParseOptions options);
@@ -68,8 +67,10 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                                                           .FirstOrDefault(m => m.DeclaredAccessibility == Accessibility.Public &&
                                                                                m.Parameters.Length == 2);
 
+                var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
                 startContext.RegisterSyntaxNodeAction(
-                    c => AnalyzeSyntax(c, expressionTypeOpt, referenceEqualsMethodOpt), GetSyntaxKindToAnalyze());
+                    c => AnalyzeSyntax(c, expressionTypeOpt, referenceEqualsMethodOpt),
+                    syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.TernaryConditionalExpression));
             });
 
         }
