@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         // see https://github.com/dotnet/roslyn/issues/14061
         protected abstract ImmutableArray<TLanguageKindEnum> SupportedSyntaxKinds { get; }
 
-        public override bool OpenFileOnly(OptionSet options) => true;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(CompilationStartAction);
 
