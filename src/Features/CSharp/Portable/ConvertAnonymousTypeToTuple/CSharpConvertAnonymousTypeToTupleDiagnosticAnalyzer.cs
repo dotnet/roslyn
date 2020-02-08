@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -14,8 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
             SyntaxKind,
             AnonymousObjectCreationExpressionSyntax>
     {
-        protected override SyntaxKind GetAnonymousObjectCreationExpressionSyntaxKind()
-            => SyntaxKind.AnonymousObjectCreationExpression;
+        public CSharpConvertAnonymousTypeToTupleDiagnosticAnalyzer()
+            : base(CSharpSyntaxKindsService.Instance)
+        {
+        }
 
         protected override int GetInitializerCount(AnonymousObjectCreationExpressionSyntax anonymousType)
             => anonymousType.Initializers.Count;

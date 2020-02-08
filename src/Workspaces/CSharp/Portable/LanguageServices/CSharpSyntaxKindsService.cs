@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public override int LogicalAndExpression => (int)SyntaxKind.LogicalAndExpression;
         public override int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;
+        public override int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;
+
         public override int EndOfFileToken => (int)SyntaxKind.EndOfFileToken;
         public override int AwaitKeyword => (int)SyntaxKind.AwaitKeyword;
         public override int IdentifierToken => (int)SyntaxKind.IdentifierToken;

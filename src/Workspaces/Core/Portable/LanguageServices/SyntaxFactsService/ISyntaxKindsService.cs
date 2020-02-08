@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         int LogicalOrExpression { get; }
 
+        int AnonymousObjectCreationExpression { get; }
+
         int EndOfFileToken { get; }
         int AwaitKeyword { get; }
         int IdentifierToken { get; }
@@ -47,6 +49,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract int LogicalAndExpression { get; }
         public abstract int LogicalOrExpression { get; }
+        public abstract int AnonymousObjectCreationExpression { get; }
+
         public abstract int EndOfFileToken { get; }
         public abstract int IdentifierToken { get; }
 
