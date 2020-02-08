@@ -13,6 +13,9 @@
     <ProjectReference Include="..\Generator\Microsoft.CodeAnalysis.Lsif.Generator.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Lsif.Generator.UnitTests.Utilities" />
     <Import Include="Xunit" />
   </ItemGroup>

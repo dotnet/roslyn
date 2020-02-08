@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
                     }
 
                     // Map arbitrary contents under subdirectories
-                    var fromWithDirectorySuffix = potentialPathMapping.From.EndsWith("\\", StringComparison.OrdinalIgnoreCase) ? potentialPathMapping.From : potentialPathMapping.From + "\\";
+                    var fromWithDirectorySuffix = AddDirectorySuffixIfMissing(potentialPathMapping.From);
 
                     if (unmappedPath.StartsWith(fromWithDirectorySuffix, StringComparison.OrdinalIgnoreCase))
                     {
@@ -142,12 +142,17 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
                         // mapping C:\Directory somewhere.
                         string relativePath = unmappedPath.Substring(fromWithDirectorySuffix.Length).TrimStart('\\');
 
-                        return Path.Combine(potentialPathMapping.To, relativePath);
+                        return Path.Combine(AddDirectorySuffixIfMissing(potentialPathMapping.To), relativePath);
                     }
                 }
 
                 return unmappedPath;
             };
+
+            static string AddDirectorySuffixIfMissing(string path)
+            {
+                return path.EndsWith("\\", StringComparison.OrdinalIgnoreCase) ? path : path + "\\";
+            }
         }
 
         /// <summary>

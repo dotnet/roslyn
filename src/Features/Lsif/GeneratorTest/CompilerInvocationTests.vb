@@ -57,8 +57,9 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
             Assert.Equal(referencePath, DirectCast(metadataReference, PortableExecutableReference).FilePath)
         End Sub
 
-        <Fact>
-        Public Async Sub TestSourceFilePathMapping()
+        <Theory>
+        <CombinatorialData>
+        Public Async Sub TestSourceFilePathMappingWithDriveLetters(<CombinatorialValues("F:", "F:\")> from As String, <CombinatorialValues("F:", "F:\")> [to] As String)
             Dim compilerInvocation = Await Microsoft.CodeAnalysis.Lsif.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""csc"",
@@ -69,6 +70,26 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
                          {
                              ""from"": ""F:\\"",
                              ""to"": ""T:\\""
+                         }]
+                }")
+
+            Dim syntaxTree = Assert.Single(compilerInvocation.Compilation.SyntaxTrees)
+
+            Assert.Equal("T:\SourceFile.cs", syntaxTree.FilePath)
+        End Sub
+
+        <Fact>
+        Public Async Sub TestSourceFilePathMappingWithDriveLetterOnly()
+            Dim compilerInvocation = Await Microsoft.CodeAnalysis.Lsif.Generator.CompilerInvocation.CreateFromJsonAsync("
+                {
+                    ""tool"": ""csc"",
+                    ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG F:\\SourceFile.cs /target:library /out:F:\\Output.dll"",
+                    ""projectFilePath"": ""F:\\Project.csproj"",
+                    ""sourceRootPath"": ""F:\\"",
+                    ""pathMappings"": [
+                         {
+                             ""from"": ""F:\\"",
+                             ""to"": ""T:""
                          }]
                 }")
 
