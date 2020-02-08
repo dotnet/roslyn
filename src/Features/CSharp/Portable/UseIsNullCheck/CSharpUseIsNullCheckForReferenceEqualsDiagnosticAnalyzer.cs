@@ -19,9 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         protected override bool IsLanguageVersionSupported(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
-        protected override SyntaxKind GetInvocationExpressionKind()
-            => SyntaxKind.InvocationExpression;
-
         protected override ISyntaxFactsService GetSyntaxFactsService()
             => CSharpSyntaxFactsService.Instance;
     }

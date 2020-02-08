@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int IfKeyword { get; }
 
         int AnonymousObjectCreationExpression { get; }
+        int InvocationExpression { get; }
 
         /// <summary>
         /// A short-circuiting logical 'and'. In C#, 'LogicalAndExpression'. In VB, 'AndAlsoExpression'.
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int IfKeyword { get; }
 
         public abstract int AnonymousObjectCreationExpression { get; }
+        public abstract int InvocationExpression { get; }
         public abstract int LogicalAndExpression { get; }
         public abstract int LogicalOrExpression { get; }
         public abstract int ObjectCreationExpression { get; }

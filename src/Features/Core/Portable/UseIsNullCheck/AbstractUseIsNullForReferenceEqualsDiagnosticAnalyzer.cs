@@ -39,13 +39,15 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                                                                                m.Parameters.Length == 2);
                     if (referenceEqualsMethod != null)
                     {
-                        context.RegisterSyntaxNodeAction(c => AnalyzeSyntax(c, referenceEqualsMethod), GetInvocationExpressionKind());
+                        var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+                        context.RegisterSyntaxNodeAction(
+                            c => AnalyzeSyntax(c, referenceEqualsMethod),
+                            syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.InvocationExpression));
                     }
                 }
             });
 
         protected abstract bool IsLanguageVersionSupported(ParseOptions options);
-        protected abstract TLanguageKindEnum GetInvocationExpressionKind();
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol referenceEqualsMethod)
