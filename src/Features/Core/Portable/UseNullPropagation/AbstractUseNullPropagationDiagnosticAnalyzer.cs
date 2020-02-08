@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract bool IsEquals(TBinaryExpressionSyntax condition);
-        protected abstract bool IsNotEquals(TBinaryExpressionSyntax condition);
         protected abstract bool ShouldAnalyze(ParseOptions options);
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
@@ -213,8 +211,10 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             ISyntaxFactsService syntaxFacts, TBinaryExpressionSyntax condition,
             out SyntaxNode conditionPartToCheck, out bool isEquals)
         {
-            isEquals = IsEquals(condition);
-            if (!isEquals && !IsNotEquals(condition))
+            var syntaxKinds = syntaxFacts.SyntaxKinds;
+            isEquals = syntaxKinds.ReferenceEqualsExpression == condition.RawKind;
+            var isNotEquals = syntaxKinds.ReferenceNotEqualsExpression == condition.RawKind;
+            if (!isEquals && !isNotEquals)
             {
                 conditionPartToCheck = null;
                 return false;
