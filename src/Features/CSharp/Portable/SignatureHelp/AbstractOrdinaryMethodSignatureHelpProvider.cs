@@ -20,22 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IMethodSymbol method,
             int position,
             SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            return ConvertMethodGroupMethod(document, method, position, semanticModel, descriptionParts: null);
-        }
-
-        internal static SignatureHelpItem ConvertMethodGroupMethod(
-            Document document,
-            IMethodSymbol method,
-            int position,
-            SemanticModel semanticModel,
-            IList<SymbolDisplayPart> descriptionParts)
+            IList<SymbolDisplayPart> descriptionParts = null)
         {
             var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
             var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
 
-            return CreateItemImpl(
+            return CreateItem(
                 method, semanticModel, position,
                 anonymousTypeDisplayService,
                 method.IsParams(),
@@ -43,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 GetMethodGroupPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
                 GetMethodGroupPostambleParts(),
-                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, CancellationToken.None)).ToList(),
+                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList(),
                 descriptionParts: descriptionParts);
         }
 

@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IParameterSymbol parameter,
             SemanticModel semanticModel,
             int position,
-            IDocumentationCommentFormattingService formatter,
-            CancellationToken cancellationToken)
+            IDocumentationCommentFormattingService formatter)
         {
             return new SignatureHelpSymbolParameter(
                 parameter.Name,
@@ -54,13 +53,5 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),
                 parameter.ToMinimalDisplayParts(semanticModel, position));
         }
-
-        /// <summary>
-        /// We no longer show awaitable usage text in SignatureHelp, but IntelliCode expects this
-        /// method to exist.
-        /// </summary>
-        [Obsolete("Expected to exist by IntelliCode. This can be removed once their unnecessary use of this is removed.")]
-        protected IList<TaggedText> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
-            => SpecializedCollections.EmptyList<TaggedText>();
     }
 }

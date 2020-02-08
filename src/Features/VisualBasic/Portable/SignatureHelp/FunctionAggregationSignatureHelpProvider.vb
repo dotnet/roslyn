@@ -104,14 +104,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 anonymousTypeDisplayService,
                 False,
                 method.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
-                GetPreambleParts(method, semanticModel, position),
+                GetPreambleParts(method),
                 GetSeparatorParts(),
                 GetPostambleParts(method, semanticModel, position),
                 GetParameterParts(method, semanticModel, position, documentationCommentFormattingService, cancellationToken))
             Return item
         End Function
 
-        Private Function GetPreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+        Private Function GetPreambleParts(method As IMethodSymbol) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
             AddExtensionPreamble(method, result)
             result.AddMethodName(method.Name)
