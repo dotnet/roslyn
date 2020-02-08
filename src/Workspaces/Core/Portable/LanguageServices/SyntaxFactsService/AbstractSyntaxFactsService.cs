@@ -604,15 +604,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool HasIncompleteParentMember(SyntaxNode node)
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
 
-        public bool IsUsingStatement(SyntaxNode node)
+#nullable enable
+
+        public bool IsUsingStatement([NotNullWhen(true)] SyntaxNode node)
             => node?.RawKind == SyntaxKinds.UsingStatement;
 
-        public bool IsReturnStatement(SyntaxNode node)
+        public bool IsReturnStatement([NotNullWhen(true)] SyntaxNode node)
             => node?.RawKind == SyntaxKinds.ReturnStatement;
 
-#nullable enable
         public bool IsExpressionStatement([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.ExpressionStatement;
+
+        public bool IsInvocationExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.InvocationExpression;
+
 #nullable restore
     }
 }
