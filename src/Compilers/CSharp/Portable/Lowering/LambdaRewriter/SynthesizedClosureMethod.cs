@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -30,8 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugId topLevelMethodId,
             MethodSymbol originalMethod,
             SyntaxReference blockSyntax,
-            DebugId lambdaId,
-            DiagnosticBag diagnostics)
+            DebugId lambdaId)
             : base(containingType,
                    originalMethod,
                    blockSyntax,
@@ -101,6 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AssignTypeMapAndTypeParameters(typeMap, typeParameters);
+
+            // static local functions should be emitted as static.
+            Debug.Assert(!(originalMethod is LocalFunctionSymbol) || !originalMethod.IsStatic || IsStatic);
         }
 
         private static DeclarationModifiers MakeDeclarationModifiers(ClosureKind closureKind, MethodSymbol originalMethod)

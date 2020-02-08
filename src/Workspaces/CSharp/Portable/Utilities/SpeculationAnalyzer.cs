@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -339,9 +341,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 return false;
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.ConditionalExpression)
+            else if (currentOriginalNode.IsKind(SyntaxKind.ConditionalExpression, out ConditionalExpressionSyntax originalExpression))
             {
-                var originalExpression = (ConditionalExpressionSyntax)currentOriginalNode;
                 var newExpression = (ConditionalExpressionSyntax)currentReplacedNode;
 
                 if (originalExpression.Condition != previousOriginalNode)
@@ -394,9 +395,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.CaseSwitchLabel)
+            else if (currentOriginalNode.IsKind(SyntaxKind.CaseSwitchLabel, out CaseSwitchLabelSyntax originalCaseSwitchLabel))
             {
-                var originalCaseSwitchLabel = (CaseSwitchLabelSyntax)currentOriginalNode;
                 var newCaseSwitchLabel = (CaseSwitchLabelSyntax)currentReplacedNode;
 
                 // If case label is changing, then need to check if the semantics will change for the switch expression.  
@@ -423,9 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // (since originalCaseType != newCaseType)
                 return originalConversion == newConversion;
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.SwitchStatement)
+            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchStatement, out SwitchStatementSyntax originalSwitchStatement))
             {
-                var originalSwitchStatement = (SwitchStatementSyntax)currentOriginalNode;
                 var newSwitchStatement = (SwitchStatementSyntax)currentReplacedNode;
 
                 if (originalSwitchStatement.Expression == previousOriginalNode)
@@ -449,9 +448,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.IfStatement)
+            else if (currentOriginalNode.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax originalIfStatement))
             {
-                var originalIfStatement = (IfStatementSyntax)currentOriginalNode;
                 var newIfStatement = (IfStatementSyntax)currentReplacedNode;
 
                 if (originalIfStatement.Condition == previousOriginalNode)

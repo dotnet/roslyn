@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -250,9 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // Don't bother recursing down nodes that are before the type in the is-expression.
             if (node.Span.End >= type.Span.End)
             {
-                if (node.IsKind(SyntaxKind.CastExpression))
+                if (node.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression))
                 {
-                    var castExpression = (CastExpressionSyntax)node;
                     if (SyntaxFactory.AreEquivalent(castExpression.Type, type) &&
                         SyntaxFactory.AreEquivalent(castExpression.Expression.WalkDownParentheses(), expr))
                     {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -171,8 +173,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
         void GetPartsOfAssignmentExpressionOrStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
 
-        // Left side of any assignment (for example  *=  or += )
+        // Left side of any assignment (for example = or ??= or *=  or += )
         bool IsLeftSideOfAnyAssignment(SyntaxNode node);
+        // Left side of compound assignment (for example ??= or *=  or += )
+        bool IsLeftSideOfCompoundAssignment(SyntaxNode node);
         SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node);
 
         bool IsInferredAnonymousObjectMemberDeclarator(SyntaxNode node);

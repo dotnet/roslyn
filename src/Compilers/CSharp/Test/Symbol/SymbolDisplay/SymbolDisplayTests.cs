@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -5287,7 +5289,7 @@ class B
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             var formatWithNonNullableModifier = formatWithoutNonNullableModifier
-                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier)
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier)
                 .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
             var method = comp.GetMember<IMethodSymbol>("B.F1");
@@ -5425,7 +5427,7 @@ class C
                 memberOptions: SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
             var formatWithNullableModifier = formatWithoutModifiers.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
-            var formatWithBothModifiers = formatWithNullableModifier.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier);
+            var formatWithBothModifiers = formatWithNullableModifier.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier);
 
             var member = comp.GetMember("C.F1");
             Verify(

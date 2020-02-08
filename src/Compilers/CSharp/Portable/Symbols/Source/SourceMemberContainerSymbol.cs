@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -1432,6 +1434,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
+            var baseType = BaseTypeNoUseSiteDiagnostics;
+            var interfaces = GetInterfacesToEmit();
             if (compilation.ShouldEmitNullableAttributes(this))
             {
                 if (ShouldEmitNullableContextValue(out _))
@@ -1440,13 +1444,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
-                var baseType = BaseTypeNoUseSiteDiagnostics;
-                var interfaces = InterfacesNoUseSiteDiagnostics();
                 if (baseType?.NeedsNullableAttribute() == true ||
-                    interfaces.Any(t => t.NeedsNullableAttribute()))
+                     interfaces.Any(t => t.NeedsNullableAttribute()))
                 {
                     compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
+            }
+
+            if (interfaces.Any(t => needsTupleElementNamesAttribute(t)))
+            {
+                // Note: we don't need to check base type or directly implemented interfaces (which will be reported during binding)
+                // so the checking of all interfaces here involves some redundancy.
+                Binder.ReportMissingTupleElementNamesAttributesIfNeeded(compilation, location, diagnostics);
+            }
+
+            static bool needsTupleElementNamesAttribute(TypeSymbol type)
+            {
+                if (type is null)
+                {
+                    return false;
+                }
+
+                var resultType = type.VisitType(
+                    predicate: (t, a, b) => !t.TupleElementNames.IsDefaultOrEmpty && !t.IsErrorType(),
+                    arg: (object)null);
+                return resultType is object;
             }
         }
 

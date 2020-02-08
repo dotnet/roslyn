@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,17 +18,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     public class SuppressMessageAttributeCompilerTests : SuppressMessageAttributeTests
     {
-        protected override Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, string rootNamespace = null)
+        protected override Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, string rootNamespace = null)
         {
             Assert.True(analyzers != null && analyzers.Length > 0, "Must specify at least one diagnostic analyzer to test suppression");
-            var compilation = CreateCompilation(source, language, analyzers, rootNamespace);
-            compilation.VerifyAnalyzerDiagnostics(analyzers, onAnalyzerException: onAnalyzerException, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics, expected: diagnostics);
+            var compilation = CreateCompilation(source, language, rootNamespace);
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: diagnostics);
             return Task.FromResult(false);
         }
 
         protected override bool ConsiderArgumentsForComparingDiagnostics => true;
 
-        private static Compilation CreateCompilation(string source, string language, DiagnosticAnalyzer[] analyzers, string rootNamespace)
+        private static Compilation CreateCompilation(string source, string language, string rootNamespace)
         {
             string fileName = language == LanguageNames.CSharp ? "Test.cs" : "Test.vb";
             string projectName = "TestProject";
@@ -53,5 +56,81 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
         }
 
+        [Fact]
+        public async Task AnalyzerExceptionDiagnosticsWithDifferentContext()
+        {
+            var exception = new Exception();
+
+            var baseDiagnostic = Diagnostic("AD0001", null).WithLocation(1, 1);
+            var diagnosticC = baseDiagnostic
+                .WithArguments(
+                    "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer",
+                    "System.Exception",
+                    exception.Message,
+                    (IFormattable)$@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: TestProject
+ISymbol: C (NamedType)")}
+
+{new LazyToString(() => exception.ToString())}
+-----
+
+{string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ThrowException")}");
+            var diagnosticC1 = baseDiagnostic
+                .WithArguments(
+                    "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer",
+                    "System.Exception",
+                    exception.Message,
+                    (IFormattable)$@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: TestProject
+ISymbol: C1 (NamedType)")}
+
+{new LazyToString(() => exception.ToString())}
+-----
+
+{string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ThrowException")}");
+            var diagnosticC2 = baseDiagnostic
+                .WithArguments(
+                    "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer",
+                    "System.Exception",
+                    exception.Message,
+                    (IFormattable)$@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: TestProject
+ISymbol: C2 (NamedType)")}
+
+{new LazyToString(() => exception.ToString())}
+-----
+
+{string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ThrowException")}");
+
+            // expect 3 different diagnostics with 3 different contexts.
+            await VerifyCSharpAsync(@"
+public class C
+{
+}
+public class C1
+{
+}
+public class C2
+{
+}
+",
+                new[] { new ThrowExceptionForEachNamedTypeAnalyzer(ExceptionDispatchInfo.Capture(exception)) },
+                diagnostics: new[] { diagnosticC, diagnosticC1, diagnosticC2 });
+        }
+
+        [Fact]
+        public async Task AnalyzerExceptionFromSupportedDiagnosticsCall()
+        {
+            var exception = new Exception();
+
+            var diagnostic = Diagnostic("AD0001", null)
+                .WithArguments(
+                    "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionFromSupportedDiagnostics",
+                    "System.Exception",
+                    exception.Message,
+                    (IFormattable)$@"{new LazyToString(() => exception.ToString().Substring(0, exception.ToString().IndexOf("---")))}-----")
+                .WithLocation(1, 1);
+
+            await VerifyCSharpAsync("public class C { }",
+                new[] { new ThrowExceptionFromSupportedDiagnostics(exception) },
+                diagnostics: new[] { diagnostic });
+        }
     }
 }

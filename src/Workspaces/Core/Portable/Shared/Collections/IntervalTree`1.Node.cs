@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Roslyn.Utilities;
@@ -24,14 +26,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 this.MaxEndNode = this;
             }
 
-            internal Node(IIntervalIntrospector<T> introspector, T value, Node left, Node right)
-            {
-                this.Value = value;
-
-                SetLeftRight(left, right, introspector);
-            }
-
-            internal void SetLeftRight(Node left, Node right, IIntervalIntrospector<T> introspector)
+            internal void SetLeftRight<TIntrospector>(Node left, Node right, in TIntrospector introspector)
+                where TIntrospector : struct, IIntervalIntrospector<T>
             {
                 this.Left = left;
                 this.Right = right;
@@ -40,9 +36,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
                 // We now must store the node that produces the maximum end. Since we might have tracking spans (or
                 // something similar) defining our values of "end", we can't store the int itself.
-                var thisEndValue = GetEnd(this.Value, introspector);
-                var leftEndValue = MaxEndValue(left, introspector);
-                var rightEndValue = MaxEndValue(right, introspector);
+                var thisEndValue = GetEnd(this.Value, in introspector);
+                var leftEndValue = MaxEndValue(left, in introspector);
+                var rightEndValue = MaxEndValue(right, in introspector);
 
                 if (thisEndValue >= leftEndValue && thisEndValue >= rightEndValue)
                 {
@@ -70,11 +66,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             //   3   c        a   b   c   d
             //  / \
             // a   b
-            internal Node RightRotation(IIntervalIntrospector<T> introspector)
+            internal Node RightRotation<TIntrospector>(in TIntrospector introspector)
+                where TIntrospector : struct, IIntervalIntrospector<T>
             {
                 var oldLeft = this.Left;
-                this.SetLeftRight(this.Left.Right, this.Right, introspector);
-                oldLeft.SetLeftRight(oldLeft.Left, this, introspector);
+                this.SetLeftRight(this.Left.Right, this.Right, in introspector);
+                oldLeft.SetLeftRight(oldLeft.Left, this, in introspector);
 
                 return oldLeft;
             }
@@ -87,11 +84,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             //   b   3        a   b   c   d
             //      / \
             //     c   d
-            internal Node LeftRotation(IIntervalIntrospector<T> introspector)
+            internal Node LeftRotation<TIntrospector>(in TIntrospector introspector)
+                where TIntrospector : struct, IIntervalIntrospector<T>
             {
                 var oldRight = this.Right;
-                this.SetLeftRight(this.Left, this.Right.Left, introspector);
-                oldRight.SetLeftRight(this, oldRight.Right, introspector);
+                this.SetLeftRight(this.Left, this.Right.Left, in introspector);
+                oldRight.SetLeftRight(this, oldRight.Right, in introspector);
                 return oldRight;
             }
 
@@ -103,14 +101,15 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             //   3   d        b   2        a   b   c   d
             //  / \              / \
             // b   c            c   d
-            internal Node InnerRightOuterLeftRotation(IIntervalIntrospector<T> introspector)
+            internal Node InnerRightOuterLeftRotation<TIntrospector>(in TIntrospector introspector)
+                where TIntrospector : struct, IIntervalIntrospector<T>
             {
                 var newTop = this.Right.Left;
                 var oldRight = this.Right;
 
-                this.SetLeftRight(this.Left, this.Right.Left.Left, introspector);
-                oldRight.SetLeftRight(oldRight.Left.Right, oldRight.Right, introspector);
-                newTop.SetLeftRight(this, oldRight, introspector);
+                this.SetLeftRight(this.Left, this.Right.Left.Left, in introspector);
+                oldRight.SetLeftRight(oldRight.Left.Right, oldRight.Right, in introspector);
+                newTop.SetLeftRight(this, oldRight, in introspector);
 
                 return newTop;
             }
@@ -123,14 +122,15 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             // a   3          2   c        a   b   c   d
             //    / \        / \
             //   b   c      a   b
-            internal Node InnerLeftOuterRightRotation(IIntervalIntrospector<T> introspector)
+            internal Node InnerLeftOuterRightRotation<TIntrospector>(in TIntrospector introspector)
+                where TIntrospector : struct, IIntervalIntrospector<T>
             {
                 var newTop = this.Left.Right;
                 var oldLeft = this.Left;
 
-                this.SetLeftRight(this.Left.Right.Right, this.Right, introspector);
-                oldLeft.SetLeftRight(oldLeft.Left, oldLeft.Right.Left, introspector);
-                newTop.SetLeftRight(oldLeft, this, introspector);
+                this.SetLeftRight(this.Left.Right.Right, this.Right, in introspector);
+                oldLeft.SetLeftRight(oldLeft.Left, oldLeft.Right.Left, in introspector);
+                newTop.SetLeftRight(oldLeft, this, in introspector);
 
                 return newTop;
             }
