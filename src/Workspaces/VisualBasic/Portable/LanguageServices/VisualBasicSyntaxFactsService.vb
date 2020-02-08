@@ -736,8 +736,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.FindTokenOnRightOfPosition(position, includeSkipped, includeDirectives, includeDocumentationComments)
         End Function
 
-        Public Function IsObjectCreationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectCreationExpression
-            Return TypeOf node Is ObjectCreationExpressionSyntax
+        Private Function ISyntaxFacts_IsObjectCreationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectCreationExpression
+            Return IsObjectCreationExpression(node)
         End Function
 
         Public Function IsObjectInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectInitializerNamedAssignmentIdentifier

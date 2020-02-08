@@ -684,9 +684,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.FindTokenOnRightOfPosition(position, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
-        public bool IsObjectCreationExpression(SyntaxNode node)
-            => node is ObjectCreationExpressionSyntax;
-
         public bool IsNameOfSubpattern(SyntaxNode node)
             => node.IsKind(SyntaxKind.IdentifierName) &&
                node.IsParentKind(SyntaxKind.NameColon) &&

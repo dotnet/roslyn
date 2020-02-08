@@ -618,6 +618,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsInvocationExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.InvocationExpression;
 
+        public bool IsObjectCreationExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.ObjectCreationExpression;
+
 #nullable restore
     }
 }
