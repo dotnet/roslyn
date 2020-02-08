@@ -14,14 +14,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Private Sub New()
         End Sub
 
+        Public Overrides Function Convert(Of TSyntaxKind As Structure)(kind As Integer) As TSyntaxKind
+            ' Boxing/Unboxing casts from Object to TSyntaxKind will be erased by jit.
+            Return CType(CType(CType(kind, SyntaxKind), Object), TSyntaxKind)
+        End Function
+
         Public Overrides ReadOnly Property DotToken As Integer = SyntaxKind.DotToken
         Public Overrides ReadOnly Property QuestionToken As Integer = SyntaxKind.QuestionToken
 
         Public Overrides ReadOnly Property IfKeyword As Integer = SyntaxKind.IfKeyword
 
+        Public Overrides ReadOnly Property AnonymousObjectCreationExpression As Integer = SyntaxKind.AnonymousObjectCreationExpression
         Public Overrides ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression
         Public Overrides ReadOnly Property LogicalOrExpression As Integer = SyntaxKind.OrElseExpression
-        Public Overrides ReadOnly Property AnonymousObjectCreationExpression As Integer = SyntaxKind.AnonymousObjectCreationExpression
+        Public Overrides ReadOnly Property ParenthesizedExpression As Integer = SyntaxKind.ParenthesizedExpression
 
         Public Overrides ReadOnly Property EndOfFileToken As Integer = SyntaxKind.EndOfFileToken
         Public Overrides ReadOnly Property AwaitKeyword As Integer = SyntaxKind.AwaitKeyword

@@ -12,10 +12,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// </summary>
     internal interface ISyntaxKindsService : ILanguageService
     {
+        TSyntaxKind Convert<TSyntaxKind>(int kind) where TSyntaxKind : struct;
+
         int DotToken { get; }
         int QuestionToken { get; }
 
         int IfKeyword { get; }
+
+        int AnonymousObjectCreationExpression { get; }
 
         /// <summary>
         /// A short-circuiting logical 'and'. In C#, 'LogicalAndExpression'. In VB, 'AndAlsoExpression'.
@@ -27,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         int LogicalOrExpression { get; }
 
-        int AnonymousObjectCreationExpression { get; }
+        int ParenthesizedExpression { get; }
 
         int EndOfFileToken { get; }
         int AwaitKeyword { get; }
@@ -42,14 +46,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
     internal abstract class AbstractSyntaxKindsService : ISyntaxKindsService
     {
+        public abstract TSyntaxKind Convert<TSyntaxKind>(int kind) where TSyntaxKind : struct;
+
         public abstract int DotToken { get; }
         public abstract int QuestionToken { get; }
 
         public abstract int IfKeyword { get; }
 
+        public abstract int AnonymousObjectCreationExpression { get; }
         public abstract int LogicalAndExpression { get; }
         public abstract int LogicalOrExpression { get; }
-        public abstract int AnonymousObjectCreationExpression { get; }
+        public abstract int ParenthesizedExpression { get; }
 
         public abstract int EndOfFileToken { get; }
         public abstract int IdentifierToken { get; }

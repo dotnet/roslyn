@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxNodeKind());
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax,
+                GetSyntaxFactsService().SyntaxKinds.ParenthesizedExpression);
 
-        protected abstract TLanguageKindEnum GetSyntaxNodeKind();
         protected abstract bool CanRemoveParentheses(
             TParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
             out PrecedenceKind precedence, out bool clarifiesPrecedence);

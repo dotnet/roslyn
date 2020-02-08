@@ -19,9 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertLogical
         {
         }
 
-        protected override SyntaxKind GetKind(int rawKind)
-            => (SyntaxKind)rawKind;
-
         protected override string GetOperatorText(SyntaxKind binaryExprKind)
             => binaryExprKind == SyntaxKind.LogicalAndExpression
                 ? SyntaxFacts.GetText(SyntaxKind.AmpersandAmpersandToken)

@@ -17,9 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
         protected override ISyntaxFactsService GetSyntaxFactsService()
             => CSharpSyntaxFactsService.Instance;
 
-        protected override SyntaxKind GetSyntaxNodeKind()
-            => SyntaxKind.ParenthesizedExpression;
-
         protected override bool CanRemoveParentheses(
             ParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
             out PrecedenceKind precedence, out bool clarifiesPrecedence)

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Runtime.InteropServices.ComTypes;
 using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
@@ -15,14 +16,19 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         {
         }
 
+        // Boxing/Unboxing casts from Object to TSyntaxKind will be erased by jit.
+        public override TSyntaxKind Convert<TSyntaxKind>(int kind)
+            => (TSyntaxKind)(object)(SyntaxKind)kind;
+
         public override int DotToken => (int)SyntaxKind.DotToken;
         public override int QuestionToken => (int)SyntaxKind.QuestionToken;
 
         public override int IfKeyword => (int)SyntaxKind.IfKeyword;
 
+        public override int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;
         public override int LogicalAndExpression => (int)SyntaxKind.LogicalAndExpression;
         public override int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;
-        public override int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;
+        public override int ParenthesizedExpression => (int)SyntaxKind.ParenthesizedExpression;
 
         public override int EndOfFileToken => (int)SyntaxKind.EndOfFileToken;
         public override int AwaitKeyword => (int)SyntaxKind.AwaitKeyword;

@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.InvertLogical
         /// </summary>
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
-        protected abstract TSyntaxKind GetKind(int rawKind);
         protected abstract string GetOperatorText(TSyntaxKind binaryExprKind);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    GetTitle(syntaxKinds, GetKind(expression.RawKind)),
+                    GetTitle(syntaxKinds, expression.RawKind),
                     c => InvertLogicalAsync(document, expression, c)),
                 expression.Span);
         }
@@ -138,15 +137,15 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                 generator.Negate(expression, semanticModel, negateBinary: false, cancellationToken)));
         }
 
-        private string GetTitle(ISyntaxKindsService syntaxKinds, TSyntaxKind binaryExprKind)
+        private string GetTitle(ISyntaxKindsService syntaxKinds, int binaryExprKind)
             => string.Format(FeaturesResources.Replace_0_with_1,
-                    GetOperatorText(binaryExprKind), GetOperatorText(
-                        InvertedKind(syntaxKinds, binaryExprKind)));
+                    GetOperatorText(syntaxKinds.Convert<TSyntaxKind>(binaryExprKind)),
+                    GetOperatorText(syntaxKinds.Convert<TSyntaxKind>(InvertedKind(syntaxKinds, binaryExprKind))));
 
-        private TSyntaxKind InvertedKind(ISyntaxKindsService syntaxKinds, TSyntaxKind binaryExprKind)
-            => GetKind(binaryExprKind.Equals(GetKind(syntaxKinds.LogicalAndExpression))
+        private int InvertedKind(ISyntaxKindsService syntaxKinds, int binaryExprKind)
+            => binaryExprKind == syntaxKinds.LogicalAndExpression
                 ? syntaxKinds.LogicalOrExpression
-                : syntaxKinds.LogicalAndExpression);
+                : syntaxKinds.LogicalAndExpression;
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

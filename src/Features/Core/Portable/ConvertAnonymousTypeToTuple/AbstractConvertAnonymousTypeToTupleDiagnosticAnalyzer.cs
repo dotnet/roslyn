@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(
-                AnalyzeSyntax, _syntaxKinds.AnonymousObjectCreationExpression);
+                AnalyzeSyntax,
+                _syntaxKinds.Convert<TSyntaxKind>(_syntaxKinds.AnonymousObjectCreationExpression));
 
         // Analysis is trivial.  All anonymous types with more than two fields are marked as being
         // convertible to a tuple.
