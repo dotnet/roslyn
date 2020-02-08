@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode node);
 
         bool IsUsingDirectiveName(SyntaxNode node);
-        bool IsIdentifierName(SyntaxNode node);
+        bool IsIdentifierName([NotNullWhen(true)] SyntaxNode node);
         bool IsGenericName(SyntaxNode node);
         bool IsQualifiedName(SyntaxNode node);
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             }
 
             var option = optionSet.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
-            if (!option.Value)
+            if (option == null || !option.Value)
             {
                 return;
             }
@@ -151,7 +153,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     additionalLocations, properties));
         }
 
-        private static ITypeParameterSymbol GetGenericParameterSymbol(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)
+        private static ITypeParameterSymbol? GetGenericParameterSymbol(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)
         {
             var valueNode = syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(node1)) ? node2 : node1;
             var argumentExpression = syntaxFacts.GetExpressionOfArgument(valueNode);
@@ -161,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return parameterType as ITypeParameterSymbol;
             }
 
-            return default;
+            return null;
         }
 
         private static bool MatchesPattern(ISyntaxFactsService syntaxFacts, SyntaxNode node1, SyntaxNode node2)

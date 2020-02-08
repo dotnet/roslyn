@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
 
         protected override bool TryAnalyzePatternCondition(
             ISyntaxFactsService syntaxFacts, SyntaxNode conditionNode,
-            out SyntaxNode conditionPartToCheck, out bool isEquals)
+            out SyntaxNode? conditionPartToCheck, out bool isEquals)
         {
             conditionPartToCheck = null;
             isEquals = true;

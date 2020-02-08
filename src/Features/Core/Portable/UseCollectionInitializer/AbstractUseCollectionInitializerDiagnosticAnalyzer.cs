@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             var option = optionSet.GetOption(CodeStyleOptions.PreferCollectionInitializer, language);
-            if (!option.Value)
+            if (option == null || !option.Value)
             {
                 // not point in analyzing if the option is off.
                 return;
@@ -102,6 +104,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
+            if (containingStatement == null)
+            {
+                return;
+            }
+
             var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
             var syntaxFacts = GetSyntaxFactsService();
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))

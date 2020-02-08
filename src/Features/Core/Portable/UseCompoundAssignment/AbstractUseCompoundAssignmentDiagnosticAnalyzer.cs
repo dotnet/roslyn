@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             }
 
             var option = optionSet.GetOption(CodeStyleOptions.PreferCompoundAssignment, assignment.Language);
-            if (!option.Value)
+            if (option == null || !option.Value)
             {
                 // Bail immediately if the user has disabled this feature.
                 return;
