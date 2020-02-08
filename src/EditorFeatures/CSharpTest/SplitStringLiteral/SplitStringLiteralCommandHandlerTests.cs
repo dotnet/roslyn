@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             bool useTabs = false,
             string lineEnding = "\r\n")
         {
-            using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
+            using var workspace = TestWorkspace.CreateCSharp(inputMarkup, lineEnding: lineEnding);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
                 .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)
@@ -929,15 +929,15 @@ $""[||]"";
     {
         var v = ""Hello [||]World!"";
     }
-}",
+}".Replace("\r\n", "\n"),
 @"class C
 {
     void M()
     {
         var v = ""Hello "" +
-        ""World!"";
+            ""[||]World!"";
     }
-}",
+}".Replace("\r\n", "\n"),
             verifyUndo: false,
             lineEnding: "\n");
         }

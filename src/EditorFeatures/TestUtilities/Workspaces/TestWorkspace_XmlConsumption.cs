@@ -59,29 +59,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public static TestWorkspace Create(string xmlDefinition, bool completed = true, bool openDocuments = false, ExportProvider exportProvider = null)
+        public static TestWorkspace Create(string xmlDefinition, bool openDocuments = false, ExportProvider exportProvider = null, string lineEnding = "\r\n")
         {
-            return Create(XElement.Parse(xmlDefinition), completed, openDocuments, exportProvider);
+            return Create(XElement.Parse(xmlDefinition), openDocuments, exportProvider, lineEnding: lineEnding);
         }
 
         public static TestWorkspace CreateWorkspace(
             XElement workspaceElement,
-            bool completed = true,
             bool openDocuments = true,
             ExportProvider exportProvider = null,
-            string workspaceKind = null)
+            string workspaceKind = null,
+            string lineEnding = "\r\n")
         {
-            return Create(workspaceElement, completed, openDocuments, exportProvider, workspaceKind);
+            return Create(workspaceElement, openDocuments, exportProvider, workspaceKind, lineEnding: lineEnding);
         }
 
         internal static TestWorkspace Create(
             XElement workspaceElement,
-            bool completed = true,
             bool openDocuments = true,
             ExportProvider exportProvider = null,
             string workspaceKind = null,
             IDocumentServiceProvider documentServiceProvider = null,
-            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
+            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
+            string lineEnding = "\r\n")
         {
             if (workspaceElement.Name != WorkspaceElementName)
             {
@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     workspace,
                     filePathToTextBufferMap,
                     documentServiceProvider,
+                    lineEnding,
                     ref projectIdentifier,
                     ref documentIdentifier);
                 Assert.False(projectNameToTestHostProject.ContainsKey(project.Name), $"The workspace XML already contains a project with name {project.Name}");
@@ -257,6 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestWorkspace workspace,
             Dictionary<string, ITextBuffer> filePathToTextBufferMap,
             IDocumentServiceProvider documentServiceProvider,
+            string lineEnding,
             ref int projectId,
             ref int documentId)
         {
@@ -303,11 +305,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     workspace,
                     workspaceElement,
                     documentElement,
-                    language,
                     exportProvider,
                     languageServices,
                     filePathToTextBufferMap,
                     documentServiceProvider,
+                    lineEnding,
                     ref documentId);
 
                 documents.Add(document);
@@ -321,11 +323,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     workspace,
                     workspaceElement,
                     additionalDocumentElement,
-                    language,
                     exportProvider,
                     languageServices,
                     filePathToTextBufferMap,
                     documentServiceProvider,
+                    lineEnding,
                     ref documentId);
 
                 additionalDocuments.Add(document);
@@ -339,11 +341,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     workspace,
                     workspaceElement,
                     analyzerConfigElement,
-                    language,
                     exportProvider,
                     languageServices,
                     filePathToTextBufferMap,
                     documentServiceProvider,
+                    lineEnding,
                     ref documentId);
 
                 analyzerConfigDocuments.Add(document);
@@ -658,11 +660,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestWorkspace workspace,
             XElement workspaceElement,
             XElement documentElement,
-            string language,
             ExportProvider exportProvider,
             HostLanguageServices languageServiceProvider,
             Dictionary<string, ITextBuffer> filePathToTextBufferMap,
             IDocumentServiceProvider documentServiceProvider,
+            string lineEnding,
             ref int documentId)
         {
             string markupCode;
@@ -724,7 +726,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
             }
 
-            markupCode = documentElement.NormalizedValue();
+            markupCode = documentElement.NormalizedValue(lineEnding);
             filePath = GetFilePath(workspace, documentElement, ref documentId);
 
             var folders = GetFolders(documentElement);
