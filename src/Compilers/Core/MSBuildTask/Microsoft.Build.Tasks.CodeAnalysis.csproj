@@ -24,11 +24,6 @@
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
 
-  <!-- Disable the nullable warnings when not compiling for netcoreapp3.1 -->
-  <PropertyGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
-    <NoWarn>$(NoWarn);8600;8601;8602;8603;8604</NoWarn>
-  </PropertyGroup>
-
   <ItemGroup>
     <Content Include="*.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
