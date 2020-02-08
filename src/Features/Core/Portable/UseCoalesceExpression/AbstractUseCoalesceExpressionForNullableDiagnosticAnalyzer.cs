@@ -34,11 +34,14 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
+        {
+            var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+            context.RegisterSyntaxNodeAction(AnalyzeSyntax,
+                syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.TernaryConditionalExpression));
+        }
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
