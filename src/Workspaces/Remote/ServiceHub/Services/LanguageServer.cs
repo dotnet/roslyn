@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -10,8 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
-using Roslyn.Utilities;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -41,17 +42,15 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [JsonRpcMethod(Methods.InitializeName)]
-        public object Initialize(int? processId, string rootPath, Uri rootUri, ClientCapabilities capabilities, TraceSetting trace, CancellationToken cancellationToken)
+        public Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
         {
-            // our LSP server only supports WorkspaceStreamingSymbolProvider capability
-            // for now
-            return new InitializeResult()
+            return Task.FromResult(new InitializeResult()
             {
                 Capabilities = new VSServerCapabilities()
                 {
                     WorkspaceStreamingSymbolProvider = true
                 }
-            };
+            });
         }
 
         [JsonRpcMethod(Methods.InitializedName)]

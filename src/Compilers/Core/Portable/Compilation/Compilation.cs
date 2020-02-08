@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -62,15 +64,15 @@ namespace Microsoft.CodeAnalysis
         // Protected for access in CSharpCompilation.WithAdditionalFeatures
         protected readonly IReadOnlyDictionary<string, string> _features;
 
-        public ScriptCompilationInfo ScriptCompilationInfo => CommonScriptCompilationInfo;
-        internal abstract ScriptCompilationInfo CommonScriptCompilationInfo { get; }
+        public ScriptCompilationInfo? ScriptCompilationInfo => CommonScriptCompilationInfo;
+        internal abstract ScriptCompilationInfo? CommonScriptCompilationInfo { get; }
 
         internal Compilation(
-            string name,
+            string? name,
             ImmutableArray<MetadataReference> references,
             IReadOnlyDictionary<string, string> features,
             bool isSubmission,
-            AsyncQueue<CompilationEvent> eventQueue)
+            AsyncQueue<CompilationEvent>? eventQueue)
         {
             RoslynDebug.Assert(!references.IsDefault);
             RoslynDebug.Assert(features != null);
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         /// Checks options passed to submission compilation constructor.
         /// Throws an exception if the options are not applicable to submissions.
         /// </summary>
-        internal static void CheckSubmissionOptions(CompilationOptions options)
+        internal static void CheckSubmissionOptions(CompilationOptions? options)
         {
             if (options == null)
             {
@@ -189,7 +191,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a new compilation with a given event queue.
         /// </summary>
-        internal abstract Compilation WithEventQueue(AsyncQueue<CompilationEvent> eventQueue);
+        internal abstract Compilation WithEventQueue(AsyncQueue<CompilationEvent>? eventQueue);
 
         /// <summary>
         /// Gets a new <see cref="SemanticModel"/> for the specified syntax tree.
@@ -261,7 +263,7 @@ namespace Microsoft.CodeAnalysis
         /// Unless <see cref="CompilationOptions.ModuleName"/> specifies otherwise the module name
         /// written to metadata is <see cref="AssemblyName"/> with an extension based upon <see cref="CompilationOptions.OutputKind"/>.
         /// </remarks>
-        public string AssemblyName { get; }
+        public string? AssemblyName { get; }
 
         internal void CheckAssemblyName(DiagnosticBag diagnostics)
         {
@@ -290,12 +292,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="assemblyName">The new assembly name.</param>
         /// <returns>A new compilation.</returns>
-        public Compilation WithAssemblyName(string assemblyName)
+        public Compilation WithAssemblyName(string? assemblyName)
         {
             return CommonWithAssemblyName(assemblyName);
         }
 
-        protected abstract Compilation CommonWithAssemblyName(string outputName);
+        protected abstract Compilation CommonWithAssemblyName(string? outputName);
 
         #endregion
 
@@ -364,7 +366,7 @@ namespace Microsoft.CodeAnalysis
             if (_lazySubmissionSlotIndex == SubmissionSlotIndexToBeAllocated)
             {
                 // TODO (tomat): remove recursion
-                int lastSlotIndex = ScriptCompilationInfo.PreviousScriptCompilation?.GetSubmissionSlotIndex() ?? 0;
+                int lastSlotIndex = ScriptCompilationInfo!.PreviousScriptCompilation?.GetSubmissionSlotIndex() ?? 0;
                 _lazySubmissionSlotIndex = HasCodeToEmit() ? lastSlotIndex + 1 : lastSlotIndex;
             }
 
@@ -402,8 +404,8 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract bool HasSubmissionResult();
 
-        public Compilation WithScriptCompilationInfo(ScriptCompilationInfo info) => CommonWithScriptCompilationInfo(info);
-        protected abstract Compilation CommonWithScriptCompilationInfo(ScriptCompilationInfo info);
+        public Compilation WithScriptCompilationInfo(ScriptCompilationInfo? info) => CommonWithScriptCompilationInfo(info);
+        protected abstract Compilation CommonWithScriptCompilationInfo(ScriptCompilationInfo? info);
 
         #endregion
 
@@ -495,18 +497,18 @@ namespace Microsoft.CodeAnalysis
             return CommonContainsSyntaxTree(syntaxTree);
         }
 
-        protected abstract bool CommonContainsSyntaxTree(SyntaxTree syntaxTree);
+        protected abstract bool CommonContainsSyntaxTree(SyntaxTree? syntaxTree);
 
         /// <summary>
         /// The event queue that this compilation was created with.
         /// </summary>
-        internal readonly AsyncQueue<CompilationEvent> EventQueue;
+        internal readonly AsyncQueue<CompilationEvent>? EventQueue;
 
         #endregion
 
         #region References
 
-        internal static ImmutableArray<MetadataReference> ValidateReferences<T>(IEnumerable<MetadataReference> references)
+        internal static ImmutableArray<MetadataReference> ValidateReferences<T>(IEnumerable<MetadataReference>? references)
             where T : CompilationReference
         {
             var result = references.AsImmutableOrEmpty();
@@ -705,7 +707,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="newReference">The new reference.</param>
         /// <param name="oldReference">The old reference.</param>
         /// <returns>A new compilation.</returns>
-        public Compilation ReplaceReference(MetadataReference oldReference, MetadataReference newReference)
+        public Compilation ReplaceReference(MetadataReference oldReference, MetadataReference? newReference)
         {
             if (oldReference == null)
             {
@@ -728,23 +730,23 @@ namespace Microsoft.CodeAnalysis
         /// <returns>
         /// Assembly or module symbol corresponding to the given reference or null if there is none.
         /// </returns>
-        public ISymbol GetAssemblyOrModuleSymbol(MetadataReference reference)
+        public ISymbol? GetAssemblyOrModuleSymbol(MetadataReference reference)
         {
             return CommonGetAssemblyOrModuleSymbol(reference);
         }
 
-        protected abstract ISymbol CommonGetAssemblyOrModuleSymbol(MetadataReference reference);
+        protected abstract ISymbol? CommonGetAssemblyOrModuleSymbol(MetadataReference reference);
 
         /// <summary>
         /// Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
         /// </summary>
         /// <param name="assemblySymbol">The target symbol.</param>
-        public MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol)
+        public MetadataReference? GetMetadataReference(IAssemblySymbol assemblySymbol)
         {
             return CommonGetMetadataReference(assemblySymbol);
         }
 
-        private protected abstract MetadataReference CommonGetMetadataReference(IAssemblySymbol assemblySymbol);
+        private protected abstract MetadataReference? CommonGetMetadataReference(IAssemblySymbol assemblySymbol);
 
         /// <summary>
         /// Assembly identities of all assemblies directly referenced by this compilation.
@@ -782,12 +784,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the corresponding compilation namespace for the specified module or assembly namespace.
         /// </summary>
-        public INamespaceSymbol GetCompilationNamespace(INamespaceSymbol namespaceSymbol)
+        public INamespaceSymbol? GetCompilationNamespace(INamespaceSymbol namespaceSymbol)
         {
             return CommonGetCompilationNamespace(namespaceSymbol);
         }
 
-        protected abstract INamespaceSymbol CommonGetCompilationNamespace(INamespaceSymbol namespaceSymbol);
+        protected abstract INamespaceSymbol? CommonGetCompilationNamespace(INamespaceSymbol namespaceSymbol);
 
         internal abstract CommonAnonymousTypeManager CommonAnonymousTypeManager { get; }
 
@@ -795,12 +797,12 @@ namespace Microsoft.CodeAnalysis
         /// Returns the Main method that will serves as the entry point of the assembly, if it is
         /// executable (and not a script).
         /// </summary>
-        public IMethodSymbol GetEntryPoint(CancellationToken cancellationToken)
+        public IMethodSymbol? GetEntryPoint(CancellationToken cancellationToken)
         {
             return CommonGetEntryPoint(cancellationToken);
         }
 
-        protected abstract IMethodSymbol CommonGetEntryPoint(CancellationToken cancellationToken);
+        protected abstract IMethodSymbol? CommonGetEntryPoint(CancellationToken cancellationToken);
 
         /// <summary>
         /// Get the symbol for the predefined type from the Cor Library referenced by this
@@ -826,7 +828,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Lookup member declaration in well known type used by this Compilation.
         /// </summary>
-        internal abstract ISymbolInternal CommonGetWellKnownTypeMember(WellKnownMember member);
+        internal abstract ISymbolInternal? CommonGetWellKnownTypeMember(WellKnownMember member);
 
         /// <summary>
         /// Lookup well-known type used by this Compilation.
@@ -855,8 +857,8 @@ namespace Microsoft.CodeAnalysis
         /// A symbol representing the implicit Script class. This is null if the class is not
         /// defined in the compilation.
         /// </summary>
-        public INamedTypeSymbol ScriptClass { get { return CommonScriptClass; } }
-        protected abstract INamedTypeSymbol CommonScriptClass { get; }
+        public INamedTypeSymbol? ScriptClass { get { return CommonScriptClass; } }
+        protected abstract INamedTypeSymbol? CommonScriptClass { get; }
 
         /// <summary>
         /// Resolves a symbol that represents script container (Script class). Uses the
@@ -941,8 +943,8 @@ namespace Microsoft.CodeAnalysis
         // hash code conflicts, but seems to do the trick. The size is mostly arbitrary. My guess
         // is that there are maybe a couple dozen analyzers in the solution and each one has
         // ~0-2 unique well-known types, and the chance of hash collision is very low.
-        private ConcurrentCache<string, INamedTypeSymbol> _getTypeCache =
-            new ConcurrentCache<string, INamedTypeSymbol>(50, ReferenceEqualityComparer.Instance);
+        private ConcurrentCache<string, INamedTypeSymbol?> _getTypeCache =
+            new ConcurrentCache<string, INamedTypeSymbol?>(50, ReferenceEqualityComparer.Instance);
 
         /// <summary>
         /// Gets the type within the compilation's assembly and all referenced assemblies (other than
@@ -952,9 +954,9 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Since VB does not have the concept of extern aliases, it considers all referenced assemblies.
         /// </remarks>
-        public INamedTypeSymbol GetTypeByMetadataName(string fullyQualifiedMetadataName)
+        public INamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            if (!_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var val))
+            if (!_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out INamedTypeSymbol? val))
             {
                 val = CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
                 // Ignore if someone added the same value before us
@@ -963,7 +965,7 @@ namespace Microsoft.CodeAnalysis
             return val;
         }
 
-        protected abstract INamedTypeSymbol CommonGetTypeByMetadataName(string metadataName);
+        protected abstract INamedTypeSymbol? CommonGetTypeByMetadataName(string metadataName);
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
@@ -972,8 +974,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public INamedTypeSymbol CreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
-            ImmutableArray<string> elementNames = default,
-            ImmutableArray<Location> elementLocations = default,
+            ImmutableArray<string?> elementNames = default,
+            ImmutableArray<Location?> elementLocations = default,
             ImmutableArray<NullableAnnotation> elementNullableAnnotations = default)
         {
             if (elementTypes.IsDefault)
@@ -1014,8 +1016,8 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>This overload is for backwards compatibility. Do not remove.</remarks>
         public INamedTypeSymbol CreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
-            ImmutableArray<string> elementNames,
-            ImmutableArray<Location> elementLocations)
+            ImmutableArray<string?> elementNames,
+            ImmutableArray<Location?> elementLocations)
         {
             return CreateTupleTypeSymbol(elementTypes, elementNames, elementLocations, elementNullableAnnotations: default);
         }
@@ -1037,7 +1039,7 @@ namespace Microsoft.CodeAnalysis
         /// Check that if any names are provided, and their number matches the expected cardinality.
         /// Returns a normalized version of the element names (empty array if all the names are null).
         /// </summary>
-        protected static ImmutableArray<string> CheckTupleElementNames(int cardinality, ImmutableArray<string> elementNames)
+        protected static ImmutableArray<string?> CheckTupleElementNames(int cardinality, ImmutableArray<string?> elementNames)
         {
             if (!elementNames.IsDefault)
             {
@@ -1056,7 +1058,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (elementNames.All(n => n == null))
                 {
-                    return default(ImmutableArray<string>);
+                    return default;
                 }
             }
 
@@ -1065,7 +1067,7 @@ namespace Microsoft.CodeAnalysis
 
         protected static void CheckTupleElementLocations(
             int cardinality,
-            ImmutableArray<Location> elementLocations)
+            ImmutableArray<Location?> elementLocations)
         {
             if (!elementLocations.IsDefault)
             {
@@ -1078,8 +1080,8 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
-            ImmutableArray<string> elementNames,
-            ImmutableArray<Location> elementLocations,
+            ImmutableArray<string?> elementNames,
+            ImmutableArray<Location?> elementLocations,
             ImmutableArray<NullableAnnotation> elementNullableAnnotations);
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -1090,8 +1092,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public INamedTypeSymbol CreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
-            ImmutableArray<string> elementNames = default,
-            ImmutableArray<Location> elementLocations = default,
+            ImmutableArray<string?> elementNames = default,
+            ImmutableArray<Location?> elementLocations = default,
             ImmutableArray<NullableAnnotation> elementNullableAnnotations = default)
         {
             if ((object)underlyingType == null)
@@ -1110,16 +1112,16 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>This overload is for backwards compatibility. Do not remove.</remarks>
         public INamedTypeSymbol CreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
-            ImmutableArray<string> elementNames,
-            ImmutableArray<Location> elementLocations)
+            ImmutableArray<string?> elementNames,
+            ImmutableArray<Location?> elementLocations)
         {
             return CreateTupleTypeSymbol(underlyingType, elementNames, elementLocations, elementNullableAnnotations: default);
         }
 
         protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
-            ImmutableArray<string> elementNames,
-            ImmutableArray<Location> elementLocations,
+            ImmutableArray<string?> elementNames,
+            ImmutableArray<Location?> elementLocations,
             ImmutableArray<NullableAnnotation> elementNullableAnnotations);
 
         /// <summary>
@@ -1229,7 +1231,7 @@ namespace Microsoft.CodeAnalysis
         /// either <paramref name="fromType"/> or <paramref name="toType"/> is null, or
         /// if no such conversion exists.
         /// </summary>
-        public bool HasImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType)
+        public bool HasImplicitConversion(ITypeSymbol? fromType, ITypeSymbol? toType)
             => fromType != null && toType != null && this.ClassifyCommonConversion(fromType, toType).IsImplicit;
 
         /// <summary>
@@ -1481,7 +1483,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a stream filled with default win32 resources.
         /// </summary>
-        public Stream CreateDefaultWin32Resources(bool versionResource, bool noManifest, Stream manifestContents, Stream iconInIcoFormat)
+        public Stream CreateDefaultWin32Resources(bool versionResource, bool noManifest, Stream? manifestContents, Stream? iconInIcoFormat)
         {
             //Win32 resource encodings use a lot of 16bit values. Do all of the math checked with the
             //expectation that integer types are well-chosen with size in mind.
@@ -1647,7 +1649,7 @@ namespace Microsoft.CodeAnalysis
             return resourceList;
         }
 
-        internal void SetupWin32Resources(CommonPEModuleBuilder moduleBeingBuilt, Stream win32Resources, DiagnosticBag diagnostics)
+        internal void SetupWin32Resources(CommonPEModuleBuilder moduleBeingBuilt, Stream? win32Resources, DiagnosticBag diagnostics)
         {
             if (win32Resources == null)
                 return;
@@ -1684,7 +1686,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal void ReportManifestResourceDuplicates(
-            IEnumerable<ResourceDescription> manifestResources,
+            IEnumerable<ResourceDescription>? manifestResources,
             IEnumerable<string> addedModuleNames,
             IEnumerable<string> addedModuleResourceNames,
             DiagnosticBag diagnostics)
@@ -1758,7 +1760,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Cci.ModulePropertiesForSerialization ConstructModuleSerializationProperties(
             EmitOptions emitOptions,
-            string targetRuntimeVersion,
+            string? targetRuntimeVersion,
             Guid moduleVersionId = default(Guid))
         {
             CompilationOptions compilationOptions = this.Options;
@@ -2029,7 +2031,7 @@ namespace Microsoft.CodeAnalysis
         internal abstract bool IsDelaySigned { get; }
         internal abstract StrongNameKeys StrongNameKeys { get; }
 
-        internal abstract CommonPEModuleBuilder CreateModuleBuilder(
+        internal abstract CommonPEModuleBuilder? CreateModuleBuilder(
             EmitOptions emitOptions,
             IMethodSymbol? debugEntryPoint,
             Stream? sourceLinkStream,
@@ -2155,7 +2157,7 @@ namespace Microsoft.CodeAnalysis
         ///       See: https://github.com/dotnet/roslyn/issues/11470
         /// </summary>
         /// <param name="filterTree">What tree to complete. null means complete all trees. </param>
-        internal abstract void CompleteTrees(SyntaxTree filterTree);
+        internal abstract void CompleteTrees(SyntaxTree? filterTree);
 
         internal bool Compile(
             CommonPEModuleBuilder moduleBuilder,
@@ -2218,7 +2220,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                this.ScriptCompilationInfo.PreviousScriptCompilation?.EnsureAnonymousTypeTemplates(cancellationToken);
+                this.ScriptCompilationInfo?.PreviousScriptCompilation?.EnsureAnonymousTypeTemplates(cancellationToken);
             }
         }
 
@@ -3109,7 +3111,7 @@ namespace Microsoft.CodeAnalysis
 
         internal string GetMessage(ITypeSymbol source, ITypeSymbol destination)
         {
-            if (source == null || destination == null) return this.AssemblyName;
+            if (source == null || destination == null) return this.AssemblyName ?? "";
             return string.Format("{0}: {1} {2} -> {3} {4}", this.AssemblyName, source.TypeKind.ToString(), source.Name, destination.TypeKind.ToString(), destination.Name);
         }
 
