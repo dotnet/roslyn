@@ -4,47 +4,47 @@
     <body>
       <trans-unit id="AddAllItemsInDocumentToThePublicApiTitle">
         <source>Add all items in document '{0}' to the public API</source>
-        <target state="new">Add all items in document '{0}' to the public API</target>
+        <target state="translated">Adicionar todos os itens no documento '{0}' à API pública</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInProjectToThePublicApiTitle">
         <source>Add all items in project '{0}' to the public API</source>
-        <target state="new">Add all items in project '{0}' to the public API</target>
+        <target state="translated">Adicionar todos os itens no projeto '{0}' à API pública</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInTheSolutionToThePublicApiTitle">
         <source>Add all items in the solution to the public API</source>
-        <target state="new">Add all items in the solution to the public API</target>
+        <target state="translated">Adicionar todos os itens da solução à API pública</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInDocumentToThePublicApiTitle">
         <source>Annotate all items in document '{0}' in the public API</source>
-        <target state="new">Annotate all items in document '{0}' in the public API</target>
+        <target state="translated">Anotar todos os itens do documento '{0}' na API pública</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInProjectToThePublicApiTitle">
         <source>Annotate all items in project '{0}' in the public API</source>
-        <target state="new">Annotate all items in project '{0}' in the public API</target>
+        <target state="translated">Anotar todos os itens do projeto '{0}' na API pública</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInTheSolutionToThePublicApiTitle">
         <source>Annotate all items in the solution in the public API</source>
-        <target state="new">Annotate all items in the solution in the public API</target>
+        <target state="translated">Anotar todos os itens da solução na API pública</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">Todos os tipos e membros públicos devem ser declarados com anotações de nulidade no PublicAPI.txt. Isso chama a atenção para as alterações de nulidade da API no histórico de revisões de código e de controle do código-fonte e ajuda a evitar alterações da falha.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
-        <target state="new">Symbol '{0}' is missing nullability annotations in the declared API.</target>
+        <target state="translated">O símbolo '{0}' não tem anotações de nulidade na API declarada.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
         <source>Annotate nullability of public types and members in the declared API</source>
-        <target state="new">Annotate nullability of public types and members in the declared API</target>
+        <target state="translated">Anotar a nulidade de tipos e membros públicos na API declarada</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="EnableNullableInProjectToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for project '{0}'</source>
-        <target state="new">Enable nullability annotations in the public API for project '{0}'</target>
+        <target state="translated">Habilitar anotações de nulidade na API pública para o projeto '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableNullableInTheSolutionToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for the solution</source>
-        <target state="new">Enable nullability annotations in the public API for the solution</target>
+        <target state="translated">Habilitar anotações de nulidade na API pública para a solução</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
@@ -134,17 +134,17 @@
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for '{0}'</source>
-        <target state="needs-review-translation">construtor implícito para {0}</target>
+        <target state="translated">construtor implícito para '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitGetAccessor">
         <source>implicit get-accessor for '{0}'</source>
-        <target state="needs-review-translation">acessador get implícito para {0}</target>
+        <target state="translated">acessador get implícito para '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitSetAccessor">
         <source>implicit set-accessor for '{0}'</source>
-        <target state="needs-review-translation">acessador set implícito para {0}</target>
+        <target state="translated">acessador set implícito para '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">
@@ -164,17 +164,17 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">Todos os tipos e membros públicos devem ser declarados com anotações de nulidade no PublicAPI.txt. Isso chama a atenção para as alterações de nulidade da API no histórico de revisões de código e de controle do código-fonte e ajuda a evitar alterações da falha.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
         <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
-        <target state="new">PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</target>
+        <target state="translated">O PublicAPI.txt está sem '#nullable enable', portanto, as anotações de nulidade da API não estão sendo registradas. É recomendado que esse controle seja habilitado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
         <source>Annotate nullability of types and members in the declared API</source>
-        <target state="new">Annotate nullability of types and members in the declared API</target>
+        <target state="translated">Anotar a nulidade de tipos e membros na API declarada</target>
         <note />
       </trans-unit>
     </body>

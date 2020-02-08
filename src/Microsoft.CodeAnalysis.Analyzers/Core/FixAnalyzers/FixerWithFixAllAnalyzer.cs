@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -44,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             s_localizableCreateCodeActionWithEquivalenceKeyTitle,
             s_localizableCreateCodeActionWithEquivalenceKeyMessage,
             "Correctness",
-            DiagnosticHelpers.DefaultDiagnosticSeverity,
+            DiagnosticSeverity.Warning,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
-            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+            isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor OverrideCodeActionEquivalenceKeyRule = new DiagnosticDescriptor(
@@ -54,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             s_localizableOverrideCodeActionEquivalenceKeyTitle,
             s_localizableOverrideCodeActionEquivalenceKeyMessage,
             "Correctness",
-            DiagnosticHelpers.DefaultDiagnosticSeverity,
+            DiagnosticSeverity.Warning,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
-            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+            isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor OverrideGetFixAllProviderRule = new DiagnosticDescriptor(
@@ -64,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             s_localizableOverrideGetFixAllProviderTitle,
             s_localizableOverrideGetFixAllProviderMessage,
             "Correctness",
-            DiagnosticHelpers.DefaultDiagnosticSeverity,
+            DiagnosticSeverity.Warning,
             description: s_localizableOverrideGetFixAllProviderDescription,
-            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+            isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>

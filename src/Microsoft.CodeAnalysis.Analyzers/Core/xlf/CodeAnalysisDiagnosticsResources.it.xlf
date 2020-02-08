@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerMessage">
         <source>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</source>
-        <target state="new">Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</target>
+        <target state="translated">Ereditare il tipo '{0}' da DiagnosticAnalyzer o rimuovere gli attributi DiagnosticAnalyzerAttribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerTitle">
         <source>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</source>
-        <target state="new">Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</target>
+        <target state="translated">I tipi contrassegnati con DiagnosticAnalyzerAttribute devono ereditare da DiagnosticAnalyzer.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
@@ -52,19 +52,34 @@
         <target state="translated">Configura l'analisi del codice generato</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
+        <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
+        <target state="translated">'GetSemanticModel' è un metodo dispendioso da richiamare in un analizzatore diagnostico perché crea un modello semantico completamente nuovo, che non condivide i dati di compilazione con il compilatore o con altri analizzatori, comportando un ulteriore costo in termini di prestazioni durante l'analisi semantica. Provare invece a registrare un'azione diversa dell'analizzatore che consenta l'uso di un elemento 'SemanticModel' condiviso, come 'RegisterOperationAction', 'RegisterSyntaxNodeAction' o 'RegisterSemanticModelAction'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelMessage">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">Non richiamare il metodo Compilation.GetSemanticModel() in un analizzatore diagnostico</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelTitle">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">Non richiamare il metodo Compilation.GetSemanticModel() in un analizzatore diagnostico</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
         <source>DiagnosticId for analyzers should not use reserved IDs.</source>
-        <target state="new">DiagnosticId for analyzers should not use reserved IDs.</target>
+        <target state="translated">L'ID diagnostica per gli analizzatori non deve usare ID riservati.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
         <source>'{0}' is a reserved diagnostic ID.</source>
-        <target state="new">'{0}' is a reserved diagnostic ID.</target>
+        <target state="translated">'{0}' è un ID diagnostica riservato.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
         <source>Do not use reserved diagnostic IDs.</source>
-        <target state="new">Do not use reserved diagnostic IDs.</target>
+        <target state="translated">Non usare ID diagnostica riservati.</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionDescription">
@@ -154,17 +169,17 @@
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
         <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
-        <target state="new">The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</target>
+        <target state="translated">Il valore 'customTags' viene usato per abilitare azioni e filtri specifici per i descrittori di diagnostica in base a valori specifici dei tag. Ogni analizzatore Roslyn deve includere almeno un tag della classe 'WellKnownDiagnosticTags'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorMessage">
         <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</source>
-        <target state="new">Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</target>
+        <target state="translated">Provare a fornire un valore 'customTags' non Null al costruttore del descrittore di diagnostica per abilitare il filtro dei metadati dei descrittori di diagnostica.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorTitle">
         <source>Provide non-null 'customTags' value to diagnostic descriptor constructor.</source>
-        <target state="new">Provide non-null 'customTags' value to diagnostic descriptor constructor.</target>
+        <target state="translated">Fornire un valore 'customTags' non Null al costruttore del descrittore di diagnostica.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">

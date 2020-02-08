@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerMessage">
         <source>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</source>
-        <target state="new">Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</target>
+        <target state="translated">從 DiagnosticAnalyzer 繼承類型 '{0}' 或移除 DiagnosticAnalyzerAttribute。</target>
         <note />
       </trans-unit>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerTitle">
         <source>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</source>
-        <target state="new">Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</target>
+        <target state="translated">標示了 DiagnosticAnalyzerAttribute 的類型應繼承自 DiagnosticAnalyzer。</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
@@ -52,19 +52,34 @@
         <target state="translated">設定產生的程式碼分析</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
+        <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
+        <target state="translated">在診斷分析器內叫用方法時，'GetSemanticModel' 是成本較高的方法，原因是其會建立全新的語意模型，而不會與編譯器或其他分析器共用編譯資料，此舉會在分析語意期間產生額外的效能成本。請改為考慮註冊不同的分析器動作，以允許使用共用的 'SemanticModel'，例如 'RegisterOperationAction'、'RegisterSyntaxNodeAction' 或 'RegisterSemanticModelAction'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelMessage">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">請不要在診斷分析器內叫用 Compilation.GetSemanticModel() 方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelTitle">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">請不要在診斷分析器內叫用 Compilation.GetSemanticModel() 方法</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
         <source>DiagnosticId for analyzers should not use reserved IDs.</source>
-        <target state="new">DiagnosticId for analyzers should not use reserved IDs.</target>
+        <target state="translated">分析器的診斷識別碼不應使用保留的識別碼。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
         <source>'{0}' is a reserved diagnostic ID.</source>
-        <target state="new">'{0}' is a reserved diagnostic ID.</target>
+        <target state="translated">'{0}' 是保留的診斷識別碼。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
         <source>Do not use reserved diagnostic IDs.</source>
-        <target state="new">Do not use reserved diagnostic IDs.</target>
+        <target state="translated">請勿使用保留的診斷識別碼。</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionDescription">
@@ -154,17 +169,17 @@
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
         <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
-        <target state="new">The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</target>
+        <target state="translated">'customTags' 值可用來在診斷描述項上依據標籤的特定值，啟用特定的動作及篩選。每個 Roslyn 分析器至少都應該要有一個來自 'WellKnownDiagnosticTags' 類別的標籤。</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorMessage">
         <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</source>
-        <target state="new">Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</target>
+        <target state="translated">請考慮提供非 null 的 'customTags' 給診斷描述項建構函式，以啟用診斷描述項的中繼資料篩選。</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorTitle">
         <source>Provide non-null 'customTags' value to diagnostic descriptor constructor.</source>
-        <target state="new">Provide non-null 'customTags' value to diagnostic descriptor constructor.</target>
+        <target state="translated">請提供非 null 的 'customTags' 值給診斷描述項建構函式。</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">

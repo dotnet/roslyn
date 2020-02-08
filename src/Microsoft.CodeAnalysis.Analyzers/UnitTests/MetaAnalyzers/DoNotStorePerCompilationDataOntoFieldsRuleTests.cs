@@ -1,22 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Analyzer.Utilities;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
-using Test.Utilities;
 using Xunit;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpDiagnosticAnalyzerFieldsAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicDiagnosticAnalyzerFieldsAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
-    public class DoNotStorePerCompilationDataOntoFieldsRuleTests : DiagnosticAnalyzerTestBase
+    public class DoNotStorePerCompilationDataOntoFieldsRuleTests
     {
         [Fact]
-        public void CSharp_VerifyDiagnostic()
+        public async Task CSharp_VerifyDiagnostic()
         {
             var source = @"
 using System;
@@ -28,7 +30,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol;
 
-abstract class MyCompilation : Compilation
+abstract class {|CS1729:MyCompilation|} : Compilation
 {
     // Compile error: no public constructor exists on Compilation.
 }
@@ -63,11 +65,11 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpExpectedDiagnostic(23, 29, violatingTypeName: typeof(IBinaryOperation).FullName)
             };
 
-            VerifyCSharp(source, TestValidationMode.AllowCompileErrors, expected);
+            await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void VisualBasic_VerifyDiagnostic()
+        public async Task VisualBasic_VerifyDiagnostic()
         {
             var source = @"
 Imports System
@@ -79,7 +81,7 @@ Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol
 
-MustInherit Class MyCompilation
+MustInherit Class {|BC31399:MyCompilation|}
     Inherits Compilation ' Compile error: no public constructor exists on Compilation.
 End Class
 
@@ -112,11 +114,11 @@ End Class
                 GetBasicExpectedDiagnostic(23, 35, violatingTypeName: typeof(IBinaryOperation).FullName)
             };
 
-            VerifyBasic(source, TestValidationMode.AllowCompileErrors, expected);
+            await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCases()
         {
             var source = @"
 using System;
@@ -127,7 +129,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol;
 
-abstract class MyCompilation : Compilation
+abstract class {|CS1729:MyCompilation|} : Compilation
 {
     // Compile error: no public constructor exists on Compilation.
 }
@@ -182,11 +184,11 @@ class MyAnalyzerWithoutAttribute : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source, TestValidationMode.AllowCompileErrors);
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
         [Fact]
-        public void VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCases()
         {
             var source = @"
 Imports System
@@ -197,7 +199,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol
 
-MustInherit Class MyCompilation
+MustInherit Class {|BC31399:MyCompilation|}
     Inherits Compilation ' Compile error: no public constructor exists on Compilation.
 End Class
 
@@ -246,36 +248,17 @@ Class MyAnalyzerWithoutAttribute
 End Class
 ";
 
-            VerifyBasic(source, TestValidationMode.AllowCompileErrors);
+            await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new CSharpDiagnosticAnalyzerFieldsAnalyzer();
-        }
-
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return new BasicDiagnosticAnalyzerFieldsAnalyzer();
-        }
-
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string violatingTypeName)
-        {
-            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, violatingTypeName);
-        }
-
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string violatingTypeName)
-        {
-            return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, violatingTypeName);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string violatingTypeName)
-        {
-            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult(DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
-                .WithLocation(fileName, line, column)
-                .WithMessageFormat(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsMessage)
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string violatingTypeName) =>
+            VerifyCS.Diagnostic()
+                .WithLocation(line, column)
                 .WithArguments(violatingTypeName);
-        }
+
+        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string violatingTypeName) =>
+            VerifyVB.Diagnostic()
+                .WithLocation(line, column)
+                .WithArguments(violatingTypeName);
     }
 }

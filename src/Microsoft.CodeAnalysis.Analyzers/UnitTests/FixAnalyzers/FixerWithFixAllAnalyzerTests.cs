@@ -92,7 +92,7 @@ public class MyDerivedCodeActionWithEquivalenceKey : MyAbstractCodeActionWithEqu
             await VerifyCS.VerifyAnalyzerAsync(source + fixAllProviderString + sourceSuffix, expected);
 
             // Verify RS1016 (OverrideGetFixAllProviderRule) diagnostic for fixer that does not support FixAllProvider.
-            expected = new DiagnosticResult[] { missingGetFixAllProviderOverrideDiagnostic };
+            expected = new[] { missingGetFixAllProviderOverrideDiagnostic };
             await VerifyCS.VerifyAnalyzerAsync(source + sourceSuffix, expected);
         }
 
@@ -283,7 +283,7 @@ abstract class C1 : CodeFixProvider
         return null;
     }
 ";
-            var expected = new DiagnosticResult[]
+            var expected = new[]
             {
                 // Test0.cs(24,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
                 GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(24, 29)
@@ -445,7 +445,7 @@ End Class
             await VerifyVB.VerifyAnalyzerAsync(source + fixAllProviderString + sourceSuffix, expected);
 
             // Verify RS1016 (OverrideGetFixAllProviderRule) diagnostic for fixer that does not support FixAllProvider.
-            expected = new DiagnosticResult[] { missingGetFixAllProviderOverrideDiagnostic };
+            expected = new[] { missingGetFixAllProviderOverrideDiagnostic };
             await VerifyVB.VerifyAnalyzerAsync(source + sourceSuffix, expected);
         }
 
@@ -630,7 +630,7 @@ MustInherit Class C1
 		Return Nothing
 	End Function
 ";
-            var expected = new DiagnosticResult[]
+            var expected = new[]
             {
                 // Test0.vb(21,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
                 GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(21, 23)
