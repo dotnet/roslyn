@@ -37,10 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int IdentifierToken => (int)SyntaxKind.IdentifierToken;
         public override int GlobalKeyword => (int)SyntaxKind.GlobalKeyword;
         public override int IncompleteMember => (int)SyntaxKind.IncompleteMember;
-        public override int UsingStatement => (int)SyntaxKind.UsingStatement;
-        public override int ReturnStatement => (int)SyntaxKind.ReturnStatement;
         public override int HashToken => (int)SyntaxKind.HashToken;
 
         public override int ExpressionStatement => (int)SyntaxKind.ExpressionStatement;
+        public override int ReturnStatement => (int)SyntaxKind.ReturnStatement;
+        public override int SimpleAssignmentStatement => (int)SyntaxKind.SimpleAssignmentExpression;
+        public override int UsingStatement => (int)SyntaxKind.UsingStatement;
     }
 }

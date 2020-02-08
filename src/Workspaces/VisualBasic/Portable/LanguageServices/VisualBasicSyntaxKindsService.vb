@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Composition
 Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
@@ -37,10 +36,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Overrides ReadOnly Property IdentifierToken As Integer = SyntaxKind.IdentifierToken
         Public Overrides ReadOnly Property GlobalKeyword As Integer = SyntaxKind.GlobalKeyword
         Public Overrides ReadOnly Property IncompleteMember As Integer = SyntaxKind.IncompleteMember
-        Public Overrides ReadOnly Property UsingStatement As Integer = SyntaxKind.UsingStatement
-        Public Overrides ReadOnly Property ReturnStatement As Integer = SyntaxKind.ReturnStatement
         Public Overrides ReadOnly Property HashToken As Integer = SyntaxKind.HashToken
 
         Public Overrides ReadOnly Property ExpressionStatement As Integer = SyntaxKind.ExpressionStatement
+        Public Overrides ReadOnly Property ReturnStatement As Integer = SyntaxKind.ReturnStatement
+        Public Overrides ReadOnly Property SimpleAssignmentStatement As Integer = SyntaxKind.SimpleAssignmentStatement
+        Public Overrides ReadOnly Property UsingStatement As Integer = SyntaxKind.UsingStatement
     End Class
 End Namespace

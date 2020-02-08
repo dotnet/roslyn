@@ -45,15 +45,17 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             Utilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
         }
 
-        protected abstract TSyntaxKind GetKind(int rawKind);
-        protected abstract TSyntaxKind GetAnalysisKind();
         protected abstract bool IsSupported(TSyntaxKind assignmentKind, ParseOptions options);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeAssignment, GetAnalysisKind());
+        {
+            var syntaxKinds = _syntaxFacts.SyntaxKinds;
+            context.RegisterSyntaxNodeAction(
+                AnalyzeAssignment, syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.SimpleAssignmentStatement));
+        }
 
         private void AnalyzeAssignment(SyntaxNodeAnalysisContext context)
         {
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 return;
             }
 
-            var binaryKind = GetKind(binaryExpression.RawKind);
+            var binaryKind = _syntaxFacts.SyntaxKinds.Convert<TSyntaxKind>(binaryExpression.RawKind);
             if (!_binaryToAssignmentMap.ContainsKey(binaryKind))
             {
                 return;

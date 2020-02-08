@@ -40,10 +40,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int IdentifierToken { get; }
         int GlobalKeyword { get; }
         int IncompleteMember { get; }
-        int UsingStatement { get; }
-        int ReturnStatement { get; }
         int HashToken { get; }
+
         int ExpressionStatement { get; }
+        int ReturnStatement { get; }
+        int SimpleAssignmentStatement { get; }
+        int UsingStatement { get; }
     }
 
     internal abstract class AbstractSyntaxKindsService : ISyntaxKindsService
@@ -68,9 +70,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int AwaitKeyword { get; }
         public abstract int GlobalKeyword { get; }
         public abstract int IncompleteMember { get; }
-        public abstract int UsingStatement { get; }
-        public abstract int ReturnStatement { get; }
         public abstract int HashToken { get; }
+
         public abstract int ExpressionStatement { get; }
+        public abstract int ReturnStatement { get; }
+        public abstract int SimpleAssignmentStatement { get; }
+        public abstract int UsingStatement { get; }
     }
 }

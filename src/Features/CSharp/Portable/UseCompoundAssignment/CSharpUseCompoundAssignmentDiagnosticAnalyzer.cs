@@ -17,12 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
         {
         }
 
-        protected override SyntaxKind GetKind(int rawKind)
-            => (SyntaxKind)rawKind;
-
-        protected override SyntaxKind GetAnalysisKind()
-            => SyntaxKind.SimpleAssignmentExpression;
-
         protected override bool IsSupported(SyntaxKind assignmentKind, ParseOptions options)
             => assignmentKind != SyntaxKind.CoalesceExpression ||
             ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp8;
