@@ -621,6 +621,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsObjectCreationExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.ObjectCreationExpression;
 
+        public bool IsParenthesizedExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.ParenthesizedExpression;
+
 #nullable restore
     }
 }
