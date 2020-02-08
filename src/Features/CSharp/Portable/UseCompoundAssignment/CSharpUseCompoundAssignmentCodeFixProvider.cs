@@ -19,9 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
         {
         }
 
-        protected override SyntaxKind GetSyntaxKind(int rawKind)
-            => (SyntaxKind)rawKind;
-
         protected override SyntaxToken Token(SyntaxKind kind)
             => SyntaxFactory.Token(kind);
 
