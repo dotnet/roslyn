@@ -2393,7 +2393,7 @@ class C
                 generation0,
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapByKind(method0, SyntaxKind.SwitchStatement), preserveLocalVariables: true)));
 
-        diff1.VerifyIL("C.M", @"
+            diff1.VerifyIL("C.M", @"
 {
   // Code size       58 (0x3a)
   .maxstack  2
