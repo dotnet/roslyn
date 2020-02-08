@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -329,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Add a null and type test if needed.
             if (!declaration.IsVar)
-                input = MakeConvertToType(input, declaration.Syntax, type!, tests);
+                input = MakeConvertToType(input, declaration.Syntax, type!, isExplicitTest: false, tests);
 
             BoundExpression? variableAccess = declaration.VariableAccess;
             if (variableAccess is { })
@@ -349,18 +351,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol type = typePattern.DeclaredType.Type;
             var tests = ArrayBuilder<Tests>.GetInstance(4);
-            input = MakeConvertToType(input, typePattern.Syntax, type, tests);
+            input = MakeConvertToType(input: input, syntax: typePattern.Syntax, type: type, isExplicitTest: false, tests: tests);
             return Tests.AndSequence.Create(tests);
         }
 
         private static void MakeCheckNotNull(
             BoundDagTemp input,
             SyntaxNode syntax,
+            bool isExplicitTest,
             ArrayBuilder<Tests> tests)
         {
             // Add a null test if needed
             if (input.Type.CanContainNull())
-                tests.Add(new Tests.One(new BoundDagNonNullTest(syntax, input)));
+                tests.Add(new Tests.One(new BoundDagNonNullTest(syntax, isExplicitTest, input)));
         }
 
         /// <summary>
@@ -370,9 +373,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             SyntaxNode syntax,
             TypeSymbol type,
+            bool isExplicitTest,
             ArrayBuilder<Tests> tests)
         {
-            MakeCheckNotNull(input, syntax, tests);
+            MakeCheckNotNull(input, syntax, isExplicitTest, tests);
             if (!input.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
             {
                 TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
@@ -409,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var tests = ArrayBuilder<Tests>.GetInstance(2);
-                var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type!, tests);
+                var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type!, isExplicitTest: false, tests);
                 tests.Add(new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, convertedInput)));
                 return Tests.AndSequence.Create(tests);
             }
@@ -423,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(input.Type.IsErrorType() || recursive.InputType.IsErrorType() || input.Type.Equals(recursive.InputType, TypeCompareKind.AllIgnoreOptions));
             var inputType = recursive.DeclaredType?.Type ?? input.Type.StrippedType();
             var tests = ArrayBuilder<Tests>.GetInstance(5);
-            input = MakeConvertToType(input, recursive.Syntax, inputType, tests);
+            input = MakeConvertToType(input, recursive.Syntax, inputType, isExplicitTest: recursive.IsExplicitNotNullTest, tests);
 
             if (!recursive.Deconstruction.IsDefault)
             {
@@ -531,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Tests MakeTestsAndBindingsForRelationalPattern(BoundDagTemp input, BoundRelationalPattern rel)
         {
             var tests = ArrayBuilder<Tests>.GetInstance(2);
-            var convertedInput = MakeConvertToType(input, rel.Syntax, rel.Value.Type!, tests);
+            var convertedInput = MakeConvertToType(input, rel.Syntax, rel.Value.Type!, isExplicitTest: false, tests);
             tests.Add(new Tests.One(new BoundDagRelationalTest(rel.Syntax, rel.Relation, rel.ConstantValue, convertedInput, rel.HasErrors)));
             return Tests.AndSequence.Create(tests);
         }
@@ -1207,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 int nextTempNumber = 0;
-                var tempIdentifierMap = PooledDictionary<BoundDagEvaluation, int>.GetInstance();
+                PooledDictionary<BoundDagEvaluation, int> tempIdentifierMap = PooledDictionary<BoundDagEvaluation, int>.GetInstance();
                 int tempIdentifier(BoundDagEvaluation? e)
                 {
                     return (e == null) ? 0 : tempIdentifierMap.TryGetValue(e, out int value) ? value : tempIdentifierMap[e] = ++nextTempNumber;

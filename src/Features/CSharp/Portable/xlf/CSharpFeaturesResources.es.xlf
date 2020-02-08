@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
-        <target state="translated">Aplicar preferencias de cuerpo de expresiones o de bloques</target>
+        <target state="translated">Aplicar preferencias de cuerpo de la expresión o del bloque</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
         <source>Convert to 'switch' expression</source>
-        <target state="new">Convert to 'switch' expression</target>
+        <target state="translated">Convertir en expresión "switch"</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_statement">
         <source>Convert to 'switch' statement</source>
-        <target state="new">Convert to 'switch' statement</target>
+        <target state="translated">Convertir en una instrucción 'switch'</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
-        <target state="new">Reverse 'for' statement</target>
+        <target state="translated">Invertir la instrucción "for"</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
@@ -469,7 +469,7 @@
       </trans-unit>
       <trans-unit id="fixed_statement">
         <source>fixed statement</source>
-        <target state="translated">instrucción fixed</target>
+        <target state="translated">instrucción "fixed"</target>
         <note>{Locked="fixed"} "fixed" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="using_declaration">

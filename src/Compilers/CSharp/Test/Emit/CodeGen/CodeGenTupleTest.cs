@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -25855,6 +25857,241 @@ public class Class1
             Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
         }
 
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
+        public void MissingTypeArgumentInBase_ValueTuple(bool useImageReference)
+        {
+            var lib_cs = @"
+public class C2<T1, T2>
+{
+}
+
+public class SelfReferencing
+    : C2<SelfReferencing, (string A, int B)>
+{
+    public SelfReferencing()
+    {
+        System.Console.Write(""ran"");
+    }
+}
+";
+            var lib = CreateCompilationWithMscorlib40(lib_cs, references: s_valueTupleRefs);
+            lib.VerifyDiagnostics();
+            var libRef = useImageReference ? lib.EmitToImageReference() : lib.ToMetadataReference();
+
+            var source_cs = @"
+public class Program
+{
+    public static void M()
+    {
+        _ = new SelfReferencing();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib40(source_cs, references: new[] { libRef });
+            comp.VerifyEmitDiagnostics();
+
+            var executable_cs = @"
+public class C
+{
+    public static void Main()
+    {
+        Program.M();
+    }
+}";
+
+            var executeComp = CreateCompilationWithMscorlib40(executable_cs,
+                references: new[] { comp.EmitToImageReference(), libRef, SystemRuntimeFacadeRef, ValueTupleRef },
+                options: TestOptions.DebugExe);
+            CompileAndVerify(executeComp, expectedOutput: "ran");
+        }
+
+        [Theory]
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(false, false)]
+        [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
+        public void MissingTypeArgumentInBase_ValueTupleInContainer(bool useImageReference, bool missingValueTuple)
+        {
+            var missingContainer_cs = @"
+public class MissingContainer<T>
+{
+}
+";
+            var missingContainer = CreateCompilationWithMscorlib40(missingContainer_cs, references: s_valueTupleRefs);
+            missingContainer.VerifyDiagnostics();
+            var missingContainerRef = useImageReference ? missingContainer.EmitToImageReference() : missingContainer.ToMetadataReference();
+
+            var lib_cs = @"
+public class C2<T1, T2>
+{
+}
+
+public class SelfReferencing
+    : C2<SelfReferencing, MissingContainer<(string A, int B)>>
+{
+    public SelfReferencing()
+    {
+        System.Console.Write(""ran"");
+    }
+}
+";
+            var lib = CreateCompilationWithMscorlib40(lib_cs, references: new[] { missingContainerRef, SystemRuntimeFacadeRef, ValueTupleRef });
+            lib.VerifyDiagnostics();
+            var libRef = useImageReference ? lib.EmitToImageReference() : lib.ToMetadataReference();
+
+            var source_cs = @"
+public class Program
+{
+    public static void M()
+    {
+        _ = new SelfReferencing();
+    }
+}
+";
+            // Compile without System.ValueTuple and/or MissingContainer
+            var references = missingValueTuple ? new[] { libRef } : new[] { libRef, SystemRuntimeFacadeRef, ValueTupleRef };
+            var comp = CreateCompilationWithMscorlib40(source_cs, references: references);
+            comp.VerifyEmitDiagnostics();
+
+            // Execute with all the references present
+            var executable_cs = @"
+public class C
+{
+    public static void Main()
+    {
+        Program.M();
+    }
+}";
+
+            var executeComp = CreateCompilationWithMscorlib40(executable_cs,
+                references: new[] { comp.EmitToImageReference(), libRef, SystemRuntimeFacadeRef, ValueTupleRef, missingContainerRef },
+                options: TestOptions.DebugExe);
+            CompileAndVerify(executeComp, expectedOutput: "ran");
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
+        public void MissingTypeArgumentInBase_ValueTupleAndContainer(bool useImageReference)
+        {
+            var missingContainer_cs = @"
+public class MissingContainer<T>
+{
+}
+";
+            var missingContainer = CreateCompilationWithMscorlib40(missingContainer_cs, references: s_valueTupleRefs);
+            missingContainer.VerifyDiagnostics();
+            var missingContainerRef = useImageReference ? missingContainer.EmitToImageReference() : missingContainer.ToMetadataReference();
+
+            var lib_cs = @"
+public class C
+    : MissingContainer<(string A, int B)>
+{
+    public C()
+    {
+        System.Console.Write(""ran"");
+    }
+}
+";
+            var lib = CreateCompilationWithMscorlib40(lib_cs, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef, missingContainerRef });
+            lib.VerifyDiagnostics();
+            var libRef = useImageReference ? lib.EmitToImageReference() : lib.ToMetadataReference();
+
+            var source_cs = @"
+public class C2
+{
+    public static void M()
+    {
+        _ = new C();
+    }
+}
+";
+
+            var executable_cs = @"
+public class C3
+{
+    public static void Main()
+    {
+        C2.M();
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib40(source_cs, references: new[] { libRef }); // missing System.ValueTuple and MissingContainer
+            comp.VerifyEmitDiagnostics();
+
+            var executeComp = CreateCompilationWithMscorlib40(executable_cs,
+                references: new[] { comp.EmitToImageReference(), libRef, missingContainerRef, SystemRuntimeFacadeRef, ValueTupleRef },
+                options: TestOptions.DebugExe);
+            CompileAndVerify(executeComp, expectedOutput: "ran");
+
+            var comp2 = CreateCompilationWithMscorlib40(source_cs, references: new[] { libRef, missingContainerRef }); // missing System.ValueTuple
+            comp2.VerifyEmitDiagnostics();
+
+            var executeComp2 = CreateCompilationWithMscorlib40(executable_cs,
+                references: new[] { comp.EmitToImageReference(), libRef, missingContainerRef, SystemRuntimeFacadeRef, ValueTupleRef },
+                options: TestOptions.DebugExe);
+            CompileAndVerify(executeComp2, expectedOutput: "ran");
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
+        public void MissingTypeArgumentInBase(bool useImageReference)
+        {
+            var missing_cs = @"public class Missing { }";
+            var missing = CreateCompilation(missing_cs);
+            missing.VerifyDiagnostics();
+            var missingRef = useImageReference ? missing.EmitToImageReference() : missing.ToMetadataReference();
+
+            var lib_cs = @"
+public class C2<T1, T2>
+{
+}
+
+public class SelfReferencingClassWithMissing
+    : C2<SelfReferencingClassWithMissing, Missing>
+{
+    public SelfReferencingClassWithMissing()
+    {
+        System.Console.Write(""ran"");
+    }
+}
+";
+            var lib = CreateCompilation(lib_cs, references: new[] { missingRef });
+            lib.VerifyDiagnostics();
+            var libRef = useImageReference ? lib.EmitToImageReference() : lib.ToMetadataReference();
+
+            var source_cs = @"
+public class C
+{
+    public static void M()
+    {
+        _ = new SelfReferencingClassWithMissing();
+    }
+}
+";
+            var comp = CreateCompilation(source_cs, references: new[] { libRef });
+            comp.VerifyEmitDiagnostics();
+
+            var executable_cs = @"
+public class C2
+{
+    public static void Main()
+    {
+        C.M();
+    }
+}";
+
+            var executeComp = CreateCompilation(executable_cs, references: new[] { comp.EmitToImageReference(), libRef, missingRef }, options: TestOptions.DebugExe);
+            CompileAndVerify(executeComp, expectedOutput: "ran");
+        }
+
         [Fact]
         [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
         public void FailedDecodingOfTupleNamesWhenMissingValueTupleType()
@@ -26177,6 +26414,137 @@ public class ClassB
                 Assert.False(tuple2.TupleUnderlyingType.IsErrorType());
                 Assert.False(tuple2.IsErrorType());
             }
+        }
+
+        [Fact]
+        [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
+        [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
+        public void CustomFields_01()
+        {
+            var source0 = @"
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+    {
+        public static int F1 = 123;
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return F1.ToString();
+        }
+    }
+}
+";
+
+            var source1 = @"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine((1,2).ToString());
+    }
+}
+";
+
+            var source2 = @"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(System.ValueTuple<int, int>.F1);
+    }
+}
+";
+
+            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "123");
+
+            var comp1Ref = new[] { comp1.ToMetadataReference() };
+            var comp1ImageRef = new[] { comp1.EmitToImageReference() };
+
+            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            CompileAndVerify(comp4, expectedOutput: "123");
+
+            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp5, expectedOutput: "123");
+
+            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1ImageRef);
+            CompileAndVerify(comp6, expectedOutput: "123");
+        }
+
+        [Fact]
+        [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
+        [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
+        public void CustomFields_02()
+        {
+            var source0 = @"
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+    {
+        public int F1;
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+            F1 = 123;
+        }
+
+        public override string ToString()
+        {
+            return F1.ToString();
+        }
+    }
+}
+";
+
+            var source1 = @"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine((1,2).ToString());
+    }
+}
+";
+
+            var source2 = @"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine((1,2).F1);
+    }
+}
+";
+
+            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "123");
+
+            var comp1Ref = new[] { comp1.ToMetadataReference() };
+            var comp1ImageRef = new[] { comp1.EmitToImageReference() };
+
+            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            CompileAndVerify(comp4, expectedOutput: "123");
+
+            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp5, expectedOutput: "123");
+
+            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1ImageRef);
+            CompileAndVerify(comp6, expectedOutput: "123");
         }
     }
 }

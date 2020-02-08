@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -418,6 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             switch (node.Kind())
             {
+                case SyntaxKind.CoalesceAssignmentExpression:
                 case SyntaxKind.AddAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
                 case SyntaxKind.MultiplyAssignmentExpression:
@@ -451,6 +454,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return node.Parent.IsAnyAssignExpression() &&
                 ((AssignmentExpressionSyntax)node.Parent).Right == node;
+        }
+
+        public static bool IsLeftSideOfCompoundAssignExpression(this SyntaxNode node)
+        {
+            return node != null &&
+                node.Parent.IsCompoundAssignExpression() &&
+                ((AssignmentExpressionSyntax)node.Parent).Left == node;
         }
 
         public static bool IsVariableDeclaratorValue(this SyntaxNode node)

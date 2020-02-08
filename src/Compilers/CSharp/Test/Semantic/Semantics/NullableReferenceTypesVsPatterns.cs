@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,6 +15,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         private CSharpCompilation CreateNullableCompilation(string source)
         {
             return CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+        }
+
+        [Fact]
+        public void VarPatternInfersNullableType()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+public class C
+{
+    public string Field = null!;
+    void M1()
+    {
+        if (this is { Field: var s })
+        {
+            s.ToString();
+            s = null;
+        }
+    }
+
+    void M2()
+    {
+        if (this is (var s) _)
+        {
+            s.ToString();
+            s = null;
+        }
+    }
+    void Deconstruct(out string s) => throw null!;
+}
+");
+
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -257,6 +290,7 @@ class C
         {
             x.ToString(); // warn 1
             c /*T:object?*/ .ToString(); // warn 2
+            c = null;
         }
         else
         {
@@ -326,6 +360,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
         public void ConditionalBranching_IsVarDeclarationPattern_AlreadyTestedAsNonNull()
         {
             CSharpCompilation c = CreateNullableCompilation(@"
@@ -338,7 +373,7 @@ class C
             if (x is var c)
             {
                 c /*T:object!*/ .ToString();
-                c = null; // 1
+                c = null;
             }
         }
     }
@@ -349,20 +384,14 @@ class C
             if (x is var c)
             {
                 c /*T:object!*/ .ToString();
-                c = null; // 2
+                c = null;
             }
         }
     }
 }
 ");
             c.VerifyTypes();
-            c.VerifyDiagnostics(
-                // (11,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //                 c = null; // 1
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 21),
-                // (22,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //                 c = null; // 2
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(22, 21));
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1201,6 +1230,17 @@ class Program
             var source = @"
 class Program
 {
+    void M0(object o)
+    {
+        var t = (o, o);
+        _ = t switch
+        {
+            (null, null) => 1,
+            (null, {}) => 2,
+            ({}, null) => 3,
+            ({}, {}) => 4,
+        };
+    }
     void M1(object o)
     {
         var t = (o, o);
@@ -1213,7 +1253,7 @@ class Program
     void M2(object o)
     {
         var t = (o, o);
-        _ = t switch
+        _ = t switch // 2 not exhaustive
         {
             (1, 2) => 1,
             ({}, {}) => 2,
@@ -1222,7 +1262,7 @@ class Program
     void M3(object o)
     {
         var t = (o, o);
-        _ = t switch
+        _ = t switch // 3 not exhaustive
         {
             (null, 2) => 1,
             ({}, {}) => 2,
@@ -1232,7 +1272,7 @@ class Program
     void M4(object o)
     {
         var t = (o, o);
-        _ = t switch // 2 not exhaustive
+        _ = t switch // 4 not exhaustive
         {
             { Item1: null, Item2: 2 } => 1,
             { Item1: {}, Item2: {} } => 2,
@@ -1241,7 +1281,7 @@ class Program
     void M5(object o)
     {
         var t = (o, o);
-        _ = t switch
+        _ = t switch // 5 not exhaustive
         {
             { Item1: 1, Item2: 2 } => 1,
             { Item1: {}, Item2: {} } => 2,
@@ -1250,7 +1290,7 @@ class Program
     void M6(object o)
     {
         var t = (o, o);
-        _ = t switch
+        _ = t switch // 6 not exhaustive
         {
             { Item1: null, Item2: 2 } => 1,
             { Item1: {}, Item2: {} } => 2,
@@ -1259,7 +1299,7 @@ class Program
     }
     void M7(object o, bool b)
     {
-        _ = o switch // 3 not exhaustive
+        _ = o switch // 7 not exhaustive
         {
             null when b => 1,
             {} => 2,
@@ -1278,15 +1318,27 @@ class Program
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                // (18,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
                 //         _ = t switch // 1 not exhaustive
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(7, 15),
-                // (35,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(18, 15),
+                // (27,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
                 //         _ = t switch // 2 not exhaustive
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(35, 15),
-                // (62,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
-                //         _ = o switch // 3 not exhaustive
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(62, 15));
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(27, 15),
+                // (36,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = t switch // 3 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(36, 15),
+                // (46,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = t switch // 4 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(46, 15),
+                // (55,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = t switch // 5 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(55, 15),
+                // (64,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = t switch // 6 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(64, 15),
+                // (73,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = o switch // 7 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(73, 15));
         }
 
         [Fact]
@@ -1381,6 +1433,7 @@ public class C
         }
 
         [Fact, WorkItem(33499, "https://github.com/dotnet/roslyn/issues/33499")]
+        [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
         public void PatternVariablesAreNotOblivious_33499()
         {
             var source = @"
@@ -1396,7 +1449,8 @@ class Test
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         s = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 13));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 13)
+                );
         }
 
         [Fact]
@@ -2047,6 +2101,29 @@ public class C {
                 //                 c.c.c.ToString(); // warning
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.c.c").WithLocation(19, 17)
                 );
+        }
+
+        [Fact]
+        [WorkItem(40629, "https://github.com/dotnet/roslyn/issues/40629")]
+        public void NullTestInSwitch_01()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+#nullable enable
+class C
+{
+    void M(object? p)
+    {
+        switch (p)
+        {
+            case null:
+                return;
+        }
+
+        p.ToString();
+    }
+}
+");
+            c.VerifyDiagnostics();
         }
     }
 }

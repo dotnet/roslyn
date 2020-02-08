@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -82,7 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindSwitchExpression(SwitchExpressionSyntax node, DiagnosticBag diagnostics)
         {
             RoslynDebug.Assert(node is { });
-            Binder switchBinder = this.GetBinder(node);
+            Binder? switchBinder = this.GetBinder(node);
+            RoslynDebug.Assert(switchBinder is { });
             return switchBinder.BindSwitchExpressionCore(node, switchBinder, diagnostics);
         }
 
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder originalBinder,
             DiagnosticBag diagnostics)
         {
-            return this.Next.BindSwitchExpressionCore(node, originalBinder, diagnostics);
+            return this.Next!.BindSwitchExpressionCore(node, originalBinder, diagnostics);
         }
 
         internal BoundPattern BindPattern(
@@ -489,6 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (localSymbol is { })
                     {
+                        RoslynDebug.Assert(ContainingMemberOrLambda is { });
                         if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                             CheckFeatureAvailability(designation, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
 
@@ -503,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         variableSymbol = localSymbol;
                         variableAccess = new BoundLocal(
-                            syntax: designation, localSymbol: localSymbol, constantValueOpt: null, type: declType.Type);
+                            syntax: designation, localSymbol: localSymbol, localSymbol.IsVar ? BoundLocalDeclarationKind.WithInferredType : BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declType.Type);
                         return;
                     }
                     else
@@ -650,10 +654,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindPatternDesignation(
                 node.Designation, declTypeWithAnnotations, inputValEscape, permitDesignations, typeSyntax, diagnostics,
                 ref hasErrors, out Symbol? variableSymbol, out BoundExpression? variableAccess);
+            bool isExplicitNotNullTest =
+                node.Designation is null &&
+                boundDeclType is null &&
+                properties.IsDefaultOrEmpty &&
+                deconstructMethod is null &&
+                deconstructionSubpatterns.IsDefault;
             return new BoundRecursivePattern(
-                syntax: node, declaredType: boundDeclType, inputType: inputType, deconstructMethod: deconstructMethod,
+                syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
                 deconstruction: deconstructionSubpatterns, properties: properties, variable: variableSymbol,
-                variableAccess: variableAccess, hasErrors: hasErrors);
+                variableAccess: variableAccess, isExplicitNotNullTest: isExplicitNotNullTest, inputType: inputType, hasErrors: hasErrors);
         }
 
         private MethodSymbol? BindDeconstructSubpatterns(
@@ -859,8 +869,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Ensure ITuple has a Length and indexer
-            iTupleGetLength = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length);
-            iTupleGetItem = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item);
+            iTupleGetLength = (MethodSymbol?)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length);
+            iTupleGetItem = (MethodSymbol?)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item);
             if (iTupleGetLength is null || iTupleGetItem is null)
             {
                 // This might not result in an ideal diagnostic
@@ -1016,8 +1026,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         return new BoundRecursivePattern(
-                            syntax: node, declaredType: null, inputType: inputType, deconstructMethod: deconstructMethod,
-                            deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null, hasErrors: hasErrors);
+                            syntax: node, declaredType: null, deconstructMethod: deconstructMethod,
+                            deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null,
+                            isExplicitNotNullTest: false, inputType: inputType, hasErrors: hasErrors);
 
                         void addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations> elementTypes)
                         {
