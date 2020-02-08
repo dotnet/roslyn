@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             return ((CSharpParseOptions)context.Node.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp3;
         }
 
-        protected override SyntaxKind GetObjectCreationSyntaxKind() => SyntaxKind.ObjectCreationExpression;
-
         protected override ISyntaxFactsService GetSyntaxFactsService() => CSharpSyntaxFactsService.Instance;
     }
 }

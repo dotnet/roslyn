@@ -40,9 +40,11 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeNode, GetObjectCreationSyntaxKind());
-
-        protected abstract TSyntaxKind GetObjectCreationSyntaxKind();
+        {
+            var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+            context.RegisterSyntaxNodeAction(
+                AnalyzeNode, syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+        }
 
         protected abstract bool AreObjectInitializersSupported(SyntaxNodeAnalysisContext context);
 
