@@ -147,7 +147,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string workspaceKind = null,
             string extension = null,
             bool commonReferences = true,
-            bool openDocuments = false)
+            bool openDocuments = false,
+            string lineEnding = "\r\n")
         {
             var documentElements = new List<XElement>();
             var index = 0;
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var workspaceElement = CreateWorkspaceElement(
                 CreateProjectElement(compilationOptions?.ModuleName ?? "Test", language, commonReferences, parseOptions, compilationOptions, documentElements));
 
-            return Create(workspaceElement, openDocuments: openDocuments, exportProvider: exportProvider, workspaceKind: workspaceKind);
+            return Create(workspaceElement, openDocuments: openDocuments, exportProvider: exportProvider, workspaceKind: workspaceKind, lineEnding: lineEnding);
         }
 
         internal static TestWorkspace Create(
@@ -225,9 +226,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null,
-            bool openDocuments = false)
+            bool openDocuments = false,
+            string lineEnding = "\r\n")
         {
-            return CreateCSharp(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences, openDocuments);
+            return CreateCSharp(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences, openDocuments, lineEnding: lineEnding);
         }
 
         public static TestWorkspace CreateCSharp(
@@ -236,9 +238,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null,
-            bool openDocuments = false)
+            bool openDocuments = false,
+            string lineEnding = "\r\n")
         {
-            return Create(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, metadataReferences, openDocuments: openDocuments);
+            return Create(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, metadataReferences, openDocuments: openDocuments, lineEnding: lineEnding);
         }
 
         public static TestWorkspace CreateCSharp2(
