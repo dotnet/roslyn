@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             short EqualableValueTC<short>.FromConstantValue(ConstantValue constantValue) => constantValue.Int16Value;
+
+            string NumericTC<short>.ToString(short value) => value.ToString();
         }
     }
 }

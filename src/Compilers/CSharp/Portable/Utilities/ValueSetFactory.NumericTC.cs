@@ -42,6 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// when <paramref name="value"/> is <see cref="MaxValue"/>.
             /// </summary>
             T Next(T value);
+
+            /// <summary>
+            /// A formatter for values of type <typeparamref name="T"/>.  This is needed because the default ToString
+            /// for float and double changed between desktop and .net core.
+            /// </summary>
+            string ToString(T value);
         }
     }
 }

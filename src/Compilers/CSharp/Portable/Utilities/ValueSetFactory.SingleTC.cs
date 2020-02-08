@@ -95,6 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             float EqualableValueTC<float>.FromConstantValue(ConstantValue constantValue) => constantValue.SingleValue;
+
+            string NumericTC<float>.ToString(float value) => FormattableString.Invariant($"{value:G9}");
         }
     }
 }

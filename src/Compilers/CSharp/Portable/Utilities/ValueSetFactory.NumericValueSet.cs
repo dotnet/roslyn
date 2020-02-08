@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TTC tc = default;
                 var intervalSequence = asIntervalSequence(rootInterval, tc.MinValue, tc.MaxValue);
                 intervalSequence = compressIntervalSequence(intervalSequence);
-                return string.Join(",", intervalSequence.Select(p => FormattableString.Invariant($"[{p.min}..{p.max}]")));
+                return string.Join(",", intervalSequence.Select(p => $"[{tc.ToString(p.min)}..{tc.ToString(p.max)}]"));
 
                 static IEnumerable<(T min, T max)> asIntervalSequence(Interval interval, T minValue, T maxValue)
                 {

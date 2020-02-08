@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             sbyte EqualableValueTC<sbyte>.FromConstantValue(ConstantValue constantValue) => constantValue.SByteValue;
+
+            string NumericTC<sbyte>.ToString(sbyte value) => value.ToString();
         }
     }
 }

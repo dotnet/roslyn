@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ulong EqualableValueTC<ulong>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt64Value;
+
+            string NumericTC<ulong>.ToString(ulong value) => value.ToString();
         }
     }
 }

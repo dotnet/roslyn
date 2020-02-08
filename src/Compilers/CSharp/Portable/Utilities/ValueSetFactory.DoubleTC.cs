@@ -91,6 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             double EqualableValueTC<double>.FromConstantValue(ConstantValue constantValue) => constantValue.DoubleValue;
+
+            string NumericTC<double>.ToString(double value) => FormattableString.Invariant($"{value:G17}");
         }
     }
 }

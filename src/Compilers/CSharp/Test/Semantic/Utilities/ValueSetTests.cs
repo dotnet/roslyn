@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 double d2 = Random.NextDouble() * 100 - 50;
                 if (d1 > d2) (d1, d2) = (d2, d1);
                 IValueSet<double> values = ForDouble.Related(GreaterThanOrEqual, d1).Intersect(ForDouble.Related(LessThanOrEqual, d2));
-                Assert.Equal($"[{d1}..{d2}]", values.ToString());
+                Assert.Equal(FormattableString.Invariant($"[{d1:G17}..{d2:G17}]"), values.ToString());
             }
         }
 
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             IValueSet<char> gea2 = ForChar.Related(GreaterThanOrEqual, 'A');
             IValueSet<char> lez2 = ForChar.Related(LessThanOrEqual, 'Z');
             var letters = gea1.Intersect(lez1).Union(gea2.Intersect(lez2));
-            Assert.Equal("[A..Z],[a..z]", letters.ToString());
+            Assert.Equal("['A'..'Z'],['a'..'z']", letters.ToString());
         }
 
         [Fact]
@@ -311,9 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.Equal("-Inf", ForDouble.Related(LessThan, double.MinValue).ToString());
             var lt = ForDouble.Related(LessThan, 0.0);
-            Assert.Equal("-Inf,[-1.79769313486232E+308..-4.94065645841247E-324]", lt.ToString());
+            Assert.Equal(FormattableString.Invariant($"-Inf,[{double.MinValue:G17}..{-double.Epsilon:G17}]"), lt.ToString());
             var gt = ForDouble.Related(GreaterThan, 0.0);
-            Assert.Equal("Inf,[4.94065645841247E-324..1.79769313486232E+308]", gt.ToString());
+            Assert.Equal(FormattableString.Invariant($"Inf,[{double.Epsilon:G17}..{double.MaxValue:G17}]"), gt.ToString());
             var eq = ForDouble.Related(Equal, 0.0);
             Assert.Equal("[0..0]", eq.ToString());
             var none = lt.Complement().Intersect(gt.Complement()).Intersect(eq.Complement());
@@ -326,9 +326,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.Equal("-Inf", ForFloat.Related(LessThan, float.MinValue).ToString());
             var lt = ForFloat.Related(LessThan, 0.0f);
-            Assert.Equal("-Inf,[-3.402823E+38..-1.401298E-45]", lt.ToString());
+            Assert.Equal(FormattableString.Invariant($"-Inf,[{float.MinValue:G9}..{-float.Epsilon:G9}]"), lt.ToString());
             var gt = ForFloat.Related(GreaterThan, 0.0f);
-            Assert.Equal("Inf,[1.401298E-45..3.402823E+38]", gt.ToString());
+            Assert.Equal(FormattableString.Invariant($"Inf,[{float.Epsilon:G9}..{float.MaxValue:G9}]"), gt.ToString());
             var eq = ForFloat.Related(Equal, 0.0f);
             Assert.Equal("[0..0]", eq.ToString());
             var none = lt.Complement().Intersect(gt.Complement()).Intersect(eq.Complement());
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(s1, s1.Union(s1));
             var s2 = ForDouble.Related(GreaterThan, 31.4d);
             var s3 = b.Complement().Intersect(s2.Complement());
-            Assert.Equal("NaN,[3.14..31.4]", s3.ToString());
+            Assert.Equal("NaN,[3.1400000000000001..31.399999999999999]", s3.ToString());
             var s4 = b.Union(s2).Complement();
             Assert.Equal(s3, s4);
             Assert.Same(b.Factory.All, ForDouble.All);
@@ -498,21 +498,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAPI_01()
         {
-            //Assert.Same(ForByte, ForSpecialType(SpecialType.System_Byte));
-            //Assert.Same(ForSByte, ForSpecialType(SpecialType.System_SByte));
-            //Assert.Same(ForShort, ForSpecialType(SpecialType.System_Int16));
-            //Assert.Same(ForUShort, ForSpecialType(SpecialType.System_UInt16));
-            //Assert.Same(ForInt, ForSpecialType(SpecialType.System_Int32));
-            //Assert.Same(ForUInt, ForSpecialType(SpecialType.System_UInt32));
-            //Assert.Same(ForLong, ForSpecialType(SpecialType.System_Int64));
-            //Assert.Same(ForULong, ForSpecialType(SpecialType.System_UInt64));
-            //Assert.Same(ForFloat, ForSpecialType(SpecialType.System_Single));
-            //Assert.Same(ForDouble, ForSpecialType(SpecialType.System_Double));
-            //Assert.Same(ForString, ForSpecialType(SpecialType.System_String));
-            //Assert.Same(ForDecimal, ForSpecialType(SpecialType.System_Decimal));
-            //Assert.Same(ForChar, ForSpecialType(SpecialType.System_Char));
-            //Assert.Same(ForBool, ForSpecialType(SpecialType.System_Boolean));
-            //Assert.Null(ForSpecialType(SpecialType.System_Enum));
+            Assert.Same(ForByte, ForSpecialType(SpecialType.System_Byte));
+            Assert.Same(ForSByte, ForSpecialType(SpecialType.System_SByte));
+            Assert.Same(ForShort, ForSpecialType(SpecialType.System_Int16));
+            Assert.Same(ForUShort, ForSpecialType(SpecialType.System_UInt16));
+            Assert.Same(ForInt, ForSpecialType(SpecialType.System_Int32));
+            Assert.Same(ForUInt, ForSpecialType(SpecialType.System_UInt32));
+            Assert.Same(ForLong, ForSpecialType(SpecialType.System_Int64));
+            Assert.Same(ForULong, ForSpecialType(SpecialType.System_UInt64));
+            Assert.Same(ForFloat, ForSpecialType(SpecialType.System_Single));
+            Assert.Same(ForDouble, ForSpecialType(SpecialType.System_Double));
+            Assert.Same(ForString, ForSpecialType(SpecialType.System_String));
+            Assert.Same(ForDecimal, ForSpecialType(SpecialType.System_Decimal));
+            Assert.Same(ForChar, ForSpecialType(SpecialType.System_Char));
+            Assert.Same(ForBool, ForSpecialType(SpecialType.System_Boolean));
+            Assert.Null(ForSpecialType(SpecialType.System_Enum));
         }
 
         [Fact]
@@ -523,7 +523,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("~{}", ForDecimal.Related(GreaterThan, 0.0m).ToString());
             Assert.Equal("~{}", ForDecimal.Related(GreaterThanOrEqual, 0.0m).ToString());
         }
-
-        // TODO: test that relationals not supported for decimal
     }
 }

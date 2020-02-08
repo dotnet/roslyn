@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             long EqualableValueTC<long>.FromConstantValue(ConstantValue constantValue) => constantValue.Int64Value;
+
+            string NumericTC<long>.ToString(long value) => value.ToString();
         }
     }
 }

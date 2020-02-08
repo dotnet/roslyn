@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             char EqualableValueTC<char>.FromConstantValue(ConstantValue constantValue) => constantValue.CharValue;
+
+            string NumericTC<char>.ToString(char value) => $"'{value}'";
         }
     }
 }

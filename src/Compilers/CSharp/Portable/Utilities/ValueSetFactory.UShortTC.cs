@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ushort EqualableValueTC<ushort>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt16Value;
+
+            string NumericTC<ushort>.ToString(ushort value) => value.ToString();
         }
     }
 }
