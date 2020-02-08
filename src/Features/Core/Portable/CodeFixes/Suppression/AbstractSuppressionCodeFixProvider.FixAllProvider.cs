@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return null;
                 }
 
-                var batchFixer = WellKnownFixAllProviders.BatchFixer;
+                var batchFixer = BatchFixAllProvider.Instance;
                 var suppressionFixer = (AbstractSuppressionCodeFixProvider)((WrapperCodeFixProvider)fixAllContext.CodeFixProvider).SuppressionFixProvider;
                 var isGlobalSuppression = NestedSuppressionCodeAction.IsEquivalenceKeyForGlobalSuppression(fixAllContext.CodeActionEquivalenceKey);
                 if (!isGlobalSuppression)

@@ -57,31 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Public Overrides Function Expand(token As SyntaxToken, semanticModel As SemanticModel, expandInsideNode As Func(Of SyntaxNode, Boolean), cancellationToken As CancellationToken) As SyntaxToken
             Using Logger.LogBlock(FunctionId.Simplifier_ExpandToken, cancellationToken)
                 Dim rewriter = New Expander(semanticModel, expandInsideNode, cancellationToken)
-                Return TryEscapeIdentifierToken(rewriter.VisitToken(token), semanticModel)
+                Return TryEscapeIdentifierToken(rewriter.VisitToken(token))
             End Using
-        End Function
-
-        Public Shared Function TryEscapeIdentifierToken(identifierToken As SyntaxToken, semanticModel As SemanticModel, Optional oldIdentifierToken As SyntaxToken? = Nothing) As SyntaxToken
-            If identifierToken.Kind <> SyntaxKind.IdentifierToken OrElse identifierToken.ValueText.Length = 0 Then
-                Return identifierToken
-            End If
-
-            If identifierToken.IsBracketed Then
-                Return identifierToken
-            End If
-
-            If identifierToken.GetTypeCharacter() <> TypeCharacter.None Then
-                Return identifierToken
-            End If
-
-            Dim unescapedIdentifier = identifierToken.ValueText
-            If SyntaxFacts.GetKeywordKind(unescapedIdentifier) = SyntaxKind.None AndAlso SyntaxFacts.GetContextualKeywordKind(unescapedIdentifier) = SyntaxKind.None Then
-                Return identifierToken
-            End If
-
-            Return identifierToken.CopyAnnotationsTo(
-                        SyntaxFactory.BracketedIdentifier(identifierToken.LeadingTrivia, identifierToken.ValueText, identifierToken.TrailingTrivia) _
-                            .WithAdditionalAnnotations(Simplifier.Annotation))
         End Function
 
         Protected Overrides Function GetSpeculativeSemanticModel(ByRef nodeToSpeculate As SyntaxNode, originalSemanticModel As SemanticModel, originalNode As SyntaxNode) As SemanticModel
