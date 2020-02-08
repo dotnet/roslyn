@@ -21,12 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertLogical
             Return CType(rawKind, SyntaxKind)
         End Function
 
-        Protected Overrides Function InvertedKind(binaryExprKind As SyntaxKind) As SyntaxKind
-            Return If(binaryExprKind = SyntaxKind.AndAlsoExpression,
-                      SyntaxKind.OrElseExpression,
-                      SyntaxKind.AndAlsoExpression)
-        End Function
-
         Protected Overrides Function GetOperatorText(binaryExprKind As SyntaxKind) As String
             Return If(binaryExprKind = SyntaxKind.AndAlsoExpression,
                       SyntaxFacts.GetText(SyntaxKind.AndAlsoKeyword),

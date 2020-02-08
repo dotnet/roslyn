@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsLogicalAndExpression(SyntaxNode node);
         bool IsLogicalOrExpression(SyntaxNode node);
-        bool IsLogicalNotExpression(SyntaxNode node);
+        bool IsLogicalNotExpression([NotNullWhen(true)] SyntaxNode node);
         bool IsConditionalAnd(SyntaxNode node);
         bool IsConditionalOr(SyntaxNode node);
 
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 #nullable restore
         bool IsPostfixUnaryExpression(SyntaxNode node);
 
-        bool IsParenthesizedExpression(SyntaxNode node);
+        bool IsParenthesizedExpression([NotNullWhen(true)] SyntaxNode node);
         SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
 
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
