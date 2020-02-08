@@ -15,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
             MyBase.New(VisualBasicSyntaxFactsService.Instance, Kinds)
         End Sub
 
+        Protected Overrides Function GetAnalysisKind() As SyntaxKind
+            Return SyntaxKind.SimpleAssignmentStatement
+        End Function
+
         Protected Overrides Function IsSupported(assignmentKind As SyntaxKind, options As ParseOptions) As Boolean
             Return True
         End Function

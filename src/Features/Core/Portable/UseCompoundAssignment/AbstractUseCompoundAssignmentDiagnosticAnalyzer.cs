@@ -47,17 +47,14 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             Utilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
         }
 
+        protected abstract TSyntaxKind GetAnalysisKind();
         protected abstract bool IsSupported(TSyntaxKind assignmentKind, ParseOptions options);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            var syntaxKinds = _syntaxFacts.SyntaxKinds;
-            context.RegisterSyntaxNodeAction(
-                AnalyzeAssignment, syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.SimpleAssignmentStatement));
-        }
+            => context.RegisterSyntaxNodeAction(AnalyzeAssignment, GetAnalysisKind());
 
         private void AnalyzeAssignment(SyntaxNodeAnalysisContext context)
         {

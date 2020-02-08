@@ -1535,8 +1535,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, ObjectCreationExpressionSyntax).Type
         End Function
 
-        Public Function IsSimpleAssignmentStatement(statement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleAssignmentStatement
-            Return statement.IsKind(SyntaxKind.SimpleAssignmentStatement)
+        Public Function IsSimpleAssignmentStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleAssignmentStatement
+            Return node.IsKind(SyntaxKind.SimpleAssignmentStatement)
         End Function
 
         Public Sub GetPartsOfAssignmentStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfAssignmentStatement

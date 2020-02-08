@@ -606,15 +606,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
 #nullable enable
 
-        public bool IsUsingStatement([NotNullWhen(true)] SyntaxNode node)
-            => node?.RawKind == SyntaxKinds.UsingStatement;
-
-        public bool IsReturnStatement([NotNullWhen(true)] SyntaxNode node)
-            => node?.RawKind == SyntaxKinds.ReturnStatement;
-
-        public bool IsExpressionStatement([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.ExpressionStatement;
-
         public bool IsInvocationExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.InvocationExpression;
 
@@ -623,6 +614,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool IsParenthesizedExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.ParenthesizedExpression;
+
+        public bool IsExpressionStatement([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.ExpressionStatement;
+
+        public bool IsReturnStatement([NotNullWhen(true)] SyntaxNode node)
+            => node?.RawKind == SyntaxKinds.ReturnStatement;
+
+        public bool IsUsingStatement([NotNullWhen(true)] SyntaxNode node)
+            => node?.RawKind == SyntaxKinds.UsingStatement;
 
 #nullable restore
     }

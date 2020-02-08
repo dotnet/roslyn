@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int ExpressionStatement { get; }
         int ReturnStatement { get; }
-        int SimpleAssignmentStatement { get; }
         int UsingStatement { get; }
     }
 
@@ -90,7 +89,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract int ExpressionStatement { get; }
         public abstract int ReturnStatement { get; }
-        public abstract int SimpleAssignmentStatement { get; }
         public abstract int UsingStatement { get; }
     }
 }

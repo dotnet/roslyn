@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public override int ExpressionStatement => (int)SyntaxKind.ExpressionStatement;
         public override int ReturnStatement => (int)SyntaxKind.ReturnStatement;
-        public override int SimpleAssignmentStatement => (int)SyntaxKind.SimpleAssignmentExpression;
         public override int UsingStatement => (int)SyntaxKind.UsingStatement;
     }
 }
