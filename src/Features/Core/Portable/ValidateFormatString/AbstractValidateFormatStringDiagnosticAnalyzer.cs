@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract SyntaxNode GetArgumentExpression(SyntaxNode syntaxNode);
-        protected abstract SyntaxNode TryGetMatchingNamedArgument(SeparatedSyntaxList<SyntaxNode> arguments, string searchArgumentName);
+        protected abstract SyntaxNode? TryGetMatchingNamedArgument(SeparatedSyntaxList<SyntaxNode> arguments, string searchArgumentName);
 
         public override void Initialize(AnalysisContext context)
         {
