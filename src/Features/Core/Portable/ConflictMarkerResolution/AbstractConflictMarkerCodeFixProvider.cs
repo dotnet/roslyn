@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -9,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             _syntaxKinds = syntaxKinds;
         }
 
-        public override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider? GetFixAllProvider()
         {
             // Fix All is not currently supported for this code fix
             // https://github.com/dotnet/roslyn/issues/34461
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         {
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var startTrivia = root.FindTrivia(context.Span.Start);
