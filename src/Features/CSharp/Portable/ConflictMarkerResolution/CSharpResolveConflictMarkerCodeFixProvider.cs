@@ -5,6 +5,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ConflictMarkerResolution;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
 {
@@ -15,17 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
 
         [ImportingConstructor]
         public CSharpResolveConflictMarkerCodeFixProvider()
-            : base(CS8300)
+            : base(CSharpSyntaxKindsService.Instance, CS8300)
         {
         }
-
-        protected override bool IsConflictMarker(SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.ConflictMarkerTrivia;
-
-        protected override bool IsDisabledText(SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.DisabledTextTrivia;
-
-        protected override bool IsEndOfLine(SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.EndOfLineTrivia;
     }
 }

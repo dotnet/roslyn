@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         TSyntaxKind Convert<TSyntaxKind>(int kind) where TSyntaxKind : struct;
 
+        int ConflictMarkerTrivia { get; }
+        int DisabledTextTrivia { get; }
+        int EndOfLineTrivia { get; }
+
         int DotToken { get; }
         int QuestionToken { get; }
 
@@ -56,6 +60,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal abstract class AbstractSyntaxKindsService : ISyntaxKindsService
     {
         public abstract TSyntaxKind Convert<TSyntaxKind>(int kind) where TSyntaxKind : struct;
+
+        public abstract int ConflictMarkerTrivia { get; }
+        public abstract int DisabledTextTrivia { get; }
+        public abstract int EndOfLineTrivia { get; }
 
         public abstract int DotToken { get; }
         public abstract int QuestionToken { get; }

@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return CType(CType(CType(kind, SyntaxKind), Object), TSyntaxKind)
         End Function
 
+        Public Overrides ReadOnly Property ConflictMarkerTrivia As Integer = SyntaxKind.ConflictMarkerTrivia
+        Public Overrides ReadOnly Property DisabledTextTrivia As Integer = SyntaxKind.DisabledTextTrivia
+        Public Overrides ReadOnly Property EndOfLineTrivia As Integer = SyntaxKind.EndOfLineTrivia
+
         Public Overrides ReadOnly Property DotToken As Integer = SyntaxKind.DotToken
         Public Overrides ReadOnly Property QuestionToken As Integer = SyntaxKind.QuestionToken
 
