@@ -18,9 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ValidateFormatString
         protected override ISyntaxFactsService GetSyntaxFactsService()
             => CSharpSyntaxFactsService.Instance;
 
-        protected override SyntaxKind GetInvocationExpressionSyntaxKind()
-            => SyntaxKind.InvocationExpression;
-
         protected override SyntaxNode TryGetMatchingNamedArgument(
             SeparatedSyntaxList<SyntaxNode> arguments,
             string searchArgumentName)

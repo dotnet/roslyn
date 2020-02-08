@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         private const string NameOfFormatStringParameter = "format";
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
-        protected abstract TSyntaxKind GetInvocationExpressionSyntaxKind();
         protected abstract SyntaxNode GetArgumentExpression(SyntaxNode syntaxNode);
         protected abstract SyntaxNode TryGetMatchingNamedArgument(SeparatedSyntaxList<SyntaxNode> arguments, string searchArgumentName);
 
@@ -76,9 +75,10 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                     return;
                 }
 
+                var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
                 startContext.RegisterSyntaxNodeAction(
                     c => AnalyzeNode(c, formatProviderType),
-                    GetInvocationExpressionSyntaxKind());
+                    syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.InvocationExpression));
             });
         }
 
