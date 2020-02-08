@@ -937,9 +937,7 @@ $""[||]"";
         var v = ""Hello "" +
             ""[||]World!"";
     }
-}".Replace("\r\n", "\n"),
-            verifyUndo: false,
-            lineEnding: "\n");
+}".Replace("\r\n", "\n"), lineEnding: "\n");
         }
     }
 }
