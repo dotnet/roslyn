@@ -27,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Overrides ReadOnly Property AnonymousObjectCreationExpression As Integer = SyntaxKind.AnonymousObjectCreationExpression
         Public Overrides ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression
         Public Overrides ReadOnly Property LogicalOrExpression As Integer = SyntaxKind.OrElseExpression
+        Public Overrides ReadOnly Property ObjectCreationExpression As Integer = SyntaxKind.ObjectCreationExpression
         Public Overrides ReadOnly Property ParenthesizedExpression As Integer = SyntaxKind.ParenthesizedExpression
         Public Overrides ReadOnly Property TernaryConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression
 

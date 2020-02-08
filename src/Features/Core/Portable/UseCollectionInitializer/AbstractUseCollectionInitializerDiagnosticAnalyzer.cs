@@ -50,14 +50,14 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
             if (ienumerableType != null)
             {
+                var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
                 context.RegisterSyntaxNodeAction(
                     nodeContext => AnalyzeNode(nodeContext, ienumerableType),
-                    GetObjectCreationSyntaxKind());
+                    syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
             }
         }
 
         protected abstract bool AreCollectionInitializersSupported(SyntaxNodeAnalysisContext context);
-        protected abstract TSyntaxKind GetObjectCreationSyntaxKind();
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType)
         {

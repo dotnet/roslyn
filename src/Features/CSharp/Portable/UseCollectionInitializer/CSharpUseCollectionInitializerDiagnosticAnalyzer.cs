@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         protected override bool AreCollectionInitializersSupported(SyntaxNodeAnalysisContext context)
             => ((CSharpParseOptions)context.Node.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp3;
 
-        protected override SyntaxKind GetObjectCreationSyntaxKind() => SyntaxKind.ObjectCreationExpression;
-
         protected override ISyntaxFactsService GetSyntaxFactsService() => CSharpSyntaxFactsService.Instance;
     }
 }

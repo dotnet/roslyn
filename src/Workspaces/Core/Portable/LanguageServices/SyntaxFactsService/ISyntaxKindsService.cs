@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         int LogicalOrExpression { get; }
 
+        int ObjectCreationExpression { get; }
         int ParenthesizedExpression { get; }
         int TernaryConditionalExpression { get; }
 
@@ -57,6 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int AnonymousObjectCreationExpression { get; }
         public abstract int LogicalAndExpression { get; }
         public abstract int LogicalOrExpression { get; }
+        public abstract int ObjectCreationExpression { get; }
         public abstract int ParenthesizedExpression { get; }
         public abstract int TernaryConditionalExpression { get; }
 

@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;
         public override int LogicalAndExpression => (int)SyntaxKind.LogicalAndExpression;
         public override int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;
+        public override int ObjectCreationExpression => (int)SyntaxKind.ObjectCreationExpression;
         public override int ParenthesizedExpression => (int)SyntaxKind.ParenthesizedExpression;
         public override int TernaryConditionalExpression => (int)SyntaxKind.ConditionalExpression;
 
