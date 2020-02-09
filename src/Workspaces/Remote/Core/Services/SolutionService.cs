@@ -53,17 +53,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static AssetService CreateAssetProvider(PinnedSolutionInfo solutionInfo, AssetStorage assetStorage)
-        {
-            var serializerService = PrimaryWorkspace.Services.GetRequiredService<ISerializerService>();
-            return new AssetService(solutionInfo.ScopeId, assetStorage, serializerService);
-        }
-
-        public Task<(SolutionInfo, SerializableOptionSet)> GetSolutionInfoAndOptionsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
-        {
-            return SolutionInfoCreator.CreateSolutionInfoAndOptionsAsync(_assetService, solutionChecksum, cancellationToken);
-        }
-
         public static AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, AssetStorage assetStorage)
         {
             var serializerService = PrimaryWorkspace.Services.GetRequiredService<ISerializerService>();
@@ -76,11 +65,6 @@ namespace Microsoft.CodeAnalysis.Remote
             // so we will be conservative and assume it is not. meaning it won't update any internal caches but only consume cache if possible.
             return GetSolutionAsync(solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, cancellationToken);
         }
-
-        public Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-            => GetSolutionInternalAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
-
-        private async Task<Solution> GetSolutionInternalAsync(
 
         public Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
             => GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
@@ -171,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 await AssetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
                 // get new solution info and options
-                var (solutionInfo, options) = await AssetProvider.GetSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                var (solutionInfo, options) = await AssetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
                 if (fromPrimaryBranch)
                 {

@@ -141,12 +141,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     project.Id, analyzerMap.Keys.ToArray());
 
                 var result = await client.TryRunRemoteAsync(
+                    WellKnownServiceHubServices.CodeAnalysisService,
                     nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
                     solution,
                     new object[] { argument },
-                    (s, c) => ReadCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
+                    callbackTarget: null,
+                    (s, c) => ReadCompilerAnalysisResultAsync(s, analyzerMap, project, c),
+                    cancellationToken).ConfigureAwait(false);
 
-                return result;
+                return result.HasValue ? result.Value : DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
             }
 
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)

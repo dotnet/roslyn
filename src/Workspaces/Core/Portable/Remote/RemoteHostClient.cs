@@ -123,7 +123,10 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        public async Task<Optional<T>> TryRunRemoteAsync<T>(string serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
+        public Task<Optional<T>> TryRunRemoteAsync<T>(string serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
+            => TryRunRemoteAsync<T>(serviceName, targetName, solution, arguments, callbackTarget, dataReader: null, cancellationToken);
+
+        public async Task<Optional<T>> TryRunRemoteAsync<T>(string serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, Func<Stream, CancellationToken, Task<T>>? dataReader, CancellationToken cancellationToken)
         {
             using var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (connection == null)
@@ -131,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return default;
             }
 
-            return await RunRemoteAsync<T>(connection, _remoteDataService, targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
+            return await RunRemoteAsync<T>(connection, _remoteDataService, targetName, solution, arguments, dataReader, cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task RunRemoteAsync(Connection connection, IRemotableDataService remoteDataService, string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
@@ -152,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        internal static async Task<T> RunRemoteAsync<T>(Connection connection, IRemotableDataService remoteDataService, string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
+        internal static async Task<T> RunRemoteAsync<T>(Connection connection, IRemotableDataService remoteDataService, string targetName, Solution? solution, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>>? dataReader, CancellationToken cancellationToken)
         {
             if (solution != null)
             {
@@ -162,7 +165,18 @@ namespace Microsoft.CodeAnalysis.Remote
                 argumentsBuilder.Add(scope.SolutionInfo);
                 argumentsBuilder.AddRange(arguments);
 
-                return await connection.InvokeAsync<T>(targetName, argumentsBuilder, cancellationToken).ConfigureAwait(false);
+                if (dataReader != null)
+                {
+                    return await connection.InvokeAsync(targetName, argumentsBuilder, dataReader, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    return await connection.InvokeAsync<T>(targetName, argumentsBuilder, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            else if (dataReader != null)
+            {
+                return await connection.InvokeAsync(targetName, arguments, dataReader, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -213,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public abstract Task InvokeAsync(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken);
             public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken);
-            public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken);
+            public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken);
 
             protected virtual void DisposeImpl()
             {

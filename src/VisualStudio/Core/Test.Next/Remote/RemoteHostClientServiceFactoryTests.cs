@@ -252,14 +252,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             return factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService;
         }
 
-        private IDiagnosticAnalyzerService GetDiagnosticAnalyzerService(IEnumerable<AnalyzerReference> references)
-        {
-            var mock = new Mock<IDiagnosticAnalyzerService>(MockBehavior.Strict);
-            mock.Setup(a => a.GetHostAnalyzerReferences()).Returns(references);
-            return mock.Object;
-        }
-
-        private class TestService : ServiceHubServiceBase
+        private class TestService : ServiceBase
         {
             public TestService(Stream stream, IServiceProvider serviceProvider)
                 : base(serviceProvider, stream)

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return default;
             }
 
-            return await RemoteHostClient.RunRemoteAsync<T>(connection.Target, _remotableDataService, targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
+            return await RemoteHostClient.RunRemoteAsync<T>(connection.Target, _remotableDataService, targetName, solution, arguments, dataReader: null, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ReferenceCountedDisposable<RemoteHostClient.Connection>?> TryGetConnectionAsync(CancellationToken cancellationToken)

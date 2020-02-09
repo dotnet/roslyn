@@ -371,7 +371,7 @@ End Class";
                 => throw new NotImplementedException();
 
             public override Task<T> InvokeAsync<T>(
-                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
                 => throw new NotImplementedException();
         }
     }
