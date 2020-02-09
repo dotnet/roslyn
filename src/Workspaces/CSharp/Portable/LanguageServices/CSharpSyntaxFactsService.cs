@@ -1802,9 +1802,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsLiteralExpression(SyntaxNode node)
             => node is LiteralExpressionSyntax;
 
-        public bool IsThisExpression(SyntaxNode node)
-            => node.IsKind(SyntaxKind.ThisExpression);
-
         public bool IsBaseExpression(SyntaxNode node)
             => node.IsKind(SyntaxKind.BaseExpression);
 

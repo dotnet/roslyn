@@ -1949,8 +1949,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is LiteralExpressionSyntax
         End Function
 
-        Public Function IsThisExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsThisExpression
-            Return node.IsKind(SyntaxKind.MeExpression)
+        Private Function ISyntaxFacts_IsThisExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsThisExpression
+            Return IsThisExpression(node)
         End Function
 
         Public Function IsBaseExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBaseExpression
