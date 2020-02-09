@@ -187,6 +187,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static void GetPartsOfConditionalAccessExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node, out SyntaxNode expression, out SyntaxNode whenNotNull)
             => syntaxFacts.GetPartsOfConditionalAccessExpression(node, out expression, out _, out whenNotNull);
 
+        #region ISyntaxKinds forwarding methods
+
+        public static bool IsEndOfLineTrivia(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
+            => trivia.RawKind == syntaxFacts.SyntaxKinds.EndOfLineTrivia;
+
+        public static bool IsWhitespaceTrivia(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
+            => trivia.RawKind == syntaxFacts.SyntaxKinds.WhitespaceTrivia;
+
+        public static bool IsSkippedTokensTrivia(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.SkippedTokensTrivia;
+
         public static bool IsAwaitKeyword(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
             => token.RawKind == syntaxFacts.SyntaxKinds.AwaitKeyword;
 
@@ -207,9 +218,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsStringLiteral(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
             => token.RawKind == syntaxFacts.SyntaxKinds.StringLiteralToken;
-
-        public static bool IsSkippedTokensTrivia(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == syntaxFacts.SyntaxKinds.SkippedTokensTrivia;
 
         public static bool IsGenericName(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.GenericName;
@@ -309,5 +317,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsTypeArgumentList(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TypeArgumentList;
+
+        #endregion
     }
 }

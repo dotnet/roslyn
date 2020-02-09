@@ -1567,14 +1567,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(statement, StatementSyntax).GetNextStatement()?.FirstAncestorOrSelf(Of ExecutableStatementSyntax)
         End Function
 
-        Public Overrides Function IsWhitespaceTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsWhitespaceTrivia
-            Return trivia.IsWhitespace()
-        End Function
-
-        Public Overrides Function IsEndOfLineTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsEndOfLineTrivia
-            Return trivia.IsEndOfLine()
-        End Function
-
         Public Overrides Function IsSingleLineCommentTrivia(trivia As SyntaxTrivia) As Boolean
             Return trivia.Kind = SyntaxKind.CommentTrivia
         End Function

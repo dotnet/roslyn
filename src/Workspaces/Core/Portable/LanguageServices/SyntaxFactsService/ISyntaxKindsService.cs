@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int DisabledTextTrivia { get; }
         int EndOfLineTrivia { get; }
         int SkippedTokensTrivia { get; }
+        int WhitespaceTrivia { get; }
 
         int CharacterLiteralToken { get; }
         int DotToken { get; }
@@ -98,6 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int DisabledTextTrivia { get; }
         public abstract int EndOfLineTrivia { get; }
         public abstract int SkippedTokensTrivia { get; }
+        public abstract int WhitespaceTrivia { get; }
 
         public abstract int CharacterLiteralToken { get; }
         public abstract int DotToken { get; }

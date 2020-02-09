@@ -201,8 +201,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
         SyntaxNode GetParameterList(SyntaxNode node);
 
-        bool IsWhitespaceTrivia(SyntaxTrivia trivia);
-        bool IsEndOfLineTrivia(SyntaxTrivia trivia);
         bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia);
 
         void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);

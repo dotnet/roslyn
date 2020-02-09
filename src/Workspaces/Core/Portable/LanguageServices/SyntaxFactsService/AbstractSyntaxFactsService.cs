@@ -158,8 +158,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     Matcher.Repeat(singleBlankLine));
         }
 
-        public abstract bool IsWhitespaceTrivia(SyntaxTrivia trivia);
-        public abstract bool IsEndOfLineTrivia(SyntaxTrivia trivia);
+        private bool IsWhitespaceTrivia(SyntaxTrivia trivia)
+            => SyntaxKinds.WhitespaceTrivia == trivia.RawKind;
+
+        private bool IsEndOfLineTrivia(SyntaxTrivia trivia)
+            => SyntaxKinds.EndOfLineTrivia == trivia.RawKind;
+
         public abstract bool IsSingleLineCommentTrivia(SyntaxTrivia trivia);
         public abstract bool IsMultiLineCommentTrivia(SyntaxTrivia trivia);
         public abstract bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia);

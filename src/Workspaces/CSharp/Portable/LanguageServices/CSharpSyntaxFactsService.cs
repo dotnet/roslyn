@@ -1529,12 +1529,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetNextExecutableStatement(SyntaxNode statement)
             => ((StatementSyntax)statement).GetNextStatement();
 
-        public override bool IsWhitespaceTrivia(SyntaxTrivia trivia)
-            => trivia.IsWhitespace();
-
-        public override bool IsEndOfLineTrivia(SyntaxTrivia trivia)
-            => trivia.IsEndOfLine();
-
         public override bool IsSingleLineCommentTrivia(SyntaxTrivia trivia)
             => trivia.IsSingleLineComment();
 

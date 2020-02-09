@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int DisabledTextTrivia => (int)SyntaxKind.DisabledTextTrivia;
         public override int EndOfLineTrivia => (int)SyntaxKind.EndOfLineTrivia;
         public override int SkippedTokensTrivia => (int)SyntaxKind.SkippedTokensTrivia;
+        public override int WhitespaceTrivia => (int)SyntaxKind.WhitespaceTrivia;
 
         public override int CharacterLiteralToken => (int)SyntaxKind.CharacterLiteralToken;
         public override int DotToken => (int)SyntaxKind.DotToken;
