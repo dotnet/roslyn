@@ -223,20 +223,32 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsTupleType(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TupleType;
 
+        public static bool IsCharacterLiteralExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.CharacterLiteralExpression;
+
+        public static bool IsDefaultLiteralExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.DefaultLiteralExpression;
+
+        public static bool IsFalseLiteralExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.FalseLiteralExpression;
+
+        public static bool IsNullLiteralExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.NullLiteralExpression;
+
+        public static bool IsStringLiteralExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.StringLiteralExpression;
+
+        public static bool IsTrueLiteralExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.TrueLiteralExpression;
+
         public static bool IsAwaitExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.AwaitExpression;
 
         public static bool IsBaseExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.BaseExpression;
 
-        public static bool IsCharacterLiteralExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == syntaxFacts.SyntaxKinds.CharacterLiteralExpression;
-
         public static bool IsConditionalAccessExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ConditionalAccessExpression;
-
-        public static bool IsFalseLiteralExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == syntaxFacts.SyntaxKinds.FalseLiteralExpression;
 
         public static bool IsInvocationExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.InvocationExpression;
@@ -259,14 +271,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsSimpleMemberAccessExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.SimpleMemberAccessExpression;
 
-        public static bool IsStringLiteralExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == syntaxFacts.SyntaxKinds.StringLiteralExpression;
-
         public static bool IsThisExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ThisExpression;
-
-        public static bool IsTrueLiteralExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == syntaxFacts.SyntaxKinds.TrueLiteralExpression;
 
         public static bool IsTupleExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TupleExpression;

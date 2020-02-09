@@ -1509,14 +1509,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, ExpressionStatementSyntax).Expression
         End Function
 
-        Public Function IsNullLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNullLiteralExpression
-            Return node.Kind() = SyntaxKind.NothingLiteralExpression
-        End Function
-
-        Public Function IsDefaultLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDefaultLiteralExpression
-            Return IsNullLiteralExpression(node)
-        End Function
-
         Public Function IsBinaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBinaryExpression
             Return TypeOf node Is BinaryExpressionSyntax
         End Function

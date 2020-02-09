@@ -1483,12 +1483,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
             => ((ExpressionStatementSyntax)node).Expression;
 
-        public bool IsNullLiteralExpression(SyntaxNode node)
-            => node.Kind() == SyntaxKind.NullLiteralExpression;
-
-        public bool IsDefaultLiteralExpression(SyntaxNode node)
-            => node.Kind() == SyntaxKind.DefaultLiteralExpression;
-
         public bool IsBinaryExpression(SyntaxNode node)
             => node is BinaryExpressionSyntax;
 
