@@ -72,6 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Overrides ReadOnly Property HashToken As Integer = SyntaxKind.HashToken
 
         Public Overrides ReadOnly Property ExpressionStatement As Integer = SyntaxKind.ExpressionStatement
+        Public Overrides ReadOnly Property ForEachStatement As Integer = SyntaxKind.ForEachStatement
         Public Overrides ReadOnly Property LocalDeclarationStatement As Integer = SyntaxKind.LocalDeclarationStatement
         Public Overrides ReadOnly Property LockStatement As Integer = SyntaxKind.SyncLockStatement
         Public Overrides ReadOnly Property ReturnStatement As Integer = SyntaxKind.ReturnStatement

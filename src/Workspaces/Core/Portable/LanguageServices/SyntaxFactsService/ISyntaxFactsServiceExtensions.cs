@@ -291,6 +291,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsExpressionStatement(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ExpressionStatement;
 
+        public static bool IsForEachStatement(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ForEachStatement;
+
         public static bool IsLocalDeclarationStatement(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.LocalDeclarationStatement;
 

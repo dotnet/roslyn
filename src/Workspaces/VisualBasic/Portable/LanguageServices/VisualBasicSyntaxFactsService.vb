@@ -208,10 +208,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    DirectCast(node.Parent, SimpleImportsClauseSyntax).Name Is node
         End Function
 
-        Public Function IsForEachStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsForEachStatement
-            Return TypeOf node Is ForEachStatementSyntax
-        End Function
-
         Public Function IsDeconstructionAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDeconstructionAssignment
             Return False
         End Function

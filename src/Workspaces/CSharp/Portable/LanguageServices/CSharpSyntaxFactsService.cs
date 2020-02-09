@@ -197,9 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsUsingAliasDirective(SyntaxNode node)
             => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
 
-        public bool IsForEachStatement(SyntaxNode node)
-            => node is ForEachStatementSyntax;
-
         public bool IsDeconstructionForEachStatement(SyntaxNode node)
             => node is ForEachVariableStatementSyntax;
 

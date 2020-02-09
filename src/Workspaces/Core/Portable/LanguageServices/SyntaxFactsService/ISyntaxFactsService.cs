@@ -250,7 +250,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node, out SyntaxNode initializedInstance);
 
         bool IsDirective(SyntaxNode node);
-        bool IsForEachStatement(SyntaxNode node);
         bool IsStatement(SyntaxNode node);
         bool IsExecutableStatement(SyntaxNode node);
 

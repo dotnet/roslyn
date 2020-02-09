@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int HashToken { get; }
 
         int ExpressionStatement { get; }
+        int ForEachStatement { get; }
         int LocalDeclarationStatement { get; }
         int LockStatement { get; }
         int ReturnStatement { get; }
@@ -149,6 +150,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int HashToken { get; }
 
         public abstract int ExpressionStatement { get; }
+        public abstract int ForEachStatement { get; }
         public abstract int LocalDeclarationStatement { get; }
         public abstract int LockStatement { get; }
         public abstract int ReturnStatement { get; }
