@@ -1953,8 +1953,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return IsThisExpression(node)
         End Function
 
-        Public Function IsBaseExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBaseExpression
-            Return node.IsKind(SyntaxKind.MyBaseExpression)
+        Private Function ISyntaxFacts_IsBaseExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBaseExpression
+            Return IsBaseExpression(node)
         End Function
 
         Public Function IsFalseLiteralExpression(expression As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsFalseLiteralExpression

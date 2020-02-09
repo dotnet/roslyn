@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public override int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;
         public override int AwaitExpression => (int)SyntaxKind.AwaitExpression;
+        public override int BaseExpression => (int)SyntaxKind.BaseExpression;
         public override int CharacterLiteralExpression => (int)SyntaxKind.CharacterLiteralExpression;
         public override int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
         public override int InvocationExpression => (int)SyntaxKind.InvocationExpression;

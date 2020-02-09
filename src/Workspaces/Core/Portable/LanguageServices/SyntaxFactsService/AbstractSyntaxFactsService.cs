@@ -627,6 +627,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsAwaitExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.AwaitExpression;
 
+        public bool IsBaseExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.BaseExpression;
+
         public bool IsCharacterLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.CharacterLiteralExpression;
 
