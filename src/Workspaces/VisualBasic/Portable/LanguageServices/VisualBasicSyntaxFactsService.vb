@@ -1566,8 +1566,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return IsIdentifierName(node)
         End Function
 
-        Public Function IsLocalDeclarationStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalDeclarationStatement
-            Return node.IsKind(SyntaxKind.LocalDeclarationStatement)
+        Private Function ISyntaxFacts_IsLocalDeclarationStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalDeclarationStatement
+            Return IsLocalDeclarationStatement(node)
         End Function
 
         Public Function IsLocalFunctionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalFunctionStatement
