@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int ParenthesizedExpression => (int)SyntaxKind.ParenthesizedExpression;
         public override int ReferenceEqualsExpression => (int)SyntaxKind.EqualsExpression;
         public override int ReferenceNotEqualsExpression => (int)SyntaxKind.NotEqualsExpression;
+        public override int SimpleMemberAccessExpression => (int)SyntaxKind.SimpleMemberAccessExpression;
         public override int TernaryConditionalExpression => (int)SyntaxKind.ConditionalExpression;
 
         public override int EndOfFileToken => (int)SyntaxKind.EndOfFileToken;

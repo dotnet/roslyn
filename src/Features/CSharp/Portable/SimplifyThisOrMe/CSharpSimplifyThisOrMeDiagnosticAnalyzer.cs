@@ -23,11 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
             ThisExpressionSyntax,
             MemberAccessExpressionSyntax>
     {
-        public CSharpSimplifyThisOrMeDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression))
-        {
-        }
-
         protected override string GetLanguageName()
             => LanguageNames.CSharp;
 

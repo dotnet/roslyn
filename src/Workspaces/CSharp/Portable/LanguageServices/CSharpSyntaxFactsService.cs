@@ -538,9 +538,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public bool IsSimpleMemberAccessExpression(SyntaxNode node)
-            => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.SimpleMemberAccessExpression;
-
         public bool IsConditionalAccessExpression(SyntaxNode node)
             => node is ConditionalAccessExpressionSyntax;
 

@@ -563,9 +563,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsOperator(token)
         End Function
 
-        Public Function IsSimpleMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleMemberAccessExpression
-            Return TypeOf node Is MemberAccessExpressionSyntax AndAlso
-                DirectCast(node, MemberAccessExpressionSyntax).Kind = SyntaxKind.SimpleMemberAccessExpression
+        Private Function ISyntaxFacts_IsSimpleMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleMemberAccessExpression
+            Return IsSimpleMemberAccessExpression(node)
         End Function
 
         Public Function IsPointerMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPointerMemberAccessExpression
