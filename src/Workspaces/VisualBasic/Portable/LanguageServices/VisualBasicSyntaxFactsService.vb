@@ -202,12 +202,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
-        Public Function IsGenericName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsGenericName
-            Return TypeOf node Is GenericNameSyntax
+        Private Function ISyntaxFacts_IsGenericName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsGenericName
+            Return IsGenericName(node)
         End Function
 
-        Public Function IsQualifiedName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsQualifiedName
-            Return node.IsKind(SyntaxKind.QualifiedName)
+        Private Function ISyntaxFacts_IsQualifiedName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsQualifiedName
+            Return IsQualifiedName(node)
         End Function
 
         Public Function IsNamedParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNamedParameter

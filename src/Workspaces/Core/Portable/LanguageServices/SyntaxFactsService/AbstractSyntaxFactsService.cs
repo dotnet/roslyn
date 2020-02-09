@@ -606,6 +606,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
 #nullable enable
 
+        public bool IsGenericName([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.GenericName;
+
+        public bool IsQualifiedName([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.QualifiedName;
+
         public bool IsInvocationExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.InvocationExpression;
 

@@ -168,12 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node is AnonymousMethodExpressionSyntax;
         }
 
-        public bool IsGenericName(SyntaxNode node)
-            => node is GenericNameSyntax;
-
-        public bool IsQualifiedName(SyntaxNode node)
-            => node.IsKind(SyntaxKind.QualifiedName);
-
         public bool IsNamedParameter(SyntaxNode node)
             => node.CheckParent<NameColonSyntax>(p => p.Name == node);
 

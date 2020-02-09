@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int IfKeyword { get; }
 
+        int GenericName { get; }
+        int QualifiedName { get; }
+
         int AnonymousObjectCreationExpression { get; }
         int InvocationExpression { get; }
 
@@ -69,6 +72,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int QuestionToken { get; }
 
         public abstract int IfKeyword { get; }
+
+        public abstract int GenericName { get; }
+        public abstract int QualifiedName { get; }
 
         public abstract int AnonymousObjectCreationExpression { get; }
         public abstract int InvocationExpression { get; }

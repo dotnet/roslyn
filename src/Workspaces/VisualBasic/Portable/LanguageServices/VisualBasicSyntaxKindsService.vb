@@ -27,6 +27,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Overrides ReadOnly Property IfKeyword As Integer = SyntaxKind.IfKeyword
 
+        Public Overrides ReadOnly Property GenericName As Integer = SyntaxKind.GenericName
+        Public Overrides ReadOnly Property QualifiedName As Integer = SyntaxKind.QualifiedName
+
         Public Overrides ReadOnly Property AnonymousObjectCreationExpression As Integer = SyntaxKind.AnonymousObjectCreationExpression
         Public Overrides ReadOnly Property InvocationExpression As Integer = SyntaxKind.InvocationExpression
         Public Overrides ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression
