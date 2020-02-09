@@ -190,6 +190,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsAwaitKeyword(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
             => token.RawKind == syntaxFacts.SyntaxKinds.AwaitKeyword;
 
+        public static bool IsCharacterLiteral(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
+            => token.RawKind == syntaxFacts.SyntaxKinds.CharacterLiteralToken;
+
         public static bool IsIdentifier(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
             => token.RawKind == syntaxFacts.SyntaxKinds.IdentifierToken;
 

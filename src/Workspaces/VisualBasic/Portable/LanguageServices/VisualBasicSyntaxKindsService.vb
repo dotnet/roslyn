@@ -23,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Overrides ReadOnly Property EndOfLineTrivia As Integer = SyntaxKind.EndOfLineTrivia
         Public Overrides ReadOnly Property SkippedTokensTrivia As Integer = SyntaxKind.SkippedTokensTrivia
 
+        Public Overrides ReadOnly Property CharacterLiteralToken As Integer = SyntaxKind.CharacterLiteralToken
         Public Overrides ReadOnly Property DotToken As Integer = SyntaxKind.DotToken
         Public Overrides ReadOnly Property InterpolatedStringTextToken As Integer = SyntaxKind.InterpolatedStringTextToken
         Public Overrides ReadOnly Property QuestionToken As Integer = SyntaxKind.QuestionToken

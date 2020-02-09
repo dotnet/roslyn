@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
 
         bool IsNumericLiteral(SyntaxToken token);
-        bool IsCharacterLiteral(SyntaxToken token);
         bool IsVerbatimStringLiteral(SyntaxToken token);
 
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);

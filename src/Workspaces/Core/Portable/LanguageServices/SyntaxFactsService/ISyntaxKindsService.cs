@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int EndOfLineTrivia { get; }
         int SkippedTokensTrivia { get; }
 
+        int CharacterLiteralToken { get; }
         int DotToken { get; }
         int InterpolatedStringTextToken { get; }
         int QuestionToken { get; }
@@ -94,6 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int EndOfLineTrivia { get; }
         public abstract int SkippedTokensTrivia { get; }
 
+        public abstract int CharacterLiteralToken { get; }
         public abstract int DotToken { get; }
         public abstract int InterpolatedStringTextToken { get; }
         public abstract int QuestionToken { get; }

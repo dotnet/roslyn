@@ -1285,9 +1285,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsNumericLiteral(SyntaxToken token)
             => token.Kind() == SyntaxKind.NumericLiteralToken;
 
-        public bool IsCharacterLiteral(SyntaxToken token)
-            => token.Kind() == SyntaxKind.CharacterLiteralToken;
-
         public void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
         {
             var invocation = (InvocationExpressionSyntax)node;
