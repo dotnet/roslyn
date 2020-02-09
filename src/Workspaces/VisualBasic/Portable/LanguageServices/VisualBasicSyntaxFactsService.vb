@@ -1592,8 +1592,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node IsNot Nothing AndAlso TryCast(node.Parent, InvocationExpressionSyntax)?.Expression Is node
         End Function
 
-        Public Function IsAwaitExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAwaitExpression
-            Return node.IsKind(SyntaxKind.AwaitExpression)
+        Private Function ISyntaxFacts_IsAwaitExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAwaitExpression
+            Return IsAwaitExpression(node)
         End Function
 
         Public Function IsExpressionOfAwaitExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfAwaitExpression
