@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int SimpleMemberAccessExpression => (int)SyntaxKind.SimpleMemberAccessExpression;
         public override int StringLiteralExpression => (int)SyntaxKind.StringLiteralExpression;
         public override int TernaryConditionalExpression => (int)SyntaxKind.ConditionalExpression;
+        public override int TupleExpression => (int)SyntaxKind.TupleExpression;
 
         public override int EndOfFileToken => (int)SyntaxKind.EndOfFileToken;
         public override int AwaitKeyword => (int)SyntaxKind.AwaitKeyword;

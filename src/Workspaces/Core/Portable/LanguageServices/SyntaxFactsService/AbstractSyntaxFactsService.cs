@@ -654,6 +654,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsStringLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.StringLiteralExpression;
 
+        public bool IsTupleExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.TupleExpression;
+
         public bool IsExpressionStatement([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.ExpressionStatement;
 

@@ -1675,8 +1675,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Kind() = SyntaxKind.OrElseExpression
         End Function
 
-        Public Function IsTupleExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTupleExpression
-            Return node.Kind() = SyntaxKind.TupleExpression
+        Private Function ISynaxFacts_IsTupleExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTupleExpression
+            Return IsTupleExpression(node)
         End Function
 
         Public Function IsTupleType(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTupleType

@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int SimpleMemberAccessExpression { get; }
         int StringLiteralExpression { get; }
         int TernaryConditionalExpression { get; }
+        int TupleExpression { get; }
 
         int EndOfFileToken { get; }
         int AwaitKeyword { get; }
@@ -114,6 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int SimpleMemberAccessExpression { get; }
         public abstract int StringLiteralExpression { get; }
         public abstract int TernaryConditionalExpression { get; }
+        public abstract int TupleExpression { get; }
 
         public abstract int EndOfFileToken { get; }
         public abstract int IdentifierToken { get; }
