@@ -642,8 +642,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return argument IsNot Nothing AndAlso Not argument.IsNamed AndAlso Not argument.IsOmitted
         End Function
 
-        Public Function IsTypeArgumentList(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeArgumentList
-            Return node.IsKind(SyntaxKind.TypeArgumentList)
+        Private Function ISyntaxFacts_IsTypeArgumentList(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeArgumentList
+            Return IsTypeArgumentList(node)
         End Function
 
         Public Function IsTypeConstraint(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeConstraint
@@ -2076,7 +2076,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ISyntaxFactsService_IsExpressionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionStatement
-            Return MyBase.IsExpressionStatement(node)
+            Return IsExpressionStatement(node)
         End Function
 
         Public Function IsUsingAliasDirective(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingAliasDirective

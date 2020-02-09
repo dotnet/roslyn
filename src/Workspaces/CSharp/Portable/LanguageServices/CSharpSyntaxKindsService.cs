@@ -60,5 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public override int Parameter => (int)SyntaxKind.Parameter;
         public override int VariableDeclarator => (int)SyntaxKind.VariableDeclarator;
+
+        public override int TypeArgumentList => (int)SyntaxKind.TypeArgumentList;
     }
 }

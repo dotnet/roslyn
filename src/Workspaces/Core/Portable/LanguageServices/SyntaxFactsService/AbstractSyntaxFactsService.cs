@@ -651,6 +651,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsVariableDeclarator([NotNullWhen(true)] SyntaxNode node)
             => node?.RawKind == SyntaxKinds.VariableDeclarator;
 
+        public bool IsTypeArgumentList([NotNullWhen(true)] SyntaxNode node)
+            => node?.RawKind == SyntaxKinds.TypeArgumentList;
+
 #nullable restore
     }
 }

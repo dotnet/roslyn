@@ -594,9 +594,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                    argument.NameColon == null;
         }
 
-        public bool IsTypeArgumentList(SyntaxNode node)
-            => node.IsKind(SyntaxKind.TypeArgumentList);
-
         public bool IsTypeConstraint(SyntaxNode node)
             => node.IsKind(SyntaxKind.TypeConstraint);
 

@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int Parameter { get; }
         int VariableDeclarator { get; }
+
+        int TypeArgumentList { get; }
     }
 
     internal abstract class AbstractSyntaxKindsService : ISyntaxKindsService
@@ -113,5 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract int Parameter { get; }
         public abstract int VariableDeclarator { get; }
+
+        public abstract int TypeArgumentList { get; }
     }
 }
