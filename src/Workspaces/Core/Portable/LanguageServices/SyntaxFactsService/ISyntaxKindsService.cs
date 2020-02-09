@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int QualifiedName { get; }
 
         int AnonymousObjectCreationExpression { get; }
+        int CharacterLiteralExpression { get; }
         int ConditionalAccessExpression { get; }
         int InvocationExpression { get; }
 
@@ -95,6 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int QualifiedName { get; }
 
         public abstract int AnonymousObjectCreationExpression { get; }
+        public abstract int CharacterLiteralExpression { get; }
         public abstract int ConditionalAccessExpression { get; }
         public abstract int InvocationExpression { get; }
         public abstract int LogicalAndExpression { get; }

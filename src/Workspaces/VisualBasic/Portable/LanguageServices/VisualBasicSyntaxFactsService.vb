@@ -1380,8 +1380,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return IsStringLiteralExpression(node)
         End Function
 
-        Public Function IsCharacterLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsCharacterLiteralExpression
-            Return node.Kind() = SyntaxKind.CharacterLiteralExpression
+        Private Function ISyntaxFacts_IsCharacterLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsCharacterLiteralExpression
+            Return IsCharacterLiteralExpression(node)
         End Function
 
         Public Function IsVerbatimStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsVerbatimStringLiteral

@@ -34,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Overrides ReadOnly Property QualifiedName As Integer = SyntaxKind.QualifiedName
 
         Public Overrides ReadOnly Property AnonymousObjectCreationExpression As Integer = SyntaxKind.AnonymousObjectCreationExpression
+        Public Overrides ReadOnly Property CharacterLiteralExpression As Integer = SyntaxKind.CharacterLiteralExpression
         Public Overrides ReadOnly Property ConditionalAccessExpression As Integer = SyntaxKind.ConditionalAccessExpression
         Public Overrides ReadOnly Property InvocationExpression As Integer = SyntaxKind.InvocationExpression
         Public Overrides ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression
