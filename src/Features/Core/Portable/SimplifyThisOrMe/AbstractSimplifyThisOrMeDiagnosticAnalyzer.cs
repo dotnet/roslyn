@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -91,6 +93,11 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
             var optionValue = optionSet.GetOption(applicableOption, GetLanguageName());
+            if (optionValue == null)
+            {
+                return;
+            }
+
             var severity = optionValue.Notification.Severity;
 
             var descriptor = CreateUnnecessaryDescriptor(DescriptorId);
