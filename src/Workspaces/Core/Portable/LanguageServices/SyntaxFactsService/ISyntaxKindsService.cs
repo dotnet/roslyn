@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int BaseExpression { get; }
         int CharacterLiteralExpression { get; }
         int ConditionalAccessExpression { get; }
+        int FalseLiteralExpression { get; }
         int InvocationExpression { get; }
 
         /// <summary>
@@ -60,6 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int StringLiteralExpression { get; }
         int TernaryConditionalExpression { get; }
         int ThisExpression { get; }
+        int TrueLiteralExpression { get; }
         int TupleExpression { get; }
 
         int EndOfFileToken { get; }
@@ -110,6 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int BaseExpression { get; }
         public abstract int CharacterLiteralExpression { get; }
         public abstract int ConditionalAccessExpression { get; }
+        public abstract int FalseLiteralExpression { get; }
         public abstract int InvocationExpression { get; }
         public abstract int LogicalAndExpression { get; }
         public abstract int LogicalOrExpression { get; }
@@ -122,6 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int StringLiteralExpression { get; }
         public abstract int TernaryConditionalExpression { get; }
         public abstract int ThisExpression { get; }
+        public abstract int TrueLiteralExpression { get; }
         public abstract int TupleExpression { get; }
 
         public abstract int EndOfFileToken { get; }

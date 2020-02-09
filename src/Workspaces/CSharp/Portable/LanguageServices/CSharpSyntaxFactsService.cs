@@ -1802,12 +1802,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsLiteralExpression(SyntaxNode node)
             => node is LiteralExpressionSyntax;
 
-        public bool IsFalseLiteralExpression(SyntaxNode expression)
-            => expression.IsKind(SyntaxKind.FalseLiteralExpression);
-
-        public bool IsTrueLiteralExpression(SyntaxNode expression)
-            => expression.IsKind(SyntaxKind.TrueLiteralExpression);
-
         public SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node)
             => ((LocalDeclarationStatementSyntax)node).Declaration.Variables;
 

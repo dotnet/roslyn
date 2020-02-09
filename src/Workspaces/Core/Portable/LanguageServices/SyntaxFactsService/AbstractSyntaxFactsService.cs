@@ -636,6 +636,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsConditionalAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.ConditionalAccessExpression;
 
+        public bool IsFalseLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.FalseLiteralExpression;
+
         public bool IsInvocationExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.InvocationExpression;
 
@@ -662,6 +665,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool IsThisExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.ThisExpression;
+
+        public bool IsTrueLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.TrueLiteralExpression;
 
         public bool IsTupleExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.TupleExpression;

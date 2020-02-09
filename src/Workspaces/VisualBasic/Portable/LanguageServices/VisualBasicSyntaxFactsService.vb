@@ -1957,12 +1957,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return IsBaseExpression(node)
         End Function
 
-        Public Function IsFalseLiteralExpression(expression As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsFalseLiteralExpression
-            Return expression.IsKind(SyntaxKind.FalseLiteralExpression)
+        Private Function ISyntaxFacts_IsFalseLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsFalseLiteralExpression
+            Return IsFalseLiteralExpression(node)
         End Function
 
-        Public Function IsTrueLiteralExpression(expression As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTrueLiteralExpression
-            Return expression.IsKind(SyntaxKind.TrueLiteralExpression)
+        Private Function ISynaxFacts_IsTrueLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTrueLiteralExpression
+            Return IsTrueLiteralExpression(node)
         End Function
 
         Public Function GetVariablesOfLocalDeclarationStatement(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetVariablesOfLocalDeclarationStatement

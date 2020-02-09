@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int BaseExpression => (int)SyntaxKind.BaseExpression;
         public override int CharacterLiteralExpression => (int)SyntaxKind.CharacterLiteralExpression;
         public override int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
+        public override int FalseLiteralExpression => (int)SyntaxKind.FalseLiteralExpression;
         public override int InvocationExpression => (int)SyntaxKind.InvocationExpression;
         public override int LogicalAndExpression => (int)SyntaxKind.LogicalAndExpression;
         public override int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;
@@ -55,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int StringLiteralExpression => (int)SyntaxKind.StringLiteralExpression;
         public override int TernaryConditionalExpression => (int)SyntaxKind.ConditionalExpression;
         public override int ThisExpression => (int)SyntaxKind.ThisExpression;
+        public override int TrueLiteralExpression => (int)SyntaxKind.TrueLiteralExpression;
         public override int TupleExpression => (int)SyntaxKind.TupleExpression;
 
         public override int EndOfFileToken => (int)SyntaxKind.EndOfFileToken;
