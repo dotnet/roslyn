@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// A short-circuiting logical 'or'. In C#, 'LogicalOrExpression'. In VB, 'OrElseExpression'.
         /// </summary>
         int LogicalOrExpression { get; }
+        int LogicalNotExpression { get; }
 
         int ObjectCreationExpression { get; }
         int ParenthesizedExpression { get; }
@@ -126,6 +127,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int InvocationExpression { get; }
         public abstract int LogicalAndExpression { get; }
         public abstract int LogicalOrExpression { get; }
+        public abstract int LogicalNotExpression { get; }
         public abstract int ObjectCreationExpression { get; }
         public abstract int ParenthesizedExpression { get; }
         public abstract int QueryExpression { get; }

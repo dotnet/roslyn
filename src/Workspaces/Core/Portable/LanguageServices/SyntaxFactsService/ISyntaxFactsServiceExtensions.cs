@@ -259,6 +259,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsLogicalOrExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.LogicalOrExpression;
 
+        public static bool IsLogicalNotExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.LogicalNotExpression;
+
         public static bool IsObjectCreationExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ObjectCreationExpression;
 

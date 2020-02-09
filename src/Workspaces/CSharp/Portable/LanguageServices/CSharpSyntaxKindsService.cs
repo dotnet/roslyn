@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int InvocationExpression => (int)SyntaxKind.InvocationExpression;
         public override int LogicalAndExpression => (int)SyntaxKind.LogicalAndExpression;
         public override int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;
+        public override int LogicalNotExpression => (int)SyntaxKind.LogicalNotExpression;
         public override int ObjectCreationExpression => (int)SyntaxKind.ObjectCreationExpression;
         public override int NullLiteralExpression => (int)SyntaxKind.NullLiteralExpression;
         public override int ParenthesizedExpression => (int)SyntaxKind.ParenthesizedExpression;

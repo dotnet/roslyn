@@ -1531,10 +1531,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(TryCast(node, ExpressionSyntax)?.WalkDownParentheses(), node)
         End Function
 
-        Public Function IsLogicalNotExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalNotExpression
-            Return node.IsKind(SyntaxKind.NotExpression)
-        End Function
-
         Public Function IsConditionalAnd(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalAnd
             Return node.Kind() = SyntaxKind.AndAlsoExpression
         End Function

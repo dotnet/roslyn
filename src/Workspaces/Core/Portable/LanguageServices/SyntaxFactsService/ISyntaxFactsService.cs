@@ -129,7 +129,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
         bool IsExpressionOfForeach(SyntaxNode node);
 
-        bool IsLogicalNotExpression([NotNullWhen(true)] SyntaxNode node);
         bool IsConditionalAnd(SyntaxNode node);
         bool IsConditionalOr(SyntaxNode node);
 
