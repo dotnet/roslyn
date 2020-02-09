@@ -1502,12 +1502,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode WalkDownParentheses(SyntaxNode node)
             => (node as ExpressionSyntax)?.WalkDownParentheses() ?? node;
 
-        public bool IsConditionalAnd(SyntaxNode node)
-            => node.Kind() == SyntaxKind.LogicalAndExpression;
-
-        public bool IsConditionalOr(SyntaxNode node)
-            => node.Kind() == SyntaxKind.LogicalOrExpression;
-
         public void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
             out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode
         {

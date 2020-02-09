@@ -1527,14 +1527,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(TryCast(node, ExpressionSyntax)?.WalkDownParentheses(), node)
         End Function
 
-        Public Function IsConditionalAnd(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalAnd
-            Return node.Kind() = SyntaxKind.AndAlsoExpression
-        End Function
-
-        Public Function IsConditionalOr(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalOr
-            Return node.Kind() = SyntaxKind.OrElseExpression
-        End Function
-
         Public Sub GetPartsOfTupleExpression(Of TArgumentSyntax As SyntaxNode)(
                 node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of TArgumentSyntax), ByRef closeParen As SyntaxToken) Implements ISyntaxFactsService.GetPartsOfTupleExpression
 
