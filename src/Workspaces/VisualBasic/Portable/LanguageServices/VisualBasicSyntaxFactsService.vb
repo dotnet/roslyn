@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Function ISyntaxFacts_IsLockStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLockStatement
+        Private Function ISyntaxFacts_IsLockStaisptement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLockStatement
             Return IsLockStatement(node)
         End Function
 
@@ -276,8 +276,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is ExecutableStatementSyntax
         End Function
 
-        Public Function IsParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsParameter
-            Return TypeOf node Is ParameterSyntax
+        Private Function ISyntaxFacts_IsParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsParameter
+            Return IsParameter(node)
         End Function
 
         Public Function IsVariableDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsVariableDeclarator

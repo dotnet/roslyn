@@ -55,5 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int LockStatement => (int)SyntaxKind.LockStatement;
         public override int ReturnStatement => (int)SyntaxKind.ReturnStatement;
         public override int UsingStatement => (int)SyntaxKind.UsingStatement;
+
+        public override int Parameter => (int)SyntaxKind.Parameter;
     }
 }

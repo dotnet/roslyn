@@ -222,9 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsExecutableStatement(SyntaxNode node)
             => node is StatementSyntax;
 
-        public bool IsParameter(SyntaxNode node)
-            => node is ParameterSyntax;
-
         public bool IsVariableDeclarator(SyntaxNode node)
             => node is VariableDeclaratorSyntax;
 

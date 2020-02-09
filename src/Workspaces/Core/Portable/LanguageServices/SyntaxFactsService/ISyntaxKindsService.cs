@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int LockStatement { get; }
         int ReturnStatement { get; }
         int UsingStatement { get; }
+
+        int Parameter { get; }
     }
 
     internal abstract class AbstractSyntaxKindsService : ISyntaxKindsService
@@ -103,5 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int LockStatement { get; }
         public abstract int ReturnStatement { get; }
         public abstract int UsingStatement { get; }
+
+        public abstract int Parameter { get; }
     }
 }
