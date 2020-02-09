@@ -1562,8 +1562,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, VariableDeclaratorSyntax).Names.Last().Identifier
         End Function
 
-        Public Function IsIdentifierName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsIdentifierName
-            Return node.IsKind(SyntaxKind.IdentifierName)
+        Private Function ISyntaxFacts_IsIdentifierName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsIdentifierName
+            Return IsIdentifierName(node)
         End Function
 
         Public Function IsLocalDeclarationStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalDeclarationStatement

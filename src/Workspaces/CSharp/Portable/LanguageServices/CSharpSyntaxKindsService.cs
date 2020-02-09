@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int IfKeyword => (int)SyntaxKind.IfKeyword;
 
         public override int GenericName => (int)SyntaxKind.GenericName;
+        public override int IdentifierName => (int)SyntaxKind.IdentifierName;
         public override int QualifiedName => (int)SyntaxKind.QualifiedName;
 
         public override int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;

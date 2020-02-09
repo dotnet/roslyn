@@ -615,6 +615,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsGenericName([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.GenericName;
 
+        public bool IsIdentifierName([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.IdentifierName;
+
         public bool IsQualifiedName([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.QualifiedName;
 

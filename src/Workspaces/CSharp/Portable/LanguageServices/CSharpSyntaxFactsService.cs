@@ -1444,9 +1444,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclaratorSyntax)node).Identifier;
 
-        public bool IsIdentifierName(SyntaxNode node)
-            => node.IsKind(SyntaxKind.IdentifierName);
-
         public bool IsLocalDeclarationStatement(SyntaxNode node)
             => node.IsKind(SyntaxKind.LocalDeclarationStatement);
 
