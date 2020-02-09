@@ -37,14 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 
         private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context, OptionSet optionSet, SyntaxTree syntaxTree)
         {
-            if (!nameColon.IsParentKind(SyntaxKind.Argument))
+            if (!nameColon.Parent.IsKind(SyntaxKind.Argument, out ArgumentSyntax? argument))
             {
                 return;
             }
 
-            var argument = (ArgumentSyntax)nameColon.Parent;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            if (!optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Value ||
+            var option = optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language);
+            if (option == null ||
+                !option.Value ||
                 !CSharpInferredMemberNameReducer.CanSimplifyTupleElementName(argument, parseOptions))
             {
                 return;
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 DiagnosticHelper.Create(
                     Descriptor,
                     nameColon.GetLocation(),
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Severity,
+                    option.Notification.Severity,
                     additionalLocations: null,
                     properties: null));
 
@@ -69,13 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 
         private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context, OptionSet optionSet, SyntaxTree syntaxTree)
         {
-            if (!nameEquals.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator))
+            if (!nameEquals.Parent.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator, out AnonymousObjectMemberDeclaratorSyntax? anonCtor))
             {
                 return;
             }
 
-            var anonCtor = (AnonymousObjectMemberDeclaratorSyntax)nameEquals.Parent;
-            if (!optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Value ||
+            var option = optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language);
+            if (option == null ||
+                !option.Value ||
                 !CSharpInferredMemberNameReducer.CanSimplifyAnonymousTypeMemberName(anonCtor))
             {
                 return;
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 DiagnosticHelper.Create(
                     Descriptor,
                     nameEquals.GetLocation(),
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Severity,
+                    option.Notification.Severity,
                     additionalLocations: null,
                     properties: null));
 
