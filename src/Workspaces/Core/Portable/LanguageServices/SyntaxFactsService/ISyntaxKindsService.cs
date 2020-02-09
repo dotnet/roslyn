@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int ObjectCreationExpression { get; }
         int ParenthesizedExpression { get; }
+        int QueryExpression { get; }
         int ReferenceEqualsExpression { get; }
         int ReferenceNotEqualsExpression { get; }
         int SimpleMemberAccessExpression { get; }
@@ -89,6 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int LogicalOrExpression { get; }
         public abstract int ObjectCreationExpression { get; }
         public abstract int ParenthesizedExpression { get; }
+        public abstract int QueryExpression { get; }
         public abstract int ReferenceEqualsExpression { get; }
         public abstract int ReferenceNotEqualsExpression { get; }
         public abstract int SimpleMemberAccessExpression { get; }

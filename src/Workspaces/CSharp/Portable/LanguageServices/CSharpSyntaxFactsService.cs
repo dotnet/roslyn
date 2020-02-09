@@ -249,9 +249,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((ConstructorInitializerSyntax)token.Parent).ThisOrBaseKeyword == token;
         }
 
-        public bool IsQueryExpression(SyntaxNode node)
-            => node.Kind() == SyntaxKind.QueryExpression;
-
         public bool IsQueryKeyword(SyntaxToken token)
         {
             switch (token.Kind())

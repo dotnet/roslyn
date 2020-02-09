@@ -624,6 +624,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsParenthesizedExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.ParenthesizedExpression;
 
+        public bool IsQueryExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.QueryExpression;
+
         public bool IsSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.SimpleMemberAccessExpression;
 

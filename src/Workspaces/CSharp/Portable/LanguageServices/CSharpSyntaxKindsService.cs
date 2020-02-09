@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;
         public override int ObjectCreationExpression => (int)SyntaxKind.ObjectCreationExpression;
         public override int ParenthesizedExpression => (int)SyntaxKind.ParenthesizedExpression;
+        public override int QueryExpression => (int)SyntaxKind.QueryExpression;
         public override int ReferenceEqualsExpression => (int)SyntaxKind.EqualsExpression;
         public override int ReferenceNotEqualsExpression => (int)SyntaxKind.NotEqualsExpression;
         public override int SimpleMemberAccessExpression => (int)SyntaxKind.SimpleMemberAccessExpression;
