@@ -630,6 +630,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsExpressionStatement([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.ExpressionStatement;
 
+        public bool IsLockStatement([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.LockStatement;
+
         public bool IsReturnStatement([NotNullWhen(true)] SyntaxNode node)
             => node?.RawKind == SyntaxKinds.ReturnStatement;
 

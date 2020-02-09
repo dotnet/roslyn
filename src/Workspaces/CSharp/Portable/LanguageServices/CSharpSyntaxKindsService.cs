@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int HashToken => (int)SyntaxKind.HashToken;
 
         public override int ExpressionStatement => (int)SyntaxKind.ExpressionStatement;
+        public override int LockStatement => (int)SyntaxKind.LockStatement;
         public override int ReturnStatement => (int)SyntaxKind.ReturnStatement;
         public override int UsingStatement => (int)SyntaxKind.UsingStatement;
     }

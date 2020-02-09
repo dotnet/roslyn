@@ -216,9 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
-        public bool IsLockStatement(SyntaxNode node)
-            => node is LockStatementSyntax;
-
         public bool IsStatement(SyntaxNode node)
            => node is StatementSyntax;
 
