@@ -645,6 +645,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsUsingStatement([NotNullWhen(true)] SyntaxNode node)
             => node?.RawKind == SyntaxKinds.UsingStatement;
 
+        public bool IsAttribute([NotNullWhen(true)] SyntaxNode node)
+            => node?.RawKind == SyntaxKinds.Attribute;
+
         public bool IsParameter([NotNullWhen(true)] SyntaxNode node)
             => node?.RawKind == SyntaxKinds.Parameter;
 

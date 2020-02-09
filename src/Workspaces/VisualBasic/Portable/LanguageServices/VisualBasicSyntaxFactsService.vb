@@ -674,8 +674,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, ParenthesizedExpressionSyntax).Expression
         End Function
 
-        Public Function IsAttribute(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttribute
-            Return TypeOf node Is AttributeSyntax
+        Private Function ISyntaxFacts_IsAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttribute
+            Return IsAttribute(node)
         End Function
 
         Public Function IsAttributeNamedArgumentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttributeNamedArgumentIdentifier

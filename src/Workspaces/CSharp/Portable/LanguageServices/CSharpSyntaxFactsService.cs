@@ -609,9 +609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node)
             => ((ParenthesizedExpressionSyntax)node).Expression;
 
-        public bool IsAttribute(SyntaxNode node)
-            => node is AttributeSyntax;
-
         public bool IsAttributeNamedArgumentIdentifier(SyntaxNode node)
             => (node as IdentifierNameSyntax).IsAttributeNamedArgumentIdentifier();
 
