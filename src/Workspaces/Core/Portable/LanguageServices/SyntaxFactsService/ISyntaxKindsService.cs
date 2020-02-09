@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int UsingStatement { get; }
 
         int Parameter { get; }
+        int TypeConstraint { get; }
         int VariableDeclarator { get; }
 
         int TypeArgumentList { get; }
@@ -114,6 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int UsingStatement { get; }
 
         public abstract int Parameter { get; }
+        public abstract int TypeConstraint { get; }
         public abstract int VariableDeclarator { get; }
 
         public abstract int TypeArgumentList { get; }

@@ -646,8 +646,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return IsTypeArgumentList(node)
         End Function
 
-        Public Function IsTypeConstraint(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeConstraint
-            Return node.IsKind(SyntaxKind.TypeConstraint)
+        Private Function ISyntaxFacts_IsTypeConstraint(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeConstraint
+            Return IsTypeConstraint(node)
         End Function
 
         Public Function IsInConstantContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInConstantContext

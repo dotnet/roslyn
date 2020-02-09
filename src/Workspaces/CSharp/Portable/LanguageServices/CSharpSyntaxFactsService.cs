@@ -594,9 +594,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                    argument.NameColon == null;
         }
 
-        public bool IsTypeConstraint(SyntaxNode node)
-            => node.IsKind(SyntaxKind.TypeConstraint);
-
         public bool IsInConstantContext(SyntaxNode node)
             => (node as ExpressionSyntax).IsInConstantContext();
 
