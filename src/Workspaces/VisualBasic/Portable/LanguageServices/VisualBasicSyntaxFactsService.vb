@@ -1368,8 +1368,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return token.Kind() = SyntaxKind.CharacterLiteralToken
         End Function
 
-        Public Overrides Function IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
-            Return token.IsKind(SyntaxKind.StringLiteralToken)
+        Private Function ISyntaxFacts_IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
+            Return IsStringLiteral(token)
         End Function
 
         Public Overrides Function IsInterpolatedStringTextToken(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsInterpolatedStringTextToken

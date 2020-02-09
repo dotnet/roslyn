@@ -25,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Overrides ReadOnly Property DotToken As Integer = SyntaxKind.DotToken
         Public Overrides ReadOnly Property QuestionToken As Integer = SyntaxKind.QuestionToken
+        Public Overrides ReadOnly Property StringLiteralToken As Integer = SyntaxKind.StringLiteralToken
 
         Public Overrides ReadOnly Property IfKeyword As Integer = SyntaxKind.IfKeyword
 

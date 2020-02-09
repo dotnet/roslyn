@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int DotToken { get; }
         int QuestionToken { get; }
+        int StringLiteralToken { get; }
 
         int IfKeyword { get; }
 
@@ -83,6 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract int DotToken { get; }
         public abstract int QuestionToken { get; }
+        public abstract int StringLiteralToken { get; }
 
         public abstract int IfKeyword { get; }
 

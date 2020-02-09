@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public override int DotToken => (int)SyntaxKind.DotToken;
         public override int QuestionToken => (int)SyntaxKind.QuestionToken;
+        public override int StringLiteralToken => (int)SyntaxKind.StringLiteralToken;
 
         public override int IfKeyword => (int)SyntaxKind.IfKeyword;
 
