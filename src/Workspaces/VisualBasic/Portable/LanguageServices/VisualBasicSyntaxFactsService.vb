@@ -280,8 +280,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return IsParameter(node)
         End Function
 
-        Public Function IsVariableDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsVariableDeclarator
-            Return TypeOf node Is VariableDeclaratorSyntax
+        Private Function ISyntaxFacts_IsVariableDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsVariableDeclarator
+            Return IsVariableDeclarator(node)
         End Function
 
         Public Function IsMethodBody(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMethodBody
