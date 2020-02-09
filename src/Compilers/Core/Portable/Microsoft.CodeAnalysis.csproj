@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <NoStdLib>true</NoStdLib>
@@ -18,7 +18,12 @@
       A shared package used by the Microsoft .NET Compiler Platform ("Roslyn").
       Do not install this package manually, it will be added as a prerequisite by other packages that require it.
     </PackageDescription>
+
+    <!-- Disable the nullable warnings when compiling for netcoreapp3.1 during our transition period -->
+    <DisableNullableWarnings Condition="'$(TargetFramework)' == 'netcoreapp3.1'">true</DisableNullableWarnings>
+    <DisableNullableWarnings Condition="'$(TargetFramework)' == 'netstandard2.0'">false</DisableNullableWarnings>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Update="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>

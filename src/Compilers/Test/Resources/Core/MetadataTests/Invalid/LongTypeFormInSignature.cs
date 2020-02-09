@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // 1) csc /target:library LongTypeFormInSignature.cs
 // 2) open in a binary editor and replace "Attribute" with "String\0\0\0" and "DateTime" with "Double\0\0" (the only occurrence should be in the #String heap).

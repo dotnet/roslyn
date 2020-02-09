@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2692,7 +2694,7 @@ class Program
         public int field;
 
         public static implicit operator S1(int arg) => new S1 {field = arg };
-        
+
         public void Mutate()
         {
             field = 42;
@@ -2775,13 +2777,13 @@ public class C<T>
     public C(){}
 
     private T t;
-    
+
     public void Print()
     {
         Console.WriteLine(t?.ToString());
         Console.WriteLine(t);
     }
-    
+
 }
 
 public struct S
@@ -2848,13 +2850,13 @@ hello");
         public void ConditionalAccessReadonlyUnconstrainedTField()
         {
             var source = @"using System;
-public class C<T> 
+public class C<T>
 {
     public C(T t) => this.t = t;
     public C(){}
 
     readonly T t;
-    
+
     public void Print()
     {
         Console.WriteLine(t?.ToString());
@@ -2928,14 +2930,14 @@ public class C<T>
     public C(){}
 
     private T t;
-    
-    public void Print() 
+
+    public void Print()
     {
         var temp = t;
         Console.WriteLine(temp?.ToString());
         Console.WriteLine(temp);
     }
-    
+
 }
 
 public struct S
@@ -3002,7 +3004,7 @@ public class C<T>
     T t;
 
     T M() => t;
-    
+
     public void Print() => Console.WriteLine(M()?.ToString());
 }
 

@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Text.RegularExpressions;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
@@ -2073,6 +2076,90 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <Capture Name=""0"" Span=""[9..16)"" Text=""a{0,1 }"" />
   </Captures>
 </Tree>", RegexOptions.IgnorePatternWhitespace);
+        }
+
+        [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
+        public void TestLegalOpenCloseBrace1()
+        {
+            Test(@"@""{}""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Text>
+        <TextToken>{}</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..12)"" Text=""{}"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
+        public void TestLegalOpenCloseBrace2()
+        {
+            Test(@"@""{1, 2}""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Text>
+        <TextToken>{1, 2}</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..16)"" Text=""{1, 2}"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
+        public void TestDanglingNumericQuantifier1()
+        {
+            Test(@"@""{1}""", $@"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Text>
+        <TextToken>{{</TextToken>
+      </Text>
+      <Text>
+        <TextToken>1}}</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[10..11)"" Text=""{{"" />
+  </Diagnostics>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..13)"" Text=""{{1}}"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact, WorkItem(41425, "https://github.com/dotnet/roslyn/issues/41425")]
+        public void TestDanglingNumericQuantifier2()
+        {
+            Test(@"@""{1,2}""", $@"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Text>
+        <TextToken>{{</TextToken>
+      </Text>
+      <Text>
+        <TextToken>1,2}}</TextToken>
+      </Text>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[10..11)"" Text=""{{"" />
+  </Diagnostics>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..15)"" Text=""{{1,2}}"" />
+  </Captures>
+</Tree>", RegexOptions.None);
         }
 
         [Fact]

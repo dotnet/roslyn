@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -322,10 +324,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var newVarWhenTypeIsApparentValue = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
             var newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue = new CodeStyleOption<bool>(true, NotificationOption.Silent);
 
-            workspace.Options = workspace.Options.WithChangedOption(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp, newQualifyFieldAccessValue)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                                                 .WithChangedOption(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp, newQualifyFieldAccessValue)
                                                  .WithChangedOption(CodeStyleOptions.QualifyMethodAccess, LanguageNames.VisualBasic, newQualifyMethodAccessValue)
                                                  .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, newVarWhenTypeIsApparentValue)
-                                                 .WithChangedOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue);
+                                                 .WithChangedOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue)));
 
             await VerifyOptionSetsAsync(workspace, VerifyOptions).ConfigureAwait(false);
 
@@ -560,7 +563,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             var sourceText = SourceText.From("Hello", Encoding.UTF8);
             using (var stream = SerializableBytes.CreateWritableStream())
             {
-                using (var objectWriter = new ObjectWriter(stream))
+                using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
                     serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
                 }
@@ -577,7 +580,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             sourceText = SourceText.From("Hello", new NotSerializableEncoding());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
-                using (var objectWriter = new ObjectWriter(stream))
+                using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
                     serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
                 }
@@ -608,7 +611,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             void VerifyOptions(CompilationOptions originalOptions)
             {
                 using var stream = SerializableBytes.CreateWritableStream();
-                using (var objectWriter = new ObjectWriter(stream))
+                using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
                     serializer.Serialize(originalOptions, objectWriter, CancellationToken.None);
                 }
@@ -701,8 +704,11 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         private static async Task<RemotableData> CloneAssetAsync(ISerializerService serializer, RemotableData asset)
         {
             using var stream = SerializableBytes.CreateWritableStream();
-            using var writer = new ObjectWriter(stream);
-            await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
+                await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+            }
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);

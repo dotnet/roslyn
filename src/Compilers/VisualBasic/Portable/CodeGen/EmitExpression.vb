@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -332,59 +334,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         ' here we have loaded two copies of a reference   { O, O }
                     End If
                 Else
-                    EmitExpression(receiver, True)
-                    If Not receiverType.IsReferenceType Then
-                        EmitBox(receiverType, receiver.Syntax)
-                    End If
-
-                    ' here we have loaded just { O }
-                    ' we have the most trivial case where we can just reload O when needed
+                EmitExpression(receiver, True)
+                If Not receiverType.IsReferenceType Then
+                    EmitBox(receiverType, receiver.Syntax)
                 End If
 
-                _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel)
+                ' here we have loaded just { O }
+                ' we have the most trivial case where we can just reload O when needed
+            End If
 
-                If nullCheckOnCopy Then
-                    _builder.EmitOpCode(ILOpCode.Pop)
-                End If
+            _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel)
 
-                If conditional.WhenNullOpt IsNot Nothing Then
-                    EmitExpression(conditional.WhenNullOpt, used)
-                Else
-                    Debug.Assert(Not used)
-                End If
+            If nullCheckOnCopy Then
+                _builder.EmitOpCode(ILOpCode.Pop)
+            End If
 
-                _builder.EmitBranch(ILOpCode.Br, doneLabel)
+            If conditional.WhenNullOpt IsNot Nothing Then
+                EmitExpression(conditional.WhenNullOpt, used)
+            Else
+                Debug.Assert(Not used)
+            End If
 
-                If used Then
-                    ' If we get to whenNotNullLabel, we should not have WhenNullOpt on stack, adjust for that.
-                    _builder.AdjustStack(-1)
-                End If
+            _builder.EmitBranch(ILOpCode.Br, doneLabel)
 
-                If nullCheckOnCopy Then
-                    ' whenNull branch pops copy of the receiver off the stack when nullCheckOnCopy
-                    ' however on this branch we still have the stack as it was and need 
-                    ' to adjust stack depth accordingly.
-                    _builder.AdjustStack(+1)
-                End If
+            If used Then
+                ' If we get to whenNotNullLabel, we should not have WhenNullOpt on stack, adjust for that.
+                _builder.AdjustStack(-1)
+            End If
 
-                _builder.MarkLabel(whenNotNullLabel)
+            If nullCheckOnCopy Then
+                ' whenNull branch pops copy of the receiver off the stack when nullCheckOnCopy
+                ' however on this branch we still have the stack as it was and need 
+                ' to adjust stack depth accordingly.
+                _builder.AdjustStack(+1)
+            End If
 
-                If Not nullCheckOnCopy Then
+            _builder.MarkLabel(whenNotNullLabel)
+
+            If Not nullCheckOnCopy Then
                     Debug.Assert(receiverTemp Is Nothing)
                     receiverTemp = EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
                     Debug.Assert(receiverTemp Is Nothing OrElse receiver.IsDefaultValue())
-                End If
+            End If
 
-                EmitExpression(conditional.WhenNotNull, used)
-                _builder.MarkLabel(doneLabel)
+            EmitExpression(conditional.WhenNotNull, used)
+            _builder.MarkLabel(doneLabel)
 
-                If temp IsNot Nothing Then
-                    FreeTemp(temp)
-                End If
+            If temp IsNot Nothing Then
+                FreeTemp(temp)
+            End If
 
-                If receiverTemp IsNot Nothing Then
-                    FreeTemp(receiverTemp)
-                End If
+            If receiverTemp IsNot Nothing Then
+                FreeTemp(receiverTemp)
+            End If
             End If
         End Sub
 
