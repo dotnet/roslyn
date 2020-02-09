@@ -44,6 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Overrides ReadOnly Property ReferenceEqualsExpression As Integer = SyntaxKind.IsExpression
         Public Overrides ReadOnly Property ReferenceNotEqualsExpression As Integer = SyntaxKind.IsNotExpression
         Public Overrides ReadOnly Property SimpleMemberAccessExpression As Integer = SyntaxKind.SimpleMemberAccessExpression
+        Public Overrides ReadOnly Property StringLiteralExpression As Integer = SyntaxKind.StringLiteralExpression
         Public Overrides ReadOnly Property TernaryConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression
 
         Public Overrides ReadOnly Property EndOfFileToken As Integer = SyntaxKind.EndOfFileToken

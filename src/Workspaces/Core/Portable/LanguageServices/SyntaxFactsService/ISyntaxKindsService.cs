@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ReferenceEqualsExpression { get; }
         int ReferenceNotEqualsExpression { get; }
         int SimpleMemberAccessExpression { get; }
+        int StringLiteralExpression { get; }
         int TernaryConditionalExpression { get; }
 
         int EndOfFileToken { get; }
@@ -104,6 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int ReferenceEqualsExpression { get; }
         public abstract int ReferenceNotEqualsExpression { get; }
         public abstract int SimpleMemberAccessExpression { get; }
+        public abstract int StringLiteralExpression { get; }
         public abstract int TernaryConditionalExpression { get; }
 
         public abstract int EndOfFileToken { get; }

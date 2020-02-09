@@ -1376,8 +1376,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return IsInterpolatedStringTextToken(token)
         End Function
 
-        Public Function IsStringLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStringLiteralExpression
-            Return node.Kind() = SyntaxKind.StringLiteralExpression
+        Private Function ISyntaxFacts_IsStringLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStringLiteralExpression
+            Return IsStringLiteralExpression(node)
         End Function
 
         Public Function IsCharacterLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsCharacterLiteralExpression

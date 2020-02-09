@@ -636,6 +636,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.SimpleMemberAccessExpression;
 
+        public bool IsStringLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.StringLiteralExpression;
+
         public bool IsExpressionStatement([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.ExpressionStatement;
 

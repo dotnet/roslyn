@@ -1279,9 +1279,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((interpolatedString as InterpolatedStringExpressionSyntax)?.Contents).Value;
         }
 
-        public bool IsStringLiteralExpression(SyntaxNode node)
-            => node.Kind() == SyntaxKind.StringLiteralExpression;
-
         public bool IsCharacterLiteralExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.CharacterLiteralExpression;
 
