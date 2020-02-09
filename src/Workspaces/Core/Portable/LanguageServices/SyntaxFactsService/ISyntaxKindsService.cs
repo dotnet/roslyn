@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int IdentifierName { get; }
         int QualifiedName { get; }
 
+        int TupleType { get; }
+
         int AnonymousObjectCreationExpression { get; }
         int AwaitExpression { get; }
         int CharacterLiteralExpression { get; }
@@ -99,6 +101,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int GenericName { get; }
         public abstract int IdentifierName { get; }
         public abstract int QualifiedName { get; }
+
+        public abstract int TupleType { get; }
 
         public abstract int AnonymousObjectCreationExpression { get; }
         public abstract int AwaitExpression { get; }

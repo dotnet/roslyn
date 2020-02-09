@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int IdentifierName => (int)SyntaxKind.IdentifierName;
         public override int QualifiedName => (int)SyntaxKind.QualifiedName;
 
+        public override int TupleType => (int)SyntaxKind.TupleType;
+
         public override int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;
         public override int AwaitExpression => (int)SyntaxKind.AwaitExpression;
         public override int CharacterLiteralExpression => (int)SyntaxKind.CharacterLiteralExpression;

@@ -1523,9 +1523,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsConditionalOr(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalOrExpression;
 
-        public bool IsTupleType(SyntaxNode node)
-            => node.Kind() == SyntaxKind.TupleType;
-
         public void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
             out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode
         {

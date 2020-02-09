@@ -1679,8 +1679,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return IsTupleExpression(node)
         End Function
 
-        Public Function IsTupleType(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTupleType
-            Return node.Kind() = SyntaxKind.TupleType
+        Private Function ISyntaxFacts_IsTupleType(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTupleType
+            Return IsTupleType(node)
         End Function
 
         Public Sub GetPartsOfTupleExpression(Of TArgumentSyntax As SyntaxNode)(

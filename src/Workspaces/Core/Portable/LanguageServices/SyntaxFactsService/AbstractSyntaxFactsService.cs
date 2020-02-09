@@ -621,6 +621,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsQualifiedName([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.QualifiedName;
 
+        public bool IsTupleType([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.TupleType;
+
         public bool IsAwaitExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.AwaitExpression;
 
