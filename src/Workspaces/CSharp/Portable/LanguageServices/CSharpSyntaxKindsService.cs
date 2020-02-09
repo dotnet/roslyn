@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int QualifiedName => (int)SyntaxKind.QualifiedName;
 
         public override int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;
+        public override int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
         public override int InvocationExpression => (int)SyntaxKind.InvocationExpression;
         public override int LogicalAndExpression => (int)SyntaxKind.LogicalAndExpression;
         public override int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;

@@ -517,9 +517,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public bool IsConditionalAccessExpression(SyntaxNode node)
-            => node is ConditionalAccessExpressionSyntax;
-
         public void GetPartsOfConditionalAccessExpression(
             SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull)
         {

@@ -615,6 +615,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsQualifiedName([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.QualifiedName;
 
+        public bool IsConditionalAccessExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.ConditionalAccessExpression;
+
         public bool IsInvocationExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.InvocationExpression;
 
