@@ -180,9 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetParameterList(SyntaxNode node)
             => CSharpSyntaxGenerator.GetParameterList(node);
 
-        public bool IsSkippedTokensTrivia(SyntaxNode node)
-            => node is SkippedTokensTriviaSyntax;
-
         public SyntaxToken GetIdentifierOfGenericName(SyntaxNode genericName)
         {
             return genericName is GenericNameSyntax csharpGenericName

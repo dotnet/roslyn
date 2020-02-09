@@ -226,8 +226,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisualBasicSyntaxGenerator.GetParameterList(node)
         End Function
 
-        Public Function IsSkippedTokensTrivia(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSkippedTokensTrivia
-            Return TypeOf node Is SkippedTokensTriviaSyntax
+        Private Function ISyntaxFacts_IsSkippedTokensTrivia(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSkippedTokensTrivia
+            Return IsSkippedTokensTrivia(node)
         End Function
 
         Public Function ISyntaxFactsService_HasIncompleteParentMember(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.HasIncompleteParentMember

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ConflictMarkerTrivia { get; }
         int DisabledTextTrivia { get; }
         int EndOfLineTrivia { get; }
+        int SkippedTokensTrivia { get; }
 
         int DotToken { get; }
         int QuestionToken { get; }
@@ -67,6 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int ConflictMarkerTrivia { get; }
         public abstract int DisabledTextTrivia { get; }
         public abstract int EndOfLineTrivia { get; }
+        public abstract int SkippedTokensTrivia { get; }
 
         public abstract int DotToken { get; }
         public abstract int QuestionToken { get; }

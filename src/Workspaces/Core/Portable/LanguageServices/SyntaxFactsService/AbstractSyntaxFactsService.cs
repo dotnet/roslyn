@@ -606,6 +606,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
 #nullable enable
 
+        public bool IsSkippedTokensTrivia([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.SkippedTokensTrivia;
+
         public bool IsGenericName([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.GenericName;
 

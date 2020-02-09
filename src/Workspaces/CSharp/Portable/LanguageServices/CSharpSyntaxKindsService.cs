@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int ConflictMarkerTrivia => (int)SyntaxKind.ConflictMarkerTrivia;
         public override int DisabledTextTrivia => (int)SyntaxKind.DisabledTextTrivia;
         public override int EndOfLineTrivia => (int)SyntaxKind.EndOfLineTrivia;
+        public override int SkippedTokensTrivia => (int)SyntaxKind.SkippedTokensTrivia;
 
         public override int DotToken => (int)SyntaxKind.DotToken;
         public override int QuestionToken => (int)SyntaxKind.QuestionToken;
