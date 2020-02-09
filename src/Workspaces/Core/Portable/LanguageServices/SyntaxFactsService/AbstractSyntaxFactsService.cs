@@ -296,8 +296,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private bool IsOnSingleLine(string value)
             => value.GetNumberOfLineBreaks() == 0;
 
-        public abstract bool IsInterpolatedStringTextToken(SyntaxToken token);
-
         public ImmutableArray<SyntaxTrivia> GetLeadingBlankLines(SyntaxNode node)
             => GetLeadingBlankLines<SyntaxNode>(node);
 
@@ -599,6 +597,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool IsHashToken(SyntaxToken token)
             => token.RawKind == SyntaxKinds.HashToken;
+
+        public bool IsInterpolatedStringTextToken(SyntaxToken token)
+            => token.RawKind == SyntaxKinds.InterpolatedStringTextToken;
 
         public bool IsStringLiteral(SyntaxToken token)
             => token.RawKind == SyntaxKinds.StringLiteralToken;
