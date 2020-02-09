@@ -1514,12 +1514,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode WalkDownParentheses(SyntaxNode node)
             => (node as ExpressionSyntax)?.WalkDownParentheses() ?? node;
 
-        public bool IsLogicalAndExpression(SyntaxNode node)
-            => node.Kind() == SyntaxKind.LogicalAndExpression;
-
-        public bool IsLogicalOrExpression(SyntaxNode node)
-            => node.Kind() == SyntaxKind.LogicalOrExpression;
-
         public bool IsLogicalNotExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalNotExpression;
 

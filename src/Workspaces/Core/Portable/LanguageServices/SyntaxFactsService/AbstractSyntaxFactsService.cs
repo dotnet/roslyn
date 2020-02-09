@@ -633,6 +633,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsInvocationExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.InvocationExpression;
 
+        public bool IsLogicalAndExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.LogicalAndExpression;
+
+        public bool IsLogicalOrExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == SyntaxKinds.LogicalOrExpression;
+
         public bool IsObjectCreationExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.ObjectCreationExpression;
 

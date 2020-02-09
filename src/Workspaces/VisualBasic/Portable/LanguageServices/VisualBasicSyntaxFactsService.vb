@@ -1655,12 +1655,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(TryCast(node, ExpressionSyntax)?.WalkDownParentheses(), node)
         End Function
 
-        Public Function IsLogicalAndExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalAndExpression
-            Return node.IsKind(SyntaxKind.AndAlsoExpression)
+        Private Function ISyntaxFacts_IsLogicalAndExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalAndExpression
+            Return IsLogicalAndExpression(node)
         End Function
 
-        Public Function IsLogicalOrExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalOrExpression
-            Return node.IsKind(SyntaxKind.OrElseExpression)
+        Private Function ISyntaxFacts_IsLogicalOrExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalOrExpression
+            Return IsLogicalOrExpression(node)
         End Function
 
         Public Function IsLogicalNotExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalNotExpression
