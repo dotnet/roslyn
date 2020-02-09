@@ -241,8 +241,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             // Only string literals can span multiple lines.  Only need to check those.
-            if (IsStringLiteral(token) ||
-                IsInterpolatedStringTextToken(token))
+            if (this.SyntaxKinds.StringLiteralToken == token.RawKind ||
+                this.SyntaxKinds.InterpolatedStringTextToken == token.RawKind)
             {
                 // This allocated.  But we only do it in the string case. For all other tokens
                 // we don't need any allocations.
@@ -586,122 +586,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
 
-        public bool IsAwaitKeyword(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.AwaitKeyword;
-
-        public bool IsIdentifier(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.IdentifierToken;
-
-        public bool IsGlobalNamespaceKeyword(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.GlobalKeyword;
-
-        public bool IsHashToken(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.HashToken;
-
-        public bool IsInterpolatedStringTextToken(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.InterpolatedStringTextToken;
-
-        public bool IsStringLiteral(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.StringLiteralToken;
-
         public bool HasIncompleteParentMember(SyntaxNode node)
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
-
-#nullable enable
-
-        public bool IsSkippedTokensTrivia([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.SkippedTokensTrivia;
-
-        public bool IsGenericName([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.GenericName;
-
-        public bool IsIdentifierName([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.IdentifierName;
-
-        public bool IsQualifiedName([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.QualifiedName;
-
-        public bool IsTupleType([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.TupleType;
-
-        public bool IsAwaitExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.AwaitExpression;
-
-        public bool IsBaseExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.BaseExpression;
-
-        public bool IsCharacterLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.CharacterLiteralExpression;
-
-        public bool IsConditionalAccessExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.ConditionalAccessExpression;
-
-        public bool IsFalseLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.FalseLiteralExpression;
-
-        public bool IsInvocationExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.InvocationExpression;
-
-        public bool IsLogicalAndExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.LogicalAndExpression;
-
-        public bool IsLogicalOrExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.LogicalOrExpression;
-
-        public bool IsObjectCreationExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.ObjectCreationExpression;
-
-        public bool IsParenthesizedExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.ParenthesizedExpression;
-
-        public bool IsQueryExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.QueryExpression;
-
-        public bool IsSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.SimpleMemberAccessExpression;
-
-        public bool IsStringLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.StringLiteralExpression;
-
-        public bool IsThisExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.ThisExpression;
-
-        public bool IsTrueLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.TrueLiteralExpression;
-
-        public bool IsTupleExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.TupleExpression;
-
-        public bool IsExpressionStatement([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.ExpressionStatement;
-
-        public bool IsLocalDeclarationStatement([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.LocalDeclarationStatement;
-
-        public bool IsLockStatement([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.LockStatement;
-
-        public bool IsReturnStatement([NotNullWhen(true)] SyntaxNode node)
-            => node?.RawKind == SyntaxKinds.ReturnStatement;
-
-        public bool IsUsingStatement([NotNullWhen(true)] SyntaxNode node)
-            => node?.RawKind == SyntaxKinds.UsingStatement;
-
-        public bool IsAttribute([NotNullWhen(true)] SyntaxNode node)
-            => node?.RawKind == SyntaxKinds.Attribute;
-
-        public bool IsParameter([NotNullWhen(true)] SyntaxNode node)
-            => node?.RawKind == SyntaxKinds.Parameter;
-
-        public bool IsTypeConstraint([NotNullWhen(true)] SyntaxNode node)
-            => node?.RawKind == SyntaxKinds.TypeConstraint;
-
-        public bool IsVariableDeclarator([NotNullWhen(true)] SyntaxNode node)
-            => node?.RawKind == SyntaxKinds.VariableDeclarator;
-
-        public bool IsTypeArgumentList([NotNullWhen(true)] SyntaxNode node)
-            => node?.RawKind == SyntaxKinds.TypeArgumentList;
-
-#nullable restore
     }
 }

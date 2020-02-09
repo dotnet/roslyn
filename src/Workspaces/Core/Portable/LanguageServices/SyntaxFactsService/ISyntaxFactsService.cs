@@ -29,9 +29,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxToken ParseToken(string text);
 
-        bool IsAwaitKeyword(SyntaxToken token);
-        bool IsIdentifier(SyntaxToken token);
-        bool IsGlobalNamespaceKeyword(SyntaxToken token);
         bool IsVerbatimIdentifier(SyntaxToken token);
         bool IsOperator(SyntaxToken token);
         bool IsPredefinedType(SyntaxToken token);
@@ -78,18 +75,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// preprocessor directive.  For example `if` or `pragma`.
         /// </summary>
         bool IsPreprocessorKeyword(SyntaxToken token);
-        bool IsHashToken(SyntaxToken token);
 
         bool IsLiteral(SyntaxToken token);
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
 
         bool IsNumericLiteral(SyntaxToken token);
         bool IsCharacterLiteral(SyntaxToken token);
-        bool IsStringLiteral(SyntaxToken token);
         bool IsVerbatimStringLiteral(SyntaxToken token);
-        bool IsInterpolatedStringTextToken(SyntaxToken token);
-        bool IsStringLiteralExpression(SyntaxNode node);
-        bool IsCharacterLiteralExpression(SyntaxNode node);
 
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
@@ -108,10 +100,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNullLiteralExpression(SyntaxNode node);
         bool IsDefaultLiteralExpression(SyntaxNode node);
         bool IsLiteralExpression(SyntaxNode node);
-        bool IsFalseLiteralExpression(SyntaxNode node);
-        bool IsTrueLiteralExpression(SyntaxNode node);
-        bool IsThisExpression(SyntaxNode node);
-        bool IsBaseExpression(SyntaxNode node);
 
         string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -124,7 +112,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool TryGetExternalSourceInfo(SyntaxNode directive, out ExternalSourceInfo info);
 
         bool IsObjectCreationExpressionType(SyntaxNode node);
-        bool IsObjectCreationExpression(SyntaxNode node);
         SyntaxNode GetObjectCreationInitializer(SyntaxNode node);
         SyntaxNode GetObjectCreationType(SyntaxNode node);
 
@@ -136,35 +123,24 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsCastExpression(SyntaxNode node);
         void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression);
 
-#nullable enable
-        bool IsInvocationExpression([NotNullWhen(true)] SyntaxNode? node);
-#nullable restore
-
         bool IsExpressionOfInvocationExpression(SyntaxNode node);
         void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
 
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
 
-        bool IsAwaitExpression(SyntaxNode node);
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
         bool IsExpressionOfForeach(SyntaxNode node);
 
-        bool IsLogicalAndExpression(SyntaxNode node);
-        bool IsLogicalOrExpression(SyntaxNode node);
         bool IsLogicalNotExpression([NotNullWhen(true)] SyntaxNode node);
         bool IsConditionalAnd(SyntaxNode node);
         bool IsConditionalOr(SyntaxNode node);
 
-        bool IsTupleExpression(SyntaxNode node);
         void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
             out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode;
 
-        bool IsTupleType(SyntaxNode node);
-
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
         SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node);
-
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment(SyntaxNode node);
@@ -222,15 +198,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetTargetOfMemberBinding(SyntaxNode node);
 
-        bool IsSimpleMemberAccessExpression(SyntaxNode node);
         bool IsPointerMemberAccessExpression(SyntaxNode node);
 
         bool IsNamedParameter(SyntaxNode node);
         SyntaxToken? GetNameOfParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
         SyntaxNode GetParameterList(SyntaxNode node);
-
-        bool IsSkippedTokensTrivia(SyntaxNode node);
 
         bool IsWhitespaceTrivia(SyntaxTrivia trivia);
         bool IsEndOfLineTrivia(SyntaxTrivia trivia);
@@ -242,7 +215,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
 
-        bool IsConditionalAccessExpression(SyntaxNode node);
         void GetPartsOfConditionalAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull);
 
 #nullable enable
@@ -250,7 +222,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 #nullable restore
         bool IsPostfixUnaryExpression(SyntaxNode node);
 
-        bool IsParenthesizedExpression([NotNullWhen(true)] SyntaxNode node);
         SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
 
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
@@ -265,8 +236,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsSimpleArgument(SyntaxNode node);
         bool IsArgument(SyntaxNode node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
-        bool IsTypeArgumentList(SyntaxNode node);
-        bool IsTypeConstraint(SyntaxNode node);
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         bool LooksGeneric(SyntaxNode simpleName);
@@ -278,11 +247,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode node);
 
         bool IsUsingDirectiveName(SyntaxNode node);
-        bool IsIdentifierName([NotNullWhen(true)] SyntaxNode node);
-        bool IsGenericName(SyntaxNode node);
-        bool IsQualifiedName(SyntaxNode node);
 
-        bool IsAttribute(SyntaxNode node);
         bool IsAttributeName(SyntaxNode node);
         SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
 
@@ -292,13 +257,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsDirective(SyntaxNode node);
         bool IsForEachStatement(SyntaxNode node);
-        bool IsLockStatement(SyntaxNode node);
-        bool IsUsingStatement(SyntaxNode node);
         bool IsStatement(SyntaxNode node);
         bool IsExecutableStatement(SyntaxNode node);
-        bool IsParameter(SyntaxNode node);
 
-        bool IsVariableDeclarator(SyntaxNode node);
         bool IsDeconstructionAssignment(SyntaxNode node);
         bool IsDeconstructionForEachStatement(SyntaxNode node);
 
@@ -316,14 +277,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         bool IsMethodBody(SyntaxNode node);
 
-#nullable enable
-        bool IsExpressionStatement([NotNullWhen(true)] SyntaxNode? node);
-#nullable restore
-
-        bool IsReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
 
-        bool IsLocalDeclarationStatement(SyntaxNode node);
         bool IsLocalFunctionStatement(SyntaxNode node);
 
         bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement);
@@ -333,7 +288,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsThisConstructorInitializer(SyntaxToken token);
         bool IsBaseConstructorInitializer(SyntaxToken token);
-        bool IsQueryExpression(SyntaxNode node);
         bool IsQueryKeyword(SyntaxToken token);
         bool IsThrowExpression(SyntaxNode node);
         bool IsElementAccessExpression(SyntaxNode node);

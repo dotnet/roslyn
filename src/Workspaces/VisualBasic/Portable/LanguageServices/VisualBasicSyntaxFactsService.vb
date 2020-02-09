@@ -73,18 +73,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFactory.ParseToken(text, startStatement:=True)
         End Function
 
-        Private Function ISyntaxFactsService_IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
-            Return IsAwaitKeyword(token)
-        End Function
-
-        Private Function ISyntaxFactsService_IsIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsIdentifier
-            Return IsIdentifier(token)
-        End Function
-
-        Private Function ISyntaxFactsService_IsGlobalNamespaceKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsGlobalNamespaceKeyword
-            Return IsGlobalNamespaceKeyword(token)
-        End Function
-
         Public Function IsVerbatimIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsVerbatimIdentifier
             Return False
         End Function
@@ -104,10 +92,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsPreprocessorKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsPreprocessorKeyword
             Return token.IsPreprocessorKeyword()
-        End Function
-
-        Public Function ISyntaxFactsService_IsHashToken(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsHashToken
-            Return IsHashToken(token)
         End Function
 
         Public Function TryGetCorrespondingOpenBrace(token As SyntaxToken, ByRef openBrace As SyntaxToken) As Boolean Implements ISyntaxFactsService.TryGetCorrespondingOpenBrace
@@ -183,10 +167,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return vbNode IsNot Nothing AndAlso vbNode.IsMemberAccessExpressionName()
         End Function
 
-        Private Function ISyntaxFacts_IsConditionalAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalAccessExpression
-            Return IsConditionalAccessExpression(node)
-        End Function
-
         Public Sub GetPartsOfConditionalAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef whenNotNull As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfConditionalAccessExpression
             Dim conditionalAccess = DirectCast(node, ConditionalAccessExpressionSyntax)
             expression = conditionalAccess.Expression
@@ -194,20 +174,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             whenNotNull = conditionalAccess.WhenNotNull
         End Sub
 
-        Private Function ISyntaxFacts_IsInvocationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInvocationExpression
-            Return IsInvocationExpression(node)
-        End Function
-
         Public Function IsAnonymousFunction(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAnonymousFunction
             Return TypeOf node Is LambdaExpressionSyntax
-        End Function
-
-        Private Function ISyntaxFacts_IsGenericName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsGenericName
-            Return IsGenericName(node)
-        End Function
-
-        Private Function ISyntaxFacts_IsQualifiedName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsQualifiedName
-            Return IsQualifiedName(node)
         End Function
 
         Public Function IsNamedParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNamedParameter
@@ -224,10 +192,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetParameterList(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetParameterList
             Return VisualBasicSyntaxGenerator.GetParameterList(node)
-        End Function
-
-        Private Function ISyntaxFacts_IsSkippedTokensTrivia(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSkippedTokensTrivia
-            Return IsSkippedTokensTrivia(node)
         End Function
 
         Public Function ISyntaxFactsService_HasIncompleteParentMember(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.HasIncompleteParentMember
@@ -256,32 +220,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Function ISyntaxFacts_IsLockStaisptement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLockStatement
-            Return IsLockStatement(node)
-        End Function
-
-        Private Function ISyntaxFactsService_IsUsingStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingStatement
-            Return IsUsingStatement(node)
-        End Function
-
-        Private Function ISyntaxFactsService_IsReturnStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsReturnStatement
-            Return IsReturnStatement(node)
-        End Function
-
         Public Function IsStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStatement
             Return TypeOf node Is StatementSyntax
         End Function
 
         Public Function IsExecutableStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExecutableStatement
             Return TypeOf node Is ExecutableStatementSyntax
-        End Function
-
-        Private Function ISyntaxFacts_IsParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsParameter
-            Return IsParameter(node)
-        End Function
-
-        Private Function ISyntaxFacts_IsVariableDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsVariableDeclarator
-            Return IsVariableDeclarator(node)
         End Function
 
         Public Function IsMethodBody(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMethodBody
@@ -308,10 +252,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return False
-        End Function
-
-        Private Function ISyntaxFacts_IsQueryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsQueryExpression
-            Return IsQueryExpression(node)
         End Function
 
         Public Function IsQueryKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsQueryKeyword
@@ -563,10 +503,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsOperator(token)
         End Function
 
-        Private Function ISyntaxFacts_IsSimpleMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleMemberAccessExpression
-            Return IsSimpleMemberAccessExpression(node)
-        End Function
-
         Public Function IsPointerMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPointerMemberAccessExpression
             Return False
         End Function
@@ -642,14 +578,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return argument IsNot Nothing AndAlso Not argument.IsNamed AndAlso Not argument.IsOmitted
         End Function
 
-        Private Function ISyntaxFacts_IsTypeArgumentList(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeArgumentList
-            Return IsTypeArgumentList(node)
-        End Function
-
-        Private Function ISyntaxFacts_IsTypeConstraint(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeConstraint
-            Return IsTypeConstraint(node)
-        End Function
-
         Public Function IsInConstantContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInConstantContext
             Return node.IsInConstantContext()
         End Function
@@ -662,20 +590,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function GetNameOfAttribute(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode Implements ISyntaxFactsService.GetNameOfAttribute
+        Public Function GetNameOfAttribute(node As SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode Implements ISyntaxFactsService.GetNameOfAttribute
             Return DirectCast(node, AttributeSyntax).Name
-        End Function
-
-        Private Function ISyntaxFacts_IsParenthesizedExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsParenthesizedExpression
-            Return IsParenthesizedExpression(node)
         End Function
 
         Public Function GetExpressionOfParenthesizedExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfParenthesizedExpression
             Return DirectCast(node, ParenthesizedExpressionSyntax).Expression
-        End Function
-
-        Private Function ISyntaxFacts_IsAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttribute
-            Return IsAttribute(node)
         End Function
 
         Public Function IsAttributeNamedArgumentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttributeNamedArgumentIdentifier
@@ -733,10 +653,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    Optional includeDirectives As Boolean = False,
                                                    Optional includeDocumentationComments As Boolean = False) As SyntaxToken Implements ISyntaxFactsService.FindTokenOnRightOfPosition
             Return node.FindTokenOnRightOfPosition(position, includeSkipped, includeDirectives, includeDocumentationComments)
-        End Function
-
-        Private Function ISyntaxFacts_IsObjectCreationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectCreationExpression
-            Return IsObjectCreationExpression(node)
         End Function
 
         Public Function IsObjectInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectInitializerNamedAssignmentIdentifier
@@ -1368,22 +1284,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return token.Kind() = SyntaxKind.CharacterLiteralToken
         End Function
 
-        Private Function ISyntaxFacts_IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
-            Return IsStringLiteral(token)
-        End Function
-
-        Private Function ISyntaxFacts_IsInterpolatedStringTextToken(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsInterpolatedStringTextToken
-            Return IsInterpolatedStringTextToken(token)
-        End Function
-
-        Private Function ISyntaxFacts_IsStringLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStringLiteralExpression
-            Return IsStringLiteralExpression(node)
-        End Function
-
-        Private Function ISyntaxFacts_IsCharacterLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsCharacterLiteralExpression
-            Return IsCharacterLiteralExpression(node)
-        End Function
-
         Public Function IsVerbatimStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsVerbatimStringLiteral
             ' VB does not have verbatim strings
             Return False
@@ -1562,16 +1462,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, VariableDeclaratorSyntax).Names.Last().Identifier
         End Function
 
-        Private Function ISyntaxFacts_IsIdentifierName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsIdentifierName
-            Return IsIdentifierName(node)
-        End Function
-
-        Private Function ISyntaxFacts_IsLocalDeclarationStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalDeclarationStatement
-            Return IsLocalDeclarationStatement(node)
-        End Function
-
         Public Function IsLocalFunctionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalFunctionStatement
-            ' VB does not have local funtions
+            ' VB does not have local functions
             Return False
         End Function
 
@@ -1590,10 +1482,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsExpressionOfInvocationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfInvocationExpression
             Return node IsNot Nothing AndAlso TryCast(node.Parent, InvocationExpressionSyntax)?.Expression Is node
-        End Function
-
-        Private Function ISyntaxFacts_IsAwaitExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAwaitExpression
-            Return IsAwaitExpression(node)
         End Function
 
         Public Function IsExpressionOfAwaitExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfAwaitExpression
@@ -1655,14 +1543,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(TryCast(node, ExpressionSyntax)?.WalkDownParentheses(), node)
         End Function
 
-        Private Function ISyntaxFacts_IsLogicalAndExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalAndExpression
-            Return IsLogicalAndExpression(node)
-        End Function
-
-        Private Function ISyntaxFacts_IsLogicalOrExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalOrExpression
-            Return IsLogicalOrExpression(node)
-        End Function
-
         Public Function IsLogicalNotExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalNotExpression
             Return node.IsKind(SyntaxKind.NotExpression)
         End Function
@@ -1673,14 +1553,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsConditionalOr(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalOr
             Return node.Kind() = SyntaxKind.OrElseExpression
-        End Function
-
-        Private Function ISynaxFacts_IsTupleExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTupleExpression
-            Return IsTupleExpression(node)
-        End Function
-
-        Private Function ISyntaxFacts_IsTupleType(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTupleType
-            Return IsTupleType(node)
         End Function
 
         Public Sub GetPartsOfTupleExpression(Of TArgumentSyntax As SyntaxNode)(
@@ -1949,22 +1821,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is LiteralExpressionSyntax
         End Function
 
-        Private Function ISyntaxFacts_IsThisExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsThisExpression
-            Return IsThisExpression(node)
-        End Function
-
-        Private Function ISyntaxFacts_IsBaseExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBaseExpression
-            Return IsBaseExpression(node)
-        End Function
-
-        Private Function ISyntaxFacts_IsFalseLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsFalseLiteralExpression
-            Return IsFalseLiteralExpression(node)
-        End Function
-
-        Private Function ISynaxFacts_IsTrueLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTrueLiteralExpression
-            Return IsTrueLiteralExpression(node)
-        End Function
-
         Public Function GetVariablesOfLocalDeclarationStatement(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetVariablesOfLocalDeclarationStatement
             Return DirectCast(node, LocalDeclarationStatementSyntax).Declarators
         End Function
@@ -2073,10 +1929,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetAttributeLists
             Return VisualBasicSyntaxGenerator.GetAttributeLists(node)
-        End Function
-
-        Private Function ISyntaxFactsService_IsExpressionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionStatement
-            Return IsExpressionStatement(node)
         End Function
 
         Public Function IsUsingAliasDirective(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingAliasDirective

@@ -415,13 +415,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsValidIdentifier(string identifier)
         {
             var token = SyntaxFactory.ParseToken(identifier);
-            return IsIdentifier(token) && !token.ContainsDiagnostics && token.ToString().Length == identifier.Length;
+            return this.IsIdentifier(token) && !token.ContainsDiagnostics && token.ToString().Length == identifier.Length;
         }
 
         public bool IsVerbatimIdentifier(string identifier)
         {
             var token = SyntaxFactory.ParseToken(identifier);
-            return IsIdentifier(token) && !token.ContainsDiagnostics && token.ToString().Length == identifier.Length && token.IsVerbatimIdentifier();
+            return this.IsIdentifier(token) && !token.ContainsDiagnostics && token.ToString().Length == identifier.Length && token.IsVerbatimIdentifier();
         }
 
         public bool IsTypeCharacter(char c) => false;
