@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseNamedArguments
 {
@@ -164,7 +163,6 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             protected abstract TArgumentListSyntax WithArguments(
                 TArgumentListSyntax argumentList, IEnumerable<TBaseArgumentSyntax> namedArguments, IEnumerable<SyntaxToken> separators);
 
-            protected abstract bool IsCloseParenOrComma(SyntaxToken token);
             protected abstract bool IsLegalToAddNamedArguments(ImmutableArray<IParameterSymbol> parameters, int argumentCount);
             protected abstract TSimpleArgumentSyntax WithName(TSimpleArgumentSyntax argument, string name);
             protected abstract bool IsPositionalArgument(TSimpleArgumentSyntax argument);

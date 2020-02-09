@@ -27,9 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
             protected sealed override bool IsLegalToAddNamedArguments(ImmutableArray<IParameterSymbol> parameters, int argumentCount)
                 => !parameters.Last().IsParams || parameters.Length >= argumentCount;
 
-            protected sealed override bool IsCloseParenOrComma(SyntaxToken token)
-                => token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken);
-
             protected override bool SupportsNonTrailingNamedArguments(ParseOptions options)
                 => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7_2;
         }
