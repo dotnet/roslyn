@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     return;
                 }
 
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var symbol = semanticModel.GetSymbolInfo(receiver, cancellationToken).Symbol;
                 if (symbol == null)
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                 int index,
                 bool includingTrailingArguments)
             {
-                var argumentList = (TArgumentListSyntax)firstArgument.Parent;
+                var argumentList = (TArgumentListSyntax)firstArgument.Parent!;
                 var newArgumentList = GetOrSynthesizeNamedArguments(parameters, argumentList, index, includingTrailingArguments);
                 var newRoot = root.ReplaceNode(argumentList, newArgumentList);
                 return Task.FromResult(document.WithSyntaxRoot(newRoot));
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                 return;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             await _argumentAnalyzer.ComputeRefactoringsAsync(context, root).ConfigureAwait(false);
 
