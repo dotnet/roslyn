@@ -153,8 +153,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLogicalAndExpression(SyntaxNode node);
         bool IsLogicalOrExpression(SyntaxNode node);
         bool IsLogicalNotExpression(SyntaxNode node);
-        bool IsConditionalAnd(SyntaxNode node);
-        bool IsConditionalOr(SyntaxNode node);
 
         bool IsTupleExpression(SyntaxNode node);
         void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
