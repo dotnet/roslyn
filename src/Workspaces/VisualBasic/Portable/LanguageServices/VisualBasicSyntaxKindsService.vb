@@ -6,83 +6,83 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
     Friend NotInheritable Class VisualBasicSyntaxKindsService
-        Inherits AbstractSyntaxKindsService
+        Implements ISyntaxKindsService
 
         Public Shared ReadOnly Instance As New VisualBasicSyntaxKindsService()
 
         Private Sub New()
         End Sub
 
-        Public Overrides Function Convert(Of TSyntaxKind As Structure)(kind As Integer) As TSyntaxKind
+        Public Function Convert(Of TSyntaxKind As Structure)(kind As Integer) As TSyntaxKind Implements ISyntaxKindsService.Convert
             ' Boxing/Unboxing casts from Object to TSyntaxKind will be erased by jit.
             Return CType(CType(CType(kind, SyntaxKind), Object), TSyntaxKind)
         End Function
 
-        Public Overrides ReadOnly Property ConflictMarkerTrivia As Integer = SyntaxKind.ConflictMarkerTrivia
-        Public Overrides ReadOnly Property DisabledTextTrivia As Integer = SyntaxKind.DisabledTextTrivia
-        Public Overrides ReadOnly Property EndOfLineTrivia As Integer = SyntaxKind.EndOfLineTrivia
-        Public Overrides ReadOnly Property SkippedTokensTrivia As Integer = SyntaxKind.SkippedTokensTrivia
-        Public Overrides ReadOnly Property WhitespaceTrivia As Integer = SyntaxKind.WhitespaceTrivia
+        Public ReadOnly Property ConflictMarkerTrivia As Integer = SyntaxKind.ConflictMarkerTrivia Implements ISyntaxKindsService.ConflictMarkerTrivia
+        Public ReadOnly Property DisabledTextTrivia As Integer = SyntaxKind.DisabledTextTrivia Implements ISyntaxKindsService.DisabledTextTrivia
+        Public ReadOnly Property EndOfLineTrivia As Integer = SyntaxKind.EndOfLineTrivia Implements ISyntaxKindsService.EndOfLineTrivia
+        Public ReadOnly Property SkippedTokensTrivia As Integer = SyntaxKind.SkippedTokensTrivia Implements ISyntaxKindsService.SkippedTokensTrivia
+        Public ReadOnly Property WhitespaceTrivia As Integer = SyntaxKind.WhitespaceTrivia Implements ISyntaxKindsService.WhitespaceTrivia
 
-        Public Overrides ReadOnly Property CharacterLiteralToken As Integer = SyntaxKind.CharacterLiteralToken
-        Public Overrides ReadOnly Property DotToken As Integer = SyntaxKind.DotToken
-        Public Overrides ReadOnly Property InterpolatedStringTextToken As Integer = SyntaxKind.InterpolatedStringTextToken
-        Public Overrides ReadOnly Property QuestionToken As Integer = SyntaxKind.QuestionToken
-        Public Overrides ReadOnly Property StringLiteralToken As Integer = SyntaxKind.StringLiteralToken
+        Public ReadOnly Property CharacterLiteralToken As Integer = SyntaxKind.CharacterLiteralToken Implements ISyntaxKindsService.CharacterLiteralToken
+        Public ReadOnly Property DotToken As Integer = SyntaxKind.DotToken Implements ISyntaxKindsService.DotToken
+        Public ReadOnly Property InterpolatedStringTextToken As Integer = SyntaxKind.InterpolatedStringTextToken Implements ISyntaxKindsService.InterpolatedStringTextToken
+        Public ReadOnly Property QuestionToken As Integer = SyntaxKind.QuestionToken Implements ISyntaxKindsService.QuestionToken
+        Public ReadOnly Property StringLiteralToken As Integer = SyntaxKind.StringLiteralToken Implements ISyntaxKindsService.StringLiteralToken
 
-        Public Overrides ReadOnly Property IfKeyword As Integer = SyntaxKind.IfKeyword
+        Public ReadOnly Property IfKeyword As Integer = SyntaxKind.IfKeyword Implements ISyntaxKindsService.IfKeyword
 
-        Public Overrides ReadOnly Property GenericName As Integer = SyntaxKind.GenericName
-        Public Overrides ReadOnly Property IdentifierName As Integer = SyntaxKind.IdentifierName
-        Public Overrides ReadOnly Property QualifiedName As Integer = SyntaxKind.QualifiedName
+        Public ReadOnly Property GenericName As Integer = SyntaxKind.GenericName Implements ISyntaxKindsService.GenericName
+        Public ReadOnly Property IdentifierName As Integer = SyntaxKind.IdentifierName Implements ISyntaxKindsService.IdentifierName
+        Public ReadOnly Property QualifiedName As Integer = SyntaxKind.QualifiedName Implements ISyntaxKindsService.QualifiedName
 
-        Public Overrides ReadOnly Property TupleType As Integer = SyntaxKind.TupleType
+        Public ReadOnly Property TupleType As Integer = SyntaxKind.TupleType Implements ISyntaxKindsService.TupleType
 
-        Public Overrides ReadOnly Property CharacterLiteralExpression As Integer = SyntaxKind.CharacterLiteralExpression
-        Public Overrides ReadOnly Property DefaultLiteralExpression As Integer = SyntaxKind.NothingLiteralExpression
-        Public Overrides ReadOnly Property FalseLiteralExpression As Integer = SyntaxKind.FalseLiteralExpression
-        Public Overrides ReadOnly Property NullLiteralExpression As Integer = SyntaxKind.NothingLiteralExpression
-        Public Overrides ReadOnly Property StringLiteralExpression As Integer = SyntaxKind.StringLiteralExpression
-        Public Overrides ReadOnly Property TrueLiteralExpression As Integer = SyntaxKind.TrueLiteralExpression
+        Public ReadOnly Property CharacterLiteralExpression As Integer = SyntaxKind.CharacterLiteralExpression Implements ISyntaxKindsService.CharacterLiteralExpression
+        Public ReadOnly Property DefaultLiteralExpression As Integer = SyntaxKind.NothingLiteralExpression Implements ISyntaxKindsService.DefaultLiteralExpression
+        Public ReadOnly Property FalseLiteralExpression As Integer = SyntaxKind.FalseLiteralExpression Implements ISyntaxKindsService.FalseLiteralExpression
+        Public ReadOnly Property NullLiteralExpression As Integer = SyntaxKind.NothingLiteralExpression Implements ISyntaxKindsService.NullLiteralExpression
+        Public ReadOnly Property StringLiteralExpression As Integer = SyntaxKind.StringLiteralExpression Implements ISyntaxKindsService.StringLiteralExpression
+        Public ReadOnly Property TrueLiteralExpression As Integer = SyntaxKind.TrueLiteralExpression Implements ISyntaxKindsService.TrueLiteralExpression
 
-        Public Overrides ReadOnly Property AnonymousObjectCreationExpression As Integer = SyntaxKind.AnonymousObjectCreationExpression
-        Public Overrides ReadOnly Property AwaitExpression As Integer = SyntaxKind.AwaitExpression
-        Public Overrides ReadOnly Property BaseExpression As Integer = SyntaxKind.MyBaseExpression
-        Public Overrides ReadOnly Property ConditionalAccessExpression As Integer = SyntaxKind.ConditionalAccessExpression
-        Public Overrides ReadOnly Property InvocationExpression As Integer = SyntaxKind.InvocationExpression
-        Public Overrides ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression
-        Public Overrides ReadOnly Property LogicalOrExpression As Integer = SyntaxKind.OrElseExpression
-        Public Overrides ReadOnly Property LogicalNotExpression As Integer = SyntaxKind.NotExpression
-        Public Overrides ReadOnly Property ObjectCreationExpression As Integer = SyntaxKind.ObjectCreationExpression
-        Public Overrides ReadOnly Property ParenthesizedExpression As Integer = SyntaxKind.ParenthesizedExpression
-        Public Overrides ReadOnly Property QueryExpression As Integer = SyntaxKind.QueryExpression
-        Public Overrides ReadOnly Property ReferenceEqualsExpression As Integer = SyntaxKind.IsExpression
-        Public Overrides ReadOnly Property ReferenceNotEqualsExpression As Integer = SyntaxKind.IsNotExpression
-        Public Overrides ReadOnly Property SimpleMemberAccessExpression As Integer = SyntaxKind.SimpleMemberAccessExpression
-        Public Overrides ReadOnly Property TernaryConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression
-        Public Overrides ReadOnly Property ThisExpression As Integer = SyntaxKind.MeExpression
-        Public Overrides ReadOnly Property TupleExpression As Integer = SyntaxKind.TupleExpression
+        Public ReadOnly Property AnonymousObjectCreationExpression As Integer = SyntaxKind.AnonymousObjectCreationExpression Implements ISyntaxKindsService.AnonymousObjectCreationExpression
+        Public ReadOnly Property AwaitExpression As Integer = SyntaxKind.AwaitExpression Implements ISyntaxKindsService.AwaitExpression
+        Public ReadOnly Property BaseExpression As Integer = SyntaxKind.MyBaseExpression Implements ISyntaxKindsService.BaseExpression
+        Public ReadOnly Property ConditionalAccessExpression As Integer = SyntaxKind.ConditionalAccessExpression Implements ISyntaxKindsService.ConditionalAccessExpression
+        Public ReadOnly Property InvocationExpression As Integer = SyntaxKind.InvocationExpression Implements ISyntaxKindsService.InvocationExpression
+        Public ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression Implements ISyntaxKindsService.LogicalAndExpression
+        Public ReadOnly Property LogicalOrExpression As Integer = SyntaxKind.OrElseExpression Implements ISyntaxKindsService.LogicalOrExpression
+        Public ReadOnly Property LogicalNotExpression As Integer = SyntaxKind.NotExpression Implements ISyntaxKindsService.LogicalNotExpression
+        Public ReadOnly Property ObjectCreationExpression As Integer = SyntaxKind.ObjectCreationExpression Implements ISyntaxKindsService.ObjectCreationExpression
+        Public ReadOnly Property ParenthesizedExpression As Integer = SyntaxKind.ParenthesizedExpression Implements ISyntaxKindsService.ParenthesizedExpression
+        Public ReadOnly Property QueryExpression As Integer = SyntaxKind.QueryExpression Implements ISyntaxKindsService.QueryExpression
+        Public ReadOnly Property ReferenceEqualsExpression As Integer = SyntaxKind.IsExpression Implements ISyntaxKindsService.ReferenceEqualsExpression
+        Public ReadOnly Property ReferenceNotEqualsExpression As Integer = SyntaxKind.IsNotExpression Implements ISyntaxKindsService.ReferenceNotEqualsExpression
+        Public ReadOnly Property SimpleMemberAccessExpression As Integer = SyntaxKind.SimpleMemberAccessExpression Implements ISyntaxKindsService.SimpleMemberAccessExpression
+        Public ReadOnly Property TernaryConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKindsService.TernaryConditionalExpression
+        Public ReadOnly Property ThisExpression As Integer = SyntaxKind.MeExpression Implements ISyntaxKindsService.ThisExpression
+        Public ReadOnly Property TupleExpression As Integer = SyntaxKind.TupleExpression Implements ISyntaxKindsService.TupleExpression
 
-        Public Overrides ReadOnly Property EndOfFileToken As Integer = SyntaxKind.EndOfFileToken
-        Public Overrides ReadOnly Property AwaitKeyword As Integer = SyntaxKind.AwaitKeyword
+        Public ReadOnly Property EndOfFileToken As Integer = SyntaxKind.EndOfFileToken Implements ISyntaxKindsService.EndOfFileToken
+        Public ReadOnly Property AwaitKeyword As Integer = SyntaxKind.AwaitKeyword Implements ISyntaxKindsService.AwaitKeyword
 
-        Public Overrides ReadOnly Property IdentifierToken As Integer = SyntaxKind.IdentifierToken
-        Public Overrides ReadOnly Property GlobalKeyword As Integer = SyntaxKind.GlobalKeyword
-        Public Overrides ReadOnly Property IncompleteMember As Integer = SyntaxKind.IncompleteMember
-        Public Overrides ReadOnly Property HashToken As Integer = SyntaxKind.HashToken
+        Public ReadOnly Property IdentifierToken As Integer = SyntaxKind.IdentifierToken Implements ISyntaxKindsService.IdentifierToken
+        Public ReadOnly Property GlobalKeyword As Integer = SyntaxKind.GlobalKeyword Implements ISyntaxKindsService.GlobalKeyword
+        Public ReadOnly Property IncompleteMember As Integer = SyntaxKind.IncompleteMember Implements ISyntaxKindsService.IncompleteMember
+        Public ReadOnly Property HashToken As Integer = SyntaxKind.HashToken Implements ISyntaxKindsService.HashToken
 
-        Public Overrides ReadOnly Property ExpressionStatement As Integer = SyntaxKind.ExpressionStatement
-        Public Overrides ReadOnly Property ForEachStatement As Integer = SyntaxKind.ForEachStatement
-        Public Overrides ReadOnly Property LocalDeclarationStatement As Integer = SyntaxKind.LocalDeclarationStatement
-        Public Overrides ReadOnly Property LockStatement As Integer = SyntaxKind.SyncLockStatement
-        Public Overrides ReadOnly Property ReturnStatement As Integer = SyntaxKind.ReturnStatement
-        Public Overrides ReadOnly Property UsingStatement As Integer = SyntaxKind.UsingStatement
+        Public ReadOnly Property ExpressionStatement As Integer = SyntaxKind.ExpressionStatement Implements ISyntaxKindsService.ExpressionStatement
+        Public ReadOnly Property ForEachStatement As Integer = SyntaxKind.ForEachStatement Implements ISyntaxKindsService.ForEachStatement
+        Public ReadOnly Property LocalDeclarationStatement As Integer = SyntaxKind.LocalDeclarationStatement Implements ISyntaxKindsService.LocalDeclarationStatement
+        Public ReadOnly Property LockStatement As Integer = SyntaxKind.SyncLockStatement Implements ISyntaxKindsService.LockStatement
+        Public ReadOnly Property ReturnStatement As Integer = SyntaxKind.ReturnStatement Implements ISyntaxKindsService.ReturnStatement
+        Public ReadOnly Property UsingStatement As Integer = SyntaxKind.UsingStatement Implements ISyntaxKindsService.UsingStatement
 
-        Public Overrides ReadOnly Property Attribute As Integer = SyntaxKind.Attribute
-        Public Overrides ReadOnly Property Parameter As Integer = SyntaxKind.Parameter
-        Public Overrides ReadOnly Property TypeConstraint As Integer = SyntaxKind.TypeConstraint
-        Public Overrides ReadOnly Property VariableDeclarator As Integer = SyntaxKind.VariableDeclarator
+        Public ReadOnly Property Attribute As Integer = SyntaxKind.Attribute Implements ISyntaxKindsService.Attribute
+        Public ReadOnly Property Parameter As Integer = SyntaxKind.Parameter Implements ISyntaxKindsService.Parameter
+        Public ReadOnly Property TypeConstraint As Integer = SyntaxKind.TypeConstraint Implements ISyntaxKindsService.TypeConstraint
+        Public ReadOnly Property VariableDeclarator As Integer = SyntaxKind.VariableDeclarator Implements ISyntaxKindsService.VariableDeclarator
 
-        Public Overrides ReadOnly Property TypeArgumentList As Integer = SyntaxKind.TypeArgumentList
+        Public ReadOnly Property TypeArgumentList As Integer = SyntaxKind.TypeArgumentList Implements ISyntaxKindsService.TypeArgumentList
     End Class
 End Namespace
