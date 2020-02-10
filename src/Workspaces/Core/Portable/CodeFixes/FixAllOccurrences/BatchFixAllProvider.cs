@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         #endregion
 
-        internal override async Task<CodeAction> GetFixAsync(
+        private async Task<CodeAction> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             await Task.WhenAll(fixerTasks).ConfigureAwait(false);
         }
 
-        internal override async Task<CodeAction> GetFixAsync(
+        private async Task<CodeAction> GetFixAsync(
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
