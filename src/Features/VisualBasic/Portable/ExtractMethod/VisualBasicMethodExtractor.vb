@@ -24,11 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return VisualBasicAnalyzer.AnalyzeResultAsync(selectionResult, cancellationToken)
         End Function
 
-        Protected Overrides Async Function GetInsertionPointAsync(document As SemanticDocument, position As Integer, cancellationToken As CancellationToken) As Task(Of InsertionPoint)
-            Contract.ThrowIfFalse(position >= 0)
+        Protected Overrides Async Function GetInsertionPointAsync(document As SemanticDocument, cancellationToken As CancellationToken) As Task(Of InsertionPoint)
+            Dim originalSpanStart = OriginalSelectionResult.OriginalSpan.Start
+            Contract.ThrowIfFalse(originalSpanStart >= 0)
 
             Dim root = Await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim basePosition = root.FindToken(position)
+            Dim basePosition = root.FindToken(originalSpanStart)
 
             Dim enclosingTopLevelNode As SyntaxNode = basePosition.GetAncestor(Of PropertyBlockSyntax)()
             If enclosingTopLevelNode Is Nothing Then

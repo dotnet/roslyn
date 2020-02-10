@@ -98,4 +98,6 @@
     <Folder Include="CodeGeneration\" />
     <Folder Include="Utilities\" />
   </ItemGroup>
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\VisualBasicCompilerExtensions.projitems" Label="Shared" />
+  <Import Project="..\..\..\Analyzers\VisualBasic\Analyzers\VisualBasicAnalyzers.projitems" Label="Shared" />
 </Project>
