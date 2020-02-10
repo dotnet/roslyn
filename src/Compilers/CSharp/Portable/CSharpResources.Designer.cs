@@ -3130,6 +3130,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A local function must be &apos;static&apos; in order to use the Conditional attribute.
+        /// </summary>
+        internal static string ERR_ConditionalOnLocalFunction {
+            get {
+                return ResourceManager.GetString("ERR_ConditionalOnLocalFunction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is only valid on methods or attribute classes.
         /// </summary>
         internal static string ERR_ConditionalOnNonAttributeClass {
@@ -3706,7 +3715,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The DllImport attribute cannot be applied to a method that is generic or contained in a generic type..
+        ///   Looks up a localized string similar to The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type..
         /// </summary>
         internal static string ERR_DllImportOnGenericMethod {
             get {
@@ -6586,7 +6595,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is a local function and must therefore always have a body..
+        ///   Looks up a localized string similar to Local function &apos;{0}&apos; must declare a body because it is not marked &apos;static extern&apos;..
         /// </summary>
         internal static string ERR_LocalFunctionMissingBody {
             get {
@@ -11411,6 +11420,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to extern local functions.
+        /// </summary>
+        internal static string IDS_FeatureExternLocalFunctions {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExternLocalFunctions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to fixed size buffers.
         /// </summary>
         internal static string IDS_FeatureFixedBuffer {
@@ -11515,6 +11533,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureLeadingDigitSeparator {
             get {
                 return ResourceManager.GetString("IDS_FeatureLeadingDigitSeparator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to local function attributes.
+        /// </summary>
+        internal static string IDS_FeatureLocalFunctionAttributes {
+            get {
+                return ResourceManager.GetString("IDS_FeatureLocalFunctionAttributes", resourceCulture);
             }
         }
         

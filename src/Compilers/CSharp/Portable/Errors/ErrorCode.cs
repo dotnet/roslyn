@@ -1746,6 +1746,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParameterConditionallyDisallowsNull = 8762,
         WRN_ShouldNotReturn = 8763,
 
+        ERR_ConditionalOnLocalFunction = 8764,
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

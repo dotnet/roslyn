@@ -190,6 +190,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public static bool IsSourceParameterWithEnumeratorCancellationAttribute(this ParameterSymbol parameter)
+        {
+            switch (parameter)
+            {
+                case SourceComplexParameterSymbol source:
+                    return source.HasEnumeratorCancellationAttribute;
+                case SynthesizedComplexParameterSymbol synthesized:
+                    return synthesized.HasEnumeratorCancellationAttribute;
+                default:
+                    return false;
+            }
+        }
+
         /// <summary>
         /// Returns true if all type parameter references within the given
         /// type belong to containingSymbol or its containing types.
