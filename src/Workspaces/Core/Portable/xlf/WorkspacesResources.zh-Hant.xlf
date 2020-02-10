@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
         <source>Error reading content of source file '{0}' -- '{1}'.</source>
-        <target state="translated">讀取原始程式檔 '{0}' 的內容時發生錯誤 -- '{1}'。</target>
+        <target state="translated">讀取來源檔案 '{0}' 的內容時發生錯誤 -- '{1}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
