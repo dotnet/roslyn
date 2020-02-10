@@ -13,6 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     using System.Runtime.CompilerServices;
+    using Microsoft.CodeAnalysis.PooledObjects;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal partial class LanguageParser : SyntaxParser
@@ -6284,7 +6285,7 @@ done:;
         /// <returns><c>null</c> when a statement cannot be parsed at this location.</returns>
         private StatementSyntax TryParseStatementCore()
         {
-            var resetPointBeforeStatement = ref this.GetResetPoint();
+            var resetPointBeforeStatement = this.GetResetPoint();
             try
             {
                 _recursionDepth++;
@@ -7741,35 +7742,45 @@ tryAgain:
             return _syntaxFactory.GotoStatement(kind, attributes, @goto, caseOrDefault, arg, semicolon);
         }
 
+        ObjectPool<IfStatementBuilder> _builders = new ObjectPool<IfStatementBuilder>(() => new IfStatementBuilder());
+
+        class IfStatementBuilder
+        {
+            internal SyntaxList<AttributeListSyntax> attributes;
+            internal SyntaxToken @if;
+            internal SyntaxToken openParen;
+            internal ExpressionSyntax condition;
+            internal SyntaxToken closeParen;
+            internal StatementSyntax statement;
+            internal ElseClauseSyntax elseClause;
+        }
+
         private IfStatementSyntax ParseIfStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword || this.CurrentToken.Kind == SyntaxKind.ElseKeyword);
 
-            bool firstTokenIsElse = this.CurrentToken.Kind == SyntaxKind.ElseKeyword;
-            var @if = firstTokenIsElse
+            var builder = _builders.Allocate();
+            builder.attributes = attributes;
+            builder.@if = this.CurrentToken.Kind == SyntaxKind.ElseKeyword
                 ? this.EatToken(SyntaxKind.IfKeyword, ErrorCode.ERR_ElseCannotStartStatement)
                 : this.EatToken(SyntaxKind.IfKeyword);
-            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var condition = this.ParseExpressionCore();
-            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = firstTokenIsElse
+            builder.openParen = this.EatToken(SyntaxKind.OpenParenToken);
+            builder.condition = this.ParseExpressionCore();
+            builder.closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+            builder.statement = this.CurrentToken.Kind == SyntaxKind.ElseKeyword
                 ? this.ParseExpressionStatement(attributes: default)
                 : this.ParseEmbeddedStatement();
-            return ParseIfStatementContinued(attributes, @if, openParen, condition, closeParen, statement);
+            builder.elseClause = this.ParseElseClauseOpt();
+            return ParseIfStatementContinued(builder);
         }
 
         // factored out to reduce stack pressure for highly nested if statements.
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private IfStatementSyntax ParseIfStatementContinued(
-            SyntaxList<AttributeListSyntax> attributes,
-            SyntaxToken @if,
-            SyntaxToken openParen,
-            ExpressionSyntax condition,
-            SyntaxToken closeParen,
-            StatementSyntax statement)
+        private IfStatementSyntax ParseIfStatementContinued(IfStatementBuilder builder)
         {
-            var elseClause = this.ParseElseClauseOpt();
-            return _syntaxFactory.IfStatement(attributes, @if, openParen, condition, closeParen, statement, elseClause);
+            var statement = _syntaxFactory.IfStatement(builder.attributes, builder.@if, builder.openParen, builder.condition, builder.closeParen, builder.statement, builder.elseClause);
+            _builders.Free(builder);
+            return statement;
         }
 
         private ElseClauseSyntax ParseElseClauseOpt()
@@ -11586,6 +11597,7 @@ tryAgain:
 
         private new ResetPoint GetResetPoint()
         {
+            // TODO: use ObjectPool
             return new ResetPoint(
                 base.GetResetPoint(),
                 _termState,
@@ -11608,7 +11620,7 @@ tryAgain:
             base.Release(ref state.BaseResetPoint);
         }
 
-        private new struct ResetPoint
+        private new class ResetPoint
         {
             internal SyntaxParser.ResetPoint BaseResetPoint;
             internal readonly TerminatorState TerminatorState;
