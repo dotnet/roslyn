@@ -63,7 +63,7 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <!-- Below import is temporarily commented out to reduce the side of the refactoring PR. It will be uncommented soon -->
+  <!-- Below import is temporarily commented out to reduce the side of the refactoring PR. It will be uncommented in a follow-up PR. -->
   <!--<Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\VisualBasic\VisualBasicWorkspaceExtensions.projitems" Label="Shared" />-->
   <Import Project="..\..\..\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems" Label="Shared" />
 </Project>
