@@ -430,7 +430,7 @@ unsafe struct S
 {
     public delegate*<S, S> Field;
     public delegate*<S, S> Property { get; set; }
-}");
+}", verify: Verification.Skipped);
         }
 
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
