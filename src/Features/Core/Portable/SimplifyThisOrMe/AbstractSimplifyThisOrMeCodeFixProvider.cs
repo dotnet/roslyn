@@ -59,12 +59,11 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             var memberAccessNodes = diagnostics.Select(
                 d => (TMemberAccessExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken)).ToSet();
 
-            var newRoot = Rewrite(semanticModel, root, memberAccessNodes);
+            var newRoot = Rewrite(root, memberAccessNodes);
             editor.ReplaceNode(root, newRoot);
         }
 
-        protected abstract SyntaxNode Rewrite(
-            SemanticModel semanticModel, SyntaxNode root, ISet<TMemberAccessExpressionSyntax> memberAccessNodes);
+        protected abstract SyntaxNode Rewrite(SyntaxNode root, ISet<TMemberAccessExpressionSyntax> memberAccessNodes);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
