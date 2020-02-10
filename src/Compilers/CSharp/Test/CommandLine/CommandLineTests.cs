@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -5847,7 +5849,7 @@ public class CS1698_a {}
             CleanupAllGeneratedFiles(binaryPath);
         }
 
-#if !NETCOREAPP2_1
+#if !NETCOREAPP3_1
         [WorkItem(530221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530221")]
         [WorkItem(5660, "https://github.com/dotnet/roslyn/issues/5660")]
         [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]
@@ -10761,8 +10763,14 @@ class C
             var srcFile = analyzerDir.CreateFile(srcFileName).WriteAllText("public class C { }");
 
             var result = ProcessUtilities.Run(s_CSharpCompilerExecutable, arguments: $"/nologo /t:library /analyzer:{analyzerFileName} {srcFileName}", workingDirectory: analyzerDir.Path);
+            var outputWithoutPaths = Regex.Replace(result.Output, " in .*", "");
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                $"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.", result.Output);
+                $@"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.
+System.NotImplementedException: 28
+   at TestAnalyzer.get_SupportedDiagnostics()
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors>b__0(Object _)
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info)
+-----", outputWithoutPaths);
 
             Assert.Equal(0, result.ExitCode);
         }

@@ -1,12 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 // #define LOG
 
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -73,9 +83,9 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         public bool OpenFileOnly(OptionSet options)
         {
             var preferTypeKeywordInDeclarationOption = options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName())!.Notification;
             var preferTypeKeywordInMemberAccessOption = options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName())!.Notification;
 
             return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
                      preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
@@ -91,14 +101,26 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         private void AnalyzeCompilation(CompilationStartAnalysisContext context)
         {
-            context.RegisterSemanticModelAction(AnalyzeSemanticModel);
+            var analyzer = new AnalyzerImpl(this);
+            context.RegisterCodeBlockAction(analyzer.AnalyzeCodeBlock);
+            context.RegisterSemanticModelAction(analyzer.AnalyzeSemanticModel);
         }
 
-        protected abstract void AnalyzeSemanticModel(SemanticModelAnalysisContext context);
+        /// <summary>
+        /// Determine if a code block is eligible for analysis by <see cref="AnalyzeCodeBlock"/>.
+        /// </summary>
+        /// <param name="codeBlock">The syntax node provided via <see cref="CodeBlockAnalysisContext.CodeBlock"/>.</param>
+        /// <returns><see langword="true"/> if the code block should be analyzed by <see cref="AnalyzeCodeBlock"/>;
+        /// otherwise, <see langword="false"/> to skip analysis of the block. If a block is skipped, one or more child
+        /// blocks may be analyzed by <see cref="AnalyzeCodeBlock"/>, and any remaining spans can be analyzed by
+        /// <see cref="AnalyzeSemanticModel"/>.</returns>
+        protected abstract bool IsIgnoredCodeBlock(SyntaxNode codeBlock);
+        protected abstract void AnalyzeCodeBlock(CodeBlockAnalysisContext context);
+        protected abstract void AnalyzeSemanticModel(SemanticModelAnalysisContext context, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree);
 
         protected abstract string GetLanguageName();
 
-        public bool TrySimplify(SemanticModel model, SyntaxNode node, out Diagnostic diagnostic, OptionSet optionSet, CancellationToken cancellationToken)
+        public bool TrySimplify(SemanticModel model, SyntaxNode node, [NotNullWhen(true)] out Diagnostic? diagnostic, OptionSet optionSet, CancellationToken cancellationToken)
         {
             if (!CanSimplifyTypeNameExpression(
                     model, node, optionSet,
@@ -142,7 +164,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                         : CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
                     descriptor = s_descriptorPreferBuiltinOrFrameworkType;
 
-                    var optionValue = optionSet.GetOption(option, model.Language);
+                    var optionValue = optionSet.GetOption(option, model.Language)!;
                     severity = optionValue.Notification.Severity;
                     break;
                 default:
@@ -181,5 +203,91 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+        private class AnalyzerImpl
+        {
+            private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> _analyzer;
+
+            /// <summary>
+            /// Tracks the analysis state of syntax trees in a compilation. Each syntax tree has the properties:
+            /// <list type="bullet">
+            /// <item><description>
+            /// <para><c>completed</c>: <see langword="true"/> to indicate that <c>intervalTree</c> has been obtained
+            /// for use in a <see cref="SemanticModelAnalysisContext"/> callback; otherwise, <see langword="false"/> to
+            /// indicate that <c>intervalTree</c> may be updated by adding a new non-overlapping <see cref="TextSpan"/>
+            /// for analysis performed by a <see cref="CodeBlockAnalysisContext"/> callback.</para>
+            ///
+            /// <para>This field also serves as the lock object for updating both <c>completed</c> and
+            /// <c>intervalTree</c>.</para>
+            /// </description></item>
+            /// <item><description>
+            /// <para><c>intervalTree</c>: the set of intervals analyzed by <see cref="CodeBlockAnalysisContext"/>
+            /// callbacks, and therefore do not need to be analyzed again by a
+            /// <see cref="SemanticModelAnalysisContext"/> callback.</para>
+            ///
+            /// <para>This field may only be accessed while <c>completed</c> is locked, and is not valid after
+            /// <c>completed</c> is <see langword="true"/>.</para>
+            /// </description></item>
+            /// </list>
+            /// </summary>
+            private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)> _codeBlockIntervals
+                = new ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)>();
+
+            public AnalyzerImpl(SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> analyzer)
+            {
+                _analyzer = analyzer;
+            }
+
+            public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
+            {
+                if (_analyzer.IsIgnoredCodeBlock(context.CodeBlock))
+                    return;
+
+                var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.CodeBlock.SyntaxTree, _ => (new StrongBox<bool>(false), SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), Array.Empty<TextSpan>())));
+                if (completed.Value)
+                    return;
+
+                RoslynDebug.AssertNotNull(intervalTree);
+                lock (completed)
+                {
+                    if (completed.Value)
+                        return;
+
+                    if (intervalTree.HasIntervalThatOverlapsWith(context.CodeBlock.FullSpan.Start, context.CodeBlock.FullSpan.End))
+                        return;
+
+                    intervalTree.AddIntervalInPlace(context.CodeBlock.FullSpan);
+                }
+
+                _analyzer.AnalyzeCodeBlock(context);
+            }
+
+            public void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
+            {
+                // Get the state information for the syntax tree. If the state information is not available, it is
+                // initialized directly to a completed state, ensuring that concurrent (or future) calls to
+                // AnalyzeCodeBlock will always read completed==true, and intervalTree does not need to be initialized
+                // to a non-null value.
+                var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.SemanticModel.SyntaxTree, syntaxTree => (new StrongBox<bool>(true), null));
+
+                // Since SemanticModel callbacks only occur once per syntax tree, the completed state can be safely read
+                // here. It will have one of the values:
+                //
+                //   false: the state was initialized in AnalyzeCodeBlock, and intervalTree will be a non-null tree.
+                //   true: the state was initialized on the previous line, and intervalTree will be null.
+                if (!completed.Value)
+                {
+                    // This lock ensures we do not use intervalTree while it is being updated by a concurrent call to
+                    // AnalyzeCodeBlock.
+                    lock (completed)
+                    {
+                        // Prevent future code block callbacks from analyzing more spans within this tree
+                        completed.Value = true;
+                    }
+                }
+
+                _analyzer.AnalyzeSemanticModel(context, intervalTree);
+            }
+        }
     }
 }

@@ -1,13 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -251,9 +255,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             public const string Id = "ThrowException";
             private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
+            private readonly ExceptionDispatchInfo _exceptionDispatchInfo;
 
-            public ThrowExceptionForEachNamedTypeAnalyzer()
+            public ThrowExceptionForEachNamedTypeAnalyzer(ExceptionDispatchInfo exceptionDispatchInfo)
             {
+                _exceptionDispatchInfo = exceptionDispatchInfo;
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -264,15 +270,41 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
+            public string AssemblyName { get; private set; }
+
             public override void Initialize(AnalysisContext analysisContext)
             {
+                analysisContext.RegisterCompilationStartAction(context => AssemblyName = context.Compilation.AssemblyName);
+
                 analysisContext.RegisterSymbolAction(
                     (context) =>
                     {
-                        throw new Exception("ThrowExceptionAnalyzer exception");
+                        _exceptionDispatchInfo.Throw();
                     },
                     SymbolKind.NamedType);
             }
+        }
+
+        protected class ThrowExceptionFromSupportedDiagnostics : DiagnosticAnalyzer
+        {
+            private readonly Exception _exception;
+
+            public ThrowExceptionFromSupportedDiagnostics(Exception exception)
+            {
+                _exception = exception;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get
+                {
+                    ExceptionDispatchInfo.Capture(_exception).Throw();
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }
+
+            public override void Initialize(AnalysisContext analysisContext)
+                => throw ExceptionUtilities.Unreachable;
         }
 
         protected static DiagnosticDescriptor GetRule(string id)

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -5991,6 +5993,64 @@ namespace NS
                     }
 
                 state.AssertItemsInOrder(expectedOrder)
+            End Using
+        End Function
+
+        <WorkItem(39519, "https://github.com/dotnet/roslyn/issues/39519")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSuggestedNamesDontStartWithDigit_DigitsInTheMiddle() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+namespace NS
+{
+    class C
+    {
+        public void Foo(Foo123Bar $$)
+        {
+        }
+    }
+
+    public class Foo123Bar
+    {
+    } 
+}
+]]></Document>)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, True)))
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("foo123Bar", "foo123", "foo", "bar")
+                Await state.AssertCompletionItemsDoNotContainAny("123Bar")
+            End Using
+        End Function
+
+        <WorkItem(39519, "https://github.com/dotnet/roslyn/issues/39519")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSuggestedNamesDontStartWithDigit_DigitsOnTheRight() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+namespace NS
+{
+    class C
+    {
+        public void Foo(Foo123 $$)
+        {
+        }
+    }
+
+    public class Foo123
+    {
+    } 
+}
+]]></Document>)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, True)))
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("foo123", "foo")
+                Await state.AssertCompletionItemsDoNotContainAny("123")
             End Using
         End Function
 

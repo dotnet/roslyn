@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -42,7 +44,6 @@ namespace Microsoft.CodeAnalysis
         private readonly IReadOnlyList<ProjectId> _projectIds;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
-        private readonly Lazy<VersionStamp> _lazyLatestProjectVersion;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
         // Values for all these are created on demand.
@@ -61,8 +62,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
-            ProjectDependencyGraph dependencyGraph,
-            Lazy<VersionStamp> lazyLatestProjectVersion)
+            ProjectDependencyGraph dependencyGraph)
         {
             _branchId = branchId;
             _workspaceVersion = workspaceVersion;
@@ -74,7 +74,6 @@ namespace Microsoft.CodeAnalysis
             _projectIdToTrackerMap = projectIdToTrackerMap;
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
             _dependencyGraph = dependencyGraph;
-            _lazyLatestProjectVersion = lazyLatestProjectVersion;
 
             // when solution state is changed, we re-calcuate its checksum
             _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
@@ -97,12 +96,8 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
                 filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
-                dependencyGraph: ProjectDependencyGraph.Empty,
-#nullable disable warnings // we are passing null here but we're immediately overwriting it -- better to keep the parameter non-null
-                lazyLatestProjectVersion: null)
-#nullable enable warnings
+                dependencyGraph: ProjectDependencyGraph.Empty)
         {
-            _lazyLatestProjectVersion = new Lazy<VersionStamp>(() => ComputeLatestProjectVersion());
         }
 
         public SolutionState WithNewWorkspace(Workspace workspace, int workspaceVersion)
@@ -114,19 +109,6 @@ namespace Microsoft.CodeAnalysis
             // Note: this will potentially have problems if the workspace services are different, as some services
             // get locked-in by document states and project states when first constructed.
             return CreatePrimarySolution(branchId: workspace.PrimaryBranchId, workspaceVersion: workspaceVersion, services: services);
-        }
-
-        private VersionStamp ComputeLatestProjectVersion()
-        {
-            // this may produce a version that is out of sync with the actual Document versions.
-            var latestVersion = VersionStamp.Default;
-            foreach (var projectId in this.ProjectIds)
-            {
-                var project = this.GetProjectState(projectId);
-                latestVersion = project!.Version.GetNewerVersion(latestVersion);
-            }
-
-            return latestVersion;
         }
 
         public SolutionInfo.SolutionAttributes SolutionAttributes => _solutionAttributes;
@@ -193,8 +175,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, CompilationTracker>? projectIdToTrackerMap = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? filePathToDocumentIdsMap = null,
-            ProjectDependencyGraph? dependencyGraph = null,
-            Lazy<VersionStamp>? lazyLatestProjectVersion = null)
+            ProjectDependencyGraph? dependencyGraph = null)
         {
             var branchId = GetBranchId();
 
@@ -205,7 +186,6 @@ namespace Microsoft.CodeAnalysis
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
             dependencyGraph ??= _dependencyGraph;
-            lazyLatestProjectVersion ??= _lazyLatestProjectVersion;
 
             if (branchId == _branchId &&
                 solutionAttributes == _solutionAttributes &&
@@ -214,8 +194,7 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap == _projectIdToProjectStateMap &&
                 projectIdToTrackerMap == _projectIdToTrackerMap &&
                 filePathToDocumentIdsMap == _filePathToDocumentIdsMap &&
-                dependencyGraph == _dependencyGraph &&
-                lazyLatestProjectVersion == _lazyLatestProjectVersion)
+                dependencyGraph == _dependencyGraph)
             {
                 return this;
             }
@@ -231,8 +210,7 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap,
                 projectIdToTrackerMap,
                 filePathToDocumentIdsMap,
-                dependencyGraph,
-                lazyLatestProjectVersion);
+                dependencyGraph);
         }
 
         private SolutionState CreatePrimarySolution(
@@ -257,8 +235,7 @@ namespace Microsoft.CodeAnalysis
                 _projectIdToProjectStateMap,
                 _projectIdToTrackerMap,
                 _filePathToDocumentIdsMap,
-                _dependencyGraph,
-                _lazyLatestProjectVersion);
+                _dependencyGraph);
         }
 
         private BranchId GetBranchId()
@@ -275,7 +252,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public VersionStamp GetLatestProjectVersion()
         {
-            return _lazyLatestProjectVersion.Value;
+            // this may produce a version that is out of sync with the actual Document versions.
+            var latestVersion = VersionStamp.Default;
+            foreach (var project in this.ProjectStates.Values)
+            {
+                latestVersion = project.Version.GetNewerVersion(latestVersion);
+            }
+
+            return latestVersion;
         }
 
         /// <summary>
@@ -487,8 +471,7 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
                 filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
-                dependencyGraph: newDependencyGraph,
-                lazyLatestProjectVersion: new Lazy<VersionStamp>(() => projectState.Version)); // this is the newest!
+                dependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
@@ -574,7 +557,7 @@ namespace Microsoft.CodeAnalysis
 
             var newProjectIds = _projectIds.ToImmutableArray().Remove(projectId);
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
-            var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
+            var newDependencyGraph = _dependencyGraph.WithProjectRemoved(projectId);
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithRemovedProject(_projectIdToProjectStateMap[projectId]);
 
@@ -955,7 +938,19 @@ namespace Microsoft.CodeAnalysis
             var oldProject = this.GetProjectState(projectId)!;
             var newProject = oldProject.RemoveProjectReference(projectReference);
 
-            return this.ForkProject(newProject, newDependencyGraph: _dependencyGraph.WithProjectReferences(projectId, newProject.ProjectReferences.Select(p => p.ProjectId)));
+            ProjectDependencyGraph newDependencyGraph;
+            if (newProject.ContainsReferenceToProject(projectReference.ProjectId))
+            {
+                // The project contained multiple references to the project, and not all of them were removed. The
+                // dependency graph doesn't change.
+                newDependencyGraph = _dependencyGraph;
+            }
+            else
+            {
+                newDependencyGraph = _dependencyGraph.WithProjectReferenceRemoved(projectId, projectReference.ProjectId);
+            }
+
+            return this.ForkProject(newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
@@ -1758,15 +1753,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var modifiedDocumentOnly = translate is CompilationTranslationAction.TouchDocumentAction;
-            var newLatestProjectVersion = modifiedDocumentOnly ? _lazyLatestProjectVersion : new Lazy<VersionStamp>(() => newProjectState.Version);
-
             return this.Branch(
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
                 dependencyGraph: newDependencyGraph,
-                filePathToDocumentIdsMap: newFilePathToDocumentIdsMap ?? _filePathToDocumentIdsMap,
-                lazyLatestProjectVersion: newLatestProjectVersion);
+                filePathToDocumentIdsMap: newFilePathToDocumentIdsMap ?? _filePathToDocumentIdsMap);
         }
 
         /// <summary>
@@ -1792,31 +1783,49 @@ namespace Microsoft.CodeAnalysis
             var map = projectStates.Values.Select(state => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(
                     state.Id,
                     state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
+                    .Where(pair => !pair.Value.IsEmpty)
                     .ToImmutableDictionary();
 
             return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
         }
 
-        private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId projectId, ProjectDependencyGraph dependencyGraph)
+        private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
         {
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, CompilationTracker>();
-            var dependencies = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
+            IEnumerable<ProjectId>? dependencies = null;
 
-            foreach (var projectIdAndTracker in _projectIdToTrackerMap)
+            foreach (var (id, tracker) in _projectIdToTrackerMap)
             {
-                var id = projectIdAndTracker.Key;
-                var tracker = projectIdAndTracker.Value;
-
                 if (!tracker.HasCompilation)
                 {
                     continue;
                 }
 
-                var canReuse = id == projectId || !dependencies.Contains(id);
-                builder.Add(id, canReuse ? tracker : tracker.Fork(tracker.ProjectState));
+                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(tracker.ProjectState));
             }
 
             return builder.ToImmutable();
+
+            // Returns true if 'tracker' can be reused for project 'id'
+            bool CanReuse(ProjectId id)
+            {
+                if (id == changedProjectId)
+                    return true;
+
+                // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
+                // If the information is not available, do not compute it.
+                var forwardDependencies = dependencyGraph.TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
+                if (forwardDependencies is object && !forwardDependencies.Contains(changedProjectId))
+                {
+                    return true;
+                }
+
+                // Compute the set of all projects that depend on 'projectId'. This information answers the same
+                // question as the previous check, but involves at most one transitive computation within the
+                // dependency graph.
+                dependencies ??= dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(changedProjectId);
+                return !dependencies.Contains(id);
+            }
         }
 
         /// <summary>
@@ -1963,6 +1972,9 @@ namespace Microsoft.CodeAnalysis
         /// Returns the compilation for the specified <see cref="ProjectId"/>.  Can return <see langword="null"/> when the project
         /// does not support compilations.
         /// </summary>
+        /// <remarks>
+        /// The compilation is guaranteed to have a syntax tree for each document of the project.
+        /// </remarks>
         private Task<Compilation?> GetCompilationAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             // TODO: figure out where this is called and why the nullable suppression is required
@@ -1973,6 +1985,9 @@ namespace Microsoft.CodeAnalysis
         /// Returns the compilation for the specified <see cref="ProjectState"/>.  Can return <see langword="null"/> when the project
         /// does not support compilations.
         /// </summary>
+        /// <remarks>
+        /// The compilation is guaranteed to have a syntax tree for each document of the project.
+        /// </remarks>
         public Task<Compilation?> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
         {
             return project.SupportsCompilation

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -378,7 +380,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var projectChanges = newSolution.GetChanges(currentSolution).GetProjectChanges().ToList();
 
             // first make sure we can edit the document we will be updating (check them out from source control, etc)
-            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true).Concat(pd.GetChangedAdditionalDocuments())).Where(CanApplyChange).ToList();
+            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(pd.GetChangedAdditionalDocuments()))
+                                            .Where(CanApplyChange).ToList();
             if (changedDocs.Count > 0)
             {
                 this.EnsureEditableDocuments(changedDocs);
@@ -1187,9 +1190,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Must save the document first for things like Breakpoints to be preserved.
                 projectItemForDocument.Save();
 
-                var uniqueName = projectItemForDocument.Collection.GetUniqueName(
-                    Path.GetFileNameWithoutExtension(updatedInfo.Name),
-                    Path.GetExtension(updatedInfo.Name));
+                var uniqueName = projectItemForDocument.Collection
+                    .GetUniqueNameIgnoringProjectItem(
+                        projectItemForDocument,
+                        Path.GetFileNameWithoutExtension(updatedInfo.Name),
+                        Path.GetExtension(updatedInfo.Name));
 
                 // Get the current undoManager before any file renames/documentId changes happen
                 var undoManager = TryGetUndoManager();
@@ -1685,6 +1690,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <param name="projectId">The <see cref="ProjectId"/> of the project being referenced.</param>
         /// <param name="outputPath">The output path of the given project to remove the link to.</param>
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/37616",
+            Constraint = "Update ConvertedProjectReferences in place to avoid duplicate list allocations.")]
         private void ConvertProjectReferencesToMetadataReferences_NoLock(ProjectId projectId, string outputPath)
         {
             var modifiedSolution = this.CurrentSolution;
@@ -1694,8 +1702,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var referenceInfo = GetReferenceInfo_NoLock(projectIdToRetarget);
 
-                foreach (var convertedReference in referenceInfo.ConvertedProjectReferences.ToList())
+                // Update ConvertedProjectReferences in place to avoid duplicate list allocations
+                for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Count; i++)
                 {
+                    var convertedReference = referenceInfo.ConvertedProjectReferences[i];
+
                     if (string.Equals(convertedReference.path, outputPath, StringComparison.OrdinalIgnoreCase) &&
                         convertedReference.projectReference.ProjectId == projectId)
                     {
@@ -1711,10 +1722,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                         projectIdsChanged.Add(projectIdToRetarget);
 
-                        referenceInfo.ConvertedProjectReferences.Remove(convertedReference);
+                        referenceInfo.ConvertedProjectReferences.RemoveAt(i);
 
                         // We have converted one, but you could have more than one reference with different aliases
-                        // that we need to convert, so we'll keep going
+                        // that we need to convert, so we'll keep going. Make sure to decrement the index so we don't
+                        // skip any items.
+                        i--;
                     }
                 }
             }
