@@ -235,8 +235,6 @@ public class Test
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
-            nestingLevel = 5000;
-
             RunTest(nestingLevel, runTest);
 
             static void runTest(int nestingLevel)
