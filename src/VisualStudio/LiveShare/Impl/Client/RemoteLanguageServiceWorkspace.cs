@@ -41,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     {
         /// <summary>
         /// Gate to make sure we only update the paths and trigger RDT one at a time.
+        /// Guards <see cref="_remoteWorkspaceRootPaths"/> and <see cref="_registeredExternalPaths"/>
         /// </summary>
         private static readonly SemaphoreSlim s_RemotePathsGate = new SemaphoreSlim(initialCount: 1);
 
@@ -366,7 +367,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// <inheritdoc />
         public override void OpenDocument(DocumentId documentId, bool activate = true)
         {
-            if (!IsRemoteSession)
+            if (_session == null)
             {
                 return;
             }
@@ -382,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 }
                 _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    await _session!.DownloadFileAsync(_session.ConvertLocalPathToSharedUri(doc.FilePath), CancellationToken.None).ConfigureAwait(true);
+                    await _session.DownloadFileAsync(_session.ConvertLocalPathToSharedUri(doc.FilePath), CancellationToken.None).ConfigureAwait(true);
                 });
 
                 Guid logicalView = Guid.Empty;
@@ -465,7 +466,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         return textContainer.TryGetTextBuffer();
                     });
 
-                    UpdateText(textBuffer!, text);
+                    if (textBuffer != null)
+                    {
+                        UpdateText(textBuffer, text);
+                    }
                 }
                 else
                 {
