@@ -144,6 +144,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 await experiment.InitializeAsync().ConfigureAwait(true);
             }
+
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+            var y = System.Collections.Immutable.ImmutableArray.Create<System.Reflection.Metadata.EntityHandle>();
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+            CodeAnalysis.FindSymbols.SymbolAndProjectId x = default;
+            x.WithSymbol<ISymbol>(null);
         }
 
         private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)
