@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote.DebugUtil
         }
 
         internal static async Task AssertChecksumsAsync(
-            AssetService assetService,
+            AssetProvider assetService,
             Checksum checksumFromRequest,
             Solution solutionFromScratch,
             Solution incrementalSolutionBuilt)

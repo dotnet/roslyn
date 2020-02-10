@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
         <source>Error reading content of source file '{0}' -- '{1}'.</source>
-        <target state="translated">Error al leer el contenido del archivo de código fuente "{0}"--"{1}".</target>
+        <target state="translated">Error al leer el contenido del archivo de origen "{0}"--"{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
-        <target state="new">Options did not come from specified Solution</target>
+        <target state="translated">Las opciones no procedían de la solución especificada.</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_usings">

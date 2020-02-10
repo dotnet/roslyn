@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
         <source>Error reading content of source file '{0}' -- '{1}'.</source>
-        <target state="translated">ソース ファイル '{0}' -- '{1}' のコンテンツの読み取りでエラーが発生しました。</target>
+        <target state="translated">ソース ファイル '{0}' のコンテンツの読み取りでエラーが発生しました -- '{1}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
-        <target state="new">Options did not come from specified Solution</target>
+        <target state="translated">オプションは指定されたソリューションに由来するものではありません</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">
         <source>Project of ID {0} is required to accomplish the task but is not available from the solution</source>
-        <target state="translated">ID {0} のプロジェクトはタスクの実行に必要ですが、このソリューションからは利用できません</target>
+        <target state="translated">タスクの完了には ID {0} のプロジェクトが必要ですが、このソリューションからは利用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">

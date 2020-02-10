@@ -8,78 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    // TODO: all service hub service should be extract to interface so that it can support multiple hosts.
-    //       right now, tightly coupled to service hub
-    internal abstract class ServiceHubServiceBase : ServiceBase
-    {
-        /// <summary>
-        /// PinnedSolutionInfo.ScopeId. scope id of the solution. caller and callee share this id which one
-        /// can use to find matching caller and callee while exchanging data
-        /// 
-        /// PinnedSolutionInfo.FromPrimaryBranch Marks whether the solution checksum it got is for primary branch or not 
-        /// 
-        /// this flag will be passed down to solution controller to help
-        /// solution service's cache policy. for more detail, see <see cref="SolutionService"/>
-        /// 
-        /// PinnedSolutionInfo.SolutionChecksum indicates solution this connection belong to
-        /// </summary>
-        private PinnedSolutionInfo? _solutionInfo;
-
-        private RoslynServices? _lazyRoslynServices;
-
-        // Used by Razor: https://github.com/aspnet/AspNetCore-Tooling/blob/master/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor/RazorServiceBase.cs
-        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
-            : base(serviceProvider, stream, jsonConverters)
-        {
-        }
-
-        /// <summary>
-        /// Invoked remotely - <see cref="WellKnownServiceHubServices.ServiceHubServiceBase_Initialize"/>
-        /// </summary>
-        public virtual void Initialize(PinnedSolutionInfo info)
-        {
-            // set pinned solution info
-            _lazyRoslynServices = null;
-            _solutionInfo = info;
-        }
-
-        protected RoslynServices RoslynServices
-        {
-            get
-            {
-                // must be initialized
-                Contract.ThrowIfNull(_solutionInfo);
-
-                return _lazyRoslynServices ??= new RoslynServices(_solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
-            }
-        }
-
-        protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
-        {
-            // must be initialized
-            Contract.ThrowIfNull(_solutionInfo);
-
-            return GetSolutionAsync(RoslynServices, _solutionInfo, cancellationToken);
-        }
-
-        private static Task<Solution> GetSolutionAsync(RoslynServices roslynService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-        {
-            var solutionController = (ISolutionController)roslynService.SolutionService;
-            return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
-        }
-    }
-
     /// <summary>
     /// Base type with servicehub helper methods. this is not tied to how Roslyn OOP works. 
     /// 
@@ -114,11 +50,9 @@ namespace Microsoft.CodeAnalysis.Remote
             EndPoint = new RemoteEndPoint(stream, Logger, incomingCallTarget: this, jsonConverters);
         }
 
-        protected bool IsDisposed => EndPoint.IsDisposed;
-
         public void Dispose()
         {
-            if (IsDisposed)
+            if (EndPoint.IsDisposed)
             {
                 // guard us from double disposing. this can happen in unit test
                 // due to how we create test mock service hub stream that tied to
