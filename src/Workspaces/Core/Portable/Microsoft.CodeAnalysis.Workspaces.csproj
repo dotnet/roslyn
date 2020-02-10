@@ -8,6 +8,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
     <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
