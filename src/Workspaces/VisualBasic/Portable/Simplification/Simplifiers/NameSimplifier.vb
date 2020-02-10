@@ -227,7 +227,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                             .WithIdentifier(TryEscapeIdentifierToken(DirectCast(replacementNode, SimpleNameSyntax).Identifier))
                         issueSpan = qualifiedName.Left.Span
 
-
                         If CanReplaceWithReducedName(name, replacementNode, semanticModel, cancellationToken) Then
                             Return True
                         End If
