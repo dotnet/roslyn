@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.CodeGen;
 
 #nullable enable
 
@@ -79,6 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
                 value.IsBad ? _all : Related(relation, default(TTC).FromConstantValue(value));
+
+            public IValueSet<T> Random(int expectedSize, Random random) =>
+                NumericValueSet<T, TTC>.Random(expectedSize, random);
         }
     }
 }

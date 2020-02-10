@@ -2,6 +2,8 @@
 
 #nullable enable
 
+using System;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -46,5 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns a value set that includes any values that satisfy the given relation when compared to the given value.
         /// </summary>
         IValueSet<T> Related(BinaryOperatorKind relation, T value);
+
+        /// <summary>
+        /// Produce a random value set with the given expected size.
+        /// </summary>
+        IValueSet<T> Random(int expectedSize, Random random);
     }
 }

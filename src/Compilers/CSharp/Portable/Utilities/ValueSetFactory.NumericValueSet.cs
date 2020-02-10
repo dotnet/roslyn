@@ -274,6 +274,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Interval.Mixed.Create(newLeft, newRight);
             }
 
+            internal static IValueSet<T> Random(int expectedSize, Random random)
+            {
+                TTC tc = default;
+                bool include = true;
+                // Since only half of the random intervals are "included", double the number
+                return new NumericValueSet<T, TTC>(randomInterval(2 * expectedSize, tc.MinValue, tc.MaxValue));
+
+                Interval randomInterval(int size, T minValue, T maxValue)
+                {
+                    if (size < 2 || tc.Related(Equal, minValue, maxValue))
+                    {
+                        include = !include;
+                        return include ? Interval.Included.Instance : Interval.Excluded.Instance;
+                    }
+
+                    int leftSize = 1 + random.Next(size - 1);
+                    int rightSize = size - leftSize;
+                    (T leftMax, T rightMin) = tc.Partition(minValue, maxValue);
+                    return Interval.Mixed.Create(randomInterval(leftSize, minValue, leftMax), randomInterval(rightSize, rightMin, maxValue));
+                }
+            }
+
             /// <summary>
             /// An (inefficiently produced) string representation for testing purposes.
             /// </summary>

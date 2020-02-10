@@ -523,5 +523,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("~{}", ForDecimal.Related(GreaterThan, 0.0m).ToString());
             Assert.Equal("~{}", ForDecimal.Related(GreaterThanOrEqual, 0.0m).ToString());
         }
+
+        [Fact]
+        public void TestFuzz_01()
+        {
+            const int K = 10;
+
+            for (int i = 0; i < 100; i++)
+            {
+                var s1 = ForDouble.Random(K, Random);
+                var s2 = ForDouble.Random(K, Random);
+                var u1 = s1.Union(s2);
+                var u2 = s1.Complement().Intersect(s2.Complement()).Complement();
+                Assert.Equal(u1, u2);
+                var i1 = s1.Intersect(s2);
+                var i2 = s1.Complement().Union(s2.Complement()).Complement();
+                Assert.Equal(i1, i2);
+            }
+        }
     }
 }

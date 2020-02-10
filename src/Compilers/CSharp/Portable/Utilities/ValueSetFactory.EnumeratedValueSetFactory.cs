@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Roslyn.Utilities;
 
 #nullable enable
@@ -40,6 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
                 value.IsBad ? EnumeratedValueSet<T, TTC>.AllValues : this.Related(relation, default(TTC).FromConstantValue(value));
+
+            IValueSet<T> IValueSetFactory<T>.Random(int expectedSize, Random random)
+            {
+                throw new NotImplementedException($"IValueSetFactory<{typeof(T).ToString()}>.Random");
+            }
         }
     }
 }

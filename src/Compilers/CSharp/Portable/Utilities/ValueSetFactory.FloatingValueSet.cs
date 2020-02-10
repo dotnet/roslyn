@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Text;
 using Roslyn.Utilities;
 
@@ -29,6 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public static readonly IValueSet<TFloating> AllValues = new FloatingValueSet<TFloating, TFloatingTC>(
                 hasNaN: true, hasMinusInf: true, hasPlusInf: true, numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.All);
+
+            internal static IValueSet<TFloating> Random(int expectedSize, Random random)
+            {
+                bool hasNan = random.Next(2) < 1;
+                bool hasMinusInf = random.Next(2) < 1;
+                bool hasPlusInf = random.Next(2) < 1;
+                return new FloatingValueSet<TFloating, TFloatingTC>(
+                    hasNaN: hasNan, hasMinusInf: hasMinusInf, hasPlusInf: hasPlusInf, numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.Random(expectedSize, random));
+            }
 
             public static readonly IValueSet<TFloating> None = new FloatingValueSet<TFloating, TFloatingTC>(
                 hasNaN: false, hasMinusInf: false, hasPlusInf: false, numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.None);

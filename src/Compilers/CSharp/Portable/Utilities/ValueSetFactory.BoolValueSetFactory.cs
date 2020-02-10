@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 #nullable enable
 
@@ -41,10 +42,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            IValueSet<bool> IValueSetFactory<bool>.Random(int expectedSize, Random random) => random.Next(4) switch
+            {
+                0 => BoolValueSet.None,
+                1 => BoolValueSet.OnlyFalse,
+                2 => BoolValueSet.OnlyTrue,
+                3 => BoolValueSet.AllValues,
+                _ => throw ExceptionUtilities.UnexpectedValue("random"),
+            };
+
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value)
             {
                 Debug.Assert(value.IsBoolean);
                 return Related(relation, value.BooleanValue);
+            }
+
+            IValueSet<bool> IValueSetFactory<bool>.Related(BinaryOperatorKind relation, bool value)
+            {
+                throw new NotImplementedException();
             }
         }
     }
