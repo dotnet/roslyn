@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     internal partial class BatchFixAllProvider : FixAllProvider
     {
-        public static readonly BatchFixAllProvider Instance = new BatchFixAllProvider();
+        public static readonly FixAllProvider Instance = new BatchFixAllProvider();
 
         protected BatchFixAllProvider() { }
 
