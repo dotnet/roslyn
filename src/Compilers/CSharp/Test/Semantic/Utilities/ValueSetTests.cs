@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -539,6 +541,98 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var i1 = s1.Intersect(s2);
                 var i2 = s1.Complement().Union(s2.Complement()).Complement();
                 Assert.Equal(i1, i2);
+            }
+        }
+
+        [Fact]
+        public void TestFuzz_02()
+        {
+            const int K = 13; // half of the alphabet
+
+            for (int i = 0; i < 100; i++)
+            {
+                var s1 = randomStringSet();
+                var s2 = randomStringSet();
+                var u1 = s1.Union(s2);
+                var u2 = s1.Complement().Intersect(s2.Complement()).Complement();
+                Assert.Equal(u1, u2);
+                var i1 = s1.Intersect(s2);
+                var i2 = s1.Complement().Union(s2.Complement()).Complement();
+                Assert.Equal(i1, i2);
+            }
+
+            // produce a uniformly random subset of 13 letters of the alphabet.
+            IValueSet<string> randomStringSet()
+            {
+                IValueSet<string> result = ForString.None;
+                int need = K;
+                for (char c = 'a'; c <= 'z'; c++)
+                {
+                    int cand = 'z' - c + 1;
+                    if (Random.NextDouble() < (1.0 * need / cand))
+                    {
+                        result = result.Union(ForString.Related(Equal, c.ToString()));
+                        need--;
+                    }
+                }
+
+                // check that we have 13 members
+                int found = 0;
+                for (char c = 'a'; c <= 'z'; c++)
+                {
+                    if (result.Any(Equal, c.ToString()))
+                        found++;
+                }
+                Assert.Equal(K, found);
+
+                Debug.Assert(need == 0);
+                return result;
+            }
+        }
+
+        [Fact]
+        public void TestFuzz_03()
+        {
+            const int K = 13; // half of the alphabet
+
+            for (int i = 0; i < 100; i++)
+            {
+                var s1 = randomCharSet();
+                var s2 = randomCharSet();
+                var u1 = s1.Union(s2);
+                var u2 = s1.Complement().Intersect(s2.Complement()).Complement();
+                Assert.Equal(u1, u2);
+                var i1 = s1.Intersect(s2);
+                var i2 = s1.Complement().Union(s2.Complement()).Complement();
+                Assert.Equal(i1, i2);
+            }
+
+            // produce a uniformly random subset of 13 letters of the alphabet.
+            IValueSet<char> randomCharSet()
+            {
+                IValueSet<char> result = ForChar.None;
+                int need = K;
+                for (char c = 'a'; c <= 'z'; c++)
+                {
+                    int cand = 'z' - c + 1;
+                    if (Random.NextDouble() < (1.0 * need / cand))
+                    {
+                        result = result.Union(ForChar.Related(Equal, c));
+                        need--;
+                    }
+                }
+
+                // check that we have 13 members
+                int found = 0;
+                for (char c = 'a'; c <= 'z'; c++)
+                {
+                    if (result.Any(Equal, c))
+                        found++;
+                }
+                Assert.Equal(K, found);
+
+                Debug.Assert(need == 0);
+                return result;
             }
         }
     }

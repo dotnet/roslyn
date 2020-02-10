@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -277,16 +279,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal static IValueSet<T> Random(int expectedSize, Random random)
             {
                 TTC tc = default;
-                bool include = true;
-                // Since only half of the random intervals are "included", double the number
-                return new NumericValueSet<T, TTC>(randomInterval(2 * expectedSize, tc.MinValue, tc.MaxValue));
+
+                // Since 2 out of 3 of the intervals will be merged with neighbors, triple the expected size
+                return new NumericValueSet<T, TTC>(randomInterval(3 * expectedSize, tc.MinValue, tc.MaxValue));
 
                 Interval randomInterval(int size, T minValue, T maxValue)
                 {
                     if (size < 2 || tc.Related(Equal, minValue, maxValue))
                     {
-                        include = !include;
-                        return include ? Interval.Included.Instance : Interval.Excluded.Instance;
+                        return random.NextDouble() < 0.5 ? Interval.Included.Instance : Interval.Excluded.Instance;
                     }
 
                     int leftSize = 1 + random.Next(size - 1);
