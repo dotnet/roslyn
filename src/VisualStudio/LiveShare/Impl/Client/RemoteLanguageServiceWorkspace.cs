@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -451,6 +452,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             base.Dispose(disposing);
         }
 
+        /// <summary>
+        /// Marker class to easily group error reporting for missing live share text buffers.
+        /// </summary>
+        private class LiveShareTextBufferMissingException : Exception
+        {
+        }
+
         /// <inheritdoc />
         protected override void ApplyDocumentTextChanged(DocumentId documentId, SourceText text)
         {
@@ -466,10 +474,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         return textContainer.TryGetTextBuffer();
                     });
 
-                    if (textBuffer != null)
+                    if (textBuffer == null)
                     {
-                        UpdateText(textBuffer, text);
+                        WatsonReporter.Report("Text buffer is missing for opened Live Share document.", new LiveShareTextBufferMissingException());
+                        return;
                     }
+
+                    UpdateText(textBuffer, text);
                 }
                 else
                 {
