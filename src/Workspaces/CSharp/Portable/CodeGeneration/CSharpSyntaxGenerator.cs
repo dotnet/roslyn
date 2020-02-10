@@ -1124,7 +1124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AccessorDeclarationSyntax accessor => accessor.AttributeLists,
                 ParameterSyntax parameter => parameter.AttributeLists,
                 CompilationUnitSyntax compilationUnit => compilationUnit.AttributeLists,
-                StatementSyntax statement => statement.AttributeLists,
+                LocalFunctionStatementSyntax statement => statement.AttributeLists,
                 _ => default,
             };
 
@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AccessorDeclarationSyntax accessor => accessor.WithAttributeLists(attributeLists),
                 ParameterSyntax parameter => parameter.WithAttributeLists(attributeLists),
                 CompilationUnitSyntax compilationUnit => compilationUnit.WithAttributeLists(AsAssemblyAttributes(attributeLists)),
-                StatementSyntax statement => statement.WithAttributeLists(attributeLists),
+                LocalFunctionStatementSyntax statement => statement.WithAttributeLists(attributeLists),
                 _ => declaration,
             };
 
