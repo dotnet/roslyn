@@ -1593,12 +1593,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsLogicalNotExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalNotExpression;
 
-        public bool IsConditionalAnd(SyntaxNode node)
-            => node.Kind() == SyntaxKind.LogicalAndExpression;
-
-        public bool IsConditionalOr(SyntaxNode node)
-            => node.Kind() == SyntaxKind.LogicalOrExpression;
-
         public bool IsTupleExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.TupleExpression;
 
