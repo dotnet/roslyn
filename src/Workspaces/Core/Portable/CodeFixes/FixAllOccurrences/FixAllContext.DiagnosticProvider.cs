@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
                             fixAllContext,
                             fixAllContext.ProgressTracker,
-                            DocumentExtensions.IsGeneratedCode).ConfigureAwait(false);
+                            (d, c) => DocumentExtensions.IsGeneratedCode(d, c)).ConfigureAwait(false);
                     }
                 }
             }
