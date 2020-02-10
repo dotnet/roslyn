@@ -5,6 +5,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -108,7 +110,7 @@ class B
 
         private static async Task<LSP.Location[]> RunFindAllReferencesAsync(Solution solution, LSP.Location caret, bool includeDeclaration)
         {
-            var request = new LSP.ReferenceParams()
+            var request = (JObject)JToken.FromObject(new LSP.ReferenceParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,
@@ -116,9 +118,9 @@ class B
                 {
                     IncludeDeclaration = includeDeclaration
                 }
-            };
+            });
 
-            var references = await TestHandleAsync<LSP.ReferenceParams, object[]>(solution, request);
+            var references = await TestHandleAsync<object, object[]>(solution, request, Methods.TextDocumentReferencesName);
             return references.Select(o => (LSP.Location)o).ToArray();
         }
     }

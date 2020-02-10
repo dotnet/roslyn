@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             var (solution, ranges) = CreateTestSolution(markup);
             var classifyLocation = ranges["classify"].First();
 
-            var results = await TestHandleAsync<ClassificationParams, object[]>(solution, CreateClassificationParams(classifyLocation));
+            var results = await TestHandleAsync<ClassificationParams, object[]>(solution, CreateClassificationParams(classifyLocation), RoslynMethods.ClassificationsName);
             AssertJsonEquals(new ClassificationSpan[] { CreateClassificationSpan("keyword", classifyLocation.Range) }, results);
         }
 
