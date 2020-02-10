@@ -629,8 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     }
                     else
                     {
-                        var semanticModel = GetSemanticModelForNode(parent, _speculativeModel ?? _semanticModel);
-                        newToken = Simplification.CSharpSimplificationService.TryEscapeIdentifierToken(newToken, parent, semanticModel);
+                        newToken = Simplification.CSharpSimplificationService.TryEscapeIdentifierToken(newToken, parent);
                     }
                 }
 

@@ -57,11 +57,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Public Overrides Function Expand(token As SyntaxToken, semanticModel As SemanticModel, expandInsideNode As Func(Of SyntaxNode, Boolean), cancellationToken As CancellationToken) As SyntaxToken
             Using Logger.LogBlock(FunctionId.Simplifier_ExpandToken, cancellationToken)
                 Dim rewriter = New Expander(semanticModel, expandInsideNode, cancellationToken)
-                Return TryEscapeIdentifierToken(rewriter.VisitToken(token), semanticModel)
+                Return TryEscapeIdentifierToken(rewriter.VisitToken(token))
             End Using
         End Function
 
-        Public Shared Function TryEscapeIdentifierToken(identifierToken As SyntaxToken, semanticModel As SemanticModel, Optional oldIdentifierToken As SyntaxToken? = Nothing) As SyntaxToken
+        Public Shared Function TryEscapeIdentifierToken(identifierToken As SyntaxToken) As SyntaxToken
             If identifierToken.Kind <> SyntaxKind.IdentifierToken OrElse identifierToken.ValueText.Length = 0 Then
                 Return identifierToken
             End If
