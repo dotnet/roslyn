@@ -41,14 +41,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                             await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false));
                 }
 
-                var isPragmaWarningSuppression = NestedSuppressionCodeAction.IsEquivalenceKeyForPragmaWarning(fixAllContext.CodeActionEquivalenceKey);
-                Contract.ThrowIfFalse(isPragmaWarningSuppression || NestedSuppressionCodeAction.IsEquivalenceKeyForRemoveSuppression(fixAllContext.CodeActionEquivalenceKey));
+                if (NestedSuppressionCodeAction.IsEquivalenceKeyForPragmaWarning(fixAllContext.CodeActionEquivalenceKey))
+                {
+                    var batchFixer = new PragmaWarningBatchFixAllProvider(suppressionFixer);
+                    return await batchFixer.GetFixAsync(fixAllContext).ConfigureAwait(false);
+                }
 
-                var batchFixer = isPragmaWarningSuppression
-                    ? new PragmaWarningBatchFixAllProvider(suppressionFixer)
-                    : RemoveSuppressionCodeAction.GetBatchFixer(suppressionFixer);
+                if (NestedSuppressionCodeAction.IsEquivalenceKeyForRemoveSuppression(fixAllContext.CodeActionEquivalenceKey))
+                {
+                    var batchFixer = RemoveSuppressionCodeAction.GetBatchFixer(suppressionFixer);
+                    return await batchFixer.GetFixAsync(fixAllContext).ConfigureAwait(false);
+                }
 
-                return await batchFixer.GetFixAsync(fixAllContext).ConfigureAwait(false);
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }
