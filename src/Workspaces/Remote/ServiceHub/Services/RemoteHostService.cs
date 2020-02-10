@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// basically, this is used to manage lifetime of the service hub.
     /// </summary>
-    internal partial class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
+    internal partial class RemoteHostService : ServiceBase, IRemoteHostService
     {
         private readonly static TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);
         private readonly CancellationTokenSource _shutdownCancellationSource;
@@ -263,29 +263,30 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, int workspaceVersion, CancellationToken cancellationToken)
+        public Task SynchronizePrimaryWorkspaceAsync(PinnedSolutionInfo solutionInfo, Checksum checksum, int workspaceVersion, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
-                    var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
+                    var solutionService = CreateSolutionService(solutionInfo);
+                    await solutionService.UpdatePrimaryWorkspaceAsync(checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
 
-        public Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
+        public Task SynchronizeGlobalAssetsAsync(PinnedSolutionInfo solutionInfo, Checksum[] checksums, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
                 {
-                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
+                    var assetProvider = SolutionService.CreateAssetProvider(solutionInfo, AssetStorage);
+                    var assets = await assetProvider.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
 
-                    foreach (var asset in assets)
+                    foreach (var (checksum, value) in assets)
                     {
-                        AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
+                        AssetStorage.TryAddGlobalAsset(checksum, value);
                     }
                 }
             }, cancellationToken);
