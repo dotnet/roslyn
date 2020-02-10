@@ -26,23 +26,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return null;
                 }
 
-                var batchFixer = WellKnownFixAllProviders.BatchFixer;
                 var suppressionFixer = (AbstractSuppressionCodeFixProvider)((WrapperCodeFixProvider)fixAllContext.CodeFixProvider).SuppressionFixProvider;
-                var isGlobalSuppression = NestedSuppressionCodeAction.IsEquivalenceKeyForGlobalSuppression(fixAllContext.CodeActionEquivalenceKey);
-                if (!isGlobalSuppression)
+
+                var title = fixAllContext.CodeActionEquivalenceKey;
+                if (!NestedSuppressionCodeAction.IsEquivalenceKeyForGlobalSuppression(fixAllContext.CodeActionEquivalenceKey))
                 {
+                    // Regular batch fixer will handle getting the document/project fixes here.
                     var isPragmaWarningSuppression = NestedSuppressionCodeAction.IsEquivalenceKeyForPragmaWarning(fixAllContext.CodeActionEquivalenceKey);
                     Contract.ThrowIfFalse(isPragmaWarningSuppression || NestedSuppressionCodeAction.IsEquivalenceKeyForRemoveSuppression(fixAllContext.CodeActionEquivalenceKey));
 
-                    batchFixer = isPragmaWarningSuppression
+                    var batchFixer = isPragmaWarningSuppression
                         ? new PragmaWarningBatchFixAllProvider(suppressionFixer)
                         : RemoveSuppressionCodeAction.GetBatchFixer(suppressionFixer);
-                }
 
-                var title = fixAllContext.CodeActionEquivalenceKey;
-                if (!isGlobalSuppression)
-                {
-                    // Regular batch fixer will handle getting the document/project fixes here.
                     return await batchFixer.GetFixAsync(fixAllContext).ConfigureAwait(false);
                 }
 
