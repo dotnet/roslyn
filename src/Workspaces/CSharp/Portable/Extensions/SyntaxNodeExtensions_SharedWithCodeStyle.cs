@@ -219,5 +219,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 WhileStatementSyntax n => n.Statement,
                 _ => null,
             };
+
+        public static SyntaxList<AttributeListSyntax> GetAttributeLists(this SyntaxNode declaration)
+            => declaration switch
+            {
+                MemberDeclarationSyntax memberDecl => memberDecl.AttributeLists,
+                AccessorDeclarationSyntax accessor => accessor.AttributeLists,
+                ParameterSyntax parameter => parameter.AttributeLists,
+                CompilationUnitSyntax compilationUnit => compilationUnit.AttributeLists,
+                _ => default,
+            };
+
+        public static BaseParameterListSyntax? GetParameterList(this SyntaxNode declaration)
+            => declaration.Kind() switch
+            {
+                SyntaxKind.DelegateDeclaration => ((DelegateDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.MethodDeclaration => ((MethodDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.OperatorDeclaration => ((OperatorDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.ConversionOperatorDeclaration => ((ConversionOperatorDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.ConstructorDeclaration => ((ConstructorDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.DestructorDeclaration => ((DestructorDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.ParenthesizedLambdaExpression => ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList,
+                SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).ParameterList,
+                SyntaxKind.AnonymousMethodExpression => ((AnonymousMethodExpressionSyntax)declaration).ParameterList,
+                _ => (BaseParameterListSyntax?)null,
+            };
     }
 }
