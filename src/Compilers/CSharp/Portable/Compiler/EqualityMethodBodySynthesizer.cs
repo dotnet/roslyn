@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     {
         public static BoundExpression GenerateEqualsComparisons<TList>(
             NamedTypeSymbol containingType,
-            BoundExpression receiverAccess,
+            BoundExpression otherAccess,
             TList componentProperties,
             SyntheticBoundNodeFactory F) where TList : IReadOnlyList<FieldSymbol>
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                  equalityComparer_get_Default.AsMember(constructedEqualityComparer)),
                     equalityComparer_Equals.AsMember(constructedEqualityComparer),
                     F.Field(F.This(), field),
-                    F.Field(receiverAccess, field));
+                    F.Field(otherAccess, field));
 
                 // Generate 'retExpression' = 'retExpression && nextEquals'
                 retExpression = retExpression is null

@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var recordProperties = ArrayBuilder<FieldSymbol>.GetInstance();
-            foreach (var member in ContainingType.GetMembersUnordered())
+            foreach (var member in ContainingType.GetMembers())
             {
                 if (member is SynthesizedRecordPropertySymbol p)
                 {
