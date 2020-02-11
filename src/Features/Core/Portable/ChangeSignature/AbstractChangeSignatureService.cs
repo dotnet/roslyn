@@ -519,7 +519,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             foreach (var brandNewParameter in brandNewParameters)
             {
-                newArguments.Add(createIUnifiedArgument(brandNewParameter.CallSiteValue).WithName(brandNewParameter.ParameterName));
+                var callSiteValue = brandNewParameter.IsCallsiteError
+                    ? "TODO"
+                    : brandNewParameter.CallSiteValue;
+
+                newArguments.Add(createIUnifiedArgument(callSiteValue).WithName(brandNewParameter.ParameterName));
             }
 
             // 6. Add the params argument with the first value:
@@ -755,7 +759,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                             Generator.Argument(
                                 name: seenNameEquals ? addedParameter.Name : default,
                                 refKind: RefKind.None,
-                                expression: Generator.ParseExpression(addedParameter.CallSiteValue)));
+                                expression: Generator.ParseExpression(addedParameter.IsCallsiteError ? "TODO" : addedParameter.CallSiteValue)));
                         separators.Add(Generator.CommaTokenWithElasticSpace());
                     }
                     else
