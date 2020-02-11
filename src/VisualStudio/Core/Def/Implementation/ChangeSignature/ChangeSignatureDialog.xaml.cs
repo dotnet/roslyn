@@ -143,9 +143,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     addParameterViewModel.TypeSymbol,
                     addParameterViewModel.TypeName,
                     addParameterViewModel.ParameterName,
-                    string.IsNullOrWhiteSpace(addParameterViewModel.CallSiteValue)
-                    ? ServicesVSResources.ChangeSignature_NewParameterIntroduceTODOVariable
-                    : addParameterViewModel.CallSiteValue);
+                    addParameterViewModel.CallSiteValue,
+                    addParameterViewModel.IsRequired,
+                    addParameterViewModel.DefaultValue,
+                    addParameterViewModel.IsCallsiteOmitted,
+                    addParameterViewModel.IsCallsiteError);
 
                 _viewModel.AddParameter(addedParameter);
             }

@@ -210,7 +210,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn x:Name="defaultHeader" Binding="{Binding Default, Mode=OneWay}" Width="*" IsReadOnly="True">
+                    <DataGridTextColumn x:Name="defaultHeader" Binding="{Binding DefaultValue, Mode=OneWay}" Width="*" IsReadOnly="True">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Padding" Value="{StaticResource ResourceKey=cellPadding}" />

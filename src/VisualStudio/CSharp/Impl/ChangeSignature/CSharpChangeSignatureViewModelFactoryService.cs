@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
+using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor;
@@ -44,10 +46,22 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
         protected override string ContentTypeName => ContentTypeNames.CSharpContentType;
 
         public override SymbolDisplayPart[] GeneratePreviewDisplayParts(AddedParameterViewModel addedParameterViewModel)
-            => new[] {
-                new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, addedParameterViewModel.Type),
-                new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " "),
-                new SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, null, addedParameterViewModel.ParameterName)};
+        {
+            var parts = new List<SymbolDisplayPart>();
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, addedParameterViewModel.Type));
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " "));
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, null, addedParameterViewModel.ParameterName));
+
+            if (!string.IsNullOrWhiteSpace(addedParameterViewModel.Default))
+            {
+                parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " "));
+                parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "="));
+                parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " "));
+                parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, addedParameterViewModel.Default));
+            }
+
+            return parts.ToArray();
+        }
 
         public override bool IsTypeNameValid(string typeName) => !SyntaxFactory.ParseTypeName(typeName).ContainsDiagnostics;
 

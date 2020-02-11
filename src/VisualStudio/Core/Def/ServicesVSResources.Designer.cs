@@ -624,15 +624,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;new&gt;.
-        /// </summary>
-        internal static string ChangeSignature_NewParameterIndicator {
-            get {
-                return ResourceManager.GetString("ChangeSignature_NewParameterIndicator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to TODO.
         /// </summary>
         internal static string ChangeSignature_NewParameterIntroduceTODOVariable {

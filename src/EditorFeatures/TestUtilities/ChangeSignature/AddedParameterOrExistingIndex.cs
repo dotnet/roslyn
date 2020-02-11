@@ -48,7 +48,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
                 _ => throw new ArgumentException("Unsupported language")
             };
 
-            return new AddedParameter(type!, _addedParameterWithoutTypeSymbol!.TypeNameDisplayWithErrorIndicator, _addedParameterWithoutTypeSymbol.ParameterName, _addedParameterWithoutTypeSymbol.CallSiteValue);
+            return new AddedParameter(
+                type!,
+                _addedParameterWithoutTypeSymbol!.TypeNameDisplayWithErrorIndicator,
+                _addedParameterWithoutTypeSymbol.ParameterName,
+                _addedParameterWithoutTypeSymbol.CallSiteValue,
+                _addedParameterWithoutTypeSymbol.IsRequired,
+                _addedParameterWithoutTypeSymbol.DefaultValue,
+                _addedParameterWithoutTypeSymbol.IsCallsiteOmitted,
+                _addedParameterWithoutTypeSymbol.IsCallsiteError);
         }
     }
 }

@@ -1402,9 +1402,6 @@ I agree to all of the foregoing:</value>
     <value>You must change the signature</value>
     <comment>"signature" here means the definition of a method</comment>
   </data>
-  <data name="ChangeSignature_NewParameterIndicator" xml:space="preserve">
-    <value>&lt;new&gt;</value>
-  </data>
   <data name="ChangeSignature_NewParameterIntroduceTODOVariable" xml:space="preserve">
     <value>TODO</value>
     <comment>"TODO" is an indication that there is work to be done still</comment>

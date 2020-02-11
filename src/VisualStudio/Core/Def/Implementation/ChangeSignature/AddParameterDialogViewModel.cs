@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#nullable enable
-
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -14,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
     internal class AddParameterDialogViewModel : AbstractNotifyPropertyChanged
     {
-        private readonly INotificationService? _notificationService;
+        private readonly INotificationService _notificationService;
 
         public readonly Document Document;
         public readonly int InsertPosition;
@@ -48,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        public ITypeSymbol? TypeSymbol { get; set; }
+        public ITypeSymbol TypeSymbol { get; set; }
 
         public string TypeName
         {
@@ -57,6 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 return (TypeSymbol!.IsErrorType() ? "(x) " : "") + TypeSymbol!.ToDisplayString(_symbolDisplayFormat);
             }
         }
+
+        public bool IsRequired { get; internal set; }
+        public string DefaultValue { get; internal set; }
+        public bool IsCallsiteError { get; internal set; }
+        public bool IsCallsiteOmitted { get; internal set; }
 
         internal void UpdateTypeSymbol(string typeName)
         {

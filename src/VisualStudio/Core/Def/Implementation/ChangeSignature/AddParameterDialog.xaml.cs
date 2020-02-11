@@ -61,9 +61,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             // TODO take these values from IntellisenseTextBoxViewModels not from controls.
             // https://github.com/dotnet/roslyn/issues/41149
-            _viewModel.ParameterName = ((IntellisenseTextBox)NameContentControl.Content).Text;
-            //_viewModel.CallSiteValue = CallSiteValueTextBox.Text;
+
             _viewModel.UpdateTypeSymbol(((IntellisenseTextBox)TypeContentControl.Content).Text);
+            _viewModel.ParameterName = ((IntellisenseTextBox)NameContentControl.Content).Text;
+
+            _viewModel.IsRequired = RequiredParameterRadioButton.IsChecked ?? false;
+            _viewModel.DefaultValue = _viewModel.IsRequired ? "" : DefaultValue.Text;
+
+            _viewModel.IsCallsiteError = IntroduceErrorRadioButton.IsChecked ?? false;
+            _viewModel.IsCallsiteOmitted = OmitArgumentRadioButton.IsChecked ?? false;
+
+            _viewModel.CallSiteValue = CallsiteValueTextBox.Text;
 
             if (_viewModel.TrySubmit(_document))
             {

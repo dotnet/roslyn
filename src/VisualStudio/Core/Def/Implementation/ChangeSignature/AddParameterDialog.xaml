@@ -65,7 +65,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <RadioButton x:Name="CallsiteValueRadioButton" Grid.Row="0" Grid.Column="0" GroupName="CallsiteKind" VerticalContentAlignment="Center" IsChecked="True" Content="{Binding ElementName=dialog, Path=Value}" />
-                <TextBox Grid.Column="1" Grid.Row="0" Margin="5,0,0,0" IsEnabled="{Binding IsChecked, ElementName=CallsiteValueRadioButton}" Text="{Binding CallsiteValue, Mode=TwoWay}"></TextBox>
+                <TextBox x:Name="CallsiteValueTextBox" Grid.Column="1" Grid.Row="0" Margin="5,0,0,0" IsEnabled="{Binding IsChecked, ElementName=CallsiteValueRadioButton}" Text="{Binding CallsiteValue, Mode=TwoWay}"></TextBox>
                 <CheckBox Grid.Row="1" Grid.ColumnSpan="2" Margin="25,5,0,0" Content="{Binding ElementName=dialog, Path=UseNamedArgument}" />
             </Grid>
             <RadioButton x:Name="IntroduceErrorRadioButton" Grid.Row="9" Margin="5,5,0,0" Grid.Column="0" GroupName="CallsiteKind" VerticalContentAlignment="Center" Content="{Binding ElementName=dialog, Path=IntroduceUndefinedTodoVariables}"/>

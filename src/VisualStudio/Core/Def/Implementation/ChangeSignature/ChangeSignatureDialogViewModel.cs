@@ -244,7 +244,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         internal void AddParameter(AddedParameter addedParameter)
         {
-            _parametersWithoutDefaultValues.Add(new AddedParameterViewModel(this, addedParameter));
+            if (addedParameter.IsRequired)
+            {
+                _parametersWithoutDefaultValues.Add(new AddedParameterViewModel(this, addedParameter));
+            }
+            else
+            {
+                _parametersWithDefaultValues.Add(new AddedParameterViewModel(this, addedParameter));
+            }
 
             RemoveRestoreNotifyPropertyChanged();
         }
@@ -576,6 +583,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public abstract string ShortAutomationText { get; }
             public abstract bool IsDisabled { get; }
             public abstract string CallSite { get; }
+            public abstract bool IsRequired { get; }
+            public abstract string DefaultValue { get; }
 
             public ParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel)
             {
@@ -597,6 +606,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     }
 
                     return text;
+                }
+            }
+
+            public bool NeedsBottomBorder
+            {
+                get
+                {
+                    if (this == changeSignatureDialogViewModel._thisParameter)
+                    {
+                        return true;
+                    }
+
+                    if (this == changeSignatureDialogViewModel._parametersWithoutDefaultValues.LastOrDefault() &&
+                        (changeSignatureDialogViewModel._parametersWithDefaultValues.Any() || changeSignatureDialogViewModel._paramsParameter != null))
+                    {
+                        return true;
+                    }
+
+                    if (this == changeSignatureDialogViewModel._parametersWithDefaultValues.LastOrDefault() &&
+                        changeSignatureDialogViewModel._paramsParameter != null)
+                    {
+                        return true;
+                    }
+
+                    return false;
                 }
             }
         }
@@ -632,13 +666,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public override string CallSite => _addedParameter.CallSiteValue;
 
-            public override string InitialIndex => ServicesVSResources.ChangeSignature_NewParameterIndicator;
+            public override string InitialIndex => "+";
 
             // Newly added parameters cannot have modifiers yet
             public override string Modifier => string.Empty;
 
             // Only required parameters are supported currently
             public override string Default => string.Empty;
+
+            public override bool IsRequired => _addedParameter.IsRequired;
+            public override string DefaultValue => _addedParameter.DefaultValue;
         }
 
 #nullable enable
@@ -741,32 +778,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public override bool IsDisabled => changeSignatureDialogViewModel.IsDisabled(this);
 
-            public bool NeedsBottomBorder
-            {
-                get
-                {
-                    if (this == changeSignatureDialogViewModel._thisParameter)
-                    {
-                        return true;
-                    }
-
-                    if (this == changeSignatureDialogViewModel._parametersWithoutDefaultValues.LastOrDefault() &&
-                        (changeSignatureDialogViewModel._parametersWithDefaultValues.Any() || changeSignatureDialogViewModel._paramsParameter != null))
-                    {
-                        return true;
-                    }
-
-                    if (this == changeSignatureDialogViewModel._parametersWithDefaultValues.LastOrDefault() &&
-                        changeSignatureDialogViewModel._paramsParameter != null)
-                    {
-                        return true;
-                    }
-
-                    return false;
-                }
-            }
-
             public override bool IsRemoved { get; set; }
+
+            public override bool IsRequired => !ParameterSymbol.HasExplicitDefaultValue;
+            public override string DefaultValue => Default;
         }
     }
 }
