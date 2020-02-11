@@ -67,21 +67,6 @@
         <target state="translated">Preferencje pól</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_0">
-        <source>Fix all '{0}'</source>
-        <target state="new">Fix all '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_1">
-        <source>Fix all '{0}' in '{1}'</source>
-        <target state="new">Fix all '{0}' in '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_Solution">
-        <source>Fix all '{0}' in Solution</source>
-        <target state="new">Fix all '{0}' in Solution</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">Wcięcia i odstępy</target>
@@ -1272,11 +1257,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Usuwanie dokumentów z konfiguracją analizatora nie jest obsługiwane.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Supplied_diagnostic_cannot_be_null">
-        <source>Supplied diagnostic cannot be null.</source>
-        <target state="new">Supplied diagnostic cannot be null.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
         <source>Symbol "{0}" is not from source.</source>
         <target state="translated">Symbol „{0}” nie pochodzi ze źródła.</target>
@@ -1657,6 +1637,21 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Dodano:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_all_0">
+        <source>Fix all '{0}'</source>
+        <target state="translated">Napraw wszystkie wystąpienia elementu „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_1">
+        <source>Fix all '{0}' in '{1}'</source>
+        <target state="translated">Napraw wszystkie wystąpienia elementu „{0}” w zakresie „{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_Solution">
+        <source>Fix all '{0}' in Solution</source>
+        <target state="translated">Napraw wszystkie wystąpienia elementu „{0}” w rozwiązaniu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="After_colon">
         <source>After:</source>
         <target state="translated">Po:</target>
@@ -1745,6 +1740,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
         <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
         <target state="translated">Usługa typu „{0}” jest wymagana do wykonania zadania, lecz nie jest dostępna w obszarze roboczym.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Supplied_diagnostic_cannot_be_null">
+        <source>Supplied diagnostic cannot be null.</source>
+        <target state="translated">Podane informacje diagnostyczne nie mogą mieć wartości null.</target>
         <note />
       </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">

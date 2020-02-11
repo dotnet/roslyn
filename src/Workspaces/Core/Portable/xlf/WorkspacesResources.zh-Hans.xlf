@@ -67,21 +67,6 @@
         <target state="translated">字段首选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_0">
-        <source>Fix all '{0}'</source>
-        <target state="new">Fix all '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_1">
-        <source>Fix all '{0}' in '{1}'</source>
-        <target state="new">Fix all '{0}' in '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_Solution">
-        <source>Fix all '{0}' in Solution</source>
-        <target state="new">Fix all '{0}' in Solution</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">缩进和间距</target>
@@ -1272,11 +1257,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">不支持删除分析器配置文档。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Supplied_diagnostic_cannot_be_null">
-        <source>Supplied diagnostic cannot be null.</source>
-        <target state="new">Supplied diagnostic cannot be null.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
         <source>Symbol "{0}" is not from source.</source>
         <target state="translated">符号“{0}”不是来自源。</target>
@@ -1657,6 +1637,21 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">添加项:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_all_0">
+        <source>Fix all '{0}'</source>
+        <target state="translated">修复所有“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_1">
+        <source>Fix all '{0}' in '{1}'</source>
+        <target state="translated">修复“{1}”中的所有“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_Solution">
+        <source>Fix all '{0}' in Solution</source>
+        <target state="translated">修复解决方案中的所有“{0}”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="After_colon">
         <source>After:</source>
         <target state="translated">在此之后:</target>
@@ -1745,6 +1740,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
         <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
         <target state="translated">完成任务需要“{0}”类型的服务，但无法从工作区中使用这样的服务。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Supplied_diagnostic_cannot_be_null">
+        <source>Supplied diagnostic cannot be null.</source>
+        <target state="translated">提供的诊断不能为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">
