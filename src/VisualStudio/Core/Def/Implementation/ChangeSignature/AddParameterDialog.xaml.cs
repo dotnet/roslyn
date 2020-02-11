@@ -55,6 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     _viewModel.InsertPosition,
                     this.TypeContentControl,
                     this.NameContentControl).Wait();
+
+            this.MinHeight = this.Height;
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
