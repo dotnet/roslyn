@@ -451,7 +451,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             => CreateNewParameterSyntax(addedParameter, skipParameterType: false);
 
         private static ParameterSyntax CreateNewParameterSyntax(AddedParameter addedParameter, bool skipParameterType)
-            => SyntaxFactory.Parameter(
+        {
+            var equalsValueClause = addedParameter.HasExplicitDefaultValue
+                ? SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression(addedParameter.DefaultValue))
+                : default;
+
+            return SyntaxFactory.Parameter(
                 attributeLists: SyntaxFactory.List<AttributeListSyntax>(),
                 modifiers: SyntaxFactory.TokenList(),
                 type: skipParameterType
@@ -459,7 +464,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     : addedParameter.Type.GenerateTypeSyntax(allowVar: false)
                         .WithTrailingTrivia(SyntaxFactory.ElasticSpace),
                 SyntaxFactory.Identifier(addedParameter.ParameterName),
-                @default: default);
+                @default: equalsValueClause);
+        }
 
         private static CrefParameterSyntax CreateNewCrefParameterSyntax(AddedParameter addedParameter)
             => SyntaxFactory.CrefParameter(type: addedParameter.Type.GenerateTypeSyntax(allowVar: false))
