@@ -373,6 +373,15 @@ namespace Roslyn.Test.Utilities
 
                         return $"{type} {name}";
                     }
+                case HandleKind.TypeSpecification:
+                    {
+                        var typeSpec = reader.GetTypeSpecification((TypeSpecificationHandle)handle);
+                        var blob = reader.GetBlobReader(typeSpec.Signature);
+                        var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
+                        var type = decoder.DecodeType(ref blob);
+
+                        return $"{type}";
+                    }
                 default:
                     return null;
             }

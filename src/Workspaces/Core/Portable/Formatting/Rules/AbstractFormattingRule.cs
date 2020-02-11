@@ -3,7 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
 using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {

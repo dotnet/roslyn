@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.Text;
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+#else
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #endif
 
 namespace Microsoft.CodeAnalysis.Formatting

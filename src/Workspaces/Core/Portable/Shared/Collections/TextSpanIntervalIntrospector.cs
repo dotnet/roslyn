@@ -6,14 +6,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
-    internal class TextSpanIntervalIntrospector : IIntervalIntrospector<TextSpan>
+    internal readonly struct TextSpanIntervalIntrospector : IIntervalIntrospector<TextSpan>
     {
-        public static readonly IIntervalIntrospector<TextSpan> Instance = new TextSpanIntervalIntrospector();
-
-        private TextSpanIntervalIntrospector()
-        {
-        }
-
         public int GetStart(TextSpan value)
         {
             return value.Start;

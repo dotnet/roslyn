@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
             return ToString(null);
         }
 
-        string? IFormattable.ToString(string? ignored, IFormatProvider? formatProvider)
+        string IFormattable.ToString(string? ignored, IFormatProvider? formatProvider)
         {
             return ToString(formatProvider);
         }

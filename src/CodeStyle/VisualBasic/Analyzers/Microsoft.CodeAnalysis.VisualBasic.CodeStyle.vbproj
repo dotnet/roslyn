@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace></RootNamespace>
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
     <PackageId>Microsoft.CodeAnalysis.VisualBasic.CodeStyle.NewNameSinceWeReferenceTheAnalyzersAndNuGetCannotFigureItOut</PackageId>
@@ -71,4 +71,6 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\VisualBasicCompilerExtensions.projitems" Label="Shared" />
+  <Import Project="..\..\..\Analyzers\VisualBasic\Analyzers\VisualBasicAnalyzers.projitems" Label="Shared" />
 </Project>

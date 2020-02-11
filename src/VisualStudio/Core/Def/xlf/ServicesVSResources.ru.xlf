@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Current_document">
         <source>Current document</source>
-        <target state="new">Current document</target>
+        <target state="translated">Текущий документ</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Entire_solution">
         <source>Entire solution</source>
-        <target state="new">Entire solution</target>
+        <target state="translated">Все решение</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -374,7 +374,7 @@
       </trans-unit>
       <trans-unit id="Open_documents">
         <source>Open documents</source>
-        <target state="new">Open documents</target>
+        <target state="translated">Открыть документы</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
@@ -575,6 +575,11 @@
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
         <target state="translated">Заданное здесь значение не используется.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="new">Value:</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">

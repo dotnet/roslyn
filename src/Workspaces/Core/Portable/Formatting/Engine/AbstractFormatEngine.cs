@@ -14,6 +14,10 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#endif
+
 namespace Microsoft.CodeAnalysis.Formatting
 {
     // TODO : two alternative design possible for formatting engine

@@ -1387,12 +1387,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
-        <target state="needs-review-translation">Um possível valor nulo não pode ser passado para um destino marcado com o atributo [DisallowNull]</target>
+        <target state="translated">Um valor nulo possível não pode ser usado para um tipo marcado com [NotNull] ou [DisallowNull]</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
-        <target state="needs-review-translation">Um possível valor nulo não pode ser passado para um destino marcado com o atributo [DisallowNull]</target>
+        <target state="translated">Um valor nulo possível não pode ser usado para um tipo marcado com [NotNull] ou [DisallowNull]</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1447,22 +1447,22 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="translated">A anotação para tipos de referência anuláveis deve ser usada apenas em código dentro de um contexto de anotações '#nullable'.</target>
+        <target state="translated">A anotação para tipos de referência anuláveis deve ser usada apenas em código em um contexto de anotações '#nullable'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="translated">A anotação para tipos de referência anulável só deve ser usada no código dentro de um contexto de anotações '#nullable'. O código gerado automaticamente exige uma diretiva '#nullable' explícita na origem.</target>
+        <target state="translated">A anotação para tipos de referência anuláveis só deve ser usada no código em um contexto de anotações '#nullable'. O código gerado automaticamente exige uma diretiva '#nullable' explícita na origem.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
-        <target state="translated">A anotação para tipos de referência anulável só deve ser usada no código dentro de um contexto de anotações '#nullable'. O código gerado automaticamente exige uma diretiva '#nullable' explícita na origem.</target>
+        <target state="translated">A anotação para tipos de referência anuláveis só deve ser usada no código em um contexto de anotações '#nullable'. O código gerado automaticamente exige uma diretiva '#nullable' explícita na origem.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="translated">A anotação para tipos de referência anuláveis deve ser usada apenas em código dentro de um contexto de anotações '#nullable'.</target>
+        <target state="translated">A anotação para tipos de referência anuláveis deve ser usada apenas em código em um contexto de anotações '#nullable'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1757,32 +1757,32 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' may not have a null value when exiting with '{1}'.</source>
-        <target state="new">Parameter '{0}' may not have a null value when exiting with '{1}'.</target>
+        <target state="translated">O parâmetro '{0}' não pode ter um valor nulo durante a saída com '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter may not have a null value when exiting in some condition.</source>
-        <target state="new">Parameter may not have a null value when exiting in some condition.</target>
+        <target state="translated">O parâmetro não pode ter um valor nulo durante a saída em alguma condição.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <target state="translated">Um método marcado como [DoesNotReturn] não deve ser retornado.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn_Title">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <target state="translated">Um método marcado como [DoesNotReturn] não deve ser retornado.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="translated">A expressão switch não manipula todos os valores possíveis de seu tipo de entrada (não é finita).</target>
+        <target state="translated">A expressão switch não manipula todos os valores possíveis de seu tipo de entrada (não é exaustiva).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
         <source>The switch expression does not handle some null inputs (it is not exhaustive).</source>
-        <target state="translated">A expressão switch não manipula algumas entradas nulas (ela não é finita).</target>
+        <target state="translated">A expressão switch não manipula algumas entradas nulas (não é exaustiva).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
@@ -1792,7 +1792,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="translated">A expressão switch não manipula todos os valores possíveis de seu tipo de entrada (não é finita).</target>
+        <target state="translated">A expressão switch não manipula todos os valores possíveis de seu tipo de entrada (não é exaustiva).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">

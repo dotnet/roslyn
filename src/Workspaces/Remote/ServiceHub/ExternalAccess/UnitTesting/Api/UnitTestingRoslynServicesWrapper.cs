@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal readonly struct UnitTestingRoslynServicesWrapper
     {
-        internal RoslynServices UnderlyingObject { get; }
+        private readonly SolutionService _solutionService;
 
         public UnitTestingRoslynServicesWrapper(UnitTestingPinnedSolutionInfoWrapper pinnedSolutionInfoWrapper, UnitTestingAssetStorageWrappper assetStorageWrappper)
-            => UnderlyingObject = new RoslynServices(pinnedSolutionInfoWrapper.UnderlyingObject.ScopeId, assetStorageWrappper.UnderlyingObject, RoslynServices.HostServices);
+            => _solutionService = new SolutionService(SolutionService.CreateAssetProvider(pinnedSolutionInfoWrapper.UnderlyingObject, assetStorageWrappper.UnderlyingObject));
 
         public Task<Solution> GetSolutionAsync(UnitTestingPinnedSolutionInfoWrapper pinnedSolutionInfoWrapper, CancellationToken cancellationToken)
-            => UnderlyingObject.SolutionService.GetSolutionAsync(pinnedSolutionInfoWrapper.UnderlyingObject.SolutionChecksum, cancellationToken);
+            => _solutionService.GetSolutionAsync(pinnedSolutionInfoWrapper.UnderlyingObject.SolutionChecksum, cancellationToken);
     }
 }
