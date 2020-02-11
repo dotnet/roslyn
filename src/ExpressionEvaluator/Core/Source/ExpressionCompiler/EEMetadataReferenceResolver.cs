@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)
             => throw ExceptionUtilities.Unreachable;
 
-        public override bool Equals(object other)
+        public override bool Equals(object? other)
             => throw ExceptionUtilities.Unreachable;
 
         public override int GetHashCode()
