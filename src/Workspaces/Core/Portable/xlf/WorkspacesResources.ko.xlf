@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
         <source>Error reading content of source file '{0}' -- '{1}'.</source>
-        <target state="translated">소스 파일 '{0}' -- '{1}'의 콘텐츠를 읽는 동안 오류가 발생했습니다.</target>
+        <target state="translated">소스 파일 '{0}'의 콘텐츠를 읽는 동안 오류가 발생했습니다. -- '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">

@@ -22,7 +22,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
     [UseExportProvider]
-    public class AssetServiceTests
+    public class AssetProviderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestAssets()
@@ -34,11 +34,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var storage = new AssetStorage();
             _ = new SimpleAssetSource(storage, new Dictionary<Checksum, object>() { { checksum, data } });
 
-            var service = new AssetService(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
-            var stored = await service.GetAssetAsync<object>(checksum, CancellationToken.None);
+            var provider = new AssetProvider(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
+            var stored = await provider.GetAssetAsync<object>(checksum, CancellationToken.None);
             Assert.Equal(data, stored);
 
-            var stored2 = await service.GetAssetsAsync<object>(new[] { checksum }, CancellationToken.None);
+            var stored2 = await provider.GetAssetsAsync<object>(new[] { checksum }, CancellationToken.None);
             Assert.Equal(1, stored2.Count);
 
             Assert.Equal(checksum, stored2[0].Item1);
@@ -62,7 +62,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var storage = new AssetStorage();
             var source = new SimpleAssetSource(storage, map);
 
-            var service = new AssetService(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
+            var service = new AssetProvider(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
             await service.SynchronizeAssetsAsync(new HashSet<Checksum>(map.Keys), CancellationToken.None);
 
             foreach (var kv in map)
@@ -88,7 +88,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var storage = new AssetStorage();
             var source = new SimpleAssetSource(storage, map);
 
-            var service = new AssetService(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
+            var service = new AssetProvider(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
             await service.SynchronizeSolutionAssetsAsync(await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);
@@ -111,7 +111,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var storage = new AssetStorage();
             var source = new SimpleAssetSource(storage, map);
 
-            var service = new AssetService(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
+            var service = new AssetProvider(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
             await service.SynchronizeProjectAssetsAsync(SpecializedCollections.SingletonEnumerable(await project.State.GetChecksumAsync(CancellationToken.None)), CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);
