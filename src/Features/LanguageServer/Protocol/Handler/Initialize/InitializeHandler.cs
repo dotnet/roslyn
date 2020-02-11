@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 DocumentRangeFormattingProvider = true,
                 DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } },
                 DocumentHighlightProvider = true,
+                TextDocumentSync = new TextDocumentSyncOptions { OpenClose = true }
             }
         };
 

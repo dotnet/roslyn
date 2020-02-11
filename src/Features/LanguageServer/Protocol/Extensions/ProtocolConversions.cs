@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 case DiagnosticSeverity.Hidden:
                     return LSP.DiagnosticSeverity.Hint;
                 case DiagnosticSeverity.Info:
-                    return LSP.DiagnosticSeverity.Information;
+                    return LSP.DiagnosticSeverity.Hint;
                 case DiagnosticSeverity.Warning:
                     return LSP.DiagnosticSeverity.Warning;
                 case DiagnosticSeverity.Error:

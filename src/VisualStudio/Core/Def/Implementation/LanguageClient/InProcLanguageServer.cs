@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -17,6 +18,7 @@ using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -33,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly Workspace _workspace;
 
         private VSClientCapabilities? _clientCapabilities;
+        private IEnumerable<DiagnosticData> _diagnostics;
 
         public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol,
             Workspace workspace, IDiagnosticService diagnosticService)
@@ -45,6 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _diagnosticService = diagnosticService;
             _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
+
+            _diagnostics = new DiagnosticData[] { };
         }
 
         /// <summary>
@@ -87,6 +92,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [JsonRpcMethod(Methods.ExitName)]
         public void Exit()
         {
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentDidOpenName)]
+        public async void GetTextDocumentDidOpen(JToken input)
+        {
+            var textDocumentDidOpenParams = input.ToObject<DidOpenTextDocumentParams>();
         }
 
         [JsonRpcMethod(Methods.TextDocumentDefinitionName)]
@@ -191,8 +202,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                     // LSP does not currently support publishing diagnostics incrememntally, so we re-publish all diagnostics.
                     var diagnostics = await GetDiagnosticsAsync(e.Solution, document, CancellationToken.None).ConfigureAwait(false);
-                    var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics, Uri = document.GetURI() };
-                    await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
+                    if (!diagnostics.IsEmpty())
+                    {
+                        var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics, Uri = document.GetURI() };
+                        await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
+                    }
                 }
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
@@ -204,6 +218,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var diagnostics = _diagnosticService.GetDiagnostics(solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            // Ensuring that we don't publish the same diagnostic multiple times.
+            if (diagnostics.SequenceEqual(_diagnostics))
+            {
+                return new LanguageServer.Protocol.Diagnostic[] { };
+            }
+
+            _diagnostics = diagnostics;
 
             return diagnostics.Select(diagnostic => new LanguageServer.Protocol.Diagnostic
             {
