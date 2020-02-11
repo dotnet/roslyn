@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the members of superType are accessible from subType due to inheritance.
         /// </summary>
-        public static bool IsAccessibleViaInheritance(this NamedTypeSymbol superType, NamedTypeSymbol subType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsAccessibleViaInheritance(this NamedTypeSymbol superType, NamedTypeSymbol subType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             // NOTE: we don't use strict inheritance.  Instead we ignore constructed generic types
             // and only consider the unconstructed types.  Ecma-334, 4th edition contained the
@@ -84,12 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return superType.TypeKind == TypeKind.Submission && subType.TypeKind == TypeKind.Submission;
         }
 
-        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbol type, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
         }
 
-        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeWithAnnotations type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeWithAnnotations type, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
         }
@@ -317,11 +319,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (symbol is object)
             {
-                SyntaxReference reference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
+                SyntaxReference? reference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
 
                 if (reference == null && symbol.IsImplicitlyDeclared)
                 {
-                    Symbol containingSymbol = symbol.ContainingSymbol;
+                    Symbol? containingSymbol = symbol.ContainingSymbol;
                     if ((object)containingSymbol != null)
                     {
                         reference = containingSymbol.DeclaringSyntaxReferences.FirstOrDefault();
@@ -603,8 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbols.Select(p => p.GetPublicSymbol<ISymbol>());
         }
 
-        private static ImmutableArray<TISymbol> GetPublicSymbols<TISymbol>(this ImmutableArray<Symbol> symbols)
-            where TISymbol : class, ISymbol
+        private static ImmutableArray<TISymbol> GetPublicSymbols<TISymbol>(this ImmutableArray<Symbol> symbols) where TISymbol : class, ISymbol
         {
             if (symbols.IsDefault)
             {

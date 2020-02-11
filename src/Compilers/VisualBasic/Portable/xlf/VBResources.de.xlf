@@ -1537,7 +1537,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
         <source>Failed to emit module '{0}': {1}</source>
-        <target state="new">Failed to emit module '{0}': {1}</target>
+        <target state="translated">Fehler beim Ausgeben von Modul "{0}": {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
@@ -8671,7 +8671,7 @@
       </trans-unit>
       <trans-unit id="INF_UnableToLoadSomeTypesInAnalyzer">
         <source>Skipping some types in analyzer assembly {0} due to a ReflectionTypeLoadException : {1}.</source>
-        <target state="translated">Einige Typen werden in der Assembly "{0}" des Analysetools aufgrund von ReflectionTypeLoadException übersprungen: {1}.</target>
+        <target state="translated">Einige Typen werden in der Analyzer-Assembly {0} aufgrund von ReflectionTypeLoadException übersprungen: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_UnableToLoadSomeTypesInAnalyzer_Title">
@@ -9141,12 +9141,12 @@
       </trans-unit>
       <trans-unit id="WRN_AttributeNotSupportedInVB">
         <source>'{0}' is not supported in VB.</source>
-        <target state="new">'{0}' is not supported in VB.</target>
+        <target state="translated">"{0}" wird in VB nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributeNotSupportedInVB_Title">
         <source>Attribute is not supported in VB</source>
-        <target state="new">Attribute is not supported in VB</target>
+        <target state="translated">Attribut wird in VB nicht unterstützt</target>
         <note />
       </trans-unit>
     </body>
