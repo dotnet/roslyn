@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -131,8 +133,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public override string DefaultValue => _addedParameter.DefaultValue;
         }
 
-#nullable enable
-
         public class ExistingParameterViewModel : ParameterViewModel
         {
             public IParameterSymbol ParameterSymbol => _existingParameter.Symbol;
@@ -154,7 +154,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public override string InitialIndex { get; }
 
-#nullable disable
             public override string Modifier
             {
                 get
@@ -164,12 +163,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         case LanguageNames.CSharp:
                             return ModifierText("out", "ref", "in", "params", "this");
                         case LanguageNames.VisualBasic:
-                            return ModifierText(@ref: "ByRef", @params: "ParamArray", @this: "Me");
+                            return ModifierText(@out: null, "ByRef", @in: null, "ParamArray", "Me");
                         default:
                             return string.Empty;
                     }
 
-                    string ModifierText(string @out = default, string @ref = default, string @in = default, string @params = default, string @this = default)
+                    string ModifierText(string? @out, string? @ref, string? @in, string? @params, string? @this)
                     {
                         switch (ParameterSymbol.RefKind)
                         {
@@ -191,12 +190,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         {
                             return @this ?? string.Empty;
                         }
+
                         return string.Empty;
                     }
                 }
             }
-
-#nullable enable
 
             public override string Type => ParameterSymbol.Type.ToDisplayString(s_parameterDisplayFormat);
 

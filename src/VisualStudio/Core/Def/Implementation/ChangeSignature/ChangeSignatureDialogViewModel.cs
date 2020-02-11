@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,12 +30,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly ParameterConfiguration _originalParameterConfiguration;
 
         // This can be changed to ParameterViewModel if we will allow adding 'this' parameter.
-        private readonly ExistingParameterViewModel _thisParameter;
+        private readonly ExistingParameterViewModel? _thisParameter;
         private readonly List<ParameterViewModel> _parametersWithoutDefaultValues;
         private readonly List<ParameterViewModel> _parametersWithDefaultValues;
 
         // This can be changed to ParameterViewModel if we will allow adding 'params' parameter.
-        private readonly ExistingParameterViewModel _paramsParameter;
+        private readonly ExistingParameterViewModel? _paramsParameter;
         private HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
         private readonly int _insertPosition;
 
@@ -59,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
 
-            _notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+            _notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
 
             // This index is displayed to users. That is why we start it from 1.
             var initialDisplayIndex = 1;
@@ -223,14 +225,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         internal void Remove()
         {
-            if (AllParameters[_selectedIndex.Value] is AddedParameterViewModel)
+            if (AllParameters[_selectedIndex!.Value] is AddedParameterViewModel)
             {
-                ParameterViewModel parameterToRemove = AllParameters[_selectedIndex.Value];
+                ParameterViewModel parameterToRemove = AllParameters[_selectedIndex!.Value];
                 _parametersWithoutDefaultValues.Remove(parameterToRemove);
             }
             else
             {
-                AllParameters[_selectedIndex.Value].IsRemoved = true;
+                AllParameters[_selectedIndex!.Value].IsRemoved = true;
             }
 
             RemoveRestoreNotifyPropertyChanged();
@@ -238,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         internal void Restore()
         {
-            AllParameters[_selectedIndex.Value].IsRemoved = false;
+            AllParameters[_selectedIndex!.Value].IsRemoved = false;
             RemoveRestoreNotifyPropertyChanged();
         }
 
@@ -362,7 +364,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         break;
 
                     case AddedParameterViewModel addedParameterViewModel:
-                        var languageService = _document.GetLanguageService<IChangeSignatureViewModelFactoryService>();
+                        var languageService = _document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
                         displayParts.AddRange(languageService.GeneratePreviewDisplayParts(addedParameterViewModel));
                         break;
 
@@ -441,7 +443,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             Debug.Assert(CanMoveUp);
 
-            var index = SelectedIndex.Value;
+            var index = SelectedIndex!.Value;
             index = _thisParameter == null ? index : index - 1;
             Move(index < _parametersWithoutDefaultValues.Count ? _parametersWithoutDefaultValues : _parametersWithDefaultValues, index < _parametersWithoutDefaultValues.Count ? index : index - _parametersWithoutDefaultValues.Count, delta: -1);
         }
@@ -450,7 +452,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             Debug.Assert(CanMoveDown);
 
-            var index = SelectedIndex.Value;
+            var index = SelectedIndex!.Value;
             index = _thisParameter == null ? index : index - 1;
             Move(index < _parametersWithoutDefaultValues.Count ? _parametersWithoutDefaultValues : _parametersWithDefaultValues, index < _parametersWithoutDefaultValues.Count ? index : index - _parametersWithoutDefaultValues.Count, delta: 1);
         }
@@ -528,7 +530,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Move_0_above_1, AllParameters[SelectedIndex.Value].ShortAutomationText, AllParameters[SelectedIndex.Value - 1].ShortAutomationText);
+                return string.Format(ServicesVSResources.Move_0_above_1, AllParameters[SelectedIndex!.Value].ShortAutomationText, AllParameters[SelectedIndex!.Value - 1].ShortAutomationText);
             }
         }
 
@@ -541,7 +543,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Move_0_below_1, AllParameters[SelectedIndex.Value].ShortAutomationText, AllParameters[SelectedIndex.Value + 1].ShortAutomationText);
+                return string.Format(ServicesVSResources.Move_0_below_1, AllParameters[SelectedIndex!.Value].ShortAutomationText, AllParameters[SelectedIndex!.Value + 1].ShortAutomationText);
             }
         }
 
@@ -554,7 +556,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Remove_0, AllParameters[SelectedIndex.Value].ShortAutomationText);
+                return string.Format(ServicesVSResources.Remove_0, AllParameters[SelectedIndex!.Value].ShortAutomationText);
             }
         }
 
@@ -567,7 +569,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Restore_0, AllParameters[SelectedIndex.Value].ShortAutomationText);
+                return string.Format(ServicesVSResources.Restore_0, AllParameters[SelectedIndex!.Value].ShortAutomationText);
             }
         }
     }
