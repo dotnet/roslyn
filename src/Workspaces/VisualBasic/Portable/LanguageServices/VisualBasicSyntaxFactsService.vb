@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetParameterList(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetParameterList
-            Return VisualBasicSyntaxGenerator.GetParameterList(node)
+            Return node.GetParameterList()
         End Function
 
         Public Function IsSkippedTokensTrivia(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSkippedTokensTrivia
@@ -1668,14 +1668,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.IsKind(SyntaxKind.NotExpression)
         End Function
 
-        Public Function IsConditionalAnd(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalAnd
-            Return node.Kind() = SyntaxKind.AndAlsoExpression
-        End Function
-
-        Public Function IsConditionalOr(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalOr
-            Return node.Kind() = SyntaxKind.OrElseExpression
-        End Function
-
         Public Function IsTupleExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTupleExpression
             Return node.Kind() = SyntaxKind.TupleExpression
         End Function
@@ -2073,7 +2065,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetAttributeLists
-            Return VisualBasicSyntaxGenerator.GetAttributeLists(node)
+            Return node.GetAttributeLists()
         End Function
 
         Private Function ISyntaxFactsService_IsExpressionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionStatement

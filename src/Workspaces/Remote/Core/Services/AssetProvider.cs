@@ -17,16 +17,14 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
     /// This service provide a way to get roslyn objects from checksum
-    /// 
-    /// TODO: change this service to workspace service
     /// </summary>
-    internal sealed class AssetService : IAssetProvider
+    internal sealed class AssetProvider : AbstractAssetProvider
     {
         private readonly ISerializerService _serializerService;
         private readonly int _scopeId;
         private readonly AssetStorage _assetStorage;
 
-        public AssetService(int scopeId, AssetStorage assetStorage, ISerializerService serializerService)
+        public AssetProvider(int scopeId, AssetStorage assetStorage, ISerializerService serializerService)
         {
             _scopeId = scopeId;
             _assetStorage = assetStorage;
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return _assetStorage.GetGlobalAssetsOfType<T>(cancellationToken);
         }
 
-        public async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
+        public override async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
             if (_assetStorage.TryGetAsset(checksum, out T asset))
             {
