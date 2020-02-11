@@ -14,17 +14,17 @@ using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
 {
-    internal sealed class SymbolNamesWithValueOption<TValue> : IEquatable<SymbolNamesWithValueOption<TValue>?>
+    internal class SymbolNamesWithValueOption<TValue> : IEquatable<SymbolNamesWithValueOption<TValue>?>
     {
-        private const SymbolKind AllKinds = SymbolKind.ErrorType;
-        private const char WildcardChar = '*';
-
-        private static readonly KeyValuePair<string, TValue> NoWildcardMatch = default;
+        internal const SymbolKind AllKinds = SymbolKind.ErrorType;
+        internal const char WildcardChar = '*';
 
         public static readonly SymbolNamesWithValueOption<TValue> Empty = new SymbolNamesWithValueOption<TValue>();
+        internal static readonly KeyValuePair<string, TValue> NoWildcardMatch = default;
 
-        private readonly ImmutableDictionary<string, TValue> _names;
-        private readonly ImmutableDictionary<ISymbol, TValue> _symbols;
+#pragma warning disable CA1051 // Do not declare visible instance fields
+        internal /* for testing purposes */ readonly ImmutableDictionary<string, TValue> _names;
+        internal /* for testing purposes */ readonly ImmutableDictionary<ISymbol, TValue> _symbols;
         /// <summary>
         /// Dictionary holding per symbol kind the wildcard entry with its suffix.
         /// The implementation only supports the following SymbolKind: Namespace, Type, Event, Field, Method, Property and ErrorType (as a way to hold the non-fully qualified types).
@@ -45,12 +45,13 @@ namespace Analyzer.Utilities
         /// Property ->
         ///     Analyzer.Utilities.SymbolNamesWithValueOption.MyProperty -> ""
         /// </example>
-        private readonly ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> _wildcardNamesBySymbolKind;
+        internal /* for testing purposes */ readonly ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> _wildcardNamesBySymbolKind;
 
         /// <summary>
         /// Cache for the wildcard matching algorithm. The current implementation can be slow so we want to make sure that once a match is performed we save its result.
         /// </summary>
-        private readonly ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>> _wildcardMatchResult = new ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>>();
+        internal /* for testing purposes */ readonly ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>> _wildcardMatchResult = new ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>>();
+#pragma warning restore CA1051 // Do not declare visible instance fields
 
         private SymbolNamesWithValueOption(ImmutableDictionary<string, TValue> names, ImmutableDictionary<ISymbol, TValue> symbols,
             ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> wildcardNamesBySymbolKind)
@@ -131,7 +132,6 @@ namespace Analyzer.Utilities
                 wildcardNamesBuilder.ToImmutableDictionaryAndFree(x => x.Key, x => x.Value.ToImmutableDictionaryAndFree(), wildcardNamesBuilder.Comparer));
 
             // Local functions
-
             static void ProcessWildcardName(NameParts parts, PooledDictionary<SymbolKind, PooledDictionary<string, TValue>> wildcardNamesBuilder)
             {
                 Debug.Assert(parts.SymbolName[parts.SymbolName.Length - 1] == WildcardChar);
@@ -261,7 +261,8 @@ namespace Analyzer.Utilities
                 return false;
             }
 
-            Debug.Assert(symbol.Kind == SymbolKind.Event || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Method || symbol.Kind == SymbolKind.NamedType || symbol.Kind == SymbolKind.Namespace || symbol.Kind == SymbolKind.Property);
+            Debug.Assert(symbol.Kind == SymbolKind.Event || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Method || symbol.Kind == SymbolKind.NamedType ||
+                symbol.Kind == SymbolKind.Namespace || symbol.Kind == SymbolKind.Property);
 
             // The matching was already processed
             if (_wildcardMatchResult.ContainsKey(symbol))
@@ -271,66 +272,94 @@ namespace Analyzer.Utilities
             }
 
             var symbolFullNameBuilder = new StringBuilder();
-            var symbolKindsToCheck = new HashSet<SymbolKind> { symbol.Kind };
+            var symbolKindsToCheck = new HashSet<SymbolKind> { AllKinds, symbol.Kind };
 
-            // Try a partial check on the symbol...
-            if (TryGetSymbolPartialMatch(symbolFullNameBuilder, symbol, out firstMatch))
-            {
-                return true;
-            }
-
-            // ...Now try a partial check looping on the symbol's containing type...
-            INamedTypeSymbol? currentType = symbol.ContainingType;
-            while (currentType != null)
-            {
-                if (TryGetSymbolPartialMatch(symbolFullNameBuilder, currentType, out firstMatch))
-                {
-                    return true;
-                }
-
-                symbolKindsToCheck.Add(SymbolKind.NamedType);
-                currentType = currentType.ContainingType;
-            }
-
-            // ...Now try a partial check looping on the symbol's containing namespace...
-            INamespaceSymbol? currentNamespace = symbol.ContainingNamespace;
-            while (currentNamespace != null && !currentNamespace.IsGlobalNamespace)
-            {
-                if (TryGetSymbolPartialMatch(symbolFullNameBuilder, currentNamespace, out firstMatch))
-                {
-                    return true;
-                }
-
-                symbolKindsToCheck.Add(SymbolKind.Namespace);
-                currentNamespace = currentNamespace.ContainingNamespace;
-            }
-
-            // ...At this point we couldn't match any part of the symbol name in the 'AllKinds' part of the list, let's try with the type fully qualified name...
-            Debug.Assert(symbolFullNameBuilder.Length > 0);
-            Debug.Assert(symbolKindsToCheck.Count >= 1 && symbolKindsToCheck.Count <= 3);
-
-            var symbolFullName = symbolFullNameBuilder.ToString();
-
-            foreach (var kind in symbolKindsToCheck)
-            {
-                if (!_wildcardNamesBySymbolKind.ContainsKey(kind))
-                {
-                    continue;
-                }
-
-                if (TryGetFirstWildcardMatch(kind, symbolFullName, out firstMatch))
-                {
-                    return true;
-                }
-            }
-
-            // ...No match
-            Debug.Assert(firstMatch.Equals(NoWildcardMatch));
-            _wildcardMatchResult.AddOrUpdate(symbol, NoWildcardMatch, (s, kvp) => NoWildcardMatch);
-            return false;
+            return TryUnqualifiedMatch(symbolFullNameBuilder, symbolKindsToCheck, symbol, _wildcardNamesBySymbolKind, _wildcardMatchResult, out firstMatch) ||
+                TryQualifiedMatch(symbolKindsToCheck, symbol, symbolFullNameBuilder.ToString(), _wildcardNamesBySymbolKind, _wildcardMatchResult, out firstMatch);
 
             // Local functions.
-            bool TryGetSymbolPartialMatch(StringBuilder builder, ISymbol symbol, out KeyValuePair<string, TValue> firstMatch)
+            static bool TryUnqualifiedMatch(StringBuilder symbolFullNameBuilder, HashSet<SymbolKind> symbolKindsToCheck, ISymbol symbol,
+                ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> wildcardNamesBySymbolKind,
+                ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>> wildcardMatchResult,
+                out KeyValuePair<string, TValue> firstMatch)
+            {
+                // Try a partial check on the symbol...
+                if (TryGetSymbolPartialMatch(symbolFullNameBuilder, symbol, symbol.Name, wildcardNamesBySymbolKind, wildcardMatchResult, out firstMatch))
+                {
+                    var match = firstMatch;
+                    wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, kvp) => match);
+                    return true;
+                }
+
+                // ...Now try a partial check looping on the symbol's containing type...
+                INamedTypeSymbol? currentType = symbol.ContainingType;
+                while (currentType != null)
+                {
+                    if (TryGetSymbolPartialMatch(symbolFullNameBuilder, currentType, currentType.Name, wildcardNamesBySymbolKind, wildcardMatchResult, out firstMatch))
+                    {
+                        var match = firstMatch;
+                        wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, kvp) => match);
+                        return true;
+                    }
+
+                    symbolKindsToCheck.Add(SymbolKind.NamedType);
+                    currentType = currentType.ContainingType;
+                }
+
+                // ...Now try a partial check looping on the symbol's containing namespace...
+                INamespaceSymbol? currentNamespace = symbol.ContainingNamespace;
+                while (currentNamespace != null && !currentNamespace.IsGlobalNamespace)
+                {
+                    if (TryGetSymbolPartialMatch(symbolFullNameBuilder, currentNamespace, currentNamespace.Name, wildcardNamesBySymbolKind, wildcardMatchResult, out firstMatch))
+                    {
+                        var match = firstMatch;
+                        wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, kvp) => match);
+                        return true;
+                    }
+
+                    symbolKindsToCheck.Add(SymbolKind.Namespace);
+                    currentNamespace = currentNamespace.ContainingNamespace;
+                }
+
+                return false;
+            }
+
+            static bool TryQualifiedMatch(HashSet<SymbolKind> symbolKindsToCheck, ISymbol symbol, string fullyQualifiedSymbolName,
+                ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> wildcardNamesBySymbolKind,
+                ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>> wildcardMatchResult,
+                out KeyValuePair<string, TValue> firstMatch)
+            {
+                // ...At this point we couldn't match any part of the symbol name in the 'AllKinds' part of the list, let's try with the type fully qualified name...
+                Debug.Assert(fullyQualifiedSymbolName.Length > 0);
+                Debug.Assert(symbolKindsToCheck.Count >= 1 && symbolKindsToCheck.Count <= 3);
+
+                firstMatch = NoWildcardMatch;
+
+                foreach (var kind in symbolKindsToCheck)
+                {
+                    if (!wildcardNamesBySymbolKind.ContainsKey(kind))
+                    {
+                        continue;
+                    }
+
+                    if (TryGetFirstWildcardMatch(kind, symbol, fullyQualifiedSymbolName, wildcardNamesBySymbolKind, wildcardMatchResult, out firstMatch))
+                    {
+                        var match = firstMatch;
+                        wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, kvp) => match);
+                        return true;
+                    }
+                }
+
+                // ...No match
+                Debug.Assert(firstMatch.Equals(NoWildcardMatch));
+                wildcardMatchResult.AddOrUpdate(symbol, NoWildcardMatch, (s, kvp) => NoWildcardMatch);
+                return false;
+            }
+
+            static bool TryGetSymbolPartialMatch(StringBuilder builder, ISymbol symbol, string symbolName,
+                ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> wildcardNamesBySymbolKind,
+                ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>> wildcardMatchResult,
+                out KeyValuePair<string, TValue> firstMatch)
             {
                 if (builder.Length > 0)
                 {
@@ -339,26 +368,38 @@ namespace Analyzer.Utilities
 
                 builder.Insert(0, symbol.Name);
 
-                return TryGetFirstWildcardMatch(AllKinds, symbol.Name, out firstMatch);
+                return TryGetFirstWildcardMatch(AllKinds, symbol, symbolName, wildcardNamesBySymbolKind, wildcardMatchResult, out firstMatch);
             }
 
-            bool TryGetFirstWildcardMatch(SymbolKind kind, string symbolName, out KeyValuePair<string, TValue> firstMatch)
+            static bool TryGetFirstWildcardMatch(SymbolKind kind, ISymbol symbol, string symbolName,
+                ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> wildcardNamesBySymbolKind,
+                ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>> wildcardMatchResult,
+                out KeyValuePair<string, TValue> firstMatch)
             {
-                if (!_wildcardNamesBySymbolKind.ContainsKey(kind))
+                // Is there a cached result?
+                if (wildcardMatchResult.ContainsKey(symbol))
+                {
+                    firstMatch = wildcardMatchResult[symbol];
+                    return !firstMatch.Equals(NoWildcardMatch);
+                }
+
+                // Is there any wildcard entry for this symbol kind?
+                if (!wildcardNamesBySymbolKind.ContainsKey(kind))
                 {
                     firstMatch = NoWildcardMatch;
                     return false;
                 }
 
-                firstMatch = _wildcardNamesBySymbolKind[kind].FirstOrDefault(x => symbolName.StartsWith(x.Key, StringComparison.Ordinal));
+                // Let's try to find the first wildcard entry matching the symbol name
+                firstMatch = wildcardNamesBySymbolKind[kind].FirstOrDefault(x => symbolName.StartsWith(x.Key, StringComparison.Ordinal));
 
                 if (string.IsNullOrWhiteSpace(firstMatch.Key))
                 {
+                    firstMatch = NoWildcardMatch;
                     return false;
                 }
 
                 var match = firstMatch;
-                _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, kvp) => match);
                 return true;
             }
         }
