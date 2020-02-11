@@ -19,7 +19,7 @@ namespace Microsoft.Cci
             _metadataWriter = metadataWriter;
         }
 
-        public bool Equals([AllowNull] IGenericMethodInstanceReference x, [AllowNull] IGenericMethodInstanceReference y)
+        public bool Equals(IGenericMethodInstanceReference? x, IGenericMethodInstanceReference? y)
         {
             if (x == y)
             {

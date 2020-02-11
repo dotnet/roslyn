@@ -18,7 +18,7 @@ namespace Microsoft.Cci
             _metadataWriter = metadataWriter;
         }
 
-        public bool Equals([AllowNull] ITypeReference x, [AllowNull] ITypeReference y)
+        public bool Equals(ITypeReference? x, ITypeReference? y)
         {
             return x == y || _metadataWriter.GetTypeSpecSignatureIndex(x).Equals(_metadataWriter.GetTypeSpecSignatureIndex(y));
         }

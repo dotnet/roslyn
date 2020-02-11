@@ -137,7 +137,10 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(SourceFileResolver? other)
         {
-            RoslynDebug.Assert(other is object);
+            if (other is null)
+            {
+                return false;
+            }
 
             return
                 string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal) &&

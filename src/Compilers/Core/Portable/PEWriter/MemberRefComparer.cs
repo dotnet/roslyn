@@ -19,7 +19,7 @@ namespace Microsoft.Cci
             _metadataWriter = metadataWriter;
         }
 
-        public bool Equals([AllowNull] ITypeMemberReference x, [AllowNull] ITypeMemberReference y)
+        public bool Equals(ITypeMemberReference? x, ITypeMemberReference? y)
         {
             if (x == y)
             {
