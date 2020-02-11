@@ -88,7 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var result = _lazyUncommonProperties;
             if (result != null)
             {
+#if DEBUG
                 Debug.Assert(result != s_noUncommonProperties || result.IsDefaultValue(), "default value was modified");
+#endif
                 return result;
             }
 
@@ -108,6 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (this.ContainingPEModule.HasAnyCustomAttributes(_handle))
             {
                 return true;
+            }
+
+            switch (SpecialType)
+            {
+                case SpecialType.System_IntPtr:
+                case SpecialType.System_UIntPtr:
+                    return true;
             }
 
             if (this.TypeKind == TypeKind.Enum)
@@ -137,7 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal string lazyDefaultMemberName;
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
             internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
+            internal NativeIntegerTypeSymbol lazyNativeInt;
 
+#if DEBUG
             internal bool IsDefaultValue()
             {
                 return lazyInstanceEnumFields.IsDefault &&
@@ -149,8 +160,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyContainsExtensionMethods.HasValue() &&
                     lazyDefaultMemberName == null &&
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
-                    !lazyHasEmbeddedAttribute.HasValue();
+                    !lazyHasEmbeddedAttribute.HasValue() &&
+                    lazyNativeInt is null;
             }
+#endif
         }
 
         #endregion  // Uncommon properties
@@ -2349,9 +2362,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
 
-                return asNativeInt ?
-                    (NamedTypeSymbol)new NativeIntegerTypeSymbol(this) : // PROTOTYPE: Consider caching instance, perhaps on containing assembly.
-                    this;
+                if (!asNativeInt)
+                {
+                    return this;
+                }
+
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+
+                if (uncommon.lazyNativeInt is null)
+                {
+                    Interlocked.CompareExchange(ref uncommon.lazyNativeInt, new NativeIntegerTypeSymbol(this), null);
+                }
+
+                return uncommon.lazyNativeInt;
             }
 
             internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -84,11 +85,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var sourceA =
 @"namespace System
 {
-    public class Object { }
-    public abstract class ValueType { }
+    public class Object
+    {
+        public virtual string ToString() => null;
+        public virtual int GetHashCode() => 0;
+        public virtual bool Equals(object obj) => false;
+    }
+    public class String { }
+    public abstract class ValueType
+    {
+        public override string ToString() => null;
+        public override int GetHashCode() => 0;
+        public override bool Equals(object obj) => false;
+    }
     public struct Void { }
-    public struct IntPtr { }
-    public struct UIntPtr { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr
+    {
+        public override string ToString() => null;
+        public override int GetHashCode() => 0;
+        public override bool Equals(object obj) => false;
+    }
+    public struct UIntPtr
+    {
+        public override string ToString() => null;
+        public override int GetHashCode() => 0;
+        public override bool Equals(object obj) => false;
+    }
 }";
             var sourceB =
 @"interface I
@@ -142,6 +166,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Equal(TypeKind.Struct, type.TypeKind);
             Assert.Same(type, type.ConstructedFrom);
             Assert.Equal(isNativeInt, type.IsNativeInt);
+
+            if (isNativeInt)
+            {
+                VerifyMembers(type);
+            }
         }
 
         private static void VerifyType(INamedTypeSymbol type, bool signed, bool isNativeInt)
@@ -159,9 +188,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             VerifyType(underlyingType, signed, isNativeInt: false);
             VerifyType(nativeIntegerType, signed, isNativeInt: false);
 
-            Assert.Empty(nativeIntegerType.MemberNames);
             Assert.Empty(nativeIntegerType.GetTypeMembers());
-            Assert.Empty(nativeIntegerType.GetMembers());
+
+            var memberNames = nativeIntegerType.MemberNames;
+            var members = nativeIntegerType.GetMembers();
+            Assert.Equal(members.SelectAsArray(m => m.Name), memberNames);
+
+            var baseMembers = members.SelectAsArray(m => ((IMethodSymbol)m).OverriddenMethod);
+            Assert.Equal(
+                new[] { "int System.ValueType.GetHashCode()", "bool System.ValueType.Equals(object obj)", "string System.ValueType.ToString()" },
+                baseMembers.SelectAsArray(m => m.ToDisplayString(FormatWithSpecialTypes)));
 
             // PROTOTYPE: Include certain interfaces defined on the underlying underlyingType.
             Assert.Empty(nativeIntegerType.Interfaces);
@@ -177,22 +213,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             VerifyType(underlyingType, signed, isNativeInt: false);
             VerifyType(nativeIntegerType, signed, isNativeInt: true);
 
-            Assert.Empty(nativeIntegerType.MemberNames);
             Assert.Empty(nativeIntegerType.GetTypeMembers());
-            Assert.Empty(nativeIntegerType.GetMembers());
+
+            var memberNames = nativeIntegerType.MemberNames;
+            var members = nativeIntegerType.GetMembers();
+            Assert.Equal(members.SelectAsArray(m => m.Name), memberNames);
+
+            var baseMembers = members.SelectAsArray(m => ((MethodSymbol)m).OverriddenMethod);
+            Assert.Equal(
+                new[] { "int System.ValueType.GetHashCode()", "bool System.ValueType.Equals(object obj)", "string System.ValueType.ToString()" },
+                baseMembers.SelectAsArray(m => m.ToDisplayString(FormatWithSpecialTypes)));
 
             // PROTOTYPE: Include certain interfaces defined on the underlying underlyingType.
             Assert.Empty(nativeIntegerType.InterfacesNoUseSiteDiagnostics());
 
             Assert.Same(underlyingType, underlyingType.AsNativeInt(false));
             Assert.Same(nativeIntegerType, nativeIntegerType.AsNativeInt(true));
-            Assert.Equal(nativeIntegerType, underlyingType.AsNativeInt(true));
-            Assert.Equal(underlyingType, nativeIntegerType.AsNativeInt(false));
+            Assert.Same(nativeIntegerType, underlyingType.AsNativeInt(true));
+            Assert.Same(underlyingType, nativeIntegerType.AsNativeInt(false));
             VerifyEqualButDistinct(underlyingType, underlyingType.AsNativeInt(true));
             VerifyEqualButDistinct(nativeIntegerType, nativeIntegerType.AsNativeInt(false));
             VerifyEqualButDistinct(underlyingType, nativeIntegerType);
 
             VerifyTypes(underlyingType.GetPublicSymbol(), nativeIntegerType.GetPublicSymbol(), signed);
+        }
+
+        private static void VerifyMembers(NamedTypeSymbol type)
+        {
+            var memberNames = type.MemberNames;
+            var allMembers = type.GetMembers();
+
+            foreach (var member in allMembers)
+            {
+                Assert.Contains(member.Name, memberNames);
+                verifyMember(type, member);
+            }
+
+            var unorderedMembers = type.GetMembersUnordered();
+            Assert.Equal(allMembers.Length, unorderedMembers.Length);
+            verifyMembers(type, allMembers, unorderedMembers);
+
+            foreach (var memberName in memberNames)
+            {
+                var members = type.GetMembers(memberName);
+                Assert.False(members.IsDefaultOrEmpty);
+                verifyMembers(type, allMembers, members);
+            }
+
+            static void verifyMembers(NamedTypeSymbol type, ImmutableArray<Symbol> allMembers, ImmutableArray<Symbol> members)
+            {
+                foreach (var member in members)
+                {
+                    Assert.Contains(member, allMembers);
+                    verifyMember(type, member);
+                }
+            }
+
+            static void verifyMember(NamedTypeSymbol type, Symbol member)
+            {
+                Assert.Same(type, member.ContainingSymbol);
+                Assert.Same(type, member.ContainingType);
+            }
         }
 
         private static void VerifyEqualButDistinct(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType)
@@ -549,39 +630,204 @@ unsafe class Program
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "sizeof(nuint)").WithArguments("Program.D").WithLocation(6, 19));
         }
 
-        // PROTOTYPE: PEVerify: "[ : MyInt::ToString][mdToken=0x6000005][offset 0x00000001] Cannot change initonly field outside its .ctor."
-        // CodeGenerator.EmitCallExpression() is not expecting a System.ValueType without an overload of ToString().
-        [Fact(Skip = "PEVerify failure")]
+        [Fact]
         public void ReadOnlyField_VirtualMethods()
         {
             string source =
-@"class MyInt
+@"using System;
+class MyInt
 {
     private readonly nint _i;
-    internal MyInt(nint i) => _i = i;
-    public override string ToString() => _i.ToString();
+    internal MyInt(nint i)
+    {
+        _i = i;
+    }
+    public override string ToString()
+    {
+        return _i.ToString();
+    }
+    public override int GetHashCode()
+    {
+        return _i.GetHashCode();
+    }
+    public override bool Equals(object other)
+    {
+        return _i.Equals((other as MyInt)?._i);
+    }
 }
 class Program
 {
     static void Main()
     {
         var m = new MyInt(42);
-        System.Console.WriteLine(m);
+        Console.WriteLine(m);
+        Console.WriteLine(m.GetHashCode());
+        Console.WriteLine(m.Equals(null));
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            var verifier = CompileAndVerify(comp, expectedOutput:
+$@"42
+{42.GetHashCode()}
+False");
             verifier.VerifyIL("MyInt.ToString",
 @"{
   // Code size       15 (0xf)
   .maxstack  1
   .locals init (System.IntPtr V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""System.IntPtr MyInt._i""
+  IL_0001:  ldfld      ""nint MyInt._i""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  call       ""string System.IntPtr.ToString()""
+  IL_0009:  call       ""string nint.ToString()""
   IL_000e:  ret
+}");
+            verifier.VerifyIL("MyInt.GetHashCode",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (System.IntPtr V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""nint MyInt._i""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""int nint.GetHashCode()""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("MyInt.Equals",
+@"{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (System.IntPtr V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""nint MyInt._i""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldarg.1
+  IL_000a:  isinst     ""MyInt""
+  IL_000f:  dup
+  IL_0010:  brtrue.s   IL_001e
+  IL_0012:  pop
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  initobj    ""nint?""
+  IL_001b:  ldloc.1
+  IL_001c:  br.s       IL_0028
+  IL_001e:  ldfld      ""nint MyInt._i""
+  IL_0023:  newobj     ""nint?..ctor(nint)""
+  IL_0028:  box        ""nint?""
+  IL_002d:  call       ""bool nint.Equals(object)""
+  IL_0032:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyField_VirtualMethods_MissingOverrides()
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual string ToString() => null;
+        public virtual int GetHashCode() => 0;
+        public virtual bool Equals(object obj) => false;
+    }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr { }
+    public struct UIntPtr { }
+    public struct Nullable<T>
+    {
+        public Nullable(T t) { }
+        public bool HasValue { get; }
+        public T Value { get; }
+    }
+    public class Attribute { }
+    public abstract class Enum : ValueType { }
+    public enum AttributeTargets { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+}";
+            var sourceB =
+@"using System;
+class MyInt
+{
+    private readonly nint _i;
+    internal MyInt(nint i)
+    {
+        _i = i;
+    }
+    public override string ToString()
+    {
+        return _i.ToString();
+    }
+    public override int GetHashCode()
+    {
+        return _i.GetHashCode();
+    }
+    public override bool Equals(object other)
+    {
+        return _i.Equals((other as MyInt)?._i);
+    }
+}
+class Program
+{
+    static void Main()
+    {
+    }
+}";
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("MyInt.ToString",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""nint MyInt._i""
+  IL_0006:  constrained. ""System.IntPtr""
+  IL_000c:  callvirt   ""string object.ToString()""
+  IL_0011:  ret
+}");
+            verifier.VerifyIL("MyInt.GetHashCode",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""nint MyInt._i""
+  IL_0006:  constrained. ""System.IntPtr""
+  IL_000c:  callvirt   ""int object.GetHashCode()""
+  IL_0011:  ret
+}");
+            verifier.VerifyIL("MyInt.Equals",
+@"{
+  // Code size       54 (0x36)
+  .maxstack  3
+  .locals init (nint? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""nint MyInt._i""
+  IL_0006:  ldarg.1
+  IL_0007:  isinst     ""MyInt""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_001b
+  IL_000f:  pop
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  initobj    ""nint?""
+  IL_0018:  ldloc.0
+  IL_0019:  br.s       IL_0025
+  IL_001b:  ldfld      ""nint MyInt._i""
+  IL_0020:  newobj     ""nint?..ctor(nint)""
+  IL_0025:  box        ""nint?""
+  IL_002a:  constrained. ""System.IntPtr""
+  IL_0030:  callvirt   ""bool object.Equals(object)""
+  IL_0035:  ret
 }");
         }
 
@@ -3176,12 +3422,11 @@ class Program
         [Fact]
         public void UnaryOperators_UserDefinedConversions_NInt()
         {
-            // PROTOTYPE: Declare _i readonly. See ReadOnlyField_VirtualMethods().
             string source =
 @"using System;
 class MyInt
 {
-    private nint _i;
+    private readonly nint _i;
     internal MyInt(nint i) => _i = i;
     public static implicit operator nint(MyInt i) => i._i;
     public static implicit operator MyInt(nint i) => new MyInt(i);
@@ -3343,12 +3588,11 @@ $@"-2147483647
         [Fact]
         public void UnaryOperators_UserDefinedConversions_NUInt()
         {
-            // PROTOTYPE: Declare _i readonly. See ReadOnlyField_VirtualMethods().
             string source =
 @"using System;
 class MyInt
 {
-    private nuint _i;
+    private readonly nuint _i;
     internal MyInt(nuint i) => _i = i;
     public static implicit operator nuint(MyInt i) => i._i;
     public static implicit operator MyInt(nuint i) => new MyInt(i);
