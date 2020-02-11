@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -50,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // return type without losing the appearance of immutability.
             if (this.IsOverride)
             {
-                EventSymbol overriddenEvent = this.OverriddenEvent;
-                if ((object)overriddenEvent != null)
+                EventSymbol? overriddenEvent = this.OverriddenEvent;
+                if ((object?)overriddenEvent != null)
                 {
                     CopyEventCustomModifiers(overriddenEvent, ref _type, ContainingAssembly);
                 }
@@ -121,9 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Backing field for field-like event. Will be null if the event
         /// has no initializer and is either extern or inside an interface.
         /// </summary>
-        internal override FieldSymbol AssociatedField => AssociatedEventField;
+        internal override FieldSymbol? AssociatedField => AssociatedEventField;
 
-        internal SourceEventFieldSymbol AssociatedEventField { get; }
+        internal SourceEventFieldSymbol? AssociatedEventField { get; }
 
         public override string Name
         {
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (object)AssociatedEventField != null ?
+                return (object?)AssociatedEventField != null ?
                     AttributeLocation.Event | AttributeLocation.Method | AttributeLocation.Field :
                     AttributeLocation.Event | AttributeLocation.Method;
             }
@@ -175,9 +177,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return field;
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
-            if ((object)this.AssociatedField != null)
+            if ((object?)this.AssociatedField != null)
             {
                 this.AssociatedField.ForceComplete(locationOpt, cancellationToken);
             }

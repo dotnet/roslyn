@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
         <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
-        <target state="new">Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</target>
+        <target state="translated">演算子 '{0}' は、参照型として認識されていない型パラメーターであるため、型 '{1}' の 'default' およびオペランドに適用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -389,7 +389,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="translated">型 '{0}' には基底インターフェイスからの再抽象化があるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>
+        <target state="translated">型 '{0}' には基底インターフェイスからのメンバーの再抽象化があるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
@@ -1384,12 +1384,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
-        <target state="needs-review-translation">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
+        <target state="translated">[NotNull] または [DisallowNull] としてマークされた型に対して、Null の可能性がある値を使用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
-        <target state="needs-review-translation">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
+        <target state="translated">[NotNull] または [DisallowNull] としてマークされた型に対して、Null の可能性がある値を使用することはできない</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch">
@@ -1824,27 +1824,27 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' may not have a null value when exiting with '{1}'.</source>
-        <target state="new">Parameter '{0}' may not have a null value when exiting with '{1}'.</target>
+        <target state="translated">'{1}' で終了する場合、パラメーター '{0}' の値を null にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter may not have a null value when exiting in some condition.</source>
-        <target state="new">Parameter may not have a null value when exiting in some condition.</target>
+        <target state="translated">一部の条件で終了するときに、パラメーターの値を null にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <target state="translated">[DoesNotReturn] とマークされたメソッドを返すことはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn_Title">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <target state="translated">[DoesNotReturn] とマークされたメソッドの返却禁止。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="translated">switch 式が入力の種類のうちすべての可能な入力を処理していません (すべてを網羅していません)。</target>
+        <target state="translated">switch 式が入力の種類で可能なすべての値を処理していません (すべてを網羅していません)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1859,7 +1859,7 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="translated">switch 式が入力の種類のうちすべての可能な入力を処理していません (すべてを網羅していません)。</target>
+        <target state="translated">switch 式が入力の種類で可能なすべての値を処理していません (すべてを網羅していません)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -6032,7 +6032,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
         <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
-        <target state="new">A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</target>
+        <target state="translated">読み取り専用フィールドを割り当てることはできません (フィールドが定義されているクラスのコンストラクターまたは変数初期化子では可)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">

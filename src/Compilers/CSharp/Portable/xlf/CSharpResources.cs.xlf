@@ -1384,12 +1384,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
-        <target state="needs-review-translation">Do cíle označeného atributem [DisallowNull] se nedá předat možná hodnota null</target>
+        <target state="translated">Možnou hodnotu null není možné použít pro typ označený jako [NotNull] nebo [DisallowNull].</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
-        <target state="needs-review-translation">Do cíle označeného atributem [DisallowNull] se nedá předat možná hodnota null</target>
+        <target state="translated">Možnou hodnotu null není možné použít pro typ označený jako [NotNull] nebo [DisallowNull].</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch">
@@ -1824,22 +1824,22 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' may not have a null value when exiting with '{1}'.</source>
-        <target state="new">Parameter '{0}' may not have a null value when exiting with '{1}'.</target>
+        <target state="translated">Parametr {0} nemusí mít při ukončení s {1} hodnotu null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter may not have a null value when exiting in some condition.</source>
-        <target state="new">Parameter may not have a null value when exiting in some condition.</target>
+        <target state="translated">Parametr nemusí mít při ukončení za určité podmínky hodnotu null</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <target state="translated">Metoda označená jako [DoesNotReturn] by neměla vracet hodnotu</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn_Title">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="new">A method marked [DoesNotReturn] should not return.</target>
+        <target state="translated">Metoda označená jako [DoesNotReturn] by neměla vracet hodnotu</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">

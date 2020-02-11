@@ -343,7 +343,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public string? TargetType
         {
-            set { _store[nameof(TargetType)] = CultureInfo.InvariantCulture.TextInfo.ToLower(value); }
+            set
+            {
+                _store[nameof(TargetType)] = value != null
+                    ? CultureInfo.InvariantCulture.TextInfo.ToLower(value)
+                    : null;
+            }
             get { return (string?)_store[nameof(TargetType)]; }
         }
 
@@ -467,11 +472,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             try
             {
                 var workingDir = CurrentDirectoryToUse();
-                string tempDir = BuildServerConnection.GetTempPath(workingDir);
+                string? tempDir = BuildServerConnection.GetTempPath(workingDir);
 
                 if (!UseSharedCompilation ||
                     HasToolBeenOverridden ||
-                    !BuildServerConnection.IsCompilerServerSupported(tempDir))
+                    !BuildServerConnection.IsCompilerServerSupported)
                 {
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
@@ -483,6 +488,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
                     var clientDir = Path.GetDirectoryName(PathToManagedTool);
+                    if (clientDir is null || tempDir is null)
+                    {
+                        return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+                    }
 
                     // Note: we can't change the "tool path" printed to the console when we run
                     // the Csc/Vbc task since MSBuild logs it for us before we get here. Instead,
@@ -567,10 +576,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Get the "LIB" environment variable, or NULL if none.
         /// </summary>
-        private string LibDirectoryToUse()
+        private string? LibDirectoryToUse()
         {
             // First check the real environment.
-            string libDirectory = Environment.GetEnvironmentVariable("LIB");
+            string? libDirectory = Environment.GetEnvironmentVariable("LIB");
 
             // Now go through additional environment variables.
             string[] additionalVariables = EnvironmentVariables;

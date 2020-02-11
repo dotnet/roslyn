@@ -2,20 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
     internal sealed class EventSymbol : Symbol, IEventSymbol
     {
         private readonly Symbols.EventSymbol _underlying;
-        private ITypeSymbol _lazyType;
+        private ITypeSymbol? _lazyType;
 
         public EventSymbol(Symbols.EventSymbol underlying)
         {
-            Debug.Assert(underlying is object);
+            RoslynDebug.Assert(underlying is object);
             _underlying = underlying;
         }
 
@@ -37,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         CodeAnalysis.NullableAnnotation IEventSymbol.NullableAnnotation => _underlying.TypeWithAnnotations.ToPublicAnnotation();
 
-        IMethodSymbol IEventSymbol.AddMethod
+        IMethodSymbol? IEventSymbol.AddMethod
         {
             get
             {
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
-        IMethodSymbol IEventSymbol.RemoveMethod
+        IMethodSymbol? IEventSymbol.RemoveMethod
         {
             get
             {
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
-        IMethodSymbol IEventSymbol.RaiseMethod
+        IMethodSymbol? IEventSymbol.RaiseMethod
         {
             get
             {
@@ -70,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
-        IEventSymbol IEventSymbol.OverriddenEvent
+        IEventSymbol? IEventSymbol.OverriddenEvent
         {
             get
             {
@@ -95,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             visitor.VisitEvent(this);
         }
 
+        [return: MaybeNull]
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitEvent(this);

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             try
             {
                 // Check if the environment
-                string loggingFileName = Environment.GetEnvironmentVariable(environmentVariable);
+                string? loggingFileName = Environment.GetEnvironmentVariable(environmentVariable);
 
                 if (loggingFileName != null)
                 {
@@ -75,15 +75,15 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Log an exception. Also logs information about inner exceptions.
         /// </summary>
-        public static void LogException(Exception e, string reason)
+        public static void LogException(Exception exception, string reason)
         {
             if (s_loggingStream != null)
             {
-                Log("Exception '{0}' occurred during '{1}'. Stack trace:\r\n{2}", e.Message, reason, e.StackTrace);
+                Log("Exception '{0}' occurred during '{1}'. Stack trace:\r\n{2}", exception.Message, reason, exception.StackTrace);
 
                 int innerExceptionLevel = 0;
 
-                e = e.InnerException;
+                Exception? e = exception.InnerException;
                 while (e != null)
                 {
                     Log("Inner exception[{0}] '{1}'. Stack trace: \r\n{1}", innerExceptionLevel, e.Message, e.StackTrace);

@@ -8,8 +8,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// since in proc and out of proc runs quite differently due to concurrency and due to possible amount of data
         /// that needs to pass through between processes
         /// </summary>
-        public Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string pipeName, CancellationToken cancellationToken)
+        public Task CalculateDiagnosticsAsync(PinnedSolutionInfo solutionInfo, DiagnosticArguments arguments, string pipeName, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
@@ -32,11 +34,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
                 using (arguments.ForcedAnalysis ? UserOperationBooster.Boost() : default)
                 {
-                    // entry point for diagnostic service
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solutionService = CreateSolutionService(solutionInfo);
+                    var solution = await solutionService.GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
                     var projectId = arguments.ProjectId;
-                    var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(cancellationToken);
+                    var analyzers = solutionService.AssetProvider.GetGlobalAssetsOfType<AnalyzerReference>(cancellationToken);
 
                     var result = await new DiagnosticComputer(solution.GetProject(projectId), _analyzerInfoCache).GetDiagnosticsAsync(
                         analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
