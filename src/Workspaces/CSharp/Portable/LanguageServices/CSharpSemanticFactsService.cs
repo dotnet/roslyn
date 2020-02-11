@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -145,12 +147,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
             var location = token.GetLocation();
-            var q = from node in token.GetAncestors<SyntaxNode>()
-                    let symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken)
-                    where symbol != null && symbol.Locations.Contains(location)
-                    select symbol;
 
-            return q.FirstOrDefault();
+            foreach (var ancestor in token.GetAncestors<SyntaxNode>())
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken);
+
+                if (symbol != null)
+                {
+                    if (symbol.Locations.Contains(location))
+                    {
+                        return symbol;
+                    }
+
+                    // We found some symbol, but it defined something else. We're not going to have a higher node defining _another_ symbol with this token, so we can stop now.
+                    return null;
+                }
+
+                // If we hit an executable statement syntax and didn't find anything yet, we can just stop now -- anything higher would be a member declaration which won't be defined by something inside a statement.
+                if (SyntaxFactsService.IsExecutableStatement(ancestor))
+                {
+                    return null;
+                }
+            }
+
+            return null;
         }
 
         public bool LastEnumValueHasInitializer(INamedTypeSymbol namedTypeSymbol)

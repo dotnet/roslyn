@@ -98,7 +98,10 @@ function Exec-Process([string]$command, [string]$commandArgs) {
   }
 }
 
-function InitializeDotNetCli([bool]$install) {
+# createSdkLocationFile parameter enables a file being generated under the toolset directory
+# which writes the sdk's location into. This is only necessary for cmd --> powershell invocations
+# as dot sourcing isn't possible.
+function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   if (Test-Path variable:global:_DotNetInstallDir) {
     return $global:_DotNetInstallDir
   }
@@ -148,6 +151,24 @@ function InitializeDotNetCli([bool]$install) {
     $env:DOTNET_INSTALL_DIR = $dotnetRoot
   }
 
+  # Creates a temporary file under the toolset dir.
+  # The following code block is protecting against concurrent access so that this function can
+  # be called in parallel.
+  if ($createSdkLocationFile) {
+    do {
+      $sdkCacheFileTemp = Join-Path $ToolsetDir $([System.IO.Path]::GetRandomFileName())
+    }
+    until (!(Test-Path $sdkCacheFileTemp))
+    Set-Content -Path $sdkCacheFileTemp -Value $dotnetRoot
+
+    try {
+      Rename-Item -Force -Path $sdkCacheFileTemp 'sdk.txt'
+    } catch {
+      # Somebody beat us
+      Remove-Item -Path $sdkCacheFileTemp
+    }
+  }
+
   # Add dotnet to PATH. This prevents any bare invocation of dotnet in custom
   # build steps from using anything other than what we've downloaded.
   # It also ensures that VS msbuild will use the downloaded sdk targets.
@@ -167,7 +188,33 @@ function GetDotNetInstallScript([string] $dotnetRoot) {
   if (!(Test-Path $installScript)) {
     Create-Directory $dotnetRoot
     $ProgressPreference = 'SilentlyContinue' # Don't display the console progress UI - it's a huge perf hit
-    Invoke-WebRequest "https://dot.net/$dotnetInstallScriptVersion/dotnet-install.ps1" -OutFile $installScript
+
+    $maxRetries = 5
+    $retries = 1
+
+    $uri = "https://dot.net/$dotnetInstallScriptVersion/dotnet-install.ps1"
+
+    while($true) {
+      try {
+        Write-Host "GET $uri"
+        Invoke-WebRequest $uri -OutFile $installScript
+        break
+      }
+      catch {
+        Write-Host "Failed to download '$uri'"
+        Write-Error $_.Exception.Message -ErrorAction Continue
+      }
+
+      if (++$retries -le $maxRetries) {
+        $delayInSeconds = [math]::Pow(2, $retries) - 1 # Exponential backoff
+        Write-Host "Retrying. Waiting for $delayInSeconds seconds before next attempt ($retries of $maxRetries)."
+        Start-Sleep -Seconds $delayInSeconds
+      }
+      else {
+        throw "Unable to download file in $maxRetries attempts."
+      }
+
+    }
   }
 
   return $installScript
@@ -177,12 +224,12 @@ function InstallDotNetSdk([string] $dotnetRoot, [string] $version, [string] $arc
   InstallDotNet $dotnetRoot $version $architecture
 }
 
-function InstallDotNet([string] $dotnetRoot, 
-  [string] $version, 
-  [string] $architecture = '', 
-  [string] $runtime = '', 
-  [bool] $skipNonVersionedFiles = $false, 
-  [string] $runtimeSourceFeed = '', 
+function InstallDotNet([string] $dotnetRoot,
+  [string] $version,
+  [string] $architecture = '',
+  [string] $runtime = '',
+  [bool] $skipNonVersionedFiles = $false,
+  [string] $runtimeSourceFeed = '',
   [string] $runtimeSourceFeedKey = '') {
 
   $installScript = GetDotNetInstallScript $dotnetRoot
@@ -216,7 +263,10 @@ function InstallDotNet([string] $dotnetRoot,
       }
       catch {
         Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "Failed to install dotnet runtime '$runtime' from custom location '$runtimeSourceFeed'."
+        ExitWithExitCode 1
       }
+    } else {
+      ExitWithExitCode 1
     }
   }
 }
@@ -275,7 +325,10 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
       $xcopyMSBuildVersion = "$vsMajorVersion.$($vsMinVersion.Minor).0-alpha"
     }
 
-    $vsInstallDir = InitializeXCopyMSBuild $xcopyMSBuildVersion $install
+    $vsInstallDir = $null
+    if ($xcopyMSBuildVersion.Trim() -ine "none") {
+        $vsInstallDir = InitializeXCopyMSBuild $xcopyMSBuildVersion $install
+    }
     if ($vsInstallDir -eq $null) {
       throw 'Unable to find Visual Studio that has required version and components installed'
     }

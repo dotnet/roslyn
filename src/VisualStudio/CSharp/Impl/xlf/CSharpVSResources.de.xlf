@@ -22,14 +22,9 @@
         <target state="translated">C#-Formatierungsregeln</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_language_server_client">
-        <source>C# Language Server Client</source>
-        <target state="translated">Client des C#-Sprachservers</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
-        <target state="translated">Verwerfen</target>
+        <target state="translated">Ausschussvariable</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">

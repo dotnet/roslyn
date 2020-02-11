@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -261,15 +263,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
-                DiagnosticAnalyzerInfoCache analyzerInfoCache, string language, IEnumerable<ImmutableArray<DiagnosticAnalyzer>> analyzerCollection)
+                DiagnosticAnalyzerInfoCache analyzerInfoCache,
+                string language,
+                IEnumerable<ImmutableArray<DiagnosticAnalyzer>> analyzerCollection,
+                bool includeFileContentLoadAnalyzer)
             {
                 var compilerAnalyzer = analyzerInfoCache.GetCompilerDiagnosticAnalyzer(language);
 
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, StateSet>();
+
+                if (includeFileContentLoadAnalyzer)
+                {
+                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(language, FileContentLoadAnalyzer.Instance, PredefinedBuildTools.Live));
+                }
+
                 foreach (var analyzers in analyzerCollection)
                 {
                     foreach (var analyzer in analyzers)
                     {
+                        Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance);
+
                         // TODO: 
                         // #1, all de-duplication should move to DiagnosticAnalyzerInfoCache
                         // #2, not sure whether de-duplication of analyzer itself makes sense. this can only happen

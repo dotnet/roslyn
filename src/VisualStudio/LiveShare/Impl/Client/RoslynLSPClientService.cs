@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -12,6 +14,7 @@ using Newtonsoft.Json.Linq;
 using Task = System.Threading.Tasks.Task;
 using LS = Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.CodeAnalysis.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
@@ -85,32 +88,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                     })));
 
             languageServerGuestService.RegisterClientMetadata(
-                new string[] { StringConstants.CSharpLspContentTypeName, StringConstants.VBLspLanguageName },
+                new string[] { ContentTypeNames.CSharpLspContentTypeName, ContentTypeNames.VBLspContentTypeName },
                 new LS.LanguageServerClientMetadata(
                     true,
                     JObject.FromObject(new ServerCapabilities
                     {
                         // Uses Roslyn client.
-                        DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions(),
-                        DocumentRangeFormattingProvider = true,
-                        DocumentFormattingProvider = true,
-                        DocumentSymbolProvider = true,
                         CodeActionProvider = true,
                         ExecuteCommandProvider = new ExecuteCommandOptions(),
-                        DocumentHighlightProvider = true,
                         ReferencesProvider = true,
-                        DefinitionProvider = true,
-                        SignatureHelpProvider = new SignatureHelpOptions() { },
-                        CompletionProvider = new CompletionOptions(),
-                        ImplementationProvider = true,
-
-                        // Uses LSP SDK client.
-                        DocumentLinkProvider = null,
-                        RenameProvider = false,
-                        CodeLensProvider = null,
-                        WorkspaceSymbolProvider = false,
-                        HoverProvider = false,
-                        TextDocumentSync = null,
                     })));
 
             var lifeTimeService = LspClientLifeTimeService;
