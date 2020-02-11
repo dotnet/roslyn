@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     {
                         fullList.Add(
                             Generator.Argument(
-                                name: seenNameEquals ? addedParameter.Name : default,
+                                name: seenNameEquals || addedParameter.UseNamedArguments ? addedParameter.Name : default,
                                 refKind: RefKind.None,
                                 expression: Generator.ParseExpression(addedParameter.IsCallsiteError ? "TODO" : addedParameter.CallSiteValue)));
                         separators.Add(Generator.CommaTokenWithElasticSpace());
