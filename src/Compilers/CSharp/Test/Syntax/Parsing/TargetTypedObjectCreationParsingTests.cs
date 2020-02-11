@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             N(SyntaxKind.IdentifierToken, "y");
                         }
-                    }s
+                    }
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
