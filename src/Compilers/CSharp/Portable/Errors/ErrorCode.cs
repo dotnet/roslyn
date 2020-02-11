@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1741,6 +1743,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_ExternEventInitializer = 8760,
         ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
+        WRN_ParameterConditionallyDisallowsNull = 8762,
+        WRN_ShouldNotReturn = 8763,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

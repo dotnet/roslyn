@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -150,6 +152,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             RoslynDebug.Assert(Next is object);
             return this.Next.GetBinder(node);
+        }
+
+        /// <summary>
+        /// Gets a binder for a node that must be not null, and asserts
+        /// if it is not.
+        /// </summary>
+        internal Binder GetRequiredBinder(SyntaxNode node)
+        {
+            var binder = GetBinder(node);
+            RoslynDebug.Assert(binder is object);
+            return binder;
         }
 
         /// <summary>
@@ -672,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsSymbolAccessibleConditional(
             Symbol symbol,
             AssemblySymbol within,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             return AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics);
         }
@@ -680,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsSymbolAccessibleConditional(
             Symbol symbol,
             NamedTypeSymbol within,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref HashSet<DiagnosticInfo>? useSiteDiagnostics,
             TypeSymbol? throughTypeOpt = null)
         {
             return this.Flags.Includes(BinderFlags.IgnoreAccessibility) || AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics, throughTypeOpt);
@@ -691,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol within,
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref HashSet<DiagnosticInfo>? useSiteDiagnostics,
             ConsList<TypeSymbol>? basesBeingResolved = null)
         {
             if (this.Flags.Includes(BinderFlags.IgnoreAccessibility))

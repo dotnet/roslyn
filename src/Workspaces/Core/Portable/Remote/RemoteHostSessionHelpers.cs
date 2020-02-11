@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -8,14 +10,12 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    /// <summary>
-    /// This will tie <see cref="Solution"/> and <see cref="RemoteHostClient.Connection"/>'s lifetime together
-    /// so that one can handle those more easily
-    /// </summary>
+    [Obsolete("Only used by Razor and LUT", error: false)]
     internal sealed class SessionWithSolution : IDisposable
     {
         public readonly RemoteHostClient.Connection Connection;
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote
             connection?.Dispose();
         }
 
-        public async Task<bool> TryInvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        public async Task<bool> TryInvokeAsync(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
         {
             using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
             if (connection == null)
@@ -130,11 +130,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 return false;
             }
 
-            await connection.Target.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            await RemoteHostClient.RunRemoteAsync(connection.Target, _remotableDataService, targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
             return true;
         }
 
-        public async Task<Optional<T>> TryInvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        public async Task<Optional<T>> TryInvokeAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
         {
             using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
             if (connection == null)
@@ -142,42 +142,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return default;
             }
 
-            return await connection.Target.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task<bool> TryInvokeAsync(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-        {
-            using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
-            if (connection == null)
-            {
-                return false;
-            }
-
-            using var scope = await _remotableDataService.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
-
-            using var pooledObject = SharedPools.Default<List<object>>().GetPooledObject();
-            pooledObject.Object.Add(scope.SolutionInfo);
-            pooledObject.Object.AddRange(arguments);
-
-            await connection.Target.InvokeAsync(targetName, pooledObject.Object, cancellationToken).ConfigureAwait(false);
-            return true;
-        }
-
-        public async Task<Optional<T>> TryInvokeAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-        {
-            using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
-            if (connection == null)
-            {
-                return default;
-            }
-
-            using var scope = await _remotableDataService.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
-
-            using var pooledObject = SharedPools.Default<List<object>>().GetPooledObject();
-            pooledObject.Object.Add(scope.SolutionInfo);
-            pooledObject.Object.AddRange(arguments);
-
-            return await connection.Target.InvokeAsync<T>(targetName, pooledObject.Object, cancellationToken).ConfigureAwait(false);
+            return await RemoteHostClient.RunRemoteAsync<T>(connection.Target, _remotableDataService, targetName, solution, arguments, dataReader: null, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ReferenceCountedDisposable<RemoteHostClient.Connection>?> TryGetConnectionAsync(CancellationToken cancellationToken)

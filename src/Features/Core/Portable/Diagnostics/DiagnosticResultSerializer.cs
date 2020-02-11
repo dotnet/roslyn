@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticResultSerializer
     {
-        public static (int diagnostics, int telemetry, int exceptions) WriteDiagnosticAnalysisResults(
+        public static (int diagnostics, int telemetry) WriteDiagnosticAnalysisResults(
             ObjectWriter writer, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result, CancellationToken cancellationToken)
         {
             var diagnosticCount = 0;
@@ -42,15 +44,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 WriteTelemetry(writer, analyzerTelemetry, cancellationToken);
             }
 
-            writer.WriteInt32(result.Exceptions.Count);
-            foreach (var (analyzerId, analyzerExceptions) in result.Exceptions)
-            {
-                writer.WriteString(analyzerId);
-                diagnosticSerializer.WriteDiagnosticData(writer, analyzerExceptions, cancellationToken);
-            }
-
             // report how many data has been sent
-            return (diagnosticCount, result.TelemetryInfo.Count, result.Exceptions.Count);
+            return (diagnosticCount, result.TelemetryInfo.Count);
         }
 
         public static DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult> ReadDiagnosticAnalysisResults(
@@ -94,21 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 telemetryMap.Add(analyzer, telemetryInfo);
             }
 
-            var exceptionMap = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>();
-
-            var exceptionCount = reader.ReadInt32();
-            for (var i = 0; i < exceptionCount; i++)
-            {
-                var analyzer = analyzerMap[reader.ReadString()];
-
-                var exceptions = diagnosticDataSerializer.ReadDiagnosticData(reader, project, document: null, cancellationToken);
-                if (!exceptions.IsDefault)
-                {
-                    exceptionMap.Add(analyzer, exceptions);
-                }
-            }
-
-            return DiagnosticAnalysisResultMap.Create(analysisMap.ToImmutable(), telemetryMap.ToImmutable(), exceptionMap.ToImmutable());
+            return DiagnosticAnalysisResultMap.Create(analysisMap.ToImmutable(), telemetryMap.ToImmutable());
         }
 
         private static int WriteDiagnosticDataMap(

@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -34,7 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax crefSyntax))
             {
-                if (!crefSyntax.TryReduceOrSimplifyExplicitName(semanticModel, out var crefReplacement, out issueSpan, optionSet, cancellationToken))
+                if (!QualifiedCrefSimplifier.Instance.TrySimplify(
+                        crefSyntax, semanticModel, optionSet,
+                        out var crefReplacement, out issueSpan, cancellationToken))
                 {
                     return node;
                 }
@@ -44,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             else
             {
                 var expressionSyntax = (ExpressionSyntax)node;
-                if (!expressionSyntax.TryReduceOrSimplifyExplicitName(semanticModel, out var expressionReplacement, out issueSpan, optionSet, cancellationToken))
+                if (!ExpressionSimplifier.Instance.TrySimplify(expressionSyntax, semanticModel, optionSet, out var expressionReplacement, out issueSpan, cancellationToken))
                 {
                     return node;
                 }

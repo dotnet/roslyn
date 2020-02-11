@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -35,7 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public readonly IEditorFormatMapService FormatMapService;
         public readonly IClassificationFormatMap ClassificationFormatMap;
 
-        private readonly IFindAllReferencesService _vsFindAllReferencesService;
         private readonly Workspace _workspace;
 
         private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
@@ -84,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService,
             IEnumerable<ITableColumnDefinition> columns)
-            : base(threadingContext)
+            : base(threadingContext, assertIsForeground: false)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;
@@ -92,7 +93,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             FormatMapService = formatMapService;
             ClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
 
-            _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
             _customColumns = columns.ToImmutableArray();
         }
 
@@ -168,8 +168,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             this.AssertIsForeground();
 
+            var vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
             // Get the appropriate window for FAR results to go into.
-            var window = _vsFindAllReferencesService.StartSearch(title);
+            var window = vsFindAllReferencesService.StartSearch(title);
 
             // Keep track of the users preference for grouping by definition if we don't already know it.
             // We need this because we disable the Definition column when we're not showing references

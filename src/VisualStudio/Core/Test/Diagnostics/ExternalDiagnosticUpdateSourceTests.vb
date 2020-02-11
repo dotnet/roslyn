@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -59,13 +62,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestExternalDiagnostics_SupportedId()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
-                Dim service = New TestDiagnosticAnalyzerService()
+                Dim analyzer = New AnalyzerForErrorLogTest()
+
+                Dim analyzerReference = New TestAnalyzerReferenceByLanguage(
+                    ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)).Empty.Add(LanguageNames.CSharp, ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)))
+
+                Dim service = New TestDiagnosticAnalyzerService(analyzers:=ImmutableArray.Create(Of AnalyzerReference)(analyzerReference))
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
 
                 Dim project = workspace.CurrentSolution.Projects.First()
                 source.OnSolutionBuildStarted()
 
-                Assert.True(source.IsSupportedDiagnosticId(project.Id, "CS1002"))
+                Assert.True(source.IsSupportedDiagnosticId(project.Id, "ID1"))
                 Assert.False(source.IsSupportedDiagnosticId(project.Id, "CA1002"))
             End Using
         End Sub
@@ -92,7 +100,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim diagnostic = GetDiagnosticData(project.Id)
 
-                Dim service = New TestDiagnosticAnalyzerService(ImmutableArray.Create(Of DiagnosticData)(diagnostic))
+                Dim service = New TestDiagnosticAnalyzerService(ImmutableArray.Create(diagnostic))
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
 
                 Dim map = New Dictionary(Of DocumentId, HashSet(Of DiagnosticData))()
@@ -119,7 +127,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim diagnostic = GetDiagnosticData(project.Id)
 
-                Dim service = New TestDiagnosticAnalyzerService(ImmutableArray(Of DiagnosticData).Empty)
+                Dim service = New TestDiagnosticAnalyzerService()
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
                 AddHandler source.BuildProgressChanged, Sub(o, progress)
                                                             If progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Done Then
@@ -293,7 +301,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim projectId1 = workspace.CurrentSolution.ProjectIds(0)
                 Dim projectId2 = workspace.CurrentSolution.ProjectIds(1)
 
-                Dim service = New TestDiagnosticAnalyzerService(ImmutableArray(Of DiagnosticData).Empty)
+                Dim service = New TestDiagnosticAnalyzerService()
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
 
                 source.AddNewErrors(projectId1, GetDiagnosticData(projectId1))
@@ -426,12 +434,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Implements IDiagnosticAnalyzerService, IDiagnosticUpdateSource
 
             Private ReadOnly _data As ImmutableArray(Of DiagnosticData)
+            Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache
 
-            Public Sub New()
-            End Sub
-
-            Public Sub New(data As ImmutableArray(Of DiagnosticData))
-                Me._data = data
+            Public Sub New(Optional data As ImmutableArray(Of DiagnosticData) = Nothing,
+                           Optional analyzers As ImmutableArray(Of AnalyzerReference) = Nothing)
+                _data = data.NullToEmpty
+                _analyzerInfoCache = New DiagnosticAnalyzerInfoCache(analyzers.NullToEmpty)
             End Sub
 
             Public ReadOnly Property SupportGetDiagnostics As Boolean Implements IDiagnosticUpdateSource.SupportGetDiagnostics
@@ -440,19 +448,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 End Get
             End Property
 
+            Public ReadOnly Property AnalyzerInfoCache As DiagnosticAnalyzerInfoCache Implements IDiagnosticAnalyzerService.AnalyzerInfoCache
+                Get
+                    Return _analyzerInfoCache
+                End Get
+            End Property
+
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticUpdateSource.DiagnosticsUpdated
             Public Event DiagnosticsCleared As EventHandler Implements IDiagnosticUpdateSource.DiagnosticsCleared
 
-            Public Function GetDiagnostics(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticUpdateSource.GetDiagnostics
+            Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticUpdateSource.GetDiagnostics
                 Return If(includeSuppressedDiagnostics, _data, _data.WhereAsArray(Function(d) Not d.IsSuppressed))
             End Function
 
-            Public Sub Reanalyze(workspace As Microsoft.CodeAnalysis.Workspace, Optional projectIds As IEnumerable(Of ProjectId) = Nothing, Optional documentIds As IEnumerable(Of DocumentId) = Nothing, Optional highPriority As Boolean = False) Implements IDiagnosticAnalyzerService.Reanalyze
+            Public Sub Reanalyze(workspace As Workspace, Optional projectIds As IEnumerable(Of ProjectId) = Nothing, Optional documentIds As IEnumerable(Of DocumentId) = Nothing, Optional highPriority As Boolean = False) Implements IDiagnosticAnalyzerService.Reanalyze
             End Sub
-
-            Public Function GetDiagnosticDescriptors(projectOpt As Project) As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)) Implements IDiagnosticAnalyzerService.CreateDiagnosticDescriptorsPerReference
-                Return ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)).Empty.Add("reference", ImmutableArray.Create(Of DiagnosticDescriptor)(New DiagnosticDescriptor("CS1002", "test", "test", "test", DiagnosticSeverity.Warning, True)))
-            End Function
 
             Public Function GetDiagnosticsForSpanAsync(document As Document, range As TextSpan, Optional diagnosticId As String = Nothing, Optional includeSuppressedDiagnostics As Boolean = False, Optional addOperationScope As Func(Of String, IDisposable) = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Task(Of IEnumerable(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
                 Return Task.FromResult(SpecializedCollections.EmptyEnumerable(Of DiagnosticData))
@@ -462,11 +472,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return Task.FromResult(False)
             End Function
 
-            Public Function GetSpecificCachedDiagnosticsAsync(workspace As Microsoft.CodeAnalysis.Workspace, id As Object, Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetSpecificCachedDiagnosticsAsync
+            Public Function GetSpecificCachedDiagnosticsAsync(workspace As Workspace, id As Object, Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetSpecificCachedDiagnosticsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
-            Public Function GetCachedDiagnosticsAsync(workspace As Microsoft.CodeAnalysis.Workspace, Optional projectId As ProjectId = Nothing, Optional documentId As DocumentId = Nothing, Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetCachedDiagnosticsAsync
+            Public Function GetCachedDiagnosticsAsync(workspace As Workspace, Optional projectId As ProjectId = Nothing, Optional documentId As DocumentId = Nothing, Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetCachedDiagnosticsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
@@ -482,31 +492,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
-            Public Function GetDiagnosticDescriptors(analyzer As DiagnosticAnalyzer) As ImmutableArray(Of DiagnosticDescriptor) Implements IDiagnosticAnalyzerService.GetDiagnosticDescriptors
-                Return ImmutableArray(Of DiagnosticDescriptor).Empty
-            End Function
-
-            Public Function IsCompilerDiagnostic(language As String, diagnostic As DiagnosticData) As Boolean Implements IDiagnosticAnalyzerService.IsCompilerDiagnostic
-                Return False
-            End Function
-
-            Public Function GetCompilerDiagnosticAnalyzer(language As String) As DiagnosticAnalyzer Implements IDiagnosticAnalyzerService.GetCompilerDiagnosticAnalyzer
-                Return Nothing
-            End Function
-
-            Public Function IsCompilerDiagnosticAnalyzer(language As String, analyzer As DiagnosticAnalyzer) As Boolean Implements IDiagnosticAnalyzerService.IsCompilerDiagnosticAnalyzer
-                Return False
-            End Function
-
-            Public Function ContainsDiagnostics(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId) As Boolean Implements IDiagnosticAnalyzerService.ContainsDiagnostics
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function GetHostAnalyzerReferences() As IEnumerable(Of AnalyzerReference) Implements IDiagnosticAnalyzerService.GetHostAnalyzerReferences
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function GetDiagnosticAnalyzers(project As Project) As ImmutableArray(Of DiagnosticAnalyzer) Implements IDiagnosticAnalyzerService.GetDiagnosticAnalyzers
+            Public Function ContainsDiagnostics(workspace As Workspace, projectId As ProjectId) As Boolean Implements IDiagnosticAnalyzerService.ContainsDiagnostics
                 Throw New NotImplementedException()
             End Function
 

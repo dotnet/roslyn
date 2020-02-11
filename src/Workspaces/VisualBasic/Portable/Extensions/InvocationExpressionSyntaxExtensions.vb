@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading
@@ -12,14 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function CanRemoveEmptyArgumentList(invocationExpression As InvocationExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
-            If invocationExpression.ArgumentList Is Nothing Then
-                Return False
-            End If
+            Return invocationExpression.ArgumentList IsNot Nothing AndAlso invocationExpression.ArgumentList.Arguments.Count = 0 AndAlso
+                CanHaveOmittedArgumentList(invocationExpression, semanticModel, cancellationToken)
+        End Function
 
-            If invocationExpression.ArgumentList.Arguments.Count > 0 Then
-                Return False
-            End If
-
+        Private Function CanHaveOmittedArgumentList(invocationExpression As InvocationExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
             Dim nextToken = invocationExpression.GetLastToken().GetNextToken()
 
             If nextToken.IsKindOrHasMatchingText(SyntaxKind.OpenParenToken) Then
@@ -47,7 +46,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
 
-            Return True
+            If invocationExpression.IsParentKind(SyntaxKind.CallStatement) OrElse invocationExpression.IsParentKind(SyntaxKind.ExpressionStatement) Then
+                Return True
+            End If
+
+            Dim symbol As ISymbol = semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol
+            Return symbol IsNot Nothing AndAlso symbol.MatchesKind(SymbolKind.Property, SymbolKind.Method) AndAlso Not symbol.IsAnonymousFunction
         End Function
 
         <Extension>
