@@ -91,7 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override string Name
         {
-            get { return _nameOpt ?? ""; }
+#nullable disable // 'Name' is explicitly documented as not allowing null returns https://github.com/dotnet/roslyn/issues/39166
+            get { return _nameOpt; }
+#nullable enable
         }
 
         internal override SyntaxToken IdentifierToken
