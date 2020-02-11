@@ -22,9 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
             Return VBFeaturesResources.Remove_Me_qualification
         End Function
 
-        Protected Overrides Function Rewrite(semanticModel As SemanticModel, root As SyntaxNode, memberAccessNodes As ISet(Of MemberAccessExpressionSyntax)) As SyntaxNode
-            Dim rewriter = New Rewriter(memberAccessNodes)
-            Return rewriter.Visit(root)
+        Protected Overrides Function Rewrite(root As SyntaxNode, memberAccessNodes As ISet(Of MemberAccessExpressionSyntax)) As SyntaxNode
+            Return New Rewriter(memberAccessNodes).Visit(root)
         End Function
 
         Private Class Rewriter

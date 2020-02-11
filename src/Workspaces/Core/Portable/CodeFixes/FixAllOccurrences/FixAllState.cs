@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             this.DiagnosticProvider = fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider));
         }
 
-        internal bool IsFixMultiple => this.DiagnosticProvider.IsFixMultiple;
+        internal bool IsFixMultiple => this.DiagnosticProvider is FixMultipleDiagnosticProvider;
 
         public FixAllState WithScopeAndEquivalenceKey(FixAllScope scope, string codeActionEquivalenceKey)
         {

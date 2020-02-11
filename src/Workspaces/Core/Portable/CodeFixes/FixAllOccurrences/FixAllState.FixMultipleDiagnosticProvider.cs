@@ -18,51 +18,37 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         internal sealed class FixMultipleDiagnosticProvider : FixAllContext.DiagnosticProvider
         {
-            internal override bool IsFixMultiple => true;
-
-            private readonly ImmutableDictionary<Document, ImmutableArray<Diagnostic>> _documentDiagnosticsMap;
-            private readonly ImmutableDictionary<Project, ImmutableArray<Diagnostic>> _projectDiagnosticsMap;
+            public ImmutableDictionary<Document, ImmutableArray<Diagnostic>> DocumentDiagnosticsMap { get; }
+            public ImmutableDictionary<Project, ImmutableArray<Diagnostic>> ProjectDiagnosticsMap { get; }
 
             public FixMultipleDiagnosticProvider(ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsMap)
             {
-                _documentDiagnosticsMap = diagnosticsMap;
-                _projectDiagnosticsMap = ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty;
+                DocumentDiagnosticsMap = diagnosticsMap;
+                ProjectDiagnosticsMap = ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty;
             }
 
             public FixMultipleDiagnosticProvider(ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsMap)
             {
-                _projectDiagnosticsMap = diagnosticsMap;
-                _documentDiagnosticsMap = ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
-            }
-
-            internal override Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(
-                FixAllContext context)
-            {
-                return Task.FromResult(_documentDiagnosticsMap);
-            }
-
-            internal override Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
-                FixAllContext context)
-            {
-                return Task.FromResult(_projectDiagnosticsMap);
+                ProjectDiagnosticsMap = diagnosticsMap;
+                DocumentDiagnosticsMap = ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
             }
 
             public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
             {
                 var allDiagnosticsBuilder = ArrayBuilder<Diagnostic>.GetInstance();
                 ImmutableArray<Diagnostic> diagnostics;
-                if (!_documentDiagnosticsMap.IsEmpty)
+                if (!DocumentDiagnosticsMap.IsEmpty)
                 {
                     foreach (var document in project.Documents)
                     {
-                        if (_documentDiagnosticsMap.TryGetValue(document, out diagnostics))
+                        if (DocumentDiagnosticsMap.TryGetValue(document, out diagnostics))
                         {
                             allDiagnosticsBuilder.AddRange(diagnostics);
                         }
                     }
                 }
 
-                if (_projectDiagnosticsMap.TryGetValue(project, out diagnostics))
+                if (ProjectDiagnosticsMap.TryGetValue(project, out diagnostics))
                 {
                     allDiagnosticsBuilder.AddRange(diagnostics);
                 }
@@ -72,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
             {
-                if (_documentDiagnosticsMap.TryGetValue(document, out var diagnostics))
+                if (DocumentDiagnosticsMap.TryGetValue(document, out var diagnostics))
                 {
                     return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
                 }
@@ -82,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
             {
-                if (_projectDiagnosticsMap.TryGetValue(project, out var diagnostics))
+                if (ProjectDiagnosticsMap.TryGetValue(project, out var diagnostics))
                 {
                     return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
                 }
