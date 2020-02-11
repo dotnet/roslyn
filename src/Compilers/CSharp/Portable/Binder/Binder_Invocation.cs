@@ -958,6 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var boundWithErrors = unboundLambda.BindForErrorRecovery();
                                 diagnostics.AddRange(boundWithErrors.Diagnostics);
                                 break;
+                            case BoundUnconvertedObjectCreationExpression _:
                             case BoundTupleLiteral _:
                                 // Tuple literals can contain unbound lambdas or switch expressions.
                                 _ = BindToNaturalType(argument, diagnostics);
