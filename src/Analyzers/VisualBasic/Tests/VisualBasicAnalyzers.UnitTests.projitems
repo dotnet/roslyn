@@ -9,16 +9,6 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Analyzers.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Import Include="Microsoft.CodeAnalysis.Editor.Shared.Extensions" />
-    <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
-    <Import Include="Microsoft.CodeAnalysis.Test.Utilities" />
-    <Import Include="Microsoft.CodeAnalysis.VisualBasic" />
-    <Import Include="Microsoft.CodeAnalysis.VisualBasic.UnitTests" />
-    <Import Include="Roslyn.Test.Utilities" />
-    <Import Include="System.Threading.Tasks" />
-    <Import Include="Xunit" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\RemoveUnusedMembersTests.vb" />

@@ -160,13 +160,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             static bool ShouldFade(AnalyzerOptions options, SyntaxTree tree, string language, CancellationToken cancellationToken)
             {
                 var optionSet = options.GetOptions(tree, cancellationToken);
-                if (optionSet == null)
-                {
-                    return false;
-                }
-
-                return optionSet.GetOption(FadingOptions.FadeOutUnusedImports, language);
-
+                return optionSet != null && optionSet.GetOption(FadingOptions.FadeOutUnusedImports, language);
             }
         }
 
