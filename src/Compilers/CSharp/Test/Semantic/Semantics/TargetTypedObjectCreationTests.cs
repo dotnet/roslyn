@@ -594,7 +594,37 @@ class C
         }
 
         [Fact]
-        public void TestTargetType_TypeParameter()
+        public void TestTypeParameter()
+        {
+            var source = @"
+using System;
+
+struct S
+{
+    static void M1<T>() where T : struct
+    {
+        Console.Write((T)new());
+    }
+    static void M2<T>() where T : new()
+    {
+        Console.Write((T)new());
+    }
+
+    public static void Main()
+    {
+        M1<S>();
+        M2<S>();
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "SS");
+        }
+
+        [Fact]
+        public void TestTypeParameter_ErrorCases()
         {
             var source = @"
 class C
@@ -611,15 +641,6 @@ class C
         {
             TClass x0 = new();
             var x1 = (TClass)new();
-        }
-        {
-            TStruct x0 = new(); // ok
-            var x1 = (TStruct)new(); // ok
-        }
-        {
-            
-            TNew x0 = new(); // ok
-            var x1 = (TNew)new(); // ok
         }
     }
 }
@@ -1064,11 +1085,6 @@ using System;
 
 class C
 {
-    public static void M<T>(Func<bool, T> f)
-    {
-        Console.Write(f(true));
-        Console.Write(f(false));
-    }
     public static void Main()
     {
         var b = false; 
@@ -1092,11 +1108,6 @@ using System;
 
 class C
 {
-    public static void M<T>(Func<bool, T> f)
-    {
-        Console.Write(f(true));
-        Console.Write(f(false));
-    }
     public static void Main()
     {
         C x = 0 switch { _ => new() };
@@ -1118,23 +1129,21 @@ using System;
 
 class C
 {
-    public static void M<T>(Func<bool, T> f)
-    {
-        Console.Write(f(true));
-        Console.Write(f(false));
-    }
     public static void Main()
     {
         C x = null;
         x ??= new();
         Console.Write(x);
+        int? i = null;
+        i ??= new();
+        Console.Write(i);
     }
 }
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "C");
+            CompileAndVerify(comp, expectedOutput: "C0");
         }
 
         [Fact]
@@ -1218,36 +1227,6 @@ class C
         }
 
         [Fact]
-        public void TestTypeParameter()
-        {
-            var source = @"
-using System;
-
-struct S
-{
-    static void M1<T>() where T : struct
-    {
-        Console.Write((T)new());
-    }
-    static void M2<T>() where T : new()
-    {
-        Console.Write((T)new());
-    }
-
-    public static void Main()
-    {
-        M1<S>();
-        M2<S>();
-    }
-}
-";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
-
-            CompileAndVerify(comp, expectedOutput: "SS");
-        }
-
-        [Fact]
         public void TestTypeParameterInitializer()
         {
             var source = @"
@@ -1307,7 +1286,7 @@ public class Dog
 }
 public class Animal
 {
-    MODIFIER Animal() {}
+    public Animal() {}
     public static implicit operator Animal(Dog dog) => throw null;
 }
 
@@ -1321,14 +1300,9 @@ public class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source.Replace("MODIFIER", "private"), options: TestOptions.DebugExe).VerifyDiagnostics(
-                // (17,11): error CS0122: 'Animal.Animal()' is inaccessible due to its protection level
-                //         M(new());
-                Diagnostic(ErrorCode.ERR_BadAccess, "new()").WithArguments("Animal.Animal()").WithLocation(17, 11)
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
-            var comp2 = CreateCompilation(source.Replace("MODIFIER", "public"), options: TestOptions.DebugExe).VerifyDiagnostics(
-                );
-            CompileAndVerify(comp2, expectedOutput: "Animal");
+            CompileAndVerify(comp, expectedOutput: "Animal");
         }
 
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
@@ -3921,6 +3895,63 @@ class C
                 //         ((System)new()).ToString();
                 Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "type").WithLocation(6, 11)
                 );
+        }
+
+        [Fact]
+        public void TestSpeculativeModel01()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int i = 2;
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TargetTypedObjectCreationTestOptions);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            int nodeLocation = node.Location.SourceSpan.Start;
+
+            var newExpression = SyntaxFactory.ParseExpression("new()");
+            var typeInfo = model.GetSpeculativeTypeInfo(nodeLocation, newExpression, SpeculativeBindingOption.BindAsExpression);
+            Assert.Null(typeInfo.Type);
+            var symbolInfo = model.GetSpeculativeSymbolInfo(nodeLocation, newExpression, SpeculativeBindingOption.BindAsExpression);
+            Assert.True(symbolInfo.IsEmpty);
+        }
+
+        [Fact]
+        public void TestSpeculativeModel02()
+        {
+            string source = @"
+class C
+{
+    static void M(int i) {}
+    static void Main()
+    {
+        M(42);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TargetTypedObjectCreationTestOptions);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().Single();
+            int nodeLocation = node.Location.SourceSpan.Start;
+
+            var modifiedNode = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement("M(new());");
+            Assert.True(model.TryGetSpeculativeSemanticModel(nodeLocation, modifiedNode, out var speculativeModel));
+
+            var newExpression = ((InvocationExpressionSyntax)modifiedNode.Expression).ArgumentList.Arguments[0].Expression;
+            var symbolInfo = speculativeModel.GetSymbolInfo(newExpression);
+            Assert.True(symbolInfo.IsEmpty);
+            var typeInfo = speculativeModel.GetTypeInfo(newExpression);
+            Assert.True(typeInfo.ConvertedType.IsErrorType());
+            Assert.True(typeInfo.Type.IsErrorType());
         }
     }
 }

@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestEmptyArgList_LangVersion()
         {
-            UsingExpression("new()", options: TestOptions.Regular7_3,
+            UsingExpression("new()", options: TestOptions.Regular8,
                 // (1,1): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // new()
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(1, 1)
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestEmptyObjectInitializer_LangVersion()
         {
-            UsingExpression("new(){}", options: TestOptions.Regular7_3,
+            UsingExpression("new(){}", options: TestOptions.Regular8,
                 // (1,1): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // new(){}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(1, 1)
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             N(SyntaxKind.IdentifierToken, "y");
                         }
-                    }
+                    }s
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestObjectInitializer_LangVersion()
         {
-            UsingExpression("new(a,b){x=y}", options: TestOptions.Regular7_3,
+            UsingExpression("new(a,b){x=y}", options: TestOptions.Regular8,
                 // (1,1): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // new(1,2){x=y}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(1, 1)
