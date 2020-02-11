@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var recordProperties = ArrayBuilder<FieldSymbol>.GetInstance();
             foreach (var member in ContainingType.GetMembers())
             {
+                // PROTOTYPE: Should generate equality on user-written members as well
                 if (member is SynthesizedRecordPropertySymbol p)
                 {
                     recordProperties.Add(p.BackingField);
