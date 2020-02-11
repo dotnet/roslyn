@@ -87,30 +87,30 @@ namespace Microsoft.CodeAnalysis.Remote
                     // on demand from OOP side
                     // https://github.com/dotnet/roslyn/issues/37424
                     var results = await SearchAsync(SolutionService.PrimaryWorkspace.CurrentSolution, args, cancellationToken).ConfigureAwait(false);
-                    return results;
+                    return results.ToArray();
                 }
             }, cancellationToken);
         }
 
-        private async Task<SymbolInformation[]> SearchAsync(Solution solution, WorkspaceSymbolParams args, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<SymbolInformation>> SearchAsync(Solution solution, WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
             // When progress reporting is supported, report incrementally per project and return an empty result at the end.
             // Otherwise aggregate and return the results for all projects at the end.
             if (args.Progress != null)
             {
-                var tasks = solution.Projects.Select(p => SearchProjectAndReportSymbolsAsync(p, args, cancellationToken)).ToArray();
+                var tasks = solution.Projects.Select(p => SearchProjectAndReportSymbolsAsync(p, args, cancellationToken));
                 await Task.WhenAll(tasks).ConfigureAwait(false);
-                return Array.Empty<SymbolInformation>();
+                return ImmutableArray<SymbolInformation>.Empty;
             }
             else
             {
-                var tasks = solution.Projects.Select(p => SearchProjectAsync(p, args.Query, cancellationToken)).ToArray();
+                var tasks = solution.Projects.Select(p => SearchProjectAsync(p, args.Query, cancellationToken));
                 var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-                return results.SelectMany(a => a).ToArray();
+                return results.SelectMany(a => a).ToImmutableArray();
             }
         }
 
-        private static async Task<SymbolInformation[]> SearchProjectAsync(Project project, string query, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<SymbolInformation>> SearchProjectAsync(Project project, string query, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -131,20 +131,19 @@ namespace Microsoft.CodeAnalysis.Remote
         private static async Task SearchProjectAndReportSymbolsAsync(Project project, WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
             var convertedResults = await SearchProjectAsync(project, args.Query, cancellationToken).ConfigureAwait(false);
-            args.Progress.Report(convertedResults);
+            args.Progress.Report(convertedResults.ToArray());
         }
 
-        private static async Task<VSSymbolInformation[]> ConvertAsync(
+        private static async Task<ImmutableArray<SymbolInformation>> ConvertAsync(
             ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
         {
-            var symbols = new VSSymbolInformation[results.Length];
+            var symbols = ImmutableArray.CreateBuilder<SymbolInformation>();
 
-            for (var i = 0; i < results.Length; i++)
+            foreach (var result in results)
             {
-                var result = results[i];
                 var text = await result.NavigableItem.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                symbols[i] = new VSSymbolInformation()
+                symbols.Add(new VSSymbolInformation()
                 {
                     Name = result.Name,
                     ContainerName = result.AdditionalInformation,
@@ -155,10 +154,10 @@ namespace Microsoft.CodeAnalysis.Remote
                         Range = ProtocolConversions.TextSpanToRange(result.NavigableItem.SourceSpan, text)
                     },
                     Icon = new VisualStudio.Text.Adornments.ImageElement(result.NavigableItem.Glyph.GetImageId())
-                };
+                });
             }
 
-            return symbols;
+            return symbols.ToImmutableArray();
         }
     }
 }

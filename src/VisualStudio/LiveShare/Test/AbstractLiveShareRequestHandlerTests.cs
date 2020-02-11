@@ -87,6 +87,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             var handlers = workspace.ExportProvider.GetExportedValues<ILspRequestHandler>(LiveShareConstants.RoslynContractName);
             return (ILspRequestHandler<RequestType, ResponseType, Solution>)handlers.Single(handler => handler is ILspRequestHandler<RequestType, ResponseType, Solution> && IsMatchingMethod(handler, methodName));
 
+            // Since request handlers can have the same input and output types (especially with object), we need to also
+            // check that the LSP method the handler is exported for matches the one we're requesting.
             static bool IsMatchingMethod(ILspRequestHandler handler, string methodName)
             {
                 var attribute = (ExportLspRequestHandlerAttribute)Attribute.GetCustomAttribute(handler.GetType(), typeof(ExportLspRequestHandlerAttribute));

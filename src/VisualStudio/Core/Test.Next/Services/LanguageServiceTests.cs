@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -34,10 +35,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             using var workspace = TestWorkspace.CreateCSharp(code);
             var solution = workspace.CurrentSolution;
 
-            var results = await GetVsSearchResultsAsync(solution, WellKnownServiceHubServices.LanguageServer, "met");
+            var results = await GetVsSearchResultsAsync(workspace, WellKnownServiceHubServices.LanguageServer, "met");
 
-            Assert.Equal(1, results.Length);
-            Assert.Equal("Method", results[0].Name);
+            Assert.Equal("Method", Assert.Single(results).Name);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -55,7 +55,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             using var workspace = TestWorkspace.CreateCSharp(code);
             var solution = workspace.CurrentSolution;
 
-            var results = await GetVsSearchResultsAsync(solution, WellKnownServiceHubServices.LanguageServer, "met");
+            var results = await GetVsSearchResultsAsync(workspace, WellKnownServiceHubServices.LanguageServer, "met");
 
             Assert.Equal(4, results.Length);
         }
@@ -72,14 +72,14 @@ End Class";
             using var workspace = TestWorkspace.CreateVisualBasic(code);
             var solution = workspace.CurrentSolution;
 
-            var results = await GetVsSearchResultsAsync(solution, WellKnownServiceHubServices.LanguageServer, "met");
+            var results = await GetVsSearchResultsAsync(workspace, WellKnownServiceHubServices.LanguageServer, "met");
 
-            Assert.Equal(1, results.Length);
-            Assert.Equal("Method", results[0].Name);
+            Assert.Equal("Method", Assert.Single(results).Name);
         }
 
-        private async Task<ImmutableArray<SymbolInformation>> GetVsSearchResultsAsync(Solution solution, string server, string query)
+        private async Task<ImmutableArray<SymbolInformation>> GetVsSearchResultsAsync(TestWorkspace workspace, string server, string query)
         {
+            var solution = workspace.CurrentSolution;
             var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(solution.Workspace, runCacheCleanup: false);
 
             var document = solution.Projects.First().Documents.First();
@@ -91,12 +91,11 @@ End Class";
             };
 
             var symbolResultsBuilder = ArrayBuilder<SymbolInformation>.GetInstance();
-#pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
+            var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
             var awaitableProgress = new ProgressWithCompletion<SymbolInformation[]>(symbols =>
-#pragma warning restore VSTHRD012 // Provide JoinableTaskFactory where allowed
             {
                 symbolResultsBuilder.AddRange(symbols);
-            });
+            }, threadingContext.JoinableTaskFactory);
             workspaceSymbolParams.Progress = awaitableProgress;
 
             using (var jsonRpc = JsonRpc.Attach(await client.RequestServiceAsync(server)))
