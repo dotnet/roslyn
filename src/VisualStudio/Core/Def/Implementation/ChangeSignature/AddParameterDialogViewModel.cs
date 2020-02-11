@@ -61,6 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public bool IsCallsiteError { get; internal set; }
         public bool IsCallsiteOmitted { get; internal set; }
 
+        public bool UseNamedArguments { get; set; }
+
         internal void UpdateTypeSymbol(string typeName)
         {
             var languageService = Document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();

@@ -72,6 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             _viewModel.IsCallsiteOmitted = OmitArgumentRadioButton.IsChecked ?? false;
 
             _viewModel.CallSiteValue = CallsiteValueTextBox.Text;
+            _viewModel.UseNamedArguments = UseNamedArgumentButton.IsChecked ?? false;
 
             if (_viewModel.TrySubmit(_document))
             {

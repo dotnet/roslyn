@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             string callSiteValue,
             bool isRequired = true,
             string defaultValue = "",
+            bool useNamedArguments = false,
             bool isCallsiteOmitted = false,
             bool isCallsiteError = false)
         {
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             DefaultValue = defaultValue;
             IsCallsiteError = isCallsiteError;
             IsCallsiteOmitted = isCallsiteOmitted;
+            UseNamedArguments = useNamedArguments;
 
             if (IsCallsiteError)
             {
@@ -66,6 +68,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public bool IsRequired { get; set; }
         public string DefaultValue { get; set; }
         public bool IsCallsiteOmitted { get; set; }
+        public bool UseNamedArguments { get; }
         public bool IsCallsiteError { get; set; }
 
         public override bool HasExplicitDefaultValue => !string.IsNullOrWhiteSpace(DefaultValue);

@@ -633,6 +633,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return false;
                 }
             }
+
+            public virtual string CallSiteValue => string.Empty;
         }
 
         public class AddedParameterViewModel : ParameterViewModel
@@ -664,7 +666,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public override bool IsDisabled => false;
 
-            public override string CallSite => _addedParameter.CallSiteValue;
+            public override string CallSite
+            {
+                get
+                {
+                    return _addedParameter.UseNamedArguments
+                        ? _addedParameter.ParameterName + ": " + _addedParameter.CallSiteValue
+                        : _addedParameter.CallSiteValue;
+                }
+            }
+
+            public override string CallSiteValue => _addedParameter.CallSiteValue;
 
             public override string InitialIndex => "+";
 
@@ -672,7 +684,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public override string Modifier => string.Empty;
 
             // Only required parameters are supported currently
-            public override string Default => string.Empty;
+            public override string Default => _addedParameter.DefaultValue;
 
             public override bool IsRequired => _addedParameter.IsRequired;
             public override string DefaultValue => _addedParameter.DefaultValue;
