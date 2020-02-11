@@ -1435,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var baseType = BaseTypeNoUseSiteDiagnostics;
-            var interfaces = InterfacesNoUseSiteDiagnostics();
+            var interfaces = GetInterfacesToEmit();
 
             // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
             if (hasBaseTypeOrInterface(t => t.ContainsNativeInteger()))
@@ -1450,9 +1450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
-                // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
-                if (baseType?.NeedsNullableAttribute() == true ||
-                    interfaces.Any(t => t.NeedsNullableAttribute()))
+                if (hasBaseTypeOrInterface(t => t.NeedsNullableAttribute()))
                 {
                     compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
