@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (expr is BoundUnconvertedObjectCreationExpression objectCreation)
                 {
-                    return ConvertObjectCreationExpression(objectCreation, isCast: false, targetType, diagnostics);
+                    return ConvertObjectCreationExpression(expr.Syntax, objectCreation, isCast: false, targetType, diagnostics);
                 }
             }
 

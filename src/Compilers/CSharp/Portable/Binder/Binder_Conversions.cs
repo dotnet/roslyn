@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsObjectCreation)
             {
-                return ConvertObjectCreationExpression((BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
+                return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
             }
 
             if (conversion.IsUserDefined)
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = wasCompilerGenerated };
         }
 
-        private BoundExpression ConvertObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression ConvertObjectCreationExpression(SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
             BoundExpression expr = BindObjectCreationExpression(node, destination.StrippedType(), arguments, diagnostics);
@@ -172,7 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // if the destination is nullable, in which case we
                 // target the underlying type e.g. `S? x = new();`
                 // is actually identical to `S? x = new S();`.
-                var conversion = new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying);
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var conversion = Conversions.ClassifyStandardConversion(null, expr.Type, destination, ref useSiteDiagnostics);
                 expr = new BoundConversion(
                     node.Syntax,
                     operand: expr,
@@ -182,6 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversionGroupOpt: new ConversionGroup(conversion),
                     constantValueOpt: expr.ConstantValue,
                     type: destination);
+
+                diagnostics.Add(syntax, useSiteDiagnostics);
             }
             arguments.Free();
             return expr;
