@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -109,19 +111,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstantsAndModifiers { get; }
-
-            protected void AddPrefixTextForAwaitKeyword()
-            {
-                AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    PlainText(FeaturesResources.Awaited_task_returns),
-                    Space());
-            }
-
-            protected void AddTextForSystemVoid()
-            {
-                AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    PlainText(FeaturesResources.no_value));
-            }
 
             protected SemanticModel GetSemanticModel(SyntaxTree tree)
             {
@@ -406,15 +395,48 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     var syntaxFactsService = Workspace.Services.GetLanguageServices(token.Language).GetService<ISyntaxFactsService>();
                     if (syntaxFactsService.IsAwaitKeyword(token))
                     {
-                        AddPrefixTextForAwaitKeyword();
                         if (symbol.SpecialType == SpecialType.System_Void)
                         {
-                            AddTextForSystemVoid();
+                            AddToGroup(SymbolDescriptionGroups.MainDescription,
+                                PlainText(FeaturesResources.Awaited_task_returns_no_value));
                             return;
                         }
+
+                        AddAwaitSymbolDescription(symbol);
+                    }
+                    else
+                    {
+                        AddSymbolDescription(symbol);
                     }
                 }
+                else
+                {
+                    AddSymbolDescription(symbol);
+                }
 
+                if (!symbol.IsUnboundGenericType && !TypeArgumentsAndParametersAreSame(symbol))
+                {
+                    var allTypeParameters = symbol.GetAllTypeParameters().ToList();
+                    var allTypeArguments = symbol.GetAllTypeArguments().ToList();
+
+                    AddTypeParameterMapPart(allTypeParameters, allTypeArguments);
+                }
+            }
+
+            private void AddAwaitSymbolDescription(INamedTypeSymbol symbol)
+            {
+                var defaultSymbol = "{0}";
+                var symbolIndex = FeaturesResources.Awaited_task_returns_0.IndexOf(defaultSymbol);
+
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    PlainText(FeaturesResources.Awaited_task_returns_0.Substring(0, symbolIndex)));
+                AddSymbolDescription(symbol);
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    PlainText(FeaturesResources.Awaited_task_returns_0.Substring(symbolIndex + defaultSymbol.Length)));
+            }
+
+            private void AddSymbolDescription(INamedTypeSymbol symbol)
+            {
                 if (symbol.TypeKind == TypeKind.Delegate)
                 {
                     var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
@@ -425,14 +447,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 {
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
                         ToDisplayParts(symbol.OriginalDefinition, s_descriptionStyle));
-                }
-
-                if (!symbol.IsUnboundGenericType && !TypeArgumentsAndParametersAreSame(symbol))
-                {
-                    var allTypeParameters = symbol.GetAllTypeParameters().ToList();
-                    var allTypeArguments = symbol.GetAllTypeArguments().ToList();
-
-                    AddTypeParameterMapPart(allTypeParameters, allTypeArguments);
                 }
             }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -48,13 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public override ITypeSymbol? GetContainingScopeType()
             {
-                var node = this.GetContainingScope();
-                var model = this.SemanticDocument.SemanticModel;
-
-                if (!node.IsExpression())
+                if (!(GetContainingScope() is ExpressionSyntax node))
                 {
-                    Contract.Fail("this shouldn't happen");
+                    throw ExceptionUtilities.Unreachable;
                 }
+
+                var model = this.SemanticDocument.SemanticModel;
 
                 // special case for array initializer and explicit cast
                 if (node.IsArrayInitializer())
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return GetRegularExpressionType(model, node);
             }
 
-            private static ITypeSymbol? GetRegularExpressionType(SemanticModel semanticModel, SyntaxNode node)
+            private static ITypeSymbol? GetRegularExpressionType(SemanticModel semanticModel, ExpressionSyntax node)
             {
                 // regular case. always use ConvertedType to get implicit conversion right.
                 var expression = node.GetUnparenthesizedExpression();

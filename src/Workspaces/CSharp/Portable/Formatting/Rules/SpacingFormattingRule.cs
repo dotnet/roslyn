@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
@@ -6,6 +8,10 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -336,21 +342,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Index expressions
-            if (previousKind == SyntaxKind.CaretToken && previousParentKind == SyntaxKindEx.IndexExpression)
+            if (previousKind == SyntaxKind.CaretToken && previousParentKind == SyntaxKind.IndexExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }
 
             // Right of Range expressions
-            if (previousKind == SyntaxKindEx.DotDotToken && previousParentKind == SyntaxKindEx.RangeExpression)
+            if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.RangeExpression)
             {
-#if !CODE_STYLE
                 var rangeExpression = (RangeExpressionSyntax)previousToken.Parent;
                 var hasRightOperand = rangeExpression.RightOperand != null;
-#else
-                var childSyntax = previousToken.Parent.ChildNodesAndTokens();
-                var hasRightOperand = childSyntax.Count > 1 && childSyntax[childSyntax.Count - 2].IsKind(SyntaxKindEx.DotDotToken);
-#endif
                 if (hasRightOperand)
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
@@ -358,15 +359,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Left of Range expressions
-            if (currentKind == SyntaxKindEx.DotDotToken && currentParentKind == SyntaxKindEx.RangeExpression)
+            if (currentKind == SyntaxKind.DotDotToken && currentParentKind == SyntaxKind.RangeExpression)
             {
-#if !CODE_STYLE
                 var rangeExpression = (RangeExpressionSyntax)currentToken.Parent;
                 var hasLeftOperand = rangeExpression.LeftOperand != null;
-#else
-                var childSyntax = currentToken.Parent.ChildNodesAndTokens();
-                var hasLeftOperand = childSyntax.Count > 1 && childSyntax[1].IsKind(SyntaxKindEx.DotDotToken);
-#endif
                 if (hasLeftOperand)
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -94,13 +96,13 @@ namespace Microsoft.CodeAnalysis
 
         public ImmutableArray<KeyValuePair<string, string>> PathMap => _pathMap;
 
-        public override string? NormalizePath(string path, string baseFilePath)
+        public override string? NormalizePath(string path, string? baseFilePath)
         {
             string normalizedPath = FileUtilities.NormalizeRelativePath(path, baseFilePath, _baseDirectory);
             return (normalizedPath == null || _pathMap.IsDefaultOrEmpty) ? normalizedPath : PathUtilities.NormalizePathPrefix(normalizedPath, _pathMap);
         }
 
-        public override string? ResolveReference(string path, string baseFilePath)
+        public override string? ResolveReference(string path, string? baseFilePath)
         {
             string resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, _baseDirectory, _searchPaths, FileExists);
             if (resolvedPath == null)

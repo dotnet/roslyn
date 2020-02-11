@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
@@ -6184,37 +6186,6 @@ End Class
                         </Document>
                     </Project>
                 </Workspace>, renameTo:="B")
-            End Using
-        End Sub
-
-        <WorkItem(963225, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/963225")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameShouldIgnoreUnchangeableDocument()
-            Using result = RenameEngineResult.Create(_outputHelper,
-                <Workspace>
-                    <Project Language="C#">
-                        <Document>
-                            class [|$$A|]
-                            {
-                                void M()
-                                {
-                                    [|A|] a = new [|A|]();
-                                }
-                            }
-                        </Document>
-                        <Document CanApplyChange="false">
-                            class B
-                            {
-                                void M()
-                                {
-                                    {|stmt:A|} a;
-                                }
-                            }
-                        </Document>
-                    </Project>
-                </Workspace>, renameTo:="C")
-
-                result.AssertLabeledSpansAre("stmt", "A", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 

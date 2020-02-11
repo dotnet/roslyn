@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -31,9 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim expression As InvocationExpressionSyntax = Nothing
             If TryGetInvocationExpression(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, expression) AndAlso
-                currentSpan.Start = SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start Then
+                currentSpan.Start = GetSignatureHelpSpan(expression.ArgumentList).Start Then
 
-                Return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position)
+                Return GetSignatureHelpState(expression.ArgumentList, position)
             End If
 
             Return Nothing
@@ -114,8 +116,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
             Dim items = New List(Of SignatureHelpItem)
+            Dim accessibleMembers = New ImmutableArray(Of ISymbol)
             If memberGroup.Length > 0 Then
-                items.AddRange(GetMemberGroupItems(document, invocationExpression, semanticModel, within, memberGroup, cancellationToken))
+                accessibleMembers = GetAccessibleMembers(invocationExpression, semanticModel, within, memberGroup, cancellationToken)
+                items.AddRange(GetMemberGroupItems(accessibleMembers, document, invocationExpression, semanticModel, cancellationToken))
             End If
 
             If expressionType.IsDelegateType() Then
@@ -126,10 +130,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 items.AddRange(GetElementAccessItems(targetExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, defaultProperties, cancellationToken))
             End If
 
-            Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList)
+            Dim textSpan = GetSignatureHelpSpan(invocationExpression.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            Dim selectedItem = TryGetSelectedIndex(memberGroup, symbolInfo)
+            Dim selectedItem = TryGetSelectedIndex(accessibleMembers, symbolInfo)
             Return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem)
         End Function
     End Class
