@@ -128,13 +128,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension>
-        Public Function GetNameWithTriviaMoved(memberAccess As MemberAccessExpressionSyntax,
-                                               semanticModel As SemanticModel) As SimpleNameSyntax
+        Public Function GetNameWithTriviaMoved(memberAccess As MemberAccessExpressionSyntax) As SimpleNameSyntax
             Dim replacementNode = memberAccess.Name
             replacementNode = DirectCast(replacementNode, SimpleNameSyntax) _
                 .WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
-                    memberAccess.Name.Identifier,
-                    semanticModel)) _
+                    memberAccess.Name.Identifier)) _
                 .WithLeadingTrivia(GetLeadingTriviaForSimplifiedMemberAccess(memberAccess)) _
                 .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
 

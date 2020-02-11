@@ -88,19 +88,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
         }
     }
 
-    internal sealed class AssetProvider : IAssetProvider
+    internal sealed class TestAssetProvider : AbstractAssetProvider
     {
         private readonly IRemotableDataService _service;
 
-        public AssetProvider(IRemotableDataService service)
+        public TestAssetProvider(IRemotableDataService service)
         {
             _service = service;
         }
 
-        public Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
-        {
-            return _service.GetValueAsync<T>(checksum);
-        }
+        public override Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
+            => _service.GetValueAsync<T>(checksum);
     }
 
 }
