@@ -2667,13 +2667,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                bool? isSense = null;
                 BinaryOperatorKind op = binary.OperatorKind.Operator();
                 if (op != BinaryOperatorKind.Equal && op != BinaryOperatorKind.NotEqual)
                 {
                     return false;
                 }
 
+                bool isSense;
                 if (binary.Right.ConstantValue?.IsBoolean == true)
                 {
                     UseRvalueOnly(leftOperand); // record result for the left
@@ -2697,7 +2697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (isSense == false && IsConditionalState)
+                if (!isSense && IsConditionalState)
                 {
                     SetConditionalState(StateWhenFalse, StateWhenTrue);
                 }
