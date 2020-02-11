@@ -1682,6 +1682,74 @@ class C : IGoo
 }");
         }
 
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestUnsafeExpressionBody()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe void* [||]Pointer => default;
+}",
+@"class C
+{
+    public unsafe void* GetPointer()
+    {
+        return default;
+    }
+}");
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestUnsafeAutoProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe void* [||]Pointer { get; set; }
+}",
+@"class C
+{
+    private unsafe void* pointer;
+
+    public unsafe void* GetPointer()
+    {
+        return pointer;
+    }
+
+    public unsafe void SetPointer(void* value)
+    {
+        pointer = value;
+    }
+}");
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestUnsafeSafeType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe int [||]P
+    {
+        get => 0;
+        set {}
+    }
+}",
+@"class C
+{
+    public unsafe int GetP()
+    {
+        return 0;
+    }
+
+    public unsafe void SetP(int value)
+    { }
+}");
+        }
+
         private IDictionary<OptionKey, object> PreferExpressionBodiedMethods =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
     }

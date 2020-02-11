@@ -226,6 +226,8 @@
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode:
                 case ErrorCode.WRN_NullReferenceInitializer:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
+                case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
+                case ErrorCode.WRN_ShouldNotReturn:
                     return true;
                 default:
                     return false;

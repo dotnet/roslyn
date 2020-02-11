@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -13,18 +14,19 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// it now has an ability to return a smallest span that contains a position rather than
     /// all Intersecting or overlapping spans
     /// </summary>
-    internal class ContextIntervalTree<T> : SimpleIntervalTree<T>
+    internal class ContextIntervalTree<T, TIntrospector> : SimpleIntervalTree<T, TIntrospector>
+        where TIntrospector : struct, IIntervalIntrospector<T>
     {
         private readonly Func<T, int, int, bool> _edgeExclusivePredicate;
         private readonly Func<T, int, int, bool> _edgeInclusivePredicate;
         private readonly Func<T, int, int, bool> _containPredicate;
 
-        public ContextIntervalTree(IIntervalIntrospector<T> introspector)
+        public ContextIntervalTree(in TIntrospector introspector)
             : base(introspector, values: null)
         {
             _edgeExclusivePredicate = ContainsEdgeExclusive;
             _edgeInclusivePredicate = ContainsEdgeInclusive;
-            _containPredicate = (value, start, end) => Contains(value, start, end, Introspector);
+            _containPredicate = (value, start, end) => Contains(value, start, end, in Introspector);
         }
 
         public T GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var otherStart = start;
             var otherEnd = start + length;
 
-            var thisEnd = GetEnd(value, Introspector);
+            var thisEnd = GetEnd(value, in Introspector);
             var thisStart = Introspector.GetStart(value);
 
             return thisStart < otherStart && otherEnd < thisEnd;
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var otherStart = start;
             var otherEnd = start + length;
 
-            var thisEnd = GetEnd(value, Introspector);
+            var thisEnd = GetEnd(value, in Introspector);
             var thisStart = Introspector.GetStart(value);
 
             return thisStart <= otherStart && otherEnd <= thisEnd;
