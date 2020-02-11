@@ -3283,14 +3283,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 (SimpleNameSyntax)simpleName);
         }
 
-        internal override SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull)
+        public override SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull)
             => SyntaxFactory.ConditionalAccessExpression((ExpressionSyntax)expression, (ExpressionSyntax)whenNotNull);
 
-        internal override SyntaxNode MemberBindingExpression(SyntaxNode name)
+        public override SyntaxNode MemberBindingExpression(SyntaxNode name)
             => SyntaxFactory.MemberBindingExpression((SimpleNameSyntax)name);
 
-        internal override SyntaxNode ElementBindingExpression(SyntaxNode argumentList)
-            => SyntaxFactory.ElementBindingExpression((BracketedArgumentListSyntax)argumentList);
+        public override SyntaxNode ElementBindingExpression(IEnumerable<SyntaxNode> arguments)
+            => SyntaxFactory.ElementBindingExpression(
+                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SeparatedList(arguments)));
 
         /// <summary>
         /// Parenthesize the left hand size of a member access, invocation or element access expression
