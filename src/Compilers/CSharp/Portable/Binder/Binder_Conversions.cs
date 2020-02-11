@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // if the destination is nullable, in which case we
                 // target the underlying type e.g. `S? x = new();`
                 // is actually identical to `S? x = new S();`.
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                 var conversion = Conversions.ClassifyStandardConversion(null, expr.Type, destination, ref useSiteDiagnostics);
                 expr = new BoundConversion(
                     node.Syntax,
