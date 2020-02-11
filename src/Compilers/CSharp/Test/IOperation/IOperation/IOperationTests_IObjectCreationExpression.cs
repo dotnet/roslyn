@@ -357,12 +357,12 @@ IBlockOperation (7 statements, 7 locals) (OperationKind.Block, Type: null, IsInv
 using System.Collections.Generic;
 class C
 {
-	private readonly int field;
-	public void M1(int x)
-	{
-		int y = 0;
-		List<int> x1 = /*<bind>*/new() { x, y, field }/*</bind>*/;
-	}
+    private readonly int field;
+    public void M1(int x)
+    {
+        int y = 0;
+        List<int> x1 = /*<bind>*/new() { x, y, field }/*</bind>*/;
+    }
 }
 ";
             string expectedOperationTree = @"
@@ -400,8 +400,8 @@ IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.In
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(5,23): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value 0
-                // 	private readonly int field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "0").WithLocation(5, 23)
+                //     private readonly int field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "0").WithLocation(5, 26)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
@@ -1714,12 +1714,12 @@ using System.Collections.Generic;
 
 class C
 {
-	private readonly int field;
-	public void M1(int x)
-	{
-		int y = 0;
-		var x1 = /*<bind>*/new List<int> { x, y, field }/*</bind>*/;
-	}
+    private readonly int field;
+    public void M1(int x)
+    {
+        int y = 0;
+        var x1 = /*<bind>*/new List<int> { x, y, field }/*</bind>*/;
+    }
 }
 ";
             string expectedOperationTree = @"
@@ -1757,8 +1757,8 @@ IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.In
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0649: Field 'C.field' is never assigned to, and will always have its default value 0
-                // 	private readonly int field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "0").WithLocation(6, 23)
+                //     private readonly int field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "0").WithLocation(6, 26)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
