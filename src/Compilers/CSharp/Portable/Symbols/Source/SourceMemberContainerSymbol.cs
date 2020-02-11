@@ -1434,6 +1434,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
+            var baseType = BaseTypeNoUseSiteDiagnostics;
+            var interfaces = InterfacesNoUseSiteDiagnostics();
+
             // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
             if (hasBaseTypeOrInterface(t => t.ContainsNativeInteger()))
             {
@@ -1447,17 +1450,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
-                if (hasBaseTypeOrInterface(t => t.NeedsNullableAttribute()))
+                // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
+                if (baseType?.NeedsNullableAttribute() == true ||
+                    interfaces.Any(t => t.NeedsNullableAttribute()))
                 {
                     compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
             }
 
+            if (interfaces.Any(t => needsTupleElementNamesAttribute(t)))
+            {
+                // Note: we don't need to check base type or directly implemented interfaces (which will be reported during binding)
+                // so the checking of all interfaces here involves some redundancy.
+                Binder.ReportMissingTupleElementNamesAttributesIfNeeded(compilation, location, diagnostics);
+            }
+
             bool hasBaseTypeOrInterface(Func<NamedTypeSymbol, bool> predicate)
             {
-                var baseType = BaseTypeNoUseSiteDiagnostics;
                 return ((object)baseType != null && predicate(baseType)) ||
-                    InterfacesNoUseSiteDiagnostics().Any(predicate);
+                    interfaces.Any(predicate);
+            }
+
+            static bool needsTupleElementNamesAttribute(TypeSymbol type)
+            {
+                if (type is null)
+                {
+                    return false;
+                }
+
+                var resultType = type.VisitType(
+                    predicate: (t, a, b) => !t.TupleElementNames.IsDefaultOrEmpty && !t.IsErrorType(),
+                    arg: (object)null);
+                return resultType is object;
             }
         }
 

@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
+    using Workspace = CodeAnalysis.Workspace;
+
     [Shared]
     [ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), WorkspaceKind.Test)]
     [PartNotDiscoverable]

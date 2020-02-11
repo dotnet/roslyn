@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
-        <target state="translated">Zahodit</target>
+        <target state="translated">Proměnná typu discard</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">

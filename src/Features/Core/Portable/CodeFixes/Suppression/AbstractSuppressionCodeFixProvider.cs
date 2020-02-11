@@ -50,13 +50,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         protected abstract SyntaxNode AddGlobalSuppressMessageAttribute(
             SyntaxNode newRoot,
             ISymbol targetSymbol,
+            INamedTypeSymbol suppressMessageAttribute,
             Diagnostic diagnostic,
             Workspace workspace,
             Compilation compilation,
             IAddImportsService addImportsService,
             CancellationToken cancellationToken);
 
-        protected abstract SyntaxNode AddLocalSuppressMessageAttribute(SyntaxNode targetNode, ISymbol targetSymbol, Diagnostic diagnostic);
+        protected abstract SyntaxNode AddLocalSuppressMessageAttribute(
+            SyntaxNode targetNode, ISymbol targetSymbol, INamedTypeSymbol suppressMessageAttribute, Diagnostic diagnostic);
 
         protected abstract string DefaultFileExtension { get; }
         protected abstract string SingleLineCommentStart { get; }
@@ -152,10 +154,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 return ImmutableArray<CodeFix>.Empty;
             }
 
+            INamedTypeSymbol suppressMessageAttribute = null;
             if (!skipSuppressMessage)
             {
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var suppressMessageAttribute = compilation.SuppressMessageAttributeType();
+                suppressMessageAttribute = compilation.SuppressMessageAttributeType();
                 skipSuppressMessage = suppressMessageAttribute == null || !suppressMessageAttribute.IsAttribute();
             }
 
@@ -175,14 +178,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     if (!skipSuppressMessage && SuppressionHelpers.CanBeSuppressedWithAttribute(diagnostic))
                     {
                         // global assembly-level suppress message attribute.
-                        nestedActions.Add(new GlobalSuppressMessageCodeAction(suppressionTargetInfo.TargetSymbol, project, diagnostic, this));
+                        nestedActions.Add(new GlobalSuppressMessageCodeAction(
+                            suppressionTargetInfo.TargetSymbol, suppressMessageAttribute, project, diagnostic, this));
 
                         // local suppress message attribute
                         // please note that in order to avoid issues with existing unit tests referencing the code fix
                         // by their index this needs to be the last added to nestedActions
                         if (suppressionTargetInfo.TargetMemberNode != null && suppressionTargetInfo.TargetSymbol.Kind != SymbolKind.Namespace)
                         {
-                            nestedActions.Add(new LocalSuppressMessageCodeAction(this, suppressionTargetInfo.TargetSymbol, suppressionTargetInfo.TargetMemberNode, documentOpt, diagnostic));
+                            nestedActions.Add(new LocalSuppressMessageCodeAction(
+                                this, suppressionTargetInfo.TargetSymbol, suppressMessageAttribute, suppressionTargetInfo.TargetMemberNode, documentOpt, diagnostic));
                         }
                     }
 

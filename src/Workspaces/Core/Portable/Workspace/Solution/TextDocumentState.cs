@@ -292,5 +292,23 @@ namespace Microsoft.CodeAnalysis
             var textAndVersion = await this.TextAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return textAndVersion.Version;
         }
+
+        /// <summary>
+        /// Only checks if the source of the text has changed, no content check is done.
+        /// </summary>
+        public bool HasTextChanged(TextDocumentState oldState, bool ignoreUnchangeableDocument)
+        {
+            if (ignoreUnchangeableDocument && !oldState.CanApplyChange())
+            {
+                return false;
+            }
+
+            return oldState.TextAndVersionSource != TextAndVersionSource;
+        }
+
+        public bool HasInfoChanged(TextDocumentState oldState)
+        {
+            return oldState.Attributes != Attributes;
+        }
     }
 }

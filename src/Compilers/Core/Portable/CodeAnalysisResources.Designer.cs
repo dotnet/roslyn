@@ -413,7 +413,8 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;.
+        ///{3}.
         /// </summary>
         internal static string CompilerAnalyzerThrows {
             get {
@@ -464,6 +465,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string DiagnosticIdCantBeNullOrWhitespace {
             get {
                 return ResourceManager.GetString("DiagnosticIdCantBeNullOrWhitespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suppress the following diagnostics to disable this analyzer: {0}.
+        /// </summary>
+        internal static string DisableAnalyzerDiagnosticsMessage {
+            get {
+                return ResourceManager.GetString("DisableAnalyzerDiagnosticsMessage", resourceCulture);
             }
         }
         

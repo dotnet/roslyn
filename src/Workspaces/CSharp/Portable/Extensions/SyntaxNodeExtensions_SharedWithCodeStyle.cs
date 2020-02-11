@@ -181,22 +181,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return (anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken);
                 case InitializerExpressionSyntax initializeExpressionNode:
                     return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
-#if !CODE_STYLE
                 case SwitchExpressionSyntax switchExpression:
                     return (switchExpression.OpenBraceToken, switchExpression.CloseBraceToken);
-#else
-                case SyntaxNode node0 when node0.IsKind(SyntaxKindEx.SwitchExpression):
-                    return (node0.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.OpenBraceToken)),
-                            node0.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.CloseBraceToken)));
-#endif
-#if !CODE_STYLE
                 case PropertyPatternClauseSyntax property:
                     return (property.OpenBraceToken, property.CloseBraceToken);
-#else
-                case SyntaxNode property when property.IsKind(SyntaxKindEx.PropertyPatternClause):
-                    return (property.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.OpenBraceToken)),
-                            property.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.CloseBraceToken)));
-#endif
             }
 
             return default;
@@ -230,6 +218,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 UsingStatementSyntax n => n.Statement,
                 WhileStatementSyntax n => n.Statement,
                 _ => null,
+            };
+
+        public static SyntaxList<AttributeListSyntax> GetAttributeLists(this SyntaxNode declaration)
+            => declaration switch
+            {
+                MemberDeclarationSyntax memberDecl => memberDecl.AttributeLists,
+                AccessorDeclarationSyntax accessor => accessor.AttributeLists,
+                ParameterSyntax parameter => parameter.AttributeLists,
+                CompilationUnitSyntax compilationUnit => compilationUnit.AttributeLists,
+                _ => default,
+            };
+
+        public static BaseParameterListSyntax? GetParameterList(this SyntaxNode declaration)
+            => declaration.Kind() switch
+            {
+                SyntaxKind.DelegateDeclaration => ((DelegateDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.MethodDeclaration => ((MethodDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.OperatorDeclaration => ((OperatorDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.ConversionOperatorDeclaration => ((ConversionOperatorDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.ConstructorDeclaration => ((ConstructorDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.DestructorDeclaration => ((DestructorDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.ParenthesizedLambdaExpression => ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList,
+                SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).ParameterList,
+                SyntaxKind.AnonymousMethodExpression => ((AnonymousMethodExpressionSyntax)declaration).ParameterList,
+                _ => (BaseParameterListSyntax?)null,
             };
     }
 }

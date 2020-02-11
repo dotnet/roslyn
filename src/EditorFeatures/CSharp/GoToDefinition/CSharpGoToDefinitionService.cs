@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
     internal class CSharpGoToDefinitionService : AbstractGoToDefinitionService
     {
         [ImportingConstructor]
-        public CSharpGoToDefinitionService(IStreamingFindUsagesPresenter streamingPresenter)
+        public CSharpGoToDefinitionService(Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
             : base(streamingPresenter)
         {
         }

@@ -20,6 +20,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [UseExportProvider]
     public class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        private static readonly IExportProviderFactory s_exportProviderFactory
+            = ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)));
+
         public ExtensionMethodImportCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
         {
         }
@@ -36,11 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         protected override ExportProvider GetExportProvider()
-        {
-            return ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)))
-                .CreateExportProvider();
-        }
+            => s_exportProviderFactory.CreateExportProvider();
 
         internal override CompletionProvider CreateCompletionProvider()
         {
@@ -76,34 +76,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             get
             {
-                var predefinedTypes = new List<List<string>>
-                {
-                    new List<string>()
-                    { "int", "Int32", "System.Int32" },
-                    new List<string>()
-                    { "float", "Single", "System.Single" },
-                    new List<string>()
-                    { "uint", "UInt32", "System.UInt32" },
-                    new List<string>()
-                    { "bool", "Boolean", "System.Boolean"},
-                    new List<string>()
-                    { "string", "String", "System.String"},
-                    new List<string>()
-                    { "object", "Object", "System.Object"},
-                };
-
+                var predefinedTypes = new List<string>() { "string", "String", "System.String" };
                 var arraySuffixes = new[] { "", "[]", "[,]" };
 
-                foreach (var group in predefinedTypes)
+                foreach (var type1 in predefinedTypes)
                 {
-                    foreach (var type1 in group)
+                    foreach (var type2 in predefinedTypes)
                     {
-                        foreach (var type2 in group)
+                        foreach (var suffix in arraySuffixes)
                         {
-                            foreach (var suffix in arraySuffixes)
-                            {
-                                yield return new List<object>() { type1 + suffix, type2 + suffix };
-                            }
+                            yield return new List<object>() { type1 + suffix, type2 + suffix };
                         }
                     }
                 }

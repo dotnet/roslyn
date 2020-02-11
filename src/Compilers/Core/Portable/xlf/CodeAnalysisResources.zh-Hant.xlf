@@ -24,6 +24,11 @@
 '{1}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="DisableAnalyzerDiagnosticsMessage">
+        <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
+        <target state="new">Suppress the following diagnostics to disable this analyzer: {0}</target>
+        <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
         <target state="translated">隱藏的診斷識別碼 '{0}' 不符合指定隱藏描述項的可隱藏識別碼 '{1}'。</target>
@@ -576,12 +581,17 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="translated">分析器失敗</target>
-        <note />
+        <target state="needs-review-translation">分析器失敗</target>
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
-        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
-        <target state="translated">分析器 '{0}' 擲回類型 '{1}' 的例外狀況，訊息為 '{2}'。</target>
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="new">Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">

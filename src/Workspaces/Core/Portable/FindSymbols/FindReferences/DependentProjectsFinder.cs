@@ -441,15 +441,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return null;
             }
 
-            // WORKAROUND:
-            // perf check metadata reference using newly created empty compilation with only metadata references.
-            //
-            // TODO(cyrusn): Why don't we call project.TryGetCompilation first?  
-            // wouldn't we want to use that compilation if it's available?
-            var compilation = project.LanguageServices.CompilationFactory.CreateCompilation(
-                project.AssemblyName, project.CompilationOptions);
+            if (!project.TryGetCompilation(out var compilation))
+            {
+                // WORKAROUND:
+                // perf check metadata reference using newly created empty compilation with only metadata references.
+                compilation = project.LanguageServices.CompilationFactory.CreateCompilation(
+                    project.AssemblyName, project.CompilationOptions);
 
-            compilation = compilation.AddReferences(project.MetadataReferences);
+                compilation = compilation.AddReferences(project.MetadataReferences);
+            }
 
             foreach (var reference in project.MetadataReferences)
             {
