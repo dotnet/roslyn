@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -565,8 +566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         ' or the replacement itself is escaped.
                         newToken = newToken.WithAdditionalAnnotations(Simplifier.Annotation)
                     Else
-                        Dim semanticModel = GetSemanticModelForNode(parent, If(Me._speculativeModel, Me._semanticModel))
-                        newToken = Simplification.VisualBasicSimplificationService.TryEscapeIdentifierToken(newToken, semanticModel, oldToken)
+                        newToken = TryEscapeIdentifierToken(newToken)
                     End If
                 End If
 

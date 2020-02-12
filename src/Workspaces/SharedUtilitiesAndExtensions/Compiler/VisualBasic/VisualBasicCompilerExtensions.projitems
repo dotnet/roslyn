@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\VisualBasicUnnecessaryImportsProvider.vb" />
+  </ItemGroup>
+</Project>

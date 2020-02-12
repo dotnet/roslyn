@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis
             return File.Exists(resolvedPath);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             // Explicitly check that we're not comparing against a derived type
             if (obj == null || GetType() != obj.GetType())

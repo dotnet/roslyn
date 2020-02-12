@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determines if two FileLinePositionSpan objects are equal.
         /// </summary>
-        public override bool Equals(object other)
+        public override bool Equals(object? other)
         {
             return other is FileLinePositionSpan && Equals((FileLinePositionSpan)other);
         }
