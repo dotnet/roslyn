@@ -2678,9 +2678,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     UseRvalueOnly(leftOperand); // record result for the left
 
-                    // record result for the right
-                    Debug.Assert(binary.Right.Type.SpecialType == SpecialType.System_Boolean);
-                    SetResult(binary.Right, TypeWithState.ForType(binary.Right.Type), TypeWithAnnotations.Create(binary.Right.Type));
+                    var stateWhenTrue = this.StateWhenTrue.Clone();
+                    var stateWhenFalse = this.StateWhenFalse.Clone();
+
+                    Unsplit();
+                    Visit(binary.Right);
+                    UseRvalueOnly(binary.Right); // record result for the right
+
+                    SetConditionalState(stateWhenTrue, stateWhenFalse);
                     isSense = (op == BinaryOperatorKind.Equal) == binary.Right.ConstantValue.BooleanValue;
                 }
                 else if (binary.Left.ConstantValue?.IsBoolean == true)
