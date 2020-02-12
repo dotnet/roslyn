@@ -7181,20 +7181,23 @@ done:;
             return _syntaxFactory.FixedStatement(attributes, @fixed, openParen, decl, closeParen, statement);
         }
 
-        private StatementSyntax ParseEmbeddedStatement()
-        {
-            return this.TryParseStatementCore() ?? ParseEmptyStatement();
-        }
-
-        private EmptyStatementSyntax ParseEmptyStatement()
-            => SyntaxFactory.EmptyStatement(attributeLists: default, EatToken(SyntaxKind.SemicolonToken));
-
         private bool IsEndOfFixedStatement()
         {
             return this.CurrentToken.Kind == SyntaxKind.CloseParenToken
                 || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                 || this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
         }
+
+        private StatementSyntax ParseEmbeddedStatement()
+        {
+            // The consumers of embedded statements are expecting to receive a non-null statement 
+            // yet there are several error conditions that can lead ParseStatementCore to return 
+            // null.  When that occurs create an error empty Statement and return it to the caller.
+            return this.TryParseStatementCore() ?? ParseEmptyStatement();
+        }
+
+        private EmptyStatementSyntax ParseEmptyStatement()
+            => SyntaxFactory.EmptyStatement(attributeLists: default, EatToken(SyntaxKind.SemicolonToken));
 
         private BreakStatementSyntax ParseBreakStatement(SyntaxList<AttributeListSyntax> attributes)
         {
