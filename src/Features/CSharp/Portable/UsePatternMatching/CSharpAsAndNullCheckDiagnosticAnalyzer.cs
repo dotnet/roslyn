@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         {
             localSymbol = semanticModel.GetSymbolInfo(identifier).Symbol as ILocalSymbol;
             declarator = localSymbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as VariableDeclaratorSyntax;
-            return declarator != null;
+            return localSymbol != null && declarator != null;
         }
 
         private static ExpressionSyntax? GetNullCheckOperand(ExpressionSyntax left, SyntaxKind comparisonKind, SyntaxNode right)

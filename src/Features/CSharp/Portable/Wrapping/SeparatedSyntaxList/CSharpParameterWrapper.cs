@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         protected override SeparatedSyntaxList<ParameterSyntax> GetListItems(BaseParameterListSyntax listSyntax)
             => listSyntax.Parameters;
 
-        protected override BaseParameterListSyntax TryGetApplicableList(SyntaxNode node)
+        protected override BaseParameterListSyntax? TryGetApplicableList(SyntaxNode node)
             => node.GetParameterList();
 
         protected override bool PositionIsApplicable(

@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 {
     using Microsoft.CodeAnalysis.Indentation;
+    using Microsoft.CodeAnalysis.Shared.Extensions;
 
     /// <summary>
     /// Base type for all wrappers that involve wrapping a comma-separated list of items.
@@ -39,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         {
         }
 
-        protected abstract TListSyntax TryGetApplicableList(SyntaxNode node);
+        protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
         protected abstract bool PositionIsApplicable(
             SyntaxNode root, int position, SyntaxNode declaration, TListSyntax listSyntax);
 
-        public override async Task<ICodeActionComputer> TryCreateComputerAsync(
+        public override async Task<ICodeActionComputer?> TryCreateComputerAsync(
             Document document, int position, SyntaxNode declaration, CancellationToken cancellationToken)
         {
             var listSyntax = TryGetApplicableList(declaration);
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 return null;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (!PositionIsApplicable(root, position, declaration, listSyntax))
             {
                 return null;
