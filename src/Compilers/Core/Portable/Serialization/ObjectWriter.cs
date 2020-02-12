@@ -19,6 +19,8 @@ namespace Roslyn.Utilities
     using System.Threading.Tasks;
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
+#elif CODE_STYLE
+    using Resources = CodeStyleResources;
 #else
     using Resources = WorkspacesResources;
 #endif

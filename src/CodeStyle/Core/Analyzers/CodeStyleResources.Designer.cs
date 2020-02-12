@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CodeStyleResources", typeof(CodeStyleResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CodeStyleResources", typeof(CodeStyleResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -76,6 +75,51 @@ namespace Microsoft.CodeAnalysis {
         internal static string A_language_name_must_be_specified_for_this_option {
             get {
                 return ResourceManager.GetString("A_language_name_must_be_specified_for_this_option", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Absolute path expected..
+        /// </summary>
+        internal static string Absolute_path_expected {
+            get {
+                return ResourceManager.GetString("Absolute_path_expected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An element with the same key but a different value already exists..
+        /// </summary>
+        internal static string An_element_with_the_same_key_but_a_different_value_already_exists {
+            get {
+                return ResourceManager.GetString("An_element_with_the_same_key_but_a_different_value_already_exists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Arrays with more than one dimension cannot be serialized..
+        /// </summary>
+        internal static string Arrays_with_more_than_one_dimension_cannot_be_serialized {
+            get {
+                return ResourceManager.GetString("Arrays_with_more_than_one_dimension_cannot_be_serialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot serialize type &apos;{0}&apos;..
+        /// </summary>
+        internal static string Cannot_serialize_type_0 {
+            get {
+                return ResourceManager.GetString("Cannot_serialize_type_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deserialization reader for &apos;{0}&apos; read incorrect number of values..
+        /// </summary>
+        internal static string Deserialization_reader_for_0_read_incorrect_number_of_values {
+            get {
+                return ResourceManager.GetString("Deserialization_reader_for_0_read_incorrect_number_of_values", resourceCulture);
             }
         }
         
@@ -134,11 +178,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stream is too long..
+        /// </summary>
+        internal static string Stream_is_too_long {
+            get {
+                return ResourceManager.GetString("Stream_is_too_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Suggestion.
         /// </summary>
         internal static string Suggestion {
             get {
                 return ResourceManager.GetString("Suggestion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; is not understood by the serialization binder..
+        /// </summary>
+        internal static string The_type_0_is_not_understood_by_the_serialization_binder {
+            get {
+                return ResourceManager.GetString("The_type_0_is_not_understood_by_the_serialization_binder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value too large to be represented as a 30 bit unsigned integer..
+        /// </summary>
+        internal static string Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer {
+            get {
+                return ResourceManager.GetString("Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer", resourceCulture);
             }
         }
         
