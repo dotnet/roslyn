@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
-
     Friend Module ExpressionSyntaxExtensions
 
         Public ReadOnly typeNameFormatWithGenerics As New SymbolDisplayFormat(

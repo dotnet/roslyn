@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
-
     internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax>
         : AbstractCodeQualityDiagnosticAnalyzer
         where TDocumentationCommentTriviaSyntax : SyntaxNode

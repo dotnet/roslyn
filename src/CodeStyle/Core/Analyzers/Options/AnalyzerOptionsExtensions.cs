@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class AnalyzerOptionsExtensions
     {
-        public static AnalyzerConfigOptions GetOptions(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken _)
+        public static AnalyzerConfigOptions GetOptions(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
             => analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
     }
 }

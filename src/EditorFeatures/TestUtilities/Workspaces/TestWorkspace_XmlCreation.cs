@@ -4,6 +4,7 @@
 
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces

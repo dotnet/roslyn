@@ -904,7 +904,7 @@ parseOptions: Options.Regular, index: CodeActionIndex);
 }", CodeActionIndex);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestTuple()
         {
             await TestInRegularAndScriptAsync(

@@ -15,9 +15,6 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.CodeStyle
 #endif
 {
-    /// <summary>
-    /// Code style options
-    /// </summary>
     public class CodeStyleOptions
     {
         private static readonly ImmutableArray<IOption>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption>();
