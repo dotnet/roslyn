@@ -7161,48 +7161,18 @@ done:;
             _termState = saveTerm;
 
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            StatementSyntax statement = this.ParseEmbeddedStatement();
+            StatementSyntax statement = this.ParseStatementCore() ?? ParseEmptyStatement();
             return _syntaxFactory.FixedStatement(@fixed, openParen, decl, closeParen, statement);
         }
+
+        private EmptyStatementSyntax ParseEmptyStatement()
+            => SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
 
         private bool IsEndOfFixedStatement()
         {
             return this.CurrentToken.Kind == SyntaxKind.CloseParenToken
                 || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                 || this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
-        }
-
-        private StatementSyntax ParseEmbeddedStatement()
-        {
-            // The consumers of embedded statements are expecting to receive a non-null statement 
-            // yet there are several error conditions that can lead ParseStatementCore to return 
-            // null.  When that occurs create an error empty Statement and return it to the caller.
-            StatementSyntax statement = this.ParseStatementCore() ?? SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
-
-            switch (statement.Kind)
-            {
-                // In scripts, stand-alone expression statements may not be followed by semicolons.
-                // ParseExpressionStatement hides the error.
-                // However, embedded expression statements are required to be followed by semicolon. 
-                case SyntaxKind.ExpressionStatement:
-                    if (IsScript)
-                    {
-                        var expressionStatementSyntax = (ExpressionStatementSyntax)statement;
-                        var semicolonToken = expressionStatementSyntax.SemicolonToken;
-
-                        // Do not add a new error if the same error was already added.
-                        if (semicolonToken.IsMissing &&
-                            !semicolonToken.GetDiagnostics().Contains(diagnosticInfo => (ErrorCode)diagnosticInfo.Code == ErrorCode.ERR_SemicolonExpected))
-                        {
-                            semicolonToken = this.AddError(semicolonToken, ErrorCode.ERR_SemicolonExpected);
-                            statement = expressionStatementSyntax.Update(expressionStatementSyntax.Expression, semicolonToken);
-                        }
-                    }
-
-                    break;
-            }
-
-            return statement;
         }
 
         private BreakStatementSyntax ParseBreakStatement()
@@ -7397,7 +7367,7 @@ done:;
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.DoKeyword);
             var @do = this.EatToken(SyntaxKind.DoKeyword);
-            var statement = this.ParseEmbeddedStatement();
+            var statement = this.ParseStatementCore() ?? ParseEmptyStatement();
             var @while = this.EatToken(SyntaxKind.WhileKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
@@ -7518,7 +7488,7 @@ done:;
                 }
 
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                var statement = ParseEmbeddedStatement();
+                var statement = this.ParseStatementCore() ?? ParseEmptyStatement();
                 return _syntaxFactory.ForStatement(forToken, openParen, decl, initializers, semi, condition, semi2, incrementors, closeParen, statement);
             }
             finally
@@ -7618,7 +7588,7 @@ tryAgain:
 
             var expression = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = this.ParseEmbeddedStatement();
+            var statement = this.ParseStatementCore() ?? ParseEmptyStatement();
 
             if (variable is DeclarationExpressionSyntax decl)
             {
@@ -7718,7 +7688,9 @@ tryAgain:
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var condition = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = firstTokenIsElse ? this.ParseExpressionStatement() : this.ParseEmbeddedStatement();
+            var statement = firstTokenIsElse
+                ? this.ParseExpressionStatement()
+                : (this.ParseStatementCore() ?? ParseEmptyStatement());
             var elseClause = this.ParseElseClauseOpt();
 
             return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
@@ -7732,7 +7704,7 @@ tryAgain:
             }
 
             var elseToken = this.EatToken(SyntaxKind.ElseKeyword);
-            var elseStatement = this.ParseEmbeddedStatement();
+            var elseStatement = this.ParseStatementCore() ?? ParseEmptyStatement();
             return _syntaxFactory.ElseClause(elseToken, elseStatement);
         }
 
@@ -7743,7 +7715,7 @@ tryAgain:
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var expression = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = this.ParseEmbeddedStatement();
+            var statement = this.ParseStatementCore() ?? ParseEmptyStatement();
             return _syntaxFactory.LockStatement(@lock, openParen, expression, closeParen, statement);
         }
 
@@ -7963,7 +7935,7 @@ tryAgain:
             this.Release(ref resetPoint);
 
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = this.ParseEmbeddedStatement();
+            var statement = this.ParseStatementCore() ?? ParseEmptyStatement();
 
             return _syntaxFactory.UsingStatement(awaitTokenOpt, @using, openParen, declaration, expression, closeParen, statement);
         }
@@ -8069,7 +8041,7 @@ tryAgain:
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var condition = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = this.ParseEmbeddedStatement();
+            var statement = this.ParseStatementCore() ?? ParseEmptyStatement();
             return _syntaxFactory.WhileStatement(@while, openParen, condition, closeParen, statement);
         }
 
@@ -8084,7 +8056,7 @@ tryAgain:
             var label = this.ParseIdentifierToken();
             var colon = this.EatToken(SyntaxKind.ColonToken);
             Debug.Assert(!colon.IsMissing);
-            var statement = this.ParseStatementCore() ?? SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
+            var statement = this.ParseStatementCore() ?? ParseEmptyStatement();
             return _syntaxFactory.LabeledStatement(label, colon, statement);
         }
 

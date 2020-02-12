@@ -1380,6 +1380,22 @@ goto Label;");
                 );
         }
 
+        [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
+        [Fact]
+        public void EmbeddedStatementNeedsSemicolon()
+        {
+            string source =
+@"if (true)
+    System.Console.WriteLine(true)
+";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
+            compilation.VerifyDiagnostics(
+                // (2,35): error CS1002: ; expected
+                //     System.Console.WriteLine(true)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 35));
+        }
+
         private static MemberAccessExpressionSyntax ErrorTestsGetNode(SyntaxTree syntaxTree)
         {
             var node1 = (CompilationUnitSyntax)syntaxTree.GetRoot();
