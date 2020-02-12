@@ -123,7 +123,7 @@ namespace Roslyn.Utilities
             return GetDirectoryName(path, IsUnixLikePlatform);
         }
 
-        private static string? GetDirectoryName(string? path, bool isUnixLike)
+        internal static string? GetDirectoryName(string? path, bool isUnixLike)
         {
             if (path != null)
             {

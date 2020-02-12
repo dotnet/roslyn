@@ -334,7 +334,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     assemblyDir = Path.GetDirectoryName(fileKey.FullPath);
                 }
 
-                var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName));
+                // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
+                var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!);
                 var metadata = moduleMetadataFactory(moduleFileKey, storages);
 
                 moduleBuilder.Add(metadata);

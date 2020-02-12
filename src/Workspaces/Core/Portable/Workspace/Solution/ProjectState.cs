@@ -272,11 +272,13 @@ namespace Microsoft.CodeAnalysis
             switch (_projectInfo.Language)
             {
                 case LanguageNames.CSharp:
-                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.cs");
+                    // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
+                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.cs")!;
                     break;
 
                 case LanguageNames.VisualBasic:
-                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.vb");
+                    // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
+                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.vb")!;
                     break;
 
                 default:
