@@ -127,7 +127,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\OneOrMany.cs">
       <Link>InternalUtilities\OneOrMany.cs</Link>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" >
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Condition="'$(DotNetBuildFromSource)' == 'true'">
       <Link>InternalUtilities\PerformanceSensitiveAttribute.cs</Link>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs">
@@ -305,5 +305,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SymbolEquivalenceComparer.GetHashCodeVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SymbolEquivalenceComparer.ParameterSymbolEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SymbolEquivalenceComparer.SignatureTypeSymbolEquivalenceComparer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" GenerateSource="true" />
   </ItemGroup>
 </Project>

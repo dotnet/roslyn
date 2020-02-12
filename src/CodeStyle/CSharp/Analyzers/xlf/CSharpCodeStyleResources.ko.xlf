@@ -2,39 +2,9 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CSharpCodeStyleResources.resx">
     <body>
-      <trans-unit id="Code_block_preferences">
-        <source>Code-block preferences</source>
-        <target state="new">Code-block preferences</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_switch_statement_to_expression">
-        <source>Convert switch statement to expression</source>
-        <target state="new">Convert switch statement to expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expression_bodied_members">
-        <source>Expression-bodied members</source>
-        <target state="new">Expression-bodied members</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indentation_preferences">
         <source>Indentation preferences</source>
         <target state="translated">들여쓰기 기본 설정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_readonly_fields_writable">
-        <source>Make readonly fields writable</source>
-        <target state="new">Make readonly fields writable</target>
-        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Null_checking_preferences">
-        <source>Null-checking preferences</source>
-        <target state="new">Null-checking preferences</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pattern_matching_preferences">
-        <source>Pattern matching preferences</source>
-        <target state="new">Pattern matching preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Space_preferences">
@@ -42,49 +12,9 @@
         <target state="translated">공간 기본 설정</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_explicit_type">
-        <source>Use explicit type</source>
-        <target state="new">Use explicit type</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicit_type_instead_of_var">
-        <source>Use explicit type instead of 'var'</source>
-        <target state="new">Use explicit type instead of 'var'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_implicit_type">
-        <source>Use implicit type</source>
-        <target state="new">Use implicit type</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_switch_expression">
-        <source>Use 'switch' expression</source>
-        <target state="new">Use 'switch' expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_directive_is_unnecessary">
-        <source>Using directive is unnecessary.</source>
-        <target state="new">Using directive is unnecessary.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
         <target state="translated">기본 설정 래핑</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="use_var_instead_of_explicit_type">
-        <source>use 'var' instead of explicit type</source>
-        <target state="new">use 'var' instead of explicit type</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="using_directive_preferences">
-        <source>'using' directive preferences</source>
-        <target state="new">'using' directive preferences</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="var_preferences">
-        <source>var preferences</source>
-        <target state="new">var preferences</target>
         <note />
       </trans-unit>
     </body>

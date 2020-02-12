@@ -17,18 +17,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
-#if CODE_STYLE
-    using Resources = CSharpCodeStyleResources;
-#else
-    using Resources = CSharpFeaturesResources;
-#endif
-
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer :
         AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
     {
         private static readonly LocalizableString s_titleAndMessageFormat =
-            new LocalizableResourceString(nameof(Resources.Using_directive_is_unnecessary), Resources.ResourceManager, typeof(Resources));
+            new LocalizableResourceString(nameof(CSharpAnalyzersResources.Using_directive_is_unnecessary), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
         protected override LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor()
             => s_titleAndMessageFormat;

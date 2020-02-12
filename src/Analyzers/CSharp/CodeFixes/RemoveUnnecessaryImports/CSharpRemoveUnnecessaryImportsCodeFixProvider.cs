@@ -8,12 +8,6 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
-#if CODE_STYLE
-    using Resources = CSharpCodeStyleFixesResources;
-#else
-    using Resources = CSharpFeaturesResources;
-#endif
-
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
     internal class CSharpRemoveUnnecessaryImportsCodeFixProvider : AbstractRemoveUnnecessaryImportsCodeFixProvider
@@ -24,6 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         }
 
         protected override string GetTitle()
-            => Resources.Remove_Unnecessary_Usings;
+            => CSharpCodeFixesResources.Remove_Unnecessary_Usings;
     }
 }

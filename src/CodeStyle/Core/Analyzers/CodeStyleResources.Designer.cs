@@ -133,24 +133,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expression-level preferences.
-        /// </summary>
-        internal static string Expression_level_preferences {
-            get {
-                return ResourceManager.GetString("Expression_level_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Field preferences.
-        /// </summary>
-        internal static string Field_preferences {
-            get {
-                return ResourceManager.GetString("Field_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Fix formatting.
         /// </summary>
         internal static string Fix_formatting {
@@ -165,24 +147,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Indentation_and_spacing {
             get {
                 return ResourceManager.GetString("Indentation_and_spacing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Language keywords vs BCL types preferences.
-        /// </summary>
-        internal static string Language_keywords_vs_BCL_types_preferences {
-            get {
-                return ResourceManager.GetString("Language_keywords_vs_BCL_types_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifier preferences.
-        /// </summary>
-        internal static string Modifier_preferences {
-            get {
-                return ResourceManager.GetString("Modifier_preferences", resourceCulture);
             }
         }
         
@@ -205,93 +169,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Organize usings.
-        /// </summary>
-        internal static string Organize_usings {
-            get {
-                return ResourceManager.GetString("Organize_usings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Parameter preferences.
-        /// </summary>
-        internal static string Parameter_preferences {
-            get {
-                return ResourceManager.GetString("Parameter_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Parentheses preferences.
-        /// </summary>
-        internal static string Parentheses_preferences {
-            get {
-                return ResourceManager.GetString("Parentheses_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Private member &apos;{0}&apos; can be removed as the value assigned to it is never read..
-        /// </summary>
-        internal static string Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read {
-            get {
-                return ResourceManager.GetString("Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Private member &apos;{0}&apos; is unused..
-        /// </summary>
-        internal static string Private_member_0_is_unused {
-            get {
-                return ResourceManager.GetString("Private_member_0_is_unused", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Private method &apos;{0}&apos; can be removed as it is never invoked..
-        /// </summary>
-        internal static string Private_method_0_can_be_removed_as_it_is_never_invoked {
-            get {
-                return ResourceManager.GetString("Private_method_0_can_be_removed_as_it_is_never_invoked", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Private property &apos;{0}&apos; can be converted to a method as its get accessor is never invoked..
-        /// </summary>
-        internal static string Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked {
-            get {
-                return ResourceManager.GetString("Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invo" +
-                        "ked", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Refactoring Only.
         /// </summary>
         internal static string Refactoring_Only {
             get {
                 return ResourceManager.GetString("Refactoring_Only", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove unread private members.
-        /// </summary>
-        internal static string Remove_unread_private_members {
-            get {
-                return ResourceManager.GetString("Remove_unread_private_members", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove unused private members.
-        /// </summary>
-        internal static string Remove_unused_private_members {
-            get {
-                return ResourceManager.GetString("Remove_unused_private_members", resourceCulture);
             }
         }
         
@@ -319,15 +201,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string The_type_0_is_not_understood_by_the_serialization_binder {
             get {
                 return ResourceManager.GetString("The_type_0_is_not_understood_by_the_serialization_binder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to this. and Me. preferences.
-        /// </summary>
-        internal static string this_dot_and_Me_dot_preferences {
-            get {
-                return ResourceManager.GetString("this_dot_and_Me_dot_preferences", resourceCulture);
             }
         }
         

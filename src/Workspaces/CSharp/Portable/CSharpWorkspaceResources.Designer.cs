@@ -70,33 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Code-block preferences.
-        /// </summary>
-        internal static string Code_block_preferences {
-            get {
-                return ResourceManager.GetString("Code_block_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Expected string or char literal.
-        /// </summary>
-        internal static string Expected_string_or_char_literal {
-            get {
-                return ResourceManager.GetString("Expected_string_or_char_literal", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Expression-bodied members.
-        /// </summary>
-        internal static string Expression_bodied_members {
-            get {
-                return ResourceManager.GetString("Expression_bodied_members", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Implement Interface.
         /// </summary>
         internal static string Implement_Interface {
@@ -151,30 +124,12 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Null-checking preferences.
-        /// </summary>
-        internal static string Null_checking_preferences {
-            get {
-                return ResourceManager.GetString("Null_checking_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Only attributes, constructor initializers, expressions or statements can be made explicit.
         /// </summary>
         internal static string Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit {
             get {
                 return ResourceManager.GetString("Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_ex" +
                         "plicit", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pattern matching preferences.
-        /// </summary>
-        internal static string Pattern_matching_preferences {
-            get {
-                return ResourceManager.GetString("Pattern_matching_preferences", resourceCulture);
             }
         }
         
@@ -211,24 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Trivia_is_not_associated_with_token {
             get {
                 return ResourceManager.GetString("Trivia_is_not_associated_with_token", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;using&apos; directive preferences.
-        /// </summary>
-        internal static string using_directive_preferences {
-            get {
-                return ResourceManager.GetString("using_directive_preferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var preferences.
-        /// </summary>
-        internal static string var_preferences {
-            get {
-                return ResourceManager.GetString("var_preferences", resourceCulture);
             }
         }
         

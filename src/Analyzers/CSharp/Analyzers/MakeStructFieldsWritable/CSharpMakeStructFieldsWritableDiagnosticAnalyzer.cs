@@ -10,19 +10,13 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 {
-#if CODE_STYLE
-    using Resources = CSharpCodeStyleResources;
-#else
-    using Resources = FeaturesResources;
-#endif
-
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpMakeStructFieldsWritableDiagnosticAnalyzer : AbstractCodeQualityDiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptor(
             IDEDiagnosticIds.MakeStructFieldsWritable,
-            new LocalizableResourceString(nameof(Resources.Make_readonly_fields_writable), Resources.ResourceManager, typeof(Resources)),
-            new LocalizableResourceString(nameof(Resources.Make_readonly_fields_writable), Resources.ResourceManager, typeof(Resources)),
+            new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_readonly_fields_writable), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+            new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_readonly_fields_writable), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
             isUnneccessary: false);
 
         public CSharpMakeStructFieldsWritableDiagnosticAnalyzer()

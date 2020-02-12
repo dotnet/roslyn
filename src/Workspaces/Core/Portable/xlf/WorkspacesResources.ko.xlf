@@ -57,16 +57,6 @@
         <target state="translated">소스 파일 '{0}'의 콘텐츠를 읽는 동안 오류가 발생했습니다. -- '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expression_level_preferences">
-        <source>Expression-level preferences</source>
-        <target state="translated">식 수준 기본 설정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Field_preferences">
-        <source>Field preferences</source>
-        <target state="translated">필드 기본 설정</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="new">Fix all '{0}'</target>
@@ -87,16 +77,6 @@
         <target state="translated">들여쓰기 및 간격</target>
         <note />
       </trans-unit>
-      <trans-unit id="Language_keywords_vs_BCL_types_preferences">
-        <source>Language keywords vs BCL types preferences</source>
-        <target state="translated">언어 키워드 및 BCL 형식 기본 설정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifier_preferences">
-        <source>Modifier preferences</source>
-        <target state="translated">한정자 기본 설정</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
         <target state="translated">명명 규칙</target>
@@ -115,16 +95,6 @@
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">옵션을 지정된 솔루션에서 가져오지 않음</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Organize_usings">
-        <source>Organize usings</source>
-        <target state="translated">Using 구성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_preferences">
-        <source>Parentheses preferences</source>
-        <target state="translated">괄호 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
@@ -2217,11 +2187,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">.NET 코딩 규칙</target>
         <note />
       </trans-unit>
-      <trans-unit id="this_dot_and_Me_dot_preferences">
-        <source>this. and Me. preferences</source>
-        <target state="translated">this. 및 Me. 기본 설정</target>
-        <note />
-      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">[x-y] 범위가 역순으로 되어 있습니다.</target>
@@ -2236,11 +2201,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Regex issue: {0}</source>
         <target state="translated">Regex 문제: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
-      </trans-unit>
-      <trans-unit id="Parameter_preferences">
-        <source>Parameter preferences</source>
-        <target state="translated">매개 변수 기본 설정</target>
-        <note />
       </trans-unit>
     </body>
   </file>

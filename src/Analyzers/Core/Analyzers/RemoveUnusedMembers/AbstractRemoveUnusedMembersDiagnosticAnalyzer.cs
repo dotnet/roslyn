@@ -17,11 +17,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
-#if CODE_STYLE
-    using Resources = CodeStyleResources;
-#else
-    using Resources = FeaturesResources;
-#endif
 
     internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax>
         : AbstractCodeQualityDiagnosticAnalyzer
@@ -31,15 +26,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
         private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
-            new LocalizableResourceString(nameof(Resources.Remove_unused_private_members), Resources.ResourceManager, typeof(Resources)),
-            new LocalizableResourceString(nameof(Resources.Private_member_0_is_unused), Resources.ResourceManager, typeof(Resources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_is_unused), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnneccessary: true);
 
         // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
         private static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
-            new LocalizableResourceString(nameof(Resources.Remove_unread_private_members), Resources.ResourceManager, typeof(Resources)),
-            new LocalizableResourceString(nameof(Resources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), Resources.ResourceManager, typeof(Resources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Remove_unread_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnneccessary: true);
 
         protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
@@ -477,13 +472,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     switch (member)
                     {
                         case IMethodSymbol _:
-                            messageFormat = Resources.Private_method_0_can_be_removed_as_it_is_never_invoked;
+                            messageFormat = AnalyzersResources.Private_method_0_can_be_removed_as_it_is_never_invoked;
                             break;
 
                         case IPropertySymbol property:
                             if (property.GetMethod != null && property.SetMethod != null)
                             {
-                                messageFormat = Resources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked;
+                                messageFormat = AnalyzersResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked;
                             }
 
                             break;

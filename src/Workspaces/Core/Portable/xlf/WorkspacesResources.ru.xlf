@@ -57,16 +57,6 @@
         <target state="translated">Ошибка при чтении содержимого исходного файла "{0}" — "{1}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expression_level_preferences">
-        <source>Expression-level preferences</source>
-        <target state="translated">Выражения уровень предпочтения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Field_preferences">
-        <source>Field preferences</source>
-        <target state="translated">Предпочтения для полей</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="new">Fix all '{0}'</target>
@@ -87,16 +77,6 @@
         <target state="translated">Отступы и интервалы</target>
         <note />
       </trans-unit>
-      <trans-unit id="Language_keywords_vs_BCL_types_preferences">
-        <source>Language keywords vs BCL types preferences</source>
-        <target state="translated">Параметры использования ключевых слов языка и типов BCL</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifier_preferences">
-        <source>Modifier preferences</source>
-        <target state="translated">Предпочтения модификатора</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
         <target state="translated">Правила именования</target>
@@ -115,16 +95,6 @@
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">Параметры получены не из указанного решения.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Organize_usings">
-        <source>Organize usings</source>
-        <target state="translated">Упорядочение Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_preferences">
-        <source>Parentheses preferences</source>
-        <target state="translated">Предпочтения для скобок</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
@@ -2217,11 +2187,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Рекомендации по написанию кода .NET</target>
         <note />
       </trans-unit>
-      <trans-unit id="this_dot_and_Me_dot_preferences">
-        <source>this. and Me. preferences</source>
-        <target state="translated">Предпочтения для this. и Me.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">Диапазон [x-y] в обратном порядке</target>
@@ -2236,11 +2201,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Regex issue: {0}</source>
         <target state="translated">Проблема с регулярным выражением: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
-      </trans-unit>
-      <trans-unit id="Parameter_preferences">
-        <source>Parameter preferences</source>
-        <target state="translated">Настройки параметров</target>
-        <note />
       </trans-unit>
     </body>
   </file>

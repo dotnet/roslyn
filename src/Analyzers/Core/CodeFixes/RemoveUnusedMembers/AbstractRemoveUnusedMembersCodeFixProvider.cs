@@ -19,12 +19,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
-#if CODE_STYLE
-    using Resources = CodeStyleFixesResources;
-#else
-    using Resources = FeaturesResources;
-#endif
-
     internal abstract class AbstractRemoveUnusedMembersCodeFixProvider<TFieldDeclarationSyntax> : SyntaxEditorBasedCodeFixProvider
         where TFieldDeclarationSyntax : SyntaxNode
     {
@@ -132,7 +126,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(Resources.Remove_unused_member, createChangedDocument)
+                : base(CodeFixesResources.Remove_unused_member, createChangedDocument)
             {
             }
         }

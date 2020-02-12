@@ -23,11 +23,6 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
     using Constants = ConvertSwitchStatementToExpressionConstants;
-#if CODE_STYLE
-    using Resources = CSharpCodeStyleFixesResources;
-#else
-    using Resources = CSharpFeaturesResources;
-#endif
 
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
@@ -102,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         private sealed class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(Resources.Convert_switch_statement_to_expression, createChangedDocument)
+                : base(CSharpAnalyzersResources.Convert_switch_statement_to_expression, createChangedDocument)
             {
             }
         }

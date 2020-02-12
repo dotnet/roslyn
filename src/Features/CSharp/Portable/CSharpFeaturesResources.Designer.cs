@@ -449,15 +449,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert switch statement to expression.
-        /// </summary>
-        internal static string Convert_switch_statement_to_expression {
-            get {
-                return ResourceManager.GetString("Convert_switch_statement_to_expression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Convert to &apos;for&apos;.
         /// </summary>
         internal static string Convert_to_for {
@@ -1106,15 +1097,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove Unnecessary Usings.
-        /// </summary>
-        internal static string Remove_Unnecessary_Usings {
-            get {
-                return ResourceManager.GetString("Remove_Unnecessary_Usings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove unused function.
         /// </summary>
         internal static string Remove_unused_function {
@@ -1441,56 +1423,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use explicit type.
-        /// </summary>
-        internal static string Use_explicit_type {
-            get {
-                return ResourceManager.GetString("Use_explicit_type", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use explicit type instead of &apos;var&apos;.
-        /// </summary>
-        internal static string Use_explicit_type_instead_of_var {
-            get {
-                return ResourceManager.GetString("Use_explicit_type_instead_of_var", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use implicit type.
-        /// </summary>
-        internal static string Use_implicit_type {
-            get {
-                return ResourceManager.GetString("Use_implicit_type", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Use &apos;is null&apos; check.
         /// </summary>
         internal static string Use_is_null_check {
             get {
                 return ResourceManager.GetString("Use_is_null_check", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use &apos;switch&apos; expression.
-        /// </summary>
-        internal static string Use_switch_expression {
-            get {
-                return ResourceManager.GetString("Use_switch_expression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to use &apos;var&apos; instead of explicit type.
-        /// </summary>
-        internal static string use_var_instead_of_explicit_type {
-            get {
-                return ResourceManager.GetString("use_var_instead_of_explicit_type", resourceCulture);
             }
         }
         
@@ -1509,15 +1446,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string using_directive {
             get {
                 return ResourceManager.GetString("using_directive", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using directive is unnecessary..
-        /// </summary>
-        internal static string Using_directive_is_unnecessary {
-            get {
-                return ResourceManager.GetString("Using_directive_is_unnecessary", resourceCulture);
             }
         }
         

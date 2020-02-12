@@ -57,16 +57,6 @@
         <target state="translated">Erreur durant la lecture du contenu du fichier source '{0}' -- '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expression_level_preferences">
-        <source>Expression-level preferences</source>
-        <target state="translated">Préférences de niveau expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Field_preferences">
-        <source>Field preferences</source>
-        <target state="translated">Préférences de champ</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="new">Fix all '{0}'</target>
@@ -87,16 +77,6 @@
         <target state="translated">Indentation et espacement</target>
         <note />
       </trans-unit>
-      <trans-unit id="Language_keywords_vs_BCL_types_preferences">
-        <source>Language keywords vs BCL types preferences</source>
-        <target state="translated">Préférences des mots clés de langage par rapport aux types BCL</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifier_preferences">
-        <source>Modifier preferences</source>
-        <target state="translated">Préférences de modificateur</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
         <target state="translated">Règles de nommage</target>
@@ -115,16 +95,6 @@
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">Les options ne proviennent pas de la solution spécifiée</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Organize_usings">
-        <source>Organize usings</source>
-        <target state="translated">Organiser les instructions Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_preferences">
-        <source>Parentheses preferences</source>
-        <target state="translated">Préférences de parenthèses</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
@@ -2217,11 +2187,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Conventions de codage .NET</target>
         <note />
       </trans-unit>
-      <trans-unit id="this_dot_and_Me_dot_preferences">
-        <source>this. and Me. preferences</source>
-        <target state="translated">Préférences de this. et Me.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">Intervalle [x-y] dans l'ordre inverse</target>
@@ -2236,11 +2201,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <source>Regex issue: {0}</source>
         <target state="translated">Problème de regex : {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
-      </trans-unit>
-      <trans-unit id="Parameter_preferences">
-        <source>Parameter preferences</source>
-        <target state="translated">Préférences de paramètre</target>
-        <note />
       </trans-unit>
     </body>
   </file>

@@ -27,11 +27,6 @@
         <target state="new">Project of ID {0} is required to accomplish the task but is not available from the solution</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_member">
-        <source>Remove unused member</source>
-        <target state="new">Remove unused member</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Supplied_diagnostic_cannot_be_null">
         <source>Supplied diagnostic cannot be null.</source>
         <target state="new">Supplied diagnostic cannot be null.</target>

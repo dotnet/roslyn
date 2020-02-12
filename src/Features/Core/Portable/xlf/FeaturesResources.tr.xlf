@@ -362,11 +362,6 @@
         <target state="translated">Statik yap</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_readonly_fields_writable">
-        <source>Make readonly fields writable</source>
-        <target state="translated">readonly alanları yazılabilir yap</target>
-        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">Koşullu öğeyi ters çevir</target>
@@ -495,11 +490,6 @@
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
         <target state="translated">Okunmamış özel üyeleri kaldır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_member">
-        <source>Remove unused member</source>
-        <target state="translated">Kullanılmayan üye kaldırma</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter">

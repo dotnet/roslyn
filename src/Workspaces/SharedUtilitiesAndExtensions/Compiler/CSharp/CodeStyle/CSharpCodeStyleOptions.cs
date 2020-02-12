@@ -10,15 +10,11 @@ using Microsoft.CodeAnalysis.CodeStyle;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Options;
-using CSharpResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
-using Resources = Microsoft.CodeAnalysis.CodeStyleResources;
 
 namespace Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle
 {
 #else
 using Microsoft.CodeAnalysis.Options;
-using CSharpResources = Microsoft.CodeAnalysis.CSharp.CSharpWorkspaceResources;
-using Resources = Microsoft.CodeAnalysis.WorkspacesResources;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 {
@@ -343,13 +339,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
     internal static class CSharpCodeStyleOptionGroups
     {
-        public static readonly OptionGroup VarPreferences = new OptionGroup(CSharpResources.var_preferences, priority: 1);
-        public static readonly OptionGroup ExpressionBodiedMembers = new OptionGroup(CSharpResources.Expression_bodied_members, priority: 2);
-        public static readonly OptionGroup PatternMatching = new OptionGroup(CSharpResources.Pattern_matching_preferences, priority: 3);
-        public static readonly OptionGroup NullCheckingPreferences = new OptionGroup(CSharpResources.Null_checking_preferences, priority: 4);
-        public static readonly OptionGroup Modifier = new OptionGroup(Resources.Modifier_preferences, priority: 5);
-        public static readonly OptionGroup CodeBlockPreferences = new OptionGroup(CSharpResources.Code_block_preferences, priority: 6);
-        public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(Resources.Expression_level_preferences, priority: 7);
-        public static readonly OptionGroup UsingDirectivePreferences = new OptionGroup(CSharpResources.using_directive_preferences, priority: 8);
+        public static readonly OptionGroup VarPreferences = new OptionGroup(CSharpCompilerExtensionsResources.var_preferences, priority: 1);
+        public static readonly OptionGroup ExpressionBodiedMembers = new OptionGroup(CSharpCompilerExtensionsResources.Expression_bodied_members, priority: 2);
+        public static readonly OptionGroup PatternMatching = new OptionGroup(CSharpCompilerExtensionsResources.Pattern_matching_preferences, priority: 3);
+        public static readonly OptionGroup NullCheckingPreferences = new OptionGroup(CSharpCompilerExtensionsResources.Null_checking_preferences, priority: 4);
+        public static readonly OptionGroup Modifier = new OptionGroup(CompilerExtensionsResources.Modifier_preferences, priority: 5);
+        public static readonly OptionGroup CodeBlockPreferences = new OptionGroup(CSharpCompilerExtensionsResources.Code_block_preferences, priority: 6);
+        public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(CompilerExtensionsResources.Expression_level_preferences, priority: 7);
+        public static readonly OptionGroup UsingDirectivePreferences = new OptionGroup(CSharpCompilerExtensionsResources.using_directive_preferences, priority: 8);
     }
 }

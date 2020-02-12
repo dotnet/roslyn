@@ -6,11 +6,6 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
-#If CODE_STYLE Then
-Imports Resources = Microsoft.CodeAnalysis.VisualBasic.VBCodeStyleFixesResources
-#Else
-Imports Resources = Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
-#End If
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), [Shared]>
@@ -23,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         End Sub
 
         Protected Overrides Function GetTitle() As String
-            Return Resources.Remove_Unnecessary_Imports
+            Return VisualBasicCodeFixesResources.Remove_Unnecessary_Imports
         End Function
     End Class
 End Namespace

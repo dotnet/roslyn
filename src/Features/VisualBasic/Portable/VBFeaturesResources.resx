@@ -153,9 +153,6 @@
   <data name="Delete_the_0_statement2" xml:space="preserve">
     <value>Delete the '{0}' statement.</value>
   </data>
-  <data name="Remove_Unnecessary_Imports" xml:space="preserve">
-    <value>Remove Unnecessary Imports</value>
-  </data>
   <data name="Type_a_name_here_to_declare_a_new_field" xml:space="preserve">
     <value>Type a name here to declare a new field.</value>
   </data>
@@ -1011,9 +1008,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above" xml:space="preserve">
     <value>TODO: uncomment the following line if Finalize() is overridden above.</value>
-  </data>
-  <data name="Imports_statement_is_unnecessary" xml:space="preserve">
-    <value>Imports statement is unnecessary.</value>
   </data>
   <data name="Try_block" xml:space="preserve">
     <value>Try block</value>

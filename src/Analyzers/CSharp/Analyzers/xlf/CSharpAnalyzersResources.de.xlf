@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="de" original="../CSharpAnalyzersResources.resx">
+    <body>
+      <trans-unit id="Convert_switch_statement_to_expression">
+        <source>Convert switch statement to expression</source>
+        <target state="new">Convert switch statement to expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_readonly_fields_writable">
+        <source>Make readonly fields writable</source>
+        <target state="new">Make readonly fields writable</target>
+        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Use_explicit_type">
+        <source>Use explicit type</source>
+        <target state="new">Use explicit type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_explicit_type_instead_of_var">
+        <source>Use explicit type instead of 'var'</source>
+        <target state="new">Use explicit type instead of 'var'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_implicit_type">
+        <source>Use implicit type</source>
+        <target state="new">Use implicit type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_switch_expression">
+        <source>Use 'switch' expression</source>
+        <target state="new">Use 'switch' expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_directive_is_unnecessary">
+        <source>Using directive is unnecessary.</source>
+        <target state="new">Using directive is unnecessary.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="use_var_instead_of_explicit_type">
+        <source>use 'var' instead of explicit type</source>
+        <target state="new">use 'var' instead of explicit type</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

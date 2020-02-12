@@ -92,11 +92,6 @@
         <target state="translated">&lt;Multiple Types&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Gereksiz İçeri Aktarmaları Kaldır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">Yeni bir alan bildirmek için buraya bir ad yazın.</target>
@@ -1535,11 +1530,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
         <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
         <target state="translated">TODO: Finalize() yukarıda geçersiz kılınırsa aşağıdaki satırın açıklamasını kaldırın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">Imports deyimi gerekli değildir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">

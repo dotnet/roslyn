@@ -118,7 +118,7 @@ End Class"
                 Dim second = spans(1)
 
                 Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType)
-                Assert.Equal(VBFeaturesResources.Imports_statement_is_unnecessary, CType(first.Tag.ToolTipContent, String))
+                Assert.Equal(VisualBasicAnalyzersResources.Imports_statement_is_unnecessary, CType(first.Tag.ToolTipContent, String))
                 Assert.Equal(Of Integer)(79, first.Span.Start)
                 Assert.Equal(83, first.Span.Length)
 

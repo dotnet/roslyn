@@ -362,11 +362,6 @@
         <target state="translated">Rendre statique</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_readonly_fields_writable">
-        <source>Make readonly fields writable</source>
-        <target state="translated">Rendre les champs readonly accessibles en écriture</target>
-        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">Inverser un élément conditionnel</target>
@@ -495,11 +490,6 @@
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
         <target state="translated">Supprimer les membres privés non lus</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_member">
-        <source>Remove unused member</source>
-        <target state="translated">Supprimer les membres non utilisés</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter">

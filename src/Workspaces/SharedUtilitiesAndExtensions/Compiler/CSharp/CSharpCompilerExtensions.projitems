@@ -34,4 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpUseExplicitTypeHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpUseImplicitTypeHelper.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" GenerateSource="true" />
+  </ItemGroup>
 </Project>

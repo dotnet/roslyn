@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType
         }
 
         protected override string Title
-            => CSharpFeaturesResources.Use_implicit_type;
+            => CSharpAnalyzersResources.Use_implicit_type;
 
         protected override TypeSyntax FindAnalyzableType(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
             => CSharpUseImplicitTypeHelper.Instance.FindAnalyzableType(node, semanticModel, cancellationToken);

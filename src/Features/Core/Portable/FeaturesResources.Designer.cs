@@ -2589,15 +2589,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make readonly fields writable.
-        /// </summary>
-        internal static string Make_readonly_fields_writable {
-            get {
-                return ResourceManager.GetString("Make_readonly_fields_writable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Member name can be simplified.
         /// </summary>
         internal static string Member_name_can_be_simplified {
@@ -3432,15 +3423,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remove_unread_private_members {
             get {
                 return ResourceManager.GetString("Remove_unread_private_members", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove unused member.
-        /// </summary>
-        internal static string Remove_unused_member {
-            get {
-                return ResourceManager.GetString("Remove_unused_member", resourceCulture);
             }
         }
         

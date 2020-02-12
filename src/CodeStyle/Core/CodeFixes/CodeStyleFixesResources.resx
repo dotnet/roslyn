@@ -141,7 +141,4 @@
   <data name="The_solution_does_not_contain_the_specified_document" xml:space="preserve">
     <value>The solution does not contain the specified document.</value>
   </data>
-  <data name="Remove_unused_member" xml:space="preserve">
-    <value>Remove unused member</value>
-  </data>
 </root>

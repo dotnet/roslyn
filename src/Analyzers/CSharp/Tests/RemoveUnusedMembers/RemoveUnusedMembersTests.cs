@@ -16,12 +16,6 @@ using static Roslyn.Test.Utilities.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
 {
-#if CODE_STYLE
-    using AnalyzerResources = CodeStyleResources;
-#else
-    using AnalyzerResources = FeaturesResources;
-#endif
-
     public class RemoveUnusedMembersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -1102,7 +1096,7 @@ class C
             using var workspace = CreateWorkspaceFromOptions(source, testParameters);
             var diagnostics = await GetDiagnosticsAsync(workspace, testParameters).ConfigureAwait(false);
             diagnostics.Verify(Diagnostic("IDE0052", "P").WithLocation(3, 17));
-            var expectedMessage = string.Format(AnalyzerResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P");
+            var expectedMessage = string.Format(AnalyzersResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P");
             Assert.Equal(expectedMessage, diagnostics.Single().GetMessage());
         }
 

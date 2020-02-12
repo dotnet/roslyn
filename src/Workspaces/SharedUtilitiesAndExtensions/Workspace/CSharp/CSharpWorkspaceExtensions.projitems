@@ -80,4 +80,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\UsingsAndExternAliasesDirectiveComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\UsingsAndExternAliasesOrganizer.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpWorkspaceExtensionsResources.resx" GenerateSource="true" />
+  </ItemGroup>
 </Project>
