@@ -12,14 +12,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal sealed class LocalFunctionState : AbstractLocalFunctionState
         {
             public BitVector ReadVars = BitVector.Empty;
-            public ref LocalState WrittenVars => ref StateFromTop;
 
-            public LocalFunctionState(LocalState unreachableState)
-                : base(unreachableState)
+            public LocalFunctionState(LocalState stateFromBottom, LocalState stateFromTop)
+                : base(stateFromBottom, stateFromTop)
             { }
         }
 
-        protected override LocalFunctionState CreateLocalFunctionState() => new LocalFunctionState(UnreachableState());
+        protected override LocalFunctionState CreateLocalFunctionState()
+            => new LocalFunctionState(
+                // The bottom state should assume all variables, even new ones, are assigned
+                new LocalState(BitVector.AllSet(nextVariableSlot), normalizeToBottom: true),
+                UnreachableState());
 
         protected override void VisitLocalFunctionUse(
             LocalFunctionSymbol localFunc,
@@ -166,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // assignment errors if any of the captured variables is not assigned
             // on a particular branch.
 
-            var savedState = new LocalFunctionState(UnreachableState());
+            var savedState = CreateLocalFunctionState();
             savedState.ReadVars = startState.ReadVars.Clone();
             startState.ReadVars.Clear();
             return savedState;

@@ -741,9 +741,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var id = variableBySlot[i];
                 int slot = id.ContainingSlot;
-                state.Assigned[i] = (slot > 0) &&
+
+                bool assign = (slot > 0) &&
                     state.Assigned[slot] &&
                     variableBySlot[slot].Symbol.GetTypeOrReturnType().TypeKind == TypeKind.Struct;
+
+                if (state.NormalizeToBottom)
+                {
+                    // NormalizeToBottom means new variables are assumed to be assigned (bottom state)
+                    assign |= slot == 0;
+                }
+
+                state.Assigned[i] = assign;
             }
         }
 
@@ -2157,16 +2166,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #if REFERENCE_STATE
-        internal class LocalState : ILocalState
+        internal class LocalState : ILocalDataFlowState
 #else
-        internal struct LocalState : ILocalState
+        internal struct LocalState : ILocalDataFlowState
 #endif
         {
             internal BitVector Assigned;
 
-            internal LocalState(BitVector assigned)
+            public bool NormalizeToBottom { get; }
+
+            internal LocalState(BitVector assigned, bool normalizeToBottom = false)
             {
                 this.Assigned = assigned;
+                NormalizeToBottom = normalizeToBottom;
                 Debug.Assert(!assigned.IsNull);
             }
 

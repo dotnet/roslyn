@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal sealed class LocalFunctionState : AbstractLocalFunctionState
         {
             public LocalFunctionState(LocalState unreachableState)
-                : base(unreachableState)
+                : base(unreachableState.Clone(), unreachableState.Clone())
             { }
         }
 

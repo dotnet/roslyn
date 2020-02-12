@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public TLocalState StateFromTop;
 
-            public AbstractLocalFunctionState(TLocalState unreachableState)
+            public AbstractLocalFunctionState(TLocalState stateFromBottom, TLocalState stateFromTop)
             {
-                StateFromBottom = unreachableState.Clone();
-                StateFromTop = unreachableState.Clone();
+                StateFromBottom = stateFromBottom;
+                StateFromTop = stateFromTop;
             }
 
             public bool Visited = false;
