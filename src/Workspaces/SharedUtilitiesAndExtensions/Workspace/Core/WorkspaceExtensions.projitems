@@ -63,7 +63,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\ExternalSourceInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\ISyntaxFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\ISyntaxFactsServiceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.ChoiceMatcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.cs" />
