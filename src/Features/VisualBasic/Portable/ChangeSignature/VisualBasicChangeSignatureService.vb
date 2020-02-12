@@ -466,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return SyntaxFactory.Parameter(
                 attributeLists:=SyntaxFactory.List(Of AttributeListSyntax)(),
                 modifiers:=SyntaxFactory.TokenList(),
-                identifier:=SyntaxFactory.ModifiedIdentifier(addedParameter.ParameterName),
+                identifier:=SyntaxFactory.ModifiedIdentifier(addedParameter.Name),
                 asClause:=SyntaxFactory.SimpleAsClause(
                     addedParameter.Type.GenerateTypeSyntax() _
                     .WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace)) _

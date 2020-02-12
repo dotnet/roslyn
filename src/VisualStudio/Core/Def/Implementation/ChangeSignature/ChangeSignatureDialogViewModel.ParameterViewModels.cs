@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public override string Type => _addedParameter.TypeNameDisplayWithErrorIndicator;
 
-            public override string ParameterName => _addedParameter.ParameterName;
+            public override string ParameterName => _addedParameter.Name;
 
             public override bool IsRemoved { get => false; set => throw new InvalidOperationException(); }
 
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 get
                 {
                     return _addedParameter.UseNamedArguments
-                        ? _addedParameter.ParameterName + ": " + _addedParameter.CallSiteValue
+                        ? _addedParameter.Name + ": " + _addedParameter.CallSiteValue
                         : _addedParameter.CallSiteValue;
                 }
             }

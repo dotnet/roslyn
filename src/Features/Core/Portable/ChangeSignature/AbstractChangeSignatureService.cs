@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     ? "TODO"
                     : brandNewParameter.CallSiteValue;
 
-                newArguments.Add(createIUnifiedArgument(callSiteValue).WithName(brandNewParameter.ParameterName));
+                newArguments.Add(createIUnifiedArgument(callSiteValue).WithName(brandNewParameter.Name));
             }
 
             // 6. Add the params argument with the first value:

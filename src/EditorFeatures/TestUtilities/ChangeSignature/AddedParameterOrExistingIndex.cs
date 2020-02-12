@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
             return new AddedParameter(
                 type!,
                 _addedParameterWithoutTypeSymbol!.TypeNameDisplayWithErrorIndicator,
-                _addedParameterWithoutTypeSymbol.ParameterName,
+                _addedParameterWithoutTypeSymbol.Name,
                 _addedParameterWithoutTypeSymbol.CallSiteValue,
                 _addedParameterWithoutTypeSymbol.IsRequired,
                 _addedParameterWithoutTypeSymbol.DefaultValue,

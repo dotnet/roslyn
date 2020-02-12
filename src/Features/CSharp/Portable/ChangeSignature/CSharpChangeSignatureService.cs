@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     ? default
                     : addedParameter.Type.GenerateTypeSyntax(allowVar: false)
                         .WithTrailingTrivia(SyntaxFactory.ElasticSpace),
-                SyntaxFactory.Identifier(addedParameter.ParameterName),
+                SyntaxFactory.Identifier(addedParameter.Name),
                 @default: equalsValueClause);
         }
 

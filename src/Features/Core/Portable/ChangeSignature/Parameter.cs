@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public AddedParameter(
             ITypeSymbol type,
             string typeNameDisplayWithErrorIndicator,
-            string parameter,
+            string name,
             string callSiteValue,
             bool isRequired = true,
             string defaultValue = "",
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             Type = type;
             TypeNameDisplayWithErrorIndicator = typeNameDisplayWithErrorIndicator;
-            ParameterName = parameter;
+            Name = name;
             CallSiteValue = callSiteValue;
 
             IsRequired = isRequired;
@@ -61,18 +61,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
+        public override string Name { get; }
+        public override bool HasExplicitDefaultValue => !string.IsNullOrWhiteSpace(DefaultValue);
+
         public ITypeSymbol Type { get; set; }
-        public string ParameterName { get; set; }
         public string CallSiteValue { get; set; }
 
         public bool IsRequired { get; set; }
         public string DefaultValue { get; set; }
-        public bool IsCallsiteOmitted { get; set; }
         public bool UseNamedArguments { get; }
+        public bool IsCallsiteOmitted { get; set; }
         public bool IsCallsiteError { get; set; }
-
-        public override bool HasExplicitDefaultValue => !string.IsNullOrWhiteSpace(DefaultValue);
-        public override string Name => ParameterName;
 
         public string TypeNameDisplayWithErrorIndicator { get; set; }
 
