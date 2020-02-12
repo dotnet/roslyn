@@ -35,7 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly Workspace _workspace;
 
         private VSClientCapabilities? _clientCapabilities;
-        private IEnumerable<DiagnosticData> _diagnostics;
 
         public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol,
             Workspace workspace, IDiagnosticService diagnosticService)
@@ -48,8 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _diagnosticService = diagnosticService;
             _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
-
-            _diagnostics = new DiagnosticData[] { };
         }
 
         /// <summary>
@@ -58,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// The specification assures that the initialize request is sent only once.
         /// </summary>
         [JsonRpcMethod(Methods.InitializeName)]
-        public Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
+        public async Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
         {
             // The VS LSP protocol package changed the type of 'tagSupport' from bool to an object.
             // Our version of the LSP protocol package is older and assumes that the type is bool, so deserialization fails.
@@ -76,11 +73,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             };
             var serializer = JsonSerializer.Create(settings);
 
+            // Publish diagnostics for all open documents upon initialization.
+            var openDocuments = _workspace.GetOpenDocumentIds();
+            foreach (var documentId in openDocuments)
+            {
+                var document = _workspace.CurrentSolution.GetDocument(documentId);
+                if (document != null)
+                {
+                    PublishDiagnosticsAsync(_workspace.CurrentSolution, document);
+                }
+            }
+
             // InitializeParams only references ClientCapabilities, but the VS LSP client
             // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
             // to avoid losing them.
             _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>(serializer);
-            return _protocol.InitializeAsync(_workspace.CurrentSolution, input.ToObject<InitializeParams>(serializer), _clientCapabilities, cancellationToken);
+            return await _protocol.InitializeAsync(_workspace.CurrentSolution, input.ToObject<InitializeParams>(serializer), _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
@@ -92,12 +100,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [JsonRpcMethod(Methods.ExitName)]
         public void Exit()
         {
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentDidOpenName)]
-        public async void GetTextDocumentDidOpen(JToken input)
-        {
-            var textDocumentDidOpenParams = input.ToObject<DidOpenTextDocumentParams>();
         }
 
         [JsonRpcMethod(Methods.TextDocumentDefinitionName)]
@@ -177,37 +179,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return await _protocol.GetWorkspaceSymbolsAsync(_workspace.CurrentSolution, workspaceSymbolParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 
+        private void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+        {
+            // LSP doesnt support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
+            if (e.DocumentId != null && e.Solution != null)
+            {
+                var document = e.Solution.GetDocument(e.DocumentId);
+                if (document == null || document.FilePath == null)
+                {
+                    return;
+                }
+
+                // Only publish document diagnostics for the languages this provider supports.
+                if (document.Project.Language != LanguageNames.CSharp && document.Project.Language != LanguageNames.VisualBasic)
+                {
+                    return;
+                }
+
+                // LSP does not currently support publishing diagnostics incrememntally, so we re-publish all diagnostics.
+                PublishDiagnosticsAsync(e.Solution, document);
+            }
+        }
+
 #pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+        private async void PublishDiagnosticsAsync(Solution solution, Document document)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
             // Since this is an async void method, exceptions here will crash the host VS. We catch exceptions here to make sure that we don't crash the host since
             // the worst outcome here is that guests may not see all diagnostics.
             try
             {
-                // LSP doesnt support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
-                if (e.DocumentId != null && e.Solution != null)
-                {
-                    var document = e.Solution.GetDocument(e.DocumentId);
-                    if (document == null || document.FilePath == null)
-                    {
-                        return;
-                    }
-
-                    // Only publish document diagnostics for the languages this provider supports.
-                    if (document.Project.Language != LanguageNames.CSharp && document.Project.Language != LanguageNames.VisualBasic)
-                    {
-                        return;
-                    }
-
-                    // LSP does not currently support publishing diagnostics incrememntally, so we re-publish all diagnostics.
-                    var diagnostics = await GetDiagnosticsAsync(e.Solution, document, CancellationToken.None).ConfigureAwait(false);
-                    if (!diagnostics.IsEmpty())
-                    {
-                        var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics, Uri = document.GetURI() };
-                        await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
-                    }
-                }
+                var diagnostics = await GetDiagnosticsAsync(solution, document, CancellationToken.None).ConfigureAwait(false);
+                var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics, Uri = document.GetURI() };
+                await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
             {
@@ -218,14 +222,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var diagnostics = _diagnosticService.GetDiagnostics(solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            // Ensuring that we don't publish the same diagnostic multiple times.
-            if (diagnostics.SequenceEqual(_diagnostics))
-            {
-                return new LanguageServer.Protocol.Diagnostic[] { };
-            }
-
-            _diagnostics = diagnostics;
 
             return diagnostics.Select(diagnostic => new LanguageServer.Protocol.Diagnostic
             {
