@@ -53,7 +53,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
             parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "))
             parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "As"))
             parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "))
-            parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.ClassName, Nothing, addedParameterViewModel.Type))
+
+            Dim isPredefinedType = SyntaxFactory.ParseExpression(addedParameterViewModel.TypeWithoutErrorIndicator).Kind() = SyntaxKind.PredefinedType
+            Dim typePartKind = If(isPredefinedType, SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.ClassName)
+
+            parts.Add(New SymbolDisplayPart(typePartKind, Nothing, addedParameterViewModel.Type))
 
             If Not String.IsNullOrWhiteSpace(addedParameterViewModel.Default) Then
                 parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "))
