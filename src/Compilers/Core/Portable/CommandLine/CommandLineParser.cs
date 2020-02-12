@@ -230,6 +230,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Trims all '.' and whitespace from the end of the path
         /// </summary>
+        [return: NotNullIfNotNull("path")]
         internal static string? RemoveTrailingSpacesAndDots(string? path)
         {
             if (path == null)
@@ -430,8 +431,11 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
-                        if (responsePaths != null &&
-                            PathUtilities.GetDirectoryName(resolvedPath) is string directory)
+                        if (responsePaths is null)
+                        {
+                            diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InvalidInputFileName, path));
+                        }
+                        else if (PathUtilities.GetDirectoryName(resolvedPath) is string directory)
                         {
                             responsePaths.Add(FileUtilities.NormalizeAbsolutePath(directory));
                         }
