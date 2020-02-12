@@ -24,14 +24,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
 
             var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(projectName), VersionStamp.Default, projectName, projectName, StringConstants.CSharpLspLanguageName);
 
-            _remoteLanguageServiceWorkspaceHost.Workspace.OnManagedProjectAdded(projectInfo);
+            _remoteLanguageServiceWorkspaceHost.Workspace.OnProjectAdded(projectInfo);
 
             _projects.Add(projectName, projectInfo.Id);
 
             return projectInfo.Id;
         }
 
-        public Workspace Workspace => _remoteLanguageServiceWorkspaceHost.Workspace;
+        public CodeAnalysis.Workspace Workspace => _remoteLanguageServiceWorkspaceHost.Workspace;
 
         [ImportingConstructor]
         public CSharpLspRazorProjectFactory(RemoteLanguageServiceWorkspaceHost remoteLanguageServiceWorkspaceHost)

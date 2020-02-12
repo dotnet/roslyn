@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis
             return File.Exists(resolvedPath);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             // Explicitly check that we're not comparing against a derived type
             if (obj == null || GetType() != obj.GetType())
@@ -135,8 +135,13 @@ namespace Microsoft.CodeAnalysis
             return Equals((SourceFileResolver)obj);
         }
 
-        public bool Equals(SourceFileResolver other)
+        public bool Equals(SourceFileResolver? other)
         {
+            if (other is null)
+            {
+                return false;
+            }
+
             return
                 string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal) &&
                 _searchPaths.SequenceEqual(other._searchPaths, StringComparer.Ordinal) &&

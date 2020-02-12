@@ -11,13 +11,24 @@
       Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
       but gets included in lots of output items like VSIX.
     -->
-    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.1' AND '$(TargetFramework)' != 'netcoreapp3.0'">false</GenerateRuntimeConfigurationFiles>
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp3.1'">false</GenerateRuntimeConfigurationFiles>
 
-    <!-- 
+    <!--
       When building a .NET Core exe make sure to include the template runtimeconfig.json file 
       which has all of our global settings 
     -->
     <UserRuntimeConfig Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(OutputType)' == 'Exe'">$(RepositoryEngineeringDir)config\runtimeconfig.template.json</UserRuntimeConfig>
+
+    <!--
+      Disable nullable warnings when targeting anything other than our supported .NET core version(s). 
+      This condition will be evaluated multiple times in multi-targeted projects hence need to be careful
+      to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
+    -->
+    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND $(TargetFrameworks.Contains('netcoreapp3.1')) AND '$(TargetFramework)' != '' AND '$(TargetFramework)' != 'netcoreapp3.1'">true</DisableNullableWarnings>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
+    <NoWarn>$(NoWarn);Nullable</NoWarn>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
@@ -164,13 +175,6 @@
   <ItemGroup>
     <!-- Show launchSettings.json in the project if it exists. -->
     <None Include="$(AppDesignerFolder)\launchSettings.json" Condition="Exists('$(AppDesignerFolder)\launchSettings.json')" />
-  </ItemGroup>
-
-  <!-- CPS doesn't show these items by default, but we want to show them. -->
-  <ItemGroup>
-    <!-- XAML pages and resources -->
-    <None Include="@(Page)" />
-    <None Include="@(Resource)" />
   </ItemGroup>
 
   <!-- 

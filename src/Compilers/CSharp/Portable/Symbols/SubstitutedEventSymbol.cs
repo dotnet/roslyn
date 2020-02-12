@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
 
-        private TypeWithAnnotations.Boxed _lazyType;
+        private TypeWithAnnotations.Boxed? _lazyType;
 
         internal SubstitutedEventSymbol(SubstitutedNamedTypeSymbol containingType, EventSymbol originalDefinition)
             : base(originalDefinition)
@@ -56,30 +58,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OriginalDefinition.GetAttributes();
         }
 
-        public override MethodSymbol AddMethod
+        public override MethodSymbol? AddMethod
         {
             get
             {
-                MethodSymbol originalAddMethod = OriginalDefinition.AddMethod;
-                return (object)originalAddMethod == null ? null : originalAddMethod.AsMember(_containingType);
+                MethodSymbol? originalAddMethod = OriginalDefinition.AddMethod;
+                return (object?)originalAddMethod == null ? null : originalAddMethod.AsMember(_containingType);
             }
         }
 
-        public override MethodSymbol RemoveMethod
+        public override MethodSymbol? RemoveMethod
         {
             get
             {
-                MethodSymbol originalRemoveMethod = OriginalDefinition.RemoveMethod;
-                return (object)originalRemoveMethod == null ? null : originalRemoveMethod.AsMember(_containingType);
+                MethodSymbol? originalRemoveMethod = OriginalDefinition.RemoveMethod;
+                return (object?)originalRemoveMethod == null ? null : originalRemoveMethod.AsMember(_containingType);
             }
         }
 
-        internal override FieldSymbol AssociatedField
+        internal override FieldSymbol? AssociatedField
         {
             get
             {
-                FieldSymbol originalAssociatedField = OriginalDefinition.AssociatedField;
-                return (object)originalAssociatedField == null ? null : originalAssociatedField.AsMember(_containingType);
+                FieldSymbol? originalAssociatedField = OriginalDefinition.AssociatedField;
+                return (object?)originalAssociatedField == null ? null : originalAssociatedField.AsMember(_containingType);
             }
         }
 
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //we want to compute this lazily since it may be expensive for the underlying symbol
         private ImmutableArray<EventSymbol> _lazyExplicitInterfaceImplementations;
 
-        private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
+        private OverriddenOrHiddenMembersResult? _lazyOverriddenOrHiddenMembers;
 
         public override ImmutableArray<EventSymbol> ExplicitInterfaceImplementations
         {

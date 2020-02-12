@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             private const string s_labelFormat = "{0}:";
             private static readonly string s_typeParameterHeader = FeaturesResources.Type_parameters_colon;
             private static readonly string s_returnsHeader = FeaturesResources.Returns_colon;
+            private static readonly string s_valueHeader = FeaturesResources.Value_colon;
             private static readonly string s_exceptionsHeader = FeaturesResources.Exceptions_colon;
             private static readonly string s_remarksHeader = FeaturesResources.Remarks_colon;
 
@@ -97,6 +98,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     formattedCommentLinesBuilder.Add(string.Empty);
                     formattedCommentLinesBuilder.Add(s_returnsHeader);
                     formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedReturnsText));
+                }
+
+                var formattedValueText = docCommentFormattingService.Format(docComment.ValueText);
+                if (!string.IsNullOrWhiteSpace(formattedValueText))
+                {
+                    formattedCommentLinesBuilder.Add(string.Empty);
+                    formattedCommentLinesBuilder.Add(s_valueHeader);
+                    formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedValueText));
                 }
 
                 var exceptionTypes = docComment.ExceptionTypes;

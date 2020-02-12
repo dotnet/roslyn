@@ -107,9 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                 aliasReplacement.Name,
                                 memberAccess.GetTrailingTrivia())
 
-                    identifierToken = VisualBasicSimplificationService.TryEscapeIdentifierToken(
-                                            identifierToken,
-                                            semanticModel)
+                    identifierToken = TryEscapeIdentifierToken(identifierToken)
                     replacementNode = SyntaxFactory.IdentifierName(identifierToken)
 
                     issueSpan = memberAccess.Span
@@ -150,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 End If
             End If
 
-            replacementNode = memberAccess.GetNameWithTriviaMoved(semanticModel)
+            replacementNode = memberAccess.GetNameWithTriviaMoved()
             issueSpan = memberAccess.Expression.Span
 
             If CanReplaceWithReducedName(memberAccess, replacementNode, semanticModel, symbol, cancellationToken) Then

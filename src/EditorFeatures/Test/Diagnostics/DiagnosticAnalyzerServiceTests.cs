@@ -477,8 +477,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 : base(new DiagnosticAnalyzerInfoCache(
                             ImmutableArray.Create<AnalyzerReference>(
                                 new TestAnalyzerReferenceByLanguage(
-                                    ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(language, ImmutableArray.CreateRange(analyzers)))),
-                            hostDiagnosticUpdateSource: null),
+                                    ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(language, ImmutableArray.CreateRange(analyzers))))),
                       hostDiagnosticUpdateSource: null,
                       registrationService: new MockDiagnosticUpdateSourceRegistrationService(),
                       listener: listener)
