@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// The specification assures that the initialize request is sent only once.
         /// </summary>
         [JsonRpcMethod(Methods.InitializeName)]
-        public async Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
+        public Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
         {
             // The VS LSP protocol package changed the type of 'tagSupport' from bool to an object.
             // Our version of the LSP protocol package is older and assumes that the type is bool, so deserialization fails.
@@ -76,13 +76,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
             // to avoid losing them.
             _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>(serializer);
-            return await _protocol.InitializeAsync(_workspace.CurrentSolution, input.ToObject<InitializeParams>(serializer), _clientCapabilities, cancellationToken).ConfigureAwait(false);
+            return _protocol.InitializeAsync(_workspace.CurrentSolution, input.ToObject<InitializeParams>(serializer), _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
         public Task Initialized()
         {
-            // Publish diagnostics for all open documents after initialization.
+            // Publish diagnostics for all open documents immediately following initialization.
             var openDocuments = _workspace.GetOpenDocumentIds();
             foreach (var documentId in openDocuments)
             {
