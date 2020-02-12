@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -17,14 +20,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class SyntaxGeneratorExtensions
     {
         public static SyntaxNode CreateThrowNotImplementedStatement(
-            this SyntaxGenerator codeDefinitionFactory,
-            Compilation compilation)
+            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
         {
             return codeDefinitionFactory.ThrowStatement(
-               codeDefinitionFactory.ObjectCreationExpression(
-                   codeDefinitionFactory.TypeExpression(compilation.NotImplementedExceptionType(), addImport: false),
-                   SpecializedCollections.EmptyList<SyntaxNode>()));
+               CreateNotImplementedException(codeDefinitionFactory, compilation));
         }
+
+        public static SyntaxNode CreateThrowNotImplementedExpression(
+            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
+        {
+            return codeDefinitionFactory.ThrowExpression(
+               CreateNotImplementedException(codeDefinitionFactory, compilation));
+        }
+
+        private static SyntaxNode CreateNotImplementedException(SyntaxGenerator codeDefinitionFactory, Compilation compilation)
+            => codeDefinitionFactory.ObjectCreationExpression(
+                    codeDefinitionFactory.TypeExpression(compilation.NotImplementedExceptionType(), addImport: false),
+                    SpecializedCollections.EmptyList<SyntaxNode>());
 
         public static ImmutableArray<SyntaxNode> CreateThrowNotImplementedStatementBlock(
             this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
@@ -125,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             foreach (var parameter in parameters)
             {
                 var refKind = parameter.RefKind;
-                var parameterType = parameter.GetTypeWithAnnotatedNullability();
+                var parameterType = parameter.Type;
                 var parameterName = parameter.Name;
 
                 if (refKind != RefKind.Out)

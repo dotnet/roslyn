@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -78,9 +80,9 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     orderby c.Parameters.Length descending
                     where c.Parameters.Length > 0 && c.Parameters.Length < parameters.Length
                     where c.Parameters.All(p => p.RefKind == RefKind.None) && !c.Parameters.Any(p => p.IsParams)
-                    let constructorTypes = c.Parameters.Select(p => p.GetTypeWithAnnotatedNullability())
-                    let symbolTypes = parameters.Take(c.Parameters.Length).Select(p => p.GetTypeWithAnnotatedNullability())
-                    where constructorTypes.SequenceEqual(symbolTypes, AllNullabilityIgnoringSymbolComparer.Instance)
+                    let constructorTypes = c.Parameters.Select(p => p.Type)
+                    let symbolTypes = parameters.Take(c.Parameters.Length).Select(p => p.Type)
+                    where constructorTypes.SequenceEqual(symbolTypes, SymbolEqualityComparer.Default)
                     select c;
 
                 return q.FirstOrDefault();

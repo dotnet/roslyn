@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
@@ -6,6 +8,7 @@ Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.CaseCorrection
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -109,17 +112,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         End Function
 
         Protected Overrides Function CanAddImportForGetAwaiter(diagnosticId As String, syntaxFactsService As ISyntaxFactsService, node As SyntaxNode) As Boolean
-            Return diagnosticId = BC36610 And
+            Return diagnosticId = AddImportDiagnosticIds.BC36930 AndAlso
                 AncestorOrSelfIsAwaitExpression(syntaxFactsService, node)
         End Function
 
         Protected Overrides Function CanAddImportForQuery(diagnosticId As String, node As SyntaxNode) As Boolean
-            If diagnosticId <> AddImportDiagnosticIds.BC36593 Then
-                Return False
-            End If
-
-            Dim queryClause = node.GetAncestor(Of QueryExpressionSyntax)()
-            Return queryClause IsNot Nothing
+            Return diagnosticId = AddImportDiagnosticIds.BC36593 AndAlso
+                node.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing
         End Function
 
         Private Function IsOutermostQueryExpression(node As SyntaxNode) As Boolean
@@ -189,9 +188,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
             Dim importsStatement = GetImportsStatement(symbol)
             Dim addImportService = document.GetLanguageService(Of IAddImportsService)
-
+            Dim generator = SyntaxGenerator.GetGenerator(document)
             Return ($"Imports {symbol.ToDisplayString()}",
-                    addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement))
+                    addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement, generator))
         End Function
 
         Private Function GetImportsStatement(symbol As INamespaceOrTypeSymbol) As ImportsStatementSyntax
@@ -290,9 +289,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim importService = document.GetLanguageService(Of IAddImportsService)
+            Dim generator = SyntaxGenerator.GetGenerator(document)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, placeSystemNamespaceFirst, cancellationToken)
+            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, generator, placeSystemNamespaceFirst, cancellationToken)
             newRoot = newRoot.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 

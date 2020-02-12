@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -193,7 +195,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
                 var newRoot = editor.GetChangedRoot();
-                newRoot = Format(newRoot, fieldDocument, cancellationToken);
+                newRoot = await FormatAsync(newRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
 
                 return solution.WithDocumentSyntaxRoot(fieldDocument.Id, newRoot);
             }
@@ -206,8 +208,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 var newFieldTreeRoot = fieldTreeRoot.RemoveNode(nodeToRemove, syntaxRemoveOptions);
                 var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(property, updatedProperty);
 
-                newFieldTreeRoot = Format(newFieldTreeRoot, fieldDocument, cancellationToken);
-                newPropertyTreeRoot = Format(newPropertyTreeRoot, propertyDocument, cancellationToken);
+                newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
+                newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, cancellationToken).ConfigureAwait(false);
 
                 updatedSolution = solution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
@@ -256,7 +258,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return canEdit[sourceTree];
         }
 
-        private SyntaxNode Format(SyntaxNode newRoot, Document document, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CancellationToken cancellationToken)
         {
             var formattingRules = GetFormattingRules(document);
             if (formattingRules == null)
@@ -264,7 +266,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return newRoot;
             }
 
-            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace, options: null, rules: formattingRules, cancellationToken: cancellationToken);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace, options, formattingRules, cancellationToken);
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(

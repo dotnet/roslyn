@@ -933,9 +933,6 @@ Additional information: {1}</value>
   <data name="Analysis" xml:space="preserve">
     <value>Analysis</value>
   </data>
-  <data name="Enable_full_solution_analysis" xml:space="preserve">
-    <value>Enable full solution _analysis</value>
-  </data>
   <data name="Fade_out_unreachable_code" xml:space="preserve">
     <value>Fade out unreachable code</value>
   </data>
@@ -1343,5 +1340,27 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Code_analysis_completed_for_Solution" xml:space="preserve">
     <value>Code analysis completed for Solution.</value>
+  </data>
+  <data name="Background_analysis_scope_colon" xml:space="preserve">
+    <value>Background analysis scope:</value>
+  </data>
+  <data name="Current_document" xml:space="preserve">
+    <value>Current document</value>
+  </data>
+  <data name="Open_documents" xml:space="preserve">
+    <value>Open documents</value>
+  </data>
+  <data name="Entire_solution" xml:space="preserve">
+    <value>Entire solution</value>
+  </data>
+  <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
+    <value>C#/Visual Basic Language Server Client</value>
+  </data>
+  <data name="Live_Share_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
+    <value>Live Share C#/Visual Basic Language Server Client</value>
+    <comment>'Live Share' is a product name and does not need to be localized.</comment>
+  </data>
+  <data name="Value_colon" xml:space="preserve">
+    <value>Value:</value>
   </data>
 </root>

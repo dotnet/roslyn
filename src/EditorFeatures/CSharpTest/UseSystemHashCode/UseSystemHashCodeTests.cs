@@ -1,11 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UseSystemHashCode;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSystemHashCode
@@ -1157,8 +1161,9 @@ class C
 }");
         }
 
+        [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
-        public async Task TestManyFields()
+        public async Task TestManyFields_ImplicitType()
         {
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -1193,6 +1198,57 @@ class C
     public override int GetHashCode()
     {
         var hash = new System.HashCode();
+        hash.Add(a);
+        hash.Add(b);
+        hash.Add(c);
+        hash.Add(d);
+        hash.Add(e);
+        hash.Add(f);
+        hash.Add(g);
+        hash.Add(h);
+        hash.Add(i);
+        return hash.ToHashCode();
+    }
+}", options: this.PreferImplicitTypeWithInfo());
+        }
+
+        [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        public async Task TestManyFields_ExplicitType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int a, b, c, d, e, f, g, h, i;
+
+    public override int $$GetHashCode()
+    {
+        var hashCode = -538000506;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        hashCode = hashCode * -1521134295 + c.GetHashCode();
+        hashCode = hashCode * -1521134295 + d.GetHashCode();
+        hashCode = hashCode * -1521134295 + e.GetHashCode();
+        hashCode = hashCode * -1521134295 + f.GetHashCode();
+        hashCode = hashCode * -1521134295 + g.GetHashCode();
+        hashCode = hashCode * -1521134295 + h.GetHashCode();
+        hashCode = hashCode * -1521134295 + i.GetHashCode();
+        return hashCode;
+    }
+}",
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int a, b, c, d, e, f, g, h, i;
+
+    public override int GetHashCode()
+    {
+        System.HashCode hash = new System.HashCode();
         hash.Add(a);
         hash.Add(b);
         hash.Add(c);

@@ -332,6 +332,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing the version of an assembly reference is not allowed during debugging: &apos;{0}&apos; changed version to &apos;{1}&apos;..
+        /// </summary>
+        internal static string ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging {
+            get {
+                return ResourceManager.GetString("ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to class.
         /// </summary>
         internal static string Class1 {
@@ -404,7 +413,8 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;.
+        ///{3}.
         /// </summary>
         internal static string CompilerAnalyzerThrows {
             get {
@@ -455,6 +465,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string DiagnosticIdCantBeNullOrWhitespace {
             get {
                 return ResourceManager.GetString("DiagnosticIdCantBeNullOrWhitespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suppress the following diagnostics to disable this analyzer: {0}.
+        /// </summary>
+        internal static string DisableAnalyzerDiagnosticsMessage {
+            get {
+                return ResourceManager.GetString("DisableAnalyzerDiagnosticsMessage", resourceCulture);
             }
         }
         
@@ -996,6 +1015,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ModuleCopyCannotBeUsedToCreateAssemblyMetadata {
             get {
                 return ResourceManager.GetString("ModuleCopyCannotBeUsedToCreateAssemblyMetadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Module has invalid attributes..
+        /// </summary>
+        internal static string ModuleHasInvalidAttributes {
+            get {
+                return ResourceManager.GetString("ModuleHasInvalidAttributes", resourceCulture);
             }
         }
         
@@ -1599,6 +1627,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string TypeParameter {
             get {
                 return ResourceManager.GetString("TypeParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to determine specific cause of the failure..
+        /// </summary>
+        internal static string UnableToDetermineSpecificCauseOfFailure {
+            get {
+                return ResourceManager.GetString("UnableToDetermineSpecificCauseOfFailure", resourceCulture);
             }
         }
         

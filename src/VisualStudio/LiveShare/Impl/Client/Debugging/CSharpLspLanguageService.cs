@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -15,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2302:FlagServiceProviders")]
     internal class CSharpLspLanguageService : AbstractLanguageService<CSharpLspPackage, CSharpLspLanguageService>
     {
-        public static Guid LanguageServiceGuid { get; } = new Guid(StringConstants.CSharpLspLanguageServiceGuidString);
+        public static readonly Guid LanguageServiceGuid = new Guid(StringConstants.CSharpLspLanguageServiceGuidString);
 
         internal CSharpLspLanguageService(CSharpLspPackage package)
             : base(package)
@@ -26,16 +29,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
 
         protected override Guid DebuggerLanguageId { get; } = new Guid(StringConstants.CSharpLspDebuggerLanguageGuidString);
 
-        public override Guid LanguageServiceId { get; } = new Guid(StringConstants.CSharpLspLanguageServiceGuidString);
+        public override Guid LanguageServiceId { get; } = LanguageServiceGuid;
 
-        protected override string ContentTypeName => StringConstants.CSharpLspContentTypeName;
+        protected override string ContentTypeName => ContentTypeNames.CSharpLspContentTypeName;
 
         protected override string LanguageName => StringConstants.CSharpLspLanguageName;
 
         protected override string RoslynLanguageName => StringConstants.CSharpLspLanguageName;
-
-        public static CSharpLspLanguageService FromServiceProvider(IServiceProvider serviceProvider) =>
-            Implementation.Interop.ComAggregate.GetManagedObject<CSharpLspLanguageService>(serviceProvider.GetService(typeof(CSharpLspLanguageService)));
 
         protected override AbstractDebuggerIntelliSenseContext CreateContext(
             IWpfTextView view,

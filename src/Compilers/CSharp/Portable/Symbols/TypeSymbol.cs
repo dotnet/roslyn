@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -344,26 +346,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var interfaces = (baseType.TypeKind == TypeKind.TypeParameter) ? ((TypeParameterSymbol)baseType).EffectiveInterfacesNoUseSiteDiagnostics : baseType.InterfacesNoUseSiteDiagnostics();
                 for (int i = interfaces.Length - 1; i >= 0; i--)
                 {
-                    AddAllInterfaces(interfaces[i], visited, result);
+                    addAllInterfaces(interfaces[i], visited, result);
                 }
             }
 
             result.ReverseContents();
             return result.ToImmutableAndFree();
-        }
 
-        private static void AddAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result)
-        {
-            if (visited.Add(@interface))
+            static void addAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result)
             {
-                ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.InterfacesNoUseSiteDiagnostics();
-                for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                if (visited.Add(@interface))
                 {
-                    var baseInterface = baseInterfaces[i];
-                    AddAllInterfaces(baseInterface, visited, result);
-                }
+                    ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.InterfacesNoUseSiteDiagnostics();
+                    for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                    {
+                        var baseInterface = baseInterfaces[i];
+                        addAllInterfaces(baseInterface, visited, result);
+                    }
 
-                result.Add(@interface);
+                    result.Add(@interface);
+                }
             }
         }
 
@@ -555,54 +557,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public virtual bool IsTupleType => false;
 
         /// <summary>
-        /// Verify if the given type can be used to back a tuple type 
-        /// and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
-        /// </summary>
-        /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
-        /// <returns></returns>
-        public virtual bool IsTupleCompatible(out int tupleCardinality)
-        {
-            tupleCardinality = 0;
-            return false;
-        }
-
-        /// <summary>
-        /// Verify if the given type can be used to back a tuple type. 
-        /// </summary>
-        public bool IsTupleCompatible()
-        {
-            int countOfItems;
-            return IsTupleCompatible(out countOfItems);
-        }
-
-        /// <summary>
         /// Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 
         /// with the given cardinality. 
         /// </summary>
-        public bool IsTupleOrCompatibleWithTupleOfCardinality(int targetCardinality)
+        public bool IsTupleTypeOfCardinality(int targetCardinality)
         {
             if (IsTupleType)
             {
                 return TupleElementTypesWithAnnotations.Length == targetCardinality;
             }
 
-            int countOfItems;
-            return IsTupleCompatible(out countOfItems) && countOfItems == targetCardinality;
-        }
-
-        /// <summary>
-        /// If this is a tuple type symbol, returns the symbol for its underlying type.
-        /// Otherwise, returns null.
-        /// The type argument corresponding to the type of the extension field (VT[8].Rest),
-        /// which is at the 8th (one based) position is always a symbol for another tuple, 
-        /// rather than its underlying type.
-        /// </summary>
-        public virtual NamedTypeSymbol TupleUnderlyingType
-        {
-            get
-            {
-                return null;
-            }
+            return false;
         }
 
         /// <summary>
@@ -656,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             (type) => type.SetUnknownNullabilityForReferenceTypes();
 
         /// <summary>
-        /// Merges features of the type with annother type where there is an identity conversion between them.
+        /// Merges features of the type with another type where there is an identity conversion between them.
         /// The features to be merged are
         /// object vs dynamic (dynamic wins), tuple names (dropped in case of conflict), and nullable
         /// annotations (e.g. in type arguments).
@@ -1685,36 +1650,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    Action<DiagnosticBag, MethodSymbol, MethodSymbol, (TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
-                        (diagnostics, implementedMethod, implementingMethod, arg) =>
+                    ReportMismatchinReturnType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
+                        (diagnostics, implementedMethod, implementingMethod, blameAttributes, arg) =>
                         {
                             if (arg.isExplicit)
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
                                                 implementingMethod.Locations[0], new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                             else
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation,
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                                 new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
                                                 new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                         };
 
-                    Action<DiagnosticBag, MethodSymbol, MethodSymbol, ParameterSymbol, (TypeSymbol implementingType, bool isExplicit)> reportMismatchInParameterType =
-                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, arg) =>
+                    ReportMismatchInParameterType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInParameterType =
+                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                         {
                             if (arg.isExplicit)
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
                                                 implementingMethod.Locations[0],
                                                 new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
                                                 new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                             else
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                                 new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
                                                 new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),

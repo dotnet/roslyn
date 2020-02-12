@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             public async Task<Checksum> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
             {
                 using (var stream = await ReadBlobColumnAsync(key, ChecksumColumnName, checksumOpt: null, cancellationToken).ConfigureAwait(false))
-                using (var reader = ObjectReader.TryGetReader(stream, cancellationToken))
+                using (var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken))
                 {
                     if (reader != null)
                     {
@@ -202,7 +204,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             private bool ChecksumsMatch_MustRunInTransaction(SqlConnection connection, long rowId, Checksum checksum, CancellationToken cancellationToken)
             {
                 using var checksumStream = connection.ReadBlob_MustRunInTransaction(DataTableName, ChecksumColumnName, rowId);
-                using var reader = ObjectReader.TryGetReader(checksumStream, cancellationToken);
+                using var reader = ObjectReader.TryGetReader(checksumStream, leaveOpen: false, cancellationToken);
                 return reader != null && Checksum.ReadFrom(reader) == checksum;
             }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -74,13 +76,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // NOTE: Specifically not overriding IsIndirectlyInIterator.
 
-        internal override TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations GetIteratorElementType()
+        {
+            return TypeWithAnnotations.Create(CreateErrorType());
+        }
+
+        protected override void ValidateYield(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             if (node != null)
             {
                 diagnostics.Add(ErrorCode.ERR_YieldInAnonMeth, node.YieldKeyword.GetLocation());
             }
-            return TypeWithAnnotations.Create(CreateErrorType());
         }
 
         internal override void LookupSymbolsInSingleBinder(

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -107,11 +109,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 //Workaround for https://github.com/dotnet/roslyn/issues/23956
                 //Issue to remove this when above is merged
-                if (binaryOperation.OperatorKind == BinaryOperatorKind.Or && syntaxFacts.IsConditionalOr(expressionNode))
+                if (binaryOperation.OperatorKind == BinaryOperatorKind.Or && syntaxFacts.IsLogicalOrExpression(expressionNode))
                 {
                     negatedKind = BinaryOperatorKind.ConditionalAnd;
                 }
-                else if (binaryOperation.OperatorKind == BinaryOperatorKind.And && syntaxFacts.IsConditionalAnd(expressionNode))
+                else if (binaryOperation.OperatorKind == BinaryOperatorKind.And && syntaxFacts.IsLogicalAndExpression(expressionNode))
                 {
                     negatedKind = BinaryOperatorKind.ConditionalOr;
                 }

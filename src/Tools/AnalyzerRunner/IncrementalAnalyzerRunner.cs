@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -36,11 +38,10 @@ namespace AnalyzerRunner
                 return;
             }
 
-            workspace.Options = workspace.Options
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(StorageOptions.SolutionSizeThreshold, _options.UsePersistentStorage ? 0 : int.MaxValue)
-                .WithChangedOption(RuntimeOptions.FullSolutionAnalysis, _options.FullSolutionAnalysis)
-                .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, _options.FullSolutionAnalysis)
-                .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, _options.FullSolutionAnalysis);
+                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, _options.AnalysisScope)
+                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, _options.AnalysisScope)));
 
             if (!string.IsNullOrEmpty(_options.ProfileRoot))
             {

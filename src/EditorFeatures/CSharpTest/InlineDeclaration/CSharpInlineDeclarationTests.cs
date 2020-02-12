@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -2252,6 +2254,31 @@ class C
         }}
     }}
 }}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task InlineVariable_NullableEnable()
+        {
+            await TestInRegularAndScriptAsync(@"
+#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        [|C|] c;
+        M(out c);
+        c2 = c;
+    }
+}", @"
+#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out C c);
+        c2 = c;
+    }
+}");
         }
     }
 }
