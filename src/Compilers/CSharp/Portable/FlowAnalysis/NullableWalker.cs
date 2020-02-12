@@ -1801,7 +1801,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             bool isCall)
         {
-            if (Join(ref localFunctionState.StartingState, ref State) &&
+            // When we are in a conditional state after analyzing a call to a local function,
+            // e.g. when the local function uses a conditional flow analysis attribute,
+            // we just analyze the local function usage using a temporary joined state.
+            LocalState state;
+            if (IsConditionalState)
+            {
+                state = StateWhenTrue.Clone();
+                state.Join(in StateWhenFalse);
+            }
+            else
+            {
+                state = State;
+            }
+
+            if (Join(ref localFunctionState.StartingState, ref state) &&
                 localFunctionState.Visited)
             {
                 // If the starting state of the local function has changed and we've already visited
