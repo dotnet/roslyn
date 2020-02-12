@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
         public override SymbolDisplayPart[] GeneratePreviewDisplayParts(AddedParameterViewModel addedParameterViewModel)
         {
             var parts = new List<SymbolDisplayPart>();
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, addedParameterViewModel.Type));
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, addedParameterViewModel.TypeWithoutErrorIndicator));
             parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " "));
             parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, null, addedParameterViewModel.ParameterName));
 

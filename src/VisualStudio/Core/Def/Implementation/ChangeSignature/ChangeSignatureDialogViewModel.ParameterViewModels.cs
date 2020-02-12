@@ -92,6 +92,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 _addedParameter = addedParameter;
             }
 
+            public string TypeWithoutErrorIndicator => _addedParameter.TypeName;
+
             public override string Type
             {
                 get
