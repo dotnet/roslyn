@@ -171,7 +171,7 @@ namespace Roslyn.Utilities
             if (typeInfo.IsPrimitive)
             {
                 // Note: int, double, bool, char, have been chosen to go first as they're they
-                // common values of literals in code, and so would be hte likely hits if we do
+                // common values of literals in code, and so would be the likely hits if we do
                 // have a primitive type we're serializing out.
                 if (value.GetType() == typeof(int))
                 {
