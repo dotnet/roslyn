@@ -3,8 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
+#If CODE_STYLE Then
+Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
+#Else
+Imports Microsoft.CodeAnalysis.Options
+#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Class StructuredTriviaFormattingRule

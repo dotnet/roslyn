@@ -60,7 +60,7 @@ namespace Roslyn.Utilities
                         var reference = metadataReader.GetAssemblyReference(handle);
                         var referenceName = metadataReader.GetString(reference.Name);
 
-                        string referencePath = Path.Combine(directory, referenceName + ".dll");
+                        string referencePath = Path.Combine(directory!, referenceName + ".dll");
 
                         if (!assemblySet.Contains(referencePath) &&
                             File.Exists(referencePath))
@@ -106,7 +106,7 @@ namespace Roslyn.Utilities
 
             var builder = ImmutableArray.CreateBuilder<string>();
 
-            string directory = Path.GetDirectoryName(filePath);
+            string? directory = Path.GetDirectoryName(filePath);
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
             string resourcesNameWithoutExtension = fileNameWithoutExtension + ".resources";
             string resourcesNameWithExtension = resourcesNameWithoutExtension + ".dll";

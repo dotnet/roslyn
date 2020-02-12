@@ -24,12 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
         protected override string GetTitle()
             => CSharpFeaturesResources.Remove_this_qualification;
 
-        protected override SyntaxNode Rewrite(
-            SemanticModel semanticModel, SyntaxNode root, ISet<MemberAccessExpressionSyntax> memberAccessNodes)
-        {
-            var rewriter = new Rewriter(memberAccessNodes);
-            return rewriter.Visit(root);
-        }
+        protected override SyntaxNode Rewrite(SyntaxNode root, ISet<MemberAccessExpressionSyntax> memberAccessNodes)
+            => new Rewriter(memberAccessNodes).Visit(root);
 
         private class Rewriter : CSharpSyntaxRewriter
         {

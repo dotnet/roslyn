@@ -108,3 +108,16 @@ Similarly, a value from a `[DisallowNull] ref string? p` parameter will be assum
 On the other hand, we'll warn for returning a `null` from a method declared with `[NotNull] string?` return type, and we'll treat the value from a `[AllowNull] ref string p` parameter as maybe-null.
 Conditional attributes are treated leniently. For instance, no warning will be produced for assigning a maybe-null value to an `[MaybeNullWhen(...)] out string p` parameter.
 
+19. https://github.com/dotnet/roslyn/issues/36039 In *Visual Studio 2019 version 16.3* and onwards, the compiler did not check the usage of nullable flow annotation attributes, such as `[MaybeNull]` or `[NotNull]`, in overrides or implementations. In *Visual Studio 2019 version 16.5*, those usages are checked to respect null discipline. For example:
+``` csharp
+public class Base<T>
+{
+    [return: NotNull]
+    public virtual T M() { ... }
+}
+public class Derived : Base<string?>
+{
+    public override string? M() { ... } // Derived.M doesn't honor the nullability declaration made by Base.M with its [NotNull] attribute
+}
+```
+

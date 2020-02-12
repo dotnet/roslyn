@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
@@ -11,7 +12,6 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
-
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer
         Inherits AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
@@ -23,12 +23,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             Return s_TitleAndMessageFormat
         End Function
 
+        Protected Overrides ReadOnly Property UnnecessaryImportsProvider As IUnnecessaryImportsProvider
+            Get
+                Return VisualBasicUnnecessaryImportsProvider.Instance
+            End Get
+        End Property
+
+        Protected Overrides Function IsRegularCommentOrDocComment(trivia As SyntaxTrivia) As Boolean
+            Return trivia.IsRegularOrDocComment()
+        End Function
+
         ''' Takes the import clauses we want to remove and returns them *or* their 
         ''' containing ImportsStatements *if* we wanted to remove all the clauses of
         ''' that ImportStatement.
         Protected Overrides Function MergeImports(unnecessaryImports As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of SyntaxNode)
             Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()
-            Dim importsClauses = unnecessaryImports.CastArray(Of ImportsClauseSyntax)
+            Dim importsClauses = unnecessaryImports.ToImmutableHashSet()
 
             For Each clause In importsClauses
                 If Not result.Contains(clause.Parent) Then

@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Private Const s_unicodeEllipsis = ChrW(&H2026)
 
+        Private Shared ReadOnly s_exportProviderFactory As IExportProviderFactory =
+            ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(TestExperimentationService)))
+
         Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
             MyBase.New(workspaceFixture)
         End Sub
@@ -27,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         Protected Overrides Function GetExportProvider() As ExportProvider
-            Return ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(TestExperimentationService))).CreateExportProvider()
+            Return s_exportProviderFactory.CreateExportProvider()
         End Function
 
 #Region "StandaloneNamespaceAndTypeSourceTests"

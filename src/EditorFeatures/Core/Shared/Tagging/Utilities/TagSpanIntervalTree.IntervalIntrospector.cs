@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal partial class TagSpanIntervalTree<TTag>
     {
-        private class IntervalIntrospector : IIntervalIntrospector<TagNode>
+        private readonly struct IntervalIntrospector : IIntervalIntrospector<TagNode>
         {
             public readonly ITextSnapshot Snapshot;
 

@@ -2924,7 +2924,7 @@ namespace NS
             Assert.Equal(pd.Count(), id.Count());
             for (int i = 0; i < id.Count(); i++)
             {
-                Assert.Equal(pd.ElementAt(i).Stringize(), id.ElementAt(i).Stringize());
+                Assert.Equal(pd.ElementAt(i).Inspect(), id.ElementAt(i).Inspect());
             }
 
             ParentChecker.CheckParents(parsedTree.GetCompilationUnitRoot(), parsedTree);
