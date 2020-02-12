@@ -84,18 +84,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int BaseExpression { get; }
         int ConditionalAccessExpression { get; }
         int InvocationExpression { get; }
-
-        /// <summary>
-        /// A short-circuiting logical 'and'. In C#, 'LogicalAndExpression'. In VB, 'AndAlsoExpression'.
-        /// </summary>
         int LogicalAndExpression { get; }
-
-        /// <summary>
-        /// A short-circuiting logical 'or'. In C#, 'LogicalOrExpression'. In VB, 'OrElseExpression'.
-        /// </summary>
         int LogicalOrExpression { get; }
         int LogicalNotExpression { get; }
-
         int ObjectCreationExpression { get; }
         int ParenthesizedExpression { get; }
         int QueryExpression { get; }
