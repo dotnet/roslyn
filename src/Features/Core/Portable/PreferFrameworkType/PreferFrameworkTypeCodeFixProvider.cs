@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             }
         }
 
-        protected override bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => diagnostic.Properties.ContainsKey(PreferFrameworkTypeConstants.PreferFrameworkType);
 
         private class PreferFrameworkTypeCodeAction : CodeAction.DocumentChangeAction
