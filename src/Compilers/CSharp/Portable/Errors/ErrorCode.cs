@@ -1746,15 +1746,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParameterConditionallyDisallowsNull = 8762,
         WRN_ShouldNotReturn = 8763,
 
-        WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes = 8764,
-        WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes = 8765,
+        ERR_ConditionalOnLocalFunction = 8764,
 
-        WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes = 8766,
-        WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes = 8767,
-        WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes = 8768,
-        WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes = 8769,
+        WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes = 8765,
+        WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes = 8766,
 
-        WRN_DoesNotReturnMismatch = 8770,
+        WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes = 8767,
+        WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes = 8768,
+        WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes = 8769,
+        WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes = 8770,
+
+        WRN_DoesNotReturnMismatch = 8771,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
