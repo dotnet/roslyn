@@ -1,7 +1,7 @@
 
 Sr. No. | Rule ID | Title | Category | Enabled | Severity | CodeFix | Description |
 --------|---------|-------|----------|---------|----------|---------|--------------------------------------------------------------------------------------------------------------|
-1 | HAA0101 | Array allocation for params parameter | Performance | True | Warning | False | This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter |
+1 | HAA0101 | Array allocation for params parameter | Performance | True | Warning | False | This call site is calling into a function with a 'params' parameter. This results in an array allocation |
 2 | HAA0102 | Non-overridden virtual method call on value type | Performance | True | Warning | False | Non-overridden virtual method call on a value type adds a boxing or constrained instruction |
 3 | [HAA0201](http://msdn.microsoft.com/en-us/library/2839d5h5(v=vs.110).aspx) | Implicit string concatenation allocation | Performance | True | Warning | False | Considering using StringBuilder |
 4 | [HAA0202](http://msdn.microsoft.com/en-us/library/yz2be5wk.aspx) | Value type to reference type conversion allocation for string concatenation | Performance | True | Warning | False | Value type ({0}) is being boxed to a reference type for a string concatenation. |
@@ -16,4 +16,4 @@ Sr. No. | Rule ID | Title | Category | Enabled | Severity | CodeFix | Descriptio
 13 | HAA0601 | Value type to reference type conversion causing boxing allocation | Performance | True | Warning | False | Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable |
 14 | HAA0602 | Delegate on struct instance caused a boxing allocation | Performance | True | Warning | False | Struct instance method being used for delegate creation, this will result in a boxing instruction |
 15 | HAA0603 | Delegate allocation from a method group | Performance | True | Warning | False | This will allocate a delegate instance |
-16 | HeapAnalyzerReadonlyMethodGroupAllocationRule | Delegate allocation from a method group | Performance | True | Info | False | This will allocate a delegate instance |
+16 | HAA0604 | Delegate allocation from a method group | Performance | True | Info | False | This will allocate a delegate instance |
