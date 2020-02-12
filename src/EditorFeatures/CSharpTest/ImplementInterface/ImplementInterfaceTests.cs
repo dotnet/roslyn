@@ -8232,5 +8232,102 @@ class A : [|IFoo<int>|]
     }}
 }}");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementRemainingExplicitlyWhenPartiallyImplemented()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+    void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+}",
+@"
+interface I
+{
+    void M1();
+    void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+
+    void I.M2()
+    {
+        throw new System.NotImplementedException();
+    }
+}", index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementRemainingExplicitlyMissingWhenAllImplemented()
+        {
+            await TestActionCountAsync(@"
+interface I
+{
+    void M1();
+    void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+    public void M2(){}
+}", 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementRemainingExplicitlyMissingWhenAllImplementedAreExplicit()
+        {
+            await TestActionCountAsync(@"
+interface I
+{
+    void M1();
+    void M2();
+}
+
+class C : [|I|]
+{
+    void I.M1(){}
+}", 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementRemainingExplicitlyNonPublicMember()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+    internal void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+}",
+@"
+interface I
+{
+    void M1();
+    internal void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+
+    void I.M2()
+    {
+        throw new System.NotImplementedException();
+    }
+}", index: 1);
+        }
     }
 }

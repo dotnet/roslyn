@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(
+        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembersNotRequiringExplicitImplementation(
             this INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
             CancellationToken cancellationToken)
@@ -280,38 +280,52 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 interfaces,
                 IsExplicitlyImplemented,
                 ImplementationExists,
-                (INamedTypeSymbol type, ISymbol within) =>
-                {
-                    if (type.TypeKind == TypeKind.Interface)
-                    {
-                        return type.GetMembers().WhereAsArray(m => m.Kind != SymbolKind.NamedType &&
-                                                                   IsImplementable(m) && m.IsAccessibleWithin(within) &&
-                                                                   !IsPropertyWithInaccessibleImplementableAccessor(m, within));
-                    }
-
-                    return type.GetMembers();
-                },
+                GetExplicitlyImplementableMembers,
                 allowReimplementation: false,
                 cancellationToken: cancellationToken);
+        }
 
-            // local functions
+        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(
+            this INamedTypeSymbol classOrStructType,
+            IEnumerable<INamedTypeSymbol> interfaces,
+            CancellationToken cancellationToken)
+        {
+            return classOrStructType.GetAllUnimplementedMembers(
+                interfaces,
+                IsImplemented,
+                ImplementationExists,
+                GetExplicitlyImplementableMembers,
+                allowReimplementation: false,
+                cancellationToken: cancellationToken);
+        }
 
-            static bool IsPropertyWithInaccessibleImplementableAccessor(ISymbol member, ISymbol within)
+        private static ImmutableArray<ISymbol> GetExplicitlyImplementableMembers(INamedTypeSymbol type, ISymbol within)
+        {
+            if (type.TypeKind == TypeKind.Interface)
             {
-                if (member.Kind != SymbolKind.Property)
-                {
-                    return false;
-                }
-
-                var property = (IPropertySymbol)member;
-
-                return IsInaccessibleImplementableAccessor(property.GetMethod, within) || IsInaccessibleImplementableAccessor(property.SetMethod, within);
+                return type.GetMembers().WhereAsArray(m => m.Kind != SymbolKind.NamedType &&
+                                                           IsImplementable(m) && m.IsAccessibleWithin(within) &&
+                                                           !IsPropertyWithInaccessibleImplementableAccessor(m, within));
             }
 
-            static bool IsInaccessibleImplementableAccessor(IMethodSymbol? accessor, ISymbol within)
+            return type.GetMembers();
+        }
+
+        private static bool IsPropertyWithInaccessibleImplementableAccessor(ISymbol member, ISymbol within)
+        {
+            if (member.Kind != SymbolKind.Property)
             {
-                return accessor != null && IsImplementable(accessor) && !accessor.IsAccessibleWithin(within);
+                return false;
             }
+
+            var property = (IPropertySymbol)member;
+
+            return IsInaccessibleImplementableAccessor(property.GetMethod, within) || IsInaccessibleImplementableAccessor(property.SetMethod, within);
+        }
+
+        private static bool IsInaccessibleImplementableAccessor(IMethodSymbol? accessor, ISymbol within)
+        {
+            return accessor != null && IsImplementable(accessor) && !accessor.IsAccessibleWithin(within);
         }
 
         private static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(

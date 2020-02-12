@@ -312,6 +312,11 @@
         <target state="new">Implement implicitly</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_remaining_members_of_interface_explicitly">
+        <source>Implement remaining members of interface explicitly</source>
+        <target state="new">Implement remaining members of interface explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">Aplicar sangría a todos los argumentos</target>

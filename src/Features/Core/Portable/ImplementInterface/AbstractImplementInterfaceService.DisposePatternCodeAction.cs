@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             // 3. The implementing type is a class that does not already declare any conflicting members named 'disposedValue' or 'Dispose'
             //    (because we will be generating a 'disposedValue' field and a couple of methods named 'Dispose' as part of implementing 
             //    the dispose pattern).
-            var unimplementedMembers = explicitly ? state.UnimplementedExplicitMembers : state.UnimplementedMembers;
+            var unimplementedMembers = explicitly ? state.UnimplementedExplicitMembers : state.UnimplementedMembersNotRequiringExplicitImplementation;
             var idisposable = TryGetSymbolForIDisposable(state.Model.Compilation);
             return (idisposable != null) &&
                    unimplementedMembers.Any(m => m.type.Equals(idisposable)) &&
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 State state,
                 bool explicitly,
                 bool abstractly,
-                ISymbol throughMember) : base(service, document, state, explicitly, abstractly, throughMember)
+                ISymbol throughMember) : base(service, document, state, explicitly, abstractly, onlyUnimplemented: !explicitly, throughMember)
             {
             }
 

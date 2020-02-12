@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 yield break;
             }
 
-            if (state.UnimplementedMembers.Length > 0)
+            if (state.UnimplementedMembersNotRequiringExplicitImplementation.Length > 0)
             {
                 yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, state);
 
@@ -86,6 +87,36 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     yield return ImplementInterfaceWithDisposePatternCodeAction.CreateImplementExplicitlyWithDisposePatternCodeAction(this, document, state);
                 }
             }
+
+            if (AnyImplementedNotExplicitly(state))
+            {
+                yield return ImplementInterfaceCodeAction.CreateImplementRemainingExplicitlyCodeAction(this, document, state);
+            }
+        }
+
+        private static bool AnyImplementedNotExplicitly(State state)
+        {
+            if (state.UnimplementedMembers.Length != state.UnimplementedExplicitMembers.Length)
+            {
+                return true;
+            }
+
+            for (var i = 0; i < state.UnimplementedMembers.Length; i++)
+            {
+                var (typeA, membersA) = state.UnimplementedMembers[i];
+                var (typeB, membersB) = state.UnimplementedExplicitMembers[i];
+                if (typeA != typeB)
+                {
+                    return true;
+                }
+
+                if (!membersA.SequenceEqual(membersB))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private IList<ISymbol> GetDelegatableMembers(State state)

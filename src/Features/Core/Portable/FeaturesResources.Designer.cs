@@ -2121,6 +2121,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement remaining members of interface explicitly.
+        /// </summary>
+        internal static string Implement_remaining_members_of_interface_explicitly {
+            get {
+                return ResourceManager.GetString("Implement_remaining_members_of_interface_explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to in.
         /// </summary>
         internal static string in_ {
