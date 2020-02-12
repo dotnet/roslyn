@@ -15,10 +15,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
             MyBase.New(VisualBasicSyntaxFactsService.Instance, Kinds)
         End Sub
 
-        Protected Overrides Function GetKind(rawKind As Integer) As SyntaxKind
-            Return CType(rawKind, SyntaxKind)
-        End Function
-
         Protected Overrides Function GetAnalysisKind() As SyntaxKind
             Return SyntaxKind.SimpleAssignmentStatement
         End Function

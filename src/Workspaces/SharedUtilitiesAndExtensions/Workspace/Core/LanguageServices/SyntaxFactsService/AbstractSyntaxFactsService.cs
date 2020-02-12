@@ -66,8 +66,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     Matcher.Repeat(singleBlankLine));
         }
 
-        public abstract bool IsWhitespaceTrivia(SyntaxTrivia trivia);
-        public abstract bool IsEndOfLineTrivia(SyntaxTrivia trivia);
+        private bool IsWhitespaceTrivia(SyntaxTrivia trivia)
+            => SyntaxKinds.WhitespaceTrivia == trivia.RawKind;
+
+        private bool IsEndOfLineTrivia(SyntaxTrivia trivia)
+            => SyntaxKinds.EndOfLineTrivia == trivia.RawKind;
+
         public abstract bool IsSingleLineCommentTrivia(SyntaxTrivia trivia);
         public abstract bool IsMultiLineCommentTrivia(SyntaxTrivia trivia);
         public abstract bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia);
@@ -149,8 +153,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             // Only string literals can span multiple lines.  Only need to check those.
-            if (IsStringLiteral(token) ||
-                IsInterpolatedStringTextToken(token))
+            if (this.SyntaxKinds.StringLiteralToken == token.RawKind ||
+                this.SyntaxKinds.InterpolatedStringTextToken == token.RawKind)
             {
                 // This allocated.  But we only do it in the string case. For all other tokens
                 // we don't need any allocations.
@@ -203,9 +207,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         private bool IsOnSingleLine(string value)
             => value.GetNumberOfLineBreaks() == 0;
-
-        public abstract bool IsStringLiteral(SyntaxToken token);
-        public abstract bool IsInterpolatedStringTextToken(SyntaxToken token);
 
         public ImmutableArray<SyntaxTrivia> GetLeadingBlankLines(SyntaxNode node)
             => GetLeadingBlankLines<SyntaxNode>(node);
@@ -497,30 +498,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
 
-        public bool IsAwaitKeyword(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.AwaitKeyword;
-
-        public bool IsIdentifier(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.IdentifierToken;
-
-        public bool IsGlobalNamespaceKeyword(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.GlobalKeyword;
-
-        public bool IsHashToken(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.HashToken;
-
         public bool HasIncompleteParentMember(SyntaxNode node)
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
-
-        public bool IsUsingStatement(SyntaxNode node)
-            => node?.RawKind == SyntaxKinds.UsingStatement;
-
-        public bool IsReturnStatement(SyntaxNode node)
-            => node?.RawKind == SyntaxKinds.ReturnStatement;
-
-#nullable enable
-        public bool IsExpressionStatement([NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == SyntaxKinds.ExpressionStatement;
-#nullable restore
     }
 }
