@@ -160,5 +160,70 @@ namespace Analyzer.Utilities.Lightup
                     valueParameter);
             return expression.Compile();
         }
+
+        internal static Func<T, TArg, TValue> CreateAccessorWithArgument<T, TArg, TValue>(Type type, string parameterName, Type argumentType, string argumentName, string methodName)
+        {
+            static TValue FallbackAccessor(T instance, TArg argument)
+            {
+                if (instance == null)
+                {
+                    // Unlike an extension method which would throw ArgumentNullException here, the light-up
+                    // behavior needs to match behavior of the underlying property.
+                    throw new NullReferenceException();
+                }
+
+                return default!;
+            }
+
+            if (type == null)
+            {
+                return FallbackAccessor;
+            }
+
+            if (!typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
+            {
+                throw new InvalidOperationException();
+            }
+
+            var method = type.GetTypeInfo().GetDeclaredMethod(methodName);
+            if (method == null)
+            {
+                return FallbackAccessor;
+            }
+
+            if (!typeof(TValue).GetTypeInfo().IsAssignableFrom(method.ReturnType.GetTypeInfo()))
+            {
+                if (method.ReturnType.GetTypeInfo().IsEnum
+                    && typeof(TValue).GetTypeInfo().IsEnum
+                    && Enum.GetUnderlyingType(typeof(TValue)).GetTypeInfo().IsAssignableFrom(Enum.GetUnderlyingType(method.ReturnType).GetTypeInfo()))
+                {
+                    // Allow this
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
+            }
+
+            var parameter = Expression.Parameter(typeof(T), parameterName);
+            var argument = Expression.Parameter(typeof(TArg), argumentName);
+            Expression instance =
+                type.GetTypeInfo().IsAssignableFrom(typeof(T).GetTypeInfo())
+                ? (Expression)parameter
+                : Expression.Convert(parameter, type);
+            Expression convertedArgument =
+                argumentType.GetTypeInfo().IsAssignableFrom(typeof(TArg).GetTypeInfo())
+                ? (Expression)argument
+                : Expression.Convert(argument, type);
+
+            Expression result = Expression.Call(instance, method, convertedArgument);
+            if (!typeof(TValue).GetTypeInfo().IsAssignableFrom(method.ReturnType.GetTypeInfo()))
+            {
+                result = Expression.Convert(result, typeof(TValue));
+            }
+
+            Expression<Func<T, TArg, TValue>> expression = Expression.Lambda<Func<T, TArg, TValue>>(result, parameter, argument);
+            return expression.Compile();
+        }
     }
 }

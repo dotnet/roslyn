@@ -35,6 +35,20 @@ namespace Roslyn.Utilities {
             }
         }
 
+        public static IEnumerable<object[]> DefaultableTypesNullableDisableContext
+        {
+            get
+            {
+                yield return new object[] { "int" };
+                yield return new object[] { "int?" };
+                yield return new object[] { "DateTime" };
+                yield return new object[] { "object" };
+                yield return new object[] { "IFormattable" };
+                yield return new object[] { "EventHandler" };
+                yield return new object[] { "StringComparison" };
+            }
+        }
+
         public static IEnumerable<object[]> NonDefaultableTypes
         {
             get
@@ -52,6 +66,36 @@ namespace Roslyn.Utilities {
         {
             var code = $@"
 #nullable enable
+
+using System;
+using Roslyn.Utilities;
+
+[NonDefaultable]
+struct NonDefaultableStruct {{ }}
+
+[NonDefaultable]
+struct NonDefaultableTestStruct {{
+    {nonDefaultableType} field;
+    {nonDefaultableType} Property {{ get; }}
+
+    static {nonDefaultableType} staticField = default!;
+    static {nonDefaultableType} StaticProperty {{ get; }} = default!;
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.CSharp8,
+                TestState = { Sources = { code, NonDefaultableAttribute } },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(NonDefaultableTypes))]
+        public async Task TestNonDefaultableStructWithNonDefaultableTypeNullableDisableField(string nonDefaultableType)
+        {
+            var code = $@"
+#nullable disable
 
 using System;
 using Roslyn.Utilities;
@@ -82,6 +126,33 @@ struct NonDefaultableTestStruct {{
         {
             var code = $@"
 #nullable enable
+
+using System;
+using Roslyn.Utilities;
+
+[NonDefaultable]
+struct NonDefaultableTestStruct {{
+    {defaultableType} field;
+    {defaultableType} Property {{ get; }}
+
+    static {defaultableType} staticField;
+    static {defaultableType} StaticProperty {{ get; }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.CSharp8,
+                TestState = { Sources = { code, NonDefaultableAttribute } },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(DefaultableTypesNullableDisableContext))]
+        public async Task TestNonDefaultableStructWithDefaultableTypeNullableDisableField(string defaultableType)
+        {
+            var code = $@"
+#nullable disable
 
 using System;
 using Roslyn.Utilities;
@@ -154,6 +225,31 @@ class TestClass {{
         }
 
         [Theory]
+        [MemberData(nameof(DefaultableTypesNullableDisableContext))]
+        public async Task TestClassWithDefaultableTypeNullableDisableField(string defaultableType)
+        {
+            var code = $@"
+#nullable disable
+
+using System;
+
+class TestClass {{
+    {defaultableType} field;
+    {defaultableType} Property {{ get; }}
+
+    static {defaultableType} staticField;
+    static {defaultableType} StaticProperty {{ get; }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.CSharp8,
+                TestState = { Sources = { code, NonDefaultableAttribute } },
+            }.RunAsync();
+        }
+
+        [Theory]
         [MemberData(nameof(NonDefaultableTypes))]
         public async Task TestDefaultableStructWithNonDefaultableTypeField(string nonDefaultableType)
         {
@@ -169,6 +265,35 @@ struct NonDefaultableStruct {{ }}
 struct DefaultableStruct {{
     {nonDefaultableType} [|field|];
     {nonDefaultableType} [|Property|] {{ get; }}
+
+    static {nonDefaultableType} StaticField = default!;
+    static {nonDefaultableType} StaticProperty {{ get; }} = default!;
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.CSharp8,
+                TestState = { Sources = { code, NonDefaultableAttribute } },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(NonDefaultableTypes))]
+        public async Task TestDefaultableStructWithNonDefaultableTypeNullableDisableField(string nonDefaultableType)
+        {
+            var code = $@"
+#nullable disable
+
+using System;
+using Roslyn.Utilities;
+
+[NonDefaultable]
+struct NonDefaultableStruct {{ }}
+
+struct DefaultableStruct {{
+    {nonDefaultableType} field;
+    {nonDefaultableType} Property {{ get; }}
 
     static {nonDefaultableType} StaticField;
     static {nonDefaultableType} StaticProperty {{ get; }}

@@ -88,6 +88,13 @@ namespace Roslyn.Diagnostics.Analyzers
                 return;
             }
 
+            var semanticModel = originalContext.Compilation.GetSemanticModel(field.Locations[0].SourceTree);
+            if (!semanticModel.GetNullableContext(field.Locations[0].SourceSpan.Start).WarningsEnabled())
+            {
+                // Warnings are not enabled for this field
+                return;
+            }
+
             originalContext.ReportDiagnostic(Diagnostic.Create(Rule, field.Locations[0]));
         }
 
