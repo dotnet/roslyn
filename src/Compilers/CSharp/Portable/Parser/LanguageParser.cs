@@ -7177,7 +7177,7 @@ done:;
             _termState = saveTerm;
 
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            StatementSyntax statement = ParseEmbeddedStatement();
+            StatementSyntax statement = this.ParseEmbeddedStatement();
             return _syntaxFactory.FixedStatement(attributes, @fixed, openParen, decl, closeParen, statement);
         }
 
@@ -7393,7 +7393,7 @@ done:;
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.DoKeyword);
             var @do = this.EatToken(SyntaxKind.DoKeyword);
-            var statement = ParseEmbeddedStatement();
+            var statement = this.ParseEmbeddedStatement();
             var @while = this.EatToken(SyntaxKind.WhileKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
@@ -7514,7 +7514,7 @@ done:;
                 }
 
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                var statement = ParseEmbeddedStatement();
+                var statement = this.ParseEmbeddedStatement();
                 return _syntaxFactory.ForStatement(attributes, forToken, openParen, decl, initializers, semi, condition, semi2, incrementors, closeParen, statement);
             }
             finally
@@ -7615,7 +7615,7 @@ tryAgain:
 
             var expression = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = ParseEmbeddedStatement();
+            var statement = this.ParseEmbeddedStatement();
 
             if (variable is DeclarationExpressionSyntax decl)
             {
@@ -7717,7 +7717,7 @@ tryAgain:
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = firstTokenIsElse
                 ? this.ParseExpressionStatement(attributes: default)
-                : ParseEmbeddedStatement();
+                : this.ParseEmbeddedStatement();
             var elseClause = this.ParseElseClauseOpt();
 
             return _syntaxFactory.IfStatement(attributes, @if, openParen, condition, closeParen, statement, elseClause);
@@ -7731,7 +7731,7 @@ tryAgain:
             }
 
             var elseToken = this.EatToken(SyntaxKind.ElseKeyword);
-            var elseStatement = ParseEmbeddedStatement();
+            var elseStatement = this.ParseEmbeddedStatement();
             return _syntaxFactory.ElseClause(elseToken, elseStatement);
         }
 
@@ -7742,7 +7742,7 @@ tryAgain:
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var expression = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = ParseEmbeddedStatement();
+            var statement = this.ParseEmbeddedStatement();
             return _syntaxFactory.LockStatement(attributes, @lock, openParen, expression, closeParen, statement);
         }
 
@@ -7962,7 +7962,7 @@ tryAgain:
             this.Release(ref resetPoint);
 
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = ParseEmbeddedStatement();
+            var statement = this.ParseEmbeddedStatement();
 
             return _syntaxFactory.UsingStatement(attributes, awaitTokenOpt, @using, openParen, declaration, expression, closeParen, statement);
         }
@@ -8068,7 +8068,7 @@ tryAgain:
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var condition = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = ParseEmbeddedStatement();
+            var statement = this.ParseEmbeddedStatement();
             return _syntaxFactory.WhileStatement(attributes, @while, openParen, condition, closeParen, statement);
         }
 
@@ -8083,7 +8083,7 @@ tryAgain:
             var label = this.ParseIdentifierToken();
             var colon = this.EatToken(SyntaxKind.ColonToken);
             Debug.Assert(!colon.IsMissing);
-            var statement = ParseEmbeddedStatement();
+            var statement = this.ParseEmbeddedStatement();
             return _syntaxFactory.LabeledStatement(attributes, label, colon, statement);
         }
 
