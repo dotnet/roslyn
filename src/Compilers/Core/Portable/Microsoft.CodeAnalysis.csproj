@@ -19,10 +19,6 @@
       A shared package used by the Microsoft .NET Compiler Platform ("Roslyn").
       Do not install this package manually, it will be added as a prerequisite by other packages that require it.
     </PackageDescription>
-
-    <!-- Disable the nullable warnings when compiling for netcoreapp3.1 during our transition period -->
-    <DisableNullableWarnings Condition="'$(TargetFramework)' == 'netcoreapp3.1'">true</DisableNullableWarnings>
-    <DisableNullableWarnings Condition="'$(TargetFramework)' == 'netstandard2.0'">false</DisableNullableWarnings>
   </PropertyGroup>
 
   <ItemGroup>

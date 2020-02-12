@@ -1650,36 +1650,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    Action<DiagnosticBag, MethodSymbol, MethodSymbol, (TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
-                        (diagnostics, implementedMethod, implementingMethod, arg) =>
+                    ReportMismatchinReturnType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
+                        (diagnostics, implementedMethod, implementingMethod, blameAttributes, arg) =>
                         {
                             if (arg.isExplicit)
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
                                                 implementingMethod.Locations[0], new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                             else
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation,
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                                 new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
                                                 new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                         };
 
-                    Action<DiagnosticBag, MethodSymbol, MethodSymbol, ParameterSymbol, (TypeSymbol implementingType, bool isExplicit)> reportMismatchInParameterType =
-                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, arg) =>
+                    ReportMismatchInParameterType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInParameterType =
+                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                         {
                             if (arg.isExplicit)
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
                                                 implementingMethod.Locations[0],
                                                 new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
                                                 new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                             else
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                                 new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
                                                 new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
