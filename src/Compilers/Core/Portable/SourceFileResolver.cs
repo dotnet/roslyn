@@ -135,8 +135,13 @@ namespace Microsoft.CodeAnalysis
             return Equals((SourceFileResolver)obj);
         }
 
-        public bool Equals(SourceFileResolver other)
+        public bool Equals(SourceFileResolver? other)
         {
+            if (other is null)
+            {
+                return false;
+            }
+
             return
                 string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal) &&
                 _searchPaths.SequenceEqual(other._searchPaths, StringComparer.Ordinal) &&

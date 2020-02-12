@@ -29,6 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\CSharpUnnecessaryImportsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxKindsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpTypeStyleHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpTypeStyleHelper.State.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeStyle\CSharpUseExplicitTypeHelper.cs" />

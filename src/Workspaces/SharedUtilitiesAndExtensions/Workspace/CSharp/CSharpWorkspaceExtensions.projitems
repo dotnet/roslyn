@@ -61,8 +61,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpSymbolDeclarationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpSyntaxFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpSyntaxFactsServiceFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpSyntaxKindsService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpSyntaxKindsServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpTypeInferenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpTypeInferenceService.TypeInferrer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpGeneratedCodeRecognitionService.cs" />
