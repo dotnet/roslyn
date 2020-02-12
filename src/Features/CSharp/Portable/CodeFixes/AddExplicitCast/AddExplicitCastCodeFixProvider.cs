@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// CS1503: Argument 1: cannot convert from 'double' to 'int'
         /// </summary>
         private const string CS1503 = nameof(CS1503);
+        private const int MaximumConversionOptions = 3;
 
         [ImportingConstructor]
         public AddExplicitCastCodeFixProvider()
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             get => ImmutableArray.Create(CS0266, CS1503);
         }
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle; // ?
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -58,33 +61,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             var diagnostic = context.Diagnostics.First();
 
             var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            if (root != null && TryGetTargetNode(root, diagnostic.Location.SourceSpan) is ExpressionSyntax targetNode)
-            {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                if (semanticModel != null)
-                {
-                    var exactSolution = GetTypeInfo(semanticModel, root, targetNode, cancellationToken, out var nodeType, out var conversionType, out var potentialConvTypes);
-                    if (exactSolution)
-                    {
-                        context.RegisterCodeFix(new MyCodeAction(
-                        CSharpFeaturesResources.Add_explicit_cast,
-                        c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                        context.Diagnostics);
-                    }
-                    else if (potentialConvTypes.Length > 1)
-                    {
-                        var actions = new ArrayBuilder<CodeAction>();
-                        foreach (var convType in potentialConvTypes)
-                        {
-                            actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.Name),
-                                c => FixIt(context.Document, root, targetNode, convType, c)));
-                        }
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                        context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
-                        CSharpFeaturesResources.Add_explicit_cast,
-                        actions.ToImmutableArray(), false),
-                        context.Diagnostics);
+            if (root != null && syntaxFacts != null && semanticModel != null &&
+                TryGetTargetNode(root, diagnostic.Location.SourceSpan) is ExpressionSyntax targetNode)
+            {
+                var exactSolution = GetTypeInfo(semanticModel, root, targetNode, cancellationToken, out var nodeType, out var conversionType, out var potentialConvTypes);
+                if (exactSolution)
+                {
+                    context.RegisterCodeFix(new MyCodeAction(
+                    CSharpFeaturesResources.Add_explicit_cast,
+                    c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                    context.Diagnostics);
+                }
+                else if (potentialConvTypes.Length > 1)
+                {
+                    var actions = new ArrayBuilder<CodeAction>();
+                    for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConvTypes.Length); i++)
+                    {
+                        var convType = potentialConvTypes[i];
+                        actions.Add(new MyCodeAction(string.Format(CSharpFeaturesResources.Convert_type_to_0, convType.ToDisplayString()),
+                            c => FixIt(context.Document, root, targetNode, convType, c)));
                     }
+
+                    //Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
+                    //    KeyValueLogMessage.Create(m =>
+                    //    {
+                    //        m["number_of_stuff"] = 5;
+                    //    }));
+
+                    context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
+                    CSharpFeaturesResources.Add_explicit_cast,
+                    actions.ToImmutableArray(), false),
+                    context.Diagnostics);
                 }
             }
         }
@@ -114,6 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             var nodeInfo = semanticModel.GetTypeInfo(targetNode, cancellationToken);
             nodeType = nodeInfo.Type;
             conversionType = nodeInfo.ConvertedType;
+            if (nodeType == null)
+            {
+                return false;
+            }
 
             var textSpan = targetNode.GetLocation().SourceSpan;
             if (TryGetNode(root, textSpan, SyntaxKind.Argument, targetNode, out var argumentNode) && argumentNode is ArgumentSyntax argument &&
@@ -133,12 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                         continue;
                     }
 
-                    var parameterList = methodSymbol.Parameters;
-                    if (parameterList.Length != argumentList.Arguments.Count)
-                    {
-                        continue;
-                    }
-
                     // Test if all parameters are convertible, otherwise it is not the perfect match function. For example:
                     // class Base { }
                     // class Derived1 : Base { }
@@ -152,25 +160,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     // *void DoSomething(string s, Derived2 d) { }* is not the perfect match candidate function for
                     // *DoSomething(1, [||]b)* because int and string are not ancestor-descendant relationship. Thus,
                     // Derived2 is not a potential conversion type
-                    var allValid = true;
-                    for (var i = 0; i < parameterList.Length; i++)
+                    if (IsArgumentListAndParameterListPerfactMatch(semanticModel, argumentList.Arguments, methodSymbol.Parameters, argument, cancellationToken, out var paramIndex))
                     {
-                        var argType = semanticModel.GetTypeInfo(argumentList.Arguments[i].Expression, cancellationToken);
-                        if (argType.Type == null || !semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameterList[i].Type).Exists)
-                        {
-                            allValid = false;
-                            break;
-                        }
-                    }
-
-                    if (allValid)
-                    {
-                        var targetArgumentIndex = argumentList.Arguments.IndexOf(argument);
-                        var correspondingParameter = parameterList[targetArgumentIndex];
+                        var correspondingParameter = methodSymbol.Parameters[paramIndex];
                         potentialConversionTypes.Add(correspondingParameter.Type);
                     }
                 }
-                potentialConvTypes = potentialConversionTypes.ToImmutableArray();
+
+                var comparer = new InheritanceDistanceComparer(semanticModel, nodeType);
+                potentialConversionTypes.Sort(comparer);
+                potentialConvTypes = potentialConversionTypes.Distinct().ToImmutableArray(); // may have duplicate types
                 // If there is no exact solution, then don't provide suggestions
                 if (potentialConversionTypes.Count != 1)
                 {
@@ -193,6 +192,105 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             }
             return commonConversion.Exists;
         }
+
+        private bool IsArgumentListAndParameterListPerfactMatch(SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> arguments,
+            ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax target, CancellationToken cancellationToken, out int paramIndex)
+        {
+            paramIndex = -1; // return invalid index if it is not a perfact match
+            if (parameters.Length < arguments.Count) // #paremeters is large than or equal to #arguments
+            {
+                return false;
+            }
+
+            var matchedTypes = new bool[parameters.Length]; // default value is false
+
+            // in order check 
+            for (var i = 0; i < arguments.Count; i++)
+            {
+                var nameSyntax = arguments[i].NameColon?.Name;
+                var argType = semanticModel.GetTypeInfo(arguments[i].Expression, cancellationToken);
+                if (nameSyntax != null)
+                {
+                    var name = nameSyntax.ToString();
+                    for (var j = 0; j < parameters.Length; j++)
+                    {
+                        if (name == parameters[j].Name && argType.Type != null &&
+                            semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[j].Type).Exists)
+                        {
+                            matchedTypes[j] = true;
+                            if (target.Equals(arguments[i]))
+                            {
+                                paramIndex = j;
+                            }
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    if (argType.Type == null || !semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[i].Type).Exists)
+                    {
+                        return false;
+                    }
+                    matchedTypes[i] = true;
+                    if (target.Equals(arguments[i]))
+                    {
+                        paramIndex = i;
+                    }
+                }
+            }
+
+            for (var i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i].IsOptional)
+                {
+                    matchedTypes[i] = true;
+                }
+            }
+
+            return Array.TrueForAll(matchedTypes, (item => item));
+        }
+
+        class InheritanceDistanceComparer : IComparer<ITypeSymbol>
+        {
+            private ITypeSymbol baseType;
+            private SemanticModel semanticModel;
+
+            private int GetInheritanceDistance(ITypeSymbol baseType, ITypeSymbol? derivedType)
+            {
+                if (derivedType == null) return int.MaxValue;
+                if (derivedType.Equals(baseType)) return 0;
+
+                var distance = int.MaxValue;
+                distance = Math.Min(GetInheritanceDistance(baseType, derivedType.BaseType), distance);
+
+                if (derivedType.Interfaces.Length != 0)
+                {
+                    foreach (var interface_type in derivedType.Interfaces)
+                    {
+                        distance = Math.Min(GetInheritanceDistance(baseType, interface_type), distance);
+                    }
+                }
+
+                return distance == int.MaxValue ? distance : distance + 1;
+            }
+            public int Compare(ITypeSymbol x, ITypeSymbol y)
+            {
+                var x_dist = semanticModel.Compilation.ClassifyCommonConversion(baseType, x).IsUserDefined ?
+                    0 : GetInheritanceDistance(baseType, x);
+                var y_dist = semanticModel.Compilation.ClassifyCommonConversion(baseType, y).IsUserDefined ?
+                    0 : GetInheritanceDistance(baseType, y);
+                return x_dist.CompareTo(y_dist);
+            }
+
+            public InheritanceDistanceComparer(SemanticModel semanticModel, ITypeSymbol baseType)
+            {
+                this.semanticModel = semanticModel;
+                this.baseType = baseType;
+            }
+        }
+
+        
 
 
         protected SyntaxNode? TryGetTargetNode(SyntaxNode root, TextSpan span)
@@ -234,7 +332,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     {
                         var castExpression = expression.Cast(conversionType);
 
-                        // TODO: castExpression.WithAdditionalAnnotations(Simplifier.Annotation) - the simplifier doesn't simplify the 
+                        // TODO: castExpression.WithAdditionalAnnotations(Simplifier.Annotation) 
+                        // - the Simplifier doesn't remove the redundant cast from the expression
+                        // Issue link: https://github.com/dotnet/roslyn/issues/41500
                         return currentRoot.ReplaceNode(expression, castExpression.WithAdditionalAnnotations(Simplifier.Annotation));
                     }
 

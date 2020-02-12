@@ -1551,5 +1551,41 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task OverloadedFunctionResolution1()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    class Derived2 : Derived { }
+    void doSomething(int i, string s, Derived d) { }
+    void doSomething(string s, int i, Derived2 d) { }
+	void doSomething(Derived2 d) { }
+
+    void Foo() {
+        Base b;
+        doSomething(d: [||]b, s:"""", i: 1);
+    }
+}",
+            @"
+class Program
+{
+    class Base { }
+    class Derived : Base { }
+    class Derived2 : Derived { }
+    void doSomething(int i, string s, Derived d) { }
+    void doSomething(string s, int i, Derived2 d) { }
+	void doSomething(Derived2 d) { }
+
+    void Foo() {
+        Base b;
+        doSomething(d: b, s:"""", i: 1);
+    }
+}");
+        }
     }
 }
