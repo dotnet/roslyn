@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         #endregion
 
-        internal override async Task<CodeAction> GetFixAsync(
+        private async Task<CodeAction> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             await Task.WhenAll(fixerTasks).ConfigureAwait(false);
         }
 
-        internal override async Task<CodeAction> GetFixAsync(
+        private async Task<CodeAction> GetFixAsync(
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public virtual string GetFixAllTitle(FixAllState fixAllState)
         {
-            return fixAllState.GetDefaultFixAllTitle();
+            return FixAllContextHelper.GetDefaultFixAllTitle(fixAllState.Scope, fixAllState.DiagnosticIds, fixAllState.Document, fixAllState.Project);
         }
 
         public virtual async Task<Solution> TryMergeFixesAsync(

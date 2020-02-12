@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return _list == other._list;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return (obj is SeparatedSyntaxList<TNode>) && Equals((SeparatedSyntaxList<TNode>)obj);
         }

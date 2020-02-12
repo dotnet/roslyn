@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Current_document">
         <source>Current document</source>
-        <target state="new">Current document</target>
+        <target state="translated">Documento actual</target>
         <note />
       </trans-unit>
       <trans-unit id="Editor_Color_Scheme">
@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="Entire_solution">
         <source>Entire solution</source>
-        <target state="new">Entire solution</target>
+        <target state="translated">Toda la solución</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -384,7 +384,7 @@
       </trans-unit>
       <trans-unit id="Open_documents">
         <source>Open documents</source>
-        <target state="new">Open documents</target>
+        <target state="translated">Abrir documentos</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">

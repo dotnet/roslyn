@@ -9,8 +9,9 @@
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <NoStdLib>true</NoStdLib>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
-
+    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">partial</ApplyNgenOptimization>
+    <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
+    
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Common</PackageId>
@@ -18,10 +19,6 @@
       A shared package used by the Microsoft .NET Compiler Platform ("Roslyn").
       Do not install this package manually, it will be added as a prerequisite by other packages that require it.
     </PackageDescription>
-
-    <!-- Disable the nullable warnings when compiling for netcoreapp3.1 during our transition period -->
-    <DisableNullableWarnings Condition="'$(TargetFramework)' == 'netcoreapp3.1'">true</DisableNullableWarnings>
-    <DisableNullableWarnings Condition="'$(TargetFramework)' == 'netstandard2.0'">false</DisableNullableWarnings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -49,6 +46,10 @@
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Need to include the PerformanceSensitiveAttribute definition in source build, since we can't get it from the analyzer package. -->
+    <Compile Remove="InternalUtilities\PerformanceSensitiveAttribute.cs" Condition="'$(DotNetBuildFromSource)' != 'true'" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp" />
