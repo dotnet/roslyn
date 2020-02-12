@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return (newParameters, GetSeparators(list, numSeparatorsToSkip));
         }
 
-        protected List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip = 0) where T : SyntaxNode
+        protected List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip) where T : SyntaxNode
         {
             var separators = new List<SyntaxToken>();
 
