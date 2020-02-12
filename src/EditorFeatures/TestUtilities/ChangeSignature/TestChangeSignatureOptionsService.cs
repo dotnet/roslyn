@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             ParameterConfiguration parameters)
         {
             var list = parameters.ToListOfParameters();
-            IEnumerable<Parameter?> updateParameters = UpdatedSignature != null
+            IEnumerable<Parameter> updateParameters = UpdatedSignature != null
                 ? UpdatedSignature.Select(item => item.IsExisting ? list[item.OldIndex ?? -1] : item.GetAddedParameter(document))
                 : new Parameter?[0]!;
             return new ChangeSignatureOptionsResult(new SignatureChange(

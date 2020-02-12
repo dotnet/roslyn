@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SelectedIndex = selectedIndex;
         }
 
-        public static ParameterConfiguration Create(IEnumerable<Parameter?> parameters, bool isExtensionMethod, int selectedIndex)
+        public static ParameterConfiguration Create(IEnumerable<Parameter> parameters, bool isExtensionMethod, int selectedIndex)
         {
-            var parametersList = parameters.ToList();
+            var parametersList = parameters.ToList()!;
             ExistingParameter? thisParameter = null;
             var parametersWithoutDefaultValues = ImmutableArray.CreateBuilder<Parameter>();
             var remainingReorderableParameters = ImmutableArray.CreateBuilder<Parameter>();
@@ -42,28 +42,27 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             if (parametersList.Count > 0 && isExtensionMethod)
             {
-                thisParameter = parametersList[0] as ExistingParameter;
+                // Extension method `this` parameters cannot be added, so must be pre-existing.
+                thisParameter = (ExistingParameter)parametersList[0];
                 parametersList.RemoveAt(0);
             }
 
             if (parametersList.Count > 0 && (parametersList[parametersList.Count - 1] as ExistingParameter)?.Symbol.IsParams == true)
             {
-                paramsParameter = parametersList[parametersList.Count - 1] as ExistingParameter;
+                // Params arrays cannot be added, so must be pre-existing.
+                paramsParameter = (ExistingParameter)parametersList[parametersList.Count - 1];
                 parametersList.RemoveAt(parametersList.Count - 1);
             }
 
             var seenDefaultValues = false;
             foreach (var param in parametersList)
             {
-                if (param != null)
+                if (param.HasExplicitDefaultValue)
                 {
-                    if (param.HasExplicitDefaultValue)
-                    {
-                        seenDefaultValues = true;
-                    }
-
-                    (seenDefaultValues ? remainingReorderableParameters : parametersWithoutDefaultValues).Add(param);
+                    seenDefaultValues = true;
                 }
+
+                (seenDefaultValues ? remainingReorderableParameters : parametersWithoutDefaultValues).Add(param);
             }
 
             return new ParameterConfiguration(thisParameter, parametersWithoutDefaultValues.ToImmutable(), remainingReorderableParameters.ToImmutable(), paramsParameter, selectedIndex);

@@ -27,17 +27,19 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     {
         public AddedParameter(
             ITypeSymbol type,
-            string typeNameDisplayWithErrorIndicator,
+            string typeName,
             string name,
             string callSiteValue,
             bool isRequired = true,
             string defaultValue = "",
             bool useNamedArguments = false,
             bool isCallsiteOmitted = false,
-            bool isCallsiteError = false)
+            bool isCallsiteError = false,
+            bool typeBinds = true)
         {
             Type = type;
-            TypeNameDisplayWithErrorIndicator = typeNameDisplayWithErrorIndicator;
+            TypeBinds = typeBinds;
+            TypeName = typeName;
             Name = name;
             CallSiteValue = callSiteValue;
 
@@ -64,16 +66,16 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public override string Name { get; }
         public override bool HasExplicitDefaultValue => !string.IsNullOrWhiteSpace(DefaultValue);
 
-        public ITypeSymbol Type { get; set; }
-        public string CallSiteValue { get; set; }
+        public ITypeSymbol Type { get; }
+        public string TypeName { get; }
+        public bool TypeBinds { get; }
+        public string CallSiteValue { get; }
 
-        public bool IsRequired { get; set; }
-        public string DefaultValue { get; set; }
+        public bool IsRequired { get; }
+        public string DefaultValue { get; }
         public bool UseNamedArguments { get; }
-        public bool IsCallsiteOmitted { get; set; }
-        public bool IsCallsiteError { get; set; }
-
-        public string TypeNameDisplayWithErrorIndicator { get; set; }
+        public bool IsCallsiteOmitted { get; }
+        public bool IsCallsiteError { get; }
 
         // For test purposes: to display assert failure details in tests.
         public override string ToString() => $"{Type.ToDisplayString(new SymbolDisplayFormat(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters))} {Name} ({CallSiteValue})";

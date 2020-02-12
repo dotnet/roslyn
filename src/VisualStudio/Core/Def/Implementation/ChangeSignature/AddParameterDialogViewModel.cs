@@ -52,9 +52,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             get
             {
-                return (TypeSymbol!.IsErrorType() ? "(x) " : "") + TypeSymbol!.ToDisplayString(_symbolDisplayFormat);
+                return TypeSymbol!.ToDisplayString(_symbolDisplayFormat);
             }
         }
+
+        public bool TypeBinds => !TypeSymbol!.IsErrorType();
 
         public bool IsRequired { get; internal set; }
         public string DefaultValue { get; internal set; }

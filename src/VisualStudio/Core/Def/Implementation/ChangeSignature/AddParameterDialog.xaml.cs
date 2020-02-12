@@ -37,8 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public AddParameterDialog(AddParameterDialogViewModel viewModel)
         {
-            // The current implementation supports Add only.
-            // The dialog should be initialized the other way if called for Edit.
             _viewModel = viewModel;
             _document = viewModel.Document;
             this.Loaded += AddParameterDialog_Loaded;
