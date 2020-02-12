@@ -477,6 +477,7 @@ struct Program
         }
 
 #if !CODE_STYLE // Tests depending on product code which need new nullable APIs are disabled for Code Style layer
+        // https://github.com/dotnet/roslyn/issues/41462 tracks enabling these tests for Code Style layer
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]

@@ -23,7 +23,4 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\AbstractRemoveUnusedMembersDiagnosticAnalyzer.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\" />
-  </ItemGroup>
 </Project>

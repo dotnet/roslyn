@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 #if CODE_STYLE
 using FormatterState = Microsoft.CodeAnalysis.Formatting.ISyntaxFormattingService;
-using Formatter = Microsoft.CodeAnalysis.CodeStyle.Formatting.Formatter;
+using Formatter = Microsoft.CodeAnalysis.Internal.Formatting.Formatter;
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #else
 using Microsoft.CodeAnalysis.Options;
