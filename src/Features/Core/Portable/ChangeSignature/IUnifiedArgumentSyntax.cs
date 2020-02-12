@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         bool IsDefault { get; }
         bool IsNamed { get; }
         string GetName();
+        int Index { get; }
         IUnifiedArgumentSyntax WithName(string name);
         IUnifiedArgumentSyntax WithAdditionalAnnotations(SyntaxAnnotation annotation);
     }

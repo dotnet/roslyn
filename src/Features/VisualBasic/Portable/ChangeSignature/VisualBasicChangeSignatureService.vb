@@ -313,13 +313,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             If vbnode.IsKind(SyntaxKind.RaiseEventStatement) Then
                 Dim raiseEventStatement = DirectCast(vbnode, RaiseEventStatementSyntax)
-                Dim updatedArguments = PermuteArgumentList(raiseEventStatement.ArgumentList.Arguments, updatedSignature, document, declarationSymbol)
+                Dim updatedArguments = PermuteArgumentList(raiseEventStatement.ArgumentList.Arguments, updatedSignature, declarationSymbol)
                 Return raiseEventStatement.WithArgumentList(raiseEventStatement.ArgumentList.WithArguments(updatedArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
             If vbnode.IsKind(SyntaxKind.InvocationExpression) Then
                 Dim invocation = DirectCast(vbnode, InvocationExpressionSyntax)
-                Dim semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken)
 
                 Dim isReducedExtensionMethod = False
                 Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, InvocationExpressionSyntax))
@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod = True
                 End If
 
-                Dim newArguments = PermuteArgumentList(invocation.ArgumentList.Arguments, updatedSignature, document, declarationSymbol, isReducedExtensionMethod)
+                Dim newArguments = PermuteArgumentList(invocation.ArgumentList.Arguments, updatedSignature, declarationSymbol, isReducedExtensionMethod)
                 Return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -340,13 +340,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             If vbnode.IsKind(SyntaxKind.Attribute) Then
                 Dim attribute = DirectCast(vbnode, AttributeSyntax)
-                Dim newArguments = PermuteArgumentList(attribute.ArgumentList.Arguments, updatedSignature, document, declarationSymbol)
+                Dim newArguments = PermuteArgumentList(attribute.ArgumentList.Arguments, updatedSignature, declarationSymbol)
                 Return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
             If vbnode.IsKind(SyntaxKind.ObjectCreationExpression) Then
                 Dim objectCreation = DirectCast(vbnode, ObjectCreationExpressionSyntax)
-                Dim newArguments = PermuteArgumentList(objectCreation.ArgumentList.Arguments, updatedSignature, document, declarationSymbol)
+                Dim newArguments = PermuteArgumentList(objectCreation.ArgumentList.Arguments, updatedSignature, declarationSymbol)
                 Return objectCreation.WithArgumentList(objectCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -409,29 +409,68 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         Private Function PermuteArgumentList(
             arguments As SeparatedSyntaxList(Of ArgumentSyntax),
             permutedSignature As SignatureChange,
-            document As Document,
             declarationSymbol As ISymbol,
             Optional isReducedExtensionMethod As Boolean = False) As SeparatedSyntaxList(Of ArgumentSyntax)
+            Dim originalArguments = arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a, arguments.IndexOf(a))).ToList()
+            Dim permutedArguments = PermuteArguments(declarationSymbol, originalArguments, permutedSignature, isReducedExtensionMethod)
 
-            Dim newArguments As List(Of IUnifiedArgumentSyntax) = MyBase.PermuteArguments(declarationSymbol, arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a)).ToList(), permutedSignature, isReducedExtensionMethod)
+            ' TO-DO
 
-            Dim numSeparatorsToSkip = arguments.Count - newArguments.Count
-            Return SyntaxFactory.SeparatedList(newArguments.Select(Function(a) CType(DirectCast(a, UnifiedArgumentSyntax), ArgumentSyntax)), GetSeparators(arguments, numSeparatorsToSkip))
+            Dim numSeparatorsToSkip = arguments.Count - permutedArguments.Count
+            Return SyntaxFactory.SeparatedList(permutedArguments.Select(Function(a) CType(DirectCast(a, UnifiedArgumentSyntax), ArgumentSyntax)), GetSeparators(arguments, numSeparatorsToSkip))
         End Function
 
         Private Function PermuteDeclaration(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T), updatedSignature As SignatureChange) As SeparatedSyntaxList(Of T)
             Dim originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters()
             Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
 
-            Dim newParameters = New List(Of T)
-            For Each newParam In reorderedParameters
-                Dim pos = originalParameters.IndexOf(newParam)
-                Dim param = list(pos)
-                newParameters.Add(param)
+            Dim newParameters = New List(Of T)()
+            Dim newSeparators = New SyntaxToken(list.Count - 1) {}
+            For newIndex = 0 To reorderedParameters.Count - 1
+                Dim newParamSymbol = reorderedParameters(newIndex)
+                Dim originalIndex = originalParameters.IndexOf(newParamSymbol)
+                Dim newParamNode = list(originalIndex)
+
+                ' Copy whitespace trivia from original position.
+                newParamNode = TransferLeadingTrivia(newParamNode, list(newIndex))
+                newParameters.Add(newParamNode)
+
+                ' Update separator trivia
+                newSeparators(newIndex) = TransferSeparatorTrivia(list, originalIndex, newIndex)
             Next
 
-            Dim numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count
-            Return SyntaxFactory.SeparatedList(newParameters, GetSeparators(list, numSeparatorsToSkip))
+            Return SyntaxFactory.SeparatedList(newParameters, newSeparators.ToList().GetRange(0, If(reorderedParameters.Count = 0, 0, reorderedParameters.Count - 1)))
+        End Function
+
+        Private Shared Function TransferSeparatorTrivia(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T), originalIndex As Integer, newIndex As Integer) As SyntaxToken
+            Dim originalSeparator = If(originalIndex = list.Count - 1, Nothing, list.GetSeparator(originalIndex))
+            Dim newSeparator = If(newIndex = list.Count - 1, Nothing, list.GetSeparator(newIndex))
+
+            ' If the associated node is not switching positions, we don't need to do any work.
+            If originalIndex = newIndex Then
+                Return newSeparator
+            End If
+
+            ' Case 1: The current node in the updated configuration is the last parameter.
+            ' Append comments from the original separator to after the closing parentheses.
+            If newSeparator = Nothing Then
+
+            End If
+
+            ' Transfer comment, if any any, from the original separator to new separator.
+            Dim commentToTransfer = From trivia In originalSeparator.TrailingTrivia Where trivia.IsKind(SyntaxKind.CommentTrivia)
+            If Not commentToTransfer.IsEmpty() Then
+                ' Remove existing comment (if any) from existing separator, as it later will be moved to the correct separator in other iterations of the loop.
+                newSeparator = newSeparator.WithTrailingTrivia(From trivia In originalSeparator.TrailingTrivia Where Not trivia.IsKind(SyntaxKind.CommentTrivia))
+                newSeparator = newSeparator.WithTrailingTrivia(commentToTransfer.Concat(newSeparator.TrailingTrivia))
+            End If
+
+            Return newSeparator
+        End Function
+
+        Private Shared Function TransferLeadingTrivia(Of T As SyntaxNode)(newArgument As T, oldArgument As SyntaxNode) As T
+            Dim oldTrivia = oldArgument.GetLeadingTrivia()
+            Return newArgument.WithLeadingTrivia(oldTrivia)
         End Function
 
         Private Function UpdateParamNodesInLeadingTrivia(node As VisualBasicSyntaxNode, declarationSymbol As ISymbol, updatedSignature As SignatureChange) As List(Of SyntaxTrivia)
