@@ -5629,8 +5629,8 @@ class C
         getDefault<string>().ToString(); // 1
         getDefault<string?>().ToString(); // 2
         getDefault<int>().ToString();
-        getDefault<int?>().ToString();
-        getDefault<TOuter>().ToString(); // 3
+        getDefault<int?>().Value.ToString(); // 3
+        getDefault<TOuter>().ToString(); // 4
 
         [return: MaybeNull] T getDefault<T>() => default(T);
     }
@@ -5644,9 +5644,41 @@ class C
                 // (11,9): warning CS8602: Dereference of a possibly null reference.
                 //         getDefault<string?>().ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "getDefault<string?>()").WithLocation(11, 9),
+                // (13,9): warning CS8629: Nullable value type may be null.
+                //         getDefault<int?>().Value.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "getDefault<int?>()").WithLocation(13, 9),
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
-                //         getDefault<TOuter>().ToString(); // 3
+                //         getDefault<TOuter>().ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "getDefault<TOuter>()").WithLocation(14, 9));
+        }
+
+        [Fact]
+        public void LocalFunction_Nullable_CheckUsage_DoesNotUsePostconditions()
+        {
+            var source = @"
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    void M()
+    {
+        var s0 = ""hello"";
+
+        local1(out s0);
+
+        bool local1([MaybeNullWhen(false)] out string s1)
+        {
+            s0.ToString();
+            s1 = ""world"";
+            return true;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { MaybeNullWhenAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

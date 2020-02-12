@@ -3477,10 +3477,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we analyze even omitted calls
             TypeWithState receiverType = VisitCallReceiver(node);
             ReinferMethodAndVisitArguments(node, receiverType);
-            if (node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
-            {
-                VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
-            }
             return null;
         }
 
@@ -3915,6 +3911,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+            }
+
+            if (node is BoundCall { Method: { OriginalDefinition: LocalFunctionSymbol localFunction } })
+            {
+                VisitLocalFunctionUse(localFunction, node.Syntax, isCall: true);
             }
 
             if (!node.HasErrors && !parametersOpt.IsDefault)
