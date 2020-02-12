@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
@@ -109,7 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
             string propertyName, bool nameChanged)
         {
-            var getMethodDeclaration = getAndSetMethods.GetMethodDeclaration as MethodDeclarationSyntax;
+            var getMethodDeclaration = (MethodDeclarationSyntax)getAndSetMethods.GetMethodDeclaration;
+            var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration as MethodDeclarationSyntax;
             var getAccessor = CreateGetAccessor(getAndSetMethods, documentOptions, parseOptions);
             var setAccessor = CreateSetAccessor(semanticModel, generator, getAndSetMethods, documentOptions, parseOptions);
 
@@ -124,6 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 getMethodDeclaration.AttributeLists, getMethodDeclaration.Modifiers,
                 getMethodDeclaration.ReturnType, getMethodDeclaration.ExplicitInterfaceSpecifier,
                 nameToken, accessorList: null);
+
+            // copy 'unsafe' from the set method, if it hasn't been already copied from the get method
+            if (setMethodDeclaration?.Modifiers.Any(SyntaxKind.UnsafeKeyword) == true
+                && !property.Modifiers.Any(SyntaxKind.UnsafeKeyword))
+            {
+                property = property.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+            }
 
             property = SetLeadingTrivia(
                 CSharpSyntaxFactsService.Instance, getAndSetMethods, property);

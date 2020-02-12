@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -399,7 +401,7 @@ namespace Microsoft.CodeAnalysis
         public virtual ImmutableDictionary<string, string> Properties
             => ImmutableDictionary<string, string>.Empty;
 
-        string IFormattable.ToString(string ignored, IFormatProvider formatProvider)
+        string IFormattable.ToString(string? ignored, IFormatProvider? formatProvider)
         {
             return DiagnosticFormatter.Instance.Format(this, formatProvider);
         }
@@ -409,7 +411,7 @@ namespace Microsoft.CodeAnalysis
             return DiagnosticFormatter.Instance.Format(this, CultureInfo.CurrentUICulture);
         }
 
-        public abstract override bool Equals(object obj);
+        public abstract override bool Equals(object? obj);
 
         public abstract override int GetHashCode();
 
@@ -592,7 +594,7 @@ namespace Microsoft.CodeAnalysis
     {
         public abstract override string ToString();
 
-        string IFormattable.ToString(string format, IFormatProvider formatProvider)
+        string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
         {
             return ToString();
         }

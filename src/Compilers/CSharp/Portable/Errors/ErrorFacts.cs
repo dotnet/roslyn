@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -42,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
             builder.Add(getId(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment));
+            builder.Add(getId(ErrorCode.WRN_ParameterConditionallyDisallowsNull));
+            builder.Add(getId(ErrorCode.WRN_ShouldNotReturn));
 
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));
@@ -59,6 +63,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation));
             builder.Add(getId(ErrorCode.WRN_NullReferenceInitializer));
+            builder.Add(getId(ErrorCode.WRN_ShouldNotReturn));
+            builder.Add(getId(ErrorCode.WRN_DoesNotReturnMismatch));
+            builder.Add(getId(ErrorCode.WRN_ParameterConditionallyDisallowsNull));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes));
 
             NullableWarnings = builder.ToImmutable();
 
@@ -421,11 +434,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                 case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
+                case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
                 case ErrorCode.WRN_NullReferenceInitializer:
+                case ErrorCode.WRN_ShouldNotReturn:
+                case ErrorCode.WRN_DoesNotReturnMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
                     return 1;
                 default:
                     return 0;
             }
+            // Note: when adding a warning here, consider whether it should be registered as a nullability warning too
         }
 
         /// <summary>

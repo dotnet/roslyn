@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,7 @@ using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -132,6 +135,7 @@ End Class";
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         [WorkItem(26178, "https://github.com/dotnet/roslyn/pull/26178")]
+        [Obsolete("Razor only")]
         public async Task TestCancellationOnSessionWithSolution()
         {
             var code = @"class Test { void Method() { } }";
@@ -162,7 +166,6 @@ End Class";
         var t = new Test();
     }
 }";
-
             using (var workspace = CreateWorkspace(LanguageNames.CSharp, code))
             {
                 var analyzerType = typeof(CSharpUseExplicitTypeDiagnosticAnalyzer);
@@ -179,8 +182,8 @@ End Class";
                 Assert.True(await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    new[] { new Checksum[] { asset.Checksum } },
                     workspace.CurrentSolution,
+                    new[] { new Checksum[] { asset.Checksum } },
                     callbackTarget: null,
                     CancellationToken.None));
 
@@ -191,17 +194,18 @@ End Class";
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First();
 
-                var executor = new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(owner: null, hostDiagnosticUpdateSource: new MyUpdateSource(workspace));
-                var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
+                var runner = CreateAnalyzerRunner(workspace);
+
+                var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
                         analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                         new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
                 // no result for open file only analyzer unless forced
-                var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
+                var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
                 Assert.Empty(result.AnalysisResult);
 
-                result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: true, cancellationToken: CancellationToken.None);
-                var analyzerResult = result.AnalysisResult[analyzerDriver.Analyzers[0]];
+                result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: true, cancellationToken: CancellationToken.None);
+                var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
 
                 // check result
                 var diagnostics = analyzerResult.GetDocumentDiagnostics(analyzerResult.DocumentIds.First(), AnalysisKind.Semantic);
@@ -236,22 +240,22 @@ End Class";
                 Assert.True(await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    new[] { new Checksum[] { asset.Checksum } },
                     workspace.CurrentSolution,
+                    new[] { new Checksum[] { asset.Checksum } },
                     callbackTarget: null,
                     cancellationToken: CancellationToken.None));
 
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(analyzerReference);
 
-                var executor = new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(owner: null, hostDiagnosticUpdateSource: new MyUpdateSource(workspace));
-                var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
+                var runner = CreateAnalyzerRunner(workspace);
+                var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
                         analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                         new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
-                var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
+                var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
 
-                var analyzerResult = result.AnalysisResult[analyzerDriver.Analyzers[0]];
+                var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
 
                 // check result
                 var diagnostics = analyzerResult.GetDocumentDiagnostics(analyzerResult.DocumentIds.First(), AnalysisKind.Syntax);
@@ -259,9 +263,15 @@ End Class";
             }
         }
 
-        private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, CancellationToken cancellationToken = default(CancellationToken))
+        private static DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner(Workspace workspace)
         {
-            var executor = new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(owner: null, hostDiagnosticUpdateSource: new MyUpdateSource(workspace));
+            var infoCache = new DiagnosticAnalyzerInfoCache(ImmutableArray<AnalyzerReference>.Empty);
+            return new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(AsynchronousOperationListenerProvider.NullListener, infoCache, hostDiagnosticUpdateSource: new MyUpdateSource(workspace));
+        }
+
+        private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, CancellationToken cancellationToken = default)
+        {
+            var executor = CreateAnalyzerRunner(workspace);
 
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
             var project = workspace.CurrentSolution.GetProject(projectId).AddAnalyzerReference(analyzerReference);
@@ -361,7 +371,7 @@ End Class";
                 => throw new NotImplementedException();
 
             public override Task<T> InvokeAsync<T>(
-                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
                 => throw new NotImplementedException();
         }
     }

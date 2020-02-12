@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -372,8 +375,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 }
 
                 var addImportService = document.GetLanguageService<IAddImportsService>();
+                var generator = SyntaxGenerator.GetGenerator(document);
                 var newRoot = addImportService.AddImports(
-                    semanticModel.Compilation, root, contextNode, newImports, placeSystemNamespaceFirst, cancellationToken);
+                    semanticModel.Compilation, root, contextNode, newImports, generator, placeSystemNamespaceFirst, cancellationToken);
                 return (CompilationUnitSyntax)newRoot;
             }
             finally
@@ -393,8 +397,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var service = document.GetLanguageService<IAddImportsService>();
+            var generator = SyntaxGenerator.GetGenerator(document);
             var newRoot = service.AddImport(
-                compilation, root, contextNode, usingDirective, placeSystemNamespaceFirst, cancellationToken);
+                compilation, root, contextNode, usingDirective, generator, placeSystemNamespaceFirst, cancellationToken);
 
             return document.WithSyntaxRoot(newRoot);
         }
@@ -437,6 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             SyntaxNode contextNode)
         {
             var addImportService = document.GetLanguageService<IAddImportsService>();
+            var generator = SyntaxGenerator.GetGenerator(document);
 
             var nameSyntax = namespaceOrTypeSymbol.GenerateNameSyntax();
 
@@ -482,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 ? usingDirective
                 : usingDirective.WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
 
-            return (usingDirective, addImportService.HasExistingImport(semanticModel.Compilation, root, contextNode, usingDirective));
+            return (usingDirective, addImportService.HasExistingImport(semanticModel.Compilation, root, contextNode, usingDirective, generator));
         }
 
         private NameSyntax RemoveGlobalAliasIfUnnecessary(

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -164,8 +166,13 @@ namespace Microsoft.CodeAnalysis
         private static bool IsDefaultImmutableArray(Object o)
         {
             var ti = o.GetType().GetTypeInfo();
-            return ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>) &&
-                (bool)ti.GetDeclaredMethod("get_IsDefault").Invoke(o, Array.Empty<object>());
+            if (ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>))
+            {
+                var result = ti?.GetDeclaredMethod("get_IsDefault")?.Invoke(o, Array.Empty<object>());
+                return result is bool b && b;
+            }
+
+            return false;
         }
 
         protected virtual string DumperString(object o)
@@ -198,7 +205,7 @@ namespace Microsoft.CodeAnalysis
                 return symbol.ToDisplayString(SymbolDisplayFormat.TestFormat);
             }
 
-            return o.ToString();
+            return o.ToString() ?? "";
         }
     }
 

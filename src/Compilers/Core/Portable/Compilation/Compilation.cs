@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -973,7 +975,7 @@ namespace Microsoft.CodeAnalysis
         public INamedTypeSymbol CreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string?> elementNames = default,
-            ImmutableArray<Location> elementLocations = default,
+            ImmutableArray<Location?> elementLocations = default,
             ImmutableArray<NullableAnnotation> elementNullableAnnotations = default)
         {
             if (elementTypes.IsDefault)
@@ -1015,7 +1017,7 @@ namespace Microsoft.CodeAnalysis
         public INamedTypeSymbol CreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string?> elementNames,
-            ImmutableArray<Location> elementLocations)
+            ImmutableArray<Location?> elementLocations)
         {
             return CreateTupleTypeSymbol(elementTypes, elementNames, elementLocations, elementNullableAnnotations: default);
         }
@@ -1065,7 +1067,7 @@ namespace Microsoft.CodeAnalysis
 
         protected static void CheckTupleElementLocations(
             int cardinality,
-            ImmutableArray<Location> elementLocations)
+            ImmutableArray<Location?> elementLocations)
         {
             if (!elementLocations.IsDefault)
             {
@@ -1079,7 +1081,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string?> elementNames,
-            ImmutableArray<Location> elementLocations,
+            ImmutableArray<Location?> elementLocations,
             ImmutableArray<NullableAnnotation> elementNullableAnnotations);
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -1091,7 +1093,7 @@ namespace Microsoft.CodeAnalysis
         public INamedTypeSymbol CreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
             ImmutableArray<string?> elementNames = default,
-            ImmutableArray<Location> elementLocations = default,
+            ImmutableArray<Location?> elementLocations = default,
             ImmutableArray<NullableAnnotation> elementNullableAnnotations = default)
         {
             if ((object)underlyingType == null)
@@ -1111,7 +1113,7 @@ namespace Microsoft.CodeAnalysis
         public INamedTypeSymbol CreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
             ImmutableArray<string?> elementNames,
-            ImmutableArray<Location> elementLocations)
+            ImmutableArray<Location?> elementLocations)
         {
             return CreateTupleTypeSymbol(underlyingType, elementNames, elementLocations, elementNullableAnnotations: default);
         }
@@ -1119,7 +1121,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
             ImmutableArray<string?> elementNames,
-            ImmutableArray<Location> elementLocations,
+            ImmutableArray<Location?> elementLocations,
             ImmutableArray<NullableAnnotation> elementNullableAnnotations);
 
         /// <summary>
@@ -2801,12 +2803,12 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Cci.PeWritingException e)
                 {
-                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.InnerException.ToString()));
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.InnerException?.ToString() ?? ""));
                     return false;
                 }
                 catch (ResourceException e)
                 {
-                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_CantReadResource, Location.None, e.Message, e.InnerException.Message));
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_CantReadResource, Location.None, e.Message, e.InnerException?.Message ?? ""));
                     return false;
                 }
                 catch (PermissionSetFileReadException e)
@@ -2965,7 +2967,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Cci.PeWritingException e)
                 {
-                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.InnerException.ToString()));
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.InnerException?.ToString() ?? ""));
                     return null;
                 }
                 catch (PermissionSetFileReadException e)
@@ -2978,7 +2980,7 @@ namespace Microsoft.CodeAnalysis
 
         internal string? Feature(string p)
         {
-            string v;
+            string? v;
             return _features.TryGetValue(p, out v) ? v : null;
         }
 
@@ -3018,7 +3020,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            SmallConcurrentSetOfInts usedImports;
+            SmallConcurrentSetOfInts? usedImports;
             return syntaxTree != null &&
                 TreeToUsedImportDirectivesMap.TryGetValue(syntaxTree, out usedImports) &&
                 usedImports.Contains(position);

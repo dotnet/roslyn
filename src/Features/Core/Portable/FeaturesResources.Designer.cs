@@ -975,29 +975,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Code Quality.
-        /// </summary>
-        internal static string Code_Quality {
-            get {
-                return ResourceManager.GetString("Code_Quality", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Collection initialization can be simplified.
         /// </summary>
         internal static string Collection_initialization_can_be_simplified {
             get {
                 return ResourceManager.GetString("Collection_initialization_can_be_simplified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Compiler.
-        /// </summary>
-        internal static string Compiler1 {
-            get {
-                return ResourceManager.GetString("Compiler1", resourceCulture);
             }
         }
         
@@ -3828,15 +3810,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Style.
-        /// </summary>
-        internal static string Style {
-            get {
-                return ResourceManager.GetString("Style", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Summary:.
         /// </summary>
         internal static string Summary_colon {
@@ -4803,6 +4776,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string using_statement_can_be_simplified {
             get {
                 return ResourceManager.GetString("using_statement_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value:.
+        /// </summary>
+        internal static string Value_colon {
+            get {
+                return ResourceManager.GetString("Value_colon", resourceCulture);
             }
         }
         

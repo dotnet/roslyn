@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -154,6 +155,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Gets a binder for a node that must be not null, and asserts
+        /// if it is not.
+        /// </summary>
+        internal Binder GetRequiredBinder(SyntaxNode node)
+        {
+            var binder = GetBinder(node);
+            RoslynDebug.Assert(binder is object);
+            return binder;
+        }
+
+        /// <summary>
         /// Get locals declared immediately in scope designated by the node.
         /// </summary>
         internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
@@ -223,14 +235,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool AreNullableAnnotationsEnabled(SyntaxTree syntaxTree, int position)
         {
-            bool? fromTree = ((CSharpSyntaxTree)syntaxTree).GetNullableContextState(position).AnnotationsState;
+            Syntax.NullableContextState context = ((CSharpSyntaxTree)syntaxTree).GetNullableContextState(position);
 
-            if (fromTree != null)
+            return context.AnnotationsState switch
             {
-                return fromTree.GetValueOrDefault();
-            }
-
-            return AreNullableAnnotationsGloballyEnabled();
+                Syntax.NullableContextState.State.Enabled => true,
+                Syntax.NullableContextState.State.Disabled => false,
+                Syntax.NullableContextState.State.ExplicitlyRestored => GetGlobalAnnotationState(),
+                Syntax.NullableContextState.State.Unknown => AreNullableAnnotationsGloballyEnabled(),
+                _ => throw ExceptionUtilities.UnexpectedValue(context.AnnotationsState)
+            };
         }
 
         internal bool AreNullableAnnotationsEnabled(SyntaxToken token)
@@ -243,6 +257,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             RoslynDebug.Assert(Next is object);
             return Next.AreNullableAnnotationsGloballyEnabled();
+        }
+
+        protected bool GetGlobalAnnotationState()
+        {
+            switch (Compilation.Options.NullableContextOptions)
+            {
+                case NullableContextOptions.Enable:
+                case NullableContextOptions.Annotations:
+                    return true;
+
+                case NullableContextOptions.Disable:
+                case NullableContextOptions.Warnings:
+                    return false;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(Compilation.Options.NullableContextOptions);
+            }
         }
 
         /// <summary>
@@ -510,12 +541,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static void Error(DiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax)
         {
-            Error(diagnostics, code, syntax.GetLocation());
+            var location = syntax.GetLocation();
+            RoslynDebug.Assert(location is object);
+            Error(diagnostics, code, location);
         }
 
         internal static void Error(DiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)
         {
-            Error(diagnostics, code, syntax.GetLocation(), args);
+            var location = syntax.GetLocation();
+            RoslynDebug.Assert(location is object);
+            Error(diagnostics, code, location, args);
         }
 
         internal static void Error(DiagnosticBag diagnostics, ErrorCode code, Location location)
@@ -650,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsSymbolAccessibleConditional(
             Symbol symbol,
             AssemblySymbol within,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             return AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics);
         }
@@ -658,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsSymbolAccessibleConditional(
             Symbol symbol,
             NamedTypeSymbol within,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref HashSet<DiagnosticInfo>? useSiteDiagnostics,
             TypeSymbol? throughTypeOpt = null)
         {
             return this.Flags.Includes(BinderFlags.IgnoreAccessibility) || AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics, throughTypeOpt);
@@ -669,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol within,
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref HashSet<DiagnosticInfo>? useSiteDiagnostics,
             ConsList<TypeSymbol>? basesBeingResolved = null)
         {
             if (this.Flags.Includes(BinderFlags.IgnoreAccessibility))

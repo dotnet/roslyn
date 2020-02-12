@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -61,7 +63,7 @@ namespace Roslyn.Utilities
                         var reference = metadataReader.GetAssemblyReference(handle);
                         var referenceName = metadataReader.GetString(reference.Name);
 
-                        string referencePath = Path.Combine(directory, referenceName + ".dll");
+                        string referencePath = Path.Combine(directory!, referenceName + ".dll");
 
                         if (!assemblySet.Contains(referencePath) &&
                             File.Exists(referencePath))
@@ -109,7 +111,7 @@ namespace Roslyn.Utilities
 
             var builder = ImmutableArray.CreateBuilder<string>();
 
-            string directory = Path.GetDirectoryName(filePath);
+            string? directory = Path.GetDirectoryName(filePath);
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
             string resourcesNameWithoutExtension = fileNameWithoutExtension + ".resources";
             string resourcesNameWithExtension = resourcesNameWithoutExtension + ".dll";
