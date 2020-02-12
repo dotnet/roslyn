@@ -152,20 +152,20 @@ namespace Roslyn.Utilities
             return null;
         }
 
-        internal static bool IsSameDirectoryOrChildOf([DisallowNull]string? child, string parent)
+        internal static bool IsSameDirectoryOrChildOf(string child, string parent)
         {
             parent = RemoveTrailingDirectorySeparator(parent);
-
-            while (child != null)
+            string? currentChild = child;
+            while (currentChild != null)
             {
-                child = RemoveTrailingDirectorySeparator(child);
+                currentChild = RemoveTrailingDirectorySeparator(currentChild);
 
-                if (child.Equals(parent, StringComparison.OrdinalIgnoreCase))
+                if (currentChild.Equals(parent, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
 
-                child = GetDirectoryName(child);
+                currentChild = GetDirectoryName(currentChild);
             }
 
             return false;
@@ -174,6 +174,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Gets the root part of the path.
         /// </summary>
+        [return: NotNullIfNotNull(parameterName: "path")]
         public static string? GetPathRoot(string? path)
         {
             return GetPathRoot(path, IsUnixLikePlatform);
@@ -342,7 +343,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// True if the path is an absolute path (rooted to drive or network share)
         /// </summary>
-        public static bool IsAbsolute([NotNullWhen(returnValue: true)] string? path)
+        public static bool IsAbsolute([NotNullWhen(true)] string? path)
         {
             if (RoslynString.IsNullOrEmpty(path))
             {
@@ -389,11 +390,11 @@ namespace Roslyn.Utilities
         /// or relative to a drive directory (e.g. "C:abc\def").
         /// </returns>
         /// <seealso cref="CombinePossiblyRelativeAndRelativePaths"/>
-        public static string CombineAbsoluteAndRelativePaths(string root, string relativePath)
+        public static string? CombineAbsoluteAndRelativePaths(string root, string relativePath)
         {
             Debug.Assert(IsAbsolute(root));
 
-            return CombinePossiblyRelativeAndRelativePaths(root, relativePath)!;
+            return CombinePossiblyRelativeAndRelativePaths(root, relativePath);
         }
 
         /// <summary>
@@ -421,7 +422,7 @@ namespace Roslyn.Utilities
                     return null;
             }
 
-            return CombinePathsUnchecked(rootOpt, relativePath!);
+            return CombinePathsUnchecked(rootOpt, relativePath);
         }
 
         public static string CombinePathsUnchecked(string root, string? relativePath)
@@ -703,7 +704,7 @@ namespace Roslyn.Utilities
         /// 
         /// The more accurate way is to let the framework parse the path and throw on any errors.
         /// </summary>
-        public static bool IsValidFilePath([NotNullWhen(returnValue: true)] string? fullPath)
+        public static bool IsValidFilePath([NotNullWhen(true)] string? fullPath)
         {
             try
             {
