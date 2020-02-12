@@ -259,7 +259,7 @@
     <value>Defaultable types should have defaultable fields</value>
   </data>
   <data name="DefaultableTypeShouldHaveDefaultableFieldsMessage" xml:space="preserve">
-    <value>Defaultable types should have defaultable fields</value>
+    <value>Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</value>
   </data>
   <data name="DefaultableTypeShouldHaveDefaultableFieldsTitle" xml:space="preserve">
     <value>Defaultable types should have defaultable fields</value>

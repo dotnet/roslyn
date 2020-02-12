@@ -37,7 +37,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             context.RegisterCompilationStartAction(context =>
             {
-                var nonDefaultableAttribute = WellKnownTypeProvider.GetOrCreate(context.Compilation).GetOrCreateTypeByMetadataName(WellKnownTypeNames.RoslynUtilitiesNonDefaultableAttribute);
+                var nonDefaultableAttribute = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.RoslynUtilitiesNonDefaultableAttribute);
                 if (nonDefaultableAttribute is null)
                     return;
 
@@ -95,7 +95,8 @@ namespace Roslyn.Diagnostics.Analyzers
                 return;
             }
 
-            originalContext.ReportDiagnostic(Diagnostic.Create(Rule, field.Locations[0]));
+            var sourceSymbol = (field.IsImplicitlyDeclared ? field.AssociatedSymbol : null) ?? field;
+            originalContext.ReportDiagnostic(Diagnostic.Create(Rule, field.Locations[0], field.ContainingType, sourceSymbol.Name));
         }
 
         private static bool IsDefaultable(ITypeSymbol type, INamedTypeSymbol nonDefaultableAttribute, ConcurrentDictionary<ITypeSymbol, bool> knownNonDefaultableTypes)
