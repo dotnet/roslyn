@@ -7496,7 +7496,7 @@ done:;
                 }
 
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                var statement = this.ParseEmbeddedStatement();
+                var statement = ParseEmbeddedStatement();
                 return _syntaxFactory.ForStatement(forToken, openParen, decl, initializers, semi, condition, semi2, incrementors, closeParen, statement);
             }
             finally
