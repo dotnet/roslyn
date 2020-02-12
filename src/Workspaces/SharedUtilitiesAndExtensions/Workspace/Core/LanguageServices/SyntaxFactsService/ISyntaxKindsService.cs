@@ -16,25 +16,57 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         TSyntaxKind Convert<TSyntaxKind>(int kind) where TSyntaxKind : struct;
 
+        #region trivia
+
         int ConflictMarkerTrivia { get; }
         int DisabledTextTrivia { get; }
         int EndOfLineTrivia { get; }
         int SkippedTokensTrivia { get; }
         int WhitespaceTrivia { get; }
 
+        #endregion
+
+        #region keywords
+
+        int AwaitKeyword { get; }
+        int GlobalKeyword { get; }
+        int IfKeyword { get; }
+
+        #endregion
+
+        #region literal tokens
+
         int CharacterLiteralToken { get; }
-        int DotToken { get; }
-        int InterpolatedStringTextToken { get; }
-        int QuestionToken { get; }
         int StringLiteralToken { get; }
 
-        int IfKeyword { get; }
+        #endregion
+
+        #region tokens
+
+        int DotToken { get; }
+        int EndOfFileToken { get; }
+        int HashToken { get; }
+        int IdentifierToken { get; }
+        int InterpolatedStringTextToken { get; }
+        int QuestionToken { get; }
+
+        #endregion
+
+        #region names
 
         int GenericName { get; }
         int IdentifierName { get; }
         int QualifiedName { get; }
 
+        #endregion
+
+        #region types
+
         int TupleType { get; }
+
+        #endregion
+
+        #region literal expressions
 
         int CharacterLiteralExpression { get; }
         int DefaultLiteralExpression { get; }
@@ -42,6 +74,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int NullLiteralExpression { get; }
         int StringLiteralExpression { get; }
         int TrueLiteralExpression { get; }
+
+        #endregion
+
+        #region expressions
 
         int AnonymousObjectCreationExpression { get; }
         int AwaitExpression { get; }
@@ -70,12 +106,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ThisExpression { get; }
         int TupleExpression { get; }
 
-        int EndOfFileToken { get; }
-        int AwaitKeyword { get; }
-        int IdentifierToken { get; }
-        int GlobalKeyword { get; }
-        int IncompleteMember { get; }
-        int HashToken { get; }
+        #endregion
+
+        #region statements
 
         int ExpressionStatement { get; }
         int ForEachStatement { get; }
@@ -84,11 +117,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ReturnStatement { get; }
         int UsingStatement { get; }
 
+        #endregion
+
+        #region members/declarations
+
         int Attribute { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }
 
+        int IncompleteMember { get; }
         int TypeArgumentList { get; }
+
+        #endregion
     }
 }

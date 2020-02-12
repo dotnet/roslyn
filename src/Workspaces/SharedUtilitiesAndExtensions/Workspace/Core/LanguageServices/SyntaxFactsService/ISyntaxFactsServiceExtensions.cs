@@ -189,6 +189,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #region ISyntaxKinds forwarding methods
 
+        #region trivia
+
         public static bool IsEndOfLineTrivia(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
             => trivia.RawKind == syntaxFacts.SyntaxKinds.EndOfLineTrivia;
 
@@ -198,17 +200,32 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsSkippedTokensTrivia(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.SkippedTokensTrivia;
 
+        #endregion
+
+        #region keywords
+
         public static bool IsAwaitKeyword(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
             => token.RawKind == syntaxFacts.SyntaxKinds.AwaitKeyword;
+
+        public static bool IsGlobalNamespaceKeyword(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
+            => token.RawKind == syntaxFacts.SyntaxKinds.GlobalKeyword;
+
+        #endregion
+
+        #region literal tokens
 
         public static bool IsCharacterLiteral(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
             => token.RawKind == syntaxFacts.SyntaxKinds.CharacterLiteralToken;
 
+        public static bool IsStringLiteral(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
+            => token.RawKind == syntaxFacts.SyntaxKinds.StringLiteralToken;
+
+        #endregion
+
+        #region tokens
+
         public static bool IsIdentifier(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
             => token.RawKind == syntaxFacts.SyntaxKinds.IdentifierToken;
-
-        public static bool IsGlobalNamespaceKeyword(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
-            => token.RawKind == syntaxFacts.SyntaxKinds.GlobalKeyword;
 
         public static bool IsHashToken(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
             => token.RawKind == syntaxFacts.SyntaxKinds.HashToken;
@@ -216,8 +233,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsInterpolatedStringTextToken(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
             => token.RawKind == syntaxFacts.SyntaxKinds.InterpolatedStringTextToken;
 
-        public static bool IsStringLiteral(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
-            => token.RawKind == syntaxFacts.SyntaxKinds.StringLiteralToken;
+        #endregion
+
+        #region names
 
         public static bool IsGenericName(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.GenericName;
@@ -228,8 +246,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsQualifiedName(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.QualifiedName;
 
+        #endregion
+
+        #region types
+
         public static bool IsTupleType(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TupleType;
+
+        #endregion
+
+        #region literal expressions
 
         public static bool IsCharacterLiteralExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.CharacterLiteralExpression;
@@ -248,6 +274,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsTrueLiteralExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TrueLiteralExpression;
+
+        #endregion
+
+        #region
 
         public static bool IsAwaitExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.AwaitExpression;
@@ -288,6 +318,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsTupleExpression(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TupleExpression;
 
+        #endregion
+
+        #region statements
+
         public static bool IsExpressionStatement(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ExpressionStatement;
 
@@ -306,6 +340,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsUsingStatement(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.UsingStatement;
 
+        #endregion
+
+        #region members/declarations
+
         public static bool IsAttribute(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.Attribute;
 
@@ -320,6 +358,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsTypeArgumentList(this ISyntaxFactsService syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TypeArgumentList;
+
+        #endregion
 
         #endregion
     }
