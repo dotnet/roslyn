@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 #if DEBUG
 using System.Diagnostics;
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
         }
 
-        internal IAccurateTagger<T> CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
+        internal IAccurateTagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
             if (!subjectBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Tagger))
             {
@@ -254,11 +256,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public NormalizedSnapshotSpanCollection Removed { get; }
 
             public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed)
-                : this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)removed)
+                : this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>?)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>?)removed)
             {
             }
 
-            public DiffResult(IEnumerable<SnapshotSpan> added, IEnumerable<SnapshotSpan> removed)
+            public DiffResult(IEnumerable<SnapshotSpan>? added, IEnumerable<SnapshotSpan>? removed)
             {
                 Added = added != null ? new NormalizedSnapshotSpanCollection(added) : NormalizedSnapshotSpanCollection.Empty;
                 Removed = removed != null ? new NormalizedSnapshotSpanCollection(removed) : NormalizedSnapshotSpanCollection.Empty;

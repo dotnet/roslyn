@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -178,13 +177,11 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        [return: MaybeNull]
         public T GetOption<T>(Option<T> option)
         {
             return (T)GetOption(new OptionKey(option))!;
         }
 
-        [return: MaybeNull]
         public T GetOption<T>(PerLanguageOption<T> option, string? language)
         {
             return (T)GetOption(new OptionKey(option, language))!;

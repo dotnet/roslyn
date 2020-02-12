@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Options
             _language = language;
         }
 
-        public override object GetOption(OptionKey optionKey)
+        public override object? GetOption(OptionKey optionKey)
         {
             return _backingOptionSet.GetOption(optionKey);
         }
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Options
             return _backingOptionSet.GetOption(option, _language);
         }
 
-        public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
+        public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
         {
             return new DocumentOptionSet(_backingOptionSet.WithChangedOption(optionAndLanguage, value), _language);
         }

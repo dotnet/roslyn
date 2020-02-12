@@ -6,11 +6,11 @@
 
 using System.Collections;
 using System.Collections.Immutable;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -148,9 +148,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
                         match.SpanStart, arguments[0].SpanStart));
 
+                    RoslynDebug.AssertNotNull(UnnecessaryWithSuggestionDescriptor);
                     context.ReportDiagnostic(Diagnostic.Create(
                         UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
 
+                    RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
                     context.ReportDiagnostic(Diagnostic.Create(
                         UnnecessaryWithoutSuggestionDescriptor,
                         Location.Create(syntaxTree, TextSpan.FromBounds(

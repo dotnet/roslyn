@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorLogger;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options.EditorConfig
 {
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 
                     try
                     {
-                        return editorConfigPersistence.TryGetOption(_options, option.Option.Type, out value);
+                        return editorConfigPersistence.TryGetOption(_options.AsNullable(), option.Option.Type, out value);
                     }
                     catch (Exception ex)
                     {
