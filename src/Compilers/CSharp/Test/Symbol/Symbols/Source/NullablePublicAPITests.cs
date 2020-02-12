@@ -3330,7 +3330,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_SpeculativeParamReference()
+        public void NestedLambdaReinference_SpeculativeParamReference()
         {
             var source = @"
 using System;
@@ -3373,7 +3373,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_GetDeclaredSymbolParameter()
+        public void NestedLambdaReinference_GetDeclaredSymbolParameter()
         {
             var source = @"
 using System;
@@ -3401,7 +3401,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_NestedLocalDeclaration()
+        public void NestedLambdaReinference_NestedLocalDeclaration()
         {
             var source = @"
 using System;
@@ -3474,7 +3474,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_InInitializers()
+        public void NestedLambdaReinference_InInitializers()
         {
             var source = @"
 using System;
@@ -3529,7 +3529,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_PartialExplicitTypes()
+        public void NestedLambdaReinference_PartialExplicitTypes()
         {
             var source = @"
 using System;
@@ -3589,7 +3589,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_AttributeAndInitializers()
+        public void NestedLambdaReinference_AttributeAndInitializers()
         {
             var source = @"
 using System;
