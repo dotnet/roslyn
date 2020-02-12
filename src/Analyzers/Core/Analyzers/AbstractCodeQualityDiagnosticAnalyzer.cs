@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
     using OptionSet = Options.OptionSet;
 #endif
 
+    // Consider moving all the CodeQuality diagnostic analyzers into analyzer repo as CA rules.
     internal abstract class AbstractCodeQualityDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         // Diagnostics in CodeStyle layer should be warnings by default.
