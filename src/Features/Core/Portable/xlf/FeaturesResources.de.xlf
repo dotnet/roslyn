@@ -97,6 +97,16 @@
         <target state="translated">Änderungen können nicht angewendet werden -- unerwarteter Fehler: "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
+        <source>TODO</source>
+        <target state="new">TODO</target>
+        <note>"TODO" is an indication that there is work still to be done.</note>
+      </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterOmitValue">
+        <source>&lt;omit&gt;</source>
+        <target state="new">&lt;omit&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
         <target state="translated">Namespace in "{0}" ändern</target>

@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             if (IsCallsiteError)
             {
-                CallSiteValue = "<TODO>";
+                CallSiteValue = FeaturesResources.ChangeSignature_NewParameterIntroduceTODOVariable;
             }
             else if (isCallsiteOmitted)
             {
-                CallSiteValue = "<omit>";
+                CallSiteValue = FeaturesResources.ChangeSignature_NewParameterOmitValue;
             }
             else
             {

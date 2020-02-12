@@ -37,7 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         // This can be changed to ParameterViewModel if we will allow adding 'params' parameter.
         private readonly ExistingParameterViewModel? _paramsParameter;
         private HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
-        private readonly int _insertPosition;
 
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
@@ -46,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         /// The document where the symbol we are changing signature is defined.
         /// </summary>
         private readonly Document _document;
+        private readonly int _insertPosition;
 
         internal ChangeSignatureDialogViewModel(
             ParameterConfiguration parameters,
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             // Therefore, if there is such parameter, we should move the selectedIndex.
             if (parameters.ThisParameter != null && selectedIndex == 0)
             {
-                // If we have at least one paramter after the ThisParameter, select the first one after This.
+                // If we have at least one parameter after the ThisParameter, select the first one after This.
                 // Otherwise, do not select anything.
                 if (parameters.ParametersWithoutDefaultValues.Length + parameters.RemainingEditableParameters.Length > 0)
                 {
@@ -276,7 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 _originalParameterConfiguration.ThisParameter,
                 _parametersWithoutDefaultValues.Where(p => !p.IsRemoved).Select(p => p.Parameter).ToImmutableArray(),
                 _parametersWithDefaultValues.Where(p => !p.IsRemoved).Select(p => p.Parameter).ToImmutableArray(),
-                (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : _paramsParameter.Parameter as ExistingParameter,
+                (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : (ExistingParameter)_paramsParameter.Parameter,
                 selectedIndex: -1);
         }
 
@@ -474,8 +474,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             var canSubmit = AllParameters.Any(p => p.IsRemoved) ||
                 AllParameters.Any(p => p is AddedParameterViewModel) ||
-            !_parametersWithoutDefaultValues.OfType<ExistingParameterViewModel>().Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.ParametersWithoutDefaultValues.Cast<ExistingParameter>().Select(p => p.Symbol)) ||
-            !_parametersWithDefaultValues.OfType<ExistingParameterViewModel>().Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.RemainingEditableParameters.Cast<ExistingParameter>().Select(p => p.Symbol));
+                    !_parametersWithoutDefaultValues.OfType<ExistingParameterViewModel>().Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.ParametersWithoutDefaultValues.Cast<ExistingParameter>().Select(p => p.Symbol)) ||
+                    !_parametersWithDefaultValues.OfType<ExistingParameterViewModel>().Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.RemainingEditableParameters.Cast<ExistingParameter>().Select(p => p.Symbol));
 
             if (!canSubmit)
             {

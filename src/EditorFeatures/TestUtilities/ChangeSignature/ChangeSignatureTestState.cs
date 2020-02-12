@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             WpfTestRunner.RequireWpfFact($"{nameof(AbstractChangeSignatureService.ChangeSignature)} currently needs to run on a WPF Fact because it's factored in a way that tries popping up UI in some cases.");
 
             var context = await ChangeSignatureService.GetContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None);
-            if (context is ChangeSignatureAnalyzedSucceedContext changeSignatureAnalyzedSucceedContext)
+            if (context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext)
             {
                 return changeSignatureAnalyzedSucceedContext.ParameterConfiguration;
             }

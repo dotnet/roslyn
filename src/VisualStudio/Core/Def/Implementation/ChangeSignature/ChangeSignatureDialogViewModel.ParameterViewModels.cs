@@ -16,14 +16,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     {
         public abstract class ParameterViewModel
         {
-            protected readonly ChangeSignatureDialogViewModel changeSignatureDialogViewModel;
+            protected ChangeSignatureDialogViewModel ChangeSignatureDialogViewModel { get; }
 
             public abstract Parameter Parameter { get; }
 
             public abstract string Type { get; }
             public abstract string ParameterName { get; }
             public abstract bool IsRemoved { get; set; }
-            public abstract string ShortAutomationText { get; }
             public abstract bool IsDisabled { get; }
             public abstract string CallSite { get; }
             public abstract bool IsRequired { get; }
@@ -31,12 +30,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public ParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel)
             {
-                this.changeSignatureDialogViewModel = changeSignatureDialogViewModel;
+                ChangeSignatureDialogViewModel = changeSignatureDialogViewModel;
             }
 
             public abstract string InitialIndex { get; }
             public abstract string Modifier { get; }
             public abstract string Default { get; }
+
+            public string ShortAutomationText => $"{Type} {ParameterName}";
 
             public virtual string FullAutomationText
             {
@@ -56,19 +57,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 get
                 {
-                    if (this == changeSignatureDialogViewModel._thisParameter)
+                    if (this == ChangeSignatureDialogViewModel._thisParameter)
                     {
                         return true;
                     }
 
-                    if (this == changeSignatureDialogViewModel._parametersWithoutDefaultValues.LastOrDefault() &&
-                        (changeSignatureDialogViewModel._parametersWithDefaultValues.Any() || changeSignatureDialogViewModel._paramsParameter != null))
+                    if (this == ChangeSignatureDialogViewModel._parametersWithoutDefaultValues.LastOrDefault() &&
+                        (ChangeSignatureDialogViewModel._parametersWithDefaultValues.Any() || ChangeSignatureDialogViewModel._paramsParameter != null))
                     {
                         return true;
                     }
 
-                    if (this == changeSignatureDialogViewModel._parametersWithDefaultValues.LastOrDefault() &&
-                        changeSignatureDialogViewModel._paramsParameter != null)
+                    if (this == ChangeSignatureDialogViewModel._parametersWithDefaultValues.LastOrDefault() &&
+                        ChangeSignatureDialogViewModel._paramsParameter != null)
                     {
                         return true;
                     }
@@ -83,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public class AddedParameterViewModel : ParameterViewModel
         {
             public override Parameter Parameter => _addedParameter;
-            public readonly AddedParameter _addedParameter;
+            private readonly AddedParameter _addedParameter;
 
             public AddedParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, AddedParameter addedParameter)
                 : base(changeSignatureDialogViewModel)
@@ -105,7 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public override bool IsRemoved { get => false; set => throw new InvalidOperationException(); }
 
-            public override string ShortAutomationText => $"{Type} {ParameterName}";
             public override string FullAutomationText
             {
                 get
@@ -156,8 +156,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 InitialIndex = initialIndex.ToString();
             }
 
-            public override string ShortAutomationText => $"{Type} {Parameter.Name}";
-
             public override string CallSite => string.Empty;
 
             public override string InitialIndex { get; }
@@ -193,8 +191,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                             return @params ?? string.Empty;
                         }
 
-                        if (changeSignatureDialogViewModel._thisParameter != null &&
-                            ParameterSymbol == (changeSignatureDialogViewModel._thisParameter as ExistingParameterViewModel).ParameterSymbol)
+                        if (ChangeSignatureDialogViewModel._thisParameter != null &&
+                            ParameterSymbol == (ChangeSignatureDialogViewModel._thisParameter as ExistingParameterViewModel).ParameterSymbol)
                         {
                             return @this ?? string.Empty;
                         }
@@ -235,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
             }
 
-            public override bool IsDisabled => changeSignatureDialogViewModel.IsDisabled(this);
+            public override bool IsDisabled => ChangeSignatureDialogViewModel.IsDisabled(this);
 
             public override bool IsRemoved { get; set; }
 

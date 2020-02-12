@@ -861,6 +861,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to TODO.
+        /// </summary>
+        internal static string ChangeSignature_NewParameterIntroduceTODOVariable {
+            get {
+                return ResourceManager.GetString("ChangeSignature_NewParameterIntroduceTODOVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;omit&gt;.
+        /// </summary>
+        internal static string ChangeSignature_NewParameterOmitValue {
+            get {
+                return ResourceManager.GetString("ChangeSignature_NewParameterOmitValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changes made in project &apos;{0}&apos; will not be applied while the application is running.
         /// </summary>
         internal static string ChangesNotAppliedWhileRunning {

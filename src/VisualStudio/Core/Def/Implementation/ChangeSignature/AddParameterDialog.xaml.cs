@@ -18,7 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     internal partial class AddParameterDialog : DialogWindow
     {
         private readonly AddParameterDialogViewModel _viewModel;
-        private readonly Document _document;
 
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
@@ -38,7 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public AddParameterDialog(AddParameterDialogViewModel viewModel)
         {
             _viewModel = viewModel;
-            _document = viewModel.Document;
             this.Loaded += AddParameterDialog_Loaded;
             DataContext = _viewModel;
 
@@ -47,9 +45,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void AddParameterDialog_Loaded(object sender, RoutedEventArgs e)
         {
-            var changeSignatureViewModelFactoryService = _document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
+            var changeSignatureViewModelFactoryService = _viewModel.Document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
             changeSignatureViewModelFactoryService.CreateAndSetViewModelsAsync(
-                    _document,
+                    _viewModel.Document,
                     _viewModel.InsertPosition,
                     this.TypeContentControl,
                     this.NameContentControl).Wait();
@@ -74,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             _viewModel.CallSiteValue = CallsiteValueTextBox.Text;
             _viewModel.UseNamedArguments = UseNamedArgumentButton.IsChecked ?? false;
 
-            if (_viewModel.TrySubmit(_document))
+            if (_viewModel.TrySubmit(_viewModel.Document))
             {
                 DialogResult = true;
             }
@@ -132,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 if (typeOrNameTextBox != null && typeOrNameTextBox.ContainerName.Equals("NameContentControl"))
                 {
                     var nameBeforeType = string.IsNullOrWhiteSpace(((IntellisenseTextBox)TypeContentControl.Content).Text);
-                    if (nameBeforeType || _document.Project.Language.Equals(LanguageNames.VisualBasic))
+                    if (nameBeforeType || _viewModel.Document.Project.Language == LanguageNames.VisualBasic)
                     {
                         typeOrNameTextBox.ShutDownIntellisenseSessions();
                     }

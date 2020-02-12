@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             var context = await GetContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            return context is ChangeSignatureAnalyzedSucceedContext changeSignatureAnalyzedSucceedContext
+            return context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext
                 ? ImmutableArray.Create(new ChangeSignatureCodeAction(this, changeSignatureAnalyzedSucceedContext))
                 : ImmutableArray<ChangeSignatureCodeAction>.Empty;
         }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             switch (context)
             {
-                case ChangeSignatureAnalyzedSucceedContext changeSignatureAnalyzedSucceedContext:
+                case ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext:
                     return ChangeSignatureWithContext(changeSignatureAnalyzedSucceedContext, cancellationToken);
                 case CannotChangeSignatureAnalyzedContext cannotChangeSignatureAnalyzedContext:
                     switch (cannotChangeSignatureAnalyzedContext.CannotChangeSignatureReason)
@@ -91,7 +91,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             return new ChangeSignatureResult(succeeded: false);
-
         }
 
         internal async Task<ChangeSignatureAnalyzedContext> GetContextAsync(
@@ -151,13 +150,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var declarationDocument = solution.GetDocument(documentId);
             var declarationChangeSignatureService = declarationDocument?.GetRequiredLanguageService<AbstractChangeSignatureService>();
 
-            if (declarationChangeSignatureService == default)
+            if (declarationChangeSignatureService == null)
             {
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationLanguageServiceNotFound);
             }
 
-            int? insertPositionOpt = declarationChangeSignatureService.TryGetInsertPositionFromDeclaration(symbol.Locations.FirstOrDefault().FindNode(cancellationToken));
-            if (insertPositionOpt == null)
+            int? insertPosition = declarationChangeSignatureService.TryGetInsertPositionFromDeclaration(symbol.Locations.FirstOrDefault().FindNode(cancellationToken));
+            if (insertPosition == null)
             {
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationMethodPositionNotFound);
             }
@@ -171,11 +170,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 symbol.GetParameters().Select(p => new ExistingParameter(p)),
                 symbol.IsExtensionMethod(), selectedIndex);
 
-            return new ChangeSignatureAnalyzedSucceedContext(
-                declarationDocument ?? document, insertPositionOpt.Value, symbol, parameterConfiguration);
+            return new ChangeSignatureAnalysisSucceededContext(
+                declarationDocument ?? document, insertPosition.Value, symbol, parameterConfiguration);
         }
 
-        private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedSucceedContext context, CancellationToken cancellationToken)
+        private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalysisSucceededContext context, CancellationToken cancellationToken)
         {
             var options = GetChangeSignatureOptions(context);
             if (options == null)
@@ -188,13 +187,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected abstract int? TryGetInsertPositionFromDeclaration(SyntaxNode matchingNode);
 
-        internal ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedSucceedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
+        internal ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalysisSucceededContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
             var succeeded = TryCreateUpdatedSolution(context, options, cancellationToken, out var updatedSolution);
             return new ChangeSignatureResult(succeeded, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
         }
 
-        internal ChangeSignatureOptionsResult? GetChangeSignatureOptions(ChangeSignatureAnalyzedSucceedContext context)
+        internal ChangeSignatureOptionsResult? GetChangeSignatureOptions(ChangeSignatureAnalysisSucceededContext context)
         {
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
 
@@ -228,7 +227,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 #nullable enable
 
         private bool TryCreateUpdatedSolution(
-            ChangeSignatureAnalyzedSucceedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken, [NotNullWhen(true)] out Solution? updatedSolution)
+            ChangeSignatureAnalysisSucceededContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken, [NotNullWhen(true)] out Solution? updatedSolution)
         {
             updatedSolution = null;
 
@@ -403,7 +402,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             // Update the documents using the updated syntax trees
             foreach (var docId in nodesToUpdate.Keys)
             {
-                var updatedDoc = currentSolution.GetDocument(docId)!.WithSyntaxRoot(updatedRoots[docId]);
+                var updatedDoc = currentSolution.GetRequiredDocument(docId).WithSyntaxRoot(updatedRoots[docId]);
                 var docWithImports = ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, safe: true, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
                 var reducedDoc = Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
                 var formattedDoc = Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
@@ -479,7 +478,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var newArguments = new List<IUnifiedArgumentSyntax>();
             var expectedIndex = 0 + (isReducedExtensionMethod ? 1 : 0);
             var seenNamedArgument = false;
-            IUnifiedArgumentSyntax paramsArrayArgument = default;
+            IUnifiedArgumentSyntax paramsArrayArgument = null;
 
             foreach (var argument in argumentsToPermute)
             {
@@ -690,7 +689,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     // Added parameter
                     numAddedParameters++;
-                    var newParameter = createNewParameterMethod(newParam as AddedParameter);
+                    var newParameter = createNewParameterMethod((AddedParameter)newParam);
                     newParameters.Add(newParameter);
                 }
             }

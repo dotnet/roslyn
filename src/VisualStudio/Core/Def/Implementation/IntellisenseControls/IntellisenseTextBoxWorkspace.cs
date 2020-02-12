@@ -6,6 +6,7 @@ using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls
 {
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
             _backgroundCompiler = new BackgroundCompiler(this);
         }
 
-        public Document? ChangeSignatureDocument => this.CurrentSolution.GetDocument(this.ChangeSignatureDocumentId);
+        public Document ChangeSignatureDocument => this.CurrentSolution.GetRequiredDocument(this.ChangeSignatureDocumentId);
 
         public DocumentId ChangeSignatureDocumentId { get; }
 
