@@ -496,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return Nothing
             End If
 
-            Return GetPermutedTrivia(document, node, permutedParamNodes)
+            Return GetPermutedDocCommentTrivia(document, node, permutedParamNodes)
         End Function
 
         Private Function VerifyAndPermuteParamNodes(paramNodes As IEnumerable(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As List(Of SyntaxNode)

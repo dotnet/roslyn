@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return null;
             }
 
-            return GetPermutedTrivia(document, node, permutedParamNodes);
+            return GetPermutedDocCommentTrivia(document, node, permutedParamNodes);
         }
 
         private List<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)

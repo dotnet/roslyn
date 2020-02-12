@@ -213,7 +213,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
 
         /// <summary>
         /// Queries command status
-        /// Queries command status
         /// </summary>
         /// <param name="pguidCmdGroup">Command group guid</param>
         /// <param name="cmdCount">The number of commands in the OLECMD array</param>

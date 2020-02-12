@@ -800,14 +800,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return Generator.SeparatedList(fullList, separators);
         }
 
-        protected List<SyntaxTrivia> GetPermutedTrivia(Document document, SyntaxNode node, List<SyntaxNode> permutedParamNodes)
+        protected List<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, List<SyntaxNode> permutedParamNodes)
         {
             var updatedLeadingTrivia = new List<SyntaxTrivia>();
             var index = 0;
             SyntaxTrivia lastWhiteSpaceTrivia = default;
-
-            var lastDocumentationCommentTriviaSyntax = node.GetLeadingTrivia()
-                .LastOrDefault(t => t.HasStructure && Generator.IsDocumentationCommentTriviaSyntax(t.GetStructure()));
 
             foreach (var trivia in node.GetLeadingTrivia())
             {
