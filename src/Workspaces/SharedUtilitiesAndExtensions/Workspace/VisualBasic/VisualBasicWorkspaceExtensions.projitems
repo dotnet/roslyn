@@ -60,8 +60,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSymbolDeclarationService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxFactsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxFactsServiceFactory.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxKindsService.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxKindsServiceFactory.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicTypeInferenceService.TypeInferrer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicTypeInferenceService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\DirectiveSyntaxEqualityComparer.vb" />
