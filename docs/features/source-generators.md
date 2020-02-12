@@ -13,7 +13,8 @@ introspect both user C# code and generator specific files.
 ### High Level Design Goals
 
 - Generators produce one or more strings that represent C# source code to be added to the compilation.
-- Explicitly _additive_ only. Generators can add new code to a compilation but may **not** modify existing user code.
+- Explicitly _additive_ only. Generators can add new source code to a compilation but may **not** modify existing user code.
+- Can produce diagnostics. When unable to generate source, the generator can inform the user of the problem.
 - May access _additional files_, that is, non-C# source texts.
 - Run _un-ordered_, each generator will see the same input compilation, with no access to files created by other source generators.
 - A user specifies the generators to run via list of assemblies, much like analyzers.

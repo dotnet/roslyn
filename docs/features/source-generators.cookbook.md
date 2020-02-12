@@ -2,18 +2,22 @@
 
 ## Summary
 
-This document aims to be a guide to help the creation of source generators by providing a series of reusable patterns.
-It also aims to set out what types of generators are possible under the current design and what is explictly out of scope.
-
 > **Note**: The design for the source generator proposal is still under review. This document uses only one possible syntax, and
 > it is expected to change without notice as the feature evolves.
 
+This document aims to be a guide to help the creation of source generators by providing a series of guidelines for common patterns.
+It also aims to set out what types of generators are possible under the current design, and what is expected to be explicitly out 
+of scope in the final design of the shipping feature. 
+
+**This document expands on the details in the [full design document](source-generators.md), please ensure you have read that first.**
+
 ## Proposal
 
-It is worth breifly setting out the design goals of generators here. For a more complete design see the [full design document](source-generators.md)
+As a reminder, the high level design goals of source generators are:
 
 - Generators produce one or more strings that represent C# source code to be added to the compilation.
-- Explicitly _additive_ only. Generators can add new code to a compilation but may **not** modify existing user code.
+- Explicitly _additive_ only. Generators can add new source code to a compilation but may **not** modify existing user code.
+- Can produce diagnostics. When unable to generate source, the generator can inform the user of the problem.
 - May access _additional files_, that is, non-C# source texts.
 - Run _un-ordered_, each generator will see the same input compilation, with no access to files created by other source generators.
 - A user specifies the generators to run via list of assemblies, much like analyzers.
@@ -31,9 +35,9 @@ We explicitly consider this to be an anti-pattern; the language will continue to
 a way to enable this. Doing so would create new 'dialects' of C# that are incompatible with the compiler without generators. Further, because generators,
 by design, cannot interact with each other, language features implemented in this way would quickly become incompatible with other additions to the language.
 
-### Code-not-source generators
+### Code rewriting
 
-There are many post-processing tasks that users perform on their assemblies today, which here we define as 'code-not-source' generation. These include, but
+There are many post-processing tasks that users perform on their assemblies today, which here we define broadly as 'code rewriting'. These include, but
 are not limited to:
 
 - Optimization
@@ -41,10 +45,14 @@ are not limited to:
 - IL Weaving
 - Call site re-writing
 
-While these techniques have many valuable use cases, they do not fit into the idea of *source* generation. They are, by defintion, code altering operations
-which is explicitly ruled out by the source generation proposal.
+While these techniques have many valuable use cases, they do not fit into the idea of *source generation*. They are, by definition, code altering operations
+which are explicitly ruled out by the source generators proposal.
 
-There are already well supported tools and techniques for acheiving these kinds of operations, and the source generators proposal is not aimed at replacing them.
+There are already well supported tools and techniques for achieving these kinds of operations, and the source generators proposal is not aimed at replacing them.
+
+## Conventions
+
+TODO: List a set of general conventions that apply to all designs below. E.g. Re-using namespaces, generated file names etc.
 
 ## Designs
 
@@ -52,11 +60,27 @@ This section is broken down by user scenarios, with general solutions listed fir
 
 ### Generated class
 
-**User scenario:** As a generator author I want to be able to create a class that can be referenced from user code.
+**User scenario:** As a generator author I want to be able to add a type to the compilation, that can be referenced by the users code.
 
-**Solution:** Generate the class based on the data available in the compilation, and add the new source to compilation.
+**Solution:** Have the user write the code as if the type was already present. Generate the missing type based on information available in the compilation.
+
 
 **Example:**
+
+Given the following user code:
+
+```csharp
+public partial class UserClass
+{
+    public void UserMethod()
+    {
+        // call into a generated method
+        GeneratedNamespace.GeneratedClass.GeneratedMethod();
+    }
+}
+```
+
+Create a generator that will create the missing type when run:
 
 ```csharp
 public class CustomGenerator : ISourceGenerator
@@ -78,22 +102,12 @@ namespace GeneratedNamespace
 }
 ```
 
-```csharp
-public partial class UserClass
-{
-    public void UserMethod()
-    {
-        // call into a generated method
-        GeneratedNamespace.GeneratedClass.GeneratedMethod();
-    }
-}
-```
 
-### Single file transformation
+### Additional file transformation
 
-**User scenario:** As a generator author I want to be able to transform a single file into a C# representation.
+**User scenario:** As a generator author I want to be able to transform an external non-C# file into an equivalent C# representation.
 
-**Solution:** Use the additional files property of the `SourceGeneratorContext` to retreive the contents of the file, convert it to the C# representation and return it.
+**Solution:** Use the additional files property of the `SourceGeneratorContext` to retrieve the contents of the file, convert it to the C# representation and return it.
 
 **Example:**
 
@@ -103,14 +117,14 @@ public class FileTransformGenerator : ISourceGenerator
         public void Execute(SourceGeneratorContext context)
         {
             // find anything that matches our files
-            var myFiles = context.AnalyzerOptions.AdditionalFiles.Where(at => at.Path.EndsWith(".myextension"));
+            var myFiles = context.AnalyzerOptions.AdditionalFiles.Where(at => at.Path.EndsWith(".xml"));
             foreach (var file in myFiles)
             {
                 var content = file.GetText(context.CancellationToken);
 
-                // do some transforms based on the file contenxt
+                // do some transforms based on the file context
+                string output = MyXmlToCSharpCompiler.Compile(content);
 
-                string output = "namespace MyNS { public class MyClass { } }";
                 var sourceText = SourceText.From(output);
 
                 context.AddSource($"{file.Name}generated.cs", sourceText);
@@ -124,7 +138,7 @@ public class FileTransformGenerator : ISourceGenerator
 **User scenario:** As a generator author I want to be able to augment a users code with new functionality.
 
 **Solution:** Require the user to make the class you want to augment be a `partial class`, and mark it with e.g. a unique attribute, or name.
-Look for any classes marked for generation and generate the a matching `partial class` that contains the additional functionality.
+Look for any classes marked for generation and generate a matching `partial class` that contains the additional functionality.
 
 **Example:**
 
@@ -141,30 +155,30 @@ public partial class UserClass
 
 ```csharp
 public class AugmentingGenerator : ISourceGenerator
+{
+    public void Execute(SourceGeneratorContext context)
     {
-        public void Execute(SourceGeneratorContext context)
+        var syntaxTrees = context.Compilation.SyntaxTrees;
+        foreach (var syntaxTree in syntaxTrees)
         {
-            var syntaxTrees = context.Compilation.SyntaxTrees;
-            foreach (var syntaxTree in syntaxTrees)
-            {
-                 // find the class to augment
-                var classToAugment = syntaxTree.GetRoot().DescendantNodes()
-                 .OfType<ClassDeclarationSyntax>()
-                 .Where(c => c.Name.ToString() == "UserClass")
-                 .Single();
+                // find the class to augment
+            var classToAugment = syntaxTree.GetRoot().DescendantNodes()
+                .OfType<ClassDeclarationSyntax>()
+                .Where(c => c.Name.ToString() == "UserClass")
+                .Single();
 
-                var sourceText = SourceText.From($@"
+            var sourceText = SourceText.From($@"
 public partial class {classToAugment.Identifier.ToString()}
 {
-   private void GeneratedMethod()
-   {
-       // generated code
-   }
+private void GeneratedMethod()
+{
+    // generated code
+}
 }");
-                context.AddSource("myGeneratedFile.cs", sourceText);
-            }
+            context.AddSource("myGeneratedFile.cs", sourceText);
         }
     }
+}
 
 ```
 
@@ -196,19 +210,21 @@ public class InteractiveGenerator : ISourceGenerator, IAdditionalFilesChangedGen
 **User scenario:** As a generator author I want to be able to implement the `INotifyPropertyChanged` pattern automatically for a user.
 
 **Solution:** The design tenant 'Explicitly additive only' seems to be at direct odds with the ability to implement this, and appears to call for user code modification.
-However we can instead take advantage of explict fields and instead of *editing* the users properties, directly provide them for listed fields.
+However we can instead take advantage of explicit fields and instead of *editing* the users properties, directly provide them for listed fields.
 
 **Example:**
 
 Given a user class such as:
 
 ```csharp
+using AutoNotify;
+
 public partial class UserClass
 {
     [AutoNotify]
     private bool _boolProp;
 
-    [AutoNotify(propertyName: "Count")]
+    [AutoNotify(PropertyName = "Count")]
     private int _intProp;
 }
 ```
@@ -216,7 +232,21 @@ public partial class UserClass
 A generator could produce the following:
 
 ```csharp
+using System;
 using System.ComponentModel;
+
+namespace AutoNotify
+{
+    [AttributeUsage(AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
+    sealed class AutoNotifyAttribute : Attribute
+    {
+        public AutoNotifyAttribute()
+        {
+        }
+        public string PropertyName { get; set; }
+    }
+}
+
 
 public partial class UserClass : INotifyPropertyChanged
 {
