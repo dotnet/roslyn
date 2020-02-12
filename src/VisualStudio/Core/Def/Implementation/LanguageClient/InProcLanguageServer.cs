@@ -179,9 +179,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return await _protocol.GetWorkspaceSymbolsAsync(_workspace.CurrentSolution, workspaceSymbolParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 
-#pragma warning disable VSTHRD100
+#pragma warning disable VSTHRD100 // Avoid async void methods
         private async void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
-#pragma warning restore VSTHRD100
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
             // Since this is an async void method, exceptions here will crash the host VS. We catch exceptions here to make sure that we don't crash the host since
             // the worst outcome here is that guests may not see all diagnostics.
