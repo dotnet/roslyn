@@ -277,4 +277,24 @@ public partial class UserClass : INotifyPropertyChanged
 
 ### Serialization
 
+TODO:
+
 ### Auto interface implementation
+
+TODO:
+
+## Open Issues
+
+This section track other miscellaneous TODO items:
+
+**NuGet Packaging**: How does a user package a source generator via nuget?
+
+**Framework targets**: May want to mention if we have framework requirements for the generators, e.g. they must target netstandard2.0 or similar.
+
+**Conventions**: (See TODO in [conventions](#conventions) section above). What standard conventions are we suggesting to users?
+
+**Partial methods**: Should we provide a scenario that includes partial methods? Reasons:
+ - Control of name. The developer can control the name of the member
+ - Generation is optional/depending on other state. Based on other information, generator might decide that the method isn't needed.
+
+
