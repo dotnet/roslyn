@@ -59,10 +59,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)WorkspaceServices\SemanticModelWorkspaceService\SemanticModelWorkspaceServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\SyntaxEditorBasedCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\SyntaxEditorBasedCodeFixProvider.FixAllProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\AbstractDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\ExternalSourceInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.ChoiceMatcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.RepeatMatcher.cs" />
