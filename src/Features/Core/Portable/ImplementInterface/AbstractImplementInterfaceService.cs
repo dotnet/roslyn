@@ -90,13 +90,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
             }
 
-            if (AnyImplementedNotExplicitly(state))
+            if (AnyImplementedImplicitly(state))
             {
                 yield return ImplementInterfaceCodeAction.CreateImplementRemainingExplicitlyCodeAction(this, document, state);
             }
         }
 
-        private static bool AnyImplementedNotExplicitly(State state)
+        private static bool AnyImplementedImplicitly(State state)
         {
             if (state.UnimplementedMembers.Length != state.UnimplementedExplicitMembers.Length)
             {
