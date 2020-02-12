@@ -3048,5 +3048,11 @@ void C()
             }
             EOF();
         }
+
+        [Fact]
+        public void SyntaxFacts()
+        {
+            Assert.True(CSharp.SyntaxFacts.IsTypeSyntax(SyntaxKind.FunctionPointerType));
+        }
     }
 }
