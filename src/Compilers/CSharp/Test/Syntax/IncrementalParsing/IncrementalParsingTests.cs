@@ -2419,11 +2419,6 @@ System.Console.WriteLine(true)
             var reparsedTree = startTree.WithChangedText(newText);
             var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
 
-            parsedTree.GetDiagnostics().Verify(
-                // (2,31): error CS1002: ; expected
-                // System.Console.WriteLine(true)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 31));
-
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }
 

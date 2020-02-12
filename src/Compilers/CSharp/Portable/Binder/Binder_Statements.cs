@@ -12,6 +12,7 @@ using System.Transactions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -325,9 +326,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_BadEmbeddedStmt, node.GetLocation());
 
                     // fall through
-                    goto case SyntaxKind.ExpressionStatement;
+                    goto case SyntaxKind.LockStatement;
 
                 case SyntaxKind.ExpressionStatement:
+                    // In Scripts, we allow statements to not have semicolons.  However, that only
+                    // applies to non-embedded statements.  So check if we haven't emitted an error
+                    // for that case and do that here.  We don't do this in the parser for
+                    // simplicity of that impl and to prevent unnecessary helper methods in a hot
+                    // path where we're trying to keep the number of stack frames we have low.
+                    if (node.SyntaxTree.Options.Kind == SourceCodeKind.Script)
+                    {
+                        var expressionStatement = (ExpressionStatementSyntax)node;
+                        var semicolonToken = expressionStatement.SemicolonToken;
+
+                        // Do not add a new error if the same error was already added.
+                        if (semicolonToken.IsMissing &&
+                            !semicolonToken.GetDiagnostics().Contains(diagnosticInfo => (ErrorCode)diagnosticInfo.Code == ErrorCode.ERR_SemicolonExpected))
+                        {
+                            diagnostics.Add(
+                                ErrorCode.ERR_SemicolonExpected,
+                                Location.Create(node.SyntaxTree,
+                                    new TextSpan(expressionStatement.Expression.GetLastToken().Span.End, 0)));
+                        }
+                    }
+
+                    // fall through
+                    goto case SyntaxKind.LockStatement;
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
