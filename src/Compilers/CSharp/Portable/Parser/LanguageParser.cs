@@ -7161,7 +7161,7 @@ done:;
             _termState = saveTerm;
 
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            StatementSyntax statement = ParseEmbeddedStatement();
+            StatementSyntax statement = this.ParseEmbeddedStatement();
             return _syntaxFactory.FixedStatement(@fixed, openParen, decl, closeParen, statement);
         }
 
@@ -7375,7 +7375,7 @@ done:;
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.DoKeyword);
             var @do = this.EatToken(SyntaxKind.DoKeyword);
-            var statement = ParseEmbeddedStatement();
+            var statement = this.ParseEmbeddedStatement();
             var @while = this.EatToken(SyntaxKind.WhileKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
@@ -7496,7 +7496,7 @@ done:;
                 }
 
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                var statement = ParseEmbeddedStatement();
+                var statement = this.ParseEmbeddedStatement();
                 return _syntaxFactory.ForStatement(forToken, openParen, decl, initializers, semi, condition, semi2, incrementors, closeParen, statement);
             }
             finally
@@ -7596,7 +7596,7 @@ tryAgain:
 
             var expression = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = ParseEmbeddedStatement();
+            var statement = this.ParseEmbeddedStatement();
 
             if (variable is DeclarationExpressionSyntax decl)
             {
@@ -7712,7 +7712,7 @@ tryAgain:
             }
 
             var elseToken = this.EatToken(SyntaxKind.ElseKeyword);
-            var elseStatement = ParseEmbeddedStatement();
+            var elseStatement = this.ParseEmbeddedStatement();
             return _syntaxFactory.ElseClause(elseToken, elseStatement);
         }
 
@@ -7723,7 +7723,7 @@ tryAgain:
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var expression = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = ParseEmbeddedStatement();
+            var statement = this.ParseEmbeddedStatement();
             return _syntaxFactory.LockStatement(@lock, openParen, expression, closeParen, statement);
         }
 
@@ -7943,7 +7943,7 @@ tryAgain:
             this.Release(ref resetPoint);
 
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = ParseEmbeddedStatement();
+            var statement = this.ParseEmbeddedStatement();
 
             return _syntaxFactory.UsingStatement(awaitTokenOpt, @using, openParen, declaration, expression, closeParen, statement);
         }
@@ -8049,7 +8049,7 @@ tryAgain:
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var condition = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = ParseEmbeddedStatement();
+            var statement = this.ParseEmbeddedStatement();
             return _syntaxFactory.WhileStatement(@while, openParen, condition, closeParen, statement);
         }
 
@@ -8064,7 +8064,7 @@ tryAgain:
             var label = this.ParseIdentifierToken();
             var colon = this.EatToken(SyntaxKind.ColonToken);
             Debug.Assert(!colon.IsMissing);
-            var statement = ParseEmbeddedStatement();
+            var statement = this.ParseEmbeddedStatement();
             return _syntaxFactory.LabeledStatement(label, colon, statement);
         }
 
