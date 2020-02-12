@@ -418,11 +418,7 @@ recurse:
                     type = pointerTypeSyntax.ElementType;
                     goto recurse;
                 case SyntaxKind.FunctionPointerType:
-                    var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)type;
-                    foreach (var param in functionPointerTypeSyntax.Parameters)
-                    {
-                        param.Type.VisitRankSpecifiers(action, argument);
-                    }
+                    visitFunctionPointerType(type, action, argument);
                     break;
                 case SyntaxKind.TupleType:
                     var tupleTypeSyntax = (TupleTypeSyntax)type;
@@ -471,6 +467,15 @@ recurse:
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(type.Kind());
+            }
+
+            static void visitFunctionPointerType(TypeSyntax type, Action<ArrayRankSpecifierSyntax, TArg> action, TArg argument)
+            {
+                var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)type;
+                foreach (var param in functionPointerTypeSyntax.Parameters)
+                {
+                    param.Type.VisitRankSpecifiers(action, argument);
+                }
             }
         }
     }
