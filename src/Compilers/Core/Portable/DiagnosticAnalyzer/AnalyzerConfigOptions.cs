@@ -22,29 +22,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Get an analyzer config value for the given key, using the <see cref="KeyComparer"/>.
         /// </summary>
         public abstract bool TryGetValue(string key, out string value);
+
+        /// <summary>
+        /// Get the keys of the defined options.
+        /// </summary>
+        public abstract ImmutableArray<string> Keys { get; }
     }
 
-    public abstract class DictionaryBackedAnalyzerConfigOptions : AnalyzerConfigOptions
+    internal sealed class CompilerAnalyzerConfigOptions : AnalyzerConfigOptions
     {
+        public static CompilerAnalyzerConfigOptions Empty { get; } = new CompilerAnalyzerConfigOptions(EmptyDictionary);
+
         private readonly ImmutableDictionary<string, string> _backing;
 
-        public DictionaryBackedAnalyzerConfigOptions(ImmutableDictionary<string, string> properties)
+        public CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string> properties)
         {
             _backing = properties;
         }
 
         public override bool TryGetValue(string key, out string value) => _backing.TryGetValue(key, out value);
 
-        public IReadOnlyDictionary<string, string> AsReadOnlyDictionary() => _backing;
-    }
-
-    internal sealed class CompilerAnalyzerConfigOptions : DictionaryBackedAnalyzerConfigOptions
-    {
-        public static CompilerAnalyzerConfigOptions Empty { get; } = new CompilerAnalyzerConfigOptions(EmptyDictionary);
-
-        public CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string> properties)
-            : base(properties)
-        {
-        }
+        public override ImmutableArray<string> Keys => _backing.Keys.ToImmutableArray();
     }
 }

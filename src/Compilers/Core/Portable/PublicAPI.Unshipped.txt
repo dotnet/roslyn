@@ -1,8 +1,5 @@
 Microsoft.CodeAnalysis.CommandLineArguments.ErrorLogOptions.get -> Microsoft.CodeAnalysis.ErrorLogOptions
 *REMOVED*Microsoft.CodeAnalysis.CommandLineArguments.ErrorLogPath.get -> string
-Microsoft.CodeAnalysis.Diagnostics.DictionaryBackedAnalyzerConfigOptions
-Microsoft.CodeAnalysis.Diagnostics.DictionaryBackedAnalyzerConfigOptions.AsReadOnlyDictionary() -> System.Collections.Generic.IReadOnlyDictionary<string, string>
-Microsoft.CodeAnalysis.Diagnostics.DictionaryBackedAnalyzerConfigOptions.DictionaryBackedAnalyzerConfigOptions(System.Collections.Immutable.ImmutableDictionary<string, string> properties) -> void
 Microsoft.CodeAnalysis.ErrorLogOptions
 Microsoft.CodeAnalysis.ErrorLogOptions.ErrorLogOptions(string path, Microsoft.CodeAnalysis.SarifVersion sarifVersion) -> void
 Microsoft.CodeAnalysis.ErrorLogOptions.Path.get -> string
@@ -22,7 +19,7 @@ Microsoft.CodeAnalysis.SarifVersion.Latest = 2147483647 -> Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.SarifVersion.Sarif1 = 1 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersion.Sarif2 = 2 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersionFacts
-override Microsoft.CodeAnalysis.Diagnostics.DictionaryBackedAnalyzerConfigOptions.TryGetValue(string key, out string value) -> bool
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.Keys.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier = 256 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
 static Microsoft.CodeAnalysis.SarifVersionFacts.TryParse(string version, out Microsoft.CodeAnalysis.SarifVersion result) -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.IsConditional.get -> bool
