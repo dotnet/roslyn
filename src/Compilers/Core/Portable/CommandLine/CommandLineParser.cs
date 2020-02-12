@@ -326,7 +326,8 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                pdbPath = Path.ChangeExtension(Path.Combine(outputDirectory, outputFileName), ".pdb");
+                // If outputDirectory were null, then outputFileName would be null (see ParseAndNormalizeFile)
+                pdbPath = Path.ChangeExtension(Path.Combine(outputDirectory!, outputFileName), ".pdb");
             }
 
             return pdbPath;
@@ -353,7 +354,8 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                genericPath = Path.Combine(outputDirectory, outputFileName);
+                // If outputDirectory were null, then outputFileName would be null (see ParseAndNormalizeFile)
+                genericPath = Path.Combine(outputDirectory!, outputFileName);
             }
 
             return genericPath;
@@ -597,7 +599,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(PathUtilities.IsAbsolute(fullPath));
                 using (TextReader reader = CreateTextFileReader(fullPath))
                 {
-                    string str;
+                    string? str;
                     while ((str = reader.ReadLine()) != null)
                     {
                         lines.Add(str);
