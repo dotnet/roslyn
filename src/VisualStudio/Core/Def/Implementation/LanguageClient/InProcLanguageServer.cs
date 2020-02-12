@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -73,7 +72,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             };
             var serializer = JsonSerializer.Create(settings);
 
-            // Publish diagnostics for all open documents upon initialization.
+            // InitializeParams only references ClientCapabilities, but the VS LSP client
+            // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
+            // to avoid losing them.
+            _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>(serializer);
+            return await _protocol.InitializeAsync(_workspace.CurrentSolution, input.ToObject<InitializeParams>(serializer), _clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+        [JsonRpcMethod(Methods.InitializedName)]
+        public Task Initialized()
+        {
+            // Publish diagnostics for all open documents after initialization.
             var openDocuments = _workspace.GetOpenDocumentIds();
             foreach (var documentId in openDocuments)
             {
@@ -84,15 +93,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
             }
 
-            // InitializeParams only references ClientCapabilities, but the VS LSP client
-            // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
-            // to avoid losing them.
-            _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>(serializer);
-            return await _protocol.InitializeAsync(_workspace.CurrentSolution, input.ToObject<InitializeParams>(serializer), _clientCapabilities, cancellationToken).ConfigureAwait(false);
+            return Task.CompletedTask;
         }
-
-        [JsonRpcMethod(Methods.InitializedName)]
-        public Task Initialized() => Task.CompletedTask;
 
         [JsonRpcMethod(Methods.ShutdownName)]
         public object? Shutdown(CancellationToken _) => null;
