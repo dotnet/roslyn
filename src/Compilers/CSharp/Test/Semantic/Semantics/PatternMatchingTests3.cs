@@ -2426,7 +2426,7 @@ class C
             case < 0m:
             case <= 0m:
             case > 0m:
-            case >= 0m:
+            case >= 0m: // error: subsumed
                 break;
         }
     }
@@ -2434,24 +2434,9 @@ class C
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics(
-                // (6,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
-                //         _ = o is < 12m;
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 12m").WithArguments("decimal").WithLocation(6, 18),
-                // (7,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
-                //         _ = d is < 0;
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 0").WithArguments("decimal").WithLocation(7, 18),
-                // (11,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
-                //             case < 0m:
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 0m").WithArguments("decimal").WithLocation(11, 18),
-                // (12,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
-                //             case <= 0m:
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "<= 0m").WithArguments("decimal").WithLocation(12, 18),
-                // (13,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
-                //             case > 0m:
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "> 0m").WithArguments("decimal").WithLocation(13, 18),
-                // (14,18): error CS8781: Relational patterns may not be used for a value of type 'decimal'.
-                //             case >= 0m:
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, ">= 0m").WithArguments("decimal").WithLocation(14, 18)
+                // (14,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case >= 0m: // error: subsumed
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, ">= 0m").WithLocation(14, 18)
                 );
         }
 
@@ -2565,6 +2550,129 @@ class C
                 //         _ => 7,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(12, 9)
                 );
+        }
+
+        [Fact]
+        public void Relational_09()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        Test(0.000012m);
+        Test(40m);
+        Test(46.12m);
+        Test(50m);
+        Test(56.12m);
+        Test(60m);
+        Test(66.12m);
+        Test(69.999m);
+        Test(70.000m);
+        Test(70.001m);
+        Test(76.12m);
+        Test(80m);
+        Test(86.12m);
+        Test(90m);
+        Test(96.12m);
+        Test(100m);
+        Test(106.12m);
+        Test(110m);
+        Test(111111111m);
+    }
+    private static void Test(decimal percent)
+    {
+        Console.WriteLine(FormattableString.Invariant($""{percent} => {Grade(percent)}""));
+    }
+    public static char Grade(decimal score) => score switch
+    {
+        <= 60.000m => 'F',
+        <= 70.00m => 'D',
+        <= 80.0m => 'C',
+        <= 90m => 'B',
+        > 90m => 'A',
+    };
+}";
+            var expectedOutput = @"0.000012 => F
+40 => F
+46.12 => F
+50 => F
+56.12 => F
+60 => F
+66.12 => D
+69.999 => D
+70.000 => D
+70.001 => C
+76.12 => C
+80 => C
+86.12 => B
+90 => B
+96.12 => A
+100 => A
+106.12 => A
+110 => A
+111111111 => A";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.Grade",
+@"{
+  // Code size      110 (0x6e)
+  .maxstack  6
+  .locals init (char V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4     0xea60
+  IL_0006:  ldc.i4.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.3
+  IL_000a:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_000f:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
+  IL_0014:  brtrue.s   IL_0053
+  IL_0016:  ldarg.0
+  IL_0017:  ldc.i4     0x1b58
+  IL_001c:  ldc.i4.0
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldc.i4.0
+  IL_001f:  ldc.i4.2
+  IL_0020:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_0025:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
+  IL_002a:  brtrue.s   IL_0058
+  IL_002c:  ldarg.0
+  IL_002d:  ldc.i4     0x320
+  IL_0032:  ldc.i4.0
+  IL_0033:  ldc.i4.0
+  IL_0034:  ldc.i4.0
+  IL_0035:  ldc.i4.1
+  IL_0036:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_003b:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
+  IL_0040:  brtrue.s   IL_005d
+  IL_0042:  ldarg.0
+  IL_0043:  ldc.i4.s   90
+  IL_0045:  newobj     ""decimal..ctor(int)""
+  IL_004a:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
+  IL_004f:  brtrue.s   IL_0062
+  IL_0051:  br.s       IL_0067
+  IL_0053:  ldc.i4.s   70
+  IL_0055:  stloc.0
+  IL_0056:  br.s       IL_006c
+  IL_0058:  ldc.i4.s   68
+  IL_005a:  stloc.0
+  IL_005b:  br.s       IL_006c
+  IL_005d:  ldc.i4.s   67
+  IL_005f:  stloc.0
+  IL_0060:  br.s       IL_006c
+  IL_0062:  ldc.i4.s   66
+  IL_0064:  stloc.0
+  IL_0065:  br.s       IL_006c
+  IL_0067:  ldc.i4.s   65
+  IL_0069:  stloc.0
+  IL_006a:  br.s       IL_006c
+  IL_006c:  ldloc.0
+  IL_006d:  ret
+}");
         }
     }
 }
