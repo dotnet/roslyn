@@ -134,6 +134,30 @@ public abstract class Foo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestPartialClass()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public partial class Foo
+{
+    public abstract void [|M|]();
+}
+
+public partial class Foo
+{
+}",
+@"
+public partial abstract class Foo
+{
+    public abstract void M();
+}
+
+public partial class Foo
+{
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
         public async Task TestEventAdd()
         {
             await TestMissingInRegularAndScriptAsync(

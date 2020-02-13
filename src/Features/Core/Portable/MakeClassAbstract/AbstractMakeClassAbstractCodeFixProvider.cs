@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.MakeClassAbstract
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            if (context.Diagnostics.Length == 1 &&
-                IsValidRefactoringContext(context.Diagnostics[0].Location?.FindNode(context.CancellationToken), out _))
+            if (IsValidRefactoringContext(context.Diagnostics[0].Location?.FindNode(context.CancellationToken), out _))
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
