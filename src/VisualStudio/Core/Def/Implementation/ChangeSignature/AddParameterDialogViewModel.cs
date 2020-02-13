@@ -67,15 +67,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         internal bool TrySubmit(Document document)
         {
-            if (string.IsNullOrEmpty(ParameterName) || string.IsNullOrEmpty(TypeName))
+            if (string.IsNullOrEmpty(TypeName) || string.IsNullOrEmpty(ParameterName))
             {
                 SendFailureNotification(ServicesVSResources.A_type_and_name_must_be_provided);
                 return false;
             }
 
-#pragma warning disable CS8604 // Possible null reference argument.
-            if (!IsParameterTypeValid(TypeName, document))
-#pragma warning restore CS8604 // Possible null reference argument.
+            if (!IsParameterTypeValid(TypeName!, document))
             {
                 SendFailureNotification(ServicesVSResources.Parameter_type_contains_invalid_characters);
                 return false;
