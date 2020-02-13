@@ -6332,84 +6332,59 @@ done:;
             ResetPoint resetPointBeforeStatement = this.GetResetPoint();
             try
             {
-                StatementSyntax result = TryParsePossibleDeclarationOrBadAwaitStatement(attributes, ref resetPointBeforeStatement);
+                // Precondition: We have already attempted to parse the statement as a non-declaration and failed.
+                //
+                // That means that we are in one of the following cases:
+                //
+                // 1) This is not a statement. This can happen if the start of the statement was an
+                //    accessibility modifier, but the rest of the statement did not parse as a local
+                //    function. If there was an accessibility modifier and the statement parsed as
+                //    local function, that should be marked as a mistake with local function visibility.
+                //    Otherwise, it's likely the user just forgot a closing brace on their method.
+                // 2) This is a perfectly mundane and correct local declaration statement like "int x;"
+                // 3) This is a perfectly mundane but erroneous local declaration statement, like "int X();"
+                // 4) We are in the rare case of the code containing "await x;" and the intention is that
+                //    "await" is the type of "x".  This only works in a non-async method.
+                // 5) We have a misplaced await statement in a non-async method, like "await X();",
+                //    so the parse failed. Had we been in an async method then the parse attempt
+                //    done by our caller would have succeeded.  Retry as if we were async.  Later
+                //    semantic code will error out that this isn't legal.
+
+                bool beginsWithAwait = this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
+                StatementSyntax result = TryParseLocalDeclarationStatement(attributes);
+
+                // Case (1)
+                if (result == null)
+                {
+                    this.Reset(ref resetPointBeforeStatement);
+                    return null;
+                }
+
+                // Cases (2), (3) and (4):
+                if (!beginsWithAwait || !result.ContainsDiagnostics)
+                {
+                    return result;
+                }
+
+                // The statement begins with "await" and could not be parsed as a legal declaration statement.
+                // We know from our precondition that it is not a legal "await X();" statement, though it is
+                // possible that it was only not legal because we were not in an async context.
+
+                Debug.Assert(!IsInAsync);
+
+                // Let's see if we're in case (5). Pretend that we're in an async method and retry.
+
+                this.Reset(ref resetPointBeforeStatement);
+                IsInAsync = true;
+                result = TryParseStatementNoDeclaration(attributes, allowAnyExpression: false);
+                IsInAsync = false;
+
                 return result;
             }
             finally
             {
                 this.Release(ref resetPointBeforeStatement);
             }
-        }
-
-        /// <returns><c>null</c> when a statement cannot be parsed at this location.</returns>
-        private StatementSyntax TryParsePossibleDeclarationOrBadAwaitStatement(
-            SyntaxList<AttributeListSyntax> attributes, ref ResetPoint resetPointBeforeStatement)
-        {
-            // Precondition: We have already attempted to parse the statement as a non-declaration and failed.
-            //
-            // That means that we are in one of the following cases:
-            //
-            // 1) This is not a statement. This can happen if the start of the statement was an
-            //    accessibility modifier, but the rest of the statement did not parse as a local
-            //    function. If there was an accessibility modifier and the statement parsed as
-            //    local function, that should be marked as a mistake with local function visibility.
-            //    Otherwise, it's likely the user just forgot a closing brace on their method.
-            // 2) This is a perfectly mundane and correct local declaration statement like "int x;"
-            // 3) This is a perfectly mundane but erroneous local declaration statement, like "int X();"
-            // 4) We are in the rare case of the code containing "await x;" and the intention is that
-            //    "await" is the type of "x".  This only works in a non-async method.
-            // 5) We have what would be a legal await statement, like "await X();", but we are not in
-            //    an async method, so the parse failed. (Had we been in an async method then the parse
-            //    attempt done by our caller would have succeeded.)
-            // 6) The statement begins with "await" but is not a legal local declaration and not a legal
-            //    await expression regardless of whether the method is marked as "async".
-
-            bool beginsWithAwait = this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
-            StatementSyntax result = TryParseLocalDeclarationStatement(attributes);
-
-            // Case (1)
-            if (result == null)
-            {
-                this.Reset(ref resetPointBeforeStatement);
-                return null;
-            }
-
-            // Cases (2), (3) and (4):
-            if (!beginsWithAwait || !result.ContainsDiagnostics)
-            {
-                return result;
-            }
-
-            // The statement begins with "await" and could not be parsed as a legal declaration statement.
-            // We know from our precondition that it is not a legal "await X();" statement, though it is
-            // possible that it was only not legal because we were not in an async context.
-
-            Debug.Assert(!IsInAsync);
-
-            // Let's see if we're in case (5). Pretend that we're in an async method and see if parsing
-            // a non-declaration statement would have succeeded.
-
-            this.Reset(ref resetPointBeforeStatement);
-            IsInAsync = true;
-            result = TryParseStatementNoDeclaration(attributes, allowAnyExpression: false);
-            IsInAsync = false;
-
-            if (!result.ContainsDiagnostics)
-            {
-                // We are in case (5). We do not report that we have an "await" expression in a non-async
-                // method at parse time; rather we do that in BindAwait(), during the initial round of
-                // semantic analysis.
-                return result;
-            }
-
-            // We are in case (6); we can't figure out what is going on here. Our best guess is that it is
-            // a malformed local declaration, so back up and re-parse it.
-
-            this.Reset(ref resetPointBeforeStatement);
-            result = TryParseLocalDeclarationStatement(attributes);
-            Debug.Assert(result.ContainsDiagnostics);
-
-            return result;
         }
 
         /// <summary>
