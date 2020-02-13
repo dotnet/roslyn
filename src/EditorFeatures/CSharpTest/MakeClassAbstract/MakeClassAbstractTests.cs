@@ -133,7 +133,7 @@ public abstract class Foo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41654"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
         public async Task TestPartialClass()
         {
             await TestInRegularAndScript1Async(
