@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Fallback to looking for option from the document's optionset if unsuccessful.
-            return _optionSet?.GetOption(optionKey) ?? optionKey.Option.DefaultValue;
+            return _optionSet?.GetOption(optionKey) ?? optionKey.Option.DefaultValue!;
         }
 
-        public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
+        public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
         {
             throw new NotImplementedException();
         }

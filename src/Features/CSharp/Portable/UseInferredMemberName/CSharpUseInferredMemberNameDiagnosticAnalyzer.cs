@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 return;
             }
 
-            var anonCtor = (AnonymousObjectMemberDeclaratorSyntax)nameEquals.Parent;
             var preference = options.GetOption(
                 CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken);
             if (!preference.Value ||

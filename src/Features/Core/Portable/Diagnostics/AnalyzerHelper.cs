@@ -202,9 +202,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #pragma warning disable CS0612 // Type or member is obsolete
             var optionSet = await analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).ConfigureAwait(false);
 #pragma warning restore CS0612 // Type or member is obsolete
-            return optionSet is object
-                ? (T)optionSet.GetOption(new OptionKey(option, language))
-                : (T)option.DefaultValue;
+            return (T)optionSet?.GetOption(new OptionKey(option, language)) ?? (T)option.DefaultValue!;
         }
 
         [Obsolete]
