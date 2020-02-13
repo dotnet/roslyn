@@ -6970,7 +6970,6 @@ done:;
             if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.Block)
                 return (BlockSyntax)this.EatNode();
 
-            // There's a special error code for a missing token after an accessor keyword
             CSharpSyntaxNode openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
             var statements = _pool.Allocate<StatementSyntax>();
