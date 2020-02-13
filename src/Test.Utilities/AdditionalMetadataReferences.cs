@@ -22,7 +22,8 @@ namespace Test.Utilities
 
         public static ReferenceAssemblies DefaultForTaintedDataAnalysis { get; } = Default
             .AddAssemblies(ImmutableArray.Create("PresentationFramework", "System.DirectoryServices", "System.Web", "System.Web.Extensions", "System.Xaml"))
-            .AddPackages(ImmutableArray.Create(new PackageIdentity("AntiXSS", "4.3.0")));
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("AntiXSS", "4.3.0")))
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.2.0")));
 
         public static ReferenceAssemblies DefaultWithSerialization { get; } = Default
             .AddAssemblies(ImmutableArray.Create("System.Runtime.Serialization"));
@@ -44,6 +45,18 @@ namespace Test.Utilities
                 new PackageIdentity("Microsoft.AspNetCore", "1.1.7"),
                 new PackageIdentity("Microsoft.AspNetCore.Mvc", "1.1.8"),
                 new PackageIdentity("Microsoft.AspNetCore.Http", "1.1.2")));
+
+        public static ReferenceAssemblies DefaultWithNUnit { get; } = Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("NUnit", "3.12.0")));
+
+        public static ReferenceAssemblies DefaultWithxunit { get; } = Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("xunit", "2.4.1")));
+
+        public static ReferenceAssemblies DefaultWithMSTest { get; } = Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("MSTest.TestFramework", "2.1.0")));
+
+        public static ReferenceAssemblies DefaultWithAsyncInterfaces { get; } = Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.Bcl.AsyncInterfaces", "1.1.0")));
 
         public static MetadataReference SystemCollectionsImmutableReference { get; } = MetadataReference.CreateFromFile(typeof(ImmutableHashSet<>).Assembly.Location);
         public static MetadataReference SystemComponentModelCompositionReference { get; } = MetadataReference.CreateFromFile(typeof(System.ComponentModel.Composition.ExportAttribute).Assembly.Location);
