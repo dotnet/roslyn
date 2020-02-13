@@ -566,7 +566,7 @@ $@"{LogoAndHelpPrompt}
             }
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly))]
         [InlineData(null, null)]
         [InlineData("c:", null)]
         [InlineData("c:\\", null)]
@@ -581,6 +581,11 @@ $@"{LogoAndHelpPrompt}
         [InlineData("\\first\\second", "\\first")]
         [InlineData("\\first\\second\\", "\\first\\second")]
         [InlineData("\\first\\second\\third", "\\first\\second")]
+        [InlineData("first", "")]
+        [InlineData("first\\", "first")]
+        [InlineData("first\\second", "first")]
+        [InlineData("first\\second\\", "first\\second")]
+        [InlineData("first\\second\\third", "first\\second")]
         public void TestGetDirectoryName_Windows(string path, string expectedOutput)
         {
             Assert.Equal(expectedOutput, PathUtilities.GetDirectoryName(path, isUnixLike: false));
