@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             //    (because we will be generating a 'disposedValue' field and a couple of methods named 'Dispose' as part of implementing 
             //    the dispose pattern).
             var unimplementedMembers = explicitly
-                ? state.MembersWithoutExplicitImplementation 
+                ? state.MembersWithoutExplicitImplementation
                 : state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
             var idisposable = TryGetSymbolForIDisposable(state.Model.Compilation);
             return (idisposable != null) &&
