@@ -7152,43 +7152,46 @@ done:;
                 || this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
         }
 
-        // ParseEmbeddedStatement is called through many recursive statement parsing cases. We want
-        // to ensure it is inlined into the callers as the overhead of this single method can have a
-        // deep impact on the number of recursive calls we can make (more than a hundred during
-        // empirical testing).
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private StatementSyntax ParseEmbeddedStatement()
         {
-            // The consumers of embedded statements are expecting to receive a non-null statement 
-            // yet there are several error conditions that can lead ParseStatementCore to return 
-            // null.  When that occurs create an error empty Statement and return it to the caller.
-            return CheckEmbeddedStatement(this.ParseStatementCore() ?? ParseEmptyStatement());
-        }
+            // ParseEmbeddedStatement is called through many recursive statement parsing cases. We
+            // keep the body exceptionally simple, and we optimize for the common case, to ensure it
+            // is inlined into the callers.  Otherwise the overhead of this single method can have a
+            // deep impact on the number of recursive calls we can make (more than a hundred during
+            // empirical testing).
 
-        private EmptyStatementSyntax ParseEmptyStatement()
-            => SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
+            return parseEmbeddedStatementRest(this.ParseStatementCore());
 
-        private StatementSyntax CheckEmbeddedStatement(StatementSyntax statement)
-        {
-            // In scripts, stand-alone expression statements may not be followed by semicolons.
-            // ParseExpressionStatement hides the error.
-            // However, embedded expression statements are required to be followed by semicolon. 
-            if (statement.Kind == SyntaxKind.ExpressionStatement &&
-                IsScript)
+            StatementSyntax parseEmbeddedStatementRest(StatementSyntax statement)
             {
-                var expressionStatementSyntax = (ExpressionStatementSyntax)statement;
-                var semicolonToken = expressionStatementSyntax.SemicolonToken;
-
-                // Do not add a new error if the same error was already added.
-                if (semicolonToken.IsMissing &&
-                    !semicolonToken.GetDiagnostics().Contains(diagnosticInfo => (ErrorCode)diagnosticInfo.Code == ErrorCode.ERR_SemicolonExpected))
+                if (statement == null)
                 {
-                    semicolonToken = this.AddError(semicolonToken, ErrorCode.ERR_SemicolonExpected);
-                    statement = expressionStatementSyntax.Update(expressionStatementSyntax.Expression, semicolonToken);
+                    // The consumers of embedded statements are expecting to receive a non-null statement 
+                    // yet there are several error conditions that can lead ParseStatementCore to return 
+                    // null.  When that occurs create an error empty Statement and return it to the caller.
+                    return SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
                 }
-            }
 
-            return statement;
+                // In scripts, stand-alone expression statements may not be followed by semicolons.
+                // ParseExpressionStatement hides the error.
+                // However, embedded expression statements are required to be followed by semicolon. 
+                if (statement.Kind == SyntaxKind.ExpressionStatement &&
+                    IsScript)
+                {
+                    var expressionStatementSyntax = (ExpressionStatementSyntax)statement;
+                    var semicolonToken = expressionStatementSyntax.SemicolonToken;
+
+                    // Do not add a new error if the same error was already added.
+                    if (semicolonToken.IsMissing &&
+                        !semicolonToken.GetDiagnostics().Contains(diagnosticInfo => (ErrorCode)diagnosticInfo.Code == ErrorCode.ERR_SemicolonExpected))
+                    {
+                        semicolonToken = this.AddError(semicolonToken, ErrorCode.ERR_SemicolonExpected);
+                        return expressionStatementSyntax.Update(expressionStatementSyntax.Expression, semicolonToken);
+                    }
+                }
+
+                return statement;
+            }
         }
 
         private BreakStatementSyntax ParseBreakStatement()
