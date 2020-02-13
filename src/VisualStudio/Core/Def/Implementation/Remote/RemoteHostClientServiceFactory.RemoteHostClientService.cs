@@ -190,11 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private void SetRemoteHostBitness()
             {
-                var x64 = _workspace.Options.GetOption(RemoteHostOptions.OOP64Bit);
-                if (!x64)
-                {
-                    x64 = _workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RoslynOOP64bit);
-                }
+                bool x64 = RemoteHostOptions.IsServiceHubProcess64Bit(_workspace);
 
                 // log OOP bitness
                 Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = x64));
