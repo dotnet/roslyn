@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private static readonly ISet<SyntaxKind> s_validLocalFunctionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.StaticKeyword,
-            // amazingly, the language does not prohibit using 'unsafe async' modifiers together.
             SyntaxKind.UnsafeKeyword
         };
 
