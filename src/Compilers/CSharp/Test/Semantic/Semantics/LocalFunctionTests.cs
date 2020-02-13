@@ -5667,12 +5667,81 @@ class C
         }
 
         [Fact]
+        public void LocalFunction_MaybeNullWhenAttribute()
+        {
+            var source = @"
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    void M()
+    {
+        _ = tryGetValue(true, out var s)
+            ? s.ToString()
+            : s.ToString(); // 1
+
+        bool tryGetValue(bool b, [MaybeNullWhen(false)] out string s1)
+        {
+            s1 = b ? ""abc"" : null;
+            return b;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { MaybeNullWhenAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8602: Dereference of a possibly null reference.
+                //             : s.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(12, 15));
+        }
+
+        [Fact]
+        public void LocalFunction_MaybeNullWhenAttribute_CheckUsage()
+        {
+            var source = @"
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    void M()
+    {
+        var s = ""abc"";
+        local1();
+
+        tryGetValue(""a"", out s);
+        local1();
+
+        void local1()
+        {
+            _ = s.ToString(); // 1
+        }
+
+        bool tryGetValue(string key, [MaybeNullWhen(false)] out string s1)
+        {
+            s1 = key;
+            return true;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { MaybeNullWhenAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (18,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = s.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 17));
+        }
+
+        [Fact]
         public void LocalFunction_AllowNullAttribute()
         {
             var source = @"
-using System.Diagnostics.CodeAnalysis;
-
 #nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 
 class C
 {
@@ -5694,6 +5763,129 @@ class C
                 // (13,16): warning CS8604: Possible null reference argument for parameter 't' in 'void local2(T t)'.
                 //         local2(t1); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t1").WithArguments("t", "void local2(T t)").WithLocation(13, 16));
+        }
+
+        [Fact]
+        public void LocalFunction_MaybeNullAttribute()
+        {
+            var source = @"
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    void M<TOuter>()
+    {
+        getDefault<string>().ToString(); // 1
+        getDefault<string?>().ToString(); // 2
+        getDefault<int>().ToString();
+        getDefault<int?>().Value.ToString(); // 3
+        getDefault<TOuter>().ToString(); // 4
+
+        [return: MaybeNull] T getDefault<T>() => default(T);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { MaybeNullAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         getDefault<string>().ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "getDefault<string>()").WithLocation(10, 9),
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
+                //         getDefault<string?>().ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "getDefault<string?>()").WithLocation(11, 9),
+                // (13,9): warning CS8629: Nullable value type may be null.
+                //         getDefault<int?>().Value.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "getDefault<int?>()").WithLocation(13, 9),
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                //         getDefault<TOuter>().ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "getDefault<TOuter>()").WithLocation(14, 9));
+        }
+
+        [Fact]
+        public void LocalFunction_Nullable_CheckUsage_DoesNotUsePostconditions()
+        {
+            var source = @"
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    void M()
+    {
+        var s0 = ""hello"";
+
+        local1(out s0);
+
+        bool local1([MaybeNullWhen(false)] out string s1)
+        {
+            s0.ToString();
+            s1 = ""world"";
+            return true;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { MaybeNullWhenAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_DoesNotReturn()
+        {
+            var source = @"
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    void M(string? s)
+    {
+        local1();
+        s.ToString();
+
+        [DoesNotReturn]
+        void local1()
+        {
+            throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { DoesNotReturnAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_DoesNotReturnIf()
+        {
+            var source = @"
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    void M(string? s1, string? s2)
+    {
+        local1(s1 != null);
+        s1.ToString();
+
+        local1(false);
+        s2.ToString();
+
+        void local1([DoesNotReturnIf(false)] bool b)
+        {
+            throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { DoesNotReturnIfAttributeDefinition, source }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
