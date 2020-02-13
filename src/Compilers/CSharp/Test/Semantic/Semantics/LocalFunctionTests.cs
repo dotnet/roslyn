@@ -508,6 +508,104 @@ class C
         }
 
         [Fact]
+        public void LocalFunctionAttribute_OnFunction_LocalArgument()
+        {
+            const string text = @"
+using System;
+class A : Attribute
+{
+    internal A(string s) { }
+}
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 0219 // Unreferenced local variable
+        string s1 = ""hello"";
+        const string s2 = ""world"";
+
+#pragma warning disable 8321 // Unreferenced local function
+        [A(s1)] // 1
+        void local1() { }
+
+        [A(nameof(s1))]
+        void local2() { }
+
+        [A(s2)]
+        void local3() { }
+
+        [A(s1.ToString())] // 2
+        void local4() { }
+
+        static string local5() => ""hello"";
+
+        [A(local5())] // 3
+        void local6() { }
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (17,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //         [A(s1)] // 1
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "s1").WithLocation(17, 12),
+                // (26,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //         [A(s1.ToString())] // 2
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "s1.ToString()").WithLocation(26, 12),
+                // (31,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //         [A(local5())] // 3
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "local5()").WithLocation(31, 12));
+        }
+
+        [Fact]
+        public void LocalFunctionAttribute_OutParam()
+        {
+            const string text = @"
+using System;
+class A : Attribute
+{
+    internal A(out string s) { s = ""a""; }
+}
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321, 0168 // Unreferenced local
+        string s;
+
+        [A(out s)]
+        void local1() { }
+
+        [A(out var s)]
+        void local2() { }
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (15,12): error CS1041: Identifier expected; 'out' is a keyword
+                //         [A(out s)]
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(15, 12),
+                // (15,16): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         [A(out s)]
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(15, 16),
+                // (18,10): error CS1729: 'A' does not contain a constructor that takes 2 arguments
+                //         [A(out var s)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "A(out var s)").WithArguments("A", "2").WithLocation(18, 10),
+                // (18,12): error CS1041: Identifier expected; 'out' is a keyword
+                //         [A(out var s)]
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(18, 12),
+                // (18,16): error CS0103: The name 'var' does not exist in the current context
+                //         [A(out var s)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(18, 16),
+                // (18,20): error CS1003: Syntax error, ',' expected
+                //         [A(out var s)]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "s").WithArguments(",", "").WithLocation(18, 20));
+        }
+
+        [Fact]
         public void LocalFunctionAttribute_Return()
         {
             const string text = @"
@@ -647,36 +745,52 @@ class MethodAttribute : Attribute { }
 [AttributeUsage(AttributeTargets.ReturnValue)]
 class ReturnAttribute : Attribute { }
 
+[AttributeUsage(AttributeTargets.Parameter)]
+class ParamAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+class TypeParamAttribute : Attribute { }
+
 public class C {
     public void M() {
+#pragma warning disable 8321 // Unreferenced local function
         [Prop] // 1
         [Return] // 2
         [Method]
         [return: Prop] // 3
         [return: Return]
         [return: Method] // 4
-        void local() { } // 5
+        void local<
+            [Param] // 5
+            [TypeParam]
+            T>(
+            [Param]
+            [TypeParam] // 6
+            T t) { }
     }
 }
 ";
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (15,10): error CS0592: Attribute 'Prop' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
+                // (22,10): error CS0592: Attribute 'Prop' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
                 //         [Prop] // 1
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Prop").WithArguments("Prop", "property, indexer").WithLocation(15, 10),
-                // (16,10): error CS0592: Attribute 'Return' is not valid on this declaration type. It is only valid on 'return' declarations.
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Prop").WithArguments("Prop", "property, indexer").WithLocation(22, 10),
+                // (23,10): error CS0592: Attribute 'Return' is not valid on this declaration type. It is only valid on 'return' declarations.
                 //         [Return] // 2
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Return").WithArguments("Return", "return").WithLocation(16, 10),
-                // (18,18): error CS0592: Attribute 'Prop' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Return").WithArguments("Return", "return").WithLocation(23, 10),
+                // (25,18): error CS0592: Attribute 'Prop' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
                 //         [return: Prop] // 3
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Prop").WithArguments("Prop", "property, indexer").WithLocation(18, 18),
-                // (20,18): error CS0592: Attribute 'Method' is not valid on this declaration type. It is only valid on 'method' declarations.
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Prop").WithArguments("Prop", "property, indexer").WithLocation(25, 18),
+                // (27,18): error CS0592: Attribute 'Method' is not valid on this declaration type. It is only valid on 'method' declarations.
                 //         [return: Method] // 4
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Method").WithArguments("Method", "method").WithLocation(20, 18),
-                // (21,14): warning CS8321: The local function 'local' is declared but never used
-                //         void local() { } // 5
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(21, 14));
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Method").WithArguments("Method", "method").WithLocation(27, 18),
+                // (29,14): error CS0592: Attribute 'Param' is not valid on this declaration type. It is only valid on 'parameter' declarations.
+                //             [Param] // 5
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Param").WithArguments("Param", "parameter").WithLocation(29, 14),
+                // (33,14): error CS0592: Attribute 'TypeParam' is not valid on this declaration type. It is only valid on 'type parameter' declarations.
+                //             [TypeParam] // 6
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TypeParam").WithArguments("TypeParam", "type parameter").WithLocation(33, 14));
 
             var tree = comp.SyntaxTrees.Single();
             var localFunction = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
@@ -5486,6 +5600,43 @@ class C
                 // (9,9): error CS0619: 'local2()' is obsolete: 'hello'
                 //         local2(); // 2
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "local2()").WithArguments("local2()", "hello").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void LocalFunction_AttributeMarkedObsolete()
+        {
+            var source = @"
+using System;
+
+[Obsolete]
+class Attr : Attribute { }
+
+class C
+{
+    void M1()
+    {
+#pragma warning disable 8321
+        [Attr] void local1() { } // 1
+        [return: Attr] void local2() { } // 2
+        void local3([Attr] int i) { } // 3
+        void local4<[Attr] T>(T t) { } // 4
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (12,10): warning CS0612: 'Attr' is obsolete
+                //         [Attr] void local1() { } // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Attr").WithArguments("Attr").WithLocation(12, 10),
+                // (13,18): warning CS0612: 'Attr' is obsolete
+                //         [return: Attr] void local2() { } // 2
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Attr").WithArguments("Attr").WithLocation(13, 18),
+                // (14,22): warning CS0612: 'Attr' is obsolete
+                //         void local3([Attr] int i) { } // 3
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Attr").WithArguments("Attr").WithLocation(14, 22),
+                // (15,22): warning CS0612: 'Attr' is obsolete
+                //         void local4<[Attr] T>(T t) { } // 4
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Attr").WithArguments("Attr").WithLocation(15, 22));
         }
 
         [Fact]
