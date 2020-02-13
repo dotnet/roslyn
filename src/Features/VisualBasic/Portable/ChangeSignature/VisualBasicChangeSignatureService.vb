@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim objectCreation = DirectCast(matchingNode, ObjectCreationExpressionSyntax)
                 If token.Parent.AncestorsAndSelf().Any(Function(a) a Is objectCreation.Type) Then
                     Dim typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type).Symbol
-                    If typeSymbol IsNot Nothing AndAlso typeSymbol.IsKind(SymbolKind.NamedType) AndAlso DirectCast(typeSymbol, Global.Microsoft.CodeAnalysis.ITypeSymbol).TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Delegate Then
+                    If typeSymbol IsNot Nothing AndAlso typeSymbol.IsKind(SymbolKind.NamedType) AndAlso DirectCast(typeSymbol, ITypeSymbol).TypeKind = TypeKind.Delegate Then
                         Return (typeSymbol, 0)
                     End If
                 End If
@@ -340,7 +340,7 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
                 Dim isReducedExtensionMethod = False
                 Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, InvocationExpressionSyntax))
                 Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
-                If methodSymbol IsNot Nothing AndAlso methodSymbol.MethodKind = Global.Microsoft.CodeAnalysis.MethodKind.ReducedExtension Then
+                If methodSymbol IsNot Nothing AndAlso methodSymbol.MethodKind = MethodKind.ReducedExtension Then
                     isReducedExtensionMethod = True
                 End If
 
@@ -684,8 +684,8 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
                 End If
             Next
 
-            Return ImmutableArrayExtensions.
-                           SelectAsArray(CType(results.ToImmutableAndFree(), ImmutableArray(Of ISymbol)), CType(Function(s) SymbolAndProjectId.Create(CType(s, ISymbol), CType(document.Project.Id, ProjectId)), Func(Of ISymbol, SymbolAndProjectId)))
+            Return results.ToImmutableAndFree().
+                           SelectAsArray(Function(s) SymbolAndProjectId.Create(s, document.Project.Id))
         End Function
 
         Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
