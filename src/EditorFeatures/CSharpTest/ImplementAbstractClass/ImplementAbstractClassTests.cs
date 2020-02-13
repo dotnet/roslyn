@@ -1985,7 +1985,7 @@ class Class : Base<string?>
         throw new System.NotImplementedException();
     }
 
-    protected override string MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] string? value)
+    protected override string MethodDisallowNull(string value)
     {
         throw new System.NotImplementedException();
     }

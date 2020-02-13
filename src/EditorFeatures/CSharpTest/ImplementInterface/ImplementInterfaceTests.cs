@@ -8705,7 +8705,7 @@ class Class : IInterface<string?>
         throw new System.NotImplementedException();
     }}
 
-    public string MethodDisallowNull([DisallowNull] string? value)
+    public string MethodDisallowNull(string value)
     {{
         throw new System.NotImplementedException();
     }}
@@ -8943,7 +8943,7 @@ class Class : IInterface<string?>
         throw new System.NotImplementedException();
     }}
 
-    public void MethodDisallowNullNotNull([DisallowNull, NotNull] ref string? value)
+    public void MethodDisallowNullNotNull(ref string value)
     {{
         throw new System.NotImplementedException();
     }}
@@ -9015,7 +9015,7 @@ class Class : IInterface<string?>
         throw new System.NotImplementedException();
     }}
 
-    public void MethodDisallowNull([DisallowNull] in string? value)
+    public void MethodDisallowNull(in string value)
     {{
         throw new System.NotImplementedException();
     }}
@@ -9078,7 +9078,7 @@ class Class<T> : IInterface<T?> where T : class
         throw new System.NotImplementedException();
     }}
 
-    public T MethodDisallowNull([DisallowNull] T? value)
+    public T MethodDisallowNull(T value)
     {{
         throw new System.NotImplementedException();
     }}

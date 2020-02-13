@@ -105,9 +105,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         /// <summary>
         /// Indicates whether the specified attribute is
-        /// <see cref="AllowNullAttribute"/>,
-        /// <see cref="MaybeNullAttribute"/> or
-        /// <see cref="MaybeNullWhenAttribute"/>.
+        /// <see cref="System.Diagnostics.CodeAnalysis.AllowNullAttribute"/>,
+        /// <see cref="System.Diagnostics.CodeAnalysis.MaybeNullAttribute"/> or
+        /// <see cref="System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute"/>.
         /// </summary>
         public static bool IsAllowNullOrMaybeNullAttribute(AttributeData attribute)
             => IsCodeAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         /// <summary>
         /// Indicates whether the specified attribute is
-        /// <see cref="DisallowNullAttribute"/>,
+        /// <see cref="System.Diagnostics.CodeAnalysis.DisallowNullAttribute"/>,
         /// <see cref="NotNullAttribute"/>,
         /// <see cref="NotNullWhenAttribute"/> or
         /// <see cref="NotNullIfNotNullAttribute"/>.
