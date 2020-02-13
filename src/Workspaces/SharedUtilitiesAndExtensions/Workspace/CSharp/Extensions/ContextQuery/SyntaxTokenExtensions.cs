@@ -103,6 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // for ( ; ; Goo(), |
 
+            //   [Bar]
+            //   |
+
             switch (token.Kind())
             {
                 case SyntaxKind.OpenBraceToken when token.Parent.IsKind(SyntaxKind.Block):
@@ -170,6 +173,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 case SyntaxKind.ElseKeyword:
                     return true;
+
+                case SyntaxKind.CloseBracketToken:
+                    if (token.Parent.IsKind(SyntaxKind.AttributeList))
+                    {
+                        // attributes can belong to a statement
+                        var container = token.Parent.Parent;
+                        if (container is StatementSyntax)
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
             }
 
             return false;
