@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         {
             protected readonly bool Explicitly;
             protected readonly bool Abstractly;
+            private readonly bool _onlyRemaining;
             protected readonly ISymbol ThroughMember;
             protected readonly Document Document;
             protected readonly State State;
@@ -48,10 +49,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 Document = document;
                 State = state;
                 Abstractly = abstractly;
-                OnlyRemaining = onlyRemaining;
+                _onlyRemaining = onlyRemaining;
                 Explicitly = explicitly;
                 ThroughMember = throughMember;
-                _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, throughMember, GetType().FullName);
+                _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, onlyRemaining, throughMember, GetType().FullName);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementAbstractlyCodeAction(
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 {
                     if (Explicitly)
                     {
-                        if (OnlyRemaining)
+                        if (_onlyRemaining)
                         {
                             return FeaturesResources.Implement_remaining_members_explicitly;
                         }
@@ -129,6 +130,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 State state,
                 bool explicitly,
                 bool abstractly,
+                bool onlyRemaining,
                 ISymbol throughMember,
                 string codeActionTypeName)
             {
@@ -136,7 +138,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var typeName = interfaceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 var assemblyName = interfaceType.ContainingAssembly.Name;
 
-                return GetCodeActionEquivalenceKey(assemblyName, typeName, explicitly, abstractly, throughMember, codeActionTypeName);
+                return GetCodeActionEquivalenceKey(assemblyName, typeName, explicitly, abstractly, onlyRemaining, throughMember, codeActionTypeName);
             }
 
             private static string GetCodeActionEquivalenceKey(
@@ -144,6 +146,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 string interfaceTypeFullyQualifiedName,
                 bool explicitly,
                 bool abstractly,
+                bool onlyRemaining,
                 ISymbol throughMember,
                 string codeActionTypeName)
             {
@@ -154,6 +157,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 return explicitly.ToString() + ";" +
                     abstractly.ToString() + ";" +
+                    onlyRemaining.ToString() + ":" +
                     interfaceTypeAssemblyName + ";" +
                     interfaceTypeFullyQualifiedName + ";" +
                     codeActionTypeName;
@@ -177,7 +181,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
             {
                 var unimplementedMembers = Explicitly
-                    ? OnlyRemaining
+                    ? _onlyRemaining
                         ? State.MembersWithoutExplicitOrImplicitImplementation
                         : State.MembersWithoutExplicitImplementation
                     : State.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
@@ -587,8 +591,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return Document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive;
                 }
             }
-
-            public bool OnlyRemaining { get; }
 
             private bool HasMatchingMember(List<ISymbol> implementedVisibleMembers, ISymbol member)
             {
