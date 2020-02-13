@@ -760,6 +760,7 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class ConstantValueNativeInt : ConstantValueDiscriminated
         {
+            // Constants are limited to 32-bit for portability.
             private readonly int _value;
 
             public ConstantValueNativeInt(int value)
@@ -797,7 +798,7 @@ namespace Microsoft.CodeAnalysis
 
             public override bool Equals(ConstantValue? other)
             {
-                return base.Equals(other) && _value == other.Int64Value;
+                return base.Equals(other) && _value == other.Int32Value;
             }
         }
 

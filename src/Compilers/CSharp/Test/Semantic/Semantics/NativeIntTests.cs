@@ -552,7 +552,7 @@ unsafe class Program
         // PROTOTYPE: PEVerify: "[ : MyInt::ToString][mdToken=0x6000005][offset 0x00000001] Cannot change initonly field outside its .ctor."
         // CodeGenerator.EmitCallExpression() is not expecting a System.ValueType without an overload of ToString().
         [Fact(Skip = "PEVerify failure")]
-        public void ReadOnlyField_ToString()
+        public void ReadOnlyField_VirtualMethods()
         {
             string source =
 @"class MyInt
@@ -1171,7 +1171,7 @@ class Program
         }
 
         [Fact]
-        public void Constants_Fields()
+        public void Constants_Fields_01()
         {
             var source =
 @"class Program
@@ -1195,6 +1195,66 @@ class Program
                 // (5,30): error CS0133: The expression being assigned to 'Program.C' must be constant
                 //     const System.UIntPtr C = default(System.UIntPtr);
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "default(System.UIntPtr)").WithArguments("Program.C").WithLocation(5, 30));
+        }
+
+        [Fact]
+        public void Constants_Fields_02()
+        {
+            var source0 =
+@"public class A
+{
+    public const nint C1 = -42;
+    public const nuint C2 = 42;
+}";
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            var ref0 = comp.EmitToImageReference();
+            var source1 =
+@"using System;
+class B
+{
+    static void Main()
+    {
+        Console.WriteLine(A.C1);
+        Console.WriteLine(A.C2);
+    }
+}";
+            comp = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"-42
+42");
+        }
+
+        [Fact]
+        public void Constants_ParameterDefaults()
+        {
+            var source0 =
+@"public class A
+{
+    public static System.IntPtr F1(System.IntPtr i = default) => i;
+    public static nint F2(nint i = -42) => i;
+    public static System.UIntPtr F3(System.UIntPtr u = default) => u;
+    public static nuint F4(nuint u = 42) => u;
+}";
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            var ref0 = comp.EmitToImageReference();
+            var source1 =
+@"using System;
+class B
+{
+    static void Main()
+    {
+        Console.WriteLine(A.F1());
+        Console.WriteLine(A.F2());
+        Console.WriteLine(A.F3());
+        Console.WriteLine(A.F4());
+    }
+}";
+            comp = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"0
+-42
+0
+42");
         }
 
         [Fact]
@@ -3116,7 +3176,7 @@ class Program
         [Fact]
         public void UnaryOperators_UserDefinedConversions_NInt()
         {
-            // PROTOTYPE: Declare _i readonly. See ReadOnlyField_ToString().
+            // PROTOTYPE: Declare _i readonly. See ReadOnlyField_VirtualMethods().
             string source =
 @"using System;
 class MyInt
@@ -3283,7 +3343,7 @@ $@"-2147483647
         [Fact]
         public void UnaryOperators_UserDefinedConversions_NUInt()
         {
-            // PROTOTYPE: Declare _i readonly. See ReadOnlyField_ToString().
+            // PROTOTYPE: Declare _i readonly. See ReadOnlyField_VirtualMethods().
             string source =
 @"using System;
 class MyInt
