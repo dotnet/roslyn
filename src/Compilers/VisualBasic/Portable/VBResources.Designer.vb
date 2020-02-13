@@ -10241,7 +10241,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ResourceManager.GetString("ERR_StaticInLambda", resourceCulture)
             End Get
         End Property
-        
+
+        '''<summary>
+        '''  Looks up a localized string similar to stdin argument '-' is specified, but input has not been redirected from the standard input stream..
+        '''</summary>
+        Friend ReadOnly Property ERR_StdInOptionProvidedButConsoleInputIsNotRedirected() As String
+            Get
+                Return ResourceManager.GetString("ERR_StdInOptionProvidedButConsoleInputIsNotRedirected", resourceCulture)
+            End Get
+        End Property
+
         '''<summary>
         '''  Looks up a localized string similar to Option Strict On disallows narrowing from type &apos;{1}&apos; to type &apos;{2}&apos; in copying the value of &apos;ByRef&apos; parameter &apos;{0}&apos; back to the matching argument..
         '''</summary>
