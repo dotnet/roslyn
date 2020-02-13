@@ -3,9 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -60,6 +63,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private void AddOrRemoveDropdown(bool enabled)
             {
                 if (!(_codeWindow is IVsDropdownBarManager dropdownManager))
+                {
+                    return;
+                }
+
+                if (ErrorHandler.Failed(_codeWindow.GetBuffer(out var buffer)))
+                {
+                    return;
+                }
+
+                // Temporary solution until the editor provides a proper way to resolve the correct navbar.
+                // Tracked in https://github.com/dotnet/roslyn/issues/40989
+                var document = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer).AsTextContainer().GetRelatedDocuments().FirstOrDefault();
+                if (document.GetLanguageService<INavigationBarItemService>() == null)
                 {
                     return;
                 }
