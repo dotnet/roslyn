@@ -6444,8 +6444,10 @@ done:;
                 case SyntaxKind.GotoKeyword:
                     return this.ParseGotoStatement();
                 case SyntaxKind.IfKeyword:
-                case SyntaxKind.ElseKeyword: // Including 'else' keyword to handle 'else without if' error cases 
                     return this.ParseIfStatement();
+                case SyntaxKind.ElseKeyword:
+                    // Including 'else' keyword to handle 'else without if' error cases 
+                    return this.ParseMisplacedElse();
                 case SyntaxKind.LockKeyword:
                     return this.ParseLockStatement();
                 case SyntaxKind.ReturnKeyword:
@@ -7709,19 +7711,28 @@ tryAgain:
 
         private IfStatementSyntax ParseIfStatement()
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword || this.CurrentToken.Kind == SyntaxKind.ElseKeyword);
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
 
-            bool firstTokenIsElse = this.CurrentToken.Kind == SyntaxKind.ElseKeyword;
-            var @if = firstTokenIsElse
-                ? this.EatToken(SyntaxKind.IfKeyword, ErrorCode.ERR_ElseCannotStartStatement)
-                : this.EatToken(SyntaxKind.IfKeyword);
-            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            var condition = this.ParseExpressionCore();
-            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = firstTokenIsElse ? this.ParseExpressionStatement() : this.ParseEmbeddedStatement();
-            var elseClause = this.ParseElseClauseOpt();
+            return _syntaxFactory.IfStatement(
+                this.EatToken(SyntaxKind.IfKeyword),
+                this.EatToken(SyntaxKind.OpenParenToken),
+                this.ParseExpressionCore(),
+                this.EatToken(SyntaxKind.CloseParenToken),
+                this.ParseEmbeddedStatement(),
+                this.ParseElseClauseOpt());
+        }
 
-            return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
+        private IfStatementSyntax ParseMisplacedElse()
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ElseKeyword);
+
+            return _syntaxFactory.IfStatement(
+                this.EatToken(SyntaxKind.IfKeyword, ErrorCode.ERR_ElseCannotStartStatement),
+                this.EatToken(SyntaxKind.OpenParenToken),
+                this.ParseExpressionCore(),
+                this.EatToken(SyntaxKind.CloseParenToken),
+                this.ParseExpressionStatement(),
+                this.ParseElseClauseOpt());
         }
 
         private ElseClauseSyntax ParseElseClauseOpt()
