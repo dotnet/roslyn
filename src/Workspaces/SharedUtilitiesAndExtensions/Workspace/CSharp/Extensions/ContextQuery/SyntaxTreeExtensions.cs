@@ -327,9 +327,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
                 token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
 
-                // TODO: how do we detect that we are in an attribute list inside a method body?
-                // Simply adding `|| token.IsKind(SyntaxKind.CloseBracketToken)` makes us fail tests
-                // for keyword recommendation following assembly attributes.
                 return syntaxTree.IsStatementContext(beforeModifiersPosition, token, cancellationToken);
             }
 
