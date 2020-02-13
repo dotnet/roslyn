@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections;
 using System.Collections.Immutable;
 using System.Threading;
@@ -50,14 +52,14 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
             if (ienumerableType != null)
             {
+                var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
                 context.RegisterSyntaxNodeAction(
                     nodeContext => AnalyzeNode(nodeContext, ienumerableType),
-                    GetObjectCreationSyntaxKind());
+                    syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
             }
         }
 
         protected abstract bool AreCollectionInitializersSupported(SyntaxNodeAnalysisContext context);
-        protected abstract TSyntaxKind GetObjectCreationSyntaxKind();
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType)
         {
@@ -95,6 +97,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
+            if (containingStatement == null)
+            {
+                return;
+            }
+
             var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
             var syntaxFacts = GetSyntaxFactsService();
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))

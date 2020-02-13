@@ -88,6 +88,14 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
+            // handle stdin operator
+            if (arg == "-")
+            {
+                name = arg;
+                value = null;
+                return true;
+            }
+
             int colon = arg.IndexOf(':');
 
             // temporary heuristic to detect Unix-style rooted paths
@@ -852,7 +860,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private protected CommandLineSourceFile ToCommandLineSourceFile(string resolvedPath)
+        private protected CommandLineSourceFile ToCommandLineSourceFile(string resolvedPath, bool isInputRedirected = false)
         {
             string extension = PathUtilities.GetExtension(resolvedPath);
 
@@ -868,7 +876,7 @@ namespace Microsoft.CodeAnalysis
                 isScriptFile = false;
             }
 
-            return new CommandLineSourceFile(resolvedPath, isScriptFile);
+            return new CommandLineSourceFile(resolvedPath, isScriptFile, isInputRedirected);
         }
 
         internal IEnumerable<string> ParseFileArgument(string arg, string baseDirectory, IList<Diagnostic> errors)

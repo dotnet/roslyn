@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             => s_cachedProperties[(includeInFixAll, equivalenceKey)];
 
         protected abstract int GetPrecedence(TBinaryLikeExpressionSyntax binaryLike);
-        protected abstract TExpressionSyntax TryGetParentExpression(TBinaryLikeExpressionSyntax binaryLike);
+        protected abstract TExpressionSyntax? TryGetParentExpression(TBinaryLikeExpressionSyntax binaryLike);
         protected abstract bool IsBinaryLike(TExpressionSyntax node);
         protected abstract (TExpressionSyntax, SyntaxToken, TExpressionSyntax) GetPartsOfBinaryLike(TBinaryLikeExpressionSyntax binaryLike);
 
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            var preference = context.GetOption(parentPrecedence, context.Compilation.Language);
+            var preference = context.GetOption(parentPrecedence, binaryLike.Language);
             if (preference.Value != ParenthesesPreference.AlwaysForClarity)
             {
                 return;
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         }
 
         private void AddDiagnostics(
-            SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax binaryLikeOpt, int precedence,
+            SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax? binaryLikeOpt, int precedence,
             ReportDiagnostic severity, ImmutableArray<Location> additionalLocations,
             string equivalenceKey, bool includeInFixAll)
         {

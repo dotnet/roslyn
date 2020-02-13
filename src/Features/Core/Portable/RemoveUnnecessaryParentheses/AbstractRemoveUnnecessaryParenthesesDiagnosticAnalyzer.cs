@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -50,9 +52,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxNodeKind());
+        {
+            var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+            context.RegisterSyntaxNodeAction(AnalyzeSyntax,
+                syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.ParenthesizedExpression));
+        }
 
-        protected abstract TLanguageKindEnum GetSyntaxNodeKind();
         protected abstract bool CanRemoveParentheses(
             TParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
             out PrecedenceKind precedence, out bool clarifiesPrecedence);
@@ -82,7 +87,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                     var syntaxFacts = GetSyntaxFactsService();
                     var child = syntaxFacts.GetExpressionOfParenthesizedExpression(parenthesizedExpression);
 
-                    var parentKind = parenthesizedExpression.Parent.RawKind;
+                    var parentKind = parenthesizedExpression.Parent?.RawKind;
                     var childKind = child.RawKind;
                     if (parentKind != childKind)
                     {
