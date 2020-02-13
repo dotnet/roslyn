@@ -103,11 +103,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     {
                         if (OnlyUnimplemented)
                         {
-                            return FeaturesResources.Implement_remaining_members_of_interface_explicitly;
+                            return FeaturesResources.Implement_remaining_members_explicitly;
                         }
                         else
                         {
-                            return FeaturesResources.Implement_interface_explicitly;
+                            return FeaturesResources.Implement_all_members_explicitly;
                         }
                     }
                     else if (Abstractly)
@@ -178,9 +178,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 var unimplementedMembers = Explicitly
                     ? OnlyUnimplemented
-                        ? State.UnimplementedMembers
-                        : State.UnimplementedExplicitMembers
-                    : State.UnimplementedMembersNotRequiringExplicitImplementation;
+                        ? State.MembersWithoutExplicitOrImplicitImplementation
+                        : State.MembersWithoutExplicitImplementation
+                    : State.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
                 return GetUpdatedDocumentAsync(Document, unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
             }
 

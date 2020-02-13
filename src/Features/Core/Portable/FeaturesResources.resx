@@ -246,8 +246,8 @@
   <data name="Global_Namespace" xml:space="preserve">
     <value>Global Namespace</value>
   </data>
-  <data name="Implement_interface_explicitly" xml:space="preserve">
-    <value>Implement interface explicitly</value>
+  <data name="Implement_all_members_explicitly" xml:space="preserve">
+    <value>Implement all members explicitly</value>
   </data>
   <data name="Implement_interface_abstractly" xml:space="preserve">
     <value>Implement interface abstractly</value>
@@ -1753,7 +1753,7 @@ This version used in: {2}</value>
   <data name="Value_colon" xml:space="preserve">
     <value>Value:</value>
   </data>
-  <data name="Implement_remaining_members_of_interface_explicitly" xml:space="preserve">
-    <value>Implement remaining members of interface explicitly</value>
+  <data name="Implement_remaining_members_explicitly" xml:space="preserve">
+    <value>Implement remaining members explicitly</value>
   </data>
 </root>

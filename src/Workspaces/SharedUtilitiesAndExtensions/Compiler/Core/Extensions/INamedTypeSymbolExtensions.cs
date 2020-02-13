@@ -187,49 +187,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembersNotRequiringExplicitImplementation(
-            this INamedTypeSymbol classOrStructType,
-            IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
-            CancellationToken cancellationToken)
-        {
-            return classOrStructType.GetAllUnimplementedMembers(
-                interfacesOrAbstractClasses,
-                IsImplemented,
-                ImplementationExists,
-                (INamedTypeSymbol type, ISymbol within) =>
-                {
-                    if (type.TypeKind == TypeKind.Interface)
-                    {
-                        return type.GetMembers().WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public &&
-                                                                   m.Kind != SymbolKind.NamedType && IsImplementable(m) &&
-                                                                   !IsPropertyWithNonPublicImplementableAccessor(m));
-                    }
-
-                    return type.GetMembers();
-                },
-                allowReimplementation: false,
-                cancellationToken: cancellationToken);
-
-            // local functions
-
-            static bool IsPropertyWithNonPublicImplementableAccessor(ISymbol member)
-            {
-                if (member.Kind != SymbolKind.Property)
-                {
-                    return false;
-                }
-
-                var property = (IPropertySymbol)member;
-
-                return IsNonPublicImplementableAccessor(property.GetMethod) || IsNonPublicImplementableAccessor(property.SetMethod);
-            }
-
-            static bool IsNonPublicImplementableAccessor(IMethodSymbol? accessor)
-            {
-                return accessor != null && IsImplementable(accessor) && accessor.DeclaredAccessibility != Accessibility.Public;
-            }
-        }
-
         private static bool IsImplementable(ISymbol m)
         {
             return m.IsVirtual || m.IsAbstract;
@@ -289,15 +246,57 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(
             this INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfaces,
+            bool includeMembersRequiringExplicitImplementation,
             CancellationToken cancellationToken)
         {
+            Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> GetMembers;
+            if (includeMembersRequiringExplicitImplementation)
+            {
+                GetMembers = GetExplicitlyImplementableMembers;
+            }
+            else
+            {
+                GetMembers = GetImplicitlyImplementableMembers;
+            }
+
             return classOrStructType.GetAllUnimplementedMembers(
                 interfaces,
                 IsImplemented,
                 ImplementationExists,
-                GetExplicitlyImplementableMembers,
+                GetMembers,
                 allowReimplementation: false,
                 cancellationToken: cancellationToken);
+
+            // local functions
+
+            static ImmutableArray<ISymbol> GetImplicitlyImplementableMembers(INamedTypeSymbol type, ISymbol within)
+            {
+                if (type.TypeKind == TypeKind.Interface)
+                {
+                    return type.GetMembers().WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public &&
+                                                               m.Kind != SymbolKind.NamedType && IsImplementable(m) &&
+                                                               !IsPropertyWithNonPublicImplementableAccessor(m));
+                }
+
+                return type.GetMembers();
+            }
+
+            static bool IsPropertyWithNonPublicImplementableAccessor(ISymbol member)
+            {
+                if (member.Kind != SymbolKind.Property)
+                {
+                    return false;
+                }
+
+                var property = (IPropertySymbol)member;
+
+                return IsNonPublicImplementableAccessor(property.GetMethod) || IsNonPublicImplementableAccessor(property.SetMethod);
+            }
+
+            static bool IsNonPublicImplementableAccessor(IMethodSymbol? accessor)
+            {
+                return accessor != null && IsImplementable(accessor) && accessor.DeclaredAccessibility != Accessibility.Public;
+            }
         }
 
         private static ImmutableArray<ISymbol> GetExplicitlyImplementableMembers(INamedTypeSymbol type, ISymbol within)

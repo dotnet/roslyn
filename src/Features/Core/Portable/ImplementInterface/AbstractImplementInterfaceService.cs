@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 yield break;
             }
 
-            if (state.UnimplementedMembersNotRequiringExplicitImplementation.Length > 0)
+            if (state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length > 0)
             {
                 yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, state);
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
             }
 
-            if (state.UnimplementedExplicitMembers.Length > 0)
+            if (state.MembersWithoutExplicitImplementation.Length > 0)
             {
                 yield return ImplementInterfaceCodeAction.CreateImplementExplicitlyCodeAction(this, document, state);
 
@@ -98,16 +98,16 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
         private static bool AnyImplementedImplicitly(State state)
         {
-            if (state.UnimplementedMembers.Length != state.UnimplementedExplicitMembers.Length)
+            if (state.MembersWithoutExplicitOrImplicitImplementation.Length != state.MembersWithoutExplicitImplementation.Length)
             {
                 return true;
             }
 
-            for (var i = 0; i < state.UnimplementedMembers.Length; i++)
+            for (var i = 0; i < state.MembersWithoutExplicitOrImplicitImplementation.Length; i++)
             {
-                var (typeA, membersA) = state.UnimplementedMembers[i];
-                var (typeB, membersB) = state.UnimplementedExplicitMembers[i];
-                if (typeA != typeB)
+                var (typeA, membersA) = state.MembersWithoutExplicitOrImplicitImplementation[i];
+                var (typeB, membersB) = state.MembersWithoutExplicitImplementation[i];
+                if (!typeA.Equals(typeB))
                 {
                     return true;
                 }

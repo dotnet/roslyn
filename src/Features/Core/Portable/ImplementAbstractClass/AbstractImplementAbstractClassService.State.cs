@@ -56,8 +56,10 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     return null;
                 }
 
-                var unimplementedMembers = classType.GetAllUnimplementedMembersNotRequiringExplicitImplementation(
-                    SpecializedCollections.SingletonEnumerable(abstractClassType), cancellationToken);
+                var unimplementedMembers = classType.GetAllUnimplementedMembers(
+                    SpecializedCollections.SingletonEnumerable(abstractClassType),
+                    includeMembersRequiringExplicitImplementation: false,
+                    cancellationToken);
 
                 if (unimplementedMembers.Length >= 1)
                 {

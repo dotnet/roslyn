@@ -2031,6 +2031,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement all members explicitly.
+        /// </summary>
+        internal static string Implement_all_members_explicitly {
+            get {
+                return ResourceManager.GetString("Implement_all_members_explicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement explicitly.
         /// </summary>
         internal static string Implement_explicitly {
@@ -2067,15 +2076,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Implement interface explicitly.
-        /// </summary>
-        internal static string Implement_interface_explicitly {
-            get {
-                return ResourceManager.GetString("Implement_interface_explicitly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Implement interface explicitly with Dispose pattern.
         /// </summary>
         internal static string Implement_interface_explicitly_with_Dispose_pattern {
@@ -2103,11 +2103,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Implement remaining members of interface explicitly.
+        ///   Looks up a localized string similar to Implement remaining members explicitly.
         /// </summary>
-        internal static string Implement_remaining_members_of_interface_explicitly {
+        internal static string Implement_remaining_members_explicitly {
             get {
-                return ResourceManager.GetString("Implement_remaining_members_of_interface_explicitly", resourceCulture);
+                return ResourceManager.GetString("Implement_remaining_members_explicitly", resourceCulture);
             }
         }
         
