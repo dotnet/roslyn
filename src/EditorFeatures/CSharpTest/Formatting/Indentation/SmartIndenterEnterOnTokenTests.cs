@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -1364,7 +1366,8 @@ class C
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
 
-            workspace.Options = workspace.Options.WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
 
             var hostdoc = workspace.Documents.First();
 
@@ -1405,9 +1408,9 @@ class C
         {
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
-            workspace.Options = workspace.Options
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
-                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs);
+                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
             var hostdoc = workspace.Documents.First();
             var buffer = hostdoc.GetTextBuffer();
             var snapshot = buffer.CurrentSnapshot;

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -6,19 +8,20 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
+    internal sealed partial class ServiceHubRemoteHostClient
     {
-        private partial class ConnectionManager
+        private partial class ConnectionManager : IDisposable
         {
+            private readonly Workspace _workspace;
             private readonly HubClient _hubClient;
             private readonly HostGroup _hostGroup;
-            private readonly TimeSpan _timeout;
 
             private readonly ReaderWriterLockSlim _shutdownLock;
             private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
@@ -31,22 +34,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // indicate whether pool should be used.
             private readonly bool _enableConnectionPool;
 
-            // indicate whether connection manager has shutdown
-            private bool _shutdown;
+            private bool _isDisposed;
 
             public ConnectionManager(
+                Workspace workspace,
                 HubClient hubClient,
                 HostGroup hostGroup,
                 bool enableConnectionPool,
                 int maxPoolConnection,
-                TimeSpan timeout,
                 ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc)
             {
-                _shutdown = false;
-
+                _workspace = workspace;
                 _hubClient = hubClient;
                 _hostGroup = hostGroup;
-                _timeout = timeout;
 
                 _remotableDataRpc = remotableDataRpc;
                 _maxPoolConnections = maxPoolConnection;
@@ -114,6 +114,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var dataRpc = _remotableDataRpc.TryAddReference();
                 if (dataRpc == null)
                 {
+                    // TODO: If we used multiplex stream we wouldn't get to this state and we could always assume to have a connection
+                    // unless the service process stops working, in which case we should report an error and ask user to restart VS
+                    // (https://github.com/dotnet/roslyn/issues/40146)
+                    //
                     // dataRpc is disposed. this can happen if someone killed remote host process while there is
                     // no other one holding the data connection.
                     // in those error case, don't crash but return null. this method is TryCreate since caller expects it to return null
@@ -123,16 +127,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // get stream from service hub to communicate service specific information
                 // this is what consumer actually use to communicate information
-                var serviceStream = await Connections.RequestServiceAsync(dataRpc.Target.Workspace, _hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
+                var serviceStream = await RequestServiceAsync(_workspace, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
 
-                return new JsonRpcConnection(_hubClient.Logger, callbackTarget, serviceStream, dataRpc);
+                return new JsonRpcConnection(_workspace, _hubClient.Logger, callbackTarget, serviceStream, dataRpc);
             }
 
             private void Free(string serviceName, JsonRpcConnection connection)
             {
                 using (_shutdownLock.DisposableRead())
                 {
-                    if (!_enableConnectionPool || _shutdown)
+                    if (!_enableConnectionPool || _isDisposed)
                     {
                         // pool is not being used or 
                         // manager is already shutdown
@@ -154,11 +158,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
-            public void Shutdown()
+            public void Dispose()
             {
                 using (_shutdownLock.DisposableWrite())
                 {
-                    _shutdown = true;
+                    _isDisposed = true;
 
                     // let ref count this one is holding go
                     _remotableDataRpc.Dispose();
@@ -174,6 +178,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     _pools.Clear();
                 }
+
+                _hubClient.Dispose();
             }
         }
     }

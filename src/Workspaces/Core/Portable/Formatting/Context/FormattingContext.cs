@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,10 +8,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -24,15 +32,15 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         // interval tree for inseparable regions (Span to indentation data)
         // due to dependencies, each region defined in the data can't be formatted independently.
-        private readonly ContextIntervalTree<RelativeIndentationData> _relativeIndentationTree;
+        private readonly ContextIntervalTree<RelativeIndentationData, FormattingContextIntervalIntrospector> _relativeIndentationTree;
 
         // interval tree for each operations.
         // given a span in the tree, it returns data (indentation, anchor delta, etc) to be applied for the span
-        private readonly ContextIntervalTree<IndentationData> _indentationTree;
-        private readonly ContextIntervalTree<SuppressWrappingData> _suppressWrappingTree;
-        private readonly ContextIntervalTree<SuppressSpacingData> _suppressSpacingTree;
-        private readonly ContextIntervalTree<SuppressSpacingData> _suppressFormattingTree;
-        private readonly ContextIntervalTree<AnchorData> _anchorTree;
+        private readonly ContextIntervalTree<IndentationData, FormattingContextIntervalIntrospector> _indentationTree;
+        private readonly ContextIntervalTree<SuppressWrappingData, SuppressIntervalIntrospector> _suppressWrappingTree;
+        private readonly ContextIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector> _suppressSpacingTree;
+        private readonly ContextIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector> _suppressFormattingTree;
+        private readonly ContextIntervalTree<AnchorData, FormattingContextIntervalIntrospector> _anchorTree;
 
         // anchor token to anchor data map.
         // unlike anchorTree that would return anchor data for given span in the tree, it will return
@@ -61,13 +69,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             _tokenStream = tokenStream;
             _language = language;
 
-            _relativeIndentationTree = new ContextIntervalTree<RelativeIndentationData>(this);
+            _relativeIndentationTree = new ContextIntervalTree<RelativeIndentationData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
 
-            _indentationTree = new ContextIntervalTree<IndentationData>(this);
-            _suppressWrappingTree = new ContextIntervalTree<SuppressWrappingData>(SuppressIntervalIntrospector.Instance);
-            _suppressSpacingTree = new ContextIntervalTree<SuppressSpacingData>(SuppressIntervalIntrospector.Instance);
-            _suppressFormattingTree = new ContextIntervalTree<SuppressSpacingData>(SuppressIntervalIntrospector.Instance);
-            _anchorTree = new ContextIntervalTree<AnchorData>(this);
+            _indentationTree = new ContextIntervalTree<IndentationData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
+            _suppressWrappingTree = new ContextIntervalTree<SuppressWrappingData, SuppressIntervalIntrospector>(new SuppressIntervalIntrospector());
+            _suppressSpacingTree = new ContextIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector>(new SuppressIntervalIntrospector());
+            _suppressFormattingTree = new ContextIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector>(new SuppressIntervalIntrospector());
+            _anchorTree = new ContextIntervalTree<AnchorData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
 
             _anchorBaseTokenMap = new Dictionary<SyntaxToken, AnchorData>();
 
@@ -409,7 +417,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         [Conditional("DEBUG")]
-        private void DebugCheckEmpty<T>(ContextIntervalTree<T> tree, TextSpan textSpan)
+        private void DebugCheckEmpty<T, TIntrospector>(ContextIntervalTree<T, TIntrospector> tree, TextSpan textSpan)
+            where TIntrospector : struct, IIntervalIntrospector<T>
         {
             var intervals = tree.GetIntervalsThatContain(textSpan.Start, textSpan.Length);
             Contract.ThrowIfFalse(intervals.Length == 0);
@@ -434,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public IEnumerable<IndentBlockOperation> GetAllRelativeIndentBlockOperations()
         {
-            return _relativeIndentationTree.GetIntervalsThatIntersectWith(this.TreeData.StartPosition, this.TreeData.EndPosition, this).Select(i => i.Operation);
+            return _relativeIndentationTree.GetIntervalsThatIntersectWith(this.TreeData.StartPosition, this.TreeData.EndPosition, new FormattingContextIntervalIntrospector()).Select(i => i.Operation);
         }
 
         public bool TryGetEndTokenForRelativeIndentationSpan(SyntaxToken token, int maxChainDepth, out SyntaxToken endToken, CancellationToken cancellationToken)

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -20,9 +24,9 @@ namespace Microsoft.CodeAnalysis
                 Diagnostic originalUnsuppressedDiagnostic,
                 ProgrammaticSuppressionInfo programmaticSuppressionInfo)
             {
-                Debug.Assert(!originalUnsuppressedDiagnostic.IsSuppressed);
-                Debug.Assert(originalUnsuppressedDiagnostic.ProgrammaticSuppressionInfo == null);
-                Debug.Assert(programmaticSuppressionInfo != null);
+                RoslynDebug.Assert(!originalUnsuppressedDiagnostic.IsSuppressed);
+                RoslynDebug.Assert(originalUnsuppressedDiagnostic.ProgrammaticSuppressionInfo == null);
+                RoslynDebug.Assert(programmaticSuppressionInfo != null);
 
                 _originalUnsuppressedDiagnostic = originalUnsuppressedDiagnostic;
                 _programmaticSuppressionInfo = programmaticSuppressionInfo;
@@ -38,10 +42,10 @@ namespace Microsoft.CodeAnalysis
                 get { return Descriptor.Id; }
             }
 
-            public override string GetMessage(IFormatProvider formatProvider = null)
+            public override string GetMessage(IFormatProvider? formatProvider = null)
                 => _originalUnsuppressedDiagnostic.GetMessage(formatProvider);
 
-            internal override IReadOnlyList<object> Arguments
+            internal override IReadOnlyList<object?> Arguments
             {
                 get { return _originalUnsuppressedDiagnostic.Arguments; }
             }
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                 get { return _originalUnsuppressedDiagnostic.Properties; }
             }
 
-            public override bool Equals(Diagnostic obj)
+            public override bool Equals(Diagnostic? obj)
             {
                 var other = obj as DiagnosticWithProgrammaticSuppression;
                 if (other == null)
@@ -98,7 +102,7 @@ namespace Microsoft.CodeAnalysis
                     Equals(_programmaticSuppressionInfo, other._programmaticSuppressionInfo);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 return this.Equals(obj as Diagnostic);
             }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -113,6 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             CheckDeclarationNode<TypeDeclarationSyntax, CompilationUnitSyntax, NamespaceDeclarationSyntax>(destination);
 
+            options = options.With(options: options.Options ?? Workspace.Options);
+
             // Synthesized methods for properties/events are not things we actually generate 
             // declarations for.
             if (method.AssociatedSymbol is IEventSymbol)
@@ -155,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
 
                 return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(
-                    typeDeclaration, method, Workspace, options, availableIndices));
+                    typeDeclaration, method, options, availableIndices));
             }
 
             if (method.IsConstructor() ||
@@ -167,12 +171,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (destination is CompilationUnitSyntax compilationUnit)
             {
                 return Cast<TDeclarationNode>(
-                    MethodGenerator.AddMethodTo(compilationUnit, method, Workspace, options, availableIndices));
+                    MethodGenerator.AddMethodTo(compilationUnit, method, options, availableIndices));
             }
 
             var ns = Cast<NamespaceDeclarationSyntax>(destination);
             return Cast<TDeclarationNode>(
-                MethodGenerator.AddMethodTo(ns, method, Workspace, options, availableIndices));
+                MethodGenerator.AddMethodTo(ns, method, options, availableIndices));
         }
 
         protected override TDeclarationNode AddProperty<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, CodeGenerationOptions options, IList<bool> availableIndices)
@@ -271,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            var currentParameterList = CSharpSyntaxGenerator.GetParameterList(destination);
+            var currentParameterList = destination.GetParameterList();
 
             if (currentParameterList == null)
             {
@@ -573,14 +577,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
+            if (method.IsDestructor())
+            {
+                return DestructorGenerator.GenerateDestructorDeclaration(method, destination, options);
+            }
+
+            options = options.With(options: options.Options ?? Workspace.Options);
+
             if (method.IsConstructor())
             {
                 return ConstructorGenerator.GenerateConstructorDeclaration(
                     method, destination, Workspace, options, options.ParseOptions);
-            }
-            else if (method.IsDestructor())
-            {
-                return DestructorGenerator.GenerateDestructorDeclaration(method, destination, options);
             }
             else if (method.IsUserDefinedOperator())
             {
@@ -594,13 +601,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else if (method.IsLocalFunction())
             {
-                return MethodGenerator.GenerateLocalMethodDeclaration(
-                    method, destination, Workspace, options, options.ParseOptions);
+                return MethodGenerator.GenerateLocalFunctionDeclaration(
+                    method, destination, options, options.ParseOptions);
             }
             else
             {
                 return MethodGenerator.GenerateMethodDeclaration(
-                    method, destination, Workspace, options, options.ParseOptions);
+                    method, destination, options, options.ParseOptions);
             }
         }
 

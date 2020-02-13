@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -25,21 +28,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             => CSharpAnalyzer.AnalyzeAsync(selectionResult, localFunction, cancellationToken);
 
-        protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, int position, CancellationToken cancellationToken)
+        protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(position >= 0);
+            var originalSpanStart = OriginalSelectionResult.OriginalSpan.Start;
+            Contract.ThrowIfFalse(originalSpanStart >= 0);
 
             var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var basePosition = root.FindToken(position);
+            var basePosition = root.FindToken(originalSpanStart);
 
             if (LocalFunction)
             {
                 // If we are extracting a local function and are within a local function, then we want the new function to be created within the
                 // existing local function instead of the overarching method.
-                var localMethodNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>(node => node.SpanStart != basePosition.SpanStart);
-                if (localMethodNode is object)
+                var localFunctionNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>(node => (node.Body != null && node.Body.Span.Contains(OriginalSelectionResult.OriginalSpan)) ||
+                                                                                                       (node.ExpressionBody != null && node.ExpressionBody.Span.Contains(OriginalSelectionResult.OriginalSpan)));
+                if (localFunctionNode is object)
                 {
-                    return await InsertionPoint.CreateAsync(document, localMethodNode, cancellationToken).ConfigureAwait(false);
+                    return await InsertionPoint.CreateAsync(document, localFunctionNode, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -87,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
         }
 
-        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CancellationToken cancellationToken)
+        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, OptionSet options, CancellationToken cancellationToken)
         {
-            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, LocalFunction, cancellationToken);
+            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, options, LocalFunction, cancellationToken);
         }
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)

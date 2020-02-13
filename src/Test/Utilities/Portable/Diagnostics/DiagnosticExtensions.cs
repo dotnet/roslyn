@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -21,10 +22,6 @@ namespace Microsoft.CodeAnalysis
 {
     public static class DiagnosticExtensions
     {
-        private const int EN_US = 1033;
-
-        public static Action<Exception, DiagnosticAnalyzer, Diagnostic> FailFastOnAnalyzerException = (e, a, d) => FailFast.OnFatalException(e);
-
         /// <summary>
         /// This is obsolete. Use Verify instead.
         /// </summary>
@@ -145,43 +142,38 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(
-                this TCompilation c,
-                DiagnosticAnalyzer[] analyzers,
-                AnalyzerOptions options = null,
-                Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
-                bool logAnalyzerExceptionAsDiagnostics = true,
-                params DiagnosticDescription[] expected)
+            this TCompilation c,
+            DiagnosticAnalyzer[] analyzers,
+            AnalyzerOptions options = null,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+            params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            return VerifyAnalyzerDiagnostics(c, analyzers, reportSuppressedDiagnostics: false, options: options, onAnalyzerException: onAnalyzerException, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics, expected: expected);
+            return VerifyAnalyzerDiagnostics(c, analyzers, reportSuppressedDiagnostics: false, options, onAnalyzerException, expected);
         }
 
         public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(
-                this TCompilation c,
-                DiagnosticAnalyzer[] analyzers,
-                bool reportSuppressedDiagnostics,
-                AnalyzerOptions options = null,
-                Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
-                bool logAnalyzerExceptionAsDiagnostics = true,
-                params DiagnosticDescription[] expected)
+            this TCompilation c,
+            DiagnosticAnalyzer[] analyzers,
+            bool reportSuppressedDiagnostics,
+            AnalyzerOptions options = null,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+            params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            c = c.GetCompilationWithAnalyzerDiagnostics(analyzers, options, onAnalyzerException,
-                logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics,
-                includeCompilerDiagnostics: false, diagnostics: out var diagnostics);
+            var newCompilation = c.GetCompilationWithAnalyzerDiagnostics(analyzers, options, onAnalyzerException, reportSuppressedDiagnostics, includeCompilerDiagnostics: false, out var diagnostics);
             diagnostics.Verify(expected);
-            return c; // note this is a new compilation
+            return newCompilation;
         }
 
         public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics<TCompilation>(
             this TCompilation c,
             DiagnosticAnalyzer[] analyzers,
             AnalyzerOptions options = null,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
-            bool logAnalyzerExceptionAsDiagnostics = true)
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
             where TCompilation : Compilation
         {
-            return GetAnalyzerDiagnostics(c, analyzers, reportSuppressedDiagnostics: false, options: options, onAnalyzerException: onAnalyzerException, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics);
+            return GetAnalyzerDiagnostics(c, analyzers, reportSuppressedDiagnostics: false, options, onAnalyzerException);
         }
 
         public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics<TCompilation>(
@@ -189,13 +181,10 @@ namespace Microsoft.CodeAnalysis
             DiagnosticAnalyzer[] analyzers,
             bool reportSuppressedDiagnostics,
             AnalyzerOptions options = null,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
-            bool logAnalyzerExceptionAsDiagnostics = true)
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
             where TCompilation : Compilation
         {
-            c = GetCompilationWithAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException,
-                logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics,
-                includeCompilerDiagnostics: false, out var diagnostics);
+            _ = GetCompilationWithAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, reportSuppressedDiagnostics, includeCompilerDiagnostics: false, out var diagnostics);
             return diagnostics;
         }
 
@@ -204,7 +193,6 @@ namespace Microsoft.CodeAnalysis
             DiagnosticAnalyzer[] analyzers,
             AnalyzerOptions options = null,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
-            bool logAnalyzerExceptionAsDiagnostics = true,
             params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
@@ -214,14 +202,10 @@ namespace Microsoft.CodeAnalysis
             if (c.Options.GeneralDiagnosticOption == ReportDiagnostic.Default &&
                 c.Options.SpecificDiagnosticOptions.IsEmpty)
             {
-                _ = c.VerifySuppressedDiagnostics(toggleWarnAsError: true,
-                    analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics,
-                    expected);
+                _ = c.VerifySuppressedDiagnostics(toggleWarnAsError: true, analyzers, options, onAnalyzerException, expected);
             }
 
-            return c.VerifySuppressedDiagnostics(toggleWarnAsError: false,
-                analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics,
-                expected);
+            return c.VerifySuppressedDiagnostics(toggleWarnAsError: false, analyzers, options, onAnalyzerException, expected);
         }
 
         private static TCompilation VerifySuppressedDiagnostics<TCompilation>(
@@ -230,7 +214,6 @@ namespace Microsoft.CodeAnalysis
             DiagnosticAnalyzer[] analyzers,
             AnalyzerOptions options,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
-            bool logAnalyzerExceptionAsDiagnostics,
             DiagnosticDescription[] expectedDiagnostics)
             where TCompilation : Compilation
         {
@@ -277,9 +260,7 @@ namespace Microsoft.CodeAnalysis
                 expectedDiagnostics = builder.ToArrayAndFree();
             }
 
-            c = c.GetCompilationWithAnalyzerDiagnostics(analyzers, options, onAnalyzerException,
-                logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics: true,
-                    includeCompilerDiagnostics: true, diagnostics: out var diagnostics);
+            c = c.GetCompilationWithAnalyzerDiagnostics(analyzers, options, onAnalyzerException, reportSuppressedDiagnostics: true, includeCompilerDiagnostics: true, out var diagnostics);
             diagnostics = diagnostics.WhereAsArray(d => d.IsSuppressed);
             diagnostics.Verify(expectedDiagnostics);
             return c; // note this is a new compilation
@@ -290,32 +271,12 @@ namespace Microsoft.CodeAnalysis
             DiagnosticAnalyzer[] analyzers,
             AnalyzerOptions options,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
-            bool logAnalyzerExceptionAsDiagnostics,
             bool reportSuppressedDiagnostics,
             bool includeCompilerDiagnostics,
             out ImmutableArray<Diagnostic> diagnostics)
             where TCompilation : Compilation
         {
             var analyzersArray = analyzers.ToImmutableArray();
-
-            var exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
-
-            if (onAnalyzerException == null)
-            {
-                if (logAnalyzerExceptionAsDiagnostics)
-                {
-                    onAnalyzerException = (ex, analyzer, diagnostic) =>
-                    {
-                        exceptionDiagnostics.Add(diagnostic);
-                    };
-                }
-                else
-                {
-                    // We want unit tests to throw if any analyzer OR the driver throws, unless the test explicitly provides a delegate.
-                    onAnalyzerException = FailFastOnAnalyzerException;
-                }
-            }
-
             if (reportSuppressedDiagnostics != c.Options.ReportSuppressedDiagnostics)
             {
                 c = (TCompilation)c.WithOptions(c.Options.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics));
@@ -329,7 +290,7 @@ namespace Microsoft.CodeAnalysis
             var allDiagnostics = includeCompilerDiagnostics ?
                 compilerDiagnostics.AddRange(analyzerDiagnostics) :
                 analyzerDiagnostics;
-            diagnostics = driver.ApplyProgrammaticSuppressions(allDiagnostics, newCompilation).AddRange(exceptionDiagnostics);
+            diagnostics = driver.ApplyProgrammaticSuppressions(allDiagnostics, newCompilation);
 
             if (!reportSuppressedDiagnostics)
             {
@@ -451,25 +412,9 @@ namespace Microsoft.CodeAnalysis
       }},", expectedToolName, expectedVersion, expectedFileVersion, expectedSemanticVersion, expectedLanguage);
         }
 
-        public static string Stringize(this Diagnostic e)
-        {
-            var retVal = string.Empty;
-            if (e.Location.IsInSource)
-            {
-                retVal = e.Location.SourceSpan.ToString() + ": ";
-            }
-            else if (e.Location.IsInMetadata)
-            {
-                return "metadata: ";
-            }
-            else
-            {
-                return "no location: ";
-            }
-
-            retVal = e.Severity.ToString() + " " + e.Id + ": " + e.GetMessage(CultureInfo.CurrentCulture);
-            return retVal;
-        }
+        public static string Inspect(this Diagnostic e)
+            => e.Location.IsInSource ? $"{e.Severity} {e.Id}: {e.GetMessage(CultureInfo.CurrentCulture)}" :
+               e.Location.IsInMetadata ? "metadata: " : "no location: ";
 
         public static string ToString(this Diagnostic d, IFormatProvider formatProvider)
         {

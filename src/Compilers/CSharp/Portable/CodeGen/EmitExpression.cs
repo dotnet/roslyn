@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -436,10 +438,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     else
                     {
-                        // we are calling the expression on a copy of the target anyway, 
+                        // We are calling the expression on a copy of the target anyway, 
                         // so even if T is a struct, we don't need to make sure we call the expression on the original target.
 
-                        _builder.EmitLocalLoad(receiverTemp);
+                        // We currently have an address on the stack. Duplicate it, and load the value of the address.
+                        _builder.EmitOpCode(ILOpCode.Dup);
+                        EmitLoadIndirect(receiverType, receiver.Syntax);
                         EmitBox(receiverType, receiver.Syntax);
                     }
                 }
@@ -1996,7 +2000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return true;
             }
 
-            if (originalDef.ContainingType.Name == TupleTypeSymbol.TupleTypeName &&
+            if (originalDef.ContainingType.Name == NamedTypeSymbol.ValueTupleTypeName &&
                     (originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T2__ctor) ||
                     originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T3__ctor) ||
                     originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T4__ctor) ||

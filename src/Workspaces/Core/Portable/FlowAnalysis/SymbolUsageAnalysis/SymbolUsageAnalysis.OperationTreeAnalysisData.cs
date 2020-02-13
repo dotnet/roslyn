@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -21,10 +23,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 PooledHashSet<ISymbol> symbolsRead,
                 PooledHashSet<IMethodSymbol> lambdaOrLocalFunctionsBeingAnalyzed,
                 Func<IMethodSymbol, BasicBlockAnalysisData> analyzeLocalFunction)
-                : base(symbolsWriteMap, symbolsRead, lambdaOrLocalFunctionsBeingAnalyzed)
             {
                 _analyzeLocalFunction = analyzeLocalFunction;
+                SymbolsWriteBuilder = symbolsWriteMap;
+                SymbolsReadBuilder = symbolsRead;
+                LambdaOrLocalFunctionsBeingAnalyzed = lambdaOrLocalFunctionsBeingAnalyzed;
             }
+
+            protected override PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
+
+            protected override PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
+
+            protected override PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
 
             public static OperationTreeAnalysisData Create(
                 ISymbol owningSymbol,
@@ -67,6 +77,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 => throw ExceptionUtilities.Unreachable;
             public override bool TryGetDelegateInvocationTargets(IOperation write, out ImmutableHashSet<IOperation> targets)
                 => throw ExceptionUtilities.Unreachable;
+
+            public override void Dispose()
+            {
+                SymbolsWriteBuilder.Free();
+                SymbolsReadBuilder.Free();
+                LambdaOrLocalFunctionsBeingAnalyzed.Free();
+
+                base.Dispose();
+            }
         }
     }
 }

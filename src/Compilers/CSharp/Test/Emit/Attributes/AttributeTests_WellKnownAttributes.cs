@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -4877,7 +4879,7 @@ public class Unbound : Constructed<> { }
             Assert.True(((NamedTypeSymbol)substitutedNestedS).IsSerializable);
 
             var valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType().Type;
-            Assert.IsType<TupleTypeSymbol>(valueTupleS);
+            Assert.True(valueTupleS.IsTupleType);
             Assert.True(((NamedTypeSymbol)valueTupleS).IsSerializable);
 
             var constructed = comp.GetTypeByMetadataName("Constructed").BaseType();

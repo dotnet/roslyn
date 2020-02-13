@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -13,18 +17,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public class IntegrationTests : TestBase
     {
-        private static readonly string s_msbuildDirectory;
-        private static readonly string s_msbuildExecutable;
+        private static readonly string? s_msbuildDirectory;
 
         static IntegrationTests()
         {
             s_msbuildDirectory = DesktopTestHelpers.GetMSBuildDirectory();
-            if (s_msbuildDirectory != null)
-            {
-                s_msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
-            }
         }
 
+        private readonly string _msbuildExecutable;
         private readonly TempDirectory _tempDirectory;
         private readonly List<Process> _existingServerList = new List<Process>();
         private readonly string _buildTaskDll;
@@ -36,12 +36,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 throw new InvalidOperationException("Could not locate MSBuild");
             }
 
+            _msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
             _tempDirectory = Temp.CreateDirectory();
             _existingServerList = Process.GetProcessesByName(Path.GetFileNameWithoutExtension("VBCSCompiler")).ToList();
             _buildTaskDll = typeof(ManagedCompiler).Assembly.Location;
         }
 
-        private IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>> vars)
+        private IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>>? vars)
         {
             vars = vars ?? new KeyValuePair<string, string>[] { };
             if (!vars.Where(kvp => kvp.Key == "RoslynCommandLineLogFile").Any())
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             string compilerPath,
             string arguments,
             string currentDirectory,
-            IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
+            IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
         {
             return ProcessUtilities.Run(
                 compilerPath,
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             string arguments,
             TempDirectory currentDirectory,
             IEnumerable<KeyValuePair<string, string>> filesInDirectory,
-            IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
+            IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
         {
             foreach (var pair in filesInDirectory)
             {
@@ -405,7 +406,7 @@ End Class
         public void SimpleMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
-            var result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
+            var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
 
             using (var resultFile = GetResultFile(_tempDirectory, @"bin\debug\helloproj.exe"))
             {
@@ -604,7 +605,7 @@ End Class
         public void ReportAnalyzerMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
-            var result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
+            var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
                 new Dictionary<string, string>
                 { { "MyMSBuildToolsPath", Path.GetDirectoryName(typeof(IntegrationTests).Assembly.Location) } });
 
@@ -779,7 +780,7 @@ namespace Class____goo____Library1
 }
 ");
 
-            var result = RunCommandLineCompiler(s_msbuildExecutable, "/p:UseSharedCompilation=false", testDir.Path);
+            var result = RunCommandLineCompiler(_msbuildExecutable, "/p:UseSharedCompilation=false", testDir.Path);
             Assert.Equal(0, result.ExitCode);
             Assert.Equal("", result.Errors);
         }
