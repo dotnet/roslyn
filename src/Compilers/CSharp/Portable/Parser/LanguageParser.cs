@@ -6931,7 +6931,7 @@ done:;
                 return (BlockSyntax)this.EatNode();
 
             // There's a special error code for a missing token after an accessor keyword
-            var openBrace = isAccessorBody && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken
+            CSharpSyntaxNode openBrace = isAccessorBody && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken
                 ? this.AddError(
                     SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
                     IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
@@ -6941,12 +6941,11 @@ done:;
 
             var statements = _pool.Allocate<StatementSyntax>();
 
-            CSharpSyntaxNode tmp = openBrace;
-            this.ParseStatements(ref tmp, statements, stopOnSwitchSections: false);
+            this.ParseStatements(ref openBrace, statements, stopOnSwitchSections: false);
 
             var block = _syntaxFactory.Block(
                 attributeLists: default,
-                (SyntaxToken)tmp,
+                (SyntaxToken)openBrace,
                 // Force creation a many-children list, even if only 1, 2, or 3 elements in the statement list.
                 IsLargeEnoughNonEmptyStatementList(statements)
                     ? new SyntaxList<StatementSyntax>(SyntaxList.List(((SyntaxListBuilder)statements).ToArray()))
@@ -6973,16 +6972,15 @@ done:;
             }
 
             // There's a special error code for a missing token after an accessor keyword
-            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+            var openBrace = (CSharpSyntaxNode)this.EatToken(SyntaxKind.OpenBraceToken);
 
             var statements = _pool.Allocate<StatementSyntax>();
 
-            CSharpSyntaxNode tmp = openBrace;
-            this.ParseStatements(ref tmp, statements, stopOnSwitchSections: false);
+            this.ParseStatements(ref openBrace, statements, stopOnSwitchSections: false);
 
             var block = _syntaxFactory.Block(
                 attributes,
-                (SyntaxToken)tmp,
+                (SyntaxToken)openBrace,
                 statements,
                 this.EatToken(SyntaxKind.CloseBraceToken));
 
