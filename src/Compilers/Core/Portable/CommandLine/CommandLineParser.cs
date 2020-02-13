@@ -433,13 +433,17 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
-                        if (responsePaths is null)
+                        if (responsePaths != null)
                         {
-                            diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InvalidInputFileName, path));
-                        }
-                        else if (PathUtilities.GetDirectoryName(resolvedPath) is string directory)
-                        {
-                            responsePaths.Add(FileUtilities.NormalizeAbsolutePath(directory));
+                            string? directory = PathUtilities.GetDirectoryName(resolvedPath);
+                            if (directory is null)
+                            {
+                                diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InvalidInputFileName, path));
+                            }
+                            else
+                            {
+                                responsePaths.Add(FileUtilities.NormalizeAbsolutePath(directory));
+                            }
                         }
                     }
                     else
