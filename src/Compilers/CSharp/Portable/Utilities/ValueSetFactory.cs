@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly IValueSetFactory<float> ForFloat = FloatingValueSetFactory<float, SingleTC>.Instance;
         internal static readonly IValueSetFactory<double> ForDouble = FloatingValueSetFactory<double, DoubleTC>.Instance;
         internal static readonly IValueSetFactory<string> ForString = EnumeratedValueSetFactory<string, StringTC>.Instance;
-        internal static readonly IValueSetFactory<decimal> ForDecimal = EnumeratedValueSetFactory<decimal, DecimalTC>.Instance;
+        internal static readonly IValueSetFactory<decimal> ForDecimal = NumericValueSetFactory<decimal, DecimalTC>.Instance;
 
         public static IValueSetFactory? ForSpecialType(SpecialType specialType)
         {

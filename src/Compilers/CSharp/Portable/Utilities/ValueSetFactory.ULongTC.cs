@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct ULongTC : NumericTC<ulong>
+        private struct ULongTC : INumericTC<ulong>
         {
-            ulong NumericTC<ulong>.MinValue => ulong.MinValue;
+            ulong INumericTC<ulong>.MinValue => ulong.MinValue;
 
-            ulong NumericTC<ulong>.MaxValue => ulong.MaxValue;
+            ulong INumericTC<ulong>.MaxValue => ulong.MaxValue;
 
-            (ulong leftMax, ulong rightMin) NumericTC<ulong>.Partition(ulong min, ulong max)
+            (ulong leftMax, ulong rightMin) INumericTC<ulong>.Partition(ulong min, ulong max)
             {
                 Debug.Assert(min < max);
                 ulong half = (max - min) / 2;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (leftMax, leftMax + 1);
             }
 
-            bool NumericTC<ulong>.Related(BinaryOperatorKind relation, ulong left, ulong right)
+            bool INumericTC<ulong>.Related(BinaryOperatorKind relation, ulong left, ulong right)
             {
                 switch (relation)
                 {
@@ -46,15 +46,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ulong NumericTC<ulong>.Next(ulong value)
+            ulong INumericTC<ulong>.Next(ulong value)
             {
                 Debug.Assert(value != ulong.MaxValue);
                 return value + 1;
             }
 
-            ulong EqualableValueTC<ulong>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt64Value;
+            ulong INumericTC<ulong>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt64Value;
 
-            string NumericTC<ulong>.ToString(ulong value) => value.ToString();
+            string INumericTC<ulong>.ToString(ulong value) => value.ToString();
         }
     }
 }

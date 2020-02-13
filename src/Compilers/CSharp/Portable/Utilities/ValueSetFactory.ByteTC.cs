@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct ByteTC : NumericTC<byte>
+        private struct ByteTC : INumericTC<byte>
         {
-            byte NumericTC<byte>.MinValue => byte.MinValue;
+            byte INumericTC<byte>.MinValue => byte.MinValue;
 
-            byte NumericTC<byte>.MaxValue => byte.MaxValue;
+            byte INumericTC<byte>.MaxValue => byte.MaxValue;
 
-            (byte leftMax, byte rightMin) NumericTC<byte>.Partition(byte min, byte max)
+            (byte leftMax, byte rightMin) INumericTC<byte>.Partition(byte min, byte max)
             {
                 Debug.Assert(min < max);
                 int half = (max - min) / 2;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (leftMax, rightMin);
             }
 
-            bool NumericTC<byte>.Related(BinaryOperatorKind relation, byte left, byte right)
+            bool INumericTC<byte>.Related(BinaryOperatorKind relation, byte left, byte right)
             {
                 switch (relation)
                 {
@@ -47,15 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            byte NumericTC<byte>.Next(byte value)
+            byte INumericTC<byte>.Next(byte value)
             {
                 Debug.Assert(value != byte.MaxValue);
                 return (byte)(value + 1);
             }
 
-            byte EqualableValueTC<byte>.FromConstantValue(ConstantValue constantValue) => constantValue.ByteValue;
+            byte INumericTC<byte>.FromConstantValue(ConstantValue constantValue) => constantValue.ByteValue;
 
-            string NumericTC<byte>.ToString(byte value) => value.ToString();
+            string INumericTC<byte>.ToString(byte value) => value.ToString();
         }
     }
 }

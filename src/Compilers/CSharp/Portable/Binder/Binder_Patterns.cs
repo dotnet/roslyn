@@ -1262,6 +1262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SpecialType.System_UInt32 => BinaryOperatorKind.UInt,
                 SpecialType.System_Int64 => BinaryOperatorKind.Long,
                 SpecialType.System_UInt64 => BinaryOperatorKind.ULong,
+                SpecialType.System_Decimal => BinaryOperatorKind.Decimal,
                 _ => BinaryOperatorKind.Error,
             };
         }

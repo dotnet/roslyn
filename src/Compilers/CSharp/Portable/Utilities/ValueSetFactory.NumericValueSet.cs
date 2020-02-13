@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// When used for floating-point values, only numeric values are represented (i.e. values between
         /// MinValue and MaxValue, inclusive).
         /// </summary>
-        private sealed class NumericValueSet<T, TTC> : IValueSet<T> where TTC : struct, NumericTC<T>
+        private sealed class NumericValueSet<T, TTC> : IValueSet<T> where TTC : struct, INumericTC<T>
         {
             private readonly Interval _rootInterval;
 
