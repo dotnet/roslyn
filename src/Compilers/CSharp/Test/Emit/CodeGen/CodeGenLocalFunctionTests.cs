@@ -5421,6 +5421,47 @@ class C
         }
 
         [Fact]
+        public void StaticLocalFunction_ConditionalAttribute_Errors()
+        {
+            var source = @"
+using System.Diagnostics;
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+        [Conditional(""hello world"")] // 1
+        static void local1() { }
+
+        [Conditional(""DEBUG"")] // 2
+        static int local2()
+        {
+            return 42;
+        }
+
+        [Conditional(""DEBUG"")] // 3
+        static void local3(out string s)
+        {
+            s = ""hello"";
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,22): error CS0633: The argument to the 'Conditional' attribute must be a valid identifier
+                //         [Conditional("hello world")] // 1
+                Diagnostic(ErrorCode.ERR_BadArgumentToAttribute, @"""hello world""").WithArguments("Conditional").WithLocation(9, 22),
+                // (12,10): error CS0578: The Conditional attribute is not valid on 'local2()' because its return type is not void
+                //         [Conditional("DEBUG")] // 2
+                Diagnostic(ErrorCode.ERR_ConditionalMustReturnVoid, @"Conditional(""DEBUG"")").WithArguments("local2()").WithLocation(12, 10),
+                // (18,10): error CS0685: Conditional member 'local3(out string)' cannot have an out parameter
+                //         [Conditional("DEBUG")] // 3
+                Diagnostic(ErrorCode.ERR_ConditionalWithOutParam, @"Conditional(""DEBUG"")").WithArguments("local3(out string)").WithLocation(18, 10));
+        }
+
+        [Fact]
         public void StaticLocalFunction_ConditionalAttribute()
         {
             var source = @"
@@ -5462,6 +5503,63 @@ class C
                 var attrs1 = localFn1.GetAttributes();
                 Assert.Equal(new[] { "CompilerGeneratedAttribute", "ConditionalAttribute" }, GetAttributeNames(attrs1));
             }
+        }
+
+        [Fact]
+        public void StaticLocalFunction_ConditionalAttribute_Unreferenced()
+        {
+            var source = @"
+using System.Diagnostics;
+using System;
+
+class C
+{
+    static void Main()
+    {
+        local1();
+
+        [Conditional(""DEBUG"")]
+        static void local1()
+        {
+            Console.Write(""hello"");
+        }
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (12,21): warning CS8321: The local function 'local1' is declared but never used
+                //         static void local1()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(12, 21));
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithPreprocessorSymbols("DEBUG")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void StaticLocalFunction_IfDirective_Unreferenced()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+#if DEBUG
+        local1();
+#endif
+        static void local1()
+        {
+            Console.Write(""hello"");
+        }
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (11,21): warning CS8321: The local function 'local1' is declared but never used
+                //         static void local1() // 1
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(11, 21));
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithPreprocessorSymbols("DEBUG")).VerifyDiagnostics();
         }
 
         [Fact]

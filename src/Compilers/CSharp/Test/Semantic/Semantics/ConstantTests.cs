@@ -929,8 +929,15 @@ class C
 
             var actual = ParseAndGetConstantFoldingSteps(source);
 
+#if NET472
+            var longValue = "-9.22337203685478E+18";
+#else
+            var longValue = "-9.223372036854776E+18";
+#endif
+
+
             var expected =
-@"(sbyte)(sbyte.MaxValue + 0.1) --> 127
+$@"(sbyte)(sbyte.MaxValue + 0.1) --> 127
 sbyte.MaxValue + 0.1 --> 127.1
 sbyte.MaxValue --> 127
 sbyte.MaxValue --> 127
@@ -979,8 +986,8 @@ uint.MinValue - 0.1 --> -0.1
 uint.MinValue --> 0
 uint.MinValue --> 0
 (long)(long.MinValue - 0.1) --> -9223372036854775808
-long.MinValue - 0.1 --> -9.22337203685478E+18
-long.MinValue --> -9.22337203685478E+18
+long.MinValue - 0.1 --> {longValue}
+long.MinValue --> {longValue}
 long.MinValue --> -9223372036854775808
 (ulong)(ulong.MinValue - 0.1) --> 0
 ulong.MinValue - 0.1 --> -0.1
