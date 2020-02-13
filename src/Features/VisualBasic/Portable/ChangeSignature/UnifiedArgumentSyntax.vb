@@ -10,12 +10,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         Implements IUnifiedArgumentSyntax
 
         Private ReadOnly _argument As ArgumentSyntax
-        Private ReadOnly _index As Integer
 
         Private Sub New(argument As ArgumentSyntax, index As Integer)
             Debug.Assert(argument.IsKind(SyntaxKind.SimpleArgument))
             Me._argument = argument
-            Me._index = index
+            Me.Index = index
         End Sub
 
         Public Shared Function Create(argument As ArgumentSyntax, index As Integer) As IUnifiedArgumentSyntax
@@ -35,10 +34,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         End Property
 
         Private ReadOnly Property Index As Integer Implements IUnifiedArgumentSyntax.Index
-            Get
-                Return _index
-            End Get
-        End Property
 
         Public Shared Widening Operator CType(ByVal unified As UnifiedArgumentSyntax) As ArgumentSyntax
             Return unified._argument
@@ -52,12 +47,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
         Private Function WithName(name As String) As IUnifiedArgumentSyntax Implements IUnifiedArgumentSyntax.WithName
             Return If(_argument.IsNamed,
-                      Create(DirectCast(_argument, SimpleArgumentSyntax).WithNameColonEquals(DirectCast(_argument, SimpleArgumentSyntax).NameColonEquals.WithName(SyntaxFactory.IdentifierName(name))), _index),
-                      Create(SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(name)), _argument.GetExpression()), _index))
+                      Create(DirectCast(_argument, SimpleArgumentSyntax).WithNameColonEquals(DirectCast(_argument, SimpleArgumentSyntax).NameColonEquals.WithName(SyntaxFactory.IdentifierName(name))), Index),
+                      Create(SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(name)), _argument.GetExpression()), Index))
         End Function
 
         Public Function WithAdditionalAnnotations(annotation As SyntaxAnnotation) As IUnifiedArgumentSyntax Implements IUnifiedArgumentSyntax.WithAdditionalAnnotations
-            Return New UnifiedArgumentSyntax(_argument.WithAdditionalAnnotations(annotation), _index)
+            Return New UnifiedArgumentSyntax(_argument.WithAdditionalAnnotations(annotation), Index)
         End Function
     End Class
 End Namespace

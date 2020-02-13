@@ -77,7 +77,7 @@ Module Program
         M(t, True, 1)
 
         M(t, True, 1, y:="Four")
-        M(t, c:=True, 1)
+        M(t, c:=True, a:=1)
 
         M(t, True, 1, y:="Four")
         M(t, True, 1)

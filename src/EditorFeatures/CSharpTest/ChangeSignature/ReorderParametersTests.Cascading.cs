@@ -360,9 +360,9 @@ public class D2 : D
         ((D)this).M(""Two"", 1);
         ((B)this).M(""Two"", 1);
 
-        M(x: ""Two"", 1);
-        ((D)this).M(b: ""Two"", 1);
-        ((B)this).M(y: ""Two"", 1);
+        M(x: ""Two"", y: 1);
+        ((D)this).M(b: ""Two"", a: 1);
+        ((B)this).M(y: ""Two"", x: 1);
 
         return 1;
     }

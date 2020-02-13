@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var originalIndex = originalParameters.IndexOf(newParamSymbol);
 
                 // Transferring over trivia both from the node any associated separator.
-                var (newParamNode, newSeparator) = TransferTrivia(list, originalIndex, newIndex);
+                var (newParamNode, newSeparator) = TransferTrivia(list, list[originalIndex], originalIndex, newIndex);
 
                 newParameters.Add(newParamNode);
                 newSeparators[newIndex] = newSeparator;
@@ -420,10 +420,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return SyntaxFactory.SeparatedList(newParameters, newSeparators.ToList().GetRange(0, reorderedParameters.Count == 0 ? 0 : reorderedParameters.Count - 1));
         }
 
-        private static (T newParamNode, SyntaxToken newSeparator) TransferTrivia<T>(SeparatedSyntaxList<T> list, int originalIndex, int newIndex) where T : SyntaxNode
+        private static (T newParamNode, SyntaxToken newSeparator) TransferTrivia<T>(
+            SeparatedSyntaxList<T> list,
+            T newParamNode,
+            int originalIndex,
+            int newIndex) where T : SyntaxNode
         {
-            var newParamNode = list[originalIndex];
-
             // Copy whitespace trivia from original position.
             newParamNode = TransferLeadingWhitespaceTrivia(newParamNode, list[newIndex]);
 
@@ -547,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var permutedArguments = PermuteArguments(declarationSymbol, originalArguments, updatedSignature);
             var newSeparators = new SyntaxToken[originalArguments.Count];
 
-            return GetFinalPermutedArgumentsWithTrivia(arguments, permutedArguments, newSeparators);
+            return GetFinalPermutedArgumentsWithTrivia<AttributeArgumentSyntax>(arguments, permutedArguments, newSeparators);
         }
 
         private static SeparatedSyntaxList<ArgumentSyntax> PermuteArgumentList(
@@ -560,21 +562,41 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var permutedArguments = PermuteArguments(declarationSymbol, originalArguments, updatedSignature, isReducedExtensionMethod);
             var newSeparators = new SyntaxToken[originalArguments.Count];
 
-            return GetFinalPermutedArgumentsWithTrivia(arguments, permutedArguments, newSeparators);
+            return GetFinalPermutedArgumentsWithTrivia<ArgumentSyntax>(arguments, permutedArguments, newSeparators);
         }
 
-        private static SeparatedSyntaxList<T> GetFinalPermutedArgumentsWithTrivia<T>(
-            SeparatedSyntaxList<T> arguments,
+        private static SeparatedSyntaxList<AttributeArgumentSyntax> GetFinalPermutedArgumentsWithTrivia<T>(
+            SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
             List<IUnifiedArgumentSyntax> permutedArguments,
-            SyntaxToken[] newSeparators) where T : SyntaxNode
+            SyntaxToken[] newSeparators)
         {
-            var finalArguments = new List<T>();
+            var finalArguments = new List<AttributeArgumentSyntax>();
             for (var newIndex = 0; newIndex < permutedArguments.Count; newIndex++)
             {
                 var argument = permutedArguments[newIndex];
                 var originalIndex = argument.Index;
 
-                var (newParamNode, newSeparator) = TransferTrivia(arguments, originalIndex, newIndex);
+                var (newParamNode, newSeparator) = TransferTrivia(arguments, (AttributeArgumentSyntax)(UnifiedArgumentSyntax)permutedArguments[newIndex], originalIndex, newIndex);
+
+                finalArguments.Add(newParamNode);
+                newSeparators[newIndex] = newSeparator;
+            }
+
+            return SyntaxFactory.SeparatedList(finalArguments, newSeparators.ToList().GetRange(0, permutedArguments.Count == 0 ? 0 : permutedArguments.Count - 1));
+        }
+
+        private static SeparatedSyntaxList<ArgumentSyntax> GetFinalPermutedArgumentsWithTrivia<T>(
+            SeparatedSyntaxList<ArgumentSyntax> arguments,
+            List<IUnifiedArgumentSyntax> permutedArguments,
+            SyntaxToken[] newSeparators)
+        {
+            var finalArguments = new List<ArgumentSyntax>();
+            for (var newIndex = 0; newIndex < permutedArguments.Count; newIndex++)
+            {
+                var argument = permutedArguments[newIndex];
+                var originalIndex = argument.Index;
+
+                var (newParamNode, newSeparator) = TransferTrivia(arguments, (ArgumentSyntax)(UnifiedArgumentSyntax)permutedArguments[newIndex], originalIndex, newIndex);
 
                 finalArguments.Add(newParamNode);
                 newSeparators[newIndex] = newSeparator;
@@ -745,11 +767,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 .SelectAsArray(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol);
 
             return convertedMethodGroups.SelectAsArray(symbolAndProjectId.WithSymbol);
-        }
-
-        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-        {
-            return SpecializedCollections.SingletonEnumerable(new ChangeSignatureFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
         }
     }
 }

@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports System.Composition
-Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     <ExportLanguageService(GetType(AbstractChangeSignatureService), LanguageNames.VisualBasic), [Shared]>
@@ -457,7 +456,8 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
             For newIndex = 0 To permutedArguments.Count - 1
                 Dim argument = permutedArguments(newIndex)
                 Dim originalIndex = argument.Index
-                Dim newParamNode = TransferLeadingTrivia(arguments(originalIndex), arguments(newIndex))
+
+                Dim newParamNode = TransferLeadingTrivia(CType(DirectCast(argument, UnifiedArgumentSyntax), ArgumentSyntax), arguments(newIndex))
                 newArguments.Add(newParamNode)
 
                 If (newIndex <> permutedArguments.Count - 1) Then
