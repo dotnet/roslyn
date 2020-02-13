@@ -226,6 +226,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case "-": // csi -- script.csx
                             if (value != null) break;
+                            if (arg == "-")
+                            {
+                                if (Console.IsInputRedirected)
+                                {
+                                    sourceFiles.Add(new CommandLineSourceFile("-", isScript: true, isInputRedirected: true));
+                                    sourceFilesSpecified = true;
+                                }
+                                else
+                                {
+                                    AddDiagnostic(diagnostics, ErrorCode.ERR_StdInOptionProvidedButConsoleInputIsNotRedirected);
+                                }
+                                continue;
+                            }
 
                             // Indicates that the remaining arguments should not be treated as options.
                             optionsEnded = true;
@@ -1260,6 +1273,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             foreach (var path in ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
                             {
                                 embeddedFiles.Add(ToCommandLineSourceFile(path));
+                            }
+                            continue;
+
+                        case "-":
+                            if (Console.IsInputRedirected)
+                            {
+                                sourceFiles.Add(new CommandLineSourceFile("-", isScript: false, isInputRedirected: true));
+                                sourceFilesSpecified = true;
+                            }
+                            else
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_StdInOptionProvidedButConsoleInputIsNotRedirected);
                             }
                             continue;
                     }
