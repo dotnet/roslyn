@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 State state,
                 bool explicitly,
                 bool abstractly,
-                ISymbol throughMember) : base(service, document, state, explicitly, abstractly, onlyUnimplemented: !explicitly, throughMember)
+                ISymbol throughMember) : base(service, document, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
             {
             }
 

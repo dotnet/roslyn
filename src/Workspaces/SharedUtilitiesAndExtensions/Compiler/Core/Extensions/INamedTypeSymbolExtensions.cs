@@ -187,62 +187,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        private static bool IsImplementable(ISymbol m)
-        {
-            return m.IsVirtual || m.IsAbstract;
-        }
-
-        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembersInThis(
-            this INamedTypeSymbol classOrStructType,
-            IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
-            CancellationToken cancellationToken)
-        {
-            return classOrStructType.GetAllUnimplementedMembers(
-                interfacesOrAbstractClasses,
-                IsImplemented,
-                (t, m) =>
-                {
-                    var implementation = classOrStructType.FindImplementationForInterfaceMember(m);
-                    return implementation != null && Equals(implementation.ContainingType, classOrStructType);
-                },
-                GetMembers,
-                allowReimplementation: true,
-                cancellationToken: cancellationToken);
-        }
-
-        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembersInThis(
-            this INamedTypeSymbol classOrStructType,
-            IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
-            Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> interfaceMemberGetter,
-            CancellationToken cancellationToken)
-        {
-            return classOrStructType.GetAllUnimplementedMembers(
-                interfacesOrAbstractClasses,
-                IsImplemented,
-                (t, m) =>
-                {
-                    var implementation = classOrStructType.FindImplementationForInterfaceMember(m);
-                    return implementation != null && Equals(implementation.ContainingType, classOrStructType);
-                },
-                interfaceMemberGetter,
-                allowReimplementation: true,
-                cancellationToken: cancellationToken);
-        }
-
-        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedExplicitMembers(
-            this INamedTypeSymbol classOrStructType,
-            IEnumerable<INamedTypeSymbol> interfaces,
-            CancellationToken cancellationToken)
-        {
-            return classOrStructType.GetAllUnimplementedMembers(
-                interfaces,
-                IsExplicitlyImplemented,
-                ImplementationExists,
-                GetExplicitlyImplementableMembers,
-                allowReimplementation: false,
-                cancellationToken: cancellationToken);
-        }
-
         public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(
             this INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfaces,
@@ -297,6 +241,62 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 return accessor != null && IsImplementable(accessor) && accessor.DeclaredAccessibility != Accessibility.Public;
             }
+        }
+
+        private static bool IsImplementable(ISymbol m)
+        {
+            return m.IsVirtual || m.IsAbstract;
+        }
+
+        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembersInThis(
+            this INamedTypeSymbol classOrStructType,
+            IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
+            CancellationToken cancellationToken)
+        {
+            return classOrStructType.GetAllUnimplementedMembers(
+                interfacesOrAbstractClasses,
+                IsImplemented,
+                (t, m) =>
+                {
+                    var implementation = classOrStructType.FindImplementationForInterfaceMember(m);
+                    return implementation != null && Equals(implementation.ContainingType, classOrStructType);
+                },
+                GetMembers,
+                allowReimplementation: true,
+                cancellationToken: cancellationToken);
+        }
+
+        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembersInThis(
+            this INamedTypeSymbol classOrStructType,
+            IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
+            Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> interfaceMemberGetter,
+            CancellationToken cancellationToken)
+        {
+            return classOrStructType.GetAllUnimplementedMembers(
+                interfacesOrAbstractClasses,
+                IsImplemented,
+                (t, m) =>
+                {
+                    var implementation = classOrStructType.FindImplementationForInterfaceMember(m);
+                    return implementation != null && Equals(implementation.ContainingType, classOrStructType);
+                },
+                interfaceMemberGetter,
+                allowReimplementation: true,
+                cancellationToken: cancellationToken);
+        }
+
+        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedExplicitMembers(
+            this INamedTypeSymbol classOrStructType,
+            IEnumerable<INamedTypeSymbol> interfaces,
+            CancellationToken cancellationToken)
+        {
+            return classOrStructType.GetAllUnimplementedMembers(
+                interfaces,
+                IsExplicitlyImplemented,
+                ImplementationExists,
+                GetExplicitlyImplementableMembers,
+                allowReimplementation: false,
+                cancellationToken: cancellationToken);
         }
 
         private static ImmutableArray<ISymbol> GetExplicitlyImplementableMembers(INamedTypeSymbol type, ISymbol within)

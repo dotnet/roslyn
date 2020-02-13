@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 State state,
                 bool explicitly,
                 bool abstractly,
-                bool onlyUnimplemented,
+                bool onlyRemaining,
                 ISymbol throughMember)
             {
                 Service = service;
                 Document = document;
                 State = state;
                 Abstractly = abstractly;
-                OnlyUnimplemented = onlyUnimplemented;
+                OnlyRemaining = onlyRemaining;
                 Explicitly = explicitly;
                 ThroughMember = throughMember;
                 _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, throughMember, GetType().FullName);
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 Document document,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: true, onlyUnimplemented: true, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementCodeAction(
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 Document document,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, onlyUnimplemented: true, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementExplicitlyCodeAction(
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 Document document,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: true, abstractly: false, onlyUnimplemented: false, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementThroughMemberCodeAction(
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 State state,
                 ISymbol throughMember)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, onlyUnimplemented: false, throughMember: throughMember);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, onlyRemaining: false, throughMember: throughMember);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementRemainingExplicitlyCodeAction(
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 Document document,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: true, abstractly: false, onlyUnimplemented: true, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
             }
 
             public override string Title
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 {
                     if (Explicitly)
                     {
-                        if (OnlyUnimplemented)
+                        if (OnlyRemaining)
                         {
                             return FeaturesResources.Implement_remaining_members_explicitly;
                         }
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
             {
                 var unimplementedMembers = Explicitly
-                    ? OnlyUnimplemented
+                    ? OnlyRemaining
                         ? State.MembersWithoutExplicitOrImplicitImplementation
                         : State.MembersWithoutExplicitImplementation
                     : State.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
             }
 
-            public bool OnlyUnimplemented { get; }
+            public bool OnlyRemaining { get; }
 
             private bool HasMatchingMember(List<ISymbol> implementedVisibleMembers, ISymbol member)
             {
