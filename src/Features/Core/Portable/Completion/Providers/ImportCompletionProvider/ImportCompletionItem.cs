@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return item;
         }
 
-        public static CompletionItem CreateAttributeItemWithoutSuffix(CompletionItem attributeItem, string attributeNameWithoutSuffix)
+        public static CompletionItem CreateAttributeItemWithoutSuffix(CompletionItem attributeItem, string attributeNameWithoutSuffix, CompletionItemFlags flags)
         {
             Debug.Assert(!attributeItem.Properties.ContainsKey(AttributeFullName));
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var sortTextBuilder = PooledStringBuilder.GetInstance();
             sortTextBuilder.Builder.AppendFormat(SortTextFormat, attributeNameWithoutSuffix, attributeItem.InlineDescription);
 
-            return CompletionItem.Create(
+            var item = CompletionItem.Create(
                  displayText: attributeNameWithoutSuffix,
                  sortText: sortTextBuilder.ToStringAndFree(),
                  properties: newProperties,
@@ -87,6 +87,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  displayTextPrefix: attributeItem.DisplayTextPrefix,
                  displayTextSuffix: attributeItem.DisplayTextSuffix,
                  inlineDescription: attributeItem.InlineDescription);
+
+            item.Flags = flags;
+            return item;
         }
 
         public static CompletionItem CreateItemWithGenericDisplaySuffix(CompletionItem item, string genericTypeSuffix)
