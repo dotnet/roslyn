@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -7151,34 +7152,40 @@ done:;
                 || this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
         }
 
+        // ParseEmbeddedStatement is called through many recursive statement parsing cases. We want
+        // to ensure it is inlined into the callers as the overhead of this single method can have a
+        // deep impact on the number of recursive calls we can make (more than a hundred during
+        // empirical testing).
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private StatementSyntax ParseEmbeddedStatement()
         {
             // The consumers of embedded statements are expecting to receive a non-null statement 
             // yet there are several error conditions that can lead ParseStatementCore to return 
             // null.  When that occurs create an error empty Statement and return it to the caller.
-            StatementSyntax statement = this.ParseStatementCore() ?? SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
+            return CheckEmbeddedStatement(this.ParseStatementCore() ?? ParseEmptyStatement());
+        }
 
-            switch (statement.Kind)
+        private EmptyStatementSyntax ParseEmptyStatement()
+            => SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
+
+        private StatementSyntax CheckEmbeddedStatement(StatementSyntax statement)
+        {
+            // In scripts, stand-alone expression statements may not be followed by semicolons.
+            // ParseExpressionStatement hides the error.
+            // However, embedded expression statements are required to be followed by semicolon. 
+            if (statement.Kind == SyntaxKind.ExpressionStatement &&
+                IsScript)
             {
-                // In scripts, stand-alone expression statements may not be followed by semicolons.
-                // ParseExpressionStatement hides the error.
-                // However, embedded expression statements are required to be followed by semicolon. 
-                case SyntaxKind.ExpressionStatement:
-                    if (IsScript)
-                    {
-                        var expressionStatementSyntax = (ExpressionStatementSyntax)statement;
-                        var semicolonToken = expressionStatementSyntax.SemicolonToken;
+                var expressionStatementSyntax = (ExpressionStatementSyntax)statement;
+                var semicolonToken = expressionStatementSyntax.SemicolonToken;
 
-                        // Do not add a new error if the same error was already added.
-                        if (semicolonToken.IsMissing &&
-                            !semicolonToken.GetDiagnostics().Contains(diagnosticInfo => (ErrorCode)diagnosticInfo.Code == ErrorCode.ERR_SemicolonExpected))
-                        {
-                            semicolonToken = this.AddError(semicolonToken, ErrorCode.ERR_SemicolonExpected);
-                            statement = expressionStatementSyntax.Update(expressionStatementSyntax.Expression, semicolonToken);
-                        }
-                    }
-
-                    break;
+                // Do not add a new error if the same error was already added.
+                if (semicolonToken.IsMissing &&
+                    !semicolonToken.GetDiagnostics().Contains(diagnosticInfo => (ErrorCode)diagnosticInfo.Code == ErrorCode.ERR_SemicolonExpected))
+                {
+                    semicolonToken = this.AddError(semicolonToken, ErrorCode.ERR_SemicolonExpected);
+                    statement = expressionStatementSyntax.Update(expressionStatementSyntax.Expression, semicolonToken);
+                }
             }
 
             return statement;
