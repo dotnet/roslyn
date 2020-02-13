@@ -327,8 +327,9 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
 
             If vbnode.IsKind(SyntaxKind.RaiseEventStatement) Then
                 Dim raiseEventStatement = DirectCast(vbnode, RaiseEventStatementSyntax)
-                Dim updatedArguments = PermuteArgumentList(raiseEventStatement.ArgumentList.Arguments, updatedSignature, declarationSymbol)
-                Return raiseEventStatement.WithArgumentList(raiseEventStatement.ArgumentList.WithArguments(
+                Dim argumentList = raiseEventStatement.ArgumentList
+                Dim updatedArguments = PermuteArgumentList(argumentList.Arguments, argumentList.CloseParenToken, updatedSignature, declarationSymbol)
+                Return raiseEventStatement.WithArgumentList(argumentList.WithArguments(
                                                             updatedArguments.SyntaxList).WithCloseParenToken(updatedArguments.CloseParen).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -343,14 +344,16 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
                     isReducedExtensionMethod = True
                 End If
 
-                Dim newArguments = PermuteArgumentList(invocation.ArgumentList.Arguments, updatedSignature, declarationSymbol, isReducedExtensionMethod)
-                Return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(
+                Dim argumentList As ArgumentListSyntax = invocation.ArgumentList
+                Dim newArguments = PermuteArgumentList(argumentList.Arguments, argumentList.CloseParenToken, updatedSignature, declarationSymbol, isReducedExtensionMethod)
+                Return invocation.WithArgumentList(argumentList.WithArguments(
                                                    newArguments.SyntaxList).WithCloseParenToken(newArguments.CloseParen).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
             If vbnode.IsKind(SyntaxKind.SubNewStatement) Then
                 Dim constructor = DirectCast(vbnode, SubNewStatementSyntax)
-                Dim newParameters = PermuteDeclaration(constructor.ParameterList.Parameters, updatedSignature)
+                Dim parameterList = constructor.ParameterList
+                Dim newParameters = PermuteDeclaration(parameterList.Parameters, parameterList.CloseParenToken, updatedSignature)
                 Return constructor.WithParameterList(AnnotationExtensions.WithAdditionalAnnotations(
                                                      constructor.ParameterList.WithParameters(newParameters.SyntaxList).WithCloseParenToken(newParameters.CloseParen),
                                                      changeSignatureFormattingAnnotation))
@@ -358,23 +361,26 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
 
             If vbnode.IsKind(SyntaxKind.Attribute) Then
                 Dim attribute = DirectCast(vbnode, AttributeSyntax)
-                Dim newArguments = PermuteArgumentList(attribute.ArgumentList.Arguments, updatedSignature, declarationSymbol)
-                Return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(
+                Dim argumentList = attribute.ArgumentList
+                Dim newArguments = PermuteArgumentList(argumentList.Arguments, argumentList.CloseParenToken, updatedSignature, declarationSymbol)
+                Return attribute.WithArgumentList(argumentList.WithArguments(
                                                   newArguments.SyntaxList).WithCloseParenToken(newArguments.CloseParen).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
             If vbnode.IsKind(SyntaxKind.ObjectCreationExpression) Then
                 Dim objectCreation = DirectCast(vbnode, ObjectCreationExpressionSyntax)
-                Dim newArguments = PermuteArgumentList(objectCreation.ArgumentList.Arguments, updatedSignature, declarationSymbol)
-                Return objectCreation.WithArgumentList(objectCreation.ArgumentList.WithArguments(
+                Dim argumentList = objectCreation.ArgumentList
+                Dim newArguments = PermuteArgumentList(argumentList.Arguments, argumentList.CloseParenToken, updatedSignature, declarationSymbol)
+                Return objectCreation.WithArgumentList(argumentList.WithArguments(
                                                        newArguments.SyntaxList).WithCloseParenToken(newArguments.CloseParen).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
             If vbnode.IsKind(SyntaxKind.PropertyStatement) Then
                 Dim propertyStatement = DirectCast(vbnode, PropertyStatementSyntax)
-                Dim newParameters = PermuteDeclaration(propertyStatement.ParameterList.Parameters, updatedSignature)
+                Dim parameterList = propertyStatement.ParameterList
+                Dim newParameters = PermuteDeclaration(parameterList.Parameters, parameterList.CloseParenToken, updatedSignature)
                 Return propertyStatement.WithParameterList(AnnotationExtensions.WithAdditionalAnnotations(
-                                                           propertyStatement.ParameterList.WithParameters(newParameters.SyntaxList).WithCloseParenToken(newParameters.CloseParen),
+                                                           parameterList.WithParameters(newParameters.SyntaxList).WithCloseParenToken(newParameters.CloseParen),
                                                            changeSignatureFormattingAnnotation))
             End If
 
@@ -400,7 +406,8 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
                     Return vbnode
                 End If
 
-                Dim newParameters = PermuteDeclaration(lambda.SubOrFunctionHeader.ParameterList.Parameters, updatedSignature)
+                Dim parameterList = lambda.SubOrFunctionHeader.ParameterList
+                Dim newParameters = PermuteDeclaration(parameterList.Parameters, parameterList.CloseParenToken, updatedSignature)
                 Dim newBegin = lambda.SubOrFunctionHeader.WithParameterList(AnnotationExtensions.WithAdditionalAnnotations(
                                                                             lambda.SubOrFunctionHeader.ParameterList.WithParameters(newParameters.SyntaxList).WithCloseParenToken(newParameters.CloseParen),
                                                                             changeSignatureFormattingAnnotation))
@@ -438,27 +445,19 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
 
         Private Function PermuteArgumentList(
             arguments As SeparatedSyntaxList(Of ArgumentSyntax),
+            closeParenToken As SyntaxToken,
             permutedSignature As SignatureChange,
             declarationSymbol As ISymbol,
             Optional isReducedExtensionMethod As Boolean = False) As SyntaxListWithCloseParen(Of ArgumentSyntax)
             Dim originalArguments = arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a, arguments.IndexOf(a))).ToList()
             Dim permutedArguments = PermuteArguments(declarationSymbol, originalArguments, permutedSignature, isReducedExtensionMethod)
 
-            Dim closeParenToken = New SyntaxToken()
-            If Not arguments.IsEmpty() Then
-                Dim listSyntax = arguments.First().HasAncestor(Of ArgumentListSyntax)()
-            End If
-
-            ' TO-DO: refactor + combine w/declaration method
             Dim newArguments = New List(Of ArgumentSyntax)()
             Dim newSeparators = New SyntaxToken(arguments.Count - 1) {}
             For newIndex = 0 To permutedArguments.Count - 1
-                Dim newParamSymbol = permutedArguments(newIndex)
-                Dim originalIndex = originalArguments.IndexOf(newParamSymbol)
-                Dim newParamNode = arguments(originalIndex)
-
-                ' Copy whitespace trivia from original position.
-                newParamNode = TransferLeadingTrivia(newParamNode, arguments(newIndex))
+                Dim argument = permutedArguments(newIndex)
+                Dim originalIndex = argument.Index
+                Dim newParamNode = TransferLeadingTrivia(arguments(originalIndex), arguments(newIndex))
                 newArguments.Add(newParamNode)
 
                 If (newIndex <> permutedArguments.Count - 1) Then
@@ -482,10 +481,9 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
             For newIndex = 0 To reorderedParameters.Count - 1
                 Dim newParamSymbol = reorderedParameters(newIndex)
                 Dim originalIndex = originalParameters.IndexOf(newParamSymbol)
-                Dim newParamNode = list(originalIndex)
 
                 ' Copy whitespace trivia from original position.
-                newParamNode = TransferLeadingTrivia(newParamNode, list(newIndex))
+                Dim newParamNode = TransferLeadingTrivia(list(originalIndex), list(newIndex))
                 newParameters.Add(newParamNode)
 
                 If (newIndex <> reorderedParameters.Count - 1) Then
