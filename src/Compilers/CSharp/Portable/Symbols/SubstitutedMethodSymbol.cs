@@ -362,30 +362,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private int ComputeHashCode()
         {
             int code = this.OriginalDefinition.GetHashCode();
+            code = Hash.Combine(this.ContainingType, code);
 
-            // If the containing type of the original definition is the same as our containing type
-            // it's possible that we will compare equal to the original definition under certain conditions 
-            // (e.g, ignoring nullability) and want to retain the same hashcode. As such, consider only
-            // the original definition for the hashcode when we know equality is possible
-            var containingHashCode = _containingType.GetHashCode();
-            if (containingHashCode == this.OriginalDefinition.ContainingType.GetHashCode())
-            {
-                return code;
-            }
-
-            code = Hash.Combine(containingHashCode, code);
-
-            // Unconstructed methods may contain alpha-renamed type parameters while	
-            // still be considered equal; we do not want to give a different hashcode to such types.	
-            //	
-            // Example:	
-            //   Having original method A<U>.Goo<V>() we create two _unconstructed_ methods	
-            //    A<int>.Goo<V'>	
-            //    A<int>.Goo<V">     	
-            //  Note that V' and V" are type parameters substituted via alpha-renaming of original V	
-            //  These are different objects, but represent the same "type parameter at index 1"	
-            //	
-            //  In short - we are not interested in the type arguments of unconstructed methods.	
+            // Unconstructed method may contain alpha-renamed type parameters while
+            // may still be considered equal, we do not want to give different hashcode to such types.
+            //
+            // Example:
+            //   Having original method A<U>.Goo<V>() we create two _unconstructed_ methods
+            //    A<int>.Goo<V'>
+            //    A<int>.Goo<V">     
+            //  Note that V' and V" are type parameters substituted via alpha-renaming of original V
+            //  These are different objects, but represent the same "type parameter at index 1"
+            //
+            //  In short - we are not interested in the type arguments of unconstructed methods.
             if ((object)ConstructedFrom != (object)this)
             {
                 foreach (var arg in this.TypeArgumentsWithAnnotations)
@@ -394,19 +383,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // 0 means that hashcode is not initialized. 
-            // in a case we really get 0 for the hashcode, tweak it by +1
-            if (code == 0)
-            {
-                code++;
-            }
-
             return code;
         }
 
         public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
-            MethodSymbol other = obj as MethodSymbol;
+            SubstitutedMethodSymbol other = obj as SubstitutedMethodSymbol;
             if ((object)other == null) return false;
 
             if ((object)this.OriginalDefinition != (object)other.OriginalDefinition &&
@@ -445,9 +427,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             int code = _hashCode;
+
             if (code == 0)
             {
                 code = ComputeHashCode();
+
+                // 0 means that hashcode is not initialized. 
+                // in a case we really get 0 for the hashcode, tweak it by +1
+                if (code == 0)
+                {
+                    code++;
+                }
+
                 _hashCode = code;
             }
 

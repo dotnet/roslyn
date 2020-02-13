@@ -455,20 +455,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new PublicModel.FieldSymbol(this);
         }
-
-        public override bool Equals(Symbol other, TypeCompareKind compareKind)
-        {
-            if (other is SubstitutedFieldSymbol sfs)
-            {
-                return sfs.Equals(this, compareKind);
-            }
-
-            return base.Equals(other, compareKind);
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
     }
 }
