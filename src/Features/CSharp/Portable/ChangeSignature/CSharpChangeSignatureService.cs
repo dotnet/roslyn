@@ -428,8 +428,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             newParamNode = TransferLeadingWhitespaceTrivia(newParamNode, list[newIndex]);
 
             // The separator associated with the node should have its trivia transferred over as well. If we're looking at the last node, then there is no associated separator.
-            var originalSeparator = originalIndex == list.Count - 1 ? SyntaxFactory.Token(SyntaxKind.None) : list.GetSeparator(originalIndex);
-            var newSeparator = newIndex == list.Count - 1 ? SyntaxFactory.Token(SyntaxKind.None) : list.GetSeparator(newIndex);
+            var originalSeparator = originalIndex == list.Count - 1 ? new SyntaxToken() : list.GetSeparator(originalIndex);
+            var newSeparator = newIndex == list.Count - 1 ? new SyntaxToken() : list.GetSeparator(newIndex);
 
             // If the associated node is not switching positions, we don't need to do any work.
             if (newIndex == originalIndex)
@@ -459,7 +459,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 // will be placed in the correct locations in previous or future iterations of the loop.
                 var originalSeparatorComments = GetSeparatorCommentsWithInBetweenTrivia(originalSeparator.TrailingTrivia);
 
-                // TO-DO: Can maybe simplify this, like VB.
                 // Remove end-of-line trivia and comments from the new separator, and add any comments from the original separator.
                 var updatedTrivia = newSeparator.TrailingTrivia.Where(trivia => !trivia.IsKind(SyntaxKind.EndOfLineTrivia) && !trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
                                                                     && !trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)).Concat(originalSeparatorComments);
