@@ -5996,6 +5996,74 @@ namespace NS
             End Using
         End Function
 
+        <WorkItem(41601, "https://github.com/dotnet/roslyn/issues/41601")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SortItemsByExpandedFlag() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace NS1
+{
+    class C
+    {
+        void M()
+        {
+            $$
+        }
+    }
+
+    class MyTask1 { }
+    class MyTask2 { }
+    class MyTask3 { }
+}
+
+namespace NS2
+{
+    class MyTask1 { }
+    class MyTask2 { }
+    class MyTask3 { }
+}
+</Document>, extraExportedTypes:={GetType(TestExperimentationService)}.ToList())
+
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)))
+
+                ' trigger completion with import completion disabled
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                ' make sure expander is selected
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
+
+                state.SendTypeChars("mytask")
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                ' make sure expander is selected
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="MyTask1", inlineDescription:="")
+
+
+                Dim expectedOrder As (String, String)() =
+                    {
+                        ("MyTask1", ""),
+                        ("MyTask2", ""),
+                        ("MyTask3", ""),
+                        ("MyTask1", "NS2"),
+                        ("MyTask2", "NS2"),
+                        ("MyTask3", "NS2")
+                    }
+                state.AssertItemsInOrder(expectedOrder)
+            End Using
+        End Function
+
         <WorkItem(39519, "https://github.com/dotnet/roslyn/issues/39519")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSuggestedNamesDontStartWithDigit_DigitsInTheMiddle() As Task
