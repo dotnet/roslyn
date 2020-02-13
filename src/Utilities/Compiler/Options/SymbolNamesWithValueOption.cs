@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
 {
-    internal class SymbolNamesWithValueOption<TValue> : IEquatable<SymbolNamesWithValueOption<TValue>?>
+    internal sealed class SymbolNamesWithValueOption<TValue> : IEquatable<SymbolNamesWithValueOption<TValue>?>
     {
         internal const SymbolKind AllKinds = SymbolKind.ErrorType;
         internal const char WildcardChar = '*';
@@ -284,7 +284,7 @@ namespace Analyzer.Utilities
                 out KeyValuePair<string, TValue> firstMatch)
             {
                 // Try a partial check on the symbol...
-                if (TryGetSymbolPartialMatch(symbolFullNameBuilder, symbol, symbol.Name, wildcardNamesBySymbolKind, wildcardMatchResult, out firstMatch))
+                if (TryGetSymbolPartialMatch(symbolFullNameBuilder, symbol, GetSymbolNameWithParameters(symbol), wildcardNamesBySymbolKind, wildcardMatchResult, out firstMatch))
                 {
                     var match = firstMatch;
                     wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, kvp) => match);
@@ -331,7 +331,7 @@ namespace Analyzer.Utilities
             {
                 // ...At this point we couldn't match any part of the symbol name in the 'AllKinds' part of the list, let's try with the type fully qualified name...
                 Debug.Assert(fullyQualifiedSymbolName.Length > 0);
-                Debug.Assert(symbolKindsToCheck.Count >= 1 && symbolKindsToCheck.Count <= 3);
+                Debug.Assert(symbolKindsToCheck.Count >= 1 && symbolKindsToCheck.Count <= 4);
 
                 firstMatch = NoWildcardMatch;
 
@@ -356,17 +356,104 @@ namespace Analyzer.Utilities
                 return false;
             }
 
+            static string GetSymbolNameWithParameters(ISymbol symbol)
+            {
+                var parameters = symbol.GetParameters();
+
+                var addParenthesis = symbol.Kind == SymbolKind.Method;
+                var addBrackets = symbol.Kind == SymbolKind.Property && ((IPropertySymbol)symbol).IsIndexer;
+
+                Debug.Assert((addParenthesis && !addBrackets) || (!addParenthesis && addBrackets) || (!addParenthesis && !addBrackets),
+                    "Symbol is both a method and an indexer");
+
+                if (parameters.IsEmpty)
+                {
+                    if (addParenthesis)
+                    {
+                        return symbol.Name + "()";
+                    }
+                    else if (addBrackets)
+                    {
+                        return symbol.Name + "[]";
+                    }
+                    else
+                    {
+                        return symbol.Name;
+                    }
+                }
+
+                Debug.Assert(symbol.Kind == SymbolKind.Method || symbol.Kind == SymbolKind.Property);
+
+                var nameBuilder = new StringBuilder(symbol.Name);
+
+                if (addParenthesis)
+                {
+                    nameBuilder.Append("(");
+                }
+                if (addBrackets)
+                {
+                    nameBuilder.Append("[");
+                }
+
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    AppendParameterFullType(parameters[i], nameBuilder);
+                    if (i < parameters.Length - 1)
+                    {
+                        nameBuilder.Append(",");
+                    }
+                }
+
+                if (addParenthesis)
+                {
+                    nameBuilder.Append(")");
+                }
+                if (addBrackets)
+                {
+                    nameBuilder.Append("]");
+                }
+
+                return nameBuilder.ToString();
+
+                static void AppendParameterFullType(IParameterSymbol parameter, StringBuilder builder)
+                {
+                    var insertionPosition = builder.Length;
+
+                    var currentType = parameter.Type;
+
+                    while (currentType != null)
+                    {
+                        builder.Insert(insertionPosition, currentType.Name);
+                        builder.Insert(insertionPosition, ".");
+                        currentType = currentType.ContainingType;
+                    }
+
+                    var currentNamespace = parameter.Type.ContainingNamespace;
+                    while (currentNamespace != null && !currentNamespace.IsGlobalNamespace)
+                    {
+                        builder.Insert(insertionPosition, currentNamespace.Name);
+                        builder.Insert(insertionPosition, ".");
+                        currentNamespace = currentNamespace.ContainingNamespace;
+                    }
+
+                    if (builder[insertionPosition] == '.')
+                    {
+                        builder.Remove(insertionPosition, 1);
+                    }
+                }
+            }
+
             static bool TryGetSymbolPartialMatch(StringBuilder builder, ISymbol symbol, string symbolName,
                 ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> wildcardNamesBySymbolKind,
                 ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>> wildcardMatchResult,
                 out KeyValuePair<string, TValue> firstMatch)
             {
-                if (builder.Length > 0)
+                if (builder.Length > 0 && builder[0] != '.')
                 {
                     builder.Insert(0, ".");
                 }
 
-                builder.Insert(0, symbol.Name);
+                builder.Insert(0, symbolName);
 
                 return TryGetFirstWildcardMatch(AllKinds, symbol, symbolName, wildcardNamesBySymbolKind, wildcardMatchResult, out firstMatch);
             }

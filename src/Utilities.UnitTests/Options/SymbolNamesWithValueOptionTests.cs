@@ -278,9 +278,12 @@ public namespace MyNamespace
         [InlineData("MyCompany.MyProduct.MyFeature.MyOuterClass*", "MyOuterClass")]
         [InlineData("MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass*", "MyInnerClass")]
         [InlineData("MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.MyField*", "MyField")]
+        [InlineData("MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.ctor*", ".ctor")]
         [InlineData("MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.MyProperty*", "MyProperty")]
+        [InlineData("MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.this[]*", "this[]")]
         [InlineData("MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.MyEvent*", "MyEvent")]
         [InlineData("MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.MyMethod(*", "MyMethod")]
+        [InlineData("MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.MyMethod2(System.Str*", "MyMethod2")]
         // Fully qualified name with prefix
         [InlineData("N:MyCompany*", "MyCompany")]
         [InlineData("N:MyCompany.MyProduct*", "MyProduct")]
@@ -288,17 +291,26 @@ public namespace MyNamespace
         [InlineData("T:MyCompany.MyProduct.MyFeature.MyOuterClass*", "MyOuterClass")]
         [InlineData("T:MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass*", "MyInnerClass")]
         [InlineData("F:MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.MyField*", "MyField")]
+        [InlineData("M:MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.ctor*", ".ctor")]
         [InlineData("P:MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.MyProperty*", "MyProperty")]
+        [InlineData("P:MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.this[]*", "this[]")]
         [InlineData("E:MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.MyEvent*", "MyEvent")]
         [InlineData("M:MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.MyMethod(*", "MyMethod")]
+        [InlineData("M:MyCompany.MyProduct.MyFeature.MyOuterClass.MyInnerClass.MyMethod2(System.Str*", "MyMethod2")]
         // Partial match
         [InlineData("MyCompany.MyProduct*", "MyFeature")]
         [InlineData("N:MyCompany.MyProduct*", "MyFeature")]
         [InlineData("MyFeature*", "MyFeature")]
         [InlineData("MyInnerClass*", "MyInnerClass")]
-        [InlineData("T:MyInnerClass*", "MyInnerClass")]
         [InlineData("MyOuterClass*", "MyInnerClass")]
-        [InlineData("T:MyOuterClass*", "MyInnerClass")]
+        [InlineData("My*", "MyCompany")]
+        [InlineData("My*", "MyOuterClass")]
+        [InlineData("My*", "MyInnerClass")]
+        [InlineData("My*", "MyField")]
+        [InlineData("My*", "MyProperty")]
+        [InlineData("My*", "MyEvent")]
+        [InlineData("My*", "MyMethod")]
+        [InlineData("My*", "MyMethod2")]
         public void WildcardMatch(string patternName, string symbolName)
         {
             // Arrange
@@ -310,16 +322,27 @@ public namespace MyCompany.MyProduct.MyFeature
         public class MyInnerClass
         {
             public int MyField;
+            public MyInnerClass() {}
+            public MyInnerClass(int i) {}
             public int MyProperty { get; set; }
+            public int this[]
+            {
+                get { return 42; }
+                set {}
+            }
+            public int this[string s]
+            {
+                get { return 42; }
+                set {}
+            }
             public event EventHandler<EventArgs> MyEvent;
             public void MyMethod() {}
+            public void MyMethod2(string s) {}
         }
     }
 }");
             var symbolNames = ImmutableArray.Create(patternName);
-
-            var symbol = compilation.GetSymbolsWithName(symbolName, SymbolFilter.All).Single();
-
+            var symbol = FindSymbol(compilation, symbolName);
             var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
 
             // Act
@@ -328,6 +351,41 @@ public namespace MyCompany.MyProduct.MyFeature
             // Assert
             Assert.True(isFound);
             Assert.True(options._wildcardMatchResult.ContainsKey(symbol));
+
+            static ISymbol FindSymbol(Compilation compilation, string symbolName)
+            {
+                var innerClassSymbol = (INamedTypeSymbol)compilation.GetSymbolsWithName("MyInnerClass", SymbolFilter.Type).Single();
+
+                var currentType = innerClassSymbol;
+                while (currentType != null)
+                {
+                    if (currentType.Name == symbolName)
+                    {
+                        return currentType;
+                    }
+                    currentType = currentType.ContainingType;
+                }
+
+                var currentNamespace = innerClassSymbol.ContainingNamespace;
+                while (currentNamespace != null)
+                {
+                    if (currentNamespace.Name == symbolName)
+                    {
+                        return currentNamespace;
+                    }
+                    currentNamespace = currentNamespace.ContainingNamespace;
+                }
+
+                foreach (var member in innerClassSymbol.GetMembers())
+                {
+                    if (member.Name == symbolName)
+                    {
+                        return member;
+                    }
+                }
+
+                throw new InvalidOperationException("Cannot find symbol name: " + symbolName);
+            }
         }
 
         private static Compilation GetCompilation(params string[] sources)
