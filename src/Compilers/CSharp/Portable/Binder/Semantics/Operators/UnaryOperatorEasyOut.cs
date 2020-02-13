@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static readonly UnaryOperatorKind[] s_increment =
                 //obj   str  bool   chr   i08   i16   i32   i64   u08   u16   u32   u64  nint nuint   r32   r64   dec  
-                { ERR,  ERR,  ERR,  CHR,  I08,  I16,  I32,  I64,  U08,  U16,  U32,  U64,  ERR,  ERR,  R32,  R64,  DEC,
-               /* lifted */   ERR, LCHR, LI08, LI16, LI32, LI64, LU08, LU16, LU32, LU64,  ERR,  ERR, LR32, LR64, LDEC };
+                { ERR,  ERR,  ERR,  CHR,  I08,  I16,  I32,  I64,  U08,  U16,  U32,  U64,  NIN,  NUI,  R32,  R64,  DEC,
+               /* lifted */   ERR, LCHR, LI08, LI16, LI32, LI64, LU08, LU16, LU32, LU64,  LNI,  LNU, LR32, LR64, LDEC };
 
             private static readonly UnaryOperatorKind[] s_plus =
                 //obj   str  bool   chr   i08   i16   i32   i64   u08   u16   u32   u64  nint nuint   r32   r64   dec  

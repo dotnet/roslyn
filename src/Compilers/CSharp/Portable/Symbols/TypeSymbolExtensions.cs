@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             RoslynDebug.Assert((object)typeSymbol != null);
 
-            return typeSymbol.IsReferenceType || typeSymbol.IsEnumType() || typeSymbol.SpecialType.CanBeConst();
+            return typeSymbol.IsReferenceType || typeSymbol.IsEnumType() || typeSymbol.SpecialType.CanBeConst() || (typeSymbol as NamedTypeSymbol)?.IsNativeInt == true;
         }
 
         /// <summary>
@@ -476,6 +476,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SpecialType.System_UInt32:
                     case SpecialType.System_Int64:
                     case SpecialType.System_UInt64:
+                    case SpecialType.System_IntPtr when ((NamedTypeSymbol)type).IsNativeInt:
+                    case SpecialType.System_UIntPtr when ((NamedTypeSymbol)type).IsNativeInt:
                     case SpecialType.System_Char:
                     case SpecialType.System_Boolean:
                     case SpecialType.System_Single:
