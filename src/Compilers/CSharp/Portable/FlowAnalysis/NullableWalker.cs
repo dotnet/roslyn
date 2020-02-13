@@ -1801,21 +1801,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             bool isCall)
         {
-            // When we are in a conditional state after analyzing a call to a local function,
-            // e.g. when the local function uses a conditional flow analysis attribute,
-            // we just analyze the local function usage using a temporary joined state.
-            LocalState state;
-            if (IsConditionalState)
-            {
-                state = StateWhenTrue.Clone();
-                state.Join(in StateWhenFalse);
-            }
-            else
-            {
-                state = State;
-            }
+            // Do not use this overload in NullableWalker. Use the overload below instead.
+            throw ExceptionUtilities.Unreachable;
+        }
 
-            if (Join(ref localFunctionState.StartingState, ref state) &&
+        private void VisitLocalFunctionUse(LocalFunctionSymbol symbol)
+        {
+            Debug.Assert(!IsConditionalState);
+            var localFunctionState = GetOrCreateLocalFuncUsages(symbol);
+            if (Join(ref localFunctionState.StartingState, ref State) &&
                 localFunctionState.Visited)
             {
                 // If the starting state of the local function has changed and we've already visited
@@ -3915,7 +3909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node is BoundCall { Method: { OriginalDefinition: LocalFunctionSymbol localFunction } })
             {
-                VisitLocalFunctionUse(localFunction, node.Syntax, isCall: true);
+                VisitLocalFunctionUse(localFunction);
             }
 
             if (!node.HasErrors && !parametersOpt.IsDefault)
@@ -5447,7 +5441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (method?.OriginalDefinition is LocalFunctionSymbol localFunc)
                             {
-                                VisitLocalFunctionUse(localFunc, group.Syntax, isCall: false);
+                                VisitLocalFunctionUse(localFunc);
                             }
                             method = CheckMethodGroupReceiverNullability(group, delegateType, method, conversion.IsExtensionMethod);
                         }
@@ -6000,7 +5994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.MethodOpt?.OriginalDefinition is LocalFunctionSymbol localFunc)
             {
-                VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
+                VisitLocalFunctionUse(localFunc);
             }
 
             var delegateType = (NamedTypeSymbol)node.Type;
