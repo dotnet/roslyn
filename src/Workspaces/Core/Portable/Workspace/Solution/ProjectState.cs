@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis
 
                 public override bool TryGetValue(string key, out string value) => _backing.TryGetValue(key, out value);
 
-                public override ImmutableArray<string> Keys => _backing.Keys.ToImmutableArray();
+                public override IEnumerable<string> Keys => _backing.Keys;
             }
         }
 

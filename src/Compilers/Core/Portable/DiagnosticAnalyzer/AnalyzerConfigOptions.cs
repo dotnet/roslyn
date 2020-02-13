@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get the keys of the defined options.
         /// </summary>
-        public abstract ImmutableArray<string> Keys { get; }
+        public abstract IEnumerable<string> Keys { get; }
     }
 
     internal sealed class CompilerAnalyzerConfigOptions : AnalyzerConfigOptions
@@ -42,6 +42,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override bool TryGetValue(string key, out string value) => _backing.TryGetValue(key, out value);
 
-        public override ImmutableArray<string> Keys => _backing.Keys.ToImmutableArray();
+        public override IEnumerable<string> Keys => _backing.Keys;
     }
 }
