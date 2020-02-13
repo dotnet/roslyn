@@ -42,11 +42,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public ITypeSymbol? TypeSymbol { get; set; }
 
-        public string TypeName
+        public string? TypeName
         {
             get
             {
-                return TypeSymbol!.ToDisplayString(_symbolDisplayFormat);
+                return TypeSymbol?.ToDisplayString(_symbolDisplayFormat);
             }
         }
 
@@ -73,7 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 return false;
             }
 
+#pragma warning disable CS8604 // Possible null reference argument.
             if (!IsParameterTypeValid(TypeName, document))
+#pragma warning restore CS8604 // Possible null reference argument.
             {
                 SendFailureNotification(ServicesVSResources.Parameter_type_contains_invalid_characters);
                 return false;
