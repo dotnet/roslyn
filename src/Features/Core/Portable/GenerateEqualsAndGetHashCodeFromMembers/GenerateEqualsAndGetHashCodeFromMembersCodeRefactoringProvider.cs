@@ -111,6 +111,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             if (equatableTypeOpt != null)
             {
                 var constructedType = equatableTypeOpt.Construct(containingType);
+                // A ref struct can never implement an interface, therefore never add IEquatable to
+                // the selection options if the type is a ref struct.
                 if (!containingType.AllInterfaces.Contains(constructedType) && !containingType.IsRefLikeType)
                 {
                     var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
