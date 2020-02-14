@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            var currentParameterList = CSharpSyntaxGenerator.GetParameterList(destination);
+            var currentParameterList = destination.GetParameterList();
 
             if (currentParameterList == null)
             {

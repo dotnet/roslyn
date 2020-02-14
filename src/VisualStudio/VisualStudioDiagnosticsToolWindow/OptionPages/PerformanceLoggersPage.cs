@@ -72,8 +72,8 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             threadingContext.JoinableTaskFactory.Run(() => client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SetLoggingFunctionIds),
-                new object[] { loggerTypes, functionIds },
                 solution: null,
+                new object[] { loggerTypes, functionIds },
                 callbackTarget: null,
                 CancellationToken.None));
         }

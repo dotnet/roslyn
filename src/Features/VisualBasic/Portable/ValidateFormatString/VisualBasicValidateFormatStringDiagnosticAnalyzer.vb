@@ -17,10 +17,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
             Return VisualBasicSyntaxFactsService.Instance
         End Function
 
-        Protected Overrides Function GetInvocationExpressionSyntaxKind() As SyntaxKind
-            Return SyntaxKind.InvocationExpression
-        End Function
-
         Protected Overrides Function TryGetMatchingNamedArgument(
                 arguments As SeparatedSyntaxList(Of SyntaxNode),
                 searchArgumentName As String) As SyntaxNode

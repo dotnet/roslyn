@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -27,14 +29,15 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
     {
         private readonly ImmutableArray<TLanguageKindEnum> _kindsOfInterest;
 
-        protected AbstractSimplifyThisOrMeDiagnosticAnalyzer(
-            ImmutableArray<TLanguageKindEnum> kindsOfInterest)
+        protected AbstractSimplifyThisOrMeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                    ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.QualifyPropertyAccess, CodeStyleOptions.QualifyMethodAccess, CodeStyleOptions.QualifyEventAccess),
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {
-            _kindsOfInterest = kindsOfInterest;
+            var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+            _kindsOfInterest = ImmutableArray.Create(
+                syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.SimpleMemberAccessExpression));
         }
 
         protected abstract string GetLanguageName();
@@ -90,6 +93,11 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
             var optionValue = optionSet.GetOption(applicableOption, GetLanguageName());
+            if (optionValue == null)
+            {
+                return;
+            }
+
             var severity = optionValue.Notification.Severity;
 
             var descriptor = CreateUnnecessaryDescriptor(DescriptorId);
