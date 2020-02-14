@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             if (equatableTypeOpt != null)
             {
                 var constructedType = equatableTypeOpt.Construct(containingType);
-                if (!containingType.AllInterfaces.Contains(constructedType))
+                if (!containingType.AllInterfaces.Contains(constructedType) && !containingType.IsRefLikeType)
                 {
                     var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                     var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable);

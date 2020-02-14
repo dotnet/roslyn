@@ -1722,6 +1722,36 @@ parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnRefStruct()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System.Collections.Generic;
+
+ref struct Program
+{
+    public string s;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+struct Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Program && Equals((Program)obj);
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+parameters: CSharp6Implicit);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestImplementIEquatableOnStructInNullableContextWithUnannotatedMetadata()
         {
             await TestWithPickMembersDialogAsync(
