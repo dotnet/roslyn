@@ -107,6 +107,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
+            // A ref like type can only return false from equals.
+            if (containingType.IsRefLikeType)
+            {
+                statements.Add(factory.ReturnStatement(factory.FalseLiteralExpression()));
+                statements.ToImmutableAndFree();
+            }
+
             // Come up with a good name for the local variable we're going to compare against.
             // For example, if the class name is "CustomerOrder" then we'll generate:
             //

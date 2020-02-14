@@ -1737,13 +1737,13 @@ ref struct Program
 using System;
 using System.Collections.Generic;
 
-struct Program : IEquatable<Program>
+struct Program
 {
     public string s;
 
     public override bool Equals(object obj)
     {
-        return obj is Program && Equals((Program)obj);
+        return false;
     }
 }",
 chosenSymbols: null,
