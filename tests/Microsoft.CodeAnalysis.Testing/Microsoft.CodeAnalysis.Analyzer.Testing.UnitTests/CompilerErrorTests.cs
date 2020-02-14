@@ -73,6 +73,29 @@ class TestClass {
         }
 
         [Fact]
+        public async Task TestCSharpReorderedExplicitCompilerErrorWithExplicitInterfaceSymbol()
+        {
+            var testCode = @"using System.Collections.Generic;
+
+class TestClass : IEnumerable<int> {
+}
+";
+
+            await new CSharpTest
+            {
+                TestCode = testCode,
+                ExpectedDiagnostics =
+                {
+                    // Test0.cs(3,19): error CS0535: 'TestClass' does not implement interface member 'IEnumerable<int>.GetEnumerator()'
+                    DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 35).WithArguments("TestClass", "System.Collections.Generic.IEnumerable<int>.GetEnumerator()"),
+
+                    // Test0.cs(3,19): error CS0535: 'TestClass' does not implement interface member 'IEnumerable.GetEnumerator()'
+                    DiagnosticResult.CompilerError("CS0535").WithLocation(3, 19).WithArguments("TestClass", "System.Collections.IEnumerable.GetEnumerator()"),
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestCSharpMarkupCompilerError()
         {
             var testCode = @"
