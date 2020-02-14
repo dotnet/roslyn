@@ -365,6 +365,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </returns>
         private ImmutableArray<(Diagnostic? actual, DiagnosticResult? expected)> MatchDiagnostics(Diagnostic[] actualResults, DiagnosticResult[] expectedResults)
         {
+            var actualIds = actualResults.Select(result => result.Id).ToImmutableArray();
             var actualResultLocations = actualResults.Select(result => (location: result.Location.GetLineSpan(), additionalLocations: result.AdditionalLocations.Select(location => location.GetLineSpan()).ToImmutableArray())).ToImmutableArray();
             var actualArguments = actualResults.Select(actual => GetArguments(actual).Select(argument => argument?.ToString() ?? string.Empty).ToImmutableArray()).ToImmutableArray();
             var expectedArguments = expectedResults.Select(expected => expected.MessageArguments?.Select(argument => argument?.ToString() ?? string.Empty).ToImmutableArray() ?? ImmutableArray<string>.Empty).ToImmutableArray();
@@ -434,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     }
 
                     var (lineSpan, additionalLineSpans) = actualResultLocations[firstActualIndex];
-                    if (!IsMatch(actualResults[firstActualIndex], lineSpan, additionalLineSpans, actualArguments[firstActualIndex], expectedResults[i], expectedArguments[i]))
+                    if (!IsMatch(actualResults[firstActualIndex], actualIds[firstActualIndex], lineSpan, additionalLineSpans, actualArguments[firstActualIndex], expectedResults[i], expectedArguments[i]))
                     {
                         continue;
                     }
@@ -478,10 +479,10 @@ namespace Microsoft.CodeAnalysis.Testing
                 return currentBest;
             }
 
-            static bool IsMatch(Diagnostic diagnostic, FileLinePositionSpan lineSpan, ImmutableArray<FileLinePositionSpan> additionalLineSpans, ImmutableArray<string> actualArguments, DiagnosticResult diagnosticResult, ImmutableArray<string> expectedArguments)
+            static bool IsMatch(Diagnostic diagnostic, string diagnosticId, FileLinePositionSpan lineSpan, ImmutableArray<FileLinePositionSpan> additionalLineSpans, ImmutableArray<string> actualArguments, DiagnosticResult diagnosticResult, ImmutableArray<string> expectedArguments)
             {
                 return IsLocationMatch(diagnostic, lineSpan, additionalLineSpans, diagnosticResult)
-                    && diagnostic.Id == diagnosticResult.Id
+                    && diagnosticId == diagnosticResult.Id
                     && diagnostic.Severity == diagnosticResult.Severity
                     && IsMessageMatch(diagnostic, actualArguments, diagnosticResult, expectedArguments);
             }
