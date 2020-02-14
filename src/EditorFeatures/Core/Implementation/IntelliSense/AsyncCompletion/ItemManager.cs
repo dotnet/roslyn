@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -10,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 AsyncCompletionLogger.LogSessionWithTypeImportCompletionEnabled();
             }
 
-            return Task.FromResult(data.InitialList.OrderBy(i => i.SortText, StringComparer.Ordinal).ToImmutableArray());
+            return Task.FromResult(data.InitialList.Sort(CompletionItemSortingComparer.Instance));
         }
 
         public Task<FilteredCompletionModel> UpdateCompletionListAsync(
@@ -761,6 +763,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return char.IsLetter(c)
                 || char.IsNumber(c)
                 || c == '_';
+        }
+
+        /// <summary>
+        /// This comparer can handle expanded items.
+        /// </summary>
+        private class CompletionItemSortingComparer : IComparer<VSCompletionItem>
+        {
+            public static CompletionItemSortingComparer Instance { get; } = new CompletionItemSortingComparer();
+
+            public int Compare(VSCompletionItem x, VSCompletionItem y)
+            {
+                var xHasPrefix = HasExpandedPrefix(x);
+                var yHasPrefix = HasExpandedPrefix(y);
+
+                if (xHasPrefix == yHasPrefix)
+                {
+                    // Don't use Ordinal because we want lowercase to be "smaller" than uppercase.
+                    // e.g. "Goo" before "GoTo"
+                    return string.Compare(x.SortText, y.SortText, StringComparison.InvariantCulture);
+                }
+                else if (xHasPrefix)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return -1;
+                }
+
+                static bool HasExpandedPrefix(VSCompletionItem i) => i.SortText.Length > 1 && i.SortText[0] == ImportCompletionItem.SortTextPrefix;
+            }
         }
     }
 }
