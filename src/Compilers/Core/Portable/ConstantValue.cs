@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis
             return this.Discriminator.GetHashCode();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return this.Equals(obj as ConstantValue);
         }

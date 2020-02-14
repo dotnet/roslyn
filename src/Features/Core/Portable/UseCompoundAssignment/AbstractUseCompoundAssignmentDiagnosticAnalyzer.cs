@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -45,7 +47,6 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             Utilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
         }
 
-        protected abstract TSyntaxKind GetKind(int rawKind);
         protected abstract TSyntaxKind GetAnalysisKind();
         protected abstract bool IsSupported(TSyntaxKind assignmentKind, ParseOptions options);
 
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             }
 
             var option = optionSet.GetOption(CodeStyleOptions.PreferCompoundAssignment, assignment.Language);
-            if (!option.Value)
+            if (option == null || !option.Value)
             {
                 // Bail immediately if the user has disabled this feature.
                 return;
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 return;
             }
 
-            var binaryKind = GetKind(binaryExpression.RawKind);
+            var binaryKind = _syntaxFacts.SyntaxKinds.Convert<TSyntaxKind>(binaryExpression.RawKind);
             if (!_binaryToAssignmentMap.ContainsKey(binaryKind))
             {
                 return;

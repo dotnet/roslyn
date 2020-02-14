@@ -702,6 +702,11 @@
         <target state="translated">Basit 'using' deyimini kullan</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="new">Value:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">Uyarı: Ad alanının değiştirilmesi geçersiz kod oluşturabilir ve kodun anlamını değiştirebilir.</target>

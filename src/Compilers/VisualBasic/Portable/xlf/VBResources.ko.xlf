@@ -776,6 +776,11 @@
         <target state="translated">문자가 잘못되었습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
         <source>Option Strict On prohibits operands of type Object for operator '{0}'.</source>
         <target state="translated">Option Strict On에서는 '{0}' 연산자에 대해 Object 형식의 피연산자를 사용할 수 없습니다.</target>

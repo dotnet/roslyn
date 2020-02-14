@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -21,14 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
             where TSyntax : SyntaxNode
             where TSyntaxList : SyntaxNode
         {
-            protected sealed override SyntaxNode GetReceiver(SyntaxNode argument)
-                => argument.Parent.Parent;
+            protected sealed override SyntaxNode? GetReceiver(SyntaxNode argument)
+                => argument.Parent?.Parent;
 
             protected sealed override bool IsLegalToAddNamedArguments(ImmutableArray<IParameterSymbol> parameters, int argumentCount)
                 => !parameters.Last().IsParams || parameters.Length >= argumentCount;
-
-            protected sealed override bool IsCloseParenOrComma(SyntaxToken token)
-                => token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken);
 
             protected override bool SupportsNonTrailingNamedArguments(ParseOptions options)
                 => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7_2;
