@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 Environment.NewLine +
                 "Diagnostics:" + Environment.NewLine +
                 "// Test0.cs(1,24): error CS1513: } expected" + Environment.NewLine +
-                "DiagnosticResult.CompilerError(\"CS1513\").WithSpan(1, 24, 1, 24)" + Environment.NewLine +
+                "DiagnosticResult.CompilerError(\"CS1513\").WithSpan(1, 24, 1, 24)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }

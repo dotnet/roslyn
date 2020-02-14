@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 Environment.NewLine +
                 "Diagnostic:" + Environment.NewLine +
                 "    // Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
-                "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18)" + Environment.NewLine +
+                "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 Environment.NewLine +
                 "Diagnostic:" + Environment.NewLine +
                 "    // Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
-                "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18)" + Environment.NewLine +
+                "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 "A project diagnostic with No location" + Environment.NewLine +
                 "Actual:" + Environment.NewLine +
                 "// Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
-                "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18)" + Environment.NewLine;
+                "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18)," + Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 "A project diagnostic with No location" + Environment.NewLine +
                 "Actual:" + Environment.NewLine +
                 "// Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
-                "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18)" + Environment.NewLine;
+                "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18)," + Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 Environment.NewLine +
                 "Diagnostic:" + Environment.NewLine +
                 "    // Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
-                "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 17)" + Environment.NewLine +
+                "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 17)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 Environment.NewLine +
                 "Diagnostic:" + Environment.NewLine +
                 "    // Test0.cs(1,17): warning Brace: message" + Environment.NewLine +
-                "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 17)" + Environment.NewLine +
+                "VerifyCS.Diagnostic().WithSpan(1, 17, 1, 17)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
