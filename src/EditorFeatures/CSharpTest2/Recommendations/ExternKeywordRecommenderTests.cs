@@ -70,6 +70,18 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttributesInSwitchCase()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"switch (c)
+{
+    case 0:
+         [Foo]
+         $$
+}"));
+        }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAttributesAndStaticInStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(

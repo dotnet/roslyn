@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // for ( ; ; Goo(), |
 
+            // After attribute lists on a statement:
             //   [Bar]
             //   |
 
