@@ -22801,6 +22801,32 @@ End Class
         End Sub
 
         <Fact>
+        <WorkItem(41699, "https://github.com/dotnet/roslyn/issues/41699")>
+        Public Sub MissingBaseType_TupleTypeArgumentWithNames()
+            Dim sourceA =
+"Public Class A(Of T)
+End Class"
+            Dim comp = CreateCompilation(sourceA, assemblyName:="A")
+            Dim refA = comp.EmitToImageReference()
+
+            Dim sourceB =
+"Public Class B
+    Inherits A(Of (X As Object, Y As B))
+End Class"
+            comp = CreateCompilation(sourceB, references:={refA})
+            Dim refB = comp.EmitToImageReference()
+
+            Dim sourceC =
+"Module Program
+    Sub Main()
+        Dim o As Object = New B()
+    End Sub
+End Module"
+            comp = CreateCompilation(sourceC, references:={refB})
+            comp.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
         <WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")>
         <WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")>
         Public Sub CustomFields_01()
