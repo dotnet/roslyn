@@ -688,11 +688,6 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
                            SelectAsArray(Function(s) SymbolAndProjectId.Create(s, document.Project.Id))
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
-            Return SpecializedCollections.SingletonEnumerable(Of AbstractFormattingRule)(New ChangeSignatureFormattingRule()).
-                Concat(Formatter.GetDefaultFormattingRules(document))
-        End Function
-
         Private Class SyntaxListWithCloseParen(Of T As SyntaxNode)
             Public Sub New(syntaxList As SeparatedSyntaxList(Of T), closeParen As SyntaxToken)
                 Me.SyntaxList = syntaxList
