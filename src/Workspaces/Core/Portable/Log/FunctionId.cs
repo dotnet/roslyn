@@ -472,5 +472,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync = 380,
         CodeFixes_GetCodeFixesAsync = 381,
+
+        LanguageServer_ActivateFailed = 382,
+        LanguageServer_OnLoadedFailed = 383,
     }
 }
