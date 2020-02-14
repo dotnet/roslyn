@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 AsyncCompletionLogger.LogSessionWithTypeImportCompletionEnabled();
             }
 
-
-            return Task.FromResult(data.InitialList.OrderBy(i => i.SortText).ToImmutableArray());
+            return Task.FromResult(data.InitialList.OrderBy(i => i.SortText, StringComparer.Ordinal).ToImmutableArray());
         }
 
         public Task<FilteredCompletionModel> UpdateCompletionListAsync(
@@ -210,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Sort the items by pattern matching results.
             // Note that we want to preserve the original alphabetical order for items with same pattern match score,
             // but `ArrayBuilder.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
-            // to `MatchResult` to archieve this.
+            // to `MatchResult` to achieve this.
             builder.Sort(MatchResult.SortingComparer);
 
             var initialListOfItemsToBeIncluded = builder.ToImmutableAndFree();
@@ -378,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 // The user has typed something, but nothing in the actual list matched what
                 // they were typing.  In this case, we want to dismiss completion entirely.
-                // The thought process is as follows: we aggressively brough up completion
+                // The thought process is as follows: we aggressively brought up completion
                 // to help them when they typed delete (in case they wanted to pick another
                 // item).  However, they're typing something that doesn't seem to match at all
                 // The completion list is just distracting at this point.
@@ -584,7 +583,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             //     have just typed the character to get completion.  Filtering out items
             //     here is not desirable.
             //
-            //  2. They brough up completion with ctrl-j or through deletion.  In these
+            //  2. They brought up completion with ctrl-j or through deletion.  In these
             //     cases we just always keep all the items in the list.
             if (matchedFilterText ||
                 initialTriggerKind == CompletionTriggerKind.Deletion ||
@@ -695,7 +694,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Completion will comes up after = with 'integer' selected (Because of MRU).  We do
             // not want 'space' to commit this.
 
-            // If all that has been typed is puntuation, then don't hard select anything.
+            // If all that has been typed is punctuation, then don't hard select anything.
             // It's possible the user is just typing language punctuation and selecting
             // anything in the list will interfere.  We only allow this if the filter text
             // exactly matches something in the list already. 
@@ -758,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// </summary>
         private static bool IsPotentialFilterCharacter(char c)
         {
-            // TODO(cyrusn): Actually use the right unicode categories here.
+            // TODO(cyrusn): Actually use the right Unicode categories here.
             return char.IsLetter(c)
                 || char.IsNumber(c)
                 || c == '_';
