@@ -1722,21 +1722,40 @@ parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestImplementIEquatableOnRefStruct()
+        public async Task TestOverrideEqualsOnRefStructReturnsFalse()
         {
             await TestWithPickMembersDialogAsync(
 @"
-using System.Collections.Generic;
-
 ref struct Program
 {
     public string s;
     [||]
 }",
 @"
-using System;
-using System.Collections.Generic;
+ref struct Program
+{
+    public string s;
 
+    public override bool Equals(object obj)
+    {
+        return false;
+    }
+}",
+chosenSymbols: null,
+parameters: CSharp6Implicit);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnRefStructSkipsIEquatable()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+ref struct Program
+{
+    public string s;
+    [||]
+}",
+@"
 ref struct Program
 {
     public string s;
