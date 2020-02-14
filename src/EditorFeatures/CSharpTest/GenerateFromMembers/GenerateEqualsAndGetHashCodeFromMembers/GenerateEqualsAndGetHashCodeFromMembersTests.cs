@@ -1737,7 +1737,7 @@ ref struct Program
 using System;
 using System.Collections.Generic;
 
-struct Program
+ref struct Program
 {
     public string s;
 
