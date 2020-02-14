@@ -1,10 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+#nullable enable
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,30 +12,44 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// This binder owns the scope for an embedded statement.
+    /// This binder owns the scope for Simple Program top-level statements.
     /// </summary>
-    internal sealed class EmbeddedStatementBinder : LocalScopeBinder
+    internal sealed class SimpleProgramBinder : LocalScopeBinder
     {
-        private readonly StatementSyntax _statement;
+        private readonly CompilationUnitSyntax _compilationUnit;
 
-        public EmbeddedStatementBinder(Binder enclosing, StatementSyntax statement)
+        public SimpleProgramBinder(Binder enclosing, CompilationUnitSyntax compilationUnit)
             : base(enclosing, enclosing.Flags)
         {
-            Debug.Assert(statement != null);
-            _statement = statement;
+            RoslynDebug.Assert(compilationUnit is object);
+            _compilationUnit = compilationUnit;
         }
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance();
-            BuildLocals(this, _statement, locals);
+            foreach (var statement in _compilationUnit.Members)
+            {
+                if (statement is GlobalStatementSyntax topLevelStatement)
+                {
+                    BuildLocals(this, topLevelStatement.Statement, locals);
+                }
+            }
+
             return locals.ToImmutableAndFree();
         }
 
         protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
         {
-            ArrayBuilder<LocalFunctionSymbol> locals = null;
-            BuildLocalFunctions(_statement, ref locals);
+            ArrayBuilder<LocalFunctionSymbol>? locals = null;
+            foreach (var statement in _compilationUnit.Members)
+            {
+                if (statement is GlobalStatementSyntax topLevelStatement)
+                {
+                    BuildLocalFunctions(topLevelStatement.Statement, ref locals);
+                }
+            }
+
             return locals?.ToImmutableAndFree() ?? ImmutableArray<LocalFunctionSymbol>.Empty;
         }
 
@@ -50,9 +63,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LabelSymbol> BuildLabels()
         {
-            ArrayBuilder<LabelSymbol> labels = null;
+            ArrayBuilder<LabelSymbol>? labels = null;
+            RoslynDebug.Assert(this.ContainingMemberOrLambda is object);
             var containingMethod = (MethodSymbol)this.ContainingMemberOrLambda;
-            BuildLabels(containingMethod, _statement, ref labels);
+            foreach (var statement in _compilationUnit.Members)
+            {
+                if (statement is GlobalStatementSyntax topLevelStatement)
+                {
+                    BuildLabels(containingMethod, topLevelStatement.Statement, ref labels);
+                }
+            }
+
             return labels?.ToImmutableAndFree() ?? ImmutableArray<LabelSymbol>.Empty;
         }
 
@@ -78,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _statement;
+                return _compilationUnit;
             }
         }
 

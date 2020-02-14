@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual Imports GetImports(ConsList<TypeSymbol> basesBeingResolved)
+        internal virtual Imports GetImports(ConsList<TypeSymbol>? basesBeingResolved)
         {
             RoslynDebug.Assert(Next is object);
             return Next.GetImports(basesBeingResolved);

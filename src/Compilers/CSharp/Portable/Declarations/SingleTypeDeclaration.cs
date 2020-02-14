@@ -26,6 +26,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasBaseDeclarations = 1 << 3,
             AnyMemberHasAttributes = 1 << 4,
             HasAnyNontypeMembers = 1 << 5,
+
+            /// <summary>
+            /// Simple program uses await expressions. Set only for <see cref="DeclarationKind.SimpleProgram"/>
+            /// </summary>
+            HasAwaitExpressions = 1 << 6,
+
+            /// <summary>
+            /// Set only for <see cref="DeclarationKind.SimpleProgram"/>
+            /// </summary>
+            AllTopLevelStatementsLocalFunctions = 1 << 7,
         }
 
         internal SingleTypeDeclaration(
@@ -122,6 +132,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return (_flags & TypeDeclarationFlags.HasAnyNontypeMembers) != 0;
+            }
+        }
+
+        public bool HasAwaitExpressions
+        {
+            get
+            {
+                return (_flags & TypeDeclarationFlags.HasAwaitExpressions) != 0;
+            }
+        }
+
+        public bool AllTopLevelStatementsLocalFunctions
+        {
+            get
+            {
+                return (_flags & TypeDeclarationFlags.AllTopLevelStatementsLocalFunctions) != 0;
             }
         }
 

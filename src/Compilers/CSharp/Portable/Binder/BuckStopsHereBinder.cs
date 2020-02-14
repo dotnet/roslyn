@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override Imports GetImports(ConsList<TypeSymbol> basesBeingResolved)
+        internal override Imports GetImports(ConsList<TypeSymbol>? basesBeingResolved)
         {
             return Imports.Empty;
         }

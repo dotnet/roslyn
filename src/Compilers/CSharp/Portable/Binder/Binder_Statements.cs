@@ -1692,6 +1692,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatements.Add(boundStatement);
             }
 
+            return FinishBindBlockParts(node, boundStatements, diagnostics);
+        }
+
+        private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, ArrayBuilder<BoundStatement> boundStatements, DiagnosticBag diagnostics)
+        {
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
 
             if (IsDirectlyInIterator)
@@ -3192,9 +3197,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ArrowExpressionClauseSyntax arrowExpression:
                     return BindExpressionBodyAsBlock(arrowExpression, diagnostics);
 
+                case CompilationUnitSyntax compilationUnit:
+                    return BindSimpleProgram(compilationUnit, diagnostics);
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
+        }
+
+        private BoundNode BindSimpleProgram(CompilationUnitSyntax compilationUnit, DiagnosticBag diagnostics)
+        {
+            Binder bodyBinder = this.GetBinder(compilationUnit);
+            Debug.Assert(bodyBinder != null);
+
+            ArrayBuilder<BoundStatement> boundStatements = ArrayBuilder<BoundStatement>.GetInstance();
+
+            foreach (var statement in compilationUnit.Members)
+            {
+                if (statement is GlobalStatementSyntax topLevelStatement)
+                {
+                    var boundStatement = bodyBinder.BindStatement(topLevelStatement.Statement, diagnostics);
+                    boundStatements.Add(boundStatement);
+                }
+            }
+
+            return bodyBinder.FinishBindBlockParts(compilationUnit, boundStatements, diagnostics);
         }
 
         private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, DiagnosticBag diagnostics)

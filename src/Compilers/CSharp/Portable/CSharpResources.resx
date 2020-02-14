@@ -3876,10 +3876,10 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Delegate '{0}' has no invoke method or an invoke method with a return type or parameter types that are not supported.</value>
   </data>
   <data name="WRN_MainIgnored" xml:space="preserve">
-    <value>The entry point of the program is global script code; ignoring '{0}' entry point.</value>
+    <value>The entry point of the program is global code; ignoring '{0}' entry point.</value>
   </data>
   <data name="WRN_MainIgnored_Title" xml:space="preserve">
-    <value>The entry point of the program is global script code; ignoring entry point</value>
+    <value>The entry point of the program is global code; ignoring entry point</value>
   </data>
   <data name="ERR_StaticInAsOrIs" xml:space="preserve">
     <value>The second operand of an 'is' or 'as' operator may not be static type '{0}'</value>
@@ -5947,5 +5947,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ImplicitRangeIndexerWithName" xml:space="preserve">
     <value>Invocation of implicit Range Indexer cannot name the argument.</value>
+  </data>
+  <data name="IDS_FeatureSimplePrograms" xml:space="preserve">
+    <value>simple programs</value>
+  </data>
+  <data name="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement" xml:space="preserve">
+    <value>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</value>
   </data>
 </root>

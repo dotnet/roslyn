@@ -729,6 +729,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
                 if (expectedSymbols >= 1)
                 {
+                    Assert.NotNull(completionList);
                     AssertEx.Any(completionList.Items, c => CompareItems(c.DisplayText, expectedItem));
 
                     var item = completionList.Items.First(c => CompareItems(c.DisplayText, expectedItem));

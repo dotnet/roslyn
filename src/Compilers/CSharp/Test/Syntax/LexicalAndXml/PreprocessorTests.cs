@@ -1714,7 +1714,7 @@ aeu";
 
             var node = Parse(text);
             TestRoundTripping(node, text, false);
-            VerifyErrorCode(node, (int)ErrorCode.ERR_NamespaceUnexpected);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_SemicolonExpected);
             VerifyDirectives(node, SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
         }
 

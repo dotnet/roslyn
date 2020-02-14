@@ -53,6 +53,9 @@ class Test : Itest
                 // (10,4): error CS1519: Invalid token '{' in class, struct, or interface member declaration
                 //    {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(10, 4),
+                // (12,4): error CS0106: The modifier 'public' is not valid for this item
+                //    public static int Main()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(12, 4),
                 // (16,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(16, 1)
@@ -179,21 +182,9 @@ public class C
 }";
             // Extra errors
             ParseAndValidate(test,
-                // (1,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // {
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(1, 1),
-                // (3,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     {
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(3, 5),
-                // (2,5): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,8): error CS1002: ; expected
                 //     get
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "get").WithLocation(2, 5),
-                // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 5),
-                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 8)
                 );
         }
 
@@ -639,7 +630,7 @@ partial delegate E { }
 ";
 
             // Extra errors
-            CreateCompilation(test).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                 // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
@@ -655,12 +646,6 @@ partial delegate E { }
                 // (2,20): error CS1002: ; expected
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 20),
-                // (2,20): error CS1022: Type or namespace definition, or end-of-file expected
-                // partial delegate E { }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 20),
-                // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
-                // partial delegate E { }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 22),
                 // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20),
@@ -2442,15 +2427,23 @@ Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         {
             var test = @" > Roslyn.Utilities.dll!  Basic";
 
-            CreateCompilation(test).VerifyDiagnostics(
-                // (1,2): error CS1022: Type or namespace definition, or end-of-file expected
-                Diagnostic(ErrorCode.ERR_EOFExpected, ">").WithLocation(1, 2),
-                // (1,21): error CS0116: A namespace does not directly contain members such as fields or methods
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "dll").WithLocation(1, 21),
-                // (1,24): error CS1022: Type or namespace definition, or end-of-file expected
-                Diagnostic(ErrorCode.ERR_EOFExpected, "!").WithLocation(1, 24),
-                // (1,27): error CS0116: A namespace does not directly contain members such as fields or methods
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Basic").WithLocation(1, 27));
+            CreateCompilation(test, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,2): error CS1525: Invalid expression term '>'
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 2),
+                // (1,4): error CS0103: The name 'Roslyn' does not exist in the current context
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Roslyn").WithArguments("Roslyn").WithLocation(1, 4),
+                // (1,27): error CS1002: ; expected
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Basic").WithLocation(1, 27),
+                // (1,27): error CS0103: The name 'Basic' does not exist in the current context
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Basic").WithArguments("Basic").WithLocation(1, 27),
+                // (1,32): error CS1002: ; expected
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 32)
+                );
         }
 
         [Fact]
@@ -3926,12 +3919,12 @@ namespace x
    // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
    // public class S.D 
    Diagnostic(ErrorCode.ERR_EOFExpected, "."),
-   // (1,16): error CS0116: A namespace does not directly contain members such as fields or methods
+   // (1,17): error CS1002: ; expected
    // public class S.D 
-   Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "D"),
-   // (2,1): error CS1022: Type or namespace definition, or end-of-file expected
+   Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 17),
+   // (2,2): error CS1513: } expected
    // {
-   Diagnostic(ErrorCode.ERR_EOFExpected, "{"),
+   Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 2),
    // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
    // }
    Diagnostic(ErrorCode.ERR_EOFExpected, "}"));

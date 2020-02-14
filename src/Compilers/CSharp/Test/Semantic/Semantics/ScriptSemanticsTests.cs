@@ -1169,7 +1169,7 @@ goto Label;");
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(SimplePrograms): Figure out what do we want to do for scenarios when we parsed a compilation unit as a script, but then lost this fact because SyntaxTree is not created at the same time")]
         [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
         public void Errors_01()
         {
@@ -1257,7 +1257,7 @@ goto Label;");
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(SimplePrograms): Figure out what do we want to do for scenarios when we parsed a compilation unit as a script, but then lost this fact because SyntaxTree is not created at the same time")]
         [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
         public void Errors_02()
         {
@@ -1294,7 +1294,7 @@ goto Label;");
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(SimplePrograms): Figure out what do we want to do for scenarios when we parsed a compilation unit as a script, but then lost this fact because SyntaxTree is not created at the same time")]
         [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
         public void Errors_03()
         {

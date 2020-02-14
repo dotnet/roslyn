@@ -5403,7 +5403,7 @@ class C
             var source = @"
 using VT2 = (int, int);
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (2,13): error CS1001: Identifier expected
                 // using VT2 = (int, int);
@@ -5411,12 +5411,12 @@ using VT2 = (int, int);
                 // (2,13): error CS1002: ; expected
                 // using VT2 = (int, int);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 13),
-                // (2,22): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,14): error CS1525: Invalid expression term 'int'
                 // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ")").WithLocation(2, 22),
-                // (2,23): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 14),
+                // (2,19): error CS1525: Invalid expression term 'int'
                 // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(2, 23),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 19),
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using VT2 = (int, int);
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = ").WithLocation(2, 1)

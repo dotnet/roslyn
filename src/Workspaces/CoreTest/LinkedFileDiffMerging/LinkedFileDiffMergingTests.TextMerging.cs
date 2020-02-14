@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 LanguageNames.CSharp);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(SimplePrograms)")]
         [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestIdenticalEditAfterIsolatedChanges()
         {
@@ -126,7 +126,7 @@ Four",
                 LanguageNames.CSharp);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(SimplePrograms)")]
         [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestTwoConflictsOnSeparatedLines()
         {

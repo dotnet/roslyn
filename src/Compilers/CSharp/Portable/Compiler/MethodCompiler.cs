@@ -1070,6 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     actualDiagnostics = sourceMethod.SetDiagnostics(actualDiagnostics, out diagsWritten);
                 }
 
+                // PROTOTYPE(SimplePrograms): What sould we do for global code?
                 if (diagsWritten && !methodSymbol.IsImplicitlyDeclared && _compilation.EventQueue != null)
                 {
                     Lazy<SemanticModel> lazySemanticModel = null;

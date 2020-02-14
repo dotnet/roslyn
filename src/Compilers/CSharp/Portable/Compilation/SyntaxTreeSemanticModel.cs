@@ -806,6 +806,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (memberDecl.Kind())
                 {
+                    case SyntaxKind.CompilationUnit:
+                        return GetOrAddModel(memberDecl);
+
                     case SyntaxKind.MethodDeclaration:
                     case SyntaxKind.ConversionOperatorDeclaration:
                     case SyntaxKind.OperatorDeclaration:
@@ -975,7 +978,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static CSharpSyntaxNode GetMemberDeclaration(SyntaxNode node)
         {
-            return node.FirstAncestorOrSelf(s_isMemberDeclarationFunction);
+            CSharpSyntaxNode result = node.FirstAncestorOrSelf(s_isMemberDeclarationFunction);
+
+            if (SyntaxFacts.IsSimpleProgramTopLevelStatement(result as GlobalStatementSyntax))
+            {
+                result = result.Parent;
+            }
+
+            return result;
         }
 
         private MemberSemanticModel GetOrAddModelIfContains(CSharpSyntaxNode node, TextSpan span)
@@ -1015,6 +1025,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (node.Kind())
             {
+                case SyntaxKind.CompilationUnit:
+                    return createMethodBodySemanticModel(additionalFlags, node, SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation));
+
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.OperatorDeclaration:
@@ -1023,14 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var memberDecl = (MemberDeclarationSyntax)node;
                         var symbol = GetDeclaredSymbol(memberDecl).GetSymbol<SourceMemberMethodSymbol>();
-                        ExecutableCodeBinder binder = symbol?.TryGetBodyBinder(_binderFactory, additionalFlags);
-
-                        if (binder == null)
-                        {
-                            return null;
-                        }
-
-                        return MethodBodySemanticModel.Create(this, symbol, new MethodBodySemanticModel.InitialState(memberDecl, binder: binder));
+                        return createMethodBodySemanticModel(additionalFlags, memberDecl, symbol);
                     }
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
@@ -1039,14 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var accessorDecl = (AccessorDeclarationSyntax)node;
                         var symbol = GetDeclaredSymbol(accessorDecl).GetSymbol<SourceMemberMethodSymbol>();
-                        ExecutableCodeBinder binder = symbol?.TryGetBodyBinder(_binderFactory, additionalFlags);
-
-                        if (binder == null)
-                        {
-                            return null;
-                        }
-
-                        return MethodBodySemanticModel.Create(this, symbol, new MethodBodySemanticModel.InitialState(accessorDecl, binder: binder));
+                        return createMethodBodySemanticModel(additionalFlags, accessorDecl, symbol);
                     }
 
                 case SyntaxKind.Block:
@@ -1176,6 +1175,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+
+            MemberSemanticModel createMethodBodySemanticModel(BinderFlags additionalFlags, CSharpSyntaxNode memberDecl, SourceMemberMethodSymbol symbol)
+            {
+                ExecutableCodeBinder binder = symbol?.TryGetBodyBinder(_binderFactory, additionalFlags);
+
+                if (binder == null)
+                {
+                    return null;
+                }
+
+                return MethodBodySemanticModel.Create(this, symbol, new MethodBodySemanticModel.InitialState(memberDecl, binder: binder));
+            }
         }
 
         private AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute, MemberSemanticModel containingModel)
@@ -1843,7 +1854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            InContainerBinder binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
+            Binder binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
             var imports = binder.GetImports(basesBeingResolved: null);
             var alias = imports.UsingAliases[declarationSyntax.Alias.Name.Identifier.ValueText];
 

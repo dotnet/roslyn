@@ -812,7 +812,7 @@ public class A
 
             var typeA = mems.Where(s => s.Name == "A").Select(s => s);
             Assert.Equal(1, typeA.Count());
-            var invalid = mems.Where(s => s.Name == "<invalid-global-code>").Select(s => s);
+            var invalid = mems.Where(s => s.Name == SimpleProgramNamedTypeSymbol.UnspeakableName).Select(s => s);
             Assert.Equal(1, invalid.Count());
         }
 

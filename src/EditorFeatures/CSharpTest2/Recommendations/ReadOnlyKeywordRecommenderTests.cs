@@ -413,7 +413,7 @@ $$");
             await VerifyKeywordAsync(SourceCodeKind.Regular, @"$$ ref struct { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact(Skip = "PROTOTYPE(SimplePrograms)"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNew()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular, @"new $$");

@@ -334,16 +334,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
+                else if (current == root)
+                {
+                    break;
+                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of
                     // CanHaveAssociatedLocalBinder are in sync.
                     Debug.Assert(!current.CanHaveAssociatedLocalBinder());
-                }
-
-                if (current == root)
-                {
-                    break;
                 }
             }
 
