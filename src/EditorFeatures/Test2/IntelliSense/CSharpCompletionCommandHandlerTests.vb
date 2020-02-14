@@ -2018,6 +2018,32 @@ public class Goo
 
         <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function LocalFunctionAttributeNamedPropertyCompletionCommitWithTab() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                            <Document>
+class MyAttribute : System.Attribute
+{
+    public string Name { get; set; }
+}
+
+public class Goo
+{
+    void M()
+    {
+        [MyAttribute($$
+        void local1() { }
+    }
+}
+                            </Document>)
+                state.SendTypeChars("Nam")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("        [MyAttribute(Name =", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AttributeOnLocalFunctionCompletionCommitWithTab() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                             <Document>
