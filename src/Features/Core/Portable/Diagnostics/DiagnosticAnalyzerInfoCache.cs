@@ -11,8 +11,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </remarks>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo> _descriptorsInfo;
 
+        /// <summary>
+        /// Information about host analyzers that can be skipped for the given project ID.
+        /// </summary>
+        private readonly ConditionalWeakTable<ProjectId, ISkippedAnalyzersInfo> _skippedAnalyzersInfo;
+
         private sealed class DiagnosticDescriptorsInfo
         {
             public readonly ImmutableArray<DiagnosticDescriptor> SupportedDescriptors;
@@ -121,6 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilerDiagnosticAnalyzerDescriptorMap = ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>>.Empty;
             _hostDiagnosticAnalyzerPackageNameMap = ImmutableDictionary<DiagnosticAnalyzer, string>.Empty;
             _descriptorsInfo = new ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo>();
+            _skippedAnalyzersInfo = new ConditionalWeakTable<ProjectId, ISkippedAnalyzersInfo>();
         }
 
         /// <summary>
@@ -549,6 +555,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return current;
         }
+
+        public ISkippedAnalyzersInfo GetOrCreateSkippedAnalyzersInfo(Project project)
+        {
+            if (_skippedAnalyzersInfo.TryGetValue(project.Id, out var skippedAnalyzersInfo))
+            {
+                return skippedAnalyzersInfo;
+            }
+
+            var createValueCallback = new ConditionalWeakTable<ProjectId, ISkippedAnalyzersInfo>.CreateValueCallback(
+                _ => SkippedHostAnalyzersInfo.Create(project, this));
+            return _skippedAnalyzersInfo.GetValue(project.Id, createValueCallback);
+        }
+
+        public void ClearProjectCache(ProjectId projectId)
+            => _skippedAnalyzersInfo.Remove(projectId);
 
         private class HostAnalyzerReferenceDiagnosticReporter
         {

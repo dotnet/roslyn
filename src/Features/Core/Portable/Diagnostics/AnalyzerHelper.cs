@@ -329,6 +329,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // REVIEW: more unnecessary allocations just to get diagnostics per analyzer
             var singleAnalyzer = ImmutableArray.Create(analyzer);
+            var skippedAnalyzerInfo = analyzerInfoCache.GetOrCreateSkippedAnalyzersInfo(document.Project);
+            ImmutableArray<string> filteredIds;
 
             switch (kind)
             {
@@ -345,6 +347,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic, (d, a, t) => $"{d.Id}, {d.Project.Id}, {a}, {t.Length}", document, analyzer, tree);
                     }
+                    else if (skippedAnalyzerInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out filteredIds))
+                    {
+                        diagnostics = diagnostics.Filter(filteredIds);
+                    }
 
                     Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
                     return diagnostics.ConvertToLocalDiagnostics(document);
@@ -357,6 +363,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     diagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, span, singleAnalyzer, cancellationToken).ConfigureAwait(false);
+
+                    if (skippedAnalyzerInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out filteredIds))
+                    {
+                        diagnostics = diagnostics.Filter(filteredIds);
+                    }
 
                     Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
                     return diagnostics.ConvertToLocalDiagnostics(document);

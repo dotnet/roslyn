@@ -93,7 +93,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), _project.DocumentIds.Count + 1);
             }
 
-            var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
+            // get skipped analyzers info
+            var skippedAnalyzersInfo = _analyzerInfoCache.GetOrCreateSkippedAnalyzersInfo(_project);
+
+            var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, skippedAnalyzersInfo, cancellationToken);
 
             return DiagnosticAnalysisResultMap.Create(
                 builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),

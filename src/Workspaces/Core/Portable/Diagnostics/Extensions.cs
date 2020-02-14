@@ -135,6 +135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> ToResultBuilderMap(
             this AnalysisResult analysisResult,
             Project project, VersionStamp version, Compilation compilation, IEnumerable<DiagnosticAnalyzer> analyzers,
+            ISkippedAnalyzersInfo skippedAnalyzersInfo,
             CancellationToken cancellationToken)
         {
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>();
@@ -145,12 +146,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                if (skippedAnalyzersInfo.SkippedAnalyzers.Contains(analyzer))
+                {
+                    continue;
+                }
+
                 var result = new DiagnosticAnalysisResultBuilder(project, version);
+                var diagnosticIdsToFilter = ImmutableArray<string>.Empty;
+                if (skippedAnalyzersInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out var ids))
+                {
+                    diagnosticIdsToFilter = ids;
+                }
 
                 foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SyntaxDiagnostics)
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
+                        diagnostics = diagnostics.Filter(diagnosticIdsToFilter);
                         Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSyntaxDiagnostics(tree, diagnostics);
                     }
@@ -160,6 +172,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
+                        diagnostics = diagnostics.Filter(diagnosticIdsToFilter);
                         Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSemanticDiagnostics(tree, diagnostics);
                     }
@@ -167,6 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (analysisResult.CompilationDiagnostics.TryGetValue(analyzer, out diagnostics))
                 {
+                    diagnostics = diagnostics.Filter(diagnosticIdsToFilter);
                     Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                     result.AddCompilationDiagnostics(diagnostics);
                 }
@@ -175,6 +189,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return builder.ToImmutable();
+        }
+
+        /// <summary>
+        /// Filters out the diagnostics with the specified <paramref name="diagnosticIdsToFilter"/>.
+        /// </summary>
+        public static ImmutableArray<Diagnostic> Filter(this ImmutableArray<Diagnostic> diagnostics, ImmutableArray<string> diagnosticIdsToFilter)
+        {
+            if (diagnosticIdsToFilter.IsEmpty)
+            {
+                return diagnostics;
+            }
+
+            var builder = ArrayBuilder<Diagnostic>.GetInstance(diagnostics.Length);
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnosticIdsToFilter.Contains(diagnostic.Id))
+                {
+                    continue;
+                }
+
+                builder.Add(diagnostic);
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         public static NotificationOption ToNotificationOption(this ReportDiagnostic reportDiagnostic, DiagnosticSeverity defaultSeverity)
