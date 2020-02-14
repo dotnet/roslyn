@@ -1771,5 +1771,92 @@ class C
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 43)
                 );
         }
+
+        [WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
+        [Fact]
+        public void BadGotoCase_01()
+        {
+            var source = @"
+class C
+{
+    static void Example(object a, object b)
+    {
+        switch ((a, b))
+        {
+            case (string str, int[] arr) _:
+                goto case (string str, decimal[] arr);
+            case (string str, decimal[] arr) _:
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0163: Control cannot fall through from one case label ('(string str, int[] arr) _') to another
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "(string str, int[] arr) _").WithArguments("(string str, int[] arr) _").WithLocation(8, 18),
+                // (8,26): error CS0136: A local or parameter named 'str' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "str").WithArguments("str").WithLocation(8, 26),
+                // (8,37): error CS0136: A local or parameter named 'arr' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "arr").WithArguments("arr").WithLocation(8, 37),
+                // (9,17): error CS0150: A constant value is expected
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case (string str, decimal[] arr);").WithLocation(9, 17),
+                // (9,28): error CS8185: A declaration is not allowed in this context.
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "string str").WithLocation(9, 28),
+                // (9,28): error CS0165: Use of unassigned local variable 'str'
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "string str").WithArguments("str").WithLocation(9, 28),
+                // (9,40): error CS8185: A declaration is not allowed in this context.
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "decimal[] arr").WithLocation(9, 40),
+                // (9,40): error CS0165: Use of unassigned local variable 'arr'
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "decimal[] arr").WithArguments("arr").WithLocation(9, 40),
+                // (10,26): error CS0136: A local or parameter named 'str' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, decimal[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "str").WithArguments("str").WithLocation(10, 26),
+                // (10,41): error CS0136: A local or parameter named 'arr' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, decimal[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "arr").WithArguments("arr").WithLocation(10, 41)
+                );
+        }
+
+        [WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
+        [Fact]
+        public void BadGotoCase_02()
+        {
+            var source = @"
+class C
+{
+    static void Example(object a, object b)
+    {
+        switch ((a, b))
+        {
+            case (string str, int[] arr) _:
+                goto case (var c, var d);
+            case (string str, decimal[] arr) _:
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0163: Control cannot fall through from one case label ('(string str, int[] arr) _') to another
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "(string str, int[] arr) _").WithArguments("(string str, int[] arr) _").WithLocation(8, 18),
+                // (9,28): error CS8185: A declaration is not allowed in this context.
+                //                 goto case (var c, var d);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var c").WithLocation(9, 28),
+                // (9,35): error CS8185: A declaration is not allowed in this context.
+                //                 goto case (var c, var d);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var d").WithLocation(9, 35)
+                );
+        }
     }
 }
