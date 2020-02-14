@@ -669,12 +669,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     builder.Append(")");
                 }
 
-                if (i != diagnostics.Length - 1)
-                {
-                    builder.Append(',');
-                }
-
-                builder.AppendLine();
+                builder.AppendLine(",");
             }
 
             return builder.ToString();

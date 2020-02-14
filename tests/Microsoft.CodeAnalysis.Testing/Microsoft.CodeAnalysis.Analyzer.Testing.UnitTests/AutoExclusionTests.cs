@@ -53,7 +53,7 @@ End Class
                 Environment.NewLine +
                 "Diagnostics:" + Environment.NewLine +
                 "// Test0.cs(4,23): warning ThisToBase: message" + Environment.NewLine +
-                "VerifyCS.Diagnostic().WithSpan(4, 23, 4, 27)" + Environment.NewLine +
+                "VerifyCS.Diagnostic().WithSpan(4, 23, 4, 27)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
@@ -75,7 +75,7 @@ End Class
                 Environment.NewLine +
                 "Diagnostics:" + Environment.NewLine +
                 "// Test0.cs(1,1): warning FirstLine: message" + Environment.NewLine +
-                "VerifyCS.Diagnostic().WithSpan(1, 1, 1, 1)" + Environment.NewLine +
+                "VerifyCS.Diagnostic().WithSpan(1, 1, 1, 1)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
@@ -138,7 +138,7 @@ End Class
                 Environment.NewLine +
                 "Diagnostics:" + Environment.NewLine +
                 "// Test0.vb(5,5): warning ThisToBase: message" + Environment.NewLine +
-                "VerifyVB.Diagnostic().WithSpan(5, 5, 5, 12)" + Environment.NewLine +
+                "VerifyVB.Diagnostic().WithSpan(5, 5, 5, 12)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
@@ -160,7 +160,7 @@ End Class
                 Environment.NewLine +
                 "Diagnostics:" + Environment.NewLine +
                 "// Test0.vb(1,1): warning FirstLine: message" + Environment.NewLine +
-                "VerifyVB.Diagnostic().WithSpan(1, 1, 1, 1)" + Environment.NewLine +
+                "VerifyVB.Diagnostic().WithSpan(1, 1, 1, 1)," + Environment.NewLine +
                 Environment.NewLine;
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
