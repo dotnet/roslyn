@@ -7392,7 +7392,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var property = node.PropertySymbol;
             var updatedMember = VisitMemberAccess(node, node.ReceiverOpt, property);
 
-            if (property.IsStatic || node.ReceiverOpt is BoundThisReference)
+            if (!IsAnalyzingAttribute &&
+                (property.IsStatic || node.ReceiverOpt is BoundThisReference))
             {
                 ApplyMemberPostConditions(property.NotNullMembers, property.NotNullWhenTrueMembers, property.NotNullWhenFalseMembers);
             }
