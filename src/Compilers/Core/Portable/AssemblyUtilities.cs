@@ -60,6 +60,7 @@ namespace Roslyn.Utilities
                         var reference = metadataReader.GetAssemblyReference(handle);
                         var referenceName = metadataReader.GetString(reference.Name);
 
+                        // Suppression is questionable because Path.GetDirectoryName returns null on root directories https://github.com/dotnet/roslyn/issues/41636
                         string referencePath = Path.Combine(directory!, referenceName + ".dll");
 
                         if (!assemblySet.Contains(referencePath) &&
