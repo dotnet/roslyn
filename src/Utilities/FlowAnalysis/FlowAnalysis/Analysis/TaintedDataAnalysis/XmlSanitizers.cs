@@ -32,6 +32,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "XmlAttributeEncode",
                     "XmlEncode",
                 });
+            builder.AddSanitizerInfo(
+                WellKnownTypeNames.SystemWebSecurityAntiXssAntiXssEncoder,
+                isInterface: false,
+                isConstructorSanitizing: false,
+                sanitizingMethods: new[] {
+                    "XmlAttributeEncode",
+                    "XmlEncode",
+                });
+
 
             // Consider SecurityElement.Escape().
 
