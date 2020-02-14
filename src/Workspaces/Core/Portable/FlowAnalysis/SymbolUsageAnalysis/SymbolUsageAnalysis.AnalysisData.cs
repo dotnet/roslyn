@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -30,15 +32,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             /// </summary>
             private readonly PooledHashSet<ISymbol> _referenceTakenSymbolsBuilder;
 
-            protected AnalysisData(
-                PooledDictionary<(ISymbol symbol, IOperation operation), bool> symbolWriteBuilder,
-                PooledHashSet<ISymbol> symbolsRead,
-                PooledHashSet<IMethodSymbol> lambdaOrLocalFunctionsBeingAnalyzed)
+            protected AnalysisData()
             {
-                SymbolsWriteBuilder = symbolWriteBuilder;
-                SymbolsReadBuilder = symbolsRead;
-                LambdaOrLocalFunctionsBeingAnalyzed = lambdaOrLocalFunctionsBeingAnalyzed;
-
                 _allocatedBasicBlockAnalysisDatas = ArrayBuilder<BasicBlockAnalysisData>.GetInstance();
                 _referenceTakenSymbolsBuilder = PooledHashSet<ISymbol>.GetInstance();
                 CurrentBlockAnalysisData = CreateBlockAnalysisData();
@@ -61,18 +56,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             ///        Value = 'true', because value assigned to 'x' here **may be** read on
             ///        some control flow path.
             /// </summary>
-            protected PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
+            protected abstract PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
 
             /// <summary>
             /// Set of locals/parameters that are read at least once.
             /// </summary>
-            protected PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
+            protected abstract PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
 
             /// <summary>
             /// Set of lambda/local functions whose invocations are currently being analyzed to prevent
             /// infinite recursion for analyzing code with recursive lambda/local function calls.
             /// </summary>
-            protected PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
+            protected abstract PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
 
             /// <summary>
             /// Current block analysis data used for analysis.
@@ -247,20 +242,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 CurrentBlockAnalysisData.SetAnalysisDataFrom(newBlockAnalysisData);
             }
 
-            public void Dispose()
-            {
-                DisposeAllocatedPrivateData();
-                DisposeCoreData();
-            }
-
-            protected virtual void DisposeCoreData()
-            {
-                SymbolsWriteBuilder.Free();
-                SymbolsReadBuilder.Free();
-                LambdaOrLocalFunctionsBeingAnalyzed.Free();
-            }
-
-            private void DisposeAllocatedPrivateData()
+            public virtual void Dispose()
             {
                 foreach (var instance in _allocatedBasicBlockAnalysisDatas)
                 {

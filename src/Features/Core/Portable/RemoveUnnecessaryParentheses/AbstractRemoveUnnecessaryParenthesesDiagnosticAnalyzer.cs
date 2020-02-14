@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -48,9 +52,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxNodeKind());
+        {
+            var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+            context.RegisterSyntaxNodeAction(AnalyzeSyntax,
+                syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.ParenthesizedExpression));
+        }
 
-        protected abstract TLanguageKindEnum GetSyntaxNodeKind();
         protected abstract bool CanRemoveParentheses(
             TParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
             out PrecedenceKind precedence, out bool clarifiesPrecedence);
@@ -88,7 +95,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                     var syntaxFacts = GetSyntaxFactsService();
                     var child = syntaxFacts.GetExpressionOfParenthesizedExpression(parenthesizedExpression);
 
-                    var parentKind = parenthesizedExpression.Parent.RawKind;
+                    var parentKind = parenthesizedExpression.Parent?.RawKind;
                     var childKind = child.RawKind;
                     if (parentKind != childKind)
                     {
@@ -101,7 +108,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             }
 
             var option = GetLanguageOption(precedence);
-            var preference = optionSet.GetOption(option, parenthesizedExpression.Language);
+            var preference = optionSet.GetOption(option, parenthesizedExpression.Language)!;
 
             if (preference.Notification.Severity == ReportDiagnostic.Suppress)
             {

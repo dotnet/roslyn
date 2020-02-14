@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -770,7 +772,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
             Assert.Empty(diagnostics);
 
-            // an error occured so we need to call update to determine whether we have changes to apply or not:
+            // an error occurred so we need to call update to determine whether we have changes to apply or not:
             Assert.True(await service.HasChangesAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
             Assert.Empty(_emitDiagnosticsUpdated);
@@ -838,7 +840,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
             Assert.Empty(diagnostics);
 
-            // an error occured so we need to call update to determine whether we have changes to apply or not:
+            // an error occurred so we need to call update to determine whether we have changes to apply or not:
             Assert.True(await service.HasChangesAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
             Assert.Empty(_emitDiagnosticsUpdated);
@@ -914,18 +916,30 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var document2 = project.AddDocument("file2.cs", SourceText.From("class C2 {}"));
             workspace.ChangeSolution(document2.Project.Solution);
 
-            // update in document2:
             var diagnostics2 = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
-            AssertEx.Equal(new[] { "ENC2123" }, diagnostics2.Select(d => d.Id));
+            AssertEx.Equal(
+                new[] { "ENC0071: " + string.Format(FeaturesResources.Adding_a_new_file_will_prevent_the_debug_session_from_continuing) },
+                diagnostics2.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             Assert.True(await service.HasChangesAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
+
+            var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
+            Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
+            Assert.Empty(deltas);
+
+            AssertEx.Equal(
+                new[] { "ENC2123: " + string.Format(FeaturesResources.EditAndContinueDisallowedByProject, "Test", "*message*") },
+                _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => $"{d.Id}: {d.Message}"));
 
             service.EndEditSession();
             service.EndDebuggingSession();
 
             AssertEx.Equal(new[]
             {
-                "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=1"
+                "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=1",
+                "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC2123",
+                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=71|RudeEditSyntaxKind=0|RudeEditBlocking=True"
             }, _telemetryLog);
         }
 
@@ -955,29 +969,13 @@ class C1
     System.Console.WriteLine(30); 
   } 
 }";
-            var expectedMessage = "ENC2123: " + string.Format(FeaturesResources.EditAndContinueDisallowedByProject, "Test", "*message*");
-
-            var expectedDiagnostics = new[]
-            {
-                "[17..19): " + expectedMessage,
-                "[66..67): " + expectedMessage,
-                "[101..101): " + expectedMessage,
-                "[136..137): " + expectedMessage,
-            };
-
-            static string inspectDiagnostic(Diagnostic d)
-                => $"{d.Location.SourceSpan}: {d.Id}: {d.GetMessage()}";
-
             using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 var project = workspace.CurrentSolution.Projects.Single();
                 _mockCompilationOutputsService.Outputs.Add(project.Id, new MockCompilationOutputs(moduleId));
 
-                bool isEditAndContinueAvailableInvocationAllowed = true;
                 _mockDebugeeModuleMetadataProvider.IsEditAndContinueAvailable = (Guid guid, out int errorCode, out string localizedMessage) =>
                 {
-                    Assert.True(isEditAndContinueAvailableInvocationAllowed);
-
                     Assert.Equal(moduleId, guid);
                     errorCode = 123;
                     localizedMessage = "*message*";
@@ -996,20 +994,10 @@ class C1
                 workspace.ChangeDocument(document1.Id, SourceText.From(source2));
                 var document2 = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
-                isEditAndContinueAvailableInvocationAllowed = true;
+                // We do not report module diagnostics until emit.
+                // This is to make the analysis deterministic (not dependent on the current state of the debuggee).
                 var diagnostics1 = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
-                AssertEx.Equal(expectedDiagnostics, diagnostics1.Select(inspectDiagnostic));
-
-                // the diagnostic should be cached and we should not invoke isEditAndContinueAvailable again:
-                isEditAndContinueAvailableInvocationAllowed = false;
-                var diagnostics2 = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
-                AssertEx.Equal(expectedDiagnostics, diagnostics2.Select(inspectDiagnostic));
-
-                // invalidate cache:
-                service.Test_GetEditSession().ModuleInstanceLoadedOrUnloaded(moduleId);
-                isEditAndContinueAvailableInvocationAllowed = true;
-                var diagnostics3 = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
-                AssertEx.Equal(expectedDiagnostics, diagnostics3.Select(inspectDiagnostic));
+                AssertEx.Empty(diagnostics1);
 
                 // validate solution update status and emit:
                 Assert.True(await service.HasChangesAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
@@ -1018,8 +1006,11 @@ class C1
                 Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
                 Assert.Empty(deltas);
 
+                AssertEx.Equal(new[] { "ENC2123: " + string.Format(FeaturesResources.EditAndContinueDisallowedByProject, "Test", "*message*") },
+                    _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => $"{d.Id}: {d.Message}"));
+
                 service.EndEditSession();
-                VerifyReanalyzeInvocation(workspace, null, ImmutableArray.Create(document2.Id), false);
+                VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
                 service.EndDebuggingSession();
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);

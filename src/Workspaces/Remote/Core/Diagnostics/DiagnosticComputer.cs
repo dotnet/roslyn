@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -17,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     internal class DiagnosticComputer
     {
         private readonly Project _project;
-        private readonly Dictionary<DiagnosticAnalyzer, HashSet<DiagnosticData>> _exceptions;
-        private readonly IPerformanceTrackerService _performanceTracker;
+        private readonly IPerformanceTrackerService? _performanceTracker;
+        private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
-        public DiagnosticComputer(Project project)
+        public DiagnosticComputer(Project project, DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
             _project = project;
-            _exceptions = new Dictionary<DiagnosticAnalyzer, HashSet<DiagnosticData>>();
+            _analyzerInfoCache = analyzerInfoCache;
 
             // we only track performance from primary branch. all forked branch we don't care such as preview.
             _performanceTracker = project.IsFromPrimaryBranch() ? project.Solution.Workspace.Services.GetService<IPerformanceTrackerService>() : null;
@@ -44,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>.Empty;
             }
 
-            var cacheService = _project.Solution.Workspace.Services.GetService<IProjectCacheService>();
+            var cacheService = _project.Solution.Workspace.Services.GetRequiredService<IProjectCacheService>();
             using var cache = cacheService.EnableCaching(_project.Id);
             return await AnalyzeAsync(analyzerMap, analyzers, reportSuppressedDiagnostics, logAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
         }
@@ -60,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var useConcurrent = true;
 
             // get original compilation
-            var compilation = await _project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await _project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // fork compilation with concurrent build. this is okay since WithAnalyzers will fork compilation
             // anyway to attach event queue. this should make compiling compilation concurrent and make things
@@ -71,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
             var analyzerOptions = new CompilationWithAnalyzersOptions(
                 options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution),
-                onAnalyzerException: OnAnalyzerException,
+                onAnalyzerException: null,
                 analyzerExceptionFilter: null,
                 concurrentAnalysis: useConcurrent,
                 logAnalyzerExecutionTime: logAnalyzerExecutionTime,
@@ -86,24 +90,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             if (_performanceTracker != null)
             {
                 // +1 to include project itself
-                _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(), _project.DocumentIds.Count + 1);
+                _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), _project.DocumentIds.Count + 1);
             }
 
             var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
 
             return DiagnosticAnalysisResultMap.Create(
                 builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                _exceptions.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value.ToImmutableArray()));
-        }
-
-        private void OnAnalyzerException(Exception exception, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
-        {
-            lock (_exceptions)
-            {
-                var list = _exceptions.GetOrAdd(analyzer, _ => new HashSet<DiagnosticData>());
-                list.Add(DiagnosticData.Create(diagnostic, _project));
-            }
+                analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value));
         }
 
         private string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)

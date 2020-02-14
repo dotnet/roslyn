@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -148,22 +150,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var curScope = scope;
                         while (curScope != null)
                         {
-                            if (capturedEnvs.RemoveAll(curScope.DeclaredEnvironments))
+                            var env = curScope.DeclaredEnvironment;
+                            if (!(env is null) && capturedEnvs.Remove(env) && !env.IsStruct)
                             {
-                                // Right now we only create one environment per scope
-                                Debug.Assert(curScope.DeclaredEnvironments.Count == 1);
-                                var env = curScope.DeclaredEnvironments[0];
-                                if (!env.IsStruct)
-                                {
-                                    closure.ContainingEnvironmentOpt = env;
-                                    break;
-                                }
+                                closure.ContainingEnvironmentOpt = env;
+                                break;
                             }
                             curScope = curScope.Parent;
                         }
 
                         // Now we need to walk up the scopes to find environment captures
-                        var oldEnv = curScope?.DeclaredEnvironments[0];
+                        var oldEnv = curScope?.DeclaredEnvironment;
                         curScope = curScope?.Parent;
                         while (curScope != null)
                         {
@@ -172,17 +169,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                             }
 
-                            var envs = curScope.DeclaredEnvironments.Where(e => !e.IsStruct);
-                            if (!envs.IsEmpty())
+                            var env = curScope.DeclaredEnvironment;
+                            if (!(env is null))
                             {
-                                // Right now we only create one environment per scope
-                                Debug.Assert(envs.IsSingle());
-                                var env = envs.First();
-                                Debug.Assert(!oldEnv.IsStruct);
-                                oldEnv.CapturesParent = true;
-                                oldEnv = env;
+                                if (!env.IsStruct)
+                                {
+                                    Debug.Assert(!oldEnv.IsStruct);
+                                    oldEnv.CapturesParent = true;
+                                    oldEnv = env;
+                                }
+                                capturedEnvs.Remove(env);
                             }
-                            capturedEnvs.RemoveAll(curScope.DeclaredEnvironments);
                             curScope = curScope.Parent;
                         }
 
@@ -213,16 +210,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                var topLevelEnvs = ScopeTree.DeclaredEnvironments;
+                var env = ScopeTree.DeclaredEnvironment;
 
                 // If it does exist, 'this' is always in the top-level environment
-                if (topLevelEnvs.Count == 0)
+                if (env is null)
                 {
                     return;
                 }
-
-                Debug.Assert(topLevelEnvs.Count == 1);
-                var env = topLevelEnvs[0];
 
                 // The environment must contain only 'this' to be inlined
                 if (env.CapturedVariables.Count > 1 ||
@@ -272,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 void RemoveEnv()
                 {
-                    topLevelEnvs.RemoveAt(topLevelEnvs.IndexOf(env));
+                    ScopeTree.DeclaredEnvironment = null;
                     VisitClosures(ScopeTree, (scope, closure) =>
                     {
                         var index = closure.CapturedEnvironments.IndexOf(env);
@@ -341,7 +335,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Next create the environment and add it to the declaration scope
                     var env = new ClosureEnvironment(variablesInEnvironment, isStruct);
-                    scope.DeclaredEnvironments.Add(env);
+                    Debug.Assert(scope.DeclaredEnvironment is null);
+                    scope.DeclaredEnvironment = env;
 
                     _topLevelMethod.TryGetThisParameter(out var thisParam);
                     foreach (var closure in closures)
@@ -369,13 +364,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 VisitScopeTree(ScopeTree, scope =>
                 {
-                    if (scope.DeclaredEnvironments.Count > 0)
+                    if (!(scope.DeclaredEnvironment is null))
                     {
-                        // Right now we only create one environment per scope
-                        Debug.Assert(scope.DeclaredEnvironments.Count == 1);
-
                         closuresCapturingScopeVariables[scope] = PooledHashSet<Closure>.GetInstance();
-                        environmentsToScopes[scope.DeclaredEnvironments[0]] = scope;
+                        environmentsToScopes[scope.DeclaredEnvironment] = scope;
                     }
 
                     foreach (var closure in scope.Closures)
@@ -397,11 +389,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we update closuresCapturingScopeVariables to reflect this.
                 foreach (var (scope, capturingClosures) in closuresCapturingScopeVariables)
                 {
-                    if (scope.DeclaredEnvironments.Count == 0)
+                    if (scope.DeclaredEnvironment is null)
                         continue;
 
                     var currentScope = scope;
-                    while (currentScope.DeclaredEnvironments.Count == 0 || currentScope.DeclaredEnvironments[0].CapturesParent)
+                    while (currentScope.DeclaredEnvironment is null || currentScope.DeclaredEnvironment.CapturesParent)
                     {
                         currentScope = currentScope.Parent;
 
@@ -410,8 +402,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             throw ExceptionUtilities.Unreachable;
                         }
 
-                        if (currentScope.DeclaredEnvironments.Count == 0 ||
-                            currentScope.DeclaredEnvironments[0].IsStruct)
+                        if (currentScope.DeclaredEnvironment is null ||
+                            currentScope.DeclaredEnvironment.IsStruct)
                         {
                             continue;
                         }
@@ -442,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (closuresCapturingScope.Count == 0)
                         continue;
 
-                    var scopeEnv = scope.DeclaredEnvironments[0];
+                    var scopeEnv = scope.DeclaredEnvironment;
 
                     // structs don't allocate, so no point merging them
                     if (scopeEnv.IsStruct)
@@ -462,12 +454,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var parentScope = currentScope.Parent;
 
-                        // Right now we only create one environment per scope
-                        Debug.Assert(parentScope.DeclaredEnvironments.Count < 2);
-
                         // we skip any scopes which do not have any captured variables, and try to merge into the parent scope instead.
                         // We also skip any struct environments as they don't allocate, so no point merging them
-                        if (parentScope.DeclaredEnvironments.Count == 0 || parentScope.DeclaredEnvironments[0].IsStruct)
+                        var env = parentScope.DeclaredEnvironment;
+                        if (env is null || env.IsStruct)
                         {
                             currentScope = parentScope;
                             continue;
@@ -492,14 +482,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // do the actual work of merging the closure environments
 
-                    var targetEnv = bestScope.DeclaredEnvironments[0];
+                    var targetEnv = bestScope.DeclaredEnvironment;
 
                     foreach (var variable in scopeEnv.CapturedVariables)
                     {
                         targetEnv.CapturedVariables.Add(variable);
                     }
 
-                    scope.DeclaredEnvironments.Clear();
+                    scope.DeclaredEnvironment = null;
 
                     foreach (var closure in closuresCapturingScope)
                     {

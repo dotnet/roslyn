@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -1020,9 +1022,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MetadataReference? GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
         {
             RoslynDebug.Assert(directive.SyntaxTree.FilePath is object);
-            RoslynDebug.Assert(directive.File.ValueText is object);
 
-            MetadataReference reference;
+            MetadataReference? reference;
             return ReferenceDirectiveMap.TryGetValue((directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
         }
 
@@ -1270,13 +1271,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private ConcurrentDictionary<string?, NamespaceSymbol>? _externAliasTargets;
+        private ConcurrentDictionary<string, NamespaceSymbol>? _externAliasTargets;
 
-        internal bool GetExternAliasTarget(string? aliasName, out NamespaceSymbol? @namespace)
+        internal bool GetExternAliasTarget(string aliasName, out NamespaceSymbol? @namespace)
         {
             if (_externAliasTargets == null)
             {
-                Interlocked.CompareExchange(ref _externAliasTargets, new ConcurrentDictionary<string?, NamespaceSymbol>(), null);
+                Interlocked.CompareExchange(ref _externAliasTargets, new ConcurrentDictionary<string, NamespaceSymbol>(), null);
             }
             else if (_externAliasTargets.TryGetValue(aliasName, out @namespace))
             {
@@ -1445,7 +1446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The type or namespace name '{0}' could not be found in the global namespace (are you missing an assembly reference?)
             return new CSDiagnosticInfo(
                 ErrorCode.ERR_GlobalSingleTypeNameNotFound,
-                new object[] { type.AssemblyQualifiedName },
+                new object[] { type.AssemblyQualifiedName ?? "" },
                 ImmutableArray<Symbol>.Empty,
                 ImmutableArray<Location>.Empty
             );
@@ -1785,11 +1786,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = method.ExtractReturnTypeSyntax();
             var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
-            BoundExpression result;
+            BoundExpression? result;
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out result, syntax, diagnostics);
 
+            RoslynDebug.Assert(!namedType.IsDynamic());
             return success &&
-                (result.Type!.IsVoidType() || result.Type!.SpecialType == SpecialType.System_Int32);
+                (result!.Type!.IsVoidType() || result.Type!.SpecialType == SpecialType.System_Int32);
         }
 
         /// <summary>
@@ -2046,7 +2048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binderFactories = Interlocked.CompareExchange(ref _binderFactories, binderFactories, null) ?? binderFactories;
             }
 
-            BinderFactory previousFactory;
+            BinderFactory? previousFactory;
             var previousWeakReference = binderFactories[treeNum];
             if (previousWeakReference != null && previousWeakReference.TryGetTarget(out previousFactory))
             {
@@ -2063,7 +2065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while (true)
             {
-                BinderFactory previousFactory;
+                BinderFactory? previousFactory;
                 WeakReference<BinderFactory>? previousWeakReference = slot;
                 if (previousWeakReference != null && previousWeakReference.TryGetTarget(out previousFactory))
                 {
@@ -2930,7 +2932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var checksumDirective = (PragmaChecksumDirectiveTriviaSyntax)directive;
                 var path = checksumDirective.File.ValueText;
 
-                var checksumText = checksumDirective.Bytes.ValueText!;
+                var checksumText = checksumDirective.Bytes.ValueText;
                 var normalizedPath = documentsBuilder.NormalizeDebugDocumentPath(path, basePath: tree.FilePath);
                 var existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
 
@@ -3155,7 +3157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
             ImmutableArray<string?> elementNames,
-            ImmutableArray<Location> elementLocations,
+            ImmutableArray<Location?> elementLocations,
             ImmutableArray<CodeAnalysis.NullableAnnotation> elementNullableAnnotations)
         {
             var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(elementTypes.Length);
@@ -3181,7 +3183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
             ImmutableArray<string?> elementNames,
-            ImmutableArray<Location> elementLocations,
+            ImmutableArray<Location?> elementLocations,
             ImmutableArray<CodeAnalysis.NullableAnnotation> elementNullableAnnotations)
         {
             NamedTypeSymbol csharpUnderlyingTuple = underlyingType.EnsureCSharpSymbolOrNull(nameof(underlyingType));
@@ -3196,7 +3198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckTupleElementNullableAnnotations(cardinality, elementNullableAnnotations);
 
             var tupleType = NamedTypeSymbol.CreateTuple(
-                csharpUnderlyingTuple, elementNames, elementLocations: elementLocations);
+                csharpUnderlyingTuple, elementNames, elementLocations: elementLocations!);
             if (!elementNullableAnnotations.IsDefault)
             {
                 tupleType = tupleType.WithElementTypes(
@@ -3621,7 +3623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private NamespaceOrTypeSymbol? GetCachedSymbol(MergedNamespaceOrTypeDeclaration declaration)
-                => _cache.TryGetValue(declaration, out NamespaceOrTypeSymbol symbol)
+                => _cache.TryGetValue(declaration, out NamespaceOrTypeSymbol? symbol)
                         ? symbol
                         : null;
 

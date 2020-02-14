@@ -975,29 +975,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Code Quality.
-        /// </summary>
-        internal static string Code_Quality {
-            get {
-                return ResourceManager.GetString("Code_Quality", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Collection initialization can be simplified.
         /// </summary>
         internal static string Collection_initialization_can_be_simplified {
             get {
                 return ResourceManager.GetString("Collection_initialization_can_be_simplified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Compiler.
-        /// </summary>
-        internal static string Compiler1 {
-            get {
-                return ResourceManager.GetString("Compiler1", resourceCulture);
             }
         }
         
@@ -3073,6 +3055,25 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; can be removed if it is not part of a shipped public API, its initial value is never used.
+        /// </summary>
+        internal static string Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used {
+            get {
+                return ResourceManager.GetString("Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_" +
+                        "value_is_never_used", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; can be removed, its initial value is never used.
+        /// </summary>
+        internal static string Parameter_0_can_be_removed_its_initial_value_is_never_used {
+            get {
+                return ResourceManager.GetString("Parameter_0_can_be_removed_its_initial_value_is_never_used", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parameters:.
         /// </summary>
         internal static string Parameters_colon {
@@ -3471,25 +3472,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove unused parameter &apos;{0}&apos; if it is not part of a shipped public API, its initial value is never used.
-        /// </summary>
-        internal static string Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used {
-            get {
-                return ResourceManager.GetString("Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_v" +
-                        "alue_is_never_used", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove unused parameter &apos;{0}&apos;, its initial value is never used.
-        /// </summary>
-        internal static string Remove_unused_parameter_0_its_initial_value_is_never_used {
-            get {
-                return ResourceManager.GetString("Remove_unused_parameter_0_its_initial_value_is_never_used", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove unused private members.
         /// </summary>
         internal static string Remove_unused_private_members {
@@ -3815,15 +3797,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Structures {
             get {
                 return ResourceManager.GetString("Structures", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Style.
-        /// </summary>
-        internal static string Style {
-            get {
-                return ResourceManager.GetString("Style", resourceCulture);
             }
         }
         
@@ -4794,6 +4767,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string using_statement_can_be_simplified {
             get {
                 return ResourceManager.GetString("using_statement_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value:.
+        /// </summary>
+        internal static string Value_colon {
+            get {
+                return ResourceManager.GetString("Value_colon", resourceCulture);
             }
         }
         

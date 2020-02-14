@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Composition;
@@ -17,14 +21,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(Methods.TextDocumentOnTypeFormattingName)]
     internal class FormatDocumentOnTypeHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
-        public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentOnTypeFormattingParams request, ClientCapabilities clientCapabilities,
+        public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentOnTypeFormattingParams request, ClientCapabilities? clientCapabilities,
             CancellationToken cancellationToken)
         {
             var edits = new ArrayBuilder<TextEdit>();
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
             if (document != null)
             {
-                var formattingService = document.Project.LanguageServices.GetService<IEditorFormattingService>();
+                var formattingService = document.Project.LanguageServices.GetRequiredService<IEditorFormattingService>();
                 var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
                 if (string.IsNullOrEmpty(request.Character))
@@ -32,14 +36,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     return edits.ToArrayAndFree();
                 }
 
-                IList<TextChange> textChanges;
+                IList<TextChange>? textChanges;
                 if (SyntaxFacts.IsNewLine(request.Character[0]))
                 {
-                    textChanges = await formattingService.GetFormattingChangesOnReturnAsync(document, position, cancellationToken).ConfigureAwait(false);
+                    textChanges = await GetFormattingChangesOnReturnAsync(formattingService, document, position, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    textChanges = await formattingService.GetFormattingChangesAsync(document, request.Character[0], position, cancellationToken).ConfigureAwait(false);
+                    textChanges = await GetFormattingChangesAsync(formattingService, document, request.Character[0], position, cancellationToken).ConfigureAwait(false);
                 }
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -51,5 +55,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return edits.ToArrayAndFree();
         }
+
+        protected virtual Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(IEditorFormattingService formattingService, Document document, int position, CancellationToken cancellationToken)
+            => formattingService.GetFormattingChangesOnReturnAsync(document, position, cancellationToken);
+
+        protected virtual Task<IList<TextChange>?> GetFormattingChangesAsync(IEditorFormattingService formattingService, Document document, char typedChar, int position, CancellationToken cancellationToken)
+            => formattingService.GetFormattingChangesAsync(document, typedChar, position, cancellationToken);
     }
 }

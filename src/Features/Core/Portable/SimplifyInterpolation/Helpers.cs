@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -7,7 +9,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -69,7 +70,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             IVirtualCharService virtualCharService, IOperation expression, out IOperation unwrapped,
             out string? formatString, List<TextSpan> unnecessarySpans)
         {
-            if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation)
+            if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation &&
+                HasNonImplicitInstance(invocation))
             {
                 if (invocation.Arguments.Length == 1 &&
                     invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal)
@@ -113,7 +115,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             out TExpressionSyntax? alignment, out bool negate, List<TextSpan> unnecessarySpans)
             where TExpressionSyntax : SyntaxNode
         {
-            if (expression is IInvocationOperation invocation)
+            if (expression is IInvocationOperation invocation &&
+                HasNonImplicitInstance(invocation))
             {
                 var targetName = invocation.TargetMethod.Name;
                 if (targetName == nameof(string.PadLeft) || targetName == nameof(string.PadRight))
@@ -143,6 +146,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             alignment = null;
             negate = false;
         }
+
+        private static bool HasNonImplicitInstance(IInvocationOperation invocation)
+            => invocation.Instance != null && !invocation.Instance.IsImplicit;
 
         private static bool IsSpaceChar(IArgumentOperation argument)
             => argument.Value.ConstantValue is { HasValue: true, Value: ' ' };

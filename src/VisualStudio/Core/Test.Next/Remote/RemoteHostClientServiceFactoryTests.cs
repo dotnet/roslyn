@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -18,7 +21,6 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Remote;
-using Moq;
 using Roslyn.Test.Utilities.Remote;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
@@ -119,7 +121,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var exportProvider = TestHostServices.CreateMinimalExportProvider();
 
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1)));
 
             var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
@@ -158,7 +161,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
-            var result = await session.TryInvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), new object[] { "emptySource", Path.GetTempPath() }, CancellationToken.None);
+            var result = await session.TryInvokeAsync(
+                nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
+                solution: null,
+                new object[] { "emptySource", Path.GetTempPath() },
+                CancellationToken.None);
 
             Assert.True(result);
 
@@ -174,7 +181,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var service = CreateRemoteHostClientService();
             service.Enable();
 
-            var client = (InProcRemoteHostClient)(await service.TryGetRemoteHostClientAsync(CancellationToken.None));
+            var client = (InProcRemoteHostClient)await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             // register local service
             TestService testService = null;
@@ -188,7 +195,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var session = await client.TryCreateKeepAliveSessionAsync("Test", callbackTarget: null, CancellationToken.None);
 
             // mimic unfortunate call that happens to be in the middle of communication.
-            var task = session.TryInvokeAsync("TestMethodAsync", arguments: null, CancellationToken.None);
+            var task = session.TryInvokeAsync("TestMethodAsync", solution: null, arguments: null, CancellationToken.None);
 
             // make client to go away
             service.Disable();
@@ -233,26 +240,19 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             IEnumerable<AnalyzerReference> hostAnalyzerReferences = null,
             IAsynchronousOperationListenerProvider listenerProvider = null)
         {
-            workspace = workspace ?? new AdhocWorkspace(TestHostServices.CreateHostServices());
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
+            workspace ??= new AdhocWorkspace(TestHostServices.CreateHostServices());
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                                                 .WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
-                                                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution);
+                                                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution)));
 
-            var analyzerService = GetDiagnosticAnalyzerService(hostAnalyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
-
+            var analyzerService = new TestDiagnosticAnalyzerService(hostAnalyzerReferences.AsImmutableOrEmpty());
             var threadingContext = ((IMefHostExportProvider)workspace.Services.HostServices).GetExports<IThreadingContext>().Single().Value;
             var factory = new RemoteHostClientServiceFactory(threadingContext, listenerProvider ?? AsynchronousOperationListenerProvider.NullProvider, analyzerService);
             return factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService;
         }
 
-        private IDiagnosticAnalyzerService GetDiagnosticAnalyzerService(IEnumerable<AnalyzerReference> references)
-        {
-            var mock = new Mock<IDiagnosticAnalyzerService>(MockBehavior.Strict);
-            mock.Setup(a => a.GetHostAnalyzerReferences()).Returns(references);
-            return mock.Object;
-        }
-
-        private class TestService : ServiceHubServiceBase
+        private class TestService : ServiceBase
         {
             public TestService(Stream stream, IServiceProvider serviceProvider)
                 : base(serviceProvider, stream)

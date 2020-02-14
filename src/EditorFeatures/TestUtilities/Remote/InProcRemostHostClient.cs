@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -12,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Services;
+using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Nerdbank;
 using Roslyn.Utilities;
@@ -77,7 +80,7 @@ namespace Roslyn.Test.Utilities.Remote
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
-        public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceHubServiceBase> serviceCreator)
+        public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
         {
             _inprocServices.RegisterService(name, serviceCreator);
         }
@@ -88,6 +91,7 @@ namespace Roslyn.Test.Utilities.Remote
         }
 
         public override string ClientId { get; }
+        public override bool IsRemoteHost64Bit => IntPtr.Size == 8;
 
         public override async Task<Connection?> TryCreateConnectionAsync(
             string serviceName, object? callbackTarget, CancellationToken cancellationToken)

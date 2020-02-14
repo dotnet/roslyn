@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CodeStyleFixesResources {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CodeStyleFixesResources", typeof(CodeStyleFixesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CodeStyleFixesResources", typeof(CodeStyleFixesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -62,11 +61,75 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove this value when another is added..
+        ///   Looks up a localized string similar to Compilation is required to accomplish the task but is not supported by project {0}..
         /// </summary>
-        internal static string EmptyResource {
+        internal static string Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0 {
             get {
-                return ResourceManager.GetString("EmptyResource", resourceCulture);
+                return ResourceManager.GetString("Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix all &apos;{0}&apos;.
+        /// </summary>
+        internal static string Fix_all_0 {
+            get {
+                return ResourceManager.GetString("Fix_all_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix all &apos;{0}&apos; in &apos;{1}&apos;.
+        /// </summary>
+        internal static string Fix_all_0_in_1 {
+            get {
+                return ResourceManager.GetString("Fix_all_0_in_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix all &apos;{0}&apos; in Solution.
+        /// </summary>
+        internal static string Fix_all_0_in_Solution {
+            get {
+                return ResourceManager.GetString("Fix_all_0_in_Solution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Project of ID {0} is required to accomplish the task but is not available from the solution.
+        /// </summary>
+        internal static string Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution {
+            get {
+                return ResourceManager.GetString("Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_" +
+                        "solution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Supplied diagnostic cannot be null..
+        /// </summary>
+        internal static string Supplied_diagnostic_cannot_be_null {
+            get {
+                return ResourceManager.GetString("Supplied_diagnostic_cannot_be_null", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syntax tree is required to accomplish the task but is not supported by document {0}..
+        /// </summary>
+        internal static string SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0 {
+            get {
+                return ResourceManager.GetString("SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The solution does not contain the specified document..
+        /// </summary>
+        internal static string The_solution_does_not_contain_the_specified_document {
+            get {
+                return ResourceManager.GetString("The_solution_does_not_contain_the_specified_document", resourceCulture);
             }
         }
     }
