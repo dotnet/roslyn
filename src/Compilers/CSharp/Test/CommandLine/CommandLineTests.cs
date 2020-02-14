@@ -3168,6 +3168,11 @@ class C
             {
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
+
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation)]);
+            Assert.Equal(expected: ReportDiagnostic.Suppress,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode)]);
         }
 
         [Fact]
@@ -3254,6 +3259,11 @@ class C
             {
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: arguments.CompilationOptions.SpecificDiagnosticOptions[warning]);
             }
+
+            Assert.Equal(expected: ReportDiagnostic.Error,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation)]);
+            Assert.Equal(expected: ReportDiagnostic.Error,
+                actual: arguments.CompilationOptions.SpecificDiagnosticOptions[MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode)]);
         }
 
         [WorkItem(912906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912906")]
@@ -8158,6 +8168,31 @@ class Test
             int exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/nowarn:1522,642", source.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(source);
+        }
+
+        [Fact, WorkItem(41610, "https://github.com/dotnet/roslyn/issues/41610")]
+        public void TestWarnAsError_CS8632()
+        {
+            string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"
+public class C
+{
+    public string? field;
+    public static void Main()
+    {
+    }
+}
+").Path;
+
+            var baseDir = Path.GetDirectoryName(source);
+            var fileName = Path.GetFileName(source);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            int exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/preferreduilang:en", "/warn:3", "/warnaserror:nullable", source.ToString() }).Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.Equal(
+$@"{fileName}(4,18): error CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(source);
         }
