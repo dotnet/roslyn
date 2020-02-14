@@ -9869,24 +9869,22 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_StaticMemberInObjectInitializer", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to stdin argument '-' is specified, but input has not been redirected from the standard input stream..
-        /// </summary>
-        internal static string ERR_StdInOptionProvidedButConsoleInputIsNotRedirected
-        {
-            get
-            {
-                return ResourceManager.GetString("ERR_StdInOptionProvidedButConsoleInputIsNotRedirected", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to A static member &apos;{0}&apos; cannot be marked as override, virtual, or abstract.
         /// </summary>
         internal static string ERR_StaticNotVirtual {
             get {
                 return ResourceManager.GetString("ERR_StaticNotVirtual", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to stdin argument &apos;-&apos; is specified, but input has not been redirected from the standard input stream..
+        /// </summary>
+        internal static string ERR_StdInOptionProvidedButConsoleInputIsNotRedirected {
+            get {
+                return ResourceManager.GetString("ERR_StdInOptionProvidedButConsoleInputIsNotRedirected", resourceCulture);
             }
         }
         
@@ -9943,7 +9941,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_SubexpressionNotInNameof", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The pattern has already been handled by a previous arm of the switch expression..
         /// </summary>
