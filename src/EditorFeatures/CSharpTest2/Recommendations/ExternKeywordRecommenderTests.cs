@@ -81,11 +81,56 @@ $$");
 }"));
         }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAttributesAndStaticInStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"[Attr] static $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndReturnStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr]
+$$
+return x;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndLocalDeclarationStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr]
+$$
+x y = bar();"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndAwaitExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Attr]
+$$
+await bar;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndAssignmentStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Foo]
+$$
+y = bar();"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBetweenAttributesAndCallStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Foo]
+$$
+bar();"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
