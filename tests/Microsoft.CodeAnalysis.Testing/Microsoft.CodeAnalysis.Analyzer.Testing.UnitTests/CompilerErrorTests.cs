@@ -52,6 +52,27 @@ class TestClass {
         }
 
         [Fact]
+        public async Task TestCSharpExplicitCompilerErrorWithExplicitInterfaceSymbol()
+        {
+            var testCode = @"using System;
+
+class TestClass {
+  void IDisposable.Dispose() { }
+}
+";
+
+            await new CSharpTest
+            {
+                TestCode = testCode,
+                ExpectedDiagnostics =
+                {
+                    // Test0.cs(4,8): error CS0540: 'TestClass.IDisposable.Dispose()': containing type does not implement interface 'IDisposable'
+                    DiagnosticResult.CompilerError("CS0540").WithSpan(4, 8, 4, 19).WithArguments("TestClass.System.IDisposable.Dispose()", "System.IDisposable"),
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestCSharpMarkupCompilerError()
         {
             var testCode = @"
