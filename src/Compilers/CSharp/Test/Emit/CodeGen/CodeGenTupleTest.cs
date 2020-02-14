@@ -5816,7 +5816,8 @@ namespace System
             var vt0 = comp.GetWellKnownType(WellKnownType.System_ValueTuple);
             var tupleWithoutNames = comp.CreateTupleTypeSymbol(vt0, ImmutableArray<string>.Empty);
             Assert.True(tupleWithoutNames.IsTupleType);
-            Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.TupleUnderlyingType.Kind);
+            Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
+            Assert.Null(tupleWithoutNames.TupleUnderlyingType);
             Assert.Equal("System.ValueTuple", tupleWithoutNames.ToTestDisplayString());
             Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault);
             Assert.Empty(ElementTypeNames(tupleWithoutNames));
@@ -5873,7 +5874,8 @@ namespace System
 
             Assert.Same(vt2, ((Symbols.PublicModel.NamedTypeSymbol)tupleWithoutNames).UnderlyingNamedTypeSymbol);
             Assert.True(tupleWithoutNames.IsTupleType);
-            Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.TupleUnderlyingType.Kind);
+            Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
+            Assert.Null(tupleWithoutNames.TupleUnderlyingType);
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString());
             Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault);
             Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithoutNames));
@@ -5950,7 +5952,8 @@ namespace System
             var tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, default(ImmutableArray<string>));
 
             Assert.True(tupleWithoutNames.IsTupleType);
-            Assert.Equal(SymbolKind.ErrorType, tupleWithoutNames.TupleUnderlyingType.Kind);
+            Assert.Equal(SymbolKind.ErrorType, tupleWithoutNames.Kind);
+            Assert.Null(tupleWithoutNames.TupleUnderlyingType);
             Assert.Equal("(System.Int32, System.String)[missing]", tupleWithoutNames.ToTestDisplayString());
             Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault);
             Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithoutNames));
@@ -6631,7 +6634,8 @@ class C
 }";
             var comp = (Compilation)CreateCompilation(source);
             var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
-            var underlyingType = tuple1.TupleUnderlyingType;
+            Assert.Null(tuple1.TupleUnderlyingType);
+            var underlyingType = tuple1;
 
             var tuple2 = comp.CreateTupleTypeSymbol(underlyingType);
             Assert.True(tuple1.Equals(tuple2, TypeCompareKind.ConsiderEverything));
@@ -6672,7 +6676,8 @@ class C
 }";
             var comp = (Compilation)CreateCompilation(source);
             var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
-            var underlyingType = tuple1.TupleUnderlyingType;
+            Assert.Null(tuple1.TupleUnderlyingType);
+            var underlyingType = tuple1;
 
             var tuple2 = comp.CreateTupleTypeSymbol(underlyingType);
             Assert.True(tuple1.Equals(tuple2, TypeCompareKind.ConsiderEverything));
@@ -6789,7 +6794,8 @@ class C
 }";
             var comp = CreateCompilation(source);
             var tuple1 = (INamedTypeSymbol)((FieldSymbol)comp.GetMember("Program.F")).GetPublicSymbol().Type;
-            var underlyingType = tuple1.TupleUnderlyingType;
+            Assert.Null(tuple1.TupleUnderlyingType);
+            var underlyingType = tuple1;
 
             var tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: default);
             Assert.True(tuple1.Equals(tuple2, TypeCompareKind.ConsiderEverything));
@@ -16100,7 +16106,7 @@ class C
             Assert.True(xSymbol.IsTupleType);
             Assert.Equal("(System.Int32, System.Int32)[missing]", xSymbol.ToTestDisplayString());
 
-            Assert.True(xSymbol.TupleUnderlyingType.IsErrorType());
+            Assert.Null(xSymbol.TupleUnderlyingType);
             Assert.True(xSymbol.IsErrorType());
             Assert.True(xSymbol.IsReferenceType);
 
@@ -18506,10 +18512,10 @@ class Program
             ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
             ITypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
 
-            var int_string1 = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType)).TupleUnderlyingType;
+            var int_string1 = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
             var int_string2 = tupleComp2.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
-
             var int_object = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType));
+            Assert.Null(int_string1.TupleUnderlyingType);
 
             Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_string2).Kind);
             Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_string1).Kind);
@@ -18531,10 +18537,11 @@ class Program
             ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
             ITypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
 
-            var int_string1 = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType)).TupleUnderlyingType;
-            var int_string2 = tupleComp2.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType)).TupleUnderlyingType;
-
+            var int_string1 = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
+            var int_string2 = tupleComp2.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
             var int_object = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType));
+            Assert.Null(int_string1.TupleUnderlyingType);
+            Assert.Null(int_string2.TupleUnderlyingType);
 
             Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_string2).Kind);
             Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_string1).Kind);
@@ -18556,10 +18563,12 @@ class Program
             ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
             ITypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
 
-            var int_string1 = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType)).TupleUnderlyingType;
-            var int_string2 = tupleComp2.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType)).TupleUnderlyingType;
-
-            var int_object = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType)).TupleUnderlyingType;
+            var int_string1 = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
+            var int_string2 = tupleComp2.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
+            var int_object = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType));
+            Assert.Null(int_string1.TupleUnderlyingType);
+            Assert.Null(int_string2.TupleUnderlyingType);
+            Assert.Null(int_object.TupleUnderlyingType);
 
             Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_string2).Kind);
             Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_string1).Kind);
@@ -26548,6 +26557,97 @@ class Program
 
             var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1ImageRef);
             CompileAndVerify(comp6, expectedOutput: "123");
+        }
+
+        [Fact]
+        [WorkItem(41702, "https://github.com/dotnet/roslyn/issues/41702")]
+        public void TupleUnderlyingType()
+        {
+            var source =
+@"#pragma warning disable 169
+class Program
+{
+    static System.ValueTuple F0;
+    static (int, int) F1;
+    static (int A, int B) F2;
+    static (object, object, object, object, object, object, object, object) F3;
+    static (object, object B, object, object D, object, object F, object, object H) F4;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            verifyType((NamedTypeSymbol)comp.GetMember<FieldSymbol>("Program.F0").Type, hasNames: false, "System.ValueTuple");
+            verifyType((NamedTypeSymbol)comp.GetMember<FieldSymbol>("Program.F1").Type, hasNames: false, "(System.Int32, System.Int32)");
+            verifyType((NamedTypeSymbol)comp.GetMember<FieldSymbol>("Program.F2").Type, hasNames: true, "(System.Int32 A, System.Int32 B)");
+            verifyType((NamedTypeSymbol)comp.GetMember<FieldSymbol>("Program.F3").Type, hasNames: false, "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)");
+            verifyType((NamedTypeSymbol)comp.GetMember<FieldSymbol>("Program.F4").Type, hasNames: true, "(System.Object, System.Object B, System.Object, System.Object D, System.Object, System.Object F, System.Object, System.Object H)");
+
+            static void verifyType(NamedTypeSymbol type, bool hasNames, string expected)
+            {
+                Assert.Equal(expected, type.ToTestDisplayString());
+                verifyUnderlyingTypes(type, hasNames);
+                verifyUnderlyingTypes(type.OriginalDefinition, hasNames: false);
+            }
+
+            static void verifyUnderlyingTypes(NamedTypeSymbol type, bool hasNames)
+            {
+                verifyInternalType(type, hasNames);
+                verifyPublicType(type.GetPublicSymbol(), hasNames);
+            }
+
+            static void verifyInternalType(NamedTypeSymbol type, bool hasNames)
+            {
+                if (hasNames)
+                {
+                    Assert.True(type.IsTupleType);
+                }
+
+                var underlyingType = type.TupleUnderlyingType;
+
+                if (hasNames)
+                {
+                    Assert.NotEqual(type, underlyingType);
+                    Assert.True(type.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions));
+                    Assert.False(type.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
+
+                    verifyInternalType(underlyingType, hasNames: false);
+                }
+                else if (type.IsTupleType)
+                {
+                    // NamedTypeSymbol.TupleUnderlyingType should return `this` if the type is unnamed.
+                    Assert.Equal(type, underlyingType);
+                    Assert.True(type.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
+                }
+                else
+                {
+                    // NamedTypeSymbol.TupleUnderlyingType should return null if the type is not a tuple type.
+                    Assert.Null(underlyingType);
+                }
+            }
+
+            static void verifyPublicType(INamedTypeSymbol type, bool hasNames)
+            {
+                if (hasNames)
+                {
+                    Assert.True(type.IsTupleType);
+                }
+
+                var underlyingType = type.TupleUnderlyingType;
+
+                if (hasNames)
+                {
+                    Assert.NotEqual(type, underlyingType);
+                    Assert.False(type.Equals(underlyingType, SymbolEqualityComparer.Default));
+                    Assert.False(type.Equals(underlyingType, SymbolEqualityComparer.ConsiderEverything));
+
+                    verifyPublicType(underlyingType, hasNames: false);
+                }
+                else
+                {
+                    // INamedTypeSymbol.TupleUnderlyingType should return null if the type is unnamed.
+                    Assert.Null(underlyingType);
+                }
+            }
         }
     }
 }

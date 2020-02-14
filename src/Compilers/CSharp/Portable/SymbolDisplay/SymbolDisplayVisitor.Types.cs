@@ -450,12 +450,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         private bool CanUseTupleSyntax(INamedTypeSymbol tupleSymbol)
         {
-            INamedTypeSymbol currentUnderlying = tupleSymbol.TupleUnderlyingType;
             if (containsModopt(tupleSymbol))
             {
                 return false;
             }
 
+            INamedTypeSymbol currentUnderlying = getTupleUnderlyingTypeOrSelf(tupleSymbol);
             if (currentUnderlying.Arity <= 1)
             {
                 return false;
@@ -473,11 +473,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                currentUnderlying = tupleSymbol.TupleUnderlyingType;
+                currentUnderlying = getTupleUnderlyingTypeOrSelf(tupleSymbol);
             }
 
             return true;
-
 
             bool containsModopt(INamedTypeSymbol symbol)
             {
@@ -490,6 +489,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return modifiers.Any(m => !m.IsEmpty);
             }
+
+            static INamedTypeSymbol getTupleUnderlyingTypeOrSelf(INamedTypeSymbol type) => type.TupleUnderlyingType ?? type;
         }
 
         private static bool HasNonDefaultTupleElements(INamedTypeSymbol tupleSymbol)

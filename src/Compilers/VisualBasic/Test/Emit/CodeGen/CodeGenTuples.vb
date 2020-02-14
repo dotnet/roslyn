@@ -22911,6 +22911,74 @@ End Class
             CompileAndVerify(comp6, expectedOutput:="123")
         End Sub
 
+        <Fact>
+        <WorkItem(41702, "https://github.com/dotnet/roslyn/issues/41702")>
+        Public Sub TupleUnderlyingType()
+            Dim source =
+"Class Program
+    Private F0 As System.ValueTuple
+    Private F1 As (Integer, Integer)
+    Private F2 As (A As Integer, B As Integer)
+    Private F3 As (Object, Object, Object, Object, Object, Object, Object, Object)
+    Private F4 As (Object, B As Object, Object, D As Object, Object, F As Object, Object, H As Object)
+End Class"
+            Dim comp = CreateCompilation(source)
+            comp.AssertNoDiagnostics()
+
+            VerifyType(DirectCast(comp.GetMember(Of FieldSymbol)("Program.F0").Type, NamedTypeSymbol), hasNames:=False, "System.ValueTuple")
+            VerifyType(DirectCast(comp.GetMember(Of FieldSymbol)("Program.F1").Type, NamedTypeSymbol), hasNames:=False, "(System.Int32, System.Int32)")
+            VerifyType(DirectCast(comp.GetMember(Of FieldSymbol)("Program.F2").Type, NamedTypeSymbol), hasNames:=True, "(A As System.Int32, B As System.Int32)")
+            VerifyType(DirectCast(comp.GetMember(Of FieldSymbol)("Program.F3").Type, NamedTypeSymbol), hasNames:=False, "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)")
+            VerifyType(DirectCast(comp.GetMember(Of FieldSymbol)("Program.F4").Type, NamedTypeSymbol), hasNames:=True, "(System.Object, B As System.Object, System.Object, D As System.Object, System.Object, F As System.Object, System.Object, H As System.Object)")
+        End Sub
+
+        Private Sub VerifyType(type As NamedTypeSymbol, hasNames As Boolean, expected As String)
+            Assert.Equal(expected, type.ToTestDisplayString())
+            VerifyUnderlyingTypes(type, hasNames)
+            VerifyUnderlyingTypes(type.OriginalDefinition, hasNames:=False)
+        End Sub
+
+        Private Sub VerifyUnderlyingTypes(type As NamedTypeSymbol, hasNames As Boolean)
+            VerifyInternalType(type, hasNames)
+            VerifyPublicType(type, hasNames)
+        End Sub
+
+        Private Sub VerifyInternalType(type As NamedTypeSymbol, hasNames As Boolean)
+            If hasNames Then
+                Assert.True(type.IsTupleType)
+            End If
+
+            Dim underlyingType = type.TupleUnderlyingType
+
+            If type.IsTupleType Then
+                Assert.NotEqual(type, underlyingType)
+                Assert.False(type.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
+                Assert.False(type.Equals(underlyingType, TypeCompareKind.ConsiderEverything))
+            Else
+                ' NamedTypeSymbol.TupleUnderlyingType should return null if the type is not a tuple type.
+                Assert.Null(underlyingType)
+            End If
+        End Sub
+
+        Private Sub VerifyPublicType(type As INamedTypeSymbol, hasNames As Boolean)
+            If hasNames Then
+                Assert.True(type.IsTupleType)
+            End If
+
+            Dim underlyingType = type.TupleUnderlyingType
+
+            If type.IsTupleType Then
+                Assert.NotEqual(type, underlyingType)
+                Assert.False(type.Equals(underlyingType, SymbolEqualityComparer.Default))
+                Assert.False(type.Equals(underlyingType, SymbolEqualityComparer.ConsiderEverything))
+
+                VerifyPublicType(underlyingType, hasNames:=False)
+            Else
+                ' INamedTypeSymbol.TupleUnderlyingType should return null if the type is not a tuple type.
+                Assert.Null(underlyingType)
+            End If
+        End Sub
+
     End Class
 
 End Namespace
