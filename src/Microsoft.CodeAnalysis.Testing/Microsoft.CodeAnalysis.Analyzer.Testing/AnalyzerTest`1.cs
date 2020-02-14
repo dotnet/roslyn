@@ -368,9 +368,9 @@ namespace Microsoft.CodeAnalysis.Testing
             var actualIds = actualResults.Select(result => result.Id).ToImmutableArray();
             var actualResultLocations = actualResults.Select(result => (location: result.Location.GetLineSpan(), additionalLocations: result.AdditionalLocations.Select(location => location.GetLineSpan()).ToImmutableArray())).ToImmutableArray();
             var actualArguments = actualResults.Select(actual => GetArguments(actual).Select(argument => argument?.ToString() ?? string.Empty).ToImmutableArray()).ToImmutableArray();
-            var expectedArguments = expectedResults.Select(expected => expected.MessageArguments?.Select(argument => argument?.ToString() ?? string.Empty).ToImmutableArray() ?? ImmutableArray<string>.Empty).ToImmutableArray();
 
             expectedResults = expectedResults.ToOrderedArray();
+            var expectedArguments = expectedResults.Select(expected => expected.MessageArguments?.Select(argument => argument?.ToString() ?? string.Empty).ToImmutableArray() ?? ImmutableArray<string>.Empty).ToImmutableArray();
 
             // Initialize the best match to a trivial result where everything is unmatched. This will be updated if/when
             // better matches are found.
