@@ -53,6 +53,44 @@ public class MyClass
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(16, 20));
         }
 
+
+        [Fact, WorkItem(3272, "https://github.com/dotnet/roslyn-analyzers/issues/3272")]
+        public async Task EmptyParamsWithNetFramework45()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net45.Default,
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        Params(); // allocation
+    }
+
+    public void Params(params int[] args)
+    {
+    }
+}",
+                        ("PerformanceSensitiveAttribute.cs", VerifyCS.PerformanceSensitiveAttributeSource)
+                    },
+                    ExpectedDiagnostics =
+                    {
+                        VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(10, 9),
+                    },
+                },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
+            }.RunAsync();
+        }
+
         [Fact]
         public async Task CallSiteImplicitAllocation_NonOverridenMethodOnStruct()
         {
@@ -147,31 +185,6 @@ public class MyClass
             await VerifyCS.VerifyAnalyzerAsync(source,
                 // Test0.cs(12,9): warning HAA0102: Non-overridden virtual method call on a value type adds a boxing or constrained instruction
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ValueTypeNonOverridenCallRule).WithLocation(12, 9));
-        }
-
-        [Fact, WorkItem(3272, "https://github.com/dotnet/roslyn-analyzers/issues/3272")]
-        public async Task C()
-        {
-            await new VerifyCS.Test
-            {
-                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net45.Default,
-                TestCode = @"
-using System;
-using Roslyn.Utilities;
-
-public class MyClass
-{
-    [PerformanceSensitive(""uri"")]
-    public void Testing()
-    {
-        Params(); //no allocation
-    }
-
-    public void Params(params int[] args)
-    {
-    }
-}",
-            }.RunAsync();
         }
     }
 }
