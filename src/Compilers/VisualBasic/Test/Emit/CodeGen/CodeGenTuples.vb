@@ -22819,11 +22819,18 @@ End Class"
             Dim sourceC =
 "Module Program
     Sub Main()
-        Dim o As Object = New B()
+        Dim b = New B()
+        b.ToString()
     End Sub
 End Module"
             comp = CreateCompilation(sourceC, references:={refB})
-            comp.VerifyDiagnostics()
+            comp.AssertTheseDiagnostics(
+"BC30456: 'ToString' is not a member of 'B'.
+        b.ToString()
+        ~~~~~~~~~~
+BC30652: Reference required to assembly 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A(Of )'. Add one to your project.
+        b.ToString()
+        ~~~~~~~~~~")
         End Sub
 
         <Fact>
