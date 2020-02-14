@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -236,26 +238,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return false;
         }
 
-        #region IDisposable Support
-        private void Dispose(bool disposing)
-        {
-            if (!_isDisposed)
-            {
-                if (disposing)
-                {
-                    var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable;
-                    runningDocumentTableForEvents.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie);
-                    _runningDocumentTableEventsCookie = 0;
-                }
-
-                _isDisposed = true;
-            }
-        }
-
         public void Dispose()
         {
-            Dispose(true);
+            if (_isDisposed)
+            {
+                return;
+            }
+
+            var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable;
+            runningDocumentTableForEvents.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie);
+            _runningDocumentTableEventsCookie = 0;
+
+            _isDisposed = true;
         }
-        #endregion
     }
 }

@@ -1,4 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 extern alias WORKSPACES;
 
 using System;
@@ -6,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -20,8 +24,6 @@ using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
-using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -78,7 +80,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             bool openDocuments = true,
             ExportProvider exportProvider = null,
             string workspaceKind = null,
-            IDocumentServiceProvider documentServiceProvider = null)
+            IDocumentServiceProvider documentServiceProvider = null,
+            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
         {
             if (workspaceElement.Name != WorkspaceElementName)
             {
@@ -87,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             exportProvider ??= TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
 
-            var workspace = new TestWorkspace(exportProvider, workspaceKind);
+            var workspace = new TestWorkspace(exportProvider, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
 
             var projectNameToTestHostProject = new Dictionary<string, TestHostProject>();
             var projectElementToProjectName = new Dictionary<XElement, string>();
@@ -910,7 +913,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var references = CreateCommonReferences(workspace, element);
             foreach (var reference in element.Elements(MetadataReferenceElementName))
             {
-                references.Add(MetadataReference.CreateFromFile(reference.Value));
+                // Read the image to an ImmutableArray<byte>, since the GC does a better job of tracking these than
+                // Marshal.AllocHGlobal and thus knowing when it's necessary to run finalizers to clean up old Metadata
+                // objects that are no longer in use. There are no public APIs available to directly dispose of these
+                // images, so we are relying on GC running finalizers to avoid OutOfMemoryException during tests.
+                var content = File.ReadAllBytes(reference.Value);
+                var peImage = ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref content);
+                references.Add(MetadataReference.CreateFromImage(peImage, filePath: reference.Value));
             }
 
             foreach (var metadataReferenceFromSource in element.Elements(MetadataReferenceFromSourceElementName))
@@ -959,13 +968,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)commonReferencesAttribute).HasValue &&
                 ((bool?)commonReferencesAttribute).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46 };
+                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef };
                 if (GetLanguage(workspace, element) == LanguageNames.VisualBasic)
                 {
                     references.Add(TestBase.MsvbRef_v4_0_30319_17929);
                     references.Add(TestBase.SystemXmlRef);
                     references.Add(TestBase.SystemXmlLinqRef);
                 }
+            }
+
+            var commonReferencesWithoutValueTupleAttribute = element.Attribute(CommonReferencesWithoutValueTupleAttributeName);
+            if (commonReferencesWithoutValueTupleAttribute != null &&
+                ((bool?)commonReferencesWithoutValueTupleAttribute).HasValue &&
+                ((bool?)commonReferencesWithoutValueTupleAttribute).Value)
+            {
+                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46 };
             }
 
             var winRT = element.Attribute(CommonReferencesWinRTAttributeName);

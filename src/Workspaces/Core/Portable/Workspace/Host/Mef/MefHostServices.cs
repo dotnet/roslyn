@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -112,11 +114,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
         }
 
-        private static ImmutableArray<Assembly> LoadDefaultAssemblies()
-        {
-            // build a MEF composition using the main workspaces assemblies and the known VisualBasic/CSharp workspace assemblies.
-            // updated: includes feature assemblies since they now have public API's.
-            var assemblyNames = new string[]
+        // Used to build a MEF composition using the main workspaces assemblies and the known VisualBasic/CSharp workspace assemblies.
+        // updated: includes feature assemblies since they now have public API's.
+        private static readonly string[] s_defaultAssemblyNames = new string[]
             {
                 "Microsoft.CodeAnalysis.Workspaces",
                 "Microsoft.CodeAnalysis.CSharp.Workspaces",
@@ -126,47 +126,15 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 "Microsoft.CodeAnalysis.VisualBasic.Features"
             };
 
-            return LoadNearbyAssemblies(assemblyNames);
+        internal static bool IsDefaultAssembly(Assembly assembly)
+        {
+            var name = assembly.GetName().Name;
+            return s_defaultAssemblyNames.Contains(name);
         }
 
-        internal static ImmutableArray<Assembly> LoadNearbyAssemblies(string[] assemblyNames)
+        private static ImmutableArray<Assembly> LoadDefaultAssemblies()
         {
-            var assemblies = new List<Assembly>();
-
-            foreach (var assemblyName in assemblyNames)
-            {
-                var assembly = TryLoadNearbyAssembly(assemblyName);
-                if (assembly != null)
-                {
-                    assemblies.Add(assembly);
-                }
-            }
-
-            return assemblies.ToImmutableArray();
-        }
-
-        private static Assembly TryLoadNearbyAssembly(string assemblySimpleName)
-        {
-            var thisAssemblyName = typeof(MefHostServices).GetTypeInfo().Assembly.GetName();
-            var assemblyShortName = thisAssemblyName.Name;
-            var assemblyVersion = thisAssemblyName.Version;
-            var publicKeyToken = thisAssemblyName.GetPublicKeyToken().Aggregate(string.Empty, (s, b) => s + b.ToString("x2"));
-
-            if (string.IsNullOrEmpty(publicKeyToken))
-            {
-                publicKeyToken = "null";
-            }
-
-            var assemblyName = new AssemblyName(string.Format("{0}, Version={1}, Culture=neutral, PublicKeyToken={2}", assemblySimpleName, assemblyVersion, publicKeyToken));
-
-            try
-            {
-                return Assembly.Load(assemblyName);
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            return MefHostServicesHelpers.LoadNearbyAssemblies(s_defaultAssemblyNames);
         }
 
         #endregion

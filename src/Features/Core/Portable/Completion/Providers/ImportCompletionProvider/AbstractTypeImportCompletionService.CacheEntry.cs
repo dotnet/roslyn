@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             {
                 // We will need to adjust some items if the request is made in:
                 // 1. attribute context, then we will not show or complete with "Attribute" suffix.
-                // 2. a project with different langauge than when the cache entry was created,
+                // 2. a project with different language than when the cache entry was created,
                 //    then we will change the generic suffix accordingly.
                 // Otherwise, we can simply return cached items.
                 var isSameLanguage = Language == language;

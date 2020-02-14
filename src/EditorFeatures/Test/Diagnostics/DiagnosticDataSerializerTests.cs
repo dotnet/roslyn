@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -91,12 +93,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var version = VersionStamp.Create(utcTime.AddDays(1));
 
             var key = "document";
+
+            var persistentService = workspace.Services.GetRequiredService<IPersistentStorageService>();
             var serializer = new CodeAnalysis.Workspaces.Diagnostics.DiagnosticDataSerializer(analyzerVersion, version);
 
-            Assert.True(await serializer.SerializeAsync(document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
-            var recovered = await serializer.DeserializeAsync(document, key, CancellationToken.None);
+            Assert.True(await serializer.SerializeAsync(persistentService, document.Project, document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
 
-            AssertDiagnostics(diagnostics, recovered.Value);
+            var recovered = await serializer.DeserializeAsync(persistentService, document.Project, document, key, CancellationToken.None);
+
+            AssertDiagnostics(diagnostics, recovered);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -158,12 +163,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var version = VersionStamp.Create(utcTime.AddDays(1));
 
             var key = "project";
+            var persistentService = workspace.Services.GetRequiredService<IPersistentStorageService>();
             var serializer = new CodeAnalysis.Workspaces.Diagnostics.DiagnosticDataSerializer(analyzerVersion, version);
 
-            Assert.True(await serializer.SerializeAsync(document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
-            var recovered = await serializer.DeserializeAsync(document, key, CancellationToken.None);
+            Assert.True(await serializer.SerializeAsync(persistentService, document.Project, document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
+            var recovered = await serializer.DeserializeAsync(persistentService, document.Project, document, key, CancellationToken.None);
 
-            AssertDiagnostics(diagnostics, recovered.Value);
+            AssertDiagnostics(diagnostics, recovered);
         }
 
         [WorkItem(6104, "https://github.com/dotnet/roslyn/issues/6104")]
@@ -246,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(item1.HasTextSpan, item2.HasTextSpan);
             if (item1.HasTextSpan)
             {
-                Assert.Equal(item1.TextSpan, item2.TextSpan);
+                Assert.Equal(item1.GetTextSpan(), item2.GetTextSpan());
             }
 
             Assert.Equal(item1.DataLocation?.MappedFilePath, item2.DataLocation?.MappedFilePath);
@@ -339,13 +345,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return SpecializedTasks.True;
                     }
 
-                    protected virtual void Dispose(bool disposing)
+                    public virtual void Dispose()
                     {
-                    }
-
-                    public void Dispose()
-                    {
-                        Dispose(true);
                     }
                 }
             }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -658,9 +660,9 @@ namespace BoundTreeGenerator
                     {
                         case TargetLanguage.CSharp:
                             if (isROArray)
-                                WriteLine("Debug.Assert(!{0}.IsDefault, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
+                                WriteLine("RoslynDebug.Assert(!{0}.IsDefault, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
                             else
-                                WriteLine("Debug.Assert({0} is object, \"Field '{0}' cannot be null (make the type nullable in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
+                                WriteLine("RoslynDebug.Assert({0} is object, \"Field '{0}' cannot be null (make the type nullable in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
                             break;
 
                         case TargetLanguage.VB:
@@ -759,6 +761,11 @@ namespace BoundTreeGenerator
 
             if (f.Null != null)
             {
+                if (_targetLang == TargetLanguage.CSharp && f.Null.ToUpperInvariant() == "ALLOW" && !f.Type.EndsWith('?') && !IsValueType(f.Type))
+                {
+                    throw new ArgumentException($"Field '{fieldName}' on node '{node.Name}' should have a nullable type, since it isn't a value type and it is marked null=allow");
+                }
+
                 switch (f.Null.ToUpperInvariant())
                 {
                     case "ALLOW":

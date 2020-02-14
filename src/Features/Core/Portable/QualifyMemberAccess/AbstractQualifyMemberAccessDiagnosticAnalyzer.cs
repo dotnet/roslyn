@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -26,12 +28,12 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace)
+        public override bool OpenFileOnly(OptionSet options)
         {
-            var qualifyFieldAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyFieldAccess, GetLanguageName()).Notification;
-            var qualifyPropertyAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyPropertyAccess, GetLanguageName()).Notification;
-            var qualifyMethodAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyMethodAccess, GetLanguageName()).Notification;
-            var qualifyEventAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyEventAccess, GetLanguageName()).Notification;
+            var qualifyFieldAccessOption = options.GetOption(CodeStyleOptions.QualifyFieldAccess, GetLanguageName()).Notification;
+            var qualifyPropertyAccessOption = options.GetOption(CodeStyleOptions.QualifyPropertyAccess, GetLanguageName()).Notification;
+            var qualifyMethodAccessOption = options.GetOption(CodeStyleOptions.QualifyMethodAccess, GetLanguageName()).Notification;
+            var qualifyEventAccessOption = options.GetOption(CodeStyleOptions.QualifyEventAccess, GetLanguageName()).Notification;
 
             return !(qualifyFieldAccessOption == NotificationOption.Warning || qualifyFieldAccessOption == NotificationOption.Error ||
                      qualifyPropertyAccessOption == NotificationOption.Warning || qualifyPropertyAccessOption == NotificationOption.Error ||
@@ -88,6 +90,12 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
             // if we're not referencing `this.` or `Me.` (e.g., a parameter, local, etc.)
             if (instanceOperation.Kind != OperationKind.InstanceReference)
+            {
+                return;
+            }
+
+            // We shouldn't qualify if it is inside a property pattern
+            if (context.Operation.Parent.Kind == OperationKind.PropertySubpattern)
             {
                 return;
             }

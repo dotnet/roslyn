@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -198,9 +200,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                ? expressionOpt
                                                : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
 
-                    disposeMethodOpt = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, diagnostics);
+                    DiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingDeclarations)
+                                                       ? diagnostics
+                                                       : new DiagnosticBag();
+                    disposeMethodOpt = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics);
                     if (disposeMethodOpt is object)
                     {
+                        MessageID.IDS_FeatureUsingDeclarations.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
                         if (hasAwait)
                         {
                             awaitableTypeOpt = disposeMethodOpt.ReturnType;

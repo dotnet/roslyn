@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -47,11 +51,11 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public static int CompareSwitchCaseLabelConstants(ConstantValue first, ConstantValue second)
         {
-            Debug.Assert(first != null);
-            Debug.Assert(second != null);
+            RoslynDebug.Assert(first != null);
+            RoslynDebug.Assert(second != null);
 
-            Debug.Assert(IsValidSwitchCaseLabelConstant(first));
-            Debug.Assert(IsValidSwitchCaseLabelConstant(second));
+            RoslynDebug.Assert(IsValidSwitchCaseLabelConstant(first));
+            RoslynDebug.Assert(IsValidSwitchCaseLabelConstant(second));
 
             if (first.IsNull)
             {
@@ -94,9 +98,9 @@ namespace Microsoft.CodeAnalysis
 
         public class SwitchLabelsComparer : EqualityComparer<object>
         {
-            public override bool Equals(object first, object second)
+            public override bool Equals(object? first, object? second)
             {
-                Debug.Assert(first != null && second != null);
+                RoslynDebug.Assert(first != null && second != null);
 
                 var firstConstant = first as ConstantValue;
                 if (firstConstant != null)
@@ -147,7 +151,7 @@ namespace Microsoft.CodeAnalysis
                             return constant.UInt64Value.GetHashCode();
 
                         case ConstantValueTypeDiscriminator.String:
-                            return constant.RopeValue.GetHashCode();
+                            return constant.RopeValue!.GetHashCode();
                     }
                 }
 

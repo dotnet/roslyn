@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -94,6 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            => throw ExceptionUtilities.Unreachable;
 
         /// <summary>
         /// Note: Can be default if this SynthesizedContainer was constructed with <see cref="SynthesizedContainer(string, int, bool)"/>

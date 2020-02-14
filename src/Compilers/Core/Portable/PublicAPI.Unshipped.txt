@@ -1,5 +1,7 @@
 Microsoft.CodeAnalysis.CommandLineArguments.ErrorLogOptions.get -> Microsoft.CodeAnalysis.ErrorLogOptions
 *REMOVED*Microsoft.CodeAnalysis.CommandLineArguments.ErrorLogPath.get -> string
+Microsoft.CodeAnalysis.CommandLineSourceFile.CommandLineSourceFile(string path, bool isScript, bool isInputRedirected) -> void
+Microsoft.CodeAnalysis.CommandLineSourceFile.IsInputRedirected.get -> bool
 Microsoft.CodeAnalysis.ErrorLogOptions
 Microsoft.CodeAnalysis.ErrorLogOptions.ErrorLogOptions(string path, Microsoft.CodeAnalysis.SarifVersion sarifVersion) -> void
 Microsoft.CodeAnalysis.ErrorLogOptions.Path.get -> string
@@ -19,6 +21,7 @@ Microsoft.CodeAnalysis.SarifVersion.Latest = 2147483647 -> Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.SarifVersion.Sarif1 = 1 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersion.Sarif2 = 2 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersionFacts
+Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier = 256 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
 static Microsoft.CodeAnalysis.SarifVersionFacts.TryParse(string version, out Microsoft.CodeAnalysis.SarifVersion result) -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.IsConditional.get -> bool
 Microsoft.CodeAnalysis.Operations.IForEachLoopOperation.IsAsynchronous.get -> bool

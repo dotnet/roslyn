@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -23,6 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
     [UseExportProvider]
     public partial class SymbolCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        private static readonly IExportProviderFactory s_exportProviderFactory
+            = ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)));
+
         public SymbolCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
         {
         }
@@ -33,11 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         }
 
         protected override ExportProvider GetExportProvider()
-        {
-            return ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)))
-                .CreateExportProvider();
-        }
+            => s_exportProviderFactory.CreateExportProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EmptyFile()
@@ -7162,9 +7164,7 @@ class Program
     }
 }";
 
-            var description = $@"({CSharpFeaturesResources.awaitable}) Task Program.goo()
-{WorkspacesResources.Usage_colon}
-  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} goo();";
+            var description = $@"({CSharpFeaturesResources.awaitable}) Task Program.goo()";
 
             await VerifyItemWithMscorlib45Async(markup, "goo", description, "C#");
         }
@@ -7183,9 +7183,7 @@ class Program
     }
 }";
 
-            var description = $@"({CSharpFeaturesResources.awaitable}) Task<int> Program.goo()
-{WorkspacesResources.Usage_colon}
-  int x = {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} goo();";
+            var description = $@"({CSharpFeaturesResources.awaitable}) Task<int> Program.goo()";
 
             await VerifyItemWithMscorlib45Async(markup, "goo", description, "C#");
         }
@@ -10186,6 +10184,89 @@ namespace ClassLibrary1
             await VerifyItemExistsAsync(markup, "Substring");
             await VerifyItemExistsAsync(markup, "A");
             await VerifyItemExistsAsync(markup, "B");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")]
+        public async Task CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter1()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void Test()
+    {
+        X(y: t => Console.WriteLine(t.$$));
+    }
+
+    void X(int x = 7, Action<string> y = null) { }
+}
+";
+
+            await VerifyItemExistsAsync(markup, "Length");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")]
+        public async Task CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter2()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void Test()
+    {
+        X(y: t => Console.WriteLine(t.$$));
+    }
+
+    void X(int x, int z, Action<string> y) { }
+}
+";
+
+            await VerifyItemExistsAsync(markup, "Length");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionForLambdaPassedAsArgumentInReducedExtensionMethod_NonInteractive()
+        {
+            var markup = @"
+using System;
+
+static class CExtensions
+{
+    public static void X(this C x, Action<string> y) { }
+}
+
+class C
+{
+    void Test()
+    {
+        new C().X(t => Console.WriteLine(t.$$));
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Length", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionForLambdaPassedAsArgumentInReducedExtensionMethod_Interactive()
+        {
+            var markup = @"
+using System;
+
+public static void X(this C x, Action<string> y) { }
+
+public class C
+{
+    void Test()
+    {
+        new C().X(t => Console.WriteLine(t.$$));
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Length", sourceCodeKind: SourceCodeKind.Script);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

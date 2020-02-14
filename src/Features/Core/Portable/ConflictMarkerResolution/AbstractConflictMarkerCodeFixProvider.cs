@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -6,37 +10,39 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 {
     internal abstract class AbstractResolveConflictMarkerCodeFixProvider : CodeFixProvider
     {
-        protected AbstractResolveConflictMarkerCodeFixProvider(string diagnosticId)
+        private static readonly int s_mergeConflictLength = "<<<<<<<".Length;
+
+        private readonly ISyntaxKindsService _syntaxKinds;
+
+        protected AbstractResolveConflictMarkerCodeFixProvider(
+            ISyntaxKindsService syntaxKinds, string diagnosticId)
         {
             FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
+            _syntaxKinds = syntaxKinds;
         }
 
-        public override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider? GetFixAllProvider()
         {
             // Fix All is not currently supported for this code fix
             // https://github.com/dotnet/roslyn/issues/34461
             return null;
         }
 
-        protected abstract bool IsEndOfLine(SyntaxTrivia trivia);
-        protected abstract bool IsDisabledText(SyntaxTrivia trivia);
-        protected abstract bool IsConflictMarker(SyntaxTrivia trivia);
-
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
-
-        private static readonly int s_mergeConflictLength = "<<<<<<<".Length;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var startTrivia = root.FindTrivia(context.Span.Start);
@@ -64,8 +70,8 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                         var disabledTrivia = leadingTrivia[index + 2];
                         var endTrivia = leadingTrivia[index + 3];
 
-                        if (IsEndOfLine(endOfLineTrivia) &&
-                            IsDisabledText(disabledTrivia) &&
+                        if (_syntaxKinds.EndOfLineTrivia == endOfLineTrivia.RawKind &&
+                            _syntaxKinds.DisabledTextTrivia == disabledTrivia.RawKind &&
                             IsConflictMarker(text, endTrivia, '>'))
                         {
                             RegisterCodeFixes(context, startTrivia, equalsTrivia, endTrivia);
@@ -81,7 +87,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                         var endOfLineTrivia = leadingTrivia[index + 1];
                         var endTrivia = leadingTrivia[index + 2];
 
-                        if (IsEndOfLine(endOfLineTrivia) &&
+                        if (_syntaxKinds.EndOfLineTrivia == endOfLineTrivia.RawKind &&
                             IsConflictMarker(text, endTrivia, '>'))
                         {
                             RegisterCodeFixes(context, startTrivia, equalsTrivia, endTrivia);
@@ -209,7 +215,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         private bool IsConflictMarker(SourceText text, SyntaxTrivia trivia, char ch)
         {
             return
-                IsConflictMarker(trivia) &&
+                _syntaxKinds.ConflictMarkerTrivia == trivia.RawKind &&
                 trivia.Span.Length > 0 &&
                 text[trivia.SpanStart] == ch;
         }

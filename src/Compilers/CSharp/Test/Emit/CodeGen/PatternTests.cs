@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -770,6 +772,195 @@ public class C
   IL_0001:  ldc.i4.s   42
   IL_0003:  ceq
   IL_0005:  ret
+}");
+        }
+
+        [Fact, WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
+        public void RefParameter_StoreToTemp()
+        {
+            var source =
+@"public class C
+{
+    static bool M1(ref object x)
+    {
+        return x is 42;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.ref
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  isinst     ""int""
+  IL_0009:  brfalse.s  IL_0016
+  IL_000b:  ldloc.0
+  IL_000c:  unbox.any  ""int""
+  IL_0011:  ldc.i4.s   42
+  IL_0013:  ceq
+  IL_0015:  ret
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+}");
+        }
+
+        [Fact, WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
+        public void RefLocal_StoreToTemp()
+        {
+            var source =
+@"public class C
+{
+    static bool M1(bool b, ref object x, ref object y)
+    {
+        ref object z = ref b ? ref x : ref y;
+        return z is 42;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldarg.2
+  IL_0004:  br.s       IL_0007
+  IL_0006:  ldarg.1
+  IL_0007:  ldind.ref
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  isinst     ""int""
+  IL_000f:  brfalse.s  IL_001c
+  IL_0011:  ldloc.0
+  IL_0012:  unbox.any  ""int""
+  IL_0017:  ldc.i4.s   42
+  IL_0019:  ceq
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
+}");
+        }
+
+        [Fact, WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
+        public void InParameter_StoreToTemp()
+        {
+            var source =
+@"public class C
+{
+    static bool M1(in object x)
+    {
+        return x is 42;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.ref
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  isinst     ""int""
+  IL_0009:  brfalse.s  IL_0016
+  IL_000b:  ldloc.0
+  IL_000c:  unbox.any  ""int""
+  IL_0011:  ldc.i4.s   42
+  IL_0013:  ceq
+  IL_0015:  ret
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+}");
+        }
+
+        [Fact, WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
+        public void RefReadonlyLocal_StoreToTemp()
+        {
+            var source =
+@"public class C
+{
+    static bool M1(bool b, in object x, in object y)
+    {
+        ref readonly object z = ref b ? ref x : ref y;
+        return z is 42;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldarg.2
+  IL_0004:  br.s       IL_0007
+  IL_0006:  ldarg.1
+  IL_0007:  ldind.ref
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  isinst     ""int""
+  IL_000f:  brfalse.s  IL_001c
+  IL_0011:  ldloc.0
+  IL_0012:  unbox.any  ""int""
+  IL_0017:  ldc.i4.s   42
+  IL_0019:  ceq
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
+}");
+        }
+
+        [Fact, WorkItem(40403, "https://github.com/dotnet/roslyn/issues/40403")]
+        public void OutParameter_StoreToTemp()
+        {
+            var source =
+@"public class C
+{
+    static bool M1(out object x)
+    {
+        x = null;
+        return x is 42;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stind.ref
+  IL_0003:  ldarg.0
+  IL_0004:  ldind.ref
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  isinst     ""int""
+  IL_000c:  brfalse.s  IL_0019
+  IL_000e:  ldloc.0
+  IL_000f:  unbox.any  ""int""
+  IL_0014:  ldc.i4.s   42
+  IL_0016:  ceq
+  IL_0018:  ret
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
 }");
         }
 
@@ -3805,8 +3996,8 @@ class Program
 }
 class A
 {
-    public static implicit operator int(A a) => (a == null) ? throw null : 4;
-    public static implicit operator B(A a) => throw null;
+    public static implicit operator int(A a) => throw null;
+    public static implicit operator B(A a) => new B();
 }
 class B
 {
@@ -3815,7 +4006,7 @@ class B
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var expectedOutput = @"42";
+            var expectedOutput = @"22";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -3838,8 +4029,8 @@ class Program
 }
 class A
 {
-    public static implicit operator int(A a) => (a == null) ? throw null : 4;
-    public static implicit operator B(A a) => throw null;
+    public static implicit operator int(A a) => throw null;
+    public static implicit operator B(A a) => new B();
 }
 class B
 {
@@ -3848,7 +4039,7 @@ class B
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var expectedOutput = @"42";
+            var expectedOutput = @"22";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -3874,12 +4065,12 @@ class Program
 }
 class A : Exception
 {
-    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator int(A a) => throw null;
     public static implicit operator B(A a) => throw null;
 }
 class B : Exception
 {
-    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+    public static implicit operator int(B b) => throw null;
 }
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
@@ -3912,8 +4103,8 @@ class Program
 }
 class A : Exception
 {
-    public static implicit operator int(A a) => (a == null) ? throw null : 4;
-    public static implicit operator B(A a) => throw null;
+    public static implicit operator int(A a) => throw null;
+    public static implicit operator B(A a) => new B();
 }
 class B : Exception
 {
@@ -3922,7 +4113,7 @@ class B : Exception
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var expectedOutput = @"42";
+            var expectedOutput = @"22";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 

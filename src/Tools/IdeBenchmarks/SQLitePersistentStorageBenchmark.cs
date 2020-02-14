@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -51,7 +53,8 @@ namespace IdeBenchmarks
 </Workspace>");
 
             // Ensure we always use the storage service, no matter what the size of the solution.
-            _workspace.Options = _workspace.Options.WithChangedOption(StorageOptions.SolutionSizeThreshold, -1);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(
+                _workspace.CurrentSolution.Options.WithChangedOption(StorageOptions.SolutionSizeThreshold, -1)));
 
             _storageService = new SQLitePersistentStorageService(
                 _workspace.Services.GetService<IOptionService>(),
@@ -127,10 +130,9 @@ namespace IdeBenchmarks
 
         private class LocationService : IPersistentStorageLocationService
         {
-            public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging { add { } remove { } }
-
             public bool IsSupported(Workspace workspace) => true;
-            public string TryGetStorageLocation(SolutionId solutionId)
+
+            public string TryGetStorageLocation(Solution _)
             {
                 // Store the db in a different random temp dir.
                 var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());

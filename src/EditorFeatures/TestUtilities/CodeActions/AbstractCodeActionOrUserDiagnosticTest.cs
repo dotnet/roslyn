@@ -1,20 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal readonly int index;
             internal readonly CodeActionPriority? priority;
             internal readonly bool retainNonFixableDiagnostics;
+            internal readonly bool includeDiagnosticsOutsideSelection;
             internal readonly string title;
 
             internal TestParameters(
@@ -47,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 int index = 0,
                 CodeActionPriority? priority = null,
                 bool retainNonFixableDiagnostics = false,
+                bool includeDiagnosticsOutsideSelection = false,
                 string title = null)
             {
                 this.parseOptions = parseOptions;
@@ -56,23 +59,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.index = index;
                 this.priority = priority;
                 this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
+                this.includeDiagnosticsOutsideSelection = includeDiagnosticsOutsideSelection;
                 this.title = title;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
 
             public TestParameters WithOptions(IDictionary<OptionKey, object> options)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
 
             public TestParameters WithFixProviderData(object fixProviderData)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
 
             public TestParameters WithIndex(int index)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
 
             public TestParameters WithRetainNonFixableDiagnostics(bool retainNonFixableDiagnostics)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title, retainNonFixableDiagnostics: retainNonFixableDiagnostics);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
+
+            public TestParameters WithIncludeDiagnosticsOutsideSelection(bool includeDiagnosticsOutsideSelection)
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
         }
 
         protected abstract string GetLanguage();
@@ -374,22 +381,119 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters)
         {
             MarkupTestFile.GetSpans(
-                expectedMarkup.NormalizeLineEndings(),
-                out var expected, out IDictionary<string, ImmutableArray<TextSpan>> spanMap);
+                initialMarkup.NormalizeLineEndings(),
+                out var initialMarkupWithoutSpans, out IDictionary<string, ImmutableArray<TextSpan>> initialSpanMap);
 
-            var conflictSpans = spanMap.GetOrAdd("Conflict", _ => ImmutableArray<TextSpan>.Empty);
-            var renameSpans = spanMap.GetOrAdd("Rename", _ => ImmutableArray<TextSpan>.Empty);
-            var warningSpans = spanMap.GetOrAdd("Warning", _ => ImmutableArray<TextSpan>.Empty);
-            var navigationSpans = spanMap.GetOrAdd("Navigation", _ => ImmutableArray<TextSpan>.Empty);
+            const string UnnecessaryMarkupKey = "Unnecessary";
+            var unnecessarySpans = initialSpanMap.GetOrAdd(UnnecessaryMarkupKey, _ => ImmutableArray<TextSpan>.Empty);
+
+            MarkupTestFile.GetSpans(
+                expectedMarkup.NormalizeLineEndings(),
+                out var expected, out IDictionary<string, ImmutableArray<TextSpan>> expectedSpanMap);
+
+            var conflictSpans = expectedSpanMap.GetOrAdd("Conflict", _ => ImmutableArray<TextSpan>.Empty);
+            var renameSpans = expectedSpanMap.GetOrAdd("Rename", _ => ImmutableArray<TextSpan>.Empty);
+            var warningSpans = expectedSpanMap.GetOrAdd("Warning", _ => ImmutableArray<TextSpan>.Empty);
+            var navigationSpans = expectedSpanMap.GetOrAdd("Navigation", _ => ImmutableArray<TextSpan>.Empty);
 
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
+                // Ideally this check would always run, but there are several hundred tests that would need to be
+                // updated with {|Unnecessary:|} spans.
+                if (unnecessarySpans.Any())
+                {
+                    var allDiagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters
+                        .WithRetainNonFixableDiagnostics(true)
+                        .WithIncludeDiagnosticsOutsideSelection(true));
+
+                    TestDiagnosticTags(allDiagnostics, unnecessarySpans, WellKnownDiagnosticTags.Unnecessary, UnnecessaryMarkupKey, initialMarkupWithoutSpans);
+                }
+
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
                 await TestActionAsync(
                     workspace, expected, action,
                     conflictSpans, renameSpans, warningSpans, navigationSpans,
                     parameters);
             }
+        }
+
+        private static void TestDiagnosticTags(
+            ImmutableArray<Diagnostic> diagnostics,
+            ImmutableArray<TextSpan> expectedSpans,
+            string diagnosticTag,
+            string markupKey,
+            string initialMarkupWithoutSpans)
+        {
+            var diagnosticsWithTag = diagnostics
+                .Where(d => d.Descriptor.CustomTags.Contains(diagnosticTag))
+                .OrderBy(s => s.Location.SourceSpan.Start)
+                .ToImmutableArray();
+
+            if (expectedSpans.Length != diagnosticsWithTag.Length)
+            {
+                AssertEx.Fail(BuildFailureMessage(expectedSpans, diagnosticTag, markupKey, initialMarkupWithoutSpans, diagnosticsWithTag));
+            }
+
+            for (var i = 0; i < expectedSpans.Length; i++)
+            {
+                var actual = diagnosticsWithTag[i].Location.SourceSpan;
+                var expected = expectedSpans[i];
+                Assert.Equal(expected, actual);
+            }
+        }
+
+        private static string BuildFailureMessage(
+            ImmutableArray<TextSpan> expectedSpans,
+            string diagnosticTag,
+            string markupKey,
+            string initialMarkupWithoutSpans,
+            ImmutableArray<Diagnostic> diagnosticsWithTag)
+        {
+            var message = $"Expected {expectedSpans.Length} diagnostic spans with custom tag '{diagnosticTag}', but there were {diagnosticsWithTag.Length}.";
+
+            if (expectedSpans.Length == 0)
+            {
+                message += $" If a diagnostic span tagged '{diagnosticTag}' is expected, surround the span in the test markup with the following syntax: {{|Unnecessary:...}}";
+
+                var segments = new List<(int originalStringIndex, string segment)>();
+
+                foreach (var diagnostic in diagnosticsWithTag)
+                {
+                    var documentOffset = initialMarkupWithoutSpans.IndexOf(diagnosticsWithTag.First().Location.SourceTree.ToString());
+                    if (documentOffset == -1) continue;
+
+                    segments.Add((documentOffset + diagnostic.Location.SourceSpan.Start, "{|" + markupKey + ":"));
+                    segments.Add((documentOffset + diagnostic.Location.SourceSpan.End, "|}"));
+                }
+
+                if (segments.Any())
+                {
+                    message += Environment.NewLine
+                        + "Example:" + Environment.NewLine
+                        + Environment.NewLine
+                        + InsertSegments(initialMarkupWithoutSpans, segments);
+                }
+            }
+
+            return message;
+        }
+
+        private static string InsertSegments(string originalString, IEnumerable<(int originalStringIndex, string segment)> segments)
+        {
+            var builder = new StringBuilder();
+
+            var positionInOriginalString = 0;
+
+            foreach (var (originalStringIndex, segment) in segments.OrderBy(s => s.originalStringIndex))
+            {
+                builder.Append(originalString, positionInOriginalString, originalStringIndex - positionInOriginalString);
+                builder.Append(segment);
+
+                positionInOriginalString = originalStringIndex;
+            }
+
+            builder.Append(originalString, positionInOriginalString, originalString.Length - positionInOriginalString);
+            return builder.ToString();
         }
 
         internal async Task<Tuple<Solution, Solution>> TestActionAsync(
@@ -608,7 +712,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
             => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
 
-        protected (OptionKey, object) SingleOption<T>(Option<T> option, T enabled)
+        internal (OptionKey, object) SingleOption<T>(Option<T> option, T enabled)
             => (new OptionKey(option), enabled);
 
         protected (OptionKey, object) SingleOption<T>(PerLanguageOption<T> option, T value)
@@ -644,7 +748,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected IDictionary<OptionKey, object> Option<T>(PerLanguageOption<CodeStyleOption<T>> option, CodeStyleOption<T> codeStyle)
             => OptionsSet(SingleOption(option, codeStyle));
 
-        protected static IDictionary<OptionKey, object> OptionsSet(
+        internal static IDictionary<OptionKey, object> OptionsSet(
             params (OptionKey key, object value)[] options)
         {
             var result = new Dictionary<OptionKey, object>();
@@ -659,7 +763,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         /// <summary>
         /// Tests all the code actions for the given <paramref name="input"/> string.  Each code
         /// action must produce the corresponding output in the <paramref name="outputs"/> array.
-        /// 
+        ///
         /// Will throw if there are more outputs than code actions or more code actions than outputs.
         /// </summary>
         protected Task TestAllInRegularAndScriptAsync(

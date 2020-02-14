@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -42,8 +44,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return document.GetLanguageService<SyntaxGenerator>().CreateEqualsMethod(
-                compilation, tree.Options, namedType, members, localNameOpt,
-                s_specializedFormattingAnnotation, cancellationToken);
+                compilation, tree.Options, namedType, members, localNameOpt, s_specializedFormattingAnnotation);
         }
 
         public async Task<IMethodSymbol> GenerateIEquatableEqualsMethodAsync(
@@ -52,8 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return document.GetLanguageService<SyntaxGenerator>().CreateIEquatableEqualsMethod(
-                semanticModel, namedType, members, constructedEquatableType,
-                s_specializedFormattingAnnotation, cancellationToken);
+                semanticModel, namedType, members, constructedEquatableType, s_specializedFormattingAnnotation);
         }
 
         public async Task<IMethodSymbol> GenerateEqualsMethodThroughIEquatableEqualsAsync(

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -1071,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // Skip synthetic <Module> type which every .NET module has.
                             if (x.Arity != 0 || !x.ContainingNamespace.IsGlobalNamespace || x.Name != "<Module>")
                             {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, y.Locations[0],
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, y.Locations.FirstOrNone(),
                                                 y.ToDisplayString(SymbolDisplayFormat.ShortFormat),
                                                 y.ContainingNamespace);
                             }
@@ -2480,6 +2482,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
+                    if (field is TupleErrorFieldSymbol)
+                    {
+                        continue;
+                    }
+
                     bool unread = _unreadFields.Contains(field);
                     if (unread)
                     {
@@ -2500,16 +2507,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (unread)
                         {
-                            diagnostics.Add(ErrorCode.WRN_UnreferencedEvent, associatedPropertyOrEvent.Locations[0], associatedPropertyOrEvent);
+                            diagnostics.Add(ErrorCode.WRN_UnreferencedEvent, associatedPropertyOrEvent.Locations.FirstOrNone(), associatedPropertyOrEvent);
                         }
                     }
                     else if (unread)
                     {
-                        diagnostics.Add(ErrorCode.WRN_UnreferencedField, field.Locations[0], field);
+                        diagnostics.Add(ErrorCode.WRN_UnreferencedField, field.Locations.FirstOrNone(), field);
                     }
                     else
                     {
-                        diagnostics.Add(ErrorCode.WRN_UnassignedInternalField, field.Locations[0], field, DefaultValue(field.Type));
+                        diagnostics.Add(ErrorCode.WRN_UnassignedInternalField, field.Locations.FirstOrNone(), field, DefaultValue(field.Type));
                     }
                 }
 
@@ -2529,7 +2536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var containingType = field.ContainingType as SourceNamedTypeSymbol;
                     if ((object)containingType != null && !containingType.HasStructLayoutAttribute)
                     {
-                        diagnostics.Add(ErrorCode.WRN_UnreferencedFieldAssg, field.Locations[0], field);
+                        diagnostics.Add(ErrorCode.WRN_UnreferencedFieldAssg, field.Locations.FirstOrNone(), field);
                     }
                 }
 

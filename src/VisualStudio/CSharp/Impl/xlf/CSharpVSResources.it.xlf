@@ -22,14 +22,9 @@
         <target state="translated">Regole di formattazione C#</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_language_server_client">
-        <source>C# Language Server Client</source>
-        <target state="translated">Client del server di linguaggio C#</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
-        <target state="translated">Scarta</target>
+        <target state="translated">Variabile discard</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -64,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
-        <target state="translated">Esegui la pulizia aggiuntiva del codice durante la formattazione</target>
+        <target state="translated">Esegui la pulizia del codice aggiuntiva durante la formattazione</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
@@ -374,7 +369,7 @@
       </trans-unit>
       <trans-unit id="Set_spacing_for_method_calls">
         <source>Set spacing for method calls</source>
-        <target state="translated">Imposta spaziatura per chiamate ai metodi</target>
+        <target state="translated">Imposta spaziatura per le chiamate a un metodo</target>
         <note />
       </trans-unit>
       <trans-unit id="Set_spacing_for_method_declarations">

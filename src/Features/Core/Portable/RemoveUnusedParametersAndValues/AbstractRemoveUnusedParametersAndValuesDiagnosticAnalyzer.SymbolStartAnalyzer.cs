@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -163,12 +165,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     !isLocalFunctionParameter)
                 {
                     messageFormat = hasReference
-                        ? FeaturesResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used
+                        ? FeaturesResources.Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used
                         : FeaturesResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API;
                 }
                 else if (hasReference)
                 {
-                    messageFormat = FeaturesResources.Remove_unused_parameter_0_its_initial_value_is_never_used;
+                    messageFormat = FeaturesResources.Parameter_0_can_be_removed_its_initial_value_is_never_used;
                 }
                 else
                 {

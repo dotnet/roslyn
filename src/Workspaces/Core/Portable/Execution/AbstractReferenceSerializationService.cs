@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -90,29 +92,31 @@ namespace Microsoft.CodeAnalysis.Execution
             cancellationToken.ThrowIfCancellationRequested();
 
             using var stream = SerializableBytes.CreateWritableStream();
-            using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
 
-            switch (reference)
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
             {
-                case AnalyzerFileReference file:
-                    WriteAnalyzerFileReferenceMvid(file, writer, usePathFromAssembly, cancellationToken);
-                    break;
+                switch (reference)
+                {
+                    case AnalyzerFileReference file:
+                        WriteAnalyzerFileReferenceMvid(file, writer, usePathFromAssembly, cancellationToken);
+                        break;
 
-                case UnresolvedAnalyzerReference unresolved:
-                    WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
-                    break;
+                    case UnresolvedAnalyzerReference unresolved:
+                        WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
+                        break;
 
-                case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
-                    WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
-                    break;
+                    case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
+                        WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
+                        break;
 
-                case AnalyzerImageReference _:
-                    // TODO: think a way to support this or a way to deal with this kind of situation.
-                    // https://github.com/dotnet/roslyn/issues/15783
-                    throw new NotSupportedException(nameof(AnalyzerImageReference));
+                    case AnalyzerImageReference _:
+                        // TODO: think a way to support this or a way to deal with this kind of situation.
+                        // https://github.com/dotnet/roslyn/issues/15783
+                        throw new NotSupportedException(nameof(AnalyzerImageReference));
 
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(reference);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(reference);
+                }
             }
 
             stream.Position = 0;
@@ -281,10 +285,12 @@ namespace Microsoft.CodeAnalysis.Execution
         private Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             using var stream = SerializableBytes.CreateWritableStream();
-            using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
 
-            WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
-            WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            {
+                WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
+                WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
+            }
 
             stream.Position = 0;
             return Checksum.Create(stream);

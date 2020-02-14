@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -1591,6 +1593,182 @@ public static class C {
                 // (5,55): error CS0407: 'void C.M(int)' has the wrong return type
                 //         var x = ((Func<int, decimal>)(0 switch { 0 => M }))(0);
                 Diagnostic(ErrorCode.ERR_BadRetType, "M").WithArguments("C.M(int)", "void").WithLocation(5, 55)
+                );
+        }
+
+        [Fact, WorkItem(39767, "https://github.com/dotnet/roslyn/issues/39767")]
+        public void PreferUserDefinedConversionOverSwitchExpressionConversion()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1(""Source1"");
+        var s2 = new Source2();
+        foreach (var b in new bool[] { false, true })
+        {
+            Target t = b switch { false => s1, true => s2 };
+            Console.Write(t + "" "");
+        }
+    }
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    private readonly string Value;
+    public Source1(string value) => Value = value;
+    public override string ToString() => Value;
+    public static implicit operator Target(Source1 self) => new Target(self.Value+""->Target"");
+}
+class Source2
+{
+    public static implicit operator Source1(Source2 self) => new Source1(""Source2->Source1"");
+    public static implicit operator Target(Source2 self) => new Target(""Source2->Target"");
+}
+";
+            var expectedOutput = "Source1->Target Source2->Source1->Target ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
+        [Fact]
+        public void SwitchExpressionWithAmbiguousImplicitConversion_01()
+        {
+            var source = @"
+class A
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class B
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class C
+{
+  static void M(string s)
+  {
+    (B, B) x = s switch { _ => (new A(), new A()), };
+    x.Item1.ToString();
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,33): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     (B, B) x = s switch { _ => (new A(), new A()), };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 33),
+                // (16,42): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     (B, B) x = s switch { _ => (new A(), new A()), };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 42)
+                );
+        }
+
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
+        [Fact]
+        public void SwitchExpressionWithAmbiguousImplicitConversion_02()
+        {
+            var source = @"
+class A
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class B
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class C
+{
+  static void M(int i)
+  {
+    var x = i switch { 1 => new A(), _ => new B() };
+    x.ToString();
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,29): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     var x = i switch { 1 => new A(), _ => new B() };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 29)
+                );
+        }
+
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
+        [Fact]
+        public void SwitchExpressionWithAmbiguousImplicitConversion_03()
+        {
+            var source = @"
+class A
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class B
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class C
+{
+  static void M(int i)
+  {
+    B x = i switch { _ => new A() };
+    x.ToString();
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,27): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     B x = i switch { _ => new A() };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 27)
+                );
+        }
+
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
+        [Fact]
+        public void SwitchExpressionWithAmbiguousImplicitConversion_04()
+        {
+            var source = @"
+class A
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class B
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class C
+{
+  static void M(int i)
+  {
+    B x = i switch { _ => i switch { _ => new A() } };
+    x.ToString();
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,43): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     B x = i switch { _ => i switch { _ => new A() } };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 43)
                 );
         }
     }

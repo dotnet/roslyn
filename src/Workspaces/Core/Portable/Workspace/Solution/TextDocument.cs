@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default)
         {
-            return State.GetTextAsync(cancellationToken);
+            return State.GetTextAsync(cancellationToken).AsTask();
         }
 
         /// <summary>
@@ -119,11 +121,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// True if the info of the document change (name, folders, file path; not the content)
+        /// True if the info of the document change (name, folders, file path; not the content).
         /// </summary>
         internal virtual bool HasInfoChanged(TextDocument otherTextDocument)
         {
-            return State.Attributes != otherTextDocument.State.Attributes;
+            return State.HasInfoChanged(otherTextDocument.State);
+        }
+
+        /// <summary>
+        /// Only checks if the source of the text has changed, no content check is done.
+        /// </summary>
+        internal bool HasTextChanged(TextDocument otherTextDocument, bool ignoreUnchangeableDocument)
+        {
+            return State.HasTextChanged(otherTextDocument.State, ignoreUnchangeableDocument);
         }
     }
 }
