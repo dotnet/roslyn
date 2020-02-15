@@ -390,31 +390,30 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     ? Accessibility.Public
                     : Accessibility.Private;
 
-                switch (member)
+                return member switch
                 {
-                    case IMethodSymbol method:
-                        return GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName);
+                    IMethodSymbol method => GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName),
+                    IPropertySymbol property => GenerateProperty(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior, cancellationToken),
+                    IEventSymbol @event => GenerateEvent(compilation, memberName, generateInvisibly, factory, modifiers, useExplicitInterfaceSymbol, accessibility, @event),
+                    _ => null,
+                };
+            }
 
-                    case IPropertySymbol property:
-                        return GenerateProperty(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior, cancellationToken);
+            private ISymbol GenerateEvent(Compilation compilation, string memberName, bool generateInvisibly, SyntaxGenerator factory, DeclarationModifiers modifiers, bool useExplicitInterfaceSymbol, Accessibility accessibility, IEventSymbol @event)
+            {
+                var accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                    attributes: default,
+                    accessibility: Accessibility.NotApplicable,
+                    statements: factory.CreateThrowNotImplementedStatementBlock(compilation));
 
-                    case IEventSymbol @event:
-                        var accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                            attributes: default,
-                            accessibility: Accessibility.NotApplicable,
-                            statements: factory.CreateThrowNotImplementedStatementBlock(compilation));
-
-                        return CodeGenerationSymbolFactory.CreateEventSymbol(
-                            @event,
-                            accessibility: accessibility,
-                            modifiers: modifiers,
-                            explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(@event) : default,
-                            name: memberName,
-                            addMethod: GetAddOrRemoveMethod(@event, generateInvisibly, accessor, memberName, factory.AddEventHandler),
-                            removeMethod: GetAddOrRemoveMethod(@event, generateInvisibly, accessor, memberName, factory.RemoveEventHandler));
-                }
-
-                return null;
+                return CodeGenerationSymbolFactory.CreateEventSymbol(
+                    @event,
+                    accessibility: accessibility,
+                    modifiers: modifiers,
+                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(@event) : default,
+                    name: memberName,
+                    addMethod: GetAddOrRemoveMethod(@event, generateInvisibly, accessor, memberName, factory.AddEventHandler),
+                    removeMethod: GetAddOrRemoveMethod(@event, generateInvisibly, accessor, memberName, factory.RemoveEventHandler));
             }
 
             private IMethodSymbol GetAddOrRemoveMethod(
