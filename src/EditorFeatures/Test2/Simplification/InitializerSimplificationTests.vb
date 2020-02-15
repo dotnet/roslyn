@@ -10,17 +10,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 #Region "VB tests"
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestVisualBasic_DontRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression() As Task
+        Public Async Function TestVisualBasic_DontRemovePropertyNameForObjectCreationInitializer() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-Imports System.Drawing
+Imports System.Text
 
-Friend Class CommentTestClass
-    Public Function WidthOnly(r As Rectangle) As Rectangle
-        Return New Rectangle With {
-            {|SimplifyExtension:.Y = r.Y|}
+Friend Class InitializerTestClass
+    Public Function CopyLength(sb As StringBuilder) As Object
+    Return New StringBuilder With {
+            {|SimplifyExtension:.Length = sb.Length|}
         }
     End Function
 End Class
@@ -30,16 +30,59 @@ End Class
 
             Dim expected =
 <code>
-Imports System.Drawing
+Imports System.Text
 
-Friend Class CommentTestClass
-    Public Function WidthOnly(r As Rectangle) As Rectangle
-        Return New Rectangle With {
-            .Y = r.Y
+Friend Class InitializerTestClass
+    Public Function CopyLength(sb As StringBuilder) As Object
+    Return New StringBuilder With {
+            .Length = sb.Length
+        }
+    End Function
+End Class
+
+</code>
+
+            Await AssertCompilesAndEqual(input, expected).ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestVisualBasic_RemoveInferrablePropertyNameForAnonymousObjectCreationInitializer() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System.Text
+
+Friend Class InitializerTestClass
+    Public Function CopyLength(sb As StringBuilder) As Object
+    Return New With {
+            {|SimplifyExtension:.Length = sb.Length|}
+        }
+    End Function
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Imports System.Text
+
+Friend Class InitializerTestClass
+    Public Function CopyLength(sb As StringBuilder) As Object
+    Return New With {
+            sb.Length
         }
     End Function
 End Class
 </code>
+            Await AssertCompilesAndEqual(input, expected).ConfigureAwait(False)
+        End Function
+#End Region
+
+
+
+        Private Async Function AssertCompilesAndEqual(input As XElement, expected As XElement) As Task
             Using workspace = CreateTestWorkspace(input)
                 Dim simplifiedDocument = Await SimplifyAsync(workspace).ConfigureAwait(False)
 
@@ -50,7 +93,6 @@ End Class
                 Await AssertCodeEqual(expected, simplifiedDocument)
             End Using
         End Function
-#End Region
     End Class
 
 
