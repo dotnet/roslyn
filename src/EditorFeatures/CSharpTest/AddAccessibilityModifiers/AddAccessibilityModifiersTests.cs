@@ -24,13 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestAllConstructs()
         {
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources =
-                    {
-                        @"using System;
+            await VerifyCS.VerifyCodeFixAsync(
+                @"using System;
 namespace Outer
 {
     namespace Inner1.Inner2
@@ -89,13 +84,7 @@ namespace Outer
         }
     }
 }",
-                    },
-                },
-                FixedState =
-                {
-                    Sources =
-                    {
-                        @"using System;
+                @"using System;
 namespace Outer
 {
     namespace Inner1.Inner2
@@ -154,10 +143,7 @@ namespace Outer
             EMember
         }
     }
-}",
-                    },
-                },
-            }.RunAsync();
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
