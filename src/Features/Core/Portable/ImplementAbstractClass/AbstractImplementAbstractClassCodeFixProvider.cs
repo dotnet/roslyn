@@ -7,10 +7,10 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.ImplementAbstractClass;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.ImplementAbstractClass
+namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
     internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode> : CodeFixProvider
         where TClassNode : SyntaxNode
