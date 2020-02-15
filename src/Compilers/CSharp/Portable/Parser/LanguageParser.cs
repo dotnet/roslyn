@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -548,12 +549,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private GlobalStatementSyntax ParseTopLevelUsingStatement()
         {
             bool wasInAsync = IsInAsync;
             if (!IsScript)
             {
-                IsInAsync = true;
+                IsInAsync = true; // We are implicitly in an async context
             }
 
             var topLevelUsingStatement = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseUsingStatement()));
@@ -1893,7 +1895,7 @@ tryAgain:
             }
         }
 
-        private static bool CanReuseMemberDeclaration(SyntaxKind kind, bool isGlobalNonScript)
+        private bool CanReuseMemberDeclaration(SyntaxKind kind, bool isGlobal)
         {
             switch (kind)
             {
@@ -1918,7 +1920,7 @@ tryAgain:
                     //                            inGlobalNonScript context, but that would require extending NodeFlags enum, which
                     //                            already uses all bits available in a byte.
                     //                            At the same time that would allow us to reuse top-level statements (GlobalStatementSyntax) as well.
-                    return !isGlobalNonScript;
+                    return !isGlobal || IsScript;
                 default:
                     return false;
             }
@@ -1967,7 +1969,7 @@ tryAgain:
             // don't reuse members if they were previously declared under a different type keyword kind
             if (this.IsIncrementalAndFactoryContextMatches)
             {
-                if (CanReuseMemberDeclaration(CurrentNodeKind, isGlobalNonScript: isGlobal && !IsScript))
+                if (CanReuseMemberDeclaration(CurrentNodeKind, isGlobal))
                 {
                     return (MemberDeclarationSyntax)this.EatNode();
                 }
@@ -1977,6 +1979,7 @@ tryAgain:
 
             var saveTermState = _termState;
             var startPoint = this.GetResetPoint();
+            GlobalStatementSyntax globalStatement;
 
             try
             {
@@ -1998,59 +2001,11 @@ tryAgain:
                 //
                 if (isGlobal && !haveAttributes)
                 {
-                    GlobalStatementSyntax topLevel = tryParseSomeTopLevelStatements();
+                    globalStatement = TryParseSomeTopLevelStatements();
 
-                    // The local function is added only to reduce the stack size used by this function
-                    GlobalStatementSyntax tryParseSomeTopLevelStatements()
+                    if (globalStatement is object)
                     {
-                        bool wasInAsync = IsInAsync;
-                        if (!IsScript)
-                        {
-                            IsInAsync = true;
-                        }
-
-                        GlobalStatementSyntax topLevel = null;
-                        switch (this.CurrentToken.Kind)
-                        {
-                            case SyntaxKind.UnsafeKeyword:
-                                if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
-                                {
-                                    topLevel = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseUnsafeStatement()));
-                                }
-                                break;
-
-                            case SyntaxKind.FixedKeyword:
-                                if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
-                                {
-                                    topLevel = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseFixedStatement()));
-                                }
-                                break;
-
-                            case SyntaxKind.DelegateKeyword:
-                                switch (this.PeekToken(1).Kind)
-                                {
-                                    case SyntaxKind.OpenParenToken:
-                                    case SyntaxKind.OpenBraceToken:
-                                        topLevel = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement()));
-                                        break;
-                                }
-                                break;
-
-                            case SyntaxKind.NewKeyword:
-                                if (IsPossibleNewExpression())
-                                {
-                                    topLevel = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement()));
-                                }
-                                break;
-                        }
-
-                        IsInAsync = wasInAsync;
-                        return topLevel;
-                    }
-
-                    if (topLevel is object)
-                    {
-                        return topLevel;
+                        return globalStatement;
                     }
                 }
 
@@ -2100,7 +2055,7 @@ tryAgain:
                 {
                     if (isGlobal && !haveAttributes && !IsScript)
                     {
-                        var globalStatement = tryParseLocalDeclarationStatementFromStartPoint<LocalDeclarationStatementSyntax>(ref startPoint);
+                        globalStatement = TryParseTopLevelLocalDeclarationStatementFromStartPoint<LocalDeclarationStatementSyntax>(ref startPoint);
                         if (globalStatement is object)
                         {
                             return globalStatement;
@@ -2159,30 +2114,10 @@ tryAgain:
                             this.CurrentToken.Kind != SyntaxKind.EndOfFileToken &&
                             this.IsPossibleStatement(acceptAccessibilityMods: true))
                         {
-                            StatementSyntax statement = tryParseStatementNoDeclaration();
-
-                            // The local function is added only to reduce the stack size used by this function
-                            StatementSyntax tryParseStatementNoDeclaration()
+                            globalStatement = TryParseTopLevelStatementNoDeclaration();
+                            if (globalStatement is object)
                             {
-                                var saveTerm = _termState;
-                                _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
-                                bool wasInAsync = IsInAsync;
-                                if (!IsScript)
-                                {
-                                    IsInAsync = true;
-                                }
-
-                                // Any expression is allowed in a Script, not just expression statements:
-                                var statement = this.ParseStatementNoDeclaration(allowAnyExpression: IsScript);
-
-                                IsInAsync = wasInAsync;
-                                _termState = saveTerm;
-                                return statement;
-                            }
-
-                            if (statement != null)
-                            {
-                                return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
+                                return globalStatement;
                             }
                         }
 
@@ -2233,7 +2168,7 @@ parse_member_name:;
                                 if (!IsScript)
                                 {
                                     this.Reset(ref startPoint);
-                                    var globalStatement = tryParseLocalDeclarationStatement<LocalDeclarationStatementSyntax>();
+                                    globalStatement = TryParseTopLevelLocalDeclarationStatement<LocalDeclarationStatementSyntax>();
                                     if (globalStatement is object)
                                     {
                                         return globalStatement;
@@ -2332,7 +2267,7 @@ parse_member_name:;
                                 // PROTOTYPE(SimplePrograms): Allow attributes on local functions
                                 if (isGlobal && !IsScript && !haveAttributes && explicitInterfaceOpt is null)
                                 {
-                                    var globalStatement = tryParseLocalDeclarationStatementFromStartPoint<LocalFunctionStatementSyntax>(ref startPoint);
+                                    globalStatement = TryParseTopLevelLocalDeclarationStatementFromStartPoint<LocalFunctionStatementSyntax>(ref startPoint);
                                     if (globalStatement is object)
                                     {
                                         return globalStatement;
@@ -2354,45 +2289,120 @@ parse_member_name:;
                 _termState = saveTermState;
                 this.Release(ref startPoint);
             }
+        }
 
-            GlobalStatementSyntax tryParseLocalDeclarationStatement<DeclarationSyntax>() where DeclarationSyntax : StatementSyntax
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private GlobalStatementSyntax TryParseTopLevelLocalDeclarationStatement<DeclarationSyntax>() where DeclarationSyntax : StatementSyntax
+        {
+            bool wasInAsync = IsInAsync;
+            IsInAsync = true;  // We are implicitly in an async context
+            int lastTokenPosition = -1;
+            IsMakingProgress(ref lastTokenPosition);
+
+            var topLevelStatement = ParseLocalDeclarationStatement();
+            IsInAsync = wasInAsync;
+
+            if (topLevelStatement is DeclarationSyntax declaration && IsMakingProgress(ref lastTokenPosition, assertIfFalse: false))
             {
-                bool wasInAsync = IsInAsync;
-                IsInAsync = true;
-                int lastTokenPosition = -1;
-                IsMakingProgress(ref lastTokenPosition);
+                return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(declaration));
+            }
 
-                var topLevelStatement = ParseLocalDeclarationStatement();
-                IsInAsync = wasInAsync;
+            return null;
+        }
 
-                if (topLevelStatement is DeclarationSyntax declaration && IsMakingProgress(ref lastTokenPosition, assertIfFalse: false))
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private GlobalStatementSyntax TryParseTopLevelLocalDeclarationStatementFromStartPoint<DeclarationSyntax>(ref ResetPoint startPoint) where DeclarationSyntax : StatementSyntax
+        {
+            var resetOnFailurePoint = this.GetResetPoint();
+            try
+            {
+                this.Reset(ref startPoint);
+                var globalStatement = TryParseTopLevelLocalDeclarationStatement<DeclarationSyntax>();
+                if (globalStatement is object)
                 {
-                    return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(declaration));
+                    return globalStatement;
                 }
 
+                this.Reset(ref resetOnFailurePoint);
                 return null;
             }
-
-            GlobalStatementSyntax tryParseLocalDeclarationStatementFromStartPoint<DeclarationSyntax>(ref ResetPoint startPoint) where DeclarationSyntax : StatementSyntax
+            finally
             {
-                var resetOnFailurePoint = this.GetResetPoint();
-                try
-                {
-                    this.Reset(ref startPoint);
-                    var globalStatement = tryParseLocalDeclarationStatement<DeclarationSyntax>();
-                    if (globalStatement is object)
-                    {
-                        return globalStatement;
-                    }
-
-                    this.Reset(ref resetOnFailurePoint);
-                    return null;
-                }
-                finally
-                {
-                    this.Release(ref resetOnFailurePoint);
-                }
+                this.Release(ref resetOnFailurePoint);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private GlobalStatementSyntax TryParseSomeTopLevelStatements()
+        {
+            bool wasInAsync = IsInAsync;
+            if (!IsScript)
+            {
+                IsInAsync = true; // We are implicitly in an async context
+            }
+
+            GlobalStatementSyntax topLevel = null;
+            switch (this.CurrentToken.Kind)
+            {
+                case SyntaxKind.UnsafeKeyword:
+                    if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+                    {
+                        topLevel = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseUnsafeStatement()));
+                    }
+                    break;
+
+                case SyntaxKind.FixedKeyword:
+                    if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+                    {
+                        topLevel = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseFixedStatement()));
+                    }
+                    break;
+
+                case SyntaxKind.DelegateKeyword:
+                    switch (this.PeekToken(1).Kind)
+                    {
+                        case SyntaxKind.OpenParenToken:
+                        case SyntaxKind.OpenBraceToken:
+                            topLevel = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement()));
+                            break;
+                    }
+                    break;
+
+                case SyntaxKind.NewKeyword:
+                    if (IsPossibleNewExpression())
+                    {
+                        topLevel = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement()));
+                    }
+                    break;
+            }
+
+            IsInAsync = wasInAsync;
+            return topLevel;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private GlobalStatementSyntax TryParseTopLevelStatementNoDeclaration()
+        {
+            var saveTerm = _termState;
+            _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
+            bool wasInAsync = IsInAsync;
+            if (!IsScript)
+            {
+                IsInAsync = true; // We are implicitly in an async context
+            }
+
+            // Any expression is allowed in a Script, not just expression statements:
+            var statement = this.ParseStatementNoDeclaration(allowAnyExpression: IsScript);
+
+            IsInAsync = wasInAsync;
+            _termState = saveTerm;
+
+            if (statement != null)
+            {
+                return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
+            }
+
+            return null;
         }
 
         // if the modifiers do not contain async or replace and the type is the identifier "async" or "replace", then
