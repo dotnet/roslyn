@@ -410,24 +410,23 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                             modifiers: modifiers,
                             explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(@event) : default,
                             name: memberName,
-                            addMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.AddEventHandler),
-                            removeMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.RemoveEventHandler));
+                            addMethod: GetAddOrRemoveMethod(@event, generateInvisibly, accessor, memberName, factory.AddEventHandler),
+                            removeMethod: GetAddOrRemoveMethod(@event, generateInvisibly, accessor, memberName, factory.RemoveEventHandler));
                 }
 
                 return null;
             }
 
-            private IMethodSymbol GetAddOrRemoveMethod(bool generateInvisibly,
-                                                       IMethodSymbol accessor,
-                                                       string memberName,
-                                                       Func<SyntaxNode, SyntaxNode, SyntaxNode> createAddOrRemoveHandler)
+            private IMethodSymbol GetAddOrRemoveMethod(
+                IEventSymbol @event, bool generateInvisibly, IMethodSymbol accessor, string memberName,
+                Func<SyntaxNode, SyntaxNode, SyntaxNode> createAddOrRemoveHandler)
             {
                 if (ThroughMember != null)
                 {
-                    var factory = Document.GetLanguageService<SyntaxGenerator>();
-                    var throughExpression = CreateThroughExpression(factory);
-                    var statement = factory.ExpressionStatement(createAddOrRemoveHandler(
-                        factory.MemberAccessExpression(throughExpression, memberName), factory.IdentifierName("value")));
+                    var generator = Document.GetRequiredLanguageService<SyntaxGenerator>();
+                    var throughExpression = generator.CreateDelegateThroughExpression(@event, ThroughMember);
+                    var statement = generator.ExpressionStatement(createAddOrRemoveHandler(
+                        generator.MemberAccessExpression(throughExpression, memberName), generator.IdentifierName("value")));
 
                     return CodeGenerationSymbolFactory.CreateAccessorSymbol(
                            attributes: default,
@@ -436,80 +435,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 return generateInvisibly ? accessor : null;
-            }
-
-            private SyntaxNode CreateThroughExpression(SyntaxGenerator generator)
-            {
-                var through = ThroughMember.IsStatic
-                        ? GenerateName(generator, State.ClassOrStructType.IsGenericType)
-                        : generator.ThisExpression();
-
-                through = generator.MemberAccessExpression(
-                    through, generator.IdentifierName(ThroughMember.Name));
-
-                var throughMemberType = ThroughMember.GetMemberType();
-                if ((State.InterfaceTypes != null) && (throughMemberType != null))
-                {
-                    // In the case of 'implement interface through field / property' , we need to know what
-                    // interface we are implementing so that we can insert casts to this interface on every
-                    // usage of the field in the generated code. Without these casts we would end up generating
-                    // code that fails compilation in certain situations.
-                    // 
-                    // For example consider the following code.
-                    //      class C : IReadOnlyList<int> { int[] field; }
-                    // When applying the 'implement interface through field' code fix in the above example,
-                    // we need to generate the following code to implement the Count property on IReadOnlyList<int>
-                    //      class C : IReadOnlyList<int> { int[] field; int Count { get { ((IReadOnlyList<int>)field).Count; } ...}
-                    // as opposed to the following code which will fail to compile (because the array field
-                    // doesn't have a property named .Count) -
-                    //      class C : IReadOnlyList<int> { int[] field; int Count { get { field.Count; } ...}
-                    //
-                    // The 'InterfaceTypes' property on the state object always contains only one item
-                    // in the case of C# i.e. it will contain exactly the interface we are trying to implement.
-                    // This is also the case most of the time in the case of VB, except in certain error conditions
-                    // (recursive / circular cases) where the span of the squiggle for the corresponding 
-                    // diagnostic (BC30149) changes and 'InterfaceTypes' ends up including all interfaces
-                    // in the Implements clause. For the purposes of inserting the above cast, we ignore the
-                    // uncommon case and optimize for the common one - in other words, we only apply the cast
-                    // in cases where we can unambiguously figure out which interface we are trying to implement.
-                    var interfaceBeingImplemented = State.InterfaceTypes.SingleOrDefault();
-                    if (interfaceBeingImplemented != null)
-                    {
-                        if (!throughMemberType.Equals(interfaceBeingImplemented))
-                        {
-                            through = generator.CastExpression(interfaceBeingImplemented,
-                                through.WithAdditionalAnnotations(Simplifier.Annotation));
-                        }
-                        else if (!ThroughMember.IsStatic &&
-                            ThroughMember is IPropertySymbol throughMemberProperty &&
-                            throughMemberProperty.ExplicitInterfaceImplementations.Any())
-                        {
-                            // If we are implementing through an explicitly implemented property, we need to cast 'this' to
-                            // the explicitly implemented interface type before calling the member, as in:
-                            //       ((IA)this).Prop.Member();
-                            //
-                            var explicitlyImplementedProperty = throughMemberProperty.ExplicitInterfaceImplementations[0];
-
-                            var explicitImplementationCast = generator.CastExpression(
-                                explicitlyImplementedProperty.ContainingType,
-                                generator.ThisExpression());
-
-                            through = generator.MemberAccessExpression(explicitImplementationCast,
-                                generator.IdentifierName(explicitlyImplementedProperty.Name));
-
-                            through = through.WithAdditionalAnnotations(Simplifier.Annotation);
-                        }
-                    }
-                }
-
-                return through.WithAdditionalAnnotations(Simplifier.Annotation);
-            }
-
-            private SyntaxNode GenerateName(SyntaxGenerator factory, bool isGenericType)
-            {
-                return isGenericType
-                    ? factory.GenericName(State.ClassOrStructType.Name, State.ClassOrStructType.TypeArguments)
-                    : factory.IdentifierName(State.ClassOrStructType.Name);
             }
 
             private bool HasNameConflict(
