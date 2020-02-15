@@ -22,6 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             => (new CSharpAddAccessibilityModifiersDiagnosticAnalyzer(), new CSharpAddAccessibilityModifiersCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public void TestStandardProperties()
+            => VerifyCS.VerifyStandardProperties();
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestAllConstructs()
         {
             await VerifyCS.VerifyCodeFixAsync(

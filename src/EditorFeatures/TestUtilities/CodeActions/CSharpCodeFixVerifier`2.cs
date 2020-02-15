@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
             => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic(descriptor);
 
+        public static void VerifyStandardProperties(bool verifyHelpLink = false)
+            => CodeFixVerifierHelper.VerifyStandardProperties(new TAnalyzer(), verifyHelpLink);
+
         public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
         {
             var test = new Test
