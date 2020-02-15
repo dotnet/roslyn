@@ -132,9 +132,21 @@ namespace Analyzer.Utilities.Extensions
             INamedTypeSymbol? iDisposable,
             INamedTypeSymbol? iAsyncDisposable)
         {
-            return type.IsReferenceType &&
-                (IsInterfaceOrImplementsInterface(type, iDisposable) ||
-                 IsInterfaceOrImplementsInterface(type, iAsyncDisposable));
+            if (type.IsReferenceType)
+            {
+                return IsInterfaceOrImplementsInterface(type, iDisposable)
+                    || IsInterfaceOrImplementsInterface(type, iAsyncDisposable);
+            }
+
+#if NET_ANALYZERS
+            if (type.IsRefLikeType)
+            {
+                return type.GetMembers("Dispose").OfType<IMethodSymbol>()
+                    .Any(method => method.HasDisposeSignatureByConvention());
+            }
+#endif
+
+            return false;
 
             static bool IsInterfaceOrImplementsInterface(ITypeSymbol type, INamedTypeSymbol? interfaceType)
                 => interfaceType != null &&
@@ -268,7 +280,11 @@ namespace Analyzer.Utilities.Extensions
         }
 
         public static bool HasValueCopySemantics(this ITypeSymbol typeSymbol)
-            => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
+            => typeSymbol.IsValueType
+#if NET_ANALYZERS
+                && !typeSymbol.IsRefLikeType
+#endif
+            || typeSymbol.SpecialType == SpecialType.System_String;
 
         public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T;
