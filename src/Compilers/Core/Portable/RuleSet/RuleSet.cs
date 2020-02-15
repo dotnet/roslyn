@@ -279,17 +279,18 @@ namespace Microsoft.CodeAnalysis
             return ImmutableArray<string>.Empty;
         }
 
+#nullable enable
         /// <summary>
         /// Parses the ruleset file at the given <paramref name="rulesetFileFullPath"/> and returns the following diagnostic options from the parsed file:
         /// 1) A map of <paramref name="specificDiagnosticOptions"/> from rule ID to <see cref="ReportDiagnostic"/> option.
         /// 2) A global <see cref="ReportDiagnostic"/> option for all rules in the ruleset file.
         /// </summary>
-        public static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(string rulesetFileFullPath, out Dictionary<string, ReportDiagnostic> specificDiagnosticOptions)
+        public static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(string? rulesetFileFullPath, out Dictionary<string, ReportDiagnostic> specificDiagnosticOptions)
         {
             return GetDiagnosticOptionsFromRulesetFile(rulesetFileFullPath, out specificDiagnosticOptions, null, null);
         }
 
-        internal static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(string rulesetFileFullPath, out Dictionary<string, ReportDiagnostic> diagnosticOptions, IList<Diagnostic> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        internal static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(string? rulesetFileFullPath, out Dictionary<string, ReportDiagnostic> diagnosticOptions, IList<Diagnostic>? diagnosticsOpt, CommonMessageProvider? messageProviderOpt)
         {
             diagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             if (rulesetFileFullPath == null)
@@ -299,6 +300,7 @@ namespace Microsoft.CodeAnalysis
 
             return GetDiagnosticOptionsFromRulesetFile(diagnosticOptions, rulesetFileFullPath, diagnosticsOpt, messageProviderOpt);
         }
+#nullable restore
 
         private static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(Dictionary<string, ReportDiagnostic> diagnosticOptions, string resolvedPath, IList<Diagnostic> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
