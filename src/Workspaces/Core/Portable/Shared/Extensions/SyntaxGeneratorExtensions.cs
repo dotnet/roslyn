@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static SyntaxNode GenerateDelegateThroughMemberStatement(
             this SyntaxGenerator generator, IMethodSymbol method, ISymbol throughMember)
         {
-            var through = CreateThroughExpression(generator, method, throughMember);
+            var through = CreateDelegateThroughExpression(generator, method, throughMember);
 
             var memberName = method.IsGenericMethod
                 ? generator.GenericName(method.Name, method.TypeArguments.OfType<ITypeSymbol>().ToList())
@@ -569,8 +569,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : generator.ReturnStatement(invocationExpression);
         }
 
-        private static SyntaxNode CreateThroughExpression(
-            SyntaxGenerator generator, ISymbol member, ISymbol throughMember)
+        public static SyntaxNode CreateDelegateThroughExpression(
+            this SyntaxGenerator generator, ISymbol member, ISymbol throughMember)
         {
             var through = throughMember.IsStatic
                 ? GenerateContainerName(generator, throughMember)
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (throughMember != null)
             {
-                var throughExpression = CreateThroughExpression(generator, property, throughMember);
+                var throughExpression = CreateDelegateThroughExpression(generator, property, throughMember);
                 var expression = property.IsIndexer
                     ? throughExpression
                     : generator.MemberAccessExpression(
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (throughMember != null)
             {
-                var throughExpression = CreateThroughExpression(generator, property, throughMember);
+                var throughExpression = CreateDelegateThroughExpression(generator, property, throughMember);
                 var expression = property.IsIndexer
                     ? throughExpression
                     : generator.MemberAccessExpression(

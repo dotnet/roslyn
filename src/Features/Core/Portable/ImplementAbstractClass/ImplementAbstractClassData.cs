@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -201,8 +202,30 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         private IEventSymbol GenerateEvent(
             IEventSymbol @event, ISymbol? throughMember, Accessibility accessibility, DeclarationModifiers modifiers)
         {
+            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
             return CodeGenerationSymbolFactory.CreateEventSymbol(
-                    @event, accessibility: accessibility, modifiers: modifiers);
+                @event, accessibility: accessibility, modifiers: modifiers,
+                addMethod: GetEventAddOrRemoveMethod(@event, @event.AddMethod, throughMember, generator.AddEventHandler),
+                removeMethod: GetEventAddOrRemoveMethod(@event, @event.RemoveMethod, throughMember, generator.RemoveEventHandler));
+        }
+
+        private IMethodSymbol? GetEventAddOrRemoveMethod(
+            IEventSymbol @event, IMethodSymbol? accessor, ISymbol? throughMember,
+            Func<SyntaxNode, SyntaxNode, SyntaxNode> createAddOrRemoveHandler)
+        {
+            if (accessor == null || throughMember == null)
+                return null;
+
+            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+            var throughExpression = generator.CreateDelegateThroughExpression(@event, throughMember);
+            var statement = generator.ExpressionStatement(createAddOrRemoveHandler(
+                generator.MemberAccessExpression(throughExpression, @event.Name),
+                generator.IdentifierName("value")));
+
+            return CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                attributes: default,
+                accessibility: Accessibility.NotApplicable,
+                statements: ImmutableArray.Create(statement));
         }
 
         private bool ShouldGenerateAccessor(IMethodSymbol? method)
