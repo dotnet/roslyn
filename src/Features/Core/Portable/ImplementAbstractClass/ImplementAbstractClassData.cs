@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     property.SetMethod,
                     attributes: default,
                     accessibility: property.SetMethod.ComputeResultantAccessibility(this.ClassType),
-                    statements: generator.GetGetAccessorStatements(
+                    statements: generator.GetSetAccessorStatements(
                         compilation, property, throughMember, preferAutoProperties))
                 : null;
 
