@@ -128,14 +128,12 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             var modifiers = new DeclarationModifiers(isOverride: true, isUnsafe: addUnsafe);
             var accessibility = member.ComputeResultantAccessibility(this.ClassType);
 
-            if (throughMember != null)
+            // only call through one of members for this symbol if we can actually access the symbol
+            // from our type.
+            if (throughMember != null &&
+                !member.IsAccessibleWithin(this.ClassType, throughMember.GetMemberType()))
             {
-                // only call through one of members for this symbol if we can actually access the
-                // symbol from our type.
-                if (!member.IsAccessibleWithin(this.ClassType, throughMember.GetMemberType()))
-                {
-                    throughMember = null;
-                }
+                throughMember = null;
             }
 
             return member switch
