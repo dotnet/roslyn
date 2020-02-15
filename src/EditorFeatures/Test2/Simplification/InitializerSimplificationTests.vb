@@ -9,7 +9,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
 #Region "VB tests"
 
-        '<WorkItem(0, "https://github.com/dotnet/roslyn/issues/TODO")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression() As Task
             Dim input =
@@ -41,9 +40,15 @@ Friend Class CommentTestClass
     End Function
 End Class
 </code>
+            Using workspace = CreateTestWorkspace(input)
+                Dim simplifiedDocument = Await SimplifyAsync(workspace).ConfigureAwait(False)
 
-            Dim simplifiedDoc = Await TestAsync(input, expected)
-            Dim semanticModel = Await simplifiedDoc.GetSemanticModelAsync()
+                Dim semanticModel = Await simplifiedDocument.GetSemanticModelAsync()
+                Dim diagnosticsFromSimplifiedDocument = semanticModel.Compilation.GetDiagnostics()
+                Assert.Empty(diagnosticsFromSimplifiedDocument)
+
+                Await AssertCodeEqual(expected, simplifiedDocument)
+            End Using
         End Function
 #End Region
     End Class

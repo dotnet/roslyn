@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             End Using
         End Function
 
-        Private Shared Function CreateTestWorkspace(definition As XElement, Optional csharpParseOptions As CSharpParseOptions = Nothing) As TestWorkspace
+        Protected Shared Function CreateTestWorkspace(definition As XElement, Optional csharpParseOptions As CSharpParseOptions = Nothing) As TestWorkspace
             Dim workspace = TestWorkspace.Create(definition)
 
             If csharpParseOptions IsNot Nothing Then
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Return workspace
         End Function
 
-        Private Async Function SimplifyAsync(workspace As TestWorkspace, Optional options As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task(Of Document)
+        Protected Async Function SimplifyAsync(workspace As TestWorkspace, Optional options As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task(Of Document)
             Dim hostDocument = workspace.Documents.Single()
 
             Dim spansToAddSimplifierAnnotation = hostDocument.AnnotatedSpans.Where(Function(kvp) kvp.Key.StartsWith("Simplify", StringComparison.Ordinal))
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Return simplifiedDocument
         End Function
 
-        Private Shared Async Function AssertCodeEqual(expected As XElement, simplifiedDocument As Document) As Task
+        Protected Shared Async Function AssertCodeEqual(expected As XElement, simplifiedDocument As Document) As Task
             Dim actualText = (Await simplifiedDocument.GetTextAsync()).ToString()
             Assert.Equal(expected.NormalizedValue.Trim(), actualText.Trim())
         End Function
