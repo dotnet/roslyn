@@ -58,6 +58,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                          explicitSpansToSimplifyWithin As ImmutableArray(Of TextSpan),
                          expected As XElement,
                          options As Dictionary(Of OptionKey, Object)) As System.Threading.Tasks.Task
+            Dim simplifiedDocument As Document = Await Simplify(workspace, listOfLabelToAddSimplifierAnnotationSpans, explicitSpansToSimplifyWithin, options)
+            Await AssertCodeEqual(expected, simplifiedDocument)
+        End Function
+
+        Private Async Function Simplify(workspace As Workspace,
+                         listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, ImmutableArray(Of TextSpan))),
+                         explicitSpansToSimplifyWithin As ImmutableArray(Of TextSpan),
+                         options As Dictionary(Of OptionKey, Object)) As Task(Of Document)
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
 
             Dim root = Await document.GetSyntaxRootAsync()
@@ -115,6 +123,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                 simplifiedDocument = Await Simplifier.ReduceAsync(document, Simplifier.Annotation, optionSet)
             End If
 
+            Return simplifiedDocument
+        End Function
+
+        Private Shared Async Function AssertCodeEqual(expected As XElement, simplifiedDocument As Document) As Task
             Dim actualText = (Await simplifiedDocument.GetTextAsync()).ToString()
             Assert.Equal(expected.NormalizedValue.Trim(), actualText.Trim())
         End Function
