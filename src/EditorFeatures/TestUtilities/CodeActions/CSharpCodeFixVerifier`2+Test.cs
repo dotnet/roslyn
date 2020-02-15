@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
         {
-            private static readonly ImmutableDictionary<string, ReportDiagnostic> NullableWarnings = GetNullableWarningsFromCompiler();
+            private static readonly ImmutableDictionary<string, ReportDiagnostic> s_nullableWarnings = GetNullableWarningsFromCompiler();
 
             public Test()
             {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
                     var compilationOptions = solution.GetProject(projectId).CompilationOptions;
-                    compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(NullableWarnings));
+                    compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(s_nullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
                     var options = solution.Options;
