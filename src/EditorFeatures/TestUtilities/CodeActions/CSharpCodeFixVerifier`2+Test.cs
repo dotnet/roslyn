@@ -19,6 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
         {
+            /// <summary>
+            /// By default, the compiler reports diagnostics for nullable reference types at
+            /// <see cref="DiagnosticSeverity.Warning"/>, and the analyzer test framework defaults to only validating
+            /// diagnostics at <see cref="DiagnosticSeverity.Error"/>. This map contains all compiler diagnostic IDs
+            /// related to nullability mapped to <see cref="ReportDiagnostic.Error"/>, which is then used to enable all
+            /// of these warnings for default validation during analyzer and code fix tests.
+            /// </summary>
             private static readonly ImmutableDictionary<string, ReportDiagnostic> s_nullableWarnings = GetNullableWarningsFromCompiler();
 
             public Test()
@@ -60,8 +67,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return nullableWarnings;
             }
 
+            /// <summary>
+            /// Gets or sets the language version to use for the test. The default value is
+            /// <see cref="LanguageVersion.CSharp8"/>.
+            /// </summary>
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp8;
 
+            /// <summary>
+            /// Gets a collection of options to apply to <see cref="Solution.Options"/> for testing. Values may be added
+            /// using a collection initializer.
+            /// </summary>
             public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.CSharp);
 
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)

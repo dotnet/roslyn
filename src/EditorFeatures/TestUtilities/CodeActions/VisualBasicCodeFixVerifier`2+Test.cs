@@ -38,8 +38,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 });
             }
 
+            /// <summary>
+            /// Gets or sets the language version to use for the test. The default value is
+            /// <see cref="LanguageVersion.VisualBasic16"/>.
+            /// </summary>
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic16;
 
+            /// <summary>
+            /// Gets a collection of options to apply to <see cref="Solution.Options"/> for testing. Values may be added
+            /// using a collection initializer.
+            /// </summary>
             public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
 
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
