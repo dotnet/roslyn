@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 switch (member)
                 {
                     case IMethodSymbol method:
-                        return GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, cancellationToken);
+                        return GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName);
 
                     case IPropertySymbol property:
                         return GenerateProperty(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior, cancellationToken);

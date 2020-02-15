@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -48,17 +49,39 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             var id = GetCodeActionId(abstractClassType.ContainingAssembly.Name, abstractClassType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    c => data.ImplementAbstractClassAsync(c), id),
+                    FeaturesResources.Implement_Abstract_Class,
+                    c => data.ImplementAbstractClassAsync(throughMember: null, c), id),
                 context.Diagnostics);
+
+            foreach (var through in data.GetDelegatableMembers())
+            {
+                id = GetCodeActionId(
+                    abstractClassType.ContainingAssembly.Name,
+                    abstractClassType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                    through.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+                context.RegisterCodeFix(
+                    new MyCodeAction(
+                        string.Format(FeaturesResources.Implement_through_0, GetName(through)),
+                        c => data.ImplementAbstractClassAsync(through, c), id),
+                    context.Diagnostics);
+            }
         }
 
-        private static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName)
-            => FeaturesResources.Implement_Abstract_Class + ";" + assemblyName + ";" + abstractTypeFullyQualifiedName;
+        private static string GetName(ISymbol throughMember)
+            => throughMember switch
+            {
+                IFieldSymbol field => field.Name,
+                IPropertySymbol property => property.Name,
+                _ => throw new InvalidOperationException(),
+            };
+
+        private static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName, string through = "")
+            => FeaturesResources.Implement_Abstract_Class + ";" + assemblyName + ";" + abstractTypeFullyQualifiedName + ";" + through;
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string id)
-                : base(FeaturesResources.Implement_Abstract_Class, createChangedDocument, id)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id)
+                : base(title, createChangedDocument, id)
             {
             }
         }

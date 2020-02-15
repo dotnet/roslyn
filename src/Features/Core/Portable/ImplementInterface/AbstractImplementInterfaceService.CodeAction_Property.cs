@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var getAccessor = GenerateGetAccessor(
                     compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
-                    propertyGenerationBehavior, attributesToRemove, cancellationToken);
+                    propertyGenerationBehavior, attributesToRemove);
 
                 var setAccessor = GenerateSetAccessor(
                     compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
-                    propertyGenerationBehavior, attributesToRemove, cancellationToken);
+                    propertyGenerationBehavior, attributesToRemove);
 
                 var syntaxFacts = Document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 updatedProperty = updatedProperty.RemoveInaccessibleAttributesAndAttributesOfTypes(compilation.Assembly, attributesToRemove);
 
-                // TODO(cyrusn): Delegate through throughMember if it's non-null.
                 return CodeGenerationSymbolFactory.CreatePropertySymbol(
                     updatedProperty,
                     accessibility: accessibility,
@@ -84,8 +83,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool generateAbstractly,
                 bool useExplicitInterfaceSymbol,
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                INamedTypeSymbol[] attributesToRemove,
-                CancellationToken cancellationToken)
+                INamedTypeSymbol[] attributesToRemove)
             {
                 if (property.SetMethod == null)
                 {
@@ -118,8 +116,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool generateAbstractly,
                 bool useExplicitInterfaceSymbol,
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                INamedTypeSymbol[] attributesToRemove,
-                CancellationToken cancellationToken)
+                INamedTypeSymbol[] attributesToRemove)
             {
                 if (property.GetMethod == null)
                 {

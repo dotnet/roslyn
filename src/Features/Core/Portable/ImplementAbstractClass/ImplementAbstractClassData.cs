@@ -4,10 +4,12 @@
 
 #nullable enable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -66,17 +68,17 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             if (data == null)
                 return null;
 
-            return await data.ImplementAbstractClassAsync(cancellationToken).ConfigureAwait(false);
+            return await data.ImplementAbstractClassAsync(throughMember: null, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<Document> ImplementAbstractClassAsync(CancellationToken cancellationToken)
+        public async Task<Document> ImplementAbstractClassAsync(ISymbol? throughMember, CancellationToken cancellationToken)
         {
             var compilation = await _document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var propertyGenerationBehavior = options.GetOption(ImplementTypeOptions.PropertyGenerationBehavior);
 
-            var memberDefinitions = GenerateMembers(compilation, propertyGenerationBehavior, cancellationToken);
+            var memberDefinitions = GenerateMembers(compilation, throughMember, propertyGenerationBehavior, cancellationToken);
 
             var insertionBehavior = options.GetOption(ImplementTypeOptions.InsertionBehavior);
             var groupMembers = insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
@@ -93,19 +95,19 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         }
 
         private ImmutableArray<ISymbol> GenerateMembers(
-            Compilation compilation,
+            Compilation compilation, ISymbol? throughMember,
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
             CancellationToken cancellationToken)
         {
             return _unimplementedMembers
                 .SelectMany(t => t.members)
-                .Select(m => GenerateMember(compilation, m, propertyGenerationBehavior, cancellationToken))
+                .Select(m => GenerateMember(compilation, m, throughMember, propertyGenerationBehavior, cancellationToken))
                 .WhereNotNull()
                 .ToImmutableArray();
         }
 
         private ISymbol? GenerateMember(
-            Compilation compilation, ISymbol member,
+            Compilation compilation, ISymbol member, ISymbol? throughMember,
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
             CancellationToken cancellationToken)
         {
@@ -115,11 +117,11 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
             var addUnsafe = member.IsUnsafe() && !syntaxFacts.IsUnsafeContext(_classNode);
 
-            return GenerateMember(compilation, member, addUnsafe, propertyGenerationBehavior);
+            return GenerateMember(compilation, member, throughMember, addUnsafe, propertyGenerationBehavior);
         }
 
         private ISymbol? GenerateMember(
-            Compilation compilation, ISymbol member, bool addUnsafe,
+            Compilation compilation, ISymbol member, ISymbol? throughMember, bool addUnsafe,
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
         {
             var modifiers = new DeclarationModifiers(isOverride: true, isUnsafe: addUnsafe);
@@ -127,20 +129,22 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 
             return member switch
             {
-                IMethodSymbol method => GenerateMethod(compilation, method, modifiers, accessibility),
-                IPropertySymbol property => GenerateProperty(compilation, property, modifiers, accessibility, propertyGenerationBehavior),
-                IEventSymbol @event => CodeGenerationSymbolFactory.CreateEventSymbol(
-                    @event, accessibility: accessibility, modifiers: modifiers),
+                IMethodSymbol method => GenerateMethod(compilation, method, throughMember, modifiers, accessibility),
+                IPropertySymbol property => GenerateProperty(compilation, property, throughMember, modifiers, accessibility, propertyGenerationBehavior),
+                IEventSymbol @event => GenerateEvent(@event, throughMember, accessibility, modifiers),
                 _ => null,
             };
         }
 
         private ISymbol GenerateMethod(
-            Compilation compilation, IMethodSymbol method, DeclarationModifiers modifiers, Accessibility accessibility)
+            Compilation compilation, IMethodSymbol method, ISymbol? throughMember,
+            DeclarationModifiers modifiers, Accessibility accessibility)
         {
             var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var syntaxFactory = _document.GetRequiredLanguageService<SyntaxGenerator>();
-            var throwingBody = syntaxFactory.CreateThrowNotImplementedStatementBlock(compilation);
+            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+            var body = throughMember == null
+                ? generator.CreateThrowNotImplementedStatement(compilation)
+                : generator.GenerateDelegateThroughMemberStatement(method, throughMember);
 
             method = method.EnsureNonConflictingNames(this.ClassType, syntaxFacts);
 
@@ -148,12 +152,13 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 method,
                 accessibility: accessibility,
                 modifiers: modifiers,
-                statements: throwingBody);
+                statements: ImmutableArray.Create(body));
         }
 
         private IPropertySymbol GenerateProperty(
             Compilation compilation,
             IPropertySymbol property,
+            ISymbol? throughMember,
             DeclarationModifiers modifiers,
             Accessibility accessibility,
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
@@ -164,18 +169,13 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 propertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties;
             }
 
-            var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
-
-            var accessorBody = propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
-                ? default
-                : syntaxFactory.CreateThrowNotImplementedStatementBlock(compilation);
-
             var getMethod = ShouldGenerateAccessor(property.GetMethod)
                 ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     property.GetMethod,
                     attributes: default,
                     accessibility: property.GetMethod.ComputeResultantAccessibility(this.ClassType),
-                    statements: accessorBody)
+                    statements: GetGetAccessorBody(
+                        compilation, property, throughMember, propertyGenerationBehavior))
                 : null;
 
             var setMethod = ShouldGenerateAccessor(property.SetMethod)
@@ -183,7 +183,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     property.SetMethod,
                     attributes: default,
                     accessibility: property.SetMethod.ComputeResultantAccessibility(this.ClassType),
-                    statements: accessorBody)
+                    statements: GetSetAccessorBody(
+                        compilation, property, throughMember, propertyGenerationBehavior))
                 : null;
 
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
@@ -194,7 +195,44 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 setMethod: setMethod);
         }
 
+        private ImmutableArray<SyntaxNode> GetGetAccessorBody(
+            Compilation compilation, IPropertySymbol property, ISymbol? throughMember,
+            ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
+        {
+            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+
+            return throughMember != null
+                ? ImmutableArray.Create(generator.GenerateDelegateThroughMemberStatement(property, throughMember))
+                : propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
+                    ? default
+                    : generator.CreateThrowNotImplementedStatementBlock(compilation);
+        }
+
+        private IEventSymbol GenerateEvent(
+            IEventSymbol @event, Accessibility accessibility, DeclarationModifiers modifiers)
+        {
+            return CodeGenerationSymbolFactory.CreateEventSymbol(
+                    @event, accessibility: accessibility, modifiers: modifiers);
+        }
+
         private bool ShouldGenerateAccessor(IMethodSymbol? method)
             => method != null && this.ClassType.FindImplementationForAbstractMember(method) == null;
+
+        public IEnumerable<ISymbol> GetDelegatableMembers()
+        {
+            var fields = this.ClassType.GetMembers()
+                .OfType<global::Microsoft.CodeAnalysis.IFieldSymbol>()
+                .Where(f => !f.IsImplicitlyDeclared)
+                .Where(f => f.Type.InheritsFromOrEquals(this.ClassType.BaseType!))
+                .OfType<global::Microsoft.CodeAnalysis.ISymbol>();
+
+            var properties = this.ClassType.GetMembers()
+                .OfType<global::Microsoft.CodeAnalysis.IPropertySymbol>()
+                .Where(p => !p.IsImplicitlyDeclared && p.Parameters.Length == 0)
+                .Where(p => p.Type.InheritsFromOrEquals(this.ClassType.BaseType!))
+                .OfType<global::Microsoft.CodeAnalysis.ISymbol>();
+
+            return fields.Concat<global::Microsoft.CodeAnalysis.ISymbol>((global::System.Collections.Generic.IEnumerable<global::Microsoft.CodeAnalysis.ISymbol>)properties);
+        }
     }
 }

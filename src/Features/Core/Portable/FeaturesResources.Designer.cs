@@ -2103,6 +2103,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement through {0}.
+        /// </summary>
+        internal static string Implement_through_0 {
+            get {
+                return ResourceManager.GetString("Implement_through_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to in.
         /// </summary>
         internal static string in_ {
