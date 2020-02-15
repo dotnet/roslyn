@@ -644,6 +644,56 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static ImmutableArray<SyntaxNode> GetGetAccessorStatements(
+            this SyntaxGenerator generator, Compilation compilation,
+            IPropertySymbol property, ISymbol throughMember, bool preferAutoProperties)
+        {
+            if (throughMember != null)
+            {
+                var throughExpression = CreateThroughExpression(generator, property, throughMember);
+                var expression = property.IsIndexer
+                    ? throughExpression
+                    : generator.MemberAccessExpression(
+                        throughExpression, generator.IdentifierName(property.Name));
 
+                if (property.Parameters.Length > 0)
+                {
+                    var arguments = generator.CreateArguments(property.Parameters.As<IParameterSymbol>());
+                    expression = generator.ElementAccessExpression(expression, arguments);
+                }
+
+                return ImmutableArray.Create(generator.ReturnStatement(expression));
+            }
+
+            return preferAutoProperties ? default : generator.CreateThrowNotImplementedStatementBlock(compilation);
+        }
+
+        public static ImmutableArray<SyntaxNode> GetSetAccessorStatements(
+            this SyntaxGenerator generator, Compilation compilation,
+            IPropertySymbol property, ISymbol throughMember, bool preferAutoProperties)
+        {
+            if (throughMember != null)
+            {
+                var throughExpression = CreateThroughExpression(generator, property, throughMember);
+                var expression = property.IsIndexer
+                    ? throughExpression
+                    : generator.MemberAccessExpression(
+                        throughExpression, generator.IdentifierName(property.Name));
+
+                if (property.Parameters.Length > 0)
+                {
+                    var arguments = generator.CreateArguments(property.Parameters.As<IParameterSymbol>());
+                    expression = generator.ElementAccessExpression(expression, arguments);
+                }
+
+                expression = generator.AssignmentStatement(expression, generator.IdentifierName("value"));
+
+                return ImmutableArray.Create(generator.ExpressionStatement(expression));
+            }
+
+            return preferAutoProperties
+                ? default
+                : generator.CreateThrowNotImplementedStatementBlock(compilation);
+        }
     }
 }

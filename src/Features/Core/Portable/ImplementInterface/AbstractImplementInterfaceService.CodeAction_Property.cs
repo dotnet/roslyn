@@ -143,40 +143,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 if (generateAbstractly)
-                {
                     return default;
-                }
 
-                var factory = Document.Project.LanguageServices.GetRequiredService<SyntaxGenerator>();
-                if (ThroughMember != null)
-                {
-                    var throughExpression = CreateThroughExpression(factory);
-                    SyntaxNode expression;
-
-                    if (property.IsIndexer)
-                    {
-                        expression = throughExpression;
-                    }
-                    else
-                    {
-                        expression = factory.MemberAccessExpression(
-                                                throughExpression, factory.IdentifierName(property.Name));
-                    }
-
-                    if (property.Parameters.Length > 0)
-                    {
-                        var arguments = factory.CreateArguments(property.Parameters.As<IParameterSymbol>());
-                        expression = factory.ElementAccessExpression(expression, arguments);
-                    }
-
-                    expression = factory.AssignmentStatement(expression, factory.IdentifierName("value"));
-
-                    return ImmutableArray.Create(factory.ExpressionStatement(expression));
-                }
-
-                return propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
-                    ? default
-                    : factory.CreateThrowNotImplementedStatementBlock(compilation);
+                var generator = Document.GetRequiredLanguageService<SyntaxGenerator>();
+                return generator.GetSetAccessorStatements(compilation, property, this.ThroughMember,
+                    propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties);
             }
 
             private ImmutableArray<SyntaxNode> GetGetAccessorStatements(
@@ -186,38 +157,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 if (generateAbstractly)
-                {
                     return default;
-                }
 
-                var factory = Document.Project.LanguageServices.GetRequiredService<SyntaxGenerator>();
-                if (ThroughMember != null)
-                {
-                    var throughExpression = CreateThroughExpression(factory);
-                    SyntaxNode expression;
-
-                    if (property.IsIndexer)
-                    {
-                        expression = throughExpression;
-                    }
-                    else
-                    {
-                        expression = factory.MemberAccessExpression(
-                                                throughExpression, factory.IdentifierName(property.Name));
-                    }
-
-                    if (property.Parameters.Length > 0)
-                    {
-                        var arguments = factory.CreateArguments(property.Parameters.As<IParameterSymbol>());
-                        expression = factory.ElementAccessExpression(expression, arguments);
-                    }
-
-                    return ImmutableArray.Create(factory.ReturnStatement(expression));
-                }
-
-                return propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
-                    ? default
-                    : factory.CreateThrowNotImplementedStatementBlock(compilation);
+                var generator = Document.Project.LanguageServices.GetRequiredService<SyntaxGenerator>();
+                return generator.GetGetAccessorStatements(compilation, property, ThroughMember,
+                    propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties);
             }
         }
     }

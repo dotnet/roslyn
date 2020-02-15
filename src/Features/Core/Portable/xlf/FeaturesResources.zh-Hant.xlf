@@ -307,6 +307,11 @@
         <target state="translated">隱含實作</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through {0}</source>
+        <target state="new">Implement through {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">將所有引數縮排</target>

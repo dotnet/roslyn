@@ -307,6 +307,11 @@
         <target state="translated">Implémenter implicitement</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through {0}</source>
+        <target state="new">Implement through {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">Mettre en retrait tous les arguments</target>

@@ -169,13 +169,16 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 propertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties;
             }
 
+            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+            var preferAutoProperties = propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties;
+
             var getMethod = ShouldGenerateAccessor(property.GetMethod)
                 ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     property.GetMethod,
                     attributes: default,
                     accessibility: property.GetMethod.ComputeResultantAccessibility(this.ClassType),
-                    statements: GetGetAccessorBody(
-                        compilation, property, throughMember, propertyGenerationBehavior))
+                    statements: generator.GetGetAccessorStatements(
+                        compilation, property, throughMember, preferAutoProperties))
                 : null;
 
             var setMethod = ShouldGenerateAccessor(property.SetMethod)
@@ -183,8 +186,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     property.SetMethod,
                     attributes: default,
                     accessibility: property.SetMethod.ComputeResultantAccessibility(this.ClassType),
-                    statements: GetSetAccessorBody(
-                        compilation, property, throughMember, propertyGenerationBehavior))
+                    statements: generator.GetGetAccessorStatements(
+                        compilation, property, throughMember, preferAutoProperties))
                 : null;
 
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
@@ -195,21 +198,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 setMethod: setMethod);
         }
 
-        private ImmutableArray<SyntaxNode> GetGetAccessorBody(
-            Compilation compilation, IPropertySymbol property, ISymbol? throughMember,
-            ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
-        {
-            var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
-
-            return throughMember != null
-                ? ImmutableArray.Create(generator.GenerateDelegateThroughMemberStatement(property, throughMember))
-                : propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
-                    ? default
-                    : generator.CreateThrowNotImplementedStatementBlock(compilation);
-        }
-
         private IEventSymbol GenerateEvent(
-            IEventSymbol @event, Accessibility accessibility, DeclarationModifiers modifiers)
+            IEventSymbol @event, ISymbol? throughMember, Accessibility accessibility, DeclarationModifiers modifiers)
         {
             return CodeGenerationSymbolFactory.CreateEventSymbol(
                     @event, accessibility: accessibility, modifiers: modifiers);

@@ -307,6 +307,11 @@
         <target state="translated">Implementa in modo implicito</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through {0}</source>
+        <target state="new">Implement through {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">Imposta rientro per tutti gli argomenti</target>
