@@ -322,6 +322,11 @@
         <target state="translated">'{0}': using deyiminde kullanılan tür örtük olarak 'System.IDisposable' arabirimine dönüştürülebilir olmalıdır. 'using' yerine 'await using' mi kullanmak istediniz?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoOutputDirectory">
+        <source>Output directory could not be determined</source>
+        <target state="new">Output directory could not be determined</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
         <target state="translated">'notnull' kısıtlaması diğer kısıtlamalardan önce gelmelidir</target>
