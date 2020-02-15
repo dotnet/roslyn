@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             goto default;
 
                         default:
-                            var memberOrStatement = this.ParseMemberDeclarationOrStatement(parentKind);
+                            var memberOrStatement = isGlobal ? this.ParseMemberDeclarationOrStatement(parentKind) : this.ParseMemberDeclaration(parentKind);
                             if (memberOrStatement == null)
                             {
                                 // incomplete members must be processed before we add any nodes to the body:
@@ -1443,7 +1443,7 @@ tryAgain:
                             var saveTerm2 = _termState;
                             _termState |= TerminatorState.IsPossibleMemberStartOrStop;
 
-                            var memberOrStatement = this.ParseMemberDeclarationOrStatement(classOrStructOrInterface.Kind);
+                            var memberOrStatement = this.ParseMemberDeclaration(classOrStructOrInterface.Kind);
                             if (memberOrStatement != null)
                             {
                                 // statements are accepted here, a semantic error will be reported later
@@ -1932,7 +1932,7 @@ tryAgain:
             // e.g. including fixed member declarations, but not statements.
             const SyntaxKind parentKind = SyntaxKind.StructDeclaration;
             return ParseWithStackGuard(
-                () => this.ParseMemberDeclarationOrStatement(parentKind),
+                () => this.ParseMemberDeclaration(parentKind),
                 () => createEmptyNodeFunc());
 
             // Creates a dummy declaration node to which we can attach a stack overflow message
@@ -1956,20 +1956,24 @@ tryAgain:
             return result;
         }
 
-        // Returns null if we can't parse anything (even partially).
+        /// <summary>
+        /// Changes in this function around member parsing should be mirrored in <see cref="ParseMemberDeclarationCore"/>.
+        /// Try keeping structure of both functions similar to simplify this task. The split was made to 
+        /// reduce the stack usage during recursive parsing.
+        /// </summary>
+        /// <returns>Returns null if we can't parse anything (even partially).</returns>
         private MemberDeclarationSyntax ParseMemberDeclarationOrStatementCore(SyntaxKind parentKind)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
+            Debug.Assert(parentKind == SyntaxKind.CompilationUnit);
 
             cancellationToken.ThrowIfCancellationRequested();
-
-            bool isGlobal = parentKind == SyntaxKind.CompilationUnit;
 
             // don't reuse members if they were previously declared under a different type keyword kind
             if (this.IsIncrementalAndFactoryContextMatches)
             {
-                if (CanReuseMemberDeclaration(CurrentNodeKind, isGlobal))
+                if (CanReuseMemberDeclaration(CurrentNodeKind, isGlobal: true))
                 {
                     return (MemberDeclarationSyntax)this.EatNode();
                 }
@@ -1979,7 +1983,6 @@ tryAgain:
 
             var saveTermState = _termState;
             var startPoint = this.GetResetPoint();
-            GlobalStatementSyntax globalStatement;
 
             try
             {
@@ -1999,13 +2002,52 @@ tryAgain:
                 // new T (...)
                 // new T [...]
                 //
-                if (isGlobal && !haveAttributes)
+                if (!haveAttributes)
                 {
-                    globalStatement = TryParseSomeTopLevelStatements();
-
-                    if (globalStatement is object)
+                    bool wasInAsync = IsInAsync;
+                    if (!IsScript)
                     {
-                        return globalStatement;
+                        IsInAsync = true; // We are implicitly in an async context
+                    }
+
+                    try
+                    {
+                        switch (this.CurrentToken.Kind)
+                        {
+                            case SyntaxKind.UnsafeKeyword:
+                                if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+                                {
+                                    return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseUnsafeStatement()));
+                                }
+                                break;
+
+                            case SyntaxKind.FixedKeyword:
+                                if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+                                {
+                                    return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseFixedStatement()));
+                                }
+                                break;
+
+                            case SyntaxKind.DelegateKeyword:
+                                switch (this.PeekToken(1).Kind)
+                                {
+                                    case SyntaxKind.OpenParenToken:
+                                    case SyntaxKind.OpenBraceToken:
+                                        return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement()));
+                                }
+                                break;
+
+                            case SyntaxKind.NewKeyword:
+                                if (IsPossibleNewExpression())
+                                {
+                                    return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement()));
+                                }
+                                break;
+                        }
+                    }
+                    finally
+                    {
+                        IsInAsync = wasInAsync;
                     }
                 }
 
@@ -2023,14 +2065,9 @@ tryAgain:
                     // Script(...) { ... } 
                     //            ^
                     //            missing ';'
-                    if (!isGlobal)
-                    {
-                        return this.ParseConstructorDeclaration(attributes, modifiers);
-                    }
-
-                    // Script: 
+                    //
                     // Unless there modifiers or attributes are present this is more likely to be a method call than a method definition.
-                    if (!isGlobal || haveAttributes || haveModifiers)
+                    if (haveAttributes || haveModifiers)
                     {
                         var token = SyntaxFactory.MissingToken(SyntaxKind.VoidKeyword);
                         token = this.AddError(token, ErrorCode.ERR_MemberNeedsType);
@@ -2043,23 +2080,18 @@ tryAgain:
                     }
                 }
 
-                // Check for destructor form
+                // Destructors are disallowed in global code, skipping check for them.
                 // TODO: better error messages for script
-                if (!isGlobal && this.CurrentToken.Kind == SyntaxKind.TildeToken)
-                {
-                    return this.ParseDestructorDeclaration(attributes, modifiers);
-                }
+
+                MemberDeclarationSyntax result;
 
                 // Check for constant
                 if (this.CurrentToken.Kind == SyntaxKind.ConstKeyword)
                 {
-                    if (isGlobal && !haveAttributes && !IsScript)
+                    if (!haveAttributes && !IsScript &&
+                        tryParseLocalDeclarationStatementFromStartPoint<LocalDeclarationStatementSyntax>(ref startPoint, out result))
                     {
-                        globalStatement = TryParseTopLevelLocalDeclarationStatementFromStartPoint<LocalDeclarationStatementSyntax>(ref startPoint);
-                        if (globalStatement is object)
-                        {
-                            return globalStatement;
-                        }
+                        return result;
                     }
 
                     // Prefers const field over const local variable decl
@@ -2086,8 +2118,7 @@ tryAgain:
                     return this.ParseConversionOperatorDeclaration(attributes, modifiers);
                 }
 
-                if (this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword &&
-                    parentKind == SyntaxKind.CompilationUnit)
+                if (this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword)
                 {
                     return ParseNamespaceDeclaration(attributes, modifiers);
                 }
@@ -2104,9 +2135,7 @@ tryAgain:
 
                 try
                 {
-                    var sawRef = type.Kind == SyntaxKind.RefType;
-
-                    if (isGlobal && !haveAttributes && !haveModifiers && (sawRef || !IsOperatorKeyword()))
+                    if (!haveAttributes && !haveModifiers && (type.Kind == SyntaxKind.RefType || !IsOperatorKeyword()))
                     {
                         this.Reset(ref startPoint);
 
@@ -2114,10 +2143,23 @@ tryAgain:
                             this.CurrentToken.Kind != SyntaxKind.EndOfFileToken &&
                             this.IsPossibleStatement(acceptAccessibilityMods: true))
                         {
-                            globalStatement = TryParseTopLevelStatementNoDeclaration();
-                            if (globalStatement is object)
+                            var saveTerm = _termState;
+                            _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
+                            bool wasInAsync = IsInAsync;
+                            if (!IsScript)
                             {
-                                return globalStatement;
+                                IsInAsync = true; // We are implicitly in an async context
+                            }
+
+                            // Any expression is allowed in a Script, not just expression statements:
+                            var statement = this.ParseStatementNoDeclaration(allowAnyExpression: IsScript);
+
+                            IsInAsync = wasInAsync;
+                            _termState = saveTerm;
+
+                            if (statement != null)
+                            {
+                                return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
                             }
                         }
 
@@ -2130,26 +2172,15 @@ tryAgain:
 
                     // Check for misplaced modifiers.  if we see any, then consider this member
                     // terminated and restart parsing.
-                    if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
-                        this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
-                        this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
-                        IsComplete(type))
+                    if (IsMisplacedModifier(modifiers, attributes, type, out result))
                     {
-                        var misplacedModifier = this.CurrentToken;
-                        type = this.AddError(
-                            type,
-                            type.FullWidth + misplacedModifier.GetLeadingTriviaWidth(),
-                            misplacedModifier.Width,
-                            ErrorCode.ERR_BadModifierLocation,
-                            misplacedModifier.Text);
-
-                        return _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type);
+                        return result;
                     }
 
 parse_member_name:;
                     // If we've seen the ref keyword, we know we must have an indexer, method, or property.
                     // PROTOTYPE(SimplePrograms): Support ref locals
-                    if (!sawRef)
+                    if (type.Kind != SyntaxKind.RefType)
                     {
                         // Check here for operators
                         // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
@@ -2160,7 +2191,7 @@ parse_member_name:;
 
                         if (IsFieldDeclaration(isEvent: false))
                         {
-                            if (isGlobal && !haveAttributes && !(haveModifiers && IsScript))
+                            if (!haveAttributes && !(haveModifiers && IsScript))
                             {
                                 // if we are script at top-level then statements can occur
                                 _termState |= TerminatorState.IsPossibleStatementStartOrStop;
@@ -2168,10 +2199,9 @@ parse_member_name:;
                                 if (!IsScript)
                                 {
                                     this.Reset(ref startPoint);
-                                    globalStatement = TryParseTopLevelLocalDeclarationStatement<LocalDeclarationStatementSyntax>();
-                                    if (globalStatement is object)
+                                    if (tryParseLocalDeclarationStatement<LocalDeclarationStatementSyntax>(out result))
                                     {
-                                        return globalStatement;
+                                        return result;
                                     }
 
                                     this.Reset(ref afterTypeResetPoint);
@@ -2192,34 +2222,9 @@ parse_member_name:;
 
                     // First, check if we got absolutely nothing.  If so, then 
                     // We need to consume a bad member and try again.
-                    if (explicitInterfaceOpt == null && identifierOrThisOpt == null && typeParameterListOpt == null)
+                    if (IsNoneOrIncompleteMember(parentKind, attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
-                        if (attributes.Count == 0 && modifiers.Count == 0 && type.IsMissing && !sawRef)
-                        {
-                            // we haven't advanced, the caller needs to consume the tokens ahead
-                            return null;
-                        }
-
-                        var incompleteMember = _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type.IsMissing ? null : type);
-                        if (incompleteMember.ContainsDiagnostics)
-                        {
-                            return incompleteMember;
-                        }
-                        else if (parentKind == SyntaxKind.NamespaceDeclaration ||
-                                 parentKind == SyntaxKind.CompilationUnit && !IsScript)
-                        {
-                            return this.AddErrorToLastToken(incompleteMember, ErrorCode.ERR_NamespaceUnexpected);
-                        }
-                        else
-                        {
-                            //the error position should indicate CurrentToken
-                            return this.AddError(
-                                incompleteMember,
-                                incompleteMember.FullWidth + this.CurrentToken.GetLeadingTriviaWidth(),
-                                this.CurrentToken.Width,
-                                ErrorCode.ERR_InvalidMemberDecl,
-                                this.CurrentToken.Text);
-                        }
+                        return result;
                     }
 
                     // If the modifiers did not include "async", and the type we got was "async", and there was an
@@ -2230,17 +2235,8 @@ parse_member_name:;
                     // For example, if we get
                     //     async Task<
                     // then we want async to be a modifier and Task<MISSING> to be a type.
-                    if (!sawRef &&
-                        identifierOrThisOpt != null &&
-                        (typeParameterListOpt != null && typeParameterListOpt.ContainsDiagnostics
-                          || this.CurrentToken.Kind != SyntaxKind.OpenParenToken && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken && this.CurrentToken.Kind != SyntaxKind.EqualsGreaterThanToken) &&
-                        ReconsiderTypeAsAsyncModifier(ref modifiers, type, identifierOrThisOpt))
+                    if (ReconsideredTypeAsAsyncModifier(ref modifiers, ref type, ref afterTypeResetPoint, ref explicitInterfaceOpt, ref identifierOrThisOpt, ref typeParameterListOpt))
                     {
-                        this.Reset(ref afterTypeResetPoint);
-                        explicitInterfaceOpt = null;
-                        identifierOrThisOpt = default;
-                        typeParameterListOpt = null;
-                        type = ParseReturnType();
                         goto parse_member_name;
                     }
 
@@ -2249,34 +2245,21 @@ parse_member_name:;
                     // check availability of readonly members feature for indexers, properties and methods
                     CheckForVersionSpecificModifiers(modifiers, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
 
-                    if (identifierOrThisOpt.Kind == SyntaxKind.ThisKeyword)
+                    if (TryParseIndexerOrPropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
-                        return this.ParseIndexerDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
+                        return result;
                     }
-                    else
+
+                    // treat anything else as a method.
+
+                    // PROTOTYPE(SimplePrograms): Allow attributes on local functions
+                    if (!IsScript && !haveAttributes && explicitInterfaceOpt is null &&
+                        tryParseLocalDeclarationStatementFromStartPoint<LocalFunctionStatementSyntax>(ref startPoint, out result))
                     {
-                        switch (this.CurrentToken.Kind)
-                        {
-                            case SyntaxKind.OpenBraceToken:
-                            case SyntaxKind.EqualsGreaterThanToken:
-                                return this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
-
-                            default:
-                                // treat anything else as a method.
-
-                                // PROTOTYPE(SimplePrograms): Allow attributes on local functions
-                                if (isGlobal && !IsScript && !haveAttributes && explicitInterfaceOpt is null)
-                                {
-                                    globalStatement = TryParseTopLevelLocalDeclarationStatementFromStartPoint<LocalFunctionStatementSyntax>(ref startPoint);
-                                    if (globalStatement is object)
-                                    {
-                                        return globalStatement;
-                                    }
-                                }
-
-                                return this.ParseMethodDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
-                        }
+                        return result;
                     }
+
+                    return this.ParseMethodDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
                 }
                 finally
                 {
@@ -2289,120 +2272,332 @@ parse_member_name:;
                 _termState = saveTermState;
                 this.Release(ref startPoint);
             }
-        }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private GlobalStatementSyntax TryParseTopLevelLocalDeclarationStatement<DeclarationSyntax>() where DeclarationSyntax : StatementSyntax
-        {
-            bool wasInAsync = IsInAsync;
-            IsInAsync = true;  // We are implicitly in an async context
-            int lastTokenPosition = -1;
-            IsMakingProgress(ref lastTokenPosition);
-
-            var topLevelStatement = ParseLocalDeclarationStatement();
-            IsInAsync = wasInAsync;
-
-            if (topLevelStatement is DeclarationSyntax declaration && IsMakingProgress(ref lastTokenPosition, assertIfFalse: false))
+            bool tryParseLocalDeclarationStatement<DeclarationSyntax>(out MemberDeclarationSyntax result) where DeclarationSyntax : StatementSyntax
             {
-                return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(declaration));
-            }
+                bool wasInAsync = IsInAsync;
+                IsInAsync = true; // We are implicitly in an async context
+                int lastTokenPosition = -1;
+                IsMakingProgress(ref lastTokenPosition);
 
-            return null;
-        }
+                var topLevelStatement = ParseLocalDeclarationStatement();
+                IsInAsync = wasInAsync;
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private GlobalStatementSyntax TryParseTopLevelLocalDeclarationStatementFromStartPoint<DeclarationSyntax>(ref ResetPoint startPoint) where DeclarationSyntax : StatementSyntax
-        {
-            var resetOnFailurePoint = this.GetResetPoint();
-            try
-            {
-                this.Reset(ref startPoint);
-                var globalStatement = TryParseTopLevelLocalDeclarationStatement<DeclarationSyntax>();
-                if (globalStatement is object)
+                if (topLevelStatement is DeclarationSyntax declaration && IsMakingProgress(ref lastTokenPosition, assertIfFalse: false))
                 {
-                    return globalStatement;
+                    result = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(declaration));
+                    return true;
                 }
 
-                this.Reset(ref resetOnFailurePoint);
-                return null;
+                result = null;
+                return false;
+            }
+
+            bool tryParseLocalDeclarationStatementFromStartPoint<DeclarationSyntax>(ref ResetPoint startPoint, out MemberDeclarationSyntax result) where DeclarationSyntax : StatementSyntax
+            {
+                var resetOnFailurePoint = this.GetResetPoint();
+                try
+                {
+                    this.Reset(ref startPoint);
+
+                    if (tryParseLocalDeclarationStatement<DeclarationSyntax>(out result))
+                    {
+                        return true;
+                    }
+
+                    this.Reset(ref resetOnFailurePoint);
+                    return false;
+                }
+                finally
+                {
+                    this.Release(ref resetOnFailurePoint);
+                }
+            }
+        }
+
+        private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
+        {
+            if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
+                this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
+                this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
+                IsComplete(type))
+            {
+                var misplacedModifier = this.CurrentToken;
+                type = this.AddError(
+                    type,
+                    type.FullWidth + misplacedModifier.GetLeadingTriviaWidth(),
+                    misplacedModifier.Width,
+                    ErrorCode.ERR_BadModifierLocation,
+                    misplacedModifier.Text);
+
+                result = _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type);
+                return true;
+            }
+
+            result = null;
+            return false;
+        }
+
+        private bool IsNoneOrIncompleteMember(SyntaxKind parentKind, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, TypeSyntax type,
+                                              ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt, SyntaxToken identifierOrThisOpt, TypeParameterListSyntax typeParameterListOpt,
+                                              out MemberDeclarationSyntax result)
+        {
+            if (explicitInterfaceOpt == null && identifierOrThisOpt == null && typeParameterListOpt == null)
+            {
+                if (attributes.Count == 0 && modifiers.Count == 0 && type.IsMissing && type.Kind != SyntaxKind.RefType)
+                {
+                    // we haven't advanced, the caller needs to consume the tokens ahead
+                    result = null;
+                    return true;
+                }
+
+                var incompleteMember = _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type.IsMissing ? null : type);
+                if (incompleteMember.ContainsDiagnostics)
+                {
+                    result = incompleteMember;
+                }
+                else if (parentKind == SyntaxKind.NamespaceDeclaration ||
+                         parentKind == SyntaxKind.CompilationUnit && !IsScript)
+                {
+                    result = this.AddErrorToLastToken(incompleteMember, ErrorCode.ERR_NamespaceUnexpected);
+                }
+                else
+                {
+                    //the error position should indicate CurrentToken
+                    result = this.AddError(
+                        incompleteMember,
+                        incompleteMember.FullWidth + this.CurrentToken.GetLeadingTriviaWidth(),
+                        this.CurrentToken.Width,
+                        ErrorCode.ERR_InvalidMemberDecl,
+                        this.CurrentToken.Text);
+                }
+
+                return true;
+            }
+
+            result = null;
+            return false;
+        }
+
+        private bool ReconsideredTypeAsAsyncModifier(ref SyntaxListBuilder modifiers, ref TypeSyntax type, ref ResetPoint afterTypeResetPoint,
+                                                     ref ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt, ref SyntaxToken identifierOrThisOpt,
+                                                     ref TypeParameterListSyntax typeParameterListOpt)
+        {
+            if (type.Kind != SyntaxKind.RefType &&
+                identifierOrThisOpt != null &&
+                (typeParameterListOpt != null && typeParameterListOpt.ContainsDiagnostics
+                  || this.CurrentToken.Kind != SyntaxKind.OpenParenToken && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken && this.CurrentToken.Kind != SyntaxKind.EqualsGreaterThanToken) &&
+                ReconsiderTypeAsAsyncModifier(ref modifiers, type, identifierOrThisOpt))
+            {
+                this.Reset(ref afterTypeResetPoint);
+                explicitInterfaceOpt = null;
+                identifierOrThisOpt = default;
+                typeParameterListOpt = null;
+                this.Release(ref afterTypeResetPoint);
+                type = ParseReturnType();
+                afterTypeResetPoint = this.GetResetPoint();
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryParseIndexerOrPropertyDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, TypeSyntax type,
+                                                          ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt, SyntaxToken identifierOrThisOpt,
+                                                          TypeParameterListSyntax typeParameterListOpt, out MemberDeclarationSyntax result)
+        {
+            if (identifierOrThisOpt.Kind == SyntaxKind.ThisKeyword)
+            {
+                result = this.ParseIndexerDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
+                return true;
+            }
+
+            switch (this.CurrentToken.Kind)
+            {
+                case SyntaxKind.OpenBraceToken:
+                case SyntaxKind.EqualsGreaterThanToken:
+                    result = this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
+                    return true;
+            }
+
+            result = null;
+            return false;
+        }
+
+        // Returns null if we can't parse anything (even partially).
+        internal MemberDeclarationSyntax ParseMemberDeclaration(SyntaxKind parentKind)
+        {
+            _recursionDepth++;
+            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+            var result = ParseMemberDeclarationCore(parentKind);
+            _recursionDepth--;
+            return result;
+        }
+
+        /// <summary>
+        /// Changes in this function should be mirrored in <see cref="ParseMemberDeclarationOrStatementCore"/>.
+        /// Try keeping structure of both functions similar to simplify this task. The split was made to 
+        /// reduce the stack usage during recursive parsing.
+        /// </summary>
+        /// <returns>Returns null if we can't parse anything (even partially).</returns>
+        private MemberDeclarationSyntax ParseMemberDeclarationCore(SyntaxKind parentKind)
+        {
+            // "top-level" expressions and statements should never occur inside an asynchronous context
+            Debug.Assert(!IsInAsync);
+            Debug.Assert(parentKind != SyntaxKind.CompilationUnit);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // don't reuse members if they were previously declared under a different type keyword kind
+            if (this.IsIncrementalAndFactoryContextMatches)
+            {
+                if (CanReuseMemberDeclaration(CurrentNodeKind, isGlobal: false))
+                {
+                    return (MemberDeclarationSyntax)this.EatNode();
+                }
+            }
+
+            var modifiers = _pool.Allocate();
+
+            var saveTermState = _termState;
+
+            try
+            {
+                var attributes = this.ParseAttributeDeclarations();
+
+                this.ParseModifiers(modifiers, forAccessors: false);
+
+                // Check for constructor form
+                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+                {
+                    return this.ParseConstructorDeclaration(attributes, modifiers);
+                }
+
+                // Check for destructor form
+                if (this.CurrentToken.Kind == SyntaxKind.TildeToken)
+                {
+                    return this.ParseDestructorDeclaration(attributes, modifiers);
+                }
+
+                // Check for constant
+                if (this.CurrentToken.Kind == SyntaxKind.ConstKeyword)
+                {
+                    return this.ParseConstantFieldDeclaration(attributes, modifiers, parentKind);
+                }
+
+                // Check for event.
+                if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
+                {
+                    return this.ParseEventDeclaration(attributes, modifiers, parentKind);
+                }
+
+                // check for fixed size buffers.
+                if (this.CurrentToken.Kind == SyntaxKind.FixedKeyword)
+                {
+                    return this.ParseFixedSizeBufferDeclaration(attributes, modifiers, parentKind);
+                }
+
+                // Check for conversion operators (implicit/explicit)
+                if (this.CurrentToken.Kind == SyntaxKind.ExplicitKeyword ||
+                    this.CurrentToken.Kind == SyntaxKind.ImplicitKeyword ||
+                        (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword && !SyntaxFacts.IsAnyOverloadableOperator(this.PeekToken(1).Kind)))
+                {
+                    return this.ParseConversionOperatorDeclaration(attributes, modifiers);
+                }
+
+                // Namespaces should be handled by the caller, not checking for them
+
+                // It's valid to have a type declaration here -- check for those
+                if (IsTypeDeclarationStart())
+                {
+                    return this.ParseTypeDeclaration(attributes, modifiers);
+                }
+
+                // Everything that's left -- methods, fields, properties, 
+                // indexers, and non-conversion operators -- starts with a type 
+                // (possibly void).
+                TypeSyntax type = ParseReturnType();
+
+                var afterTypeResetPoint = this.GetResetPoint();
+
+                try
+                {
+                    // Check for misplaced modifiers.  if we see any, then consider this member
+                    // terminated and restart parsing.
+                    MemberDeclarationSyntax result;
+                    if (IsMisplacedModifier(modifiers, attributes, type, out result))
+                    {
+                        return result;
+                    }
+
+parse_member_name:;
+                    // If we've seen the ref keyword, we know we must have an indexer, method, or property.
+                    if (type.Kind != SyntaxKind.RefType)
+                    {
+                        // Check here for operators
+                        // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
+                        if (IsOperatorKeyword())
+                        {
+                            return this.ParseOperatorDeclaration(attributes, modifiers, type);
+                        }
+
+                        if (IsFieldDeclaration(isEvent: false))
+                        {
+                            return this.ParseNormalFieldDeclaration(attributes, modifiers, type, parentKind);
+                        }
+                    }
+
+                    // At this point we can either have indexers, methods, or 
+                    // properties (or something unknown).  Try to break apart
+                    // the following name and determine what to do from there.
+                    ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
+                    SyntaxToken identifierOrThisOpt;
+                    TypeParameterListSyntax typeParameterListOpt;
+                    this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, isEvent: false);
+
+                    // First, check if we got absolutely nothing.  If so, then 
+                    // We need to consume a bad member and try again.
+                    if (IsNoneOrIncompleteMember(parentKind, attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
+                    {
+                        return result;
+                    }
+
+                    // If the modifiers did not include "async", and the type we got was "async", and there was an
+                    // error in the identifier or its type parameters, then the user is probably in the midst of typing
+                    // an async method.  In that case we reconsider "async" to be a modifier, and treat the identifier
+                    // (with the type parameters) as the type (with type arguments).  Then we go back to looking for
+                    // the member name again.
+                    // For example, if we get
+                    //     async Task<
+                    // then we want async to be a modifier and Task<MISSING> to be a type.
+                    if (ReconsideredTypeAsAsyncModifier(ref modifiers, ref type, ref afterTypeResetPoint, ref explicitInterfaceOpt, ref identifierOrThisOpt, ref typeParameterListOpt))
+                    {
+                        goto parse_member_name;
+                    }
+
+                    Debug.Assert(identifierOrThisOpt != null);
+
+                    // check availability of readonly members feature for indexers, properties and methods
+                    CheckForVersionSpecificModifiers(modifiers, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
+
+                    if (TryParseIndexerOrPropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
+                    {
+                        return result;
+                    }
+
+                    // treat anything else as a method.
+                    return this.ParseMethodDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
+                }
+                finally
+                {
+                    this.Release(ref afterTypeResetPoint);
+                }
             }
             finally
             {
-                this.Release(ref resetOnFailurePoint);
+                _pool.Free(modifiers);
+                _termState = saveTermState;
             }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private GlobalStatementSyntax TryParseSomeTopLevelStatements()
-        {
-            bool wasInAsync = IsInAsync;
-            if (!IsScript)
-            {
-                IsInAsync = true; // We are implicitly in an async context
-            }
-
-            GlobalStatementSyntax topLevel = null;
-            switch (this.CurrentToken.Kind)
-            {
-                case SyntaxKind.UnsafeKeyword:
-                    if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
-                    {
-                        topLevel = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseUnsafeStatement()));
-                    }
-                    break;
-
-                case SyntaxKind.FixedKeyword:
-                    if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
-                    {
-                        topLevel = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseFixedStatement()));
-                    }
-                    break;
-
-                case SyntaxKind.DelegateKeyword:
-                    switch (this.PeekToken(1).Kind)
-                    {
-                        case SyntaxKind.OpenParenToken:
-                        case SyntaxKind.OpenBraceToken:
-                            topLevel = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement()));
-                            break;
-                    }
-                    break;
-
-                case SyntaxKind.NewKeyword:
-                    if (IsPossibleNewExpression())
-                    {
-                        topLevel = CheckFeatureAvailability(_syntaxFactory.GlobalStatement(ParseExpressionStatement()));
-                    }
-                    break;
-            }
-
-            IsInAsync = wasInAsync;
-            return topLevel;
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private GlobalStatementSyntax TryParseTopLevelStatementNoDeclaration()
-        {
-            var saveTerm = _termState;
-            _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
-            bool wasInAsync = IsInAsync;
-            if (!IsScript)
-            {
-                IsInAsync = true; // We are implicitly in an async context
-            }
-
-            // Any expression is allowed in a Script, not just expression statements:
-            var statement = this.ParseStatementNoDeclaration(allowAnyExpression: IsScript);
-
-            IsInAsync = wasInAsync;
-            _termState = saveTerm;
-
-            if (statement != null)
-            {
-                return CheckFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
-            }
-
-            return null;
         }
 
         // if the modifiers do not contain async or replace and the type is the identifier "async" or "replace", then
