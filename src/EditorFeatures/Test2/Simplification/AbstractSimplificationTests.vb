@@ -26,11 +26,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     Next
                 End If
 
-                Await TestAsync(finalWorkspace, expected, options).ConfigureAwait(False)
+                Dim simplifiedDocument = Await SimplifyAsync(finalWorkspace, options).ConfigureAwait(False)
+                Await AssertCodeEqual(expected, simplifiedDocument)
             End Using
         End Function
 
-        Protected Async Function TestAsync(workspace As TestWorkspace, expected As XElement, Optional options As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task
+        Private Async Function SimplifyAsync(workspace As TestWorkspace, Optional options As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task(Of Document)
             Dim hostDocument = workspace.Documents.Single()
 
             Dim spansToAddSimplifierAnnotation = hostDocument.AnnotatedSpans.Where(Function(kvp) kvp.Key.StartsWith("Simplify", StringComparison.Ordinal))
@@ -48,21 +49,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                                                     explicitSpanToSimplifyAnnotatedSpans.Single().Value,
                                                     Nothing)
 
-            Await TestAsync(
-                workspace, spansToAddSimplifierAnnotation,
-                explicitSpansToSimplifyWithin, expected, options)
+            Return Await SimplifyAsync(workspace, spansToAddSimplifierAnnotation, explicitSpansToSimplifyWithin, options)
         End Function
 
-        Private Async Function TestAsync(workspace As Workspace,
-                         listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, ImmutableArray(Of TextSpan))),
-                         explicitSpansToSimplifyWithin As ImmutableArray(Of TextSpan),
-                         expected As XElement,
-                         options As Dictionary(Of OptionKey, Object)) As System.Threading.Tasks.Task
-            Dim simplifiedDocument As Document = Await Simplify(workspace, listOfLabelToAddSimplifierAnnotationSpans, explicitSpansToSimplifyWithin, options)
-            Await AssertCodeEqual(expected, simplifiedDocument)
-        End Function
-
-        Private Async Function Simplify(workspace As Workspace,
+        Private Async Function SimplifyAsync(workspace As Workspace,
                          listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, ImmutableArray(Of TextSpan))),
                          explicitSpansToSimplifyWithin As ImmutableArray(Of TextSpan),
                          options As Dictionary(Of OptionKey, Object)) As Task(Of Document)
