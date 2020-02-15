@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic16;
 
-            public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.CSharp);
+            public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
 
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
             {
