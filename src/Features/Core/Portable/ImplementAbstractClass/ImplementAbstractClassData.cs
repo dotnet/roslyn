@@ -19,22 +19,20 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
     internal class ImplementAbstractClassData
     {
-        public readonly Document Document;
-        public readonly SyntaxNode ClassNode;
+        private readonly Document _document;
+        private readonly SyntaxNode _classNode;
+        private readonly ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> _unimplementedMembers;
+
         public readonly INamedTypeSymbol ClassType;
-        public readonly INamedTypeSymbol AbstractClassType;
-        public readonly ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> UnimplementedMembers;
 
         public ImplementAbstractClassData(
-            Document document, SyntaxNode classNode,
-            INamedTypeSymbol classType, INamedTypeSymbol abstractClassType,
+            Document document, SyntaxNode classNode, INamedTypeSymbol classType,
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
         {
-            Document = document;
-            ClassNode = classNode;
+            _document = document;
+            _classNode = classNode;
             ClassType = classType;
-            AbstractClassType = abstractClassType;
-            UnimplementedMembers = unimplementedMembers;
+            _unimplementedMembers = unimplementedMembers;
         }
 
         public static async Task<ImplementAbstractClassData?> TryGetDataAsync(
@@ -59,8 +57,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             if (unimplementedMembers.IsEmpty)
                 return null;
 
-            return new ImplementAbstractClassData(
-                document, classNode, classType, abstractClassType, unimplementedMembers);
+            return new ImplementAbstractClassData(document, classNode, classType, unimplementedMembers);
         }
 
         public static async Task<Document?> TryImplementAbstractClassAsync(Document document, SyntaxNode classNode, CancellationToken cancellationToken)
@@ -74,9 +71,9 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 
         public async Task<Document> ImplementAbstractClassAsync(CancellationToken cancellationToken)
         {
-            var compilation = await this.Document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await _document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var options = await this.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var propertyGenerationBehavior = options.GetOption(ImplementTypeOptions.PropertyGenerationBehavior);
 
             var memberDefinitions = GenerateMembers(compilation, propertyGenerationBehavior, cancellationToken);
@@ -85,11 +82,11 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             var groupMembers = insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
             return await CodeGenerator.AddMemberDeclarationsAsync(
-                this.Document.Project.Solution,
+                _document.Project.Solution,
                 this.ClassType,
                 memberDefinitions,
                 new CodeGenerationOptions(
-                    contextLocation: this.ClassNode.GetLocation(),
+                    contextLocation: _classNode.GetLocation(),
                     autoInsertionLocation: groupMembers,
                     sortMembers: groupMembers),
                 cancellationToken).ConfigureAwait(false);
@@ -100,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
             CancellationToken cancellationToken)
         {
-            return this.UnimplementedMembers
+            return _unimplementedMembers
                 .SelectMany(t => t.members)
                 .Select(m => GenerateMember(compilation, m, propertyGenerationBehavior, cancellationToken))
                 .WhereNotNull()
@@ -115,8 +112,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             cancellationToken.ThrowIfCancellationRequested();
 
             // Check if we need to add 'unsafe' to the signature we're generating.
-            var syntaxFacts = this.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var addUnsafe = member.IsUnsafe() && !syntaxFacts.IsUnsafeContext(this.ClassNode);
+            var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var addUnsafe = member.IsUnsafe() && !syntaxFacts.IsUnsafeContext(_classNode);
 
             return GenerateMember(compilation, member, addUnsafe, propertyGenerationBehavior);
         }
@@ -141,8 +138,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         private ISymbol GenerateMethod(
             Compilation compilation, IMethodSymbol method, DeclarationModifiers modifiers, Accessibility accessibility)
         {
-            var syntaxFacts = this.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var syntaxFactory = this.Document.GetRequiredLanguageService<SyntaxGenerator>();
+            var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFactory = _document.GetRequiredLanguageService<SyntaxGenerator>();
             var throwingBody = syntaxFactory.CreateThrowNotImplementedStatementBlock(compilation);
 
             method = method.EnsureNonConflictingNames(this.ClassType, syntaxFacts);
@@ -167,7 +164,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 propertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties;
             }
 
-            var syntaxFactory = this.Document.GetLanguageService<SyntaxGenerator>();
+            var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
 
             var accessorBody = propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
                 ? default
