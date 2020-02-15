@@ -128,6 +128,16 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             var modifiers = new DeclarationModifiers(isOverride: true, isUnsafe: addUnsafe);
             var accessibility = member.ComputeResultantAccessibility(this.ClassType);
 
+            if (throughMember != null)
+            {
+                // only call through one of members for this symbol if we can actually access the
+                // symbol from our type.
+                if (!member.IsAccessibleWithin(this.ClassType, throughMember.GetMemberType()))
+                {
+                    throughMember = null;
+                }
+            }
+
             return member switch
             {
                 IMethodSymbol method => GenerateMethod(compilation, method, throughMember, modifiers, accessibility),
@@ -234,18 +244,32 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         public IEnumerable<ISymbol> GetDelegatableMembers()
         {
             var fields = this.ClassType.GetMembers()
-                .OfType<global::Microsoft.CodeAnalysis.IFieldSymbol>()
+                .OfType<IFieldSymbol>()
                 .Where(f => !f.IsImplicitlyDeclared)
                 .Where(f => f.Type.InheritsFromOrEquals(this.ClassType.BaseType!))
-                .OfType<global::Microsoft.CodeAnalysis.ISymbol>();
+                .OfType<ISymbol>();
 
             var properties = this.ClassType.GetMembers()
-                .OfType<global::Microsoft.CodeAnalysis.IPropertySymbol>()
+                .OfType<IPropertySymbol>()
                 .Where(p => !p.IsImplicitlyDeclared && p.Parameters.Length == 0)
                 .Where(p => p.Type.InheritsFromOrEquals(this.ClassType.BaseType!))
-                .OfType<global::Microsoft.CodeAnalysis.ISymbol>();
+                .OfType<ISymbol>();
 
-            return fields.Concat<global::Microsoft.CodeAnalysis.ISymbol>((global::System.Collections.Generic.IEnumerable<global::Microsoft.CodeAnalysis.ISymbol>)properties);
+            // Have to make sure the field or prop has at least one unimplemented member exposed
+            // that we could actually call from our type.  For example, if we're calling through a
+            // type that isn't derived from us, then we can't access protected members.
+            foreach (var fieldOrProp in fields.Concat(properties))
+            {
+                var fieldOrPropType = fieldOrProp.GetMemberType();
+                foreach (var (type, members) in _unimplementedMembers)
+                {
+                    if (members.Any(m => m.IsAccessibleWithin(this.ClassType, throughType: fieldOrPropType)))
+                    {
+                        yield return fieldOrProp;
+                        break;
+                    }
+                }
+            }
         }
     }
 }
