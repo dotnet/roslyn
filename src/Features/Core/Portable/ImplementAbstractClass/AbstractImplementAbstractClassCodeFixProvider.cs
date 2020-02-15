@@ -61,19 +61,11 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     through.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        string.Format(FeaturesResources.Implement_through_0, GetName(through)),
+                        string.Format(FeaturesResources.Implement_through_0, through.Name),
                         c => data.ImplementAbstractClassAsync(through, c), id),
                     context.Diagnostics);
             }
         }
-
-        private static string GetName(ISymbol throughMember)
-            => throughMember switch
-            {
-                IFieldSymbol field => field.Name,
-                IPropertySymbol property => property.Name,
-                _ => throw new InvalidOperationException(),
-            };
 
         private static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName, string through = "")
             => FeaturesResources.Implement_Abstract_Class + ";" + assemblyName + ";" + abstractTypeFullyQualifiedName + ";" + through;

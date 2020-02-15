@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     }
                     else if (ThroughMember != null)
                     {
-                        return string.Format(FeaturesResources.Implement_interface_through_0, GetDescription(ThroughMember));
+                        return string.Format(FeaturesResources.Implement_interface_through_0, ThroughMember.Name);
                     }
                     else
                     {
@@ -143,14 +143,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             }
 
             public override string EquivalenceKey => _equivalenceKey;
-
-            private static string GetDescription(ISymbol throughMember)
-                => throughMember switch
-                {
-                    IFieldSymbol field => field.Name,
-                    IPropertySymbol property => property.Name,
-                    _ => throw new InvalidOperationException(),
-                };
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
