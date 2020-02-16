@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var through = CreateDelegateThroughExpression(generator, method, throughMember);
 
             var memberName = method.IsGenericMethod
-                ? generator.GenericName(method.Name, method.TypeArguments.OfType<ITypeSymbol>().ToList())
+                ? generator.GenericName(method.Name, method.TypeArguments)
                 : generator.IdentifierName(method.Name);
 
             through = generator.MemberAccessExpression(through, memberName);
