@@ -97,11 +97,11 @@ class TestClass {
             });
 
             var expected =
-                "Expected diagnostic to end at column \"20\" was actually at column \"19\"" + Environment.NewLine +
+                "Expected diagnostic to end at column \"21\" was actually at column \"19\"" + Environment.NewLine +
                 Environment.NewLine +
                 "Expected diagnostic:" + Environment.NewLine +
-                "    // Test0.cs(2,8,2,20): error CS0538" + Environment.NewLine +
-                "DiagnosticResult.CompilerError(\"CS0538\").WithSpan(2, 8, 2, 20).WithArguments(\"IDisposable\")," + Environment.NewLine +
+                "    // Test0.cs(2,8,2,21): error CS0246" + Environment.NewLine +
+                "DiagnosticResult.CompilerError(\"CS0246\").WithSpan(2, 8, 2, 21).WithArguments(\"IDisposable\")," + Environment.NewLine +
                 Environment.NewLine +
                 "Actual diagnostic:" + Environment.NewLine +
                 "    // Test0.cs(2,8): error CS0246: The type or namespace name 'IDisposable' could not be found (are you missing a using directive or an assembly reference?)" + Environment.NewLine +
