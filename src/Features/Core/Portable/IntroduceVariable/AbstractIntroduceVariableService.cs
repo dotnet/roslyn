@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -43,6 +45,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         protected abstract bool CanIntroduceVariableFor(TExpressionSyntax expression);
         protected abstract bool CanReplace(TExpressionSyntax expression);
+
+        protected abstract bool IsExpressionInStaticLocalFunction(TExpressionSyntax expression);
 
         protected abstract Task<Document> IntroduceQueryLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken);
         protected abstract Task<Document> IntroduceLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
@@ -350,6 +354,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     {
                         var currentOperation = currentSemanticModel.GetOperation(nodeInCurrent, cancellationToken);
                         return IsInstanceMemberReference(currentOperation);
+                    }
+
+                    // If the original expression is within a static local function, further checks are unnecessary since our scope has already been narrowed down to within the local function.
+                    // If the original expression is not within a static local function, we need to further check whether the expression we're comparing against is within a static local
+                    // function. If so, the expression is not a valid match since we cannot refer to instance variables from within static local functions.
+                    if (!IsExpressionInStaticLocalFunction(expressionInOriginal))
+                    {
+                        return !IsExpressionInStaticLocalFunction(nodeInCurrent);
                     }
 
                     return true;

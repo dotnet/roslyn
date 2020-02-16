@@ -254,7 +254,7 @@ function BuildSolution {
     test_runtime_args="--debug"
   elif [[ "$test_core_clr" == true ]]; then
     test=true
-    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=netcoreapp3.0%3Bnetcoreapp2.1"
+    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=netcoreapp3.1"
     mono_tool=""
   fi
 
@@ -286,9 +286,6 @@ function BuildSolution {
 }
 
 InitializeDotNetCli $restore
-
-# Make sure we have a 2.1 runtime available for running our tests
-InstallDotNetSdk $_InitializeDotNetCli 2.1.503
 
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then

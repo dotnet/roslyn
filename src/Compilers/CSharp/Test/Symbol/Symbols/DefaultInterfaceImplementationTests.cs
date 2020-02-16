@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -59851,6 +59853,33 @@ interface I1<T>
                 // (4,9): error CS0540: 'I1<T>.P1': containing type does not implement interface 'I1<int>'
                 //     int I1<int>.P1 => throw null;
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1<int>").WithArguments("I1<T>.P1", "I1<int>").WithLocation(4, 9)
+                );
+        }
+
+        [Fact, WorkItem(41481, "https://github.com/dotnet/roslyn/issues/41481")]
+        public void IncompletePropertyImplementationSyntax_01()
+        {
+            var source1 =
+@"interface A
+{
+    object A.B{";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (3,12): error CS0540: 'A.B': containing type does not implement interface 'A'
+                //     object A.B{
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "A").WithArguments("A.B", "A").WithLocation(3, 12),
+                // (3,14): error CS0548: 'A.B': property or indexer must have at least one accessor
+                //     object A.B{
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "B").WithArguments("A.B").WithLocation(3, 14),
+                // (3,16): error CS1513: } expected
+                //     object A.B{
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 16),
+                // (3,16): error CS1513: } expected
+                //     object A.B{
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 16)
                 );
         }
     }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -31,8 +33,7 @@ namespace Roslyn.Utilities
             int firstDead = -1;
             for (int i = 0; i < _items.Length; i++)
             {
-                T target;
-                if (!_items[i].TryGetTarget(out target))
+                if (!_items[i].TryGetTarget(out _))
                 {
                     if (firstDead == -1)
                     {
@@ -111,8 +112,7 @@ namespace Roslyn.Utilities
             {
                 var item = _items[i];
 
-                T target;
-                if (item.TryGetTarget(out target))
+                if (item.TryGetTarget(out _))
                 {
                     result[j++] = item;
                 }
@@ -168,7 +168,7 @@ namespace Roslyn.Utilities
 
             for (int i = 0; i < count; i++)
             {
-                T item;
+                T? item;
                 if (_items[i].TryGetTarget(out item))
                 {
                     yield return item;

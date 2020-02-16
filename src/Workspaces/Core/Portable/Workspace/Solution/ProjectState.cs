@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -270,11 +272,13 @@ namespace Microsoft.CodeAnalysis
             switch (_projectInfo.Language)
             {
                 case LanguageNames.CSharp:
-                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.cs");
+                    // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
+                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.cs")!;
                     break;
 
                 case LanguageNames.VisualBasic:
-                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.vb");
+                    // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
+                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.vb")!;
                     break;
 
                 default:
@@ -615,6 +619,22 @@ namespace Microsoft.CodeAnalysis
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)
         {
             return project1.LanguageServices == project2.LanguageServices;
+        }
+
+        /// <summary>
+        /// Determines whether <see cref="ProjectReferences"/> contains a reference to a specified project.
+        /// </summary>
+        /// <param name="projectId">The target project of the reference.</param>
+        /// <returns><see langword="true"/> if this project references <paramref name="projectId"/>; otherwise, <see langword="false"/>.</returns>
+        public bool ContainsReferenceToProject(ProjectId projectId)
+        {
+            foreach (var projectReference in ProjectReferences)
+            {
+                if (projectReference.ProjectId == projectId)
+                    return true;
+            }
+
+            return false;
         }
 
         public ProjectState RemoveProjectReference(ProjectReference projectReference)

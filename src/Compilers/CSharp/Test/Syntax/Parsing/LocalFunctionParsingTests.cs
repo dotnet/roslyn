@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -69,28 +71,17 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "await");
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "L");
-                                    }
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
                             N(SyntaxKind.ExpressionStatement);
                             {
                                 N(SyntaxKind.LessThanExpression);
                                 {
-                                    M(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.AwaitExpression);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.AwaitKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "L");
+                                        }
                                     }
                                     N(SyntaxKind.LessThanToken);
                                     M(SyntaxKind.IdentifierName);
@@ -204,21 +195,21 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.LocalDeclarationStatement);
+                            N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.VariableDeclaration);
+                                N(SyntaxKind.AwaitExpression);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.AwaitKeyword);
+                                    N(SyntaxKind.InvocationExpression);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "await");
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "L");
-                                        M(SyntaxKind.BracketedArgumentList);
+                                        N(SyntaxKind.IdentifierName);
                                         {
-                                            M(SyntaxKind.OpenBracketToken);
-                                            M(SyntaxKind.CloseBracketToken);
+                                            N(SyntaxKind.IdentifierToken, "L");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            M(SyntaxKind.CloseParenToken);
                                         }
                                     }
                                 }
