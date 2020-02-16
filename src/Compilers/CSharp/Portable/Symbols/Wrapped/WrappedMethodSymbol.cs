@@ -315,8 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // PROTOTYPE: sealed (same for many of these other methods and properties)
-        public override bool ReturnsVoid => UnderlyingMethod.ReturnsVoid;
+        public sealed override bool ReturnsVoid => UnderlyingMethod.ReturnsVoid;
 
         public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => UnderlyingMethod.ReturnTypeFlowAnalysisAnnotations;
 
