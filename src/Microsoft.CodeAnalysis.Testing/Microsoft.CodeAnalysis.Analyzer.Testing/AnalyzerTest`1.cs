@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             // Initialize the best match to a trivial result where everything is unmatched. This will be updated if/when
             // better matches are found.
-            var bestMatchCount = actualResults.Length + expectedResults.Length;
+            double bestMatchCount = actualResults.Length + expectedResults.Length;
             var bestMatch = actualResults.Select(result => ((Diagnostic?)result, default(DiagnosticResult?))).Concat(expectedResults.Select(result => (default(Diagnostic?), (DiagnosticResult?)result))).ToImmutableArray();
 
             var builder = ImmutableArray.CreateBuilder<(Diagnostic? actual, DiagnosticResult? expected)>();
@@ -411,9 +411,13 @@ namespace Microsoft.CodeAnalysis.Testing
             return bestMatch;
 
             // Match items using recursive backtracking. Returns the distance the best match under this path is from an
-            // ideal result of 0 (1-1 matching of actual and expected results). Currently the distance is calculated as
-            // the number of unmatched items.
-            int RecursiveMatch(int firstActualIndex, int firstExpectedIndex, int unmatchedActualResults, bool[] usedExpected)
+            // ideal result of 0 (1:1 matching of actual and expected results). Currently the distance is calculated as
+            // the sum of the match values:
+            //
+            // * Fully-matched items have a value of 0.
+            // * Partially-matched items have a value between 0 and 1 (exclusive).
+            // * Fully-unmatched items have a value of 1.
+            double RecursiveMatch(int firstActualIndex, int firstExpectedIndex, double unmatchedActualResults, bool[] usedExpected)
             {
                 var matchedOnEntry = firstActualIndex - unmatchedActualResults;
                 var bestPossibleUnmatchedExpected = Math.Max(0, expectedResults.Length - matchedOnEntry - (actualResults.Length - unmatchedActualResults));
@@ -462,7 +466,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     }
 
                     var (lineSpan, additionalLineSpans) = actualResultLocations[firstActualIndex];
-                    if (!IsMatch(actualResults[firstActualIndex], actualIds[firstActualIndex], lineSpan, additionalLineSpans, actualArguments[firstActualIndex], expectedResults[i], expectedArguments[i]))
+                    var matchValue = GetMatchValue(actualResults[firstActualIndex], actualIds[firstActualIndex], lineSpan, additionalLineSpans, actualArguments[firstActualIndex], expectedResults[i], expectedArguments[i]);
+                    if (matchValue == 1)
                     {
                         continue;
                     }
@@ -471,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         usedExpected[i] = true;
                         builder.Add((actualResults[firstActualIndex], expectedResults[i]));
-                        var bestResultWithCurrentMatch = RecursiveMatch(firstActualIndex + 1, i == firstExpectedIndex ? firstExpectedIndex + 1 : firstExpectedIndex, unmatchedActualResults, usedExpected);
+                        var bestResultWithCurrentMatch = RecursiveMatch(firstActualIndex + 1, i == firstExpectedIndex ? firstExpectedIndex + 1 : firstExpectedIndex, unmatchedActualResults + matchValue, usedExpected);
                         currentBest = Math.Min(bestResultWithCurrentMatch, currentBest);
                         if (currentBest == bestPossible)
                         {
@@ -506,23 +511,41 @@ namespace Microsoft.CodeAnalysis.Testing
                 return currentBest;
             }
 
-            static bool IsMatch(Diagnostic diagnostic, string diagnosticId, FileLinePositionSpan lineSpan, ImmutableArray<FileLinePositionSpan> additionalLineSpans, ImmutableArray<string> actualArguments, DiagnosticResult diagnosticResult, ImmutableArray<string> expectedArguments)
+            static double GetMatchValue(Diagnostic diagnostic, string diagnosticId, FileLinePositionSpan lineSpan, ImmutableArray<FileLinePositionSpan> additionalLineSpans, ImmutableArray<string> actualArguments, DiagnosticResult diagnosticResult, ImmutableArray<string> expectedArguments)
             {
-                return IsLocationMatch(diagnostic, lineSpan, additionalLineSpans, diagnosticResult)
-                    && diagnosticId == diagnosticResult.Id
+                // A full match automatically gets the value 0. A partial match gets a "point" for each of the following
+                // elements:
+                //
+                // 1. Diagnostic span start
+                // 2. Diagnostic span end
+                // 3. Diagnostic ID
+                //
+                // A partial match starts at 1, with a 0.25 deduction for each of the above matching items.
+                var isLocationMatch = IsLocationMatch(diagnostic, lineSpan, additionalLineSpans, diagnosticResult, out var matchSpanStart, out var matchSpanEnd);
+                var isIdMatch = diagnosticId == diagnosticResult.Id;
+                if (isLocationMatch
+                    && isIdMatch
                     && diagnostic.Severity == diagnosticResult.Severity
-                    && IsMessageMatch(diagnostic, actualArguments, diagnosticResult, expectedArguments);
+                    && IsMessageMatch(diagnostic, actualArguments, diagnosticResult, expectedArguments))
+                {
+                    return 0;
+                }
+
+                var points = (matchSpanStart ? 1 : 0) + (matchSpanEnd ? 1 : 0) + (isIdMatch ? 1 : 0);
+                return (4 - points) / 4.0;
             }
 
-            static bool IsLocationMatch(Diagnostic diagnostic, FileLinePositionSpan lineSpan, ImmutableArray<FileLinePositionSpan> additionalLineSpans, DiagnosticResult diagnosticResult)
+            static bool IsLocationMatch(Diagnostic diagnostic, FileLinePositionSpan lineSpan, ImmutableArray<FileLinePositionSpan> additionalLineSpans, DiagnosticResult diagnosticResult, out bool matchSpanStart, out bool matchSpanEnd)
             {
                 if (!diagnosticResult.HasLocation)
                 {
+                    matchSpanStart = false;
+                    matchSpanEnd = false;
                     return Equals(Location.None, diagnostic.Location);
                 }
                 else
                 {
-                    if (!IsLocationMatch2(diagnostic.Location, lineSpan, diagnosticResult.Spans[0]))
+                    if (!IsLocationMatch2(diagnostic.Location, lineSpan, diagnosticResult.Spans[0], out matchSpanStart, out matchSpanEnd))
                     {
                         return false;
                     }
@@ -541,7 +564,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     for (var i = 0; i < additionalLocations.Length; i++)
                     {
-                        if (!IsLocationMatch2(additionalLocations[i], additionalLineSpans[i], diagnosticResult.Spans[i + 1]))
+                        if (!IsLocationMatch2(additionalLocations[i], additionalLineSpans[i], diagnosticResult.Spans[i + 1], out _, out _))
                         {
                             return false;
                         }
@@ -551,8 +574,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
             }
 
-            static bool IsLocationMatch2(Location actual, FileLinePositionSpan actualSpan, DiagnosticLocation expected)
+            static bool IsLocationMatch2(Location actual, FileLinePositionSpan actualSpan, DiagnosticLocation expected, out bool matchSpanStart, out bool matchSpanEnd)
             {
+                matchSpanStart = actualSpan.StartLinePosition == expected.Span.StartLinePosition;
+                matchSpanEnd = expected.Options.HasFlag(DiagnosticLocationOptions.IgnoreLength)
+                    || actualSpan.EndLinePosition == expected.Span.EndLinePosition;
+
                 var assert = actualSpan.Path == expected.Span.Path || (actualSpan.Path?.Contains("Test0.") == true && expected.Span.Path.Contains("Test."));
                 if (!assert)
                 {
@@ -560,13 +587,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     return false;
                 }
 
-                if (actualSpan.StartLinePosition != expected.Span.StartLinePosition)
-                {
-                    return false;
-                }
-
-                if (!expected.Options.HasFlag(DiagnosticLocationOptions.IgnoreLength)
-                    && actualSpan.EndLinePosition != expected.Span.EndLinePosition)
+                if (!matchSpanStart || !matchSpanEnd)
                 {
                     return false;
                 }
