@@ -8,7 +8,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,8 +19,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
-        public sealed override FixAllProvider GetFixAllProvider() =>
-            WellKnownFixAllProviders.BatchFixer;
+        public sealed override FixAllProvider GetFixAllProvider()
+            => WellKnownFixAllProviders.BatchFixer;
 
         protected AbstractImplementAbstractClassCodeFixProvider(string diagnosticId)
             => FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
