@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 
 class [|Derived|] : Base
 {
-}", new[] { "Implement Abstract Class" });
+}", new[] { FeaturesResources.Implement_Abstract_Class });
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -83,7 +83,7 @@ abstract class Middle : Base
 
 class [|Derived|] : Base
 {
-}", new[] { "Implement Abstract Class" });
+}", new[] { FeaturesResources.Implement_Abstract_Class });
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -200,7 +200,12 @@ class [|Derived|] : Base, IInterface
     Base Inner { get; }
 
     Base IInterface.Inner { get; }
-}", new[] { "Implement Abstract Class", "Implement through 'Inner'", "Implement through 'IInterface.Inner'" });
+}", new[]
+{
+    FeaturesResources.Implement_Abstract_Class,
+    string.Format(FeaturesResources.Implement_through_0, "Inner"),
+    string.Format(FeaturesResources.Implement_through_0, "IInterface.Inner"),
+});
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -215,7 +220,7 @@ class [|Derived|] : Base, IInterface
 class [|Derived|] : Base
 {
     dynamic inner;
-}", new[] { "Implement Abstract Class" });
+}", new[] { FeaturesResources.Implement_Abstract_Class });
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -403,7 +408,7 @@ class Derived : Base
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task ProtectedMethodsAreCanNotBeDelegatedThroughBaseType()
         {
-            await TestMissingAsync(
+            await TestExactActionSetOfferedAsync(
 @"abstract class Base
 {
     protected abstract void Method();
@@ -412,7 +417,7 @@ class Derived : Base
 class [|Derived|] : Base
 {
     Base inner;
-}");
+}", new[] { FeaturesResources.Implement_Abstract_Class });
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -476,7 +481,7 @@ class Derived : Base
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task PrivateProtectedMethodsAreCanNotBeDelegatedThroughBaseType()
         {
-            await TestMissingAsync(
+            await TestExactActionSetOfferedAsync(
 @"abstract class Base
 {
     private protected abstract void Method();
@@ -485,7 +490,7 @@ class Derived : Base
 class [|Derived|] : Base
 {
     Base inner;
-}");
+}", new[] { FeaturesResources.Implement_Abstract_Class });
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
