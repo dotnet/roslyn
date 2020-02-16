@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Testing
             var expectedCount = expectedResults.Length;
             var actualCount = actualResults.Count();
 
-            var diagnosticsOutput = actualResults.Any() ? FormatDiagnostics(analyzers, actualResults.ToArray()) : "    NONE.";
+            var diagnosticsOutput = actualResults.Any() ? FormatDiagnostics(analyzers, DefaultFilePath, actualResults.ToArray()) : "    NONE.";
             var message = $"Mismatch between number of diagnostics returned, expected \"{expectedCount}\" actual \"{actualCount}\"\r\n\r\nDiagnostics:\r\n{diagnosticsOutput}\r\n";
             verifier.Equal(expectedCount, actualCount, message);
 
@@ -289,48 +289,75 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 if (!expected.HasLocation)
                 {
-                    verifier.Equal(Location.None, actual.Location, $"Expected:\r\nA project diagnostic with No location\r\nActual:\r\n{FormatDiagnostics(analyzers, actual)}");
+                    message = $"Expected a project diagnostic with no location:{Environment.NewLine}" +
+                        $"{Environment.NewLine}" +
+                        $"Expected diagnostic:{Environment.NewLine}" +
+                        $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
+                        $"Actual diagnostic:{Environment.NewLine}" +
+                        $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
+                    verifier.Equal(Location.None, actual.Location, message);
                 }
                 else
                 {
-                    VerifyDiagnosticLocation(analyzers, actual, actual.Location, expected.Spans[0], verifier);
+                    VerifyDiagnosticLocation(analyzers, actual, expected, actual.Location, expected.Spans[0], verifier);
                     if (!expected.Spans[0].Options.HasFlag(DiagnosticLocationOptions.IgnoreAdditionalLocations))
                     {
                         var additionalLocations = actual.AdditionalLocations.ToArray();
 
-                        verifier.Equal(
-                            expected.Spans.Length - 1,
-                            additionalLocations.Length,
-                            $"Expected {expected.Spans.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:\r\n    {FormatDiagnostics(analyzers, actual)}\r\n");
+                        message = $"Expected {expected.Spans.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:{Environment.NewLine}" +
+                            $"{Environment.NewLine}" +
+                            $"Expected diagnostic:{Environment.NewLine}" +
+                            $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
+                            $"Actual diagnostic:{Environment.NewLine}" +
+                            $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
+                        verifier.Equal(expected.Spans.Length - 1, additionalLocations.Length, message);
 
                         for (var j = 0; j < additionalLocations.Length; ++j)
                         {
-                            VerifyDiagnosticLocation(analyzers, actual, additionalLocations[j], expected.Spans[j + 1], verifier);
+                            VerifyDiagnosticLocation(analyzers, actual, expected, additionalLocations[j], expected.Spans[j + 1], verifier);
                         }
                     }
                 }
 
-                verifier.Equal(
-                    expected.Id,
-                    actual.Id,
-                    $"Expected diagnostic id to be \"{expected.Id}\" was \"{actual.Id}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, actual)}\r\n");
+                message = $"Expected diagnostic id to be \"{expected.Id}\" was \"{actual.Id}\"{Environment.NewLine}" +
+                    $"{Environment.NewLine}" +
+                    $"Expected diagnostic:{Environment.NewLine}" +
+                    $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
+                    $"Actual diagnostic:{Environment.NewLine}" +
+                    $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
+                verifier.Equal(expected.Id, actual.Id, message);
 
-                verifier.Equal(
-                    expected.Severity,
-                    actual.Severity,
-                    $"Expected diagnostic severity to be \"{expected.Severity}\" was \"{actual.Severity}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, actual)}\r\n");
+                message = $"Expected diagnostic severity to be \"{expected.Severity}\" was \"{actual.Severity}\"{Environment.NewLine}" +
+                    $"{Environment.NewLine}" +
+                    $"Expected diagnostic:{Environment.NewLine}" +
+                    $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
+                    $"Actual diagnostic:{Environment.NewLine}" +
+                    $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
+                verifier.Equal(expected.Severity, actual.Severity, message);
 
                 if (expected.Message != null)
                 {
-                    verifier.Equal(expected.Message, actual.GetMessage(), $"Expected diagnostic message to be \"{expected.Message}\" was \"{actual.GetMessage()}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, actual)}\r\n");
+                    message = $"Expected diagnostic message to be \"{expected.Message}\" was \"{actual.GetMessage()}\"{Environment.NewLine}" +
+                        $"{Environment.NewLine}" +
+                        $"Expected diagnostic:{Environment.NewLine}" +
+                        $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
+                        $"Actual diagnostic:{Environment.NewLine}" +
+                        $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
+                    verifier.Equal(expected.Message, actual.GetMessage(), message);
                 }
                 else if (expected.MessageArguments?.Length > 0)
                 {
+                    message = $"Expected diagnostic message arguments to match{Environment.NewLine}" +
+                        $"{Environment.NewLine}" +
+                        $"Expected diagnostic:{Environment.NewLine}" +
+                        $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
+                        $"Actual diagnostic:{Environment.NewLine}" +
+                        $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
                     verifier.SequenceEqual(
                         expected.MessageArguments.Select(argument => argument?.ToString() ?? string.Empty),
                         GetArguments(actual).Select(argument => argument?.ToString() ?? string.Empty),
                         StringComparer.Ordinal,
-                        $"Expected diagnostic message arguments to match\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, actual)}\r\n");
+                        message);
                 }
             }
         }
@@ -570,44 +597,65 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         /// <param name="analyzers">The analyzer that have been run on the sources.</param>
         /// <param name="diagnostic">The diagnostic that was found in the code.</param>
+        /// <param name="expectedDiagnostic">The expected diagnostic.</param>
         /// <param name="actual">The location of the diagnostic found in the code.</param>
         /// <param name="expected">The <see cref="FileLinePositionSpan"/> describing the expected location of the
         /// diagnostic.</param>
         /// <param name="verifier">The verifier to use for test assertions.</param>
-        private void VerifyDiagnosticLocation(ImmutableArray<DiagnosticAnalyzer> analyzers, Diagnostic diagnostic, Location actual, DiagnosticLocation expected, IVerifier verifier)
+        private void VerifyDiagnosticLocation(ImmutableArray<DiagnosticAnalyzer> analyzers, Diagnostic diagnostic, DiagnosticResult expectedDiagnostic, Location actual, DiagnosticLocation expected, IVerifier verifier)
         {
             var actualSpan = actual.GetLineSpan();
 
             var assert = actualSpan.Path == expected.Span.Path || (actualSpan.Path?.Contains("Test0.") == true && expected.Span.Path.Contains("Test."));
-            verifier.True(assert, $"Expected diagnostic to be in file \"{expected.Span.Path}\" was actually in file \"{actualSpan.Path}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, diagnostic)}\r\n");
 
-            VerifyLinePosition(analyzers, diagnostic, actualSpan.StartLinePosition, expected.Span.StartLinePosition, "start", verifier);
+            var message = $"Expected diagnostic to be in file \"{expected.Span.Path}\" was actually in file \"{actualSpan.Path}\"{Environment.NewLine}" +
+                $"{Environment.NewLine}" +
+                $"Expected diagnostic:{Environment.NewLine}" +
+                $"    {FormatDiagnostics(analyzers, DefaultFilePath, expectedDiagnostic)}{Environment.NewLine}" +
+                $"Actual diagnostic:{Environment.NewLine}" +
+                $"    {FormatDiagnostics(analyzers, DefaultFilePath, diagnostic)}{Environment.NewLine}";
+            verifier.True(assert, message);
+
+            VerifyLinePosition(analyzers, diagnostic, expectedDiagnostic, actualSpan.StartLinePosition, expected.Span.StartLinePosition, "start", verifier);
             if (!expected.Options.HasFlag(DiagnosticLocationOptions.IgnoreLength))
             {
-                VerifyLinePosition(analyzers, diagnostic, actualSpan.EndLinePosition, expected.Span.EndLinePosition, "end", verifier);
+                VerifyLinePosition(analyzers, diagnostic, expectedDiagnostic, actualSpan.EndLinePosition, expected.Span.EndLinePosition, "end", verifier);
             }
         }
 
-        private void VerifyLinePosition(ImmutableArray<DiagnosticAnalyzer> analyzers, Diagnostic diagnostic, LinePosition actualLinePosition, LinePosition expectedLinePosition, string positionText, IVerifier verifier)
+        private void VerifyLinePosition(ImmutableArray<DiagnosticAnalyzer> analyzers, Diagnostic diagnostic, DiagnosticResult expectedDiagnostic, LinePosition actualLinePosition, LinePosition expectedLinePosition, string positionText, IVerifier verifier)
         {
+            var message = $"Expected diagnostic to {positionText} on line \"{expectedLinePosition.Line + 1}\" was actually on line \"{actualLinePosition.Line + 1}\"{Environment.NewLine}" +
+                $"{Environment.NewLine}" +
+                $"Expected diagnostic:{Environment.NewLine}" +
+                $"    {FormatDiagnostics(analyzers, DefaultFilePath, expectedDiagnostic)}{Environment.NewLine}" +
+                $"Actual diagnostic:{Environment.NewLine}" +
+                $"    {FormatDiagnostics(analyzers, DefaultFilePath, diagnostic)}{Environment.NewLine}";
             verifier.Equal(
                 expectedLinePosition.Line,
                 actualLinePosition.Line,
-                $"Expected diagnostic to {positionText} on line \"{expectedLinePosition.Line + 1}\" was actually on line \"{actualLinePosition.Line + 1}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, diagnostic)}\r\n");
+                message);
 
+            message = $"Expected diagnostic to {positionText} at column \"{expectedLinePosition.Character + 1}\" was actually at column \"{actualLinePosition.Character + 1}\"{Environment.NewLine}" +
+                $"{Environment.NewLine}" +
+                $"Expected diagnostic:{Environment.NewLine}" +
+                $"    {FormatDiagnostics(analyzers, DefaultFilePath, expectedDiagnostic)}{Environment.NewLine}" +
+                $"Actual diagnostic:{Environment.NewLine}" +
+                $"    {FormatDiagnostics(analyzers, DefaultFilePath, diagnostic)}{Environment.NewLine}";
             verifier.Equal(
                 expectedLinePosition.Character,
                 actualLinePosition.Character,
-                $"Expected diagnostic to {positionText} at column \"{expectedLinePosition.Character + 1}\" was actually at column \"{actualLinePosition.Character + 1}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, diagnostic)}\r\n");
+                message);
         }
 
         /// <summary>
         /// Helper method to format a <see cref="Diagnostic"/> into an easily readable string.
         /// </summary>
         /// <param name="analyzers">The analyzers that this verifier tests.</param>
+        /// <param name="defaultFilePath">The default file path for diagnostics.</param>
         /// <param name="diagnostics">A collection of <see cref="Diagnostic"/>s to be formatted.</param>
         /// <returns>The <paramref name="diagnostics"/> formatted as a string.</returns>
-        private static string FormatDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, params Diagnostic[] diagnostics)
+        private static string FormatDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, string defaultFilePath, params Diagnostic[] diagnostics)
         {
             var builder = new StringBuilder();
             for (var i = 0; i < diagnostics.Length; ++i)
@@ -621,7 +669,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 if (applicableAnalyzer != null)
                 {
                     var analyzerType = applicableAnalyzer.GetType();
-                    var rule = applicableAnalyzer.SupportedDiagnostics.Length == 1 ? string.Empty : $"{analyzerType.Name}.{diagnosticsId}";
+                    var rule = location != Location.None && location.IsInSource && applicableAnalyzer.SupportedDiagnostics.Length == 1 ? string.Empty : $"{analyzerType.Name}.{diagnosticsId}";
 
                     if (location == Location.None || !location.IsInSource)
                     {
@@ -648,17 +696,13 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     // No additional location data needed
                 }
-                else if (!location.IsInSource)
-                {
-                    var lineSpan = diagnostics[i].Location.GetLineSpan();
-                    builder.Append($".WithSpan(\"{lineSpan.Path}\", {lineSpan.StartLinePosition.Line + 1}, {lineSpan.StartLinePosition.Character + 1}, {lineSpan.EndLinePosition.Line + 1}, {lineSpan.EndLinePosition.Character + 1})");
-                }
                 else
                 {
-                    var linePosition = diagnostics[i].Location.GetLineSpan().StartLinePosition;
-                    var endLinePosition = diagnostics[i].Location.GetLineSpan().EndLinePosition;
-
-                    builder.Append($".WithSpan({linePosition.Line + 1}, {linePosition.Character + 1}, {endLinePosition.Line + 1}, {endLinePosition.Character + 1})");
+                    AppendLocation(diagnostics[i].Location);
+                    foreach (var additionalLocation in diagnostics[i].AdditionalLocations)
+                    {
+                        AppendLocation(additionalLocation);
+                    }
                 }
 
                 var arguments = GetArguments(diagnostics[i]);
@@ -673,6 +717,106 @@ namespace Microsoft.CodeAnalysis.Testing
             }
 
             return builder.ToString();
+
+            // Local functions
+            void AppendLocation(Location location)
+            {
+                var lineSpan = location.GetLineSpan();
+                var pathString = location.IsInSource && lineSpan.Path == defaultFilePath ? string.Empty : $"\"{lineSpan.Path}\", ";
+                var linePosition = lineSpan.StartLinePosition;
+                var endLinePosition = lineSpan.EndLinePosition;
+                builder.Append($".WithSpan({pathString}{linePosition.Line + 1}, {linePosition.Character + 1}, {endLinePosition.Line + 1}, {endLinePosition.Character + 1})");
+            }
+        }
+
+        /// <summary>
+        /// Helper method to format a <see cref="Diagnostic"/> into an easily readable string.
+        /// </summary>
+        /// <param name="analyzers">The analyzers that this verifier tests.</param>
+        /// <param name="defaultFilePath">The default file path for diagnostics.</param>
+        /// <param name="diagnostics">A collection of <see cref="DiagnosticResult"/>s to be formatted.</param>
+        /// <returns>The <paramref name="diagnostics"/> formatted as a string.</returns>
+        private static string FormatDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, string defaultFilePath, params DiagnosticResult[] diagnostics)
+        {
+            var builder = new StringBuilder();
+            for (var i = 0; i < diagnostics.Length; ++i)
+            {
+                var diagnosticsId = diagnostics[i].Id;
+
+                builder.Append("// ").AppendLine(diagnostics[i].ToString());
+
+                var applicableAnalyzer = analyzers.FirstOrDefault(a => a.SupportedDiagnostics.Any(dd => dd.Id == diagnosticsId));
+                if (applicableAnalyzer != null)
+                {
+                    var analyzerType = applicableAnalyzer.GetType();
+                    var rule = diagnostics[i].HasLocation && applicableAnalyzer.SupportedDiagnostics.Length == 1 ? string.Empty : $"{analyzerType.Name}.{diagnosticsId}";
+
+                    if (!diagnostics[i].HasLocation)
+                    {
+                        builder.Append($"new DiagnosticResult({rule})");
+                    }
+                    else
+                    {
+                        var resultMethodName = diagnostics[i].Spans[0].Span.Path.EndsWith(".cs") ? "VerifyCS.Diagnostic" : "VerifyVB.Diagnostic";
+                        builder.Append($"{resultMethodName}({rule})");
+                    }
+                }
+                else
+                {
+                    builder.Append(
+                        diagnostics[i].Severity switch
+                        {
+                            DiagnosticSeverity.Error => $"{nameof(DiagnosticResult)}.{nameof(DiagnosticResult.CompilerError)}(\"{diagnostics[i].Id}\")",
+                            DiagnosticSeverity.Warning => $"{nameof(DiagnosticResult)}.{nameof(DiagnosticResult.CompilerWarning)}(\"{diagnostics[i].Id}\")",
+                            var severity => $"new {nameof(DiagnosticResult)}(\"{diagnostics[i].Id}\", {nameof(DiagnosticSeverity)}.{severity})",
+                        });
+                }
+
+                if (!diagnostics[i].HasLocation)
+                {
+                    // No additional location data needed
+                }
+                else
+                {
+                    foreach (var span in diagnostics[i].Spans)
+                    {
+                        AppendLocation(span);
+                        if (span.Options.HasFlag(DiagnosticLocationOptions.IgnoreAdditionalLocations))
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                var arguments = diagnostics[i].MessageArguments;
+                if (arguments?.Length > 0)
+                {
+                    builder.Append($".{nameof(DiagnosticResult.WithArguments)}(");
+                    builder.Append(string.Join(", ", arguments.Select(a => "\"" + a?.ToString() + "\"")));
+                    builder.Append(")");
+                }
+
+                builder.AppendLine(",");
+            }
+
+            return builder.ToString();
+
+            // Local functions
+            void AppendLocation(DiagnosticLocation location)
+            {
+                var pathString = location.Span.Path == defaultFilePath ? string.Empty : $"\"{location.Span.Path}\", ";
+                var linePosition = location.Span.StartLinePosition;
+
+                if (location.Options.HasFlag(DiagnosticLocationOptions.IgnoreLength))
+                {
+                    builder.Append($".WithLocation({pathString}{linePosition.Line + 1}, {linePosition.Character + 1})");
+                }
+                else
+                {
+                    var endLinePosition = location.Span.EndLinePosition;
+                    builder.Append($".WithSpan({pathString}{linePosition.Line + 1}, {linePosition.Character + 1}, {endLinePosition.Line + 1}, {endLinePosition.Character + 1})");
+                }
+            }
         }
 
         private static bool IsSubjectToExclusion(DiagnosticResult result, (string filename, SourceText content)[] sources)
