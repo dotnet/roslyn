@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
@@ -246,13 +247,13 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             var fields = this.ClassType.GetMembers()
                 .OfType<IFieldSymbol>()
                 .Where(f => !f.IsImplicitlyDeclared)
-                .Where(f => f.Type.InheritsFromOrEquals(this.AbstractClassType))
+                .Where(f => InheritsFromOrEquals(f.Type, this.AbstractClassType))
                 .OfType<ISymbol>();
 
             var properties = this.ClassType.GetMembers()
                 .OfType<IPropertySymbol>()
                 .Where(p => !p.IsImplicitlyDeclared && p.Parameters.Length == 0)
-                .Where(p => p.Type.InheritsFromOrEquals(this.AbstractClassType))
+                .Where(p => InheritsFromOrEquals(p.Type, this.AbstractClassType))
                 .OfType<ISymbol>();
 
             // Have to make sure the field or prop has at least one unimplemented member exposed
@@ -269,6 +270,35 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                         break;
                     }
                 }
+            }
+        }
+
+        private static bool InheritsFromOrEquals(ITypeSymbol type, ITypeSymbol baseType)
+            => GetBaseTypesAndThis(type).Contains(t => SymbolEquivalenceComparer.Instance.Equals(t, baseType));
+
+
+        private static IEnumerable<ITypeSymbol> GetBaseTypesAndThis(ITypeSymbol? type)
+        {
+            var current = type;
+            while (current != null)
+            {
+                yield return current;
+
+                // Workaround until https://github.com/dotnet/roslyn/issues/41733 is fixed. Right
+                // now the compiler gives no way to determine the effective base class of a type
+                // parameter.  So we do a poor mans version and attempt to figure it out from the
+                // constraints ourselves.
+                if (current.BaseType == null &&
+                    current is ITypeParameterSymbol typeParameter)
+                {
+                    var constraints = typeParameter.ConstraintTypes;
+                    current =
+                        constraints.OfType<INamedTypeSymbol>().FirstOrDefault() ??
+                        constraints.FirstOrDefault(t => t.IsReferenceType);
+                    continue;
+                }
+
+                current = current.BaseType;
             }
         }
     }
