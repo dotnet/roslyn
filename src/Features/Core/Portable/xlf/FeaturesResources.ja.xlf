@@ -277,16 +277,6 @@
         <target state="translated">'GetHashCode' の実装を簡略化できます</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement all interfaces explicitly">
-        <source>Implement all interfaces explicitly</source>
-        <target state="translated">すべてのインターフェイスを明示的に実装する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement explicitly">
-        <source>Implement explicitly</source>
-        <target state="translated">明示的に実装する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">'{0}' を明示的に実装する</target>
@@ -308,8 +298,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
-        <source>Implement through {0}</source>
-        <target state="new">Implement through {0}</target>
+        <source>Implement through '{0}'</source>
+        <target state="new">Implement through '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">

@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             if (unimplementedMembers.IsEmpty)
                 return null;
 
-            return new ImplementAbstractClassData(document, classNode, classType, baseType, unimplementedMembers);
+            return new ImplementAbstractClassData(document, classNode, classType, abstractClassType, unimplementedMembers);
         }
 
         public static async Task<Document?> TryImplementAbstractClassAsync(Document document, SyntaxNode classNode, CancellationToken cancellationToken)

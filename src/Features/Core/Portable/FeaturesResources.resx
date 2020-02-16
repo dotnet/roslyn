@@ -1732,12 +1732,6 @@ This version used in: {2}</value>
   <data name="Implement_implicitly" xml:space="preserve">
     <value>Implement implicitly</value>
   </data>
-  <data name="Implement all interfaces explicitly" xml:space="preserve">
-    <value>Implement all interfaces explicitly</value>
-  </data>
-  <data name="Implement explicitly" xml:space="preserve">
-    <value>Implement explicitly</value>
-  </data>
   <data name="Implement_0_explicitly" xml:space="preserve">
     <value>Implement '{0}' explicitly</value>
   </data>
@@ -1754,6 +1748,6 @@ This version used in: {2}</value>
     <value>Value:</value>
   </data>
   <data name="Implement_through_0" xml:space="preserve">
-    <value>Implement through {0}</value>
+    <value>Implement through '{0}'</value>
   </data>
 </root>
