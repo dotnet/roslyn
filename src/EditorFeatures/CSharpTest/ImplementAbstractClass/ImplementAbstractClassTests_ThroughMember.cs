@@ -89,7 +89,7 @@ class [|Derived|] : Base
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task FieldOfSameDerivedTypeIsSuggested()
         {
-            await TestAllOptionsOffAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class Base
 {
     public abstract void Method();
@@ -112,13 +112,13 @@ class Derived : Base
     {
         inner.Method();
     }
-}");
+}", index: 1, title: "Implement through 'inner'");
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task FieldOfMoreSpecificTypeIsSuggested()
         {
-            await TestAllOptionsOffAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class Base
 {
     public abstract void Method();
@@ -149,13 +149,13 @@ class Derived : Base
 
 class DerivedAgain : Derived
 {
-}");
+}", index: 1, title: "Implement through 'inner'");
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task FieldOfConstrainedGenericTypeIsSuggested()
         {
-            await TestAllOptionsOffAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class Base
 {
     public abstract void Method();
@@ -178,7 +178,7 @@ class Derived<T> : Base where T : Base
     {
         inner.Method();
     }
-}");
+}", index: 1, title: "Implement through 'inner'");
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
@@ -226,7 +226,7 @@ class [|Derived|] : Base
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task OfferedForStaticFields()
         {
-            await TestAllOptionsOffAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class Base
 {
     public abstract void Method();
@@ -249,11 +249,37 @@ class Derived : Base
     {
         inner.Method();
     }
-}");
+}", index: 1, title: "Implement through 'inner'");
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task PropertyIsDelegated()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class Base
+{
+    public abstract int Property { get; set; }
+}
+
+class [|Derived|] : Base
+{
+    Base inner;
+}",
+@"abstract class Base
+{
+    public abstract int Property { get; set; }
+}
+
+class Derived : Base
+{
+    Base inner;
+
+    public override int Property { get => inner.Property; set => inner.Property = value; }
+}", index: 1, title: "Implement through 'inner'");
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task PropertyIsDelegated_AllOptionsOff()
         {
             await TestAllOptionsOffAsync(
 @"abstract class Base
@@ -291,6 +317,36 @@ class Derived : Base
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task PropertyWithSingleAccessorIsDelegated()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class Base
+{
+    public abstract int GetOnly { get; }
+    public abstract int SetOnly { set; }
+}
+
+class [|Derived|] : Base
+{
+    Base inner;
+}",
+@"abstract class Base
+{
+    public abstract int GetOnly { get; }
+    public abstract int SetOnly { set; }
+}
+
+class Derived : Base
+{
+    Base inner;
+
+    public override int GetOnly => inner.GetOnly;
+
+    public override int SetOnly { set => inner.SetOnly = value; }
+}", index: 1, title: "Implement through 'inner'");
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task PropertyWithSingleAccessorIsDelegated_AllOptionsOff()
         {
             await TestAllOptionsOffAsync(
 @"abstract class Base
@@ -334,7 +390,7 @@ class Derived : Base
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task EventIsDelegated()
         {
-            await TestAllOptionsOffAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 abstract class Base
@@ -369,13 +425,13 @@ class Derived : Base
             inner.Event -= value;
         }
     }
-}");
+}", index: 1, title: "Implement through 'inner'");
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task OnlyOverridableMethodsAreOverridden()
         {
-            await TestAllOptionsOffAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class Base
 {
     public abstract void Method();
@@ -402,11 +458,11 @@ class Derived : Base
     {
         inner.Method();
     }
-}");
+}", index: 1, title: "Implement through 'inner'");
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task ProtectedMethodsAreCanNotBeDelegatedThroughBaseType()
+        public async Task ProtectedMethodsCannotBeDelegatedThroughBaseType()
         {
             await TestExactActionSetOfferedAsync(
 @"abstract class Base
@@ -421,9 +477,38 @@ class [|Derived|] : Base
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task ProtectedMethodsCanBeDelegatedThroughSameType()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class Base
+{
+    protected abstract void Method();
+}
+
+class [|Derived|] : Base
+{
+    Derived inner;
+}",
+@"abstract class Base
+{
+    protected abstract void Method();
+}
+
+class Derived : Base
+{
+    Derived inner;
+
+    protected override void Method()
+    {
+        inner.Method();
+    }
+}", index: 1, title: "Implement through 'inner'");
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task ProtectedInternalMethodsAreOverridden()
         {
-            await TestAllOptionsOffAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class Base
 {
     protected internal abstract void Method();
@@ -446,13 +531,13 @@ class Derived : Base
     {
         inner.Method();
     }
-}");
+}", index: 1, title: "Implement through 'inner'");
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task InternalMethodsAreOverridden()
         {
-            await TestAllOptionsOffAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class Base
 {
     internal abstract void Method();
@@ -475,11 +560,11 @@ class Derived : Base
     {
         inner.Method();
     }
-}");
+}", index: 1, title: "Implement through 'inner'");
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task PrivateProtectedMethodsAreCanNotBeDelegatedThroughBaseType()
+        public async Task PrivateProtectedMethodsCannotBeDelegatedThroughBaseType()
         {
             await TestExactActionSetOfferedAsync(
 @"abstract class Base
@@ -494,9 +579,38 @@ class [|Derived|] : Base
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task PrivateProtectedMethodsCanBeDelegatedThroughSameType()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class Base
+{
+    private protected abstract void Method();
+}
+
+class [|Derived|] : Base
+{
+    Derived inner;
+}",
+@"abstract class Base
+{
+    private protected abstract void Method();
+}
+
+class Derived : Base
+{
+    Derived inner;
+
+    private protected override void Method()
+    {
+        inner.Method();
+    }
+}", index: 1, title: "Implement through 'inner'");
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task AccessorsWithDifferingVisibilityAreGeneratedCorrectly()
         {
-            await TestAllOptionsOffAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class Base
 {
     public abstract int InternalGet { internal get; set; }
@@ -517,32 +631,9 @@ class Derived : Base
 {
     Base inner;
 
-    public override int InternalGet
-    {
-        internal get
-        {
-            return inner.InternalGet;
-        }
-
-        set
-        {
-            inner.InternalGet = value;
-        }
-    }
-
-    public override int InternalSet
-    {
-        get
-        {
-            return inner.InternalSet;
-        }
-
-        internal set
-        {
-            inner.InternalSet = value;
-        }
-    }
-}");
+    public override int InternalGet { internal get => inner.InternalGet; set => inner.InternalGet = value; }
+    public override int InternalSet { get => inner.InternalSet; internal set => inner.InternalSet = value; }
+}", index: 1, title: "Implement through 'inner'");
         }
     }
 }
