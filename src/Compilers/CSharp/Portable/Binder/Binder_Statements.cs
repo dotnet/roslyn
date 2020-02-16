@@ -3207,6 +3207,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundNode BindSimpleProgram(CompilationUnitSyntax compilationUnit, DiagnosticBag diagnostics)
         {
+            var simpleProgram = (SynthesizedSimpleProgramEntryPointSymbol)ContainingMemberOrLambda;
+
+            if (compilationUnit == simpleProgram.FakeSyntaxTree.GetRoot())
+            {
+                compilationUnit = (CompilationUnitSyntax)((SimpleProgramNamedTypeSymbol)simpleProgram.ContainingSymbol).MergedDeclaration.Declarations[0].SyntaxReference.SyntaxTree.GetRoot();
+            }
+
             Binder bodyBinder = this.GetBinder(compilationUnit);
             Debug.Assert(bodyBinder != null);
 

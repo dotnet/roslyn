@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -13,9 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedSimpleProgramEntryPointSymbol : SourceMemberMethodSymbol
     {
         private readonly TypeSymbol _returnType;
+        internal readonly CSharpSyntaxTree FakeSyntaxTree = new CSharpSyntaxTree.DummySyntaxTree();
 
         internal SynthesizedSimpleProgramEntryPointSymbol(SimpleProgramNamedTypeSymbol containingType, MergedTypeDeclaration declaration, DiagnosticBag diagnostics)
-            : base(containingType, syntaxReferenceOpt: declaration.Declarations[0].SyntaxReference, containingType.Locations)
+            : base(containingType, syntaxReferenceOpt: null, containingType.Locations, isIterator: declaration.IsIterator)
         {
             bool hasAwait = declaration.HasAwaitExpressions;
 
@@ -102,6 +104,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return LexicalSortKey.NotInSource;
         }
 
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        {
+            get
+            {
+                return ContainingType.DeclaringSyntaxReferences;
+            }
+        }
+
         public override ImmutableArray<Location> Locations
         {
             get
@@ -170,23 +180,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
-        protected override object MethodChecksLockObject => ContainingType.DeclaringSyntaxReferences[0];
+        protected override object MethodChecksLockObject => FakeSyntaxTree;
 
         internal override CSharpSyntaxNode SyntaxNode
         {
             get
             {
-                RoslynDebug.Assert(this.syntaxReferenceOpt is object);
-                var syntaxNode = this.syntaxReferenceOpt.GetSyntax().Parent;
-                RoslynDebug.Assert(syntaxNode is ICompilationUnitSyntax);
-                return (CSharpSyntaxNode)syntaxNode;
+                return (CSharpSyntaxNode)FakeSyntaxTree.GetRoot();
             }
         }
 
         internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, BinderFlags additionalFlags = BinderFlags.None)
         {
             // PROTOTYPE(SimplePrograms): Respect additional flags passed in by SemanticModel
-            Binder result = (binderFactoryOpt ?? this.DeclaringCompilation.GetBinderFactory(this.syntaxReferenceOpt.SyntaxTree)).GetBinder(this.syntaxReferenceOpt.GetSyntax());
+            var syntaxReference = ((SimpleProgramNamedTypeSymbol)ContainingSymbol).MergedDeclaration.Declarations[0].SyntaxReference;
+            Binder result = (binderFactoryOpt ?? this.DeclaringCompilation.GetBinderFactory(syntaxReference.SyntaxTree)).GetBinder(syntaxReference.GetSyntax());
             ExecutableCodeBinder? executableBinder;
             while ((executableBinder = result as ExecutableCodeBinder) is null)
             {

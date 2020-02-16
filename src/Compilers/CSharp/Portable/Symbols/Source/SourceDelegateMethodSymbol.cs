@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DelegateDeclarationSyntax syntax,
             MethodKind methodKind,
             DeclarationModifiers declarationModifiers)
-            : base(delegateType, syntax.GetReference(), location: syntax.Identifier.GetLocation())
+            : base(delegateType, syntax.GetReference(), location: syntax.Identifier.GetLocation(), isIterator: false)
         {
             _returnType = returnType;
             this.MakeFlags(methodKind, declarationModifiers, _returnType.IsVoidType(), isExtensionMethod: false);

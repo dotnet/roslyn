@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool acceptSimpleProgram = node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular;
             bool allTopLevelStatementsLocalFunctions = true;
             bool hasAwaitExpressions = false;
+            bool isIterator = false;
             SyntaxReference firstTopLevelStatement = null;
 
             var childrenBuilder = ArrayBuilder<SingleNamespaceOrTypeDeclaration>.GetInstance();
@@ -67,28 +68,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (acceptSimpleProgram && member.IsKind(SyntaxKind.GlobalStatement))
                 {
                     firstTopLevelStatement ??= _syntaxTree.GetReference(member);
+                    var globalStatement = (GlobalStatementSyntax)member;
 
-                    if (((GlobalStatementSyntax)member).Statement.Kind() != SyntaxKind.LocalFunctionStatement)
+                    if (globalStatement.Statement.Kind() != SyntaxKind.LocalFunctionStatement)
                     {
                         allTopLevelStatementsLocalFunctions = false;
                     }
 
                     if (!hasAwaitExpressions)
                     {
-                        // PROTOTYPE(SimplePrograms): Recognize other async operations. 
-                        hasAwaitExpressions = member.DescendantNodes(child =>
-                                                                     {
-                                                                         switch (child.Kind())
-                                                                         {
-                                                                             case SyntaxKind.LocalFunctionStatement:
-                                                                             case SyntaxKind.AnonymousMethodExpression:
-                                                                             case SyntaxKind.SimpleLambdaExpression:
-                                                                             case SyntaxKind.ParenthesizedLambdaExpression:
-                                                                                 return false; // Do not descend into functions
-                                                                             default:
-                                                                                 return true;
-                                                                         }
-                                                                     }).OfType<AwaitExpressionSyntax>().Any();
+                        hasAwaitExpressions = SyntaxFacts.HasAwaitOperations(globalStatement.Statement);
+                    }
+
+                    if (!isIterator)
+                    {
+                        isIterator = SyntaxFacts.HasYieldOperations(globalStatement.Statement);
                     }
                 }
                 else if (!hasGlobalMembers && member.Kind() != SyntaxKind.IncompleteMember)
@@ -100,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // wrap all global statements in a compilation unit into a simple program type:
             if (firstTopLevelStatement is object)
             {
-                childrenBuilder.Add(CreateSimpleProgram(firstTopLevelStatement, hasAwaitExpressions, allTopLevelStatementsLocalFunctions));
+                childrenBuilder.Add(CreateSimpleProgram(firstTopLevelStatement, hasAwaitExpressions, allTopLevelStatementsLocalFunctions, isIterator));
             }
 
             // wrap all members that are defined in a namespace or compilation unit into an implicit type:
@@ -132,7 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: ImmutableArray<Diagnostic>.Empty);
         }
 
-        private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(SyntaxReference firstTopLevelStatement, bool hasAwaitExpressions, bool allTopLevelStatementsLocalFunctions)
+        private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(SyntaxReference firstTopLevelStatement, bool hasAwaitExpressions,
+                                                                            bool allTopLevelStatementsLocalFunctions, bool isIterator)
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.SimpleProgram,
@@ -140,6 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arity: 0,
                 modifiers: DeclarationModifiers.Internal | DeclarationModifiers.Partial | DeclarationModifiers.Static,
                 declFlags: (hasAwaitExpressions ? SingleTypeDeclaration.TypeDeclarationFlags.HasAwaitExpressions : SingleTypeDeclaration.TypeDeclarationFlags.None) |
+                           (isIterator ? SingleTypeDeclaration.TypeDeclarationFlags.IsIterator : SingleTypeDeclaration.TypeDeclarationFlags.None) |
                            (allTopLevelStatementsLocalFunctions ? SingleTypeDeclaration.TypeDeclarationFlags.AllTopLevelStatementsLocalFunctions : SingleTypeDeclaration.TypeDeclarationFlags.None),
                 syntaxReference: firstTopLevelStatement,
                 nameLocation: new SourceLocation(firstTopLevelStatement),

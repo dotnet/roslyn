@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
             Debug.Assert((object)containingSymbol != null);
 
+            ExecutableCodeBinder.ValidateIteratorMethod(compilation, containingSymbol, diagnostics);
+
             try
             {
                 var diagnosticPass = new DiagnosticsPass(compilation, diagnostics, containingSymbol);
@@ -91,6 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
+            ExecutableCodeBinder.ValidateIteratorMethod(_compilation, node.Symbol, _diagnostics);
+
             var outerLocalFunction = _staticLocalFunction;
             if (node.Symbol.IsStatic)
             {

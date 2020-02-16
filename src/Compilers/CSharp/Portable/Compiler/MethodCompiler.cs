@@ -1677,7 +1677,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bodyBinder != null)
                 {
                     importChain = bodyBinder.ImportChain;
-                    bodyBinder.ValidateIteratorMethods(diagnostics);
 
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
                     BoundNode methodBodyForSemanticModel = methodBody;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -495,6 +497,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsSimpleProgramTopLevelStatement(GlobalStatementSyntax syntax)
         {
             return IsTopLevelStatement(syntax) && syntax.SyntaxTree.Options.Kind == SourceCodeKind.Regular;
+        }
+
+        internal static bool HasAwaitOperations(SyntaxNode node)
+        {
+            // Do not descend into functions
+            return node.DescendantNodesAndSelf(child => !IsNestedFunction(child)).
+                OfType<AwaitExpressionSyntax>().Any(); // PROTOTYPE(SimplePrograms): Recognize other async operations.
+        }
+
+        internal static bool IsNestedFunction(SyntaxNode child)
+        {
+            switch (child.Kind())
+            {
+                case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        internal static bool HasYieldOperations(SyntaxNode node)
+        {
+            // Do not descend into functions and expressions
+            return node is object &&
+                   node.DescendantNodesAndSelf(child => !IsNestedFunction(child) && !(node is ExpressionSyntax)).
+                       OfType<YieldStatementSyntax>().Any();
         }
     }
 }

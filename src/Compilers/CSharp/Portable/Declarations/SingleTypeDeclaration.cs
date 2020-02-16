@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<SingleTypeDeclaration> _children;
 
         [Flags]
-        internal enum TypeDeclarationFlags : byte
+        internal enum TypeDeclarationFlags : ushort
         {
             None = 0,
             AnyMemberHasExtensionMethodSyntax = 1 << 1,
@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Set only for <see cref="DeclarationKind.SimpleProgram"/>
             /// </summary>
             AllTopLevelStatementsLocalFunctions = 1 << 7,
+
+            /// <summary>
+            /// Set only for <see cref="DeclarationKind.SimpleProgram"/>
+            /// </summary>
+            IsIterator = 1 << 8,
         }
 
         internal SingleTypeDeclaration(
@@ -148,6 +153,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return (_flags & TypeDeclarationFlags.AllTopLevelStatementsLocalFunctions) != 0;
+            }
+        }
+
+        public bool IsIterator
+        {
+            get
+            {
+                return (_flags & TypeDeclarationFlags.IsIterator) != 0;
             }
         }
 

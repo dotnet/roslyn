@@ -674,6 +674,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return default;
                 }
             }
+
+            internal override bool IsIterator => false;
         }
     }
 }

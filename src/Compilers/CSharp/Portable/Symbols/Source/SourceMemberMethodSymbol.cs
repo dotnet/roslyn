@@ -207,12 +207,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _cachedDiagnostics;
         }
 
-        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, Location location)
-            : this(containingType, syntaxReferenceOpt, ImmutableArray.Create(location))
+        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, Location location, bool isIterator)
+            : this(containingType, syntaxReferenceOpt, ImmutableArray.Create(location), isIterator)
         {
         }
 
-        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, ImmutableArray<Location> locations)
+        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, ImmutableArray<Location> locations, bool isIterator)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert(!locations.IsEmpty);
@@ -220,6 +220,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = containingType;
             this.syntaxReferenceOpt = syntaxReferenceOpt;
             this.locations = locations;
+
+            if (isIterator)
+            {
+                _lazyIteratorElementType = TypeWithAnnotations.Boxed.Sentinel;
+            }
         }
 
         protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
@@ -703,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
             {
@@ -764,10 +769,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             set
             {
-                Debug.Assert(_lazyIteratorElementType == null || TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2));
-                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), null);
+                Debug.Assert(_lazyIteratorElementType == TypeWithAnnotations.Boxed.Sentinel || TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2));
+                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), TypeWithAnnotations.Boxed.Sentinel);
             }
         }
+
+        internal override bool IsIterator => _lazyIteratorElementType is object;
 
         //overridden appropriately in SourceMemberMethodSymbol
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations

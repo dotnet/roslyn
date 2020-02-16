@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               Location location,
                                               string name,
                                               DeclarationModifiers declarationModifiers)
-            : base(containingType, syntaxReference, location)
+            : base(containingType, syntaxReference, location, isIterator: false)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert((object)baseMethod != null);
@@ -187,5 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Interlocked.Exchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(value));
             }
         }
+
+        internal override bool IsIterator => BaseMethod.IsIterator;
     }
 }

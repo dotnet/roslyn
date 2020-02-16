@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class LocalBinderFactory : CSharpSyntaxWalker
     {
         private readonly SmallDictionary<SyntaxNode, Binder> _map;
-        private bool _sawYield;
-        private readonly ArrayBuilder<SyntaxNode> _methodsWithYields;
         private Symbol _containingMemberOrLambda;
         private Binder _enclosing;
         private readonly SyntaxNode _root;
@@ -71,10 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol containingMemberOrLambda,
             SyntaxNode syntax,
             Binder enclosing,
-            ArrayBuilder<SyntaxNode> methodsWithYields,
             Action<Binder, SyntaxNode> binderUpdatedHandler = null)
         {
-            var builder = new LocalBinderFactory(containingMemberOrLambda, syntax, enclosing, methodsWithYields);
+            var builder = new LocalBinderFactory(containingMemberOrLambda, syntax, enclosing);
 
             StatementSyntax statement;
             var expressionSyntax = syntax as ExpressionSyntax;
@@ -124,9 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Visit((CSharpSyntaxNode)syntax, enclosing);
             }
 
-            // the other place this is possible is in a local function
-            if (builder._sawYield)
-                methodsWithYields.Add(syntax);
             return builder._map;
         }
 
@@ -141,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private LocalBinderFactory(Symbol containingMemberOrLambda, SyntaxNode root, Binder enclosing, ArrayBuilder<SyntaxNode> methodsWithYields)
+        private LocalBinderFactory(Symbol containingMemberOrLambda, SyntaxNode root, Binder enclosing)
         {
             Debug.Assert((object)containingMemberOrLambda != null);
             Debug.Assert(containingMemberOrLambda.Kind != SymbolKind.Local && containingMemberOrLambda.Kind != SymbolKind.RangeVariable && containingMemberOrLambda.Kind != SymbolKind.Parameter);
@@ -149,7 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _map = new SmallDictionary<SyntaxNode, Binder>(ReferenceEqualityComparer.Instance);
             _containingMemberOrLambda = containingMemberOrLambda;
             _enclosing = enclosing;
-            _methodsWithYields = methodsWithYields;
             _root = root;
         }
 
@@ -228,7 +221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
         {
-            bool oldSawYield = _sawYield;
             Symbol oldMethod = _containingMemberOrLambda;
             Binder binder = _enclosing;
             LocalFunctionSymbol match = FindLocalFunction(node, _enclosing);
@@ -248,25 +240,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             BlockSyntax blockBody = node.Body;
             if (blockBody != null)
             {
-                _sawYield = false;
                 Visit(blockBody, binder);
-
-                if (_sawYield)
-                {
-                    _methodsWithYields.Add(blockBody);
-                }
             }
 
             ArrowExpressionClauseSyntax arrowBody = node.ExpressionBody;
             if (arrowBody != null)
             {
-                _sawYield = false;
                 Visit(arrowBody, binder);
-                Debug.Assert(!_sawYield);
             }
 
             _containingMemberOrLambda = oldMethod;
-            _sawYield = oldSawYield;
         }
 
         private static LocalFunctionSymbol FindLocalFunction(LocalFunctionStatementSyntax node, Binder enclosing)
@@ -705,8 +688,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Visit(node.Expression, _enclosing);
             }
-
-            _sawYield = true;
         }
 
         public override void VisitExpressionStatement(ExpressionStatementSyntax node)

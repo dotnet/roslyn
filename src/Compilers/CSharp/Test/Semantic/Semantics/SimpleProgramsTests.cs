@@ -1833,5 +1833,35 @@ class Program
 
             CompileAndVerify(comp, expectedOutput: "Hi!");
         }
+
+        [Fact]
+        public void Yield_01()
+        {
+            var text = @"yield break;";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            // PROTOTYPE(SimplePrograms): Do not leak unspeakable names through diagnostics
+            comp.VerifyDiagnostics(
+                // (1,1): error CS1624: The body of '$Program.$Main()' cannot be an iterator block because 'void' is not an iterator interface type
+                // yield break;
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "yield break;").WithArguments("$Program.$Main()", "void").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void Yield_02()
+        {
+            var text = @"{yield return 0;}";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            // PROTOTYPE(SimplePrograms): Do not leak unspeakable names through diagnostics
+            comp.VerifyDiagnostics(
+                // (1,1): error CS1624: The body of '$Program.$Main()' cannot be an iterator block because 'void' is not an iterator interface type
+                // {yield return 0;}
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "{yield return 0;}").WithArguments("$Program.$Main()", "void").WithLocation(1, 1)
+                );
+        }
     }
 }

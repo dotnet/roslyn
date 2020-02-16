@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics) :
             base(containingType,
                  syntax.GetReference(),
-                 location)
+                 location,
+                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body))
         {
             _name = name;
             _explicitInterfaceType = explicitInterfaceType;
