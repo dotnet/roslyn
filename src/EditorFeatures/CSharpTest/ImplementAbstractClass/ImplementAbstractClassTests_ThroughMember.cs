@@ -401,9 +401,9 @@ class Derived : Base
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task ProtectedMethodsAreOverridden()
+        public async Task ProtectedMethodsAreCanNotBeDelegatedThroughBaseType()
         {
-            await TestAllOptionsOffAsync(
+            await TestMissingAsync(
 @"abstract class Base
 {
     protected abstract void Method();
@@ -412,20 +412,6 @@ class Derived : Base
 class [|Derived|] : Base
 {
     Base inner;
-}",
-@"abstract class Base
-{
-    protected abstract void Method();
-}
-
-class Derived : Base
-{
-    Base inner;
-
-    protected override void Method()
-    {
-        inner.Method();
-    }
 }");
         }
 
@@ -488,9 +474,9 @@ class Derived : Base
         }
 
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task PrivateProtectedMethodsAreOverridden()
+        public async Task PrivateProtectedMethodsAreCanNotBeDelegatedThroughBaseType()
         {
-            await TestAllOptionsOffAsync(
+            await TestMissingAsync(
 @"abstract class Base
 {
     private protected abstract void Method();
@@ -499,20 +485,6 @@ class Derived : Base
 class [|Derived|] : Base
 {
     Base inner;
-}",
-@"abstract class Base
-{
-    private protected abstract void Method();
-}
-
-class Derived : Base
-{
-    Base inner;
-
-    private protected override void Method()
-    {
-        inner.Method();
-    }
 }");
         }
 
