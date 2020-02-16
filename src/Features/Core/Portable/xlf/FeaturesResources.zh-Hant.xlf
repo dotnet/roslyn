@@ -287,9 +287,19 @@
         <target state="translated">隱含實作 '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_all_interfaces_explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">隱含實作所有介面</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_implicitly">

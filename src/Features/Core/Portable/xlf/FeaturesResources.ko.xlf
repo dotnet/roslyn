@@ -287,9 +287,19 @@
         <target state="translated">'{0}'을(를) 암시적으로 구현</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_all_interfaces_explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">모든 인터페이스를 암시적으로 구현</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_implicitly">
