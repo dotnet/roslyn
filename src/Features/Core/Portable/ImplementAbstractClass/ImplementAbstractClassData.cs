@@ -27,14 +27,16 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         private readonly ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> _unimplementedMembers;
 
         public readonly INamedTypeSymbol ClassType;
+        public readonly INamedTypeSymbol AbstractClassType;
 
         public ImplementAbstractClassData(
-            Document document, SyntaxNode classNode, INamedTypeSymbol classType,
+            Document document, SyntaxNode classNode, INamedTypeSymbol classType, INamedTypeSymbol abstractClassType,
             ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
         {
             _document = document;
             _classNode = classNode;
             ClassType = classType;
+            AbstractClassType = abstractClassType;
             _unimplementedMembers = unimplementedMembers;
         }
 
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             if (unimplementedMembers.IsEmpty)
                 return null;
 
-            return new ImplementAbstractClassData(document, classNode, classType, unimplementedMembers);
+            return new ImplementAbstractClassData(document, classNode, classType, baseType, unimplementedMembers);
         }
 
         public static async Task<Document?> TryImplementAbstractClassAsync(Document document, SyntaxNode classNode, CancellationToken cancellationToken)
@@ -244,13 +246,13 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             var fields = this.ClassType.GetMembers()
                 .OfType<IFieldSymbol>()
                 .Where(f => !f.IsImplicitlyDeclared)
-                .Where(f => f.Type.InheritsFromOrEquals(this.ClassType.BaseType!))
+                .Where(f => f.Type.InheritsFromOrEquals(this.AbstractClassType))
                 .OfType<ISymbol>();
 
             var properties = this.ClassType.GetMembers()
                 .OfType<IPropertySymbol>()
                 .Where(p => !p.IsImplicitlyDeclared && p.Parameters.Length == 0)
-                .Where(p => p.Type.InheritsFromOrEquals(this.ClassType.BaseType!))
+                .Where(p => p.Type.InheritsFromOrEquals(this.AbstractClassType))
                 .OfType<ISymbol>();
 
             // Have to make sure the field or prop has at least one unimplemented member exposed
