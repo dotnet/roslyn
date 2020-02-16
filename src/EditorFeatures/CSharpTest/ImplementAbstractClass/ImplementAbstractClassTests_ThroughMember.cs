@@ -515,5 +515,57 @@ class Derived : Base
     }
 }");
         }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task AccessorsWithDifferingVisibilityAreGeneratedCorrectly()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class Base
+{
+    public abstract int InternalGet { internal get; set; }
+    public abstract int InternalSet { get; internal set; }
+}
+
+class [|Derived|] : Base
+{
+    Base inner;
+}",
+@"abstract class Base
+{
+    public abstract int InternalGet { internal get; set; }
+    public abstract int InternalSet { get; internal set; }
+}
+
+class Derived : Base
+{
+    Base inner;
+
+    public override int InternalGet
+    {
+        internal get
+        {
+            return inner.InternalGet;
+        }
+
+        set
+        {
+            inner.InternalGet = value;
+        }
+    }
+
+    public override int InternalSet
+    {
+        get
+        {
+            return inner.InternalSet;
+        }
+
+        internal set
+        {
+            inner.InternalSet = value;
+        }
+    }
+}");
+        }
     }
 }
