@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 else
                 {
                     VerifyDiagnosticLocation(analyzers, actual, expected, actual.Location, expected.Spans[0], verifier);
-                    if (!expected.Spans[0].Options.HasFlag(DiagnosticLocationOptions.IgnoreAdditionalLocations))
+                    if (!expected.Options.HasFlag(DiagnosticOptions.IgnoreAdditionalLocations))
                     {
                         var additionalLocations = actual.AdditionalLocations.ToArray();
 
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         return false;
                     }
 
-                    if (diagnosticResult.Spans[0].Options.HasFlag(DiagnosticLocationOptions.IgnoreAdditionalLocations))
+                    if (diagnosticResult.Options.HasFlag(DiagnosticOptions.IgnoreAdditionalLocations))
                     {
                         return true;
                     }
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     foreach (var span in diagnostics[i].Spans)
                     {
                         AppendLocation(span);
-                        if (span.Options.HasFlag(DiagnosticLocationOptions.IgnoreAdditionalLocations))
+                        if (diagnostics[i].Options.HasFlag(DiagnosticOptions.IgnoreAdditionalLocations))
                         {
                             break;
                         }
