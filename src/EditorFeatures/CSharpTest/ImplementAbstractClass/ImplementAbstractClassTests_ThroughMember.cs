@@ -51,9 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 parseOptions: parseOptions);
         }
 
-        // virtual along with abstract?
-        // virtual only?
-
         [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
         public async Task FieldInBaseClassIsNotSuggested()
         {
@@ -219,6 +216,304 @@ class [|Derived|] : Base
 {
     dynamic inner;
 }", new[] { "Implement Abstract Class" });
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task OfferedForStaticFields()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class Base
+{
+    public abstract void Method();
+}
+
+class [|Derived|] : Base
+{
+    static Base inner;
+}",
+@"abstract class Base
+{
+    public abstract void Method();
+}
+
+class Derived : Base
+{
+    static Base inner;
+
+    public override void Method()
+    {
+        inner.Method();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task PropertyIsDelegated()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class Base
+{
+    public abstract int Property { get; set; }
+}
+
+class [|Derived|] : Base
+{
+    Base inner;
+}",
+@"abstract class Base
+{
+    public abstract int Property { get; set; }
+}
+
+class Derived : Base
+{
+    Base inner;
+
+    public override int Property
+    {
+        get
+        {
+            return inner.Property;
+        }
+
+        set
+        {
+            inner.Property = value;
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task PropertyWithSingleAccessorIsDelegated()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class Base
+{
+    public abstract int GetOnly { get; }
+    public abstract int SetOnly { set; }
+}
+
+class [|Derived|] : Base
+{
+    Base inner;
+}",
+@"abstract class Base
+{
+    public abstract int GetOnly { get; }
+    public abstract int SetOnly { set; }
+}
+
+class Derived : Base
+{
+    Base inner;
+
+    public override int GetOnly
+    {
+        get
+        {
+            return inner.GetOnly;
+        }
+    }
+
+    public override int SetOnly
+    {
+        set
+        {
+            inner.SetOnly = value;
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task EventIsDelegated()
+        {
+            await TestAllOptionsOffAsync(
+@"using System;
+
+abstract class Base
+{
+    public abstract event Action Event;
+}
+
+class [|Derived|] : Base
+{
+    Base inner;
+}",
+@"using System;
+
+abstract class Base
+{
+    public abstract event Action Event;
+}
+
+class Derived : Base
+{
+    Base inner;
+
+    public override event Action Event
+    {
+        add
+        {
+            inner.Event += value;
+        }
+
+        remove
+        {
+            inner.Event -= value;
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task OnlyOverridableMethodsAreOverridden()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class Base
+{
+    public abstract void Method();
+
+    public void NonVirtualMethod();
+}
+
+class [|Derived|] : Base
+{
+    Base inner;
+}",
+@"abstract class Base
+{
+    public abstract void Method();
+
+    public void NonVirtualMethod();
+}
+
+class Derived : Base
+{
+    Base inner;
+
+    public override void Method()
+    {
+        inner.Method();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task ProtectedMethodsAreOverridden()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class Base
+{
+    protected abstract void Method();
+}
+
+class [|Derived|] : Base
+{
+    Base inner;
+}",
+@"abstract class Base
+{
+    protected abstract void Method();
+}
+
+class Derived : Base
+{
+    Base inner;
+
+    protected override void Method()
+    {
+        inner.Method();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task ProtectedInternalMethodsAreOverridden()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class Base
+{
+    protected internal abstract void Method();
+}
+
+class [|Derived|] : Base
+{
+    Base inner;
+}",
+@"abstract class Base
+{
+    protected internal abstract void Method();
+}
+
+class Derived : Base
+{
+    Base inner;
+
+    protected internal override void Method()
+    {
+        inner.Method();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task InternalMethodsAreOverridden()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class Base
+{
+    internal abstract void Method();
+}
+
+class [|Derived|] : Base
+{
+    Base inner;
+}",
+@"abstract class Base
+{
+    internal abstract void Method();
+}
+
+class Derived : Base
+{
+    Base inner;
+
+    internal override void Method()
+    {
+        inner.Method();
+    }
+}");
+        }
+
+        [Fact, WorkItem(41420, "https://github.com/dotnet/roslyn/issues/41420")]
+        public async Task PrivateProtectedMethodsAreOverridden()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class Base
+{
+    private protected abstract void Method();
+}
+
+class [|Derived|] : Base
+{
+    Base inner;
+}",
+@"abstract class Base
+{
+    private protected abstract void Method();
+}
+
+class Derived : Base
+{
+    Base inner;
+
+    private protected override void Method()
+    {
+        inner.Method();
+    }
+}");
         }
     }
 }
