@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var throughMemberType = throughMember.GetMemberType();
             if (member.ContainingType.IsInterfaceType() && throughMemberType != null)
             {
-                // In the case of 'implement interface through field / property' , we need to know what
+                // In the case of 'implement interface through field / property', we need to know what
                 // interface we are implementing so that we can insert casts to this interface on every
                 // usage of the field in the generated code. Without these casts we would end up generating
                 // code that fails compilation in certain situations.
