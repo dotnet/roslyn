@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -342,14 +343,15 @@ namespace Microsoft.CodeAnalysis.Testing
             SolutionState oldState,
             SolutionState newState,
             int numberOfIterations,
-            Func<ImmutableArray<DiagnosticAnalyzer>, ImmutableArray<CodeFixProvider>, int?, string?, Project, int, IVerifier, CancellationToken, Task<Project>> getFixedProject,
+            Func<ImmutableArray<DiagnosticAnalyzer>, ImmutableArray<CodeFixProvider>, int?, string?, Project, int, IVerifier, CancellationToken, Task<(Project project, ExceptionDispatchInfo? iterationCountFailure)>> getFixedProject,
             IVerifier verifier,
             CancellationToken cancellationToken)
         {
             var project = await CreateProjectAsync(oldState.Sources.ToArray(), oldState.AdditionalFiles.ToArray(), oldState.AdditionalProjects.ToArray(), oldState.AdditionalReferences.ToArray(), language, cancellationToken);
             var compilerDiagnostics = await GetCompilerDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
 
-            project = await getFixedProject(analyzers, codeFixProviders, CodeFixIndex, CodeFixEquivalenceKey, project, numberOfIterations, verifier, cancellationToken).ConfigureAwait(false);
+            ExceptionDispatchInfo? iterationCountFailure;
+            (project, iterationCountFailure) = await getFixedProject(analyzers, codeFixProviders, CodeFixIndex, CodeFixEquivalenceKey, project, numberOfIterations, verifier, cancellationToken).ConfigureAwait(false);
 
             // After applying all of the code fixes, compare the resulting string to the inputted one
             var updatedDocuments = project.Documents.ToArray();
@@ -377,6 +379,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 verifier.Equal(newState.AdditionalFiles[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{newState.AdditionalFiles[i].filename}' was expected to be '{newState.AdditionalFiles[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
                 verifier.Equal(newState.AdditionalFiles[i].filename, updatedAdditionalDocuments[i].Name, $"file name was expected to be '{newState.AdditionalFiles[i].filename}' but was '{updatedAdditionalDocuments[i].Name}'");
             }
+
+            // Validate the iteration counts after validating the content
+            iterationCountFailure?.Throw();
         }
 
         private static bool HasAnyChange(SolutionState oldState, SolutionState newState)
@@ -385,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 || !oldState.AdditionalFiles.SequenceEqual(newState.AdditionalFiles, SourceFileEqualityComparer.Instance);
         }
 
-        private async Task<Project> FixEachAnalyzerDiagnosticAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<CodeFixProvider> codeFixProviders, int? codeFixIndex, string? codeFixEquivalenceKey, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
+        private async Task<(Project project, ExceptionDispatchInfo? iterationCountFailure)> FixEachAnalyzerDiagnosticAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<CodeFixProvider> codeFixProviders, int? codeFixIndex, string? codeFixEquivalenceKey, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
         {
             var expectedNumberOfIterations = numberOfIterations;
             if (numberOfIterations < 0)
@@ -409,7 +414,14 @@ namespace Microsoft.CodeAnalysis.Testing
                     break;
                 }
 
-                verifier.True(--numberOfIterations >= -1, "The upper limit for the number of code fix iterations was exceeded");
+                try
+                {
+                    verifier.True(--numberOfIterations >= -1, "The upper limit for the number of code fix iterations was exceeded");
+                }
+                catch (Exception ex)
+                {
+                    return (project, ExceptionDispatchInfo.Capture(ex));
+                }
 
                 previousDiagnostics = analyzerDiagnostics;
 
@@ -457,16 +469,23 @@ namespace Microsoft.CodeAnalysis.Testing
             }
             while (!done);
 
-            if (expectedNumberOfIterations >= 0)
+            try
             {
-                verifier.Equal(expectedNumberOfIterations, expectedNumberOfIterations - numberOfIterations, $"Expected '{expectedNumberOfIterations}' iterations but found '{expectedNumberOfIterations - numberOfIterations}' iterations.");
+                if (expectedNumberOfIterations >= 0)
+                {
+                    verifier.Equal(expectedNumberOfIterations, expectedNumberOfIterations - numberOfIterations, $"Expected '{expectedNumberOfIterations}' iterations but found '{expectedNumberOfIterations - numberOfIterations}' iterations.");
+                }
+                else
+                {
+                    verifier.True(numberOfIterations >= 0, "The upper limit for the number of code fix iterations was exceeded");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                verifier.True(numberOfIterations >= 0, "The upper limit for the number of code fix iterations was exceeded");
+                return (project, ExceptionDispatchInfo.Capture(ex));
             }
 
-            return project;
+            return (project, null);
         }
 
         private static CodeAction? TryGetCodeActionToApply(List<CodeAction> actions, int? codeFixIndex, string? codeFixEquivalenceKey, IVerifier verifier)
@@ -568,22 +587,22 @@ namespace Microsoft.CodeAnalysis.Testing
             return solution.GetProject(project.Id);
         }
 
-        private Task<Project> FixAllAnalyzerDiagnosticsInDocumentAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<CodeFixProvider> codeFixProviders, int? codeFixIndex, string? codeFixEquivalenceKey, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
+        private Task<(Project project, ExceptionDispatchInfo? iterationCountFailure)> FixAllAnalyzerDiagnosticsInDocumentAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<CodeFixProvider> codeFixProviders, int? codeFixIndex, string? codeFixEquivalenceKey, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
         {
             return FixAllAnalyerDiagnosticsInScopeAsync(FixAllScope.Document, analyzers, codeFixProviders, codeFixIndex, codeFixEquivalenceKey, project, numberOfIterations, verifier, cancellationToken);
         }
 
-        private Task<Project> FixAllAnalyzerDiagnosticsInProjectAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<CodeFixProvider> codeFixProviders, int? codeFixIndex, string? codeFixEquivalenceKey, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
+        private Task<(Project project, ExceptionDispatchInfo? iterationCountFailure)> FixAllAnalyzerDiagnosticsInProjectAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<CodeFixProvider> codeFixProviders, int? codeFixIndex, string? codeFixEquivalenceKey, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
         {
             return FixAllAnalyerDiagnosticsInScopeAsync(FixAllScope.Project, analyzers, codeFixProviders, codeFixIndex, codeFixEquivalenceKey, project, numberOfIterations, verifier, cancellationToken);
         }
 
-        private Task<Project> FixAllAnalyzerDiagnosticsInSolutionAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<CodeFixProvider> codeFixProviders, int? codeFixIndex, string? codeFixEquivalenceKey, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
+        private Task<(Project project, ExceptionDispatchInfo? iterationCountFailure)> FixAllAnalyzerDiagnosticsInSolutionAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<CodeFixProvider> codeFixProviders, int? codeFixIndex, string? codeFixEquivalenceKey, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
         {
             return FixAllAnalyerDiagnosticsInScopeAsync(FixAllScope.Solution, analyzers, codeFixProviders, codeFixIndex, codeFixEquivalenceKey, project, numberOfIterations, verifier, cancellationToken);
         }
 
-        private async Task<Project> FixAllAnalyerDiagnosticsInScopeAsync(FixAllScope scope, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<CodeFixProvider> codeFixProviders, int? codeFixIndex, string? codeFixEquivalenceKey, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
+        private async Task<(Project project, ExceptionDispatchInfo? iterationCountFailure)> FixAllAnalyerDiagnosticsInScopeAsync(FixAllScope scope, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<CodeFixProvider> codeFixProviders, int? codeFixIndex, string? codeFixEquivalenceKey, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
         {
             var expectedNumberOfIterations = numberOfIterations;
             if (numberOfIterations < 0)
@@ -607,7 +626,14 @@ namespace Microsoft.CodeAnalysis.Testing
                     break;
                 }
 
-                verifier.False(--numberOfIterations < -1, "The upper limit for the number of fix all iterations was exceeded");
+                try
+                {
+                    verifier.False(--numberOfIterations < -1, "The upper limit for the number of fix all iterations was exceeded");
+                }
+                catch (Exception ex)
+                {
+                    return (project, ExceptionDispatchInfo.Capture(ex));
+                }
 
                 Diagnostic? firstDiagnostic = null;
                 CodeFixProvider? effectiveCodeFixProvider = null;
@@ -660,7 +686,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 var action = await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
                 if (action == null)
                 {
-                    return project;
+                    return (project, null);
                 }
 
                 var fixedProject = await ApplyFixAsync(project, action, cancellationToken).ConfigureAwait(false);
@@ -673,16 +699,23 @@ namespace Microsoft.CodeAnalysis.Testing
             }
             while (!done);
 
-            if (expectedNumberOfIterations >= 0)
+            try
             {
-                verifier.Equal(expectedNumberOfIterations, expectedNumberOfIterations - numberOfIterations, $"Expected '{expectedNumberOfIterations}' iterations but found '{expectedNumberOfIterations - numberOfIterations}' iterations.");
+                if (expectedNumberOfIterations >= 0)
+                {
+                    verifier.Equal(expectedNumberOfIterations, expectedNumberOfIterations - numberOfIterations, $"Expected '{expectedNumberOfIterations}' iterations but found '{expectedNumberOfIterations - numberOfIterations}' iterations.");
+                }
+                else
+                {
+                    verifier.True(numberOfIterations >= 0, "The upper limit for the number of code fix iterations was exceeded");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                verifier.True(numberOfIterations >= 0, "The upper limit for the number of code fix iterations was exceeded");
+                return (project, ExceptionDispatchInfo.Capture(ex));
             }
 
-            return project;
+            return (project, null);
         }
 
         /// <summary>
