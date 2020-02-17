@@ -6344,10 +6344,15 @@ done:;
                 Debug.Assert(!IsInAsync);
 
                 // Let's see if we're in case (5). Pretend that we're in an async method and retry.
+                //
+                // Because we know we started with 'await' and because we're attempting to parse out
+                // an await-expression, we can call directly into ParseExpressionStatement here
+                // instead of calling into another top-level ParseStatement function that will
+                // eventually bottom out there.
 
                 this.Reset(ref resetPointBeforeStatement);
                 IsInAsync = true;
-                result = ParseStatementNoDeclaration(isGlobalScriptLevel: false);
+                result = ParseExpressionStatement();
                 IsInAsync = false;
 
                 return result;
