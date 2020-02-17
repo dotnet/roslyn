@@ -20,5 +20,10 @@ namespace Microsoft.CodeAnalysis.Testing
         /// validation of additional locations reported for the corresponding diagnostics.
         /// </summary>
         IgnoreAdditionalLocations = 1,
+
+        /// <summary>
+        /// Ignore the diagnostic severity when verifying this diagnostic result.
+        /// </summary>
+        IgnoreSeverity = 2,
     }
 }

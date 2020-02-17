@@ -322,8 +322,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic id to be \"{expected.Id}\" was \"{actual.Id}\"");
                 verifier.Equal(expected.Id, actual.Id, message);
 
-                message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic severity to be \"{expected.Severity}\" was \"{actual.Severity}\"");
-                verifier.Equal(expected.Severity, actual.Severity, message);
+                if (!expected.Options.HasFlag(DiagnosticOptions.IgnoreSeverity))
+                {
+                    message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic severity to be \"{expected.Severity}\" was \"{actual.Severity}\"");
+                    verifier.Equal(expected.Severity, actual.Severity, message);
+                }
 
                 if (expected.Message != null)
                 {
@@ -509,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 var isIdMatch = diagnosticId == diagnosticResult.Id;
                 if (isLocationMatch
                     && isIdMatch
-                    && diagnostic.Severity == diagnosticResult.Severity
+                    && IsSeverityMatch(diagnostic, diagnosticResult)
                     && IsMessageMatch(diagnostic, actualArguments, diagnosticResult, expectedArguments))
                 {
                     return MatchQuality.Full;
@@ -582,6 +585,16 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 return true;
+            }
+
+            static bool IsSeverityMatch(Diagnostic actual, DiagnosticResult expected)
+            {
+                if (expected.Options.HasFlag(DiagnosticOptions.IgnoreSeverity))
+                {
+                    return true;
+                }
+
+                return actual.Severity == expected.Severity;
             }
 
             static bool IsMessageMatch(Diagnostic actual, ImmutableArray<string> actualArguments, DiagnosticResult expected, ImmutableArray<string> expectedArguments)
