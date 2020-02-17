@@ -6423,7 +6423,7 @@ done:;
                         return result;
                     break;
                 case SyntaxKind.UsingKeyword:
-                    return PeekToken(1).Kind == SyntaxKind.OpenParenToken ? this.ParseUsingStatement() : this.ParseLocalDeclarationStatement();
+                    return ParseStatementStartingWithUsing();
                 case SyntaxKind.WhileKeyword:
                     return this.ParseWhileStatement();
                 case SyntaxKind.OpenBraceToken:
@@ -6451,17 +6451,14 @@ done:;
         {
             if (isPossibleAwaitForEach())
             {
-                return this.ParseForEachStatement(parseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
+                return this.ParseForEachStatement(ParseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
             }
-            else if (isPossibleAwaitUsing())
+            else if (IsPossibleAwaitUsing())
             {
                 if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
                 {
-                    return this.ParseUsingStatement(parseAwaitKeyword(MessageID.IDS_FeatureAsyncUsing));
-                }
-                else
-                {
-                    return this.ParseLocalDeclarationStatement(parseAwaitKeyword(MessageID.None));
+                    // `await using Type ...` is handled later when ParseLocalDeclarationStatement is called.
+                    return this.ParseUsingStatement(ParseAwaitKeyword(MessageID.IDS_FeatureAsyncUsing));
                 }
             }
             else if (this.IsPossibleLabeledStatement())
@@ -6488,24 +6485,24 @@ done:;
                 return this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
                     this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword;
             }
-
-            bool isPossibleAwaitUsing()
-            {
-                return this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
-                    this.PeekToken(1).Kind == SyntaxKind.UsingKeyword;
-            }
-
-            SyntaxToken parseAwaitKeyword(MessageID feature)
-            {
-                Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
-                SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-                return feature != MessageID.None ? CheckFeatureAvailability(awaitToken, feature) : awaitToken;
-            }
         }
+
+        private StatementSyntax ParseStatementStartingWithUsing()
+            => PeekToken(1).Kind == SyntaxKind.OpenParenToken ? ParseUsingStatement() : ParseLocalDeclarationStatement();
 
         private UnsafeStatementSyntax TryParseStatementStartingWithUnsafe()
             // Checking for brace to disambiguate between unsafe statement and unsafe local function
             => this.IsPossibleUnsafeStatement() ? this.ParseUnsafeStatement() : null;
+
+        private SyntaxToken ParseAwaitKeyword(MessageID feature)
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
+            SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
+            return feature != MessageID.None ? CheckFeatureAvailability(awaitToken, feature) : awaitToken;
+        }
+
+        private bool IsPossibleAwaitUsing()
+            => this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword && this.PeekToken(1).Kind == SyntaxKind.UsingKeyword;
 
         private bool IsPossibleLabeledStatement()
         {
@@ -6535,6 +6532,19 @@ done:;
                         this.PeekToken(1).Kind != SyntaxKind.DotToken && // e.g. `int.Parse()` is an expression
                         this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)) // e.g. `int (x, y)` is an error decl expression
             {
+                return true;
+            }
+
+            // note: `using (` and `await using (` are already handled in ParseStatementCore.
+            if (tk == SyntaxKind.UsingKeyword)
+            {
+                Debug.Assert(PeekToken(1).Kind != SyntaxKind.OpenParenToken);
+                return true;
+            }
+
+            if (IsPossibleAwaitUsing())
+            {
+                Debug.Assert(PeekToken(2).Kind != SyntaxKind.OpenParenToken);
                 return true;
             }
 
@@ -8095,14 +8105,26 @@ tryAgain:
         /// <summary>
         /// Parses any kind of local declaration statement: local variable or local function.
         /// </summary>
-        private StatementSyntax ParseLocalDeclarationStatement(SyntaxToken awaitKeywordOpt = default)
+        private StatementSyntax ParseLocalDeclarationStatement()
         {
-            var usingKeyword = TryEatToken(SyntaxKind.UsingKeyword);
-            if (usingKeyword != null)
+            SyntaxToken awaitKeyword, usingKeyword;
+            bool canParseAsLocalFunction = false;
+            if (IsPossibleAwaitUsing())
             {
-                usingKeyword = CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations);
+                awaitKeyword = ParseAwaitKeyword(MessageID.None);
+                usingKeyword = EatToken();
             }
-            bool canParseAsLocalFunction = usingKeyword == null;
+            else if (this.CurrentToken.Kind == SyntaxKind.UsingKeyword)
+            {
+                awaitKeyword = default;
+                usingKeyword = EatToken();
+            }
+            else
+            {
+                awaitKeyword = default;
+                usingKeyword = null;
+                canParseAsLocalFunction = true;
+            }
 
             var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods);
@@ -8144,7 +8166,7 @@ tryAgain:
                 }
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
                 return _syntaxFactory.LocalDeclarationStatement(
-                    awaitKeywordOpt,
+                    awaitKeyword,
                     usingKeyword,
                     mods.ToList(),
                     _syntaxFactory.VariableDeclaration(type, variables),
