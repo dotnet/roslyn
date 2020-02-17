@@ -2097,7 +2097,7 @@ tryAgain:
 
                     // We don't allow local declaration statements or functions at the top level.  We want
                     // to fall out below and parse them instead as fields or methods.
-                    var statement = this.ParseStatementNoDeclaration(isGlobalScriptLevel: true);
+                    var statement = this.ParseStatementCore(isGlobalScriptLevel: true);
 
                     _termState = saveTerm;
                     if (statement != null)
@@ -6272,11 +6272,15 @@ done:;
         public StatementSyntax ParseStatement()
         {
             return ParseWithStackGuard(
-                () => ParseStatementCore() ?? ParseExpressionStatement(),
+                () => ParseStatementCore(isGlobalScriptLevel: false) ?? ParseExpressionStatement(),
                 () => SyntaxFactory.EmptyStatement(SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken)));
         }
 
-        private StatementSyntax ParseStatementCore()
+        /// <param name="isGlobalScriptLevel">If we're being called while parsing a C# script from
+        /// the top-level.  At the top level, we allow most statements *except* for
+        /// local-decls/local-funcs.  Those will instead be parsed out as
+        /// script-fields/methods.</param>
+        private StatementSyntax ParseStatementCore(bool isGlobalScriptLevel)
         {
             ResetPoint resetPointBeforeStatement = this.GetResetPoint();
             try
@@ -6284,7 +6288,11 @@ done:;
                 _recursionDepth++;
                 StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
 
-                if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNode is CSharp.Syntax.StatementSyntax)
+                // Can only reuse a global-script or regular statement if we're in the same
+                // global-script context we were originally in.
+                if (this.IsIncrementalAndFactoryContextMatches &&
+                    this.CurrentNode is CSharp.Syntax.StatementSyntax &&
+                    isGlobalScriptLevel == (this.CurrentNode.Parent is Syntax.GlobalStatementSyntax))
                 {
                     return (StatementSyntax)this.EatNode();
                 }
@@ -6297,6 +6305,14 @@ done:;
                 if (result != null)
                 {
                     return result;
+                }
+
+                if (isGlobalScriptLevel)
+                {
+                    // if we're at the global script level, then we don't support local-decls or
+                    // local-funcs. The caller instead will look for those and parse them as
+                    // fields/methods in the global script scope.
+                    return null;
                 }
 
                 // We could not successfully parse the statement as a non-declaration. Try to parse
@@ -7041,7 +7057,7 @@ done:;
             {
                 if (this.IsPossibleStatement(acceptAccessibilityMods: true))
                 {
-                    var statement = this.ParseStatementCore();
+                    var statement = this.ParseStatementCore(isGlobalScriptLevel: false);
                     if (statement != null)
                     {
                         statements.Add(statement);
@@ -7170,7 +7186,7 @@ done:;
             // deep impact on the number of recursive calls we can make (more than a hundred during
             // empirical testing).
 
-            return parseEmbeddedStatementRest(this.ParseStatementCore());
+            return parseEmbeddedStatementRest(this.ParseStatementCore(isGlobalScriptLevel: false));
 
             StatementSyntax parseEmbeddedStatementRest(StatementSyntax statement)
             {
@@ -8092,7 +8108,7 @@ tryAgain:
             var label = this.ParseIdentifierToken();
             var colon = this.EatToken(SyntaxKind.ColonToken);
             Debug.Assert(!colon.IsMissing);
-            var statement = this.ParseStatementCore() ?? SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
+            var statement = this.ParseStatementCore(isGlobalScriptLevel: false) ?? SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
             return _syntaxFactory.LabeledStatement(label, colon, statement);
         }
 
