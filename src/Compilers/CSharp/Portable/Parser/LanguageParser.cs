@@ -6288,11 +6288,7 @@ done:;
                 _recursionDepth++;
                 StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
 
-                // Can only reuse a global-script or regular statement if we're in the same
-                // global-script context we were originally in.
-                if (this.IsIncrementalAndFactoryContextMatches &&
-                    this.CurrentNode is CSharp.Syntax.StatementSyntax &&
-                    isGlobalScriptLevel == (this.CurrentNode.Parent is Syntax.GlobalStatementSyntax))
+                if (canReuseStatement(isGlobalScriptLevel))
                 {
                     return (StatementSyntax)this.EatNode();
                 }
@@ -6362,6 +6358,15 @@ done:;
             {
                 _recursionDepth--;
                 this.Release(ref resetPointBeforeStatement);
+            }
+
+            bool canReuseStatement(bool isGlobalScriptLevel)
+            {
+                // Can only reuse a global-script or regular statement if we're in the same
+                // global-script context we were originally in.
+                return this.IsIncrementalAndFactoryContextMatches &&
+                       this.CurrentNode is CSharp.Syntax.StatementSyntax &&
+                       isGlobalScriptLevel == (this.CurrentNode.Parent is Syntax.GlobalStatementSyntax);
             }
         }
 
