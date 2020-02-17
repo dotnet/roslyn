@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 #if NET20
             => exception is OperationCanceledException cancellationException;
 #else
-            => exception is OperationCanceledException cancellationException && cancellationException.CancellationToken == cancellationToken;
+            => exception is OperationCanceledException cancellationException && cancellationToken.IsCancellationRequested;
 #endif
 
         /// <summary>
