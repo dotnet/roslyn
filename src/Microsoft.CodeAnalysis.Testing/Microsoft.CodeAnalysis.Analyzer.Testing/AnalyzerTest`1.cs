@@ -401,12 +401,12 @@ namespace Microsoft.CodeAnalysis.Testing
 
             // Initialize the best match to a trivial result where everything is unmatched. This will be updated if/when
             // better matches are found.
-            double bestMatchCount = actualResults.Length + expectedResults.Length;
+            var bestMatchCount = MatchQuality.RemainingUnmatched(actualResults.Length + expectedResults.Length);
             var bestMatch = actualResults.Select(result => ((Diagnostic?)result, default(DiagnosticResult?))).Concat(expectedResults.Select(result => (default(Diagnostic?), (DiagnosticResult?)result))).ToImmutableArray();
 
             var builder = ImmutableArray.CreateBuilder<(Diagnostic? actual, DiagnosticResult? expected)>();
             var usedExpected = new bool[expectedResults.Length];
-            _ = RecursiveMatch(0, 0, 0, usedExpected);
+            _ = RecursiveMatch(0, actualResults.Length, 0, expectedArguments.Length, MatchQuality.Full, usedExpected);
 
             return bestMatch;
 
@@ -414,13 +414,13 @@ namespace Microsoft.CodeAnalysis.Testing
             // ideal result of 0 (1:1 matching of actual and expected results). Currently the distance is calculated as
             // the sum of the match values:
             //
-            // * Fully-matched items have a value of 0.
-            // * Partially-matched items have a value between 0 and 1 (exclusive).
-            // * Fully-unmatched items have a value of 1.
-            double RecursiveMatch(int firstActualIndex, int firstExpectedIndex, double unmatchedActualResults, bool[] usedExpected)
+            // * Fully-matched items have a value of MatchQuality.Full.
+            // * Partially-matched items have a value between MatchQuality.Full and MatchQuality.None (exclusive).
+            // * Fully-unmatched items have a value of MatchQuality.None.
+            MatchQuality RecursiveMatch(int firstActualIndex, int remainingActualItems, int firstExpectedIndex, int remainingExpectedItems, MatchQuality unmatchedActualResults, bool[] usedExpected)
             {
-                var matchedOnEntry = firstActualIndex - unmatchedActualResults;
-                var bestPossibleUnmatchedExpected = Math.Max(0, expectedResults.Length - matchedOnEntry - (actualResults.Length - unmatchedActualResults));
+                var matchedOnEntry = actualResults.Length - remainingActualItems;
+                var bestPossibleUnmatchedExpected = MatchQuality.RemainingUnmatched(Math.Abs(remainingActualItems - remainingExpectedItems));
                 var bestPossible = unmatchedActualResults + bestPossibleUnmatchedExpected;
 
                 if (firstActualIndex == actualResults.Length)
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     // We reached the end of the actual diagnostics. Any remaning unmatched expected diagnostics should
                     // be added to the end. If this path produced a better result than the best known path so far,
                     // update the best match to this one.
-                    var totalUnmatched = unmatchedActualResults + (expectedResults.Length - matchedOnEntry);
+                    var totalUnmatched = unmatchedActualResults + MatchQuality.RemainingUnmatched(remainingExpectedItems);
 
                     // Avoid manipulating the builder if we know the current path is no better than the previous best.
                     if (totalUnmatched < bestMatchCount)
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     return totalUnmatched;
                 }
 
-                var currentBest = actualResults.Length + expectedResults.Length - (2 * matchedOnEntry);
+                var currentBest = unmatchedActualResults + MatchQuality.RemainingUnmatched(remainingActualItems + remainingExpectedItems);
                 for (var i = firstExpectedIndex; i < expectedResults.Length; i++)
                 {
                     if (usedExpected[i])
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     var (lineSpan, additionalLineSpans) = actualResultLocations[firstActualIndex];
                     var matchValue = GetMatchValue(actualResults[firstActualIndex], actualIds[firstActualIndex], lineSpan, additionalLineSpans, actualArguments[firstActualIndex], expectedResults[i], expectedArguments[i]);
-                    if (matchValue == 1)
+                    if (matchValue == MatchQuality.None)
                     {
                         continue;
                     }
@@ -476,8 +476,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         usedExpected[i] = true;
                         builder.Add((actualResults[firstActualIndex], expectedResults[i]));
-                        var bestResultWithCurrentMatch = RecursiveMatch(firstActualIndex + 1, i == firstExpectedIndex ? firstExpectedIndex + 1 : firstExpectedIndex, unmatchedActualResults + matchValue, usedExpected);
-                        currentBest = Math.Min(bestResultWithCurrentMatch, currentBest);
+                        var bestResultWithCurrentMatch = RecursiveMatch(firstActualIndex + 1, remainingActualItems - 1, i == firstExpectedIndex ? firstExpectedIndex + 1 : firstExpectedIndex, remainingExpectedItems - 1, unmatchedActualResults + matchValue, usedExpected);
+                        currentBest = Min(bestResultWithCurrentMatch, currentBest);
                         if (currentBest == bestPossible)
                         {
                             // Return immediately if we know the current actual result cannot be paired with a different
@@ -498,8 +498,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     try
                     {
                         builder.Add((actualResults[firstActualIndex], null));
-                        var bestResultWithCurrentUnmatched = RecursiveMatch(firstActualIndex + 1, firstExpectedIndex, unmatchedActualResults + 1, usedExpected);
-                        return Math.Min(bestResultWithCurrentUnmatched, currentBest);
+                        var bestResultWithCurrentUnmatched = RecursiveMatch(firstActualIndex + 1, remainingActualItems - 1, firstExpectedIndex, remainingExpectedItems, unmatchedActualResults + MatchQuality.None, usedExpected);
+                        return Min(bestResultWithCurrentUnmatched, currentBest);
                     }
                     finally
                     {
@@ -511,16 +511,20 @@ namespace Microsoft.CodeAnalysis.Testing
                 return currentBest;
             }
 
-            static double GetMatchValue(Diagnostic diagnostic, string diagnosticId, FileLinePositionSpan lineSpan, ImmutableArray<FileLinePositionSpan> additionalLineSpans, ImmutableArray<string> actualArguments, DiagnosticResult diagnosticResult, ImmutableArray<string> expectedArguments)
+            static MatchQuality Min(MatchQuality val1, MatchQuality val2)
+                => val2 < val1 ? val2 : val1;
+
+            static MatchQuality GetMatchValue(Diagnostic diagnostic, string diagnosticId, FileLinePositionSpan lineSpan, ImmutableArray<FileLinePositionSpan> additionalLineSpans, ImmutableArray<string> actualArguments, DiagnosticResult diagnosticResult, ImmutableArray<string> expectedArguments)
             {
-                // A full match automatically gets the value 0. A partial match gets a "point" for each of the following
-                // elements:
+                // A full match automatically gets the value MatchQuality.Full. A partial match gets a "point" for each
+                // of the following elements:
                 //
                 // 1. Diagnostic span start
                 // 2. Diagnostic span end
                 // 3. Diagnostic ID
                 //
-                // A partial match starts at 1, with a 0.25 deduction for each of the above matching items.
+                // A partial match starts at MatchQuality.None, with a point deduction for each of the above matching
+                // items.
                 var isLocationMatch = IsLocationMatch(diagnostic, lineSpan, additionalLineSpans, diagnosticResult, out var matchSpanStart, out var matchSpanEnd);
                 var isIdMatch = diagnosticId == diagnosticResult.Id;
                 if (isLocationMatch
@@ -528,11 +532,16 @@ namespace Microsoft.CodeAnalysis.Testing
                     && diagnostic.Severity == diagnosticResult.Severity
                     && IsMessageMatch(diagnostic, actualArguments, diagnosticResult, expectedArguments))
                 {
-                    return 0;
+                    return MatchQuality.Full;
                 }
 
                 var points = (matchSpanStart ? 1 : 0) + (matchSpanEnd ? 1 : 0) + (isIdMatch ? 1 : 0);
-                return (4 - points) / 4.0;
+                if (points == 0)
+                {
+                    return MatchQuality.None;
+                }
+
+                return new MatchQuality(4 - points);
             }
 
             static bool IsLocationMatch(Diagnostic diagnostic, FileLinePositionSpan lineSpan, ImmutableArray<FileLinePositionSpan> additionalLineSpans, DiagnosticResult diagnosticResult, out bool matchSpanStart, out bool matchSpanEnd)
