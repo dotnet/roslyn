@@ -180,6 +180,16 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
+        protected string FormatVerifierMessage(ImmutableArray<DiagnosticAnalyzer> analyzers, Diagnostic actual, DiagnosticResult expected, string message)
+        {
+            return $"{message}{Environment.NewLine}" +
+                $"{Environment.NewLine}" +
+                $"Expected diagnostic:{Environment.NewLine}" +
+                $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
+                $"Actual diagnostic:{Environment.NewLine}" +
+                $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
+        }
+
         /// <summary>
         /// General method that gets a collection of actual <see cref="Diagnostic"/>s found in the source after the
         /// analyzer is run, then verifies each of them.
@@ -289,12 +299,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 if (!expected.HasLocation)
                 {
-                    message = $"Expected a project diagnostic with no location:{Environment.NewLine}" +
-                        $"{Environment.NewLine}" +
-                        $"Expected diagnostic:{Environment.NewLine}" +
-                        $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
-                        $"Actual diagnostic:{Environment.NewLine}" +
-                        $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
+                    message = FormatVerifierMessage(analyzers, actual, expected, "Expected a project diagnostic with no location:");
                     verifier.Equal(Location.None, actual.Location, message);
                 }
                 else
@@ -304,12 +309,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         var additionalLocations = actual.AdditionalLocations.ToArray();
 
-                        message = $"Expected {expected.Spans.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:{Environment.NewLine}" +
-                            $"{Environment.NewLine}" +
-                            $"Expected diagnostic:{Environment.NewLine}" +
-                            $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
-                            $"Actual diagnostic:{Environment.NewLine}" +
-                            $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
+                        message = FormatVerifierMessage(analyzers, actual, expected, $"Expected {expected.Spans.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:");
                         verifier.Equal(expected.Spans.Length - 1, additionalLocations.Length, message);
 
                         for (var j = 0; j < additionalLocations.Length; ++j)
@@ -319,40 +319,20 @@ namespace Microsoft.CodeAnalysis.Testing
                     }
                 }
 
-                message = $"Expected diagnostic id to be \"{expected.Id}\" was \"{actual.Id}\"{Environment.NewLine}" +
-                    $"{Environment.NewLine}" +
-                    $"Expected diagnostic:{Environment.NewLine}" +
-                    $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
-                    $"Actual diagnostic:{Environment.NewLine}" +
-                    $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
+                message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic id to be \"{expected.Id}\" was \"{actual.Id}\"");
                 verifier.Equal(expected.Id, actual.Id, message);
 
-                message = $"Expected diagnostic severity to be \"{expected.Severity}\" was \"{actual.Severity}\"{Environment.NewLine}" +
-                    $"{Environment.NewLine}" +
-                    $"Expected diagnostic:{Environment.NewLine}" +
-                    $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
-                    $"Actual diagnostic:{Environment.NewLine}" +
-                    $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
+                message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic severity to be \"{expected.Severity}\" was \"{actual.Severity}\"");
                 verifier.Equal(expected.Severity, actual.Severity, message);
 
                 if (expected.Message != null)
                 {
-                    message = $"Expected diagnostic message to be \"{expected.Message}\" was \"{actual.GetMessage()}\"{Environment.NewLine}" +
-                        $"{Environment.NewLine}" +
-                        $"Expected diagnostic:{Environment.NewLine}" +
-                        $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
-                        $"Actual diagnostic:{Environment.NewLine}" +
-                        $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
+                    message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic message to be \"{expected.Message}\" was \"{actual.GetMessage()}\"");
                     verifier.Equal(expected.Message, actual.GetMessage(), message);
                 }
                 else if (expected.MessageArguments?.Length > 0)
                 {
-                    message = $"Expected diagnostic message arguments to match{Environment.NewLine}" +
-                        $"{Environment.NewLine}" +
-                        $"Expected diagnostic:{Environment.NewLine}" +
-                        $"    {FormatDiagnostics(analyzers, DefaultFilePath, expected)}{Environment.NewLine}" +
-                        $"Actual diagnostic:{Environment.NewLine}" +
-                        $"    {FormatDiagnostics(analyzers, DefaultFilePath, actual)}{Environment.NewLine}";
+                    message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic message arguments to match");
                     verifier.SequenceEqual(
                         expected.MessageArguments.Select(argument => argument?.ToString() ?? string.Empty),
                         GetArguments(actual).Select(argument => argument?.ToString() ?? string.Empty),
@@ -638,12 +618,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var assert = actualSpan.Path == expected.Span.Path || (actualSpan.Path?.Contains("Test0.") == true && expected.Span.Path.Contains("Test."));
 
-            var message = $"Expected diagnostic to be in file \"{expected.Span.Path}\" was actually in file \"{actualSpan.Path}\"{Environment.NewLine}" +
-                $"{Environment.NewLine}" +
-                $"Expected diagnostic:{Environment.NewLine}" +
-                $"    {FormatDiagnostics(analyzers, DefaultFilePath, expectedDiagnostic)}{Environment.NewLine}" +
-                $"Actual diagnostic:{Environment.NewLine}" +
-                $"    {FormatDiagnostics(analyzers, DefaultFilePath, diagnostic)}{Environment.NewLine}";
+            var message = FormatVerifierMessage(analyzers, diagnostic, expectedDiagnostic, $"Expected diagnostic to be in file \"{expected.Span.Path}\" was actually in file \"{actualSpan.Path}\"");
             verifier.True(assert, message);
 
             VerifyLinePosition(analyzers, diagnostic, expectedDiagnostic, actualSpan.StartLinePosition, expected.Span.StartLinePosition, "start", verifier);
@@ -655,23 +630,13 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private void VerifyLinePosition(ImmutableArray<DiagnosticAnalyzer> analyzers, Diagnostic diagnostic, DiagnosticResult expectedDiagnostic, LinePosition actualLinePosition, LinePosition expectedLinePosition, string positionText, IVerifier verifier)
         {
-            var message = $"Expected diagnostic to {positionText} on line \"{expectedLinePosition.Line + 1}\" was actually on line \"{actualLinePosition.Line + 1}\"{Environment.NewLine}" +
-                $"{Environment.NewLine}" +
-                $"Expected diagnostic:{Environment.NewLine}" +
-                $"    {FormatDiagnostics(analyzers, DefaultFilePath, expectedDiagnostic)}{Environment.NewLine}" +
-                $"Actual diagnostic:{Environment.NewLine}" +
-                $"    {FormatDiagnostics(analyzers, DefaultFilePath, diagnostic)}{Environment.NewLine}";
+            var message = FormatVerifierMessage(analyzers, diagnostic, expectedDiagnostic, $"Expected diagnostic to {positionText} on line \"{expectedLinePosition.Line + 1}\" was actually on line \"{actualLinePosition.Line + 1}\"");
             verifier.Equal(
                 expectedLinePosition.Line,
                 actualLinePosition.Line,
                 message);
 
-            message = $"Expected diagnostic to {positionText} at column \"{expectedLinePosition.Character + 1}\" was actually at column \"{actualLinePosition.Character + 1}\"{Environment.NewLine}" +
-                $"{Environment.NewLine}" +
-                $"Expected diagnostic:{Environment.NewLine}" +
-                $"    {FormatDiagnostics(analyzers, DefaultFilePath, expectedDiagnostic)}{Environment.NewLine}" +
-                $"Actual diagnostic:{Environment.NewLine}" +
-                $"    {FormatDiagnostics(analyzers, DefaultFilePath, diagnostic)}{Environment.NewLine}";
+            message = FormatVerifierMessage(analyzers, diagnostic, expectedDiagnostic, $"Expected diagnostic to {positionText} at column \"{expectedLinePosition.Character + 1}\" was actually at column \"{actualLinePosition.Character + 1}\"");
             verifier.Equal(
                 expectedLinePosition.Character,
                 actualLinePosition.Character,
