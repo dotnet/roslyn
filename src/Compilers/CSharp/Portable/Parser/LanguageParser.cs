@@ -6347,29 +6347,21 @@ done:;
                     return null;
                 }
 
-                // Cases (2), (3) and (4):
-                if (!beginsWithAwait || !result.ContainsDiagnostics)
+                if (result.ContainsDiagnostics &&
+                    beginsWithAwait &&
+                    !IsInAsync)
                 {
-                    return result;
+                    // Local decl had issues.  We were also starting with 'await' in a non-async
+                    // context. Retry parsing this as if we were in an 'async' context as it's much
+                    // more likely that this was a misplace await-expr' than a local decl.
+                    //
+                    // The user will still get a later binding error about an await-expr in a non-async
+                    // context.
+                    this.Reset(ref resetPointBeforeStatement);
+                    IsInAsync = true;
+                    result = ParseExpressionStatement();
+                    IsInAsync = false;
                 }
-
-                // The statement begins with "await" and could not be parsed as a legal declaration statement.
-                // We know from our precondition that it is not a legal "await X();" statement, though it is
-                // possible that it was only not legal because we were not in an async context.
-
-                Debug.Assert(!IsInAsync);
-
-                // Let's see if we're in case (5). Pretend that we're in an async method and retry.
-                //
-                // Because we know we started with 'await' and because we're attempting to parse out
-                // an await-expression, we can call directly into ParseExpressionStatement here
-                // instead of calling into another top-level ParseStatement function that will
-                // eventually bottom out there.
-
-                this.Reset(ref resetPointBeforeStatement);
-                IsInAsync = true;
-                result = ParseExpressionStatement();
-                IsInAsync = false;
 
                 return result;
             }
