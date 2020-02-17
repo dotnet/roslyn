@@ -6356,74 +6356,79 @@ done:;
                         break;
                 }
 
-                if (!this.IsPossibleLocalDeclarationStatement(isGlobalScriptLevel))
-                {
-                    return this.ParseExpressionStatement();
-                }
-
-                if (isGlobalScriptLevel)
-                {
-                    // if we're at the global script level, then we don't support local-decls or
-                    // local-funcs. The caller instead will look for those and parse them as
-                    // fields/methods in the global script scope.
-                    return null;
-                }
-
-                // We could not successfully parse the statement as a non-declaration. Try to parse
-                // it as either a declaration or as an "await X();" statement that is in a non-async
-                // method. 
-
-                // Precondition: We have already attempted to parse the statement as a non-declaration and failed.
-                //
-                // That means that we are in one of the following cases:
-                //
-                // 1) This is not a statement. This can happen if the start of the statement was an
-                //    accessibility modifier, but the rest of the statement did not parse as a local
-                //    function. If there was an accessibility modifier and the statement parsed as
-                //    local function, that should be marked as a mistake with local function visibility.
-                //    Otherwise, it's likely the user just forgot a closing brace on their method.
-                // 2) This is a perfectly mundane and correct local declaration statement like "int x;"
-                // 3) This is a perfectly mundane but erroneous local declaration statement, like "int X();"
-                // 4) We are in the rare case of the code containing "await x;" and the intention is that
-                //    "await" is the type of "x".  This only works in a non-async method.
-                // 5) We have a misplaced await statement in a non-async method, like "await X();",
-                //    so the parse failed. Had we been in an async method then the parse attempt
-                //    done by our caller would have succeeded.  Retry as if we were async.  Later
-                //    semantic code will error out that this isn't legal.
-
-                bool beginsWithAwait = this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
-                result = ParseLocalDeclarationStatement();
-
-                // Case (1)
-                if (result == null)
-                {
-                    this.Reset(ref resetPointBeforeStatement);
-                    return null;
-                }
-
-                if (result.ContainsDiagnostics &&
-                    beginsWithAwait &&
-                    !IsInAsync)
-                {
-                    // Local decl had issues.  We were also starting with 'await' in a non-async
-                    // context. Retry parsing this as if we were in an 'async' context as it's much
-                    // more likely that this was a misplace await-expr' than a local decl.
-                    //
-                    // The user will still get a later binding error about an await-expr in a non-async
-                    // context.
-                    this.Reset(ref resetPointBeforeStatement);
-                    IsInAsync = true;
-                    result = ParseExpressionStatement();
-                    IsInAsync = false;
-                }
-
-                return result;
+                return ParseStatementCoreRest(isGlobalScriptLevel, ref resetPointBeforeStatement);
             }
             finally
             {
                 _recursionDepth--;
                 this.Release(ref resetPointBeforeStatement);
             }
+        }
+
+        private StatementSyntax ParseStatementCoreRest(bool isGlobalScriptLevel, ref ResetPoint resetPointBeforeStatement)
+        {
+            if (!this.IsPossibleLocalDeclarationStatement(isGlobalScriptLevel))
+            {
+                return this.ParseExpressionStatement();
+            }
+
+            if (isGlobalScriptLevel)
+            {
+                // if we're at the global script level, then we don't support local-decls or
+                // local-funcs. The caller instead will look for those and parse them as
+                // fields/methods in the global script scope.
+                return null;
+            }
+
+            // We could not successfully parse the statement as a non-declaration. Try to parse
+            // it as either a declaration or as an "await X();" statement that is in a non-async
+            // method. 
+
+            // Precondition: We have already attempted to parse the statement as a non-declaration and failed.
+            //
+            // That means that we are in one of the following cases:
+            //
+            // 1) This is not a statement. This can happen if the start of the statement was an
+            //    accessibility modifier, but the rest of the statement did not parse as a local
+            //    function. If there was an accessibility modifier and the statement parsed as
+            //    local function, that should be marked as a mistake with local function visibility.
+            //    Otherwise, it's likely the user just forgot a closing brace on their method.
+            // 2) This is a perfectly mundane and correct local declaration statement like "int x;"
+            // 3) This is a perfectly mundane but erroneous local declaration statement, like "int X();"
+            // 4) We are in the rare case of the code containing "await x;" and the intention is that
+            //    "await" is the type of "x".  This only works in a non-async method.
+            // 5) We have a misplaced await statement in a non-async method, like "await X();",
+            //    so the parse failed. Had we been in an async method then the parse attempt
+            //    done by our caller would have succeeded.  Retry as if we were async.  Later
+            //    semantic code will error out that this isn't legal.
+
+            bool beginsWithAwait = this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
+            var result = ParseLocalDeclarationStatement();
+
+            // Case (1)
+            if (result == null)
+            {
+                this.Reset(ref resetPointBeforeStatement);
+                return null;
+            }
+
+            if (result.ContainsDiagnostics &&
+                beginsWithAwait &&
+                !IsInAsync)
+            {
+                // Local decl had issues.  We were also starting with 'await' in a non-async
+                // context. Retry parsing this as if we were in an 'async' context as it's much
+                // more likely that this was a misplace await-expr' than a local decl.
+                //
+                // The user will still get a later binding error about an await-expr in a non-async
+                // context.
+                this.Reset(ref resetPointBeforeStatement);
+                IsInAsync = true;
+                result = ParseExpressionStatement();
+                IsInAsync = false;
+            }
+
+            return result;
         }
 
         private StatementSyntax TryParseStatementStartingWithIdentifier(bool isGlobalScriptLevel)
