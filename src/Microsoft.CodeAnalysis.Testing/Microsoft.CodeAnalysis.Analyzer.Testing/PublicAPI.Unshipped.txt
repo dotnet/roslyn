@@ -40,6 +40,7 @@ Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.IgnoreLength = 1 -> Mic
 Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.None = 0 -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticOptions.IgnoreAdditionalLocations = 1 -> Microsoft.CodeAnalysis.Testing.DiagnosticOptions
+Microsoft.CodeAnalysis.Testing.DiagnosticOptions.IgnoreSeverity = 2 -> Microsoft.CodeAnalysis.Testing.DiagnosticOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticOptions.None = 0 -> Microsoft.CodeAnalysis.Testing.DiagnosticOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.DiagnosticResult(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor) -> void

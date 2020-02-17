@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
             }
 
-            return diagnosticResult.WithMessage(null).WithOptions(DiagnosticOptions.IgnoreAdditionalLocations);
+            return diagnosticResult.WithMessage(null).WithOptions(DiagnosticOptions.IgnoreAdditionalLocations | DiagnosticOptions.IgnoreSeverity);
         }
     }
 }
