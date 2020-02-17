@@ -125,7 +125,7 @@ class TestClass {
 ";
             var fixedCode = @"
 class TestClass {
-  int field =  5;
+  int field =   5;
 }
 ";
             var batchFixedCode = @"
@@ -145,24 +145,24 @@ class TestClass {
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}The upper limit for the number of code fix iterations was exceeded", exception.Message);
+            new DefaultVerifier().EqualOrDiff($"Context: Iterative code fix application{Environment.NewLine}The upper limit for the number of code fix iterations was exceeded", exception.Message);
         }
 
         [Theory]
-        [InlineData(-1, "The upper limit for the number of code fix iterations was exceeded")]
-        [InlineData(0, "The upper limit for the number of code fix iterations was exceeded")]
-        [InlineData(1, "Expected '1' iterations but found '2' iterations.")]
-        public async Task TestTwoIterationsRequiredButIncrementalDeclaredIncorrectly(int declaredIncrementalIterations, string message)
+        [InlineData(-1, "The upper limit for the number of code fix iterations was exceeded", "  5")]
+        [InlineData(0, "The upper limit for the number of code fix iterations was exceeded", " [|4|]")]
+        [InlineData(1, "Expected '1' iterations but found '2' iterations.", "  5")]
+        public async Task TestTwoIterationsRequiredButIncrementalDeclaredIncorrectly(int declaredIncrementalIterations, string message, string replacement)
         {
             var testCode = @"
 class TestClass {
   int field = [|3|];
 }
 ";
-            var fixedCode = @"
-class TestClass {
-  int field =  5;
-}
+            var fixedCode = $@"
+class TestClass {{
+  int field = {replacement};
+}}
 ";
             var batchFixedCode = @"
 class TestClass {
@@ -175,14 +175,14 @@ class TestClass {
                 await new CSharpTest
                 {
                     TestCode = testCode,
-                    FixedCode = fixedCode,
+                    FixedState = { Sources = { fixedCode }, MarkupHandling = MarkupMode.Allow },
                     BatchFixedCode = batchFixedCode,
                     NumberOfIncrementalIterations = declaredIncrementalIterations,
                     NumberOfFixAllIterations = 2,
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}{message}", exception.Message);
+            new DefaultVerifier().EqualOrDiff($"Context: Iterative code fix application{Environment.NewLine}{message}", exception.Message);
         }
 
         [Fact]
@@ -213,20 +213,25 @@ class TestClass {
         }
 
         [Theory]
-        [InlineData(-1, "The upper limit for the number of code fix iterations was exceeded")]
-        [InlineData(0, "The upper limit for the number of fix all iterations was exceeded")]
-        [InlineData(1, "Expected '1' iterations but found '2' iterations.")]
-        public async Task TestTwoIterationsRequiredButFixAllDeclaredIncorrectly(int declaredFixAllIterations, string message)
+        [InlineData(-1, "The upper limit for the number of code fix iterations was exceeded", "  5")]
+        [InlineData(0, "The upper limit for the number of fix all iterations was exceeded", " [|4|]")]
+        [InlineData(1, "Expected '1' iterations but found '2' iterations.", "  5")]
+        public async Task TestTwoIterationsRequiredButFixAllDeclaredIncorrectly(int declaredFixAllIterations, string message, string replacement)
         {
             var testCode = @"
 class TestClass {
   int field = [|3|];
 }
 ";
-            var fixedCode = @"
-class TestClass {
+            var fixedCode = $@"
+class TestClass {{
   int field =   5;
-}
+}}
+";
+            var fixAllCode = $@"
+class TestClass {{
+  int field = {replacement};
+}}
 ";
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -235,12 +240,13 @@ class TestClass {
                 {
                     TestCode = testCode,
                     FixedCode = fixedCode,
+                    BatchFixedState = { Sources = { fixAllCode }, MarkupHandling = MarkupMode.Allow },
                     NumberOfIncrementalIterations = 2,
                     NumberOfFixAllIterations = declaredFixAllIterations,
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Fix all in document{Environment.NewLine}{message}", exception.Message);
+            new DefaultVerifier().EqualOrDiff($"Context: Fix all in document{Environment.NewLine}{message}", exception.Message);
         }
 
         [Fact]
