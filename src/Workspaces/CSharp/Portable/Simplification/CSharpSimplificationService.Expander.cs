@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -105,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var speculativeSemanticModel = speculativeAnalyzer.SpeculativeSemanticModel;
                 var speculatedExpression = speculativeAnalyzer.ReplacedExpression;
 
-                var result = speculatedExpression.CastIfPossible(targetType, speculatedExpression.SpanStart, speculativeSemanticModel);
+                var result = speculatedExpression.CastIfPossible(targetType, speculatedExpression.SpanStart, speculativeSemanticModel, _cancellationToken);
 
                 if (result != speculatedExpression)
                 {
@@ -265,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     if (CanMakeNameExplicitInTuple(tuple, inferredName))
                     {
                         var identifier = SyntaxFactory.Identifier(inferredName);
-                        identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+                        identifier = TryEscapeIdentifierToken(identifier, node);
 
                         newArgument = newArgument
                             .WithoutLeadingTrivia()
@@ -334,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     {
                         // Creating identifier without elastic trivia to avoid unexpected line break
                         var identifier = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, inferredName, SyntaxTriviaList.Empty);
-                        identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+                        identifier = TryEscapeIdentifierToken(identifier, node);
 
                         newDeclarator = newDeclarator
                             .WithoutLeadingTrivia()
@@ -482,9 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                         if (aliasTarget is INamedTypeSymbol typeSymbol && typeSymbol.IsTupleType)
                         {
-                            // ValueTuple type is not allowed in using alias, so when expanding an alias
-                            // of ValueTuple types, always use its underlying type, i.e. `System.ValueTuple<>` instead of `(...)`
-                            aliasTarget = typeSymbol.TupleUnderlyingType;
+                            return rewrittenSimpleName;
                         }
 
                         // the expanded form replaces the current identifier name.
@@ -531,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                 break;
 
                             default:
-                                throw new NotImplementedException();
+                                throw ExceptionUtilities.UnexpectedValue(replacement.Kind());
                         }
 
                         replacement = newNode.CopyAnnotationsTo(replacement);
@@ -615,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 ////
                 //// 3. Always try to escape keyword identifiers
                 ////
-                identifier = TryEscapeIdentifierToken(identifier, originalSimpleName, _semanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
+                identifier = TryEscapeIdentifierToken(identifier, originalSimpleName).WithAdditionalAnnotations(Simplifier.Annotation);
                 if (identifier != rewrittenSimpleName.Identifier)
                 {
                     switch (newNode.Kind())

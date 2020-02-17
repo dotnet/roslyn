@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel;
@@ -51,33 +53,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void SetPrettyListing(string languageName, bool value)
             => InvokeOnUIThread(cancellationToken =>
             {
-                _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
-                    FeatureOnOffOptions.PrettyListing, languageName, value);
+                _visualStudioWorkspace.SetOptions(_visualStudioWorkspace.Options.WithChangedOption(
+                    FeatureOnOffOptions.PrettyListing, languageName, value));
             });
 
         public void EnableQuickInfo(bool value)
             => InvokeOnUIThread(cancellationToken =>
             {
-                _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
-                    InternalFeatureOnOffOptions.QuickInfo, value);
+                _visualStudioWorkspace.SetOptions(_visualStudioWorkspace.Options.WithChangedOption(
+                    InternalFeatureOnOffOptions.QuickInfo, value));
             });
 
         public void SetPerLanguageOption(string optionName, string feature, string language, object value)
         {
-            var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
-            var option = GetOption(optionName, feature, optionService);
+            var option = GetOption(optionName, feature);
             var result = GetValue(value, option);
             var optionKey = new OptionKey(option, language);
-            optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, result));
+            SetOption(optionKey, result);
         }
 
         public void SetOption(string optionName, string feature, object value)
         {
-            var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
-            var option = GetOption(optionName, feature, optionService);
+            var option = GetOption(optionName, feature);
             var result = GetValue(value, option);
             var optionKey = new OptionKey(option);
-            optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, result));
+            SetOption(optionKey, result);
         }
 
         private static object GetValue(object value, IOption option)
@@ -95,8 +95,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return result;
         }
 
-        private static IOption GetOption(string optionName, string feature, IOptionService optionService)
+        private IOption GetOption(string optionName, string feature)
         {
+            var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
             var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
             if (option == null)
             {
@@ -105,6 +106,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             return option;
         }
+
+        private void SetOption(OptionKey optionKey, object result)
+            => _visualStudioWorkspace.SetOptions(_visualStudioWorkspace.Options.WithChangedOption(optionKey, result));
 
         private static TestingOnly_WaitingService GetWaitingService()
             => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;
@@ -168,25 +172,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void SetFeatureOption(string feature, string optionName, string language, string valueString)
             => InvokeOnUIThread(cancellationToken =>
             {
-                var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
-                var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);
-                if (option == null)
-                {
-                    throw new InvalidOperationException($"Failed to find option with feature name '{feature}' and option name '{optionName}'");
-                }
+                var option = GetOption(optionName, feature);
 
                 var value = TypeDescriptor.GetConverter(option.Type).ConvertFromString(valueString);
                 var optionKey = string.IsNullOrWhiteSpace(language)
                     ? new OptionKey(option)
                     : new OptionKey(option, language);
 
-                optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, value));
+                SetOption(optionKey, value);
             });
 
         public string GetWorkingFolder()
         {
             var service = _visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageLocationService>();
-            return service.TryGetStorageLocation(_visualStudioWorkspace.CurrentSolution.Id);
+            return service.TryGetStorageLocation(_visualStudioWorkspace.CurrentSolution);
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections;
@@ -18,22 +22,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
         public static async Task<T> GetValueAsync<T>(this IRemotableDataService service, Checksum checksum)
         {
             var syncService = (RemotableDataServiceFactory.Service)service;
-            var syncObject = syncService.GetRemotableData_TestOnly(checksum, CancellationToken.None);
+            var syncObject = (await syncService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
 
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream))
+            using var stream = SerializableBytes.CreateWritableStream();
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                // serialize asset to bits
                 await syncObject.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
-
-                stream.Position = 0;
-                using (var reader = ObjectReader.TryGetReader(stream))
-                {
-                    // deserialize bits to object
-                    var serializer = syncService.Serializer_TestOnly;
-                    return serializer.Deserialize<T>(syncObject.Kind, reader, CancellationToken.None);
-                }
             }
+
+            stream.Position = 0;
+            using var reader = ObjectReader.TryGetReader(stream);
+
+            // deserialize bits to object
+            var serializer = syncService.Serializer_TestOnly;
+            return serializer.Deserialize<T>(syncObject.Kind, reader, CancellationToken.None);
         }
 
         public static ChecksumObjectCollection<ProjectStateChecksums> ToProjectObjects(this ProjectChecksumCollection collection, IRemotableDataService service)
@@ -86,19 +88,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
         }
     }
 
-    internal sealed class AssetProvider : IAssetProvider
+    internal sealed class TestAssetProvider : AbstractAssetProvider
     {
         private readonly IRemotableDataService _service;
 
-        public AssetProvider(IRemotableDataService service)
+        public TestAssetProvider(IRemotableDataService service)
         {
             _service = service;
         }
 
-        public Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
-        {
-            return _service.GetValueAsync<T>(checksum);
-        }
+        public override Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
+            => _service.GetValueAsync<T>(checksum);
     }
 
 }

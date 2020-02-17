@@ -4,7 +4,6 @@
 
 # CI mode - set to true on CI server for PR validation build or official build.
 ci=${ci:-false}
-disable_configure_toolset_import=${disable_configure_toolset_import:-}
 
 # Set to true to use the pipelines logger which will enable Azure logging output.
 # https://github.com/Microsoft/azure-pipelines-tasks/blob/master/docs/authoring/commands.md
@@ -42,7 +41,7 @@ fi
 # Configures warning treatment in msbuild.
 warn_as_error=${warn_as_error:-true}
 
-# True to attempt using .NET Core already that meets requirements specified in global.json 
+# True to attempt using .NET Core already that meets requirements specified in global.json
 # installed on the machine instead of downloading one.
 use_installed_dotnet_cli=${use_installed_dotnet_cli:-true}
 
@@ -82,7 +81,7 @@ function ReadGlobalVersion {
   local pattern="\"$key\" *: *\"(.*)\""
 
   if [[ ! $line =~ $pattern ]]; then
-    Write-PipelineTelemetryError -category 'InitializeToolset' "Error: Cannot find \"$key\" in $global_json_file"
+    Write-PipelineTelemetryError -category 'Build' "Error: Cannot find \"$key\" in $global_json_file"
     ExitWithExitCode 1
   fi
 
@@ -173,7 +172,7 @@ function InstallDotNetSdk {
 function InstallDotNet {
   local root=$1
   local version=$2
- 
+
   GetDotNetInstallScript "$root"
   local install_script=$_GetDotNetInstallScript
 
@@ -212,9 +211,33 @@ function InstallDotNet {
           Write-PipelineTelemetryError -category 'InitializeToolset' "Failed to install dotnet SDK from custom location '$runtimeSourceFeed' (exit code '$exit_code')."
           ExitWithExitCode $exit_code
         }
+      else
+        ExitWithExitCode $exit_code
       fi
     fi
   }
+}
+
+function with_retries {
+  local maxRetries=5
+  local retries=1
+  echo "Trying to run '$@' for maximum of $maxRetries attempts."
+  while [[ $((retries++)) -le $maxRetries ]]; do
+    "$@"
+
+    if [[ $? == 0 ]]; then
+      echo "Ran '$@' successfully."
+      return 0
+    fi
+
+    timeout=$((2**$retries-1))
+    echo "Failed to execute '$@'. Waiting $timeout seconds before next attempt ($retries out of $maxRetries)." 1>&2
+    sleep $timeout
+  done
+
+  echo "Failed to execute '$@' for $maxRetries times." 1>&2
+
+  return 1
 }
 
 function GetDotNetInstallScript {
@@ -229,13 +252,13 @@ function GetDotNetInstallScript {
 
     # Use curl if available, otherwise use wget
     if command -v curl > /dev/null; then
-      curl "$install_script_url" -sSL --retry 10 --create-dirs -o "$install_script" || {
+      with_retries curl "$install_script_url" -isSLv --retry 10 --create-dirs -o "$install_script" || {
         local exit_code=$?
         Write-PipelineTelemetryError -category 'InitializeToolset' "Failed to acquire dotnet install script (exit code '$exit_code')."
         ExitWithExitCode $exit_code
       }
-    else 
-      wget -q -O "$install_script" "$install_script_url" || {
+    else
+      with_retries wget -v -O "$install_script" "$install_script_url" || {
         local exit_code=$?
         Write-PipelineTelemetryError -category 'InitializeToolset' "Failed to acquire dotnet install script (exit code '$exit_code')."
         ExitWithExitCode $exit_code
@@ -250,11 +273,11 @@ function InitializeBuildTool {
   if [[ -n "${_InitializeBuildTool:-}" ]]; then
     return
   fi
-  
+
   InitializeDotNetCli $restore
 
   # return values
-  _InitializeBuildTool="$_InitializeDotNetCli/dotnet"  
+  _InitializeBuildTool="$_InitializeDotNetCli/dotnet"
   _InitializeBuildToolCommand="msbuild"
   _InitializeBuildToolFramework="netcoreapp2.1"
 }
@@ -318,14 +341,14 @@ function InitializeToolset {
   if [[ "$binary_log" == true ]]; then
     bl="/bl:$log_dir/ToolsetRestore.binlog"
   fi
-  
+
   echo '<Project Sdk="Microsoft.DotNet.Arcade.Sdk"/>' > "$proj"
   MSBuild-Core "$proj" $bl /t:__WriteToolsetLocation /clp:ErrorsOnly\;NoSummary /p:__ToolsetLocationOutputFile="$toolset_location_file"
 
   local toolset_build_proj=`cat "$toolset_location_file"`
 
   if [[ ! -a "$toolset_build_proj" ]]; then
-    Write-PipelineTelemetryError -category 'InitializeToolset' "Invalid toolset path: $toolset_build_proj"
+    Write-PipelineTelemetryError -category 'Build' "Invalid toolset path: $toolset_build_proj"
     ExitWithExitCode 3
   fi
 
@@ -375,12 +398,12 @@ function MSBuild {
 function MSBuild-Core {
   if [[ "$ci" == true ]]; then
     if [[ "$binary_log" != true ]]; then
-      Write-PipelineTaskError "Binary log must be enabled in CI build."
+      Write-PipelineTelemetryError -category 'Build'  "Binary log must be enabled in CI build."
       ExitWithExitCode 1
     fi
 
     if [[ "$node_reuse" == true ]]; then
-      Write-PipelineTaskError "Node reuse must be disabled in CI build."
+      Write-PipelineTelemetryError -category 'Build'  "Node reuse must be disabled in CI build."
       ExitWithExitCode 1
     fi
   fi
@@ -394,7 +417,7 @@ function MSBuild-Core {
 
   "$_InitializeBuildTool" "$_InitializeBuildToolCommand" /m /nologo /clp:Summary /v:$verbosity /nr:$node_reuse $warnaserror_switch /p:TreatWarningsAsErrors=$warn_as_error /p:ContinuousIntegrationBuild=$ci "$@" || {
     local exit_code=$?
-    Write-PipelineTaskError "Build failed (exit code '$exit_code')."
+    Write-PipelineTelemetryError -category 'Build'  "Build failed (exit code '$exit_code')."
     ExitWithExitCode $exit_code
   }
 }
@@ -437,7 +460,7 @@ Write-PipelineSetVariable -name "Temp" -value "$temp_dir"
 Write-PipelineSetVariable -name "TMP" -value "$temp_dir"
 
 # Import custom tools configuration, if present in the repo.
-if [[ -z "$disable_configure_toolset_import" ]]; then
+if [ -z "${disable_configure_toolset_import:-}" ]; then
   configure_toolset_script="$eng_root/configure-toolset.sh"
   if [[ -a "$configure_toolset_script" ]]; then
     . "$configure_toolset_script"

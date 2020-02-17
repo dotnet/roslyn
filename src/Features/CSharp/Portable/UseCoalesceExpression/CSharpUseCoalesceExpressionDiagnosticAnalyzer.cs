@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,14 +21,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression
     {
         protected override ISyntaxFactsService GetSyntaxFactsService()
             => CSharpSyntaxFactsService.Instance;
-
-        protected override SyntaxKind GetSyntaxKindToAnalyze()
-            => SyntaxKind.ConditionalExpression;
-
-        protected override bool IsEquals(BinaryExpressionSyntax condition)
-            => condition.Kind() == SyntaxKind.EqualsExpression;
-
-        protected override bool IsNotEquals(BinaryExpressionSyntax condition)
-            => condition.Kind() == SyntaxKind.NotEqualsExpression;
     }
 }

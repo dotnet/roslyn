@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -20,14 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             private static readonly HashSet<int> s_nonNoisySyntaxKindSet = new HashSet<int>(new int[] { (int)SyntaxKind.WhitespaceTrivia, (int)SyntaxKind.EndOfLineTrivia });
 
-            public static Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
+            public static Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             {
-                var analyzer = new CSharpAnalyzer(selectionResult, cancellationToken);
+                var analyzer = new CSharpAnalyzer(selectionResult, localFunction, cancellationToken);
                 return analyzer.AnalyzeAsync();
             }
 
-            public CSharpAnalyzer(SelectionResult selectionResult, CancellationToken cancellationToken)
-                : base(selectionResult, cancellationToken)
+            public CSharpAnalyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+                : base(selectionResult, localFunction, cancellationToken)
             {
             }
 
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                         if (AreAllReferencesNotNull(references))
                         {
-                            return base.GetSymbolType(semanticModel, symbol).WithNullability(NullableAnnotation.NotAnnotated);
+                            return base.GetSymbolType(semanticModel, symbol).WithNullableAnnotation(NullableAnnotation.NotAnnotated);
                         }
 
                         return base.GetSymbolType(semanticModel, symbol);

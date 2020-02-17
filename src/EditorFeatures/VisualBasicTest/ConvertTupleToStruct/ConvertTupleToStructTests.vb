@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -56,10 +58,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -115,10 +114,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1030903623
-        hashCode = (hashCode * -1521134295 + Item1.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + Item2.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (Item1, Item2).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef item1 As Integer, ByRef item2 As Integer)
@@ -174,10 +170,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 174326978
-        hashCode = (hashCode * -1521134295 + Item1.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (Item1, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef item1 As Integer, ByRef b As Integer)
@@ -235,10 +228,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -296,10 +286,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -356,10 +343,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -416,10 +400,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -478,10 +459,7 @@ namespace N
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Dim hashCode As Long = 2118541809
-            hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-            hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-            Return hashCode
+            Return (a, b).GetHashCode()
         End Function
 
         Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -537,10 +515,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + System.Collections.Generic.EqualityComparer(Of Object).Default.GetHashCode(a)).GetHashCode()
-        hashCode = (hashCode * -1521134295 + System.Collections.Generic.EqualityComparer(Of Object).Default.GetHashCode(b)).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Object, ByRef b As Object)
@@ -595,10 +570,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -655,10 +627,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -715,10 +684,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -785,10 +751,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -849,10 +812,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -917,10 +877,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -987,10 +944,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1059,10 +1013,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + EqualityComparer(Of Object).Default.GetHashCode(b)).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Object)
@@ -1119,10 +1070,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + EqualityComparer(Of Object).Default.GetHashCode(b)).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Object)
@@ -1179,10 +1127,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1241,10 +1186,7 @@ Friend Structure NewStruct(Of X As Structure, Y As {Class, New})
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + EqualityComparer(Of List(Of X)).Default.GetHashCode(a)).GetHashCode()
-        hashCode = (hashCode * -1521134295 + EqualityComparer(Of Y()).Default.GetHashCode(b)).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As List(Of X), ByRef b() As Y)
@@ -1309,10 +1251,7 @@ Friend Structure NewStruct1
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1373,10 +1312,7 @@ Friend Structure NewStruct1
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1431,10 +1367,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2068208952
-        hashCode = (hashCode * -1521134295 + Me.a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + Me.a.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (Me.a, Me.a).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef a As Integer)
@@ -1499,10 +1432,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1567,10 +1497,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1634,10 +1561,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1030903623
-        hashCode = (hashCode * -1521134295 + Item1.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + Item2.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (Item1, Item2).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef item1 As Integer, ByRef item2 As Integer)
@@ -1706,10 +1630,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1030903623
-        hashCode = (hashCode * -1521134295 + Item1.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + Item2.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (Item1, Item2).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef item1 As Integer, ByRef item2 As Integer)
@@ -1800,10 +1721,7 @@ Friend Structure NewStruct(Of T)
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + EqualityComparer(Of T).Default.GetHashCode(a)).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As T, ByRef b As Integer)
@@ -1885,10 +1803,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1967,10 +1882,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)

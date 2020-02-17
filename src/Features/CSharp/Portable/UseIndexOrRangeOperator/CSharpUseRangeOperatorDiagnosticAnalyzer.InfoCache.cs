@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
@@ -83,21 +86,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 }
 
                 // A Slice method can either be paired with an Range-taking indexer on the type, or
-                // an Range-taking overload.
+                // an Range-taking overload, or an explicit method called .Slice that takes two ints:
+                //
+                // https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#implicit-range-support
                 if (sliceLikeMethod.ReturnType.Equals(containingType))
                 {
-                    // it's a method like:  MyType MyType.Slice(int start, int length).  Look for an
-                    // indexer like  `MyType MyType.this[Range range]`. If we can't find one return
-                    // 'default' so we'll consider this named-type non-viable.
+                    // it's a method like:  MyType MyType.Get(int start, int length).  Look for an
+                    // indexer like  `MyType MyType.this[Range range]`.
                     var indexer = GetIndexer(containingType, RangeType, containingType);
                     if (indexer != null)
                     {
                         return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
                     }
+
+                    // Also, look to see if the type has a `.Slice(int start, int length)` method.
+                    // This is also a method the compiler knows to look for when a user writes `x[a..b]`
+                    var actualSliceMethod =
+                        sliceLikeMethod.ContainingType.GetMembers(nameof(Span<int>.Slice))
+                                                      .OfType<IMethodSymbol>()
+                                                      .FirstOrDefault(s => IsSliceLikeMethod(s));
+                    if (actualSliceMethod != null)
+                    {
+                        return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
+                    }
                 }
 
-                // it's a method like:   `SomeType MyType.Slice(int start, int length)`.  Look 
-                // for an overload like: `SomeType MyType.Slice(Range)`
+                // it's a method like:   `SomeType MyType.Get(int start, int length)`.  Look 
+                // for an overload like: `SomeType MyType.Get(Range)`
                 var overloadedRangeMethod = GetOverload(sliceLikeMethod, RangeType);
                 if (overloadedRangeMethod != null)
                 {

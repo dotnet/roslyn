@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -84,6 +86,14 @@ namespace Microsoft.CodeAnalysis
                 name = null;
                 value = null;
                 return false;
+            }
+
+            // handle stdin operator
+            if (arg == "-")
+            {
+                name = arg;
+                value = null;
+                return true;
             }
 
             int colon = arg.IndexOf(':');
@@ -850,7 +860,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private protected CommandLineSourceFile ToCommandLineSourceFile(string resolvedPath)
+        private protected CommandLineSourceFile ToCommandLineSourceFile(string resolvedPath, bool isInputRedirected = false)
         {
             string extension = PathUtilities.GetExtension(resolvedPath);
 
@@ -866,7 +876,7 @@ namespace Microsoft.CodeAnalysis
                 isScriptFile = false;
             }
 
-            return new CommandLineSourceFile(resolvedPath, isScriptFile);
+            return new CommandLineSourceFile(resolvedPath, isScriptFile, isInputRedirected);
         }
 
         internal IEnumerable<string> ParseFileArgument(string arg, string baseDirectory, IList<Diagnostic> errors)

@@ -1,10 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Experiments
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.VisualStudio.Composition
 
@@ -14,23 +15,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class TypeImportCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
+        Private Shared ReadOnly s_exportProviderFactory As IExportProviderFactory =
+            ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(TestExperimentationService)))
+
         Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
             MyBase.New(workspaceFixture)
         End Sub
 
         Private Property ShowImportCompletionItemsOptionValue As Boolean = True
 
-        ' -1 would disable timebox, whereas 0 means always timeout.
-        Private Property TimeoutInMilliseconds As Integer = -1
+        Private Property IsExpandedCompletion As Boolean = True
 
-        Protected Overrides Sub SetWorkspaceOptions(workspace As TestWorkspace)
-            workspace.Options = workspace.Options _
+        Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
+            Return options _
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds)
-        End Sub
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
+        End Function
 
         Protected Overrides Function GetExportProvider() As ExportProvider
-            Return ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(TestExperimentationService))).CreateExportProvider()
+            Return s_exportProviderFactory.CreateExportProvider()
         End Function
 
         Friend Overrides Function CreateCompletionProvider() As CompletionProvider

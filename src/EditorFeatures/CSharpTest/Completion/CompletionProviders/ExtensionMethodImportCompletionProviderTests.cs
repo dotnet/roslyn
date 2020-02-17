@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Xunit;
@@ -17,31 +20,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [UseExportProvider]
     public class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        private static readonly IExportProviderFactory s_exportProviderFactory
+            = ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)));
+
         public ExtensionMethodImportCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
         {
         }
 
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
 
-        // -1 would disable timebox, whereas 0 means always timeout.
-        private int TimeoutInMilliseconds { get; set; } = -1;
-
         private bool IsExpandedCompletion { get; set; } = true;
 
-        protected override void SetWorkspaceOptions(TestWorkspace workspace)
+        protected override OptionSet WithChangedOptions(OptionSet options)
         {
-            workspace.Options = workspace.Options
+            return options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
         }
 
         protected override ExportProvider GetExportProvider()
-        {
-            return ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)))
-                .CreateExportProvider();
-        }
+            => s_exportProviderFactory.CreateExportProvider();
 
         internal override CompletionProvider CreateCompletionProvider()
         {
@@ -77,34 +76,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             get
             {
-                var predefinedTypes = new List<List<string>>
-                {
-                    new List<string>()
-                    { "int", "Int32", "System.Int32" },
-                    new List<string>()
-                    { "float", "Single", "System.Single" },
-                    new List<string>()
-                    { "uint", "UInt32", "System.UInt32" },
-                    new List<string>()
-                    { "bool", "Boolean", "System.Boolean"},
-                    new List<string>()
-                    { "string", "String", "System.String"},
-                    new List<string>()
-                    { "object", "Object", "System.Object"},
-                };
-
+                var predefinedTypes = new List<string>() { "string", "String", "System.String" };
                 var arraySuffixes = new[] { "", "[]", "[,]" };
 
-                foreach (var group in predefinedTypes)
+                foreach (var type1 in predefinedTypes)
                 {
-                    foreach (var type1 in group)
+                    foreach (var type2 in predefinedTypes)
                     {
-                        foreach (var type2 in group)
+                        foreach (var suffix in arraySuffixes)
                         {
-                            foreach (var suffix in arraySuffixes)
-                            {
-                                yield return new List<object>() { type1 + suffix, type2 + suffix };
-                            }
+                            yield return new List<object>() { type1 + suffix, type2 + suffix };
                         }
                     }
                 }

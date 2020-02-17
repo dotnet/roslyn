@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using System.Linq;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover>
     {
         public async Task<Hover> HandleRequestAsync(Solution solution, TextDocumentPositionParams request,
-            ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false)
+            ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
             if (document == null)
@@ -23,16 +25,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var quickInfoService = document.Project.LanguageServices.GetService<QuickInfoService>();
-            var info = await quickInfoService.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(keepThreadContext);
+            var info = await quickInfoService.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (info == null)
             {
                 return null;
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(keepThreadContext);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new Hover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),

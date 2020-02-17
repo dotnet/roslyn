@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -211,6 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public override SyntaxKind VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
+                if (node.Right is RefExpressionSyntax)
+                    return default;
+
                 if (_assignmentTargetOpt != null)
                 {
                     if (!SyntaxFactory.AreEquivalent(node.Left, _assignmentTargetOpt))
@@ -227,14 +232,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             }
 
             public override SyntaxKind VisitExpressionStatement(ExpressionStatementSyntax node)
-            {
-                return Visit(node.Expression);
-            }
+                => Visit(node.Expression);
 
             public override SyntaxKind VisitReturnStatement(ReturnStatementSyntax node)
             {
-                // A "return" statement's expression will be placed in the switch arm expression.
-                return node.Expression is null ? default : SyntaxKind.ReturnStatement;
+                // A "return" statement's expression will be placed in the switch arm expression. We
+                // also can't convert a switch statement with ref-returns to a switch-expression
+                // (currently). Until the language supports ref-switch-expressions, we just disable
+                // things.
+                return node.Expression is null || node.Expression is RefExpressionSyntax
+                    ? default
+                    : SyntaxKind.ReturnStatement;
             }
 
             public override SyntaxKind VisitThrowStatement(ThrowStatementSyntax node)

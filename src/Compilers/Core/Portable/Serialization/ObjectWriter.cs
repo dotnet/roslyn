@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -17,6 +19,8 @@ namespace Roslyn.Utilities
     using System.Threading.Tasks;
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
+#elif CODE_STYLE
+    using Resources = CodeStyleResources;
 #else
     using Resources = WorkspacesResources;
 #endif
@@ -69,16 +73,18 @@ namespace Roslyn.Utilities
         /// Creates a new instance of a <see cref="ObjectWriter"/>.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public ObjectWriter(
             Stream stream,
+            bool leaveOpen = false,
             CancellationToken cancellationToken = default)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
-            _writer = new BinaryWriter(stream, Encoding.UTF8);
+            _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen);
             _objectReferenceMap = new WriterReferenceMap(valueEquality: false);
             _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
             _cancellationToken = cancellationToken;
@@ -98,6 +104,7 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
+            _writer.Dispose();
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
             _recursionDepth = 0;
@@ -164,7 +171,7 @@ namespace Roslyn.Utilities
             if (typeInfo.IsPrimitive)
             {
                 // Note: int, double, bool, char, have been chosen to go first as they're they
-                // common values of literals in code, and so would be hte likely hits if we do
+                // common values of literals in code, and so would be the likely hits if we do
                 // have a primitive type we're serializing out.
                 if (value.GetType() == typeof(int))
                 {

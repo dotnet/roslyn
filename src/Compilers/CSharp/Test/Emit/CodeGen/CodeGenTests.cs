@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -9817,7 +9819,7 @@ class MyClass
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/metadata-tools/issues/30")]
         [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         [WorkItem(538246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538246"), WorkItem(543655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543655")]
         public void FloatDoubleInfinity()
@@ -10673,7 +10675,8 @@ public class MyClass {
         [WorkItem(529827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529827")]
         [WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")]
         [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
-        [Fact]
+        [WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/coreclr/issues/22046")]
         public void DecimalLiteral_BreakingChange()
         {
             string source =
@@ -11339,7 +11342,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/runtime/issues/1611")]
         [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
         [WorkItem(34198, "https://github.com/dotnet/roslyn/issues/34198")]
         public void DecimalBinaryOp_03()
@@ -12902,7 +12905,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)-4e30f").WithArguments("-4E+30", "decimal"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/metadata-tools/issues/30")]
         [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void Bug14064()
         {

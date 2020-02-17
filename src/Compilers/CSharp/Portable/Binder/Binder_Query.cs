@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -693,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeQueryUnboundLambda(node, new QueryUnboundLambdaState(this, qvm, parameters, bodyFactory));
         }
 
-        private UnboundLambda MakeQueryUnboundLambda(CSharpSyntaxNode node, QueryUnboundLambdaState state)
+        private static UnboundLambda MakeQueryUnboundLambda(CSharpSyntaxNode node, QueryUnboundLambdaState state)
         {
             Debug.Assert(node is ExpressionSyntax || LambdaUtilities.IsQueryPairLambda(node));
             var lambda = new UnboundLambda(node, state, hasErrors: false) { WasCompilerGenerated = true };
