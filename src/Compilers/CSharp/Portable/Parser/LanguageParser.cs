@@ -6377,6 +6377,8 @@ done:;
         /// </remarks>
         private StatementSyntax ParseStatementNoDeclaration(bool allowAnyExpression)
         {
+            StatementSyntax result;
+
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.FixedKeyword:
@@ -6416,11 +6418,9 @@ done:;
                 case SyntaxKind.ThrowKeyword:
                     return this.ParseThrowStatement();
                 case SyntaxKind.UnsafeKeyword:
-                    // Checking for brace to disambiguate between unsafe statement and unsafe local function
-                    if (this.IsPossibleUnsafeStatement())
-                    {
-                        return this.ParseUnsafeStatement();
-                    }
+                    result = TryParseStatementStartingWithUnsafe();
+                    if (result != null)
+                        return result;
                     break;
                 case SyntaxKind.UsingKeyword:
                     return PeekToken(1).Kind == SyntaxKind.OpenParenToken ? this.ParseUsingStatement() : this.ParseLocalDeclarationStatement();
@@ -6431,37 +6431,9 @@ done:;
                 case SyntaxKind.SemicolonToken:
                     return _syntaxFactory.EmptyStatement(this.EatToken());
                 case SyntaxKind.IdentifierToken:
-                    if (isPossibleAwaitForEach())
-                    {
-                        return this.ParseForEachStatement(parseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
-                    }
-                    else if (isPossibleAwaitUsing())
-                    {
-                        if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
-                        {
-                            return this.ParseUsingStatement(parseAwaitKeyword(MessageID.IDS_FeatureAsyncUsing));
-                        }
-                        else
-                        {
-                            return this.ParseLocalDeclarationStatement(parseAwaitKeyword(MessageID.None));
-                        }
-                    }
-                    else if (this.IsPossibleLabeledStatement())
-                    {
-                        return this.ParseLabeledStatement();
-                    }
-                    else if (this.IsPossibleYieldStatement())
-                    {
-                        return this.ParseYieldStatement();
-                    }
-                    else if (this.IsPossibleAwaitExpressionStatement())
-                    {
-                        return this.ParseExpressionStatement();
-                    }
-                    else if (this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: allowAnyExpression))
-                    {
-                        return this.ParseExpressionStatement(this.ParseQueryExpression(0));
-                    }
+                    result = TryParseStatementStartingWithIdentifier(allowAnyExpression);
+                    if (result != null)
+                        return result;
                     break;
             }
 
@@ -6473,6 +6445,43 @@ done:;
             {
                 return this.ParseExpressionStatement();
             }
+        }
+
+        private StatementSyntax TryParseStatementStartingWithIdentifier(bool allowAnyExpression)
+        {
+            if (isPossibleAwaitForEach())
+            {
+                return this.ParseForEachStatement(parseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
+            }
+            else if (isPossibleAwaitUsing())
+            {
+                if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+                {
+                    return this.ParseUsingStatement(parseAwaitKeyword(MessageID.IDS_FeatureAsyncUsing));
+                }
+                else
+                {
+                    return this.ParseLocalDeclarationStatement(parseAwaitKeyword(MessageID.None));
+                }
+            }
+            else if (this.IsPossibleLabeledStatement())
+            {
+                return this.ParseLabeledStatement();
+            }
+            else if (this.IsPossibleYieldStatement())
+            {
+                return this.ParseYieldStatement();
+            }
+            else if (this.IsPossibleAwaitExpressionStatement())
+            {
+                return this.ParseExpressionStatement();
+            }
+            else if (this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: allowAnyExpression))
+            {
+                return this.ParseExpressionStatement(this.ParseQueryExpression(0));
+            }
+
+            return null;
 
             bool isPossibleAwaitForEach()
             {
@@ -6493,6 +6502,10 @@ done:;
                 return feature != MessageID.None ? CheckFeatureAvailability(awaitToken, feature) : awaitToken;
             }
         }
+
+        private UnsafeStatementSyntax TryParseStatementStartingWithUnsafe()
+            // Checking for brace to disambiguate between unsafe statement and unsafe local function
+            => this.IsPossibleUnsafeStatement() ? this.ParseUnsafeStatement() : null;
 
         private bool IsPossibleLabeledStatement()
         {
