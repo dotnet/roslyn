@@ -6278,6 +6278,7 @@ done:;
 
         private StatementSyntax ParseStatementCore()
         {
+            ResetPoint resetPointBeforeStatement = this.GetResetPoint();
             try
             {
                 _recursionDepth++;
@@ -6302,19 +6303,6 @@ done:;
                 // it as either a declaration or as an "await X();" statement that is in a non-async
                 // method. 
 
-                return TryParsePossibleDeclarationOrBadAwaitStatement();
-            }
-            finally
-            {
-                _recursionDepth--;
-            }
-        }
-
-        private StatementSyntax TryParsePossibleDeclarationOrBadAwaitStatement()
-        {
-            ResetPoint resetPointBeforeStatement = this.GetResetPoint();
-            try
-            {
                 // Precondition: We have already attempted to parse the statement as a non-declaration and failed.
                 //
                 // That means that we are in one of the following cases:
@@ -6334,7 +6322,7 @@ done:;
                 //    semantic code will error out that this isn't legal.
 
                 bool beginsWithAwait = this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
-                StatementSyntax result = ParseLocalDeclarationStatement();
+                result = ParseLocalDeclarationStatement();
 
                 // Case (1)
                 if (result == null)
@@ -6366,6 +6354,7 @@ done:;
             }
             finally
             {
+                _recursionDepth--;
                 this.Release(ref resetPointBeforeStatement);
             }
         }
