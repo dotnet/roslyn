@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
@@ -28,19 +29,20 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         /// <param name="assert">The value.</param>
         /// <param name="message">The message to report if the value is not <see langword="true"/>, or <see langword="null"/> to use a default message.</param>
-        void True(bool assert, string? message = null);
+        void True([DoesNotReturnIf(false)] bool assert, string? message = null);
 
         /// <summary>
         /// Verify that a value is <see langword="false"/>.
         /// </summary>
         /// <param name="assert">The value.</param>
         /// <param name="message">The message to report if the value is not <see langword="false"/>, or <see langword="null"/> to use a default message.</param>
-        void False(bool assert, string? message = null);
+        void False([DoesNotReturnIf(true)] bool assert, string? message = null);
 
         /// <summary>
         /// Called to indicate validation has failed.
         /// </summary>
         /// <param name="message">The failure message to report, or <see langword="null"/> to use a default message.</param>
+        [DoesNotReturn]
         void Fail(string? message = null);
 
         /// <summary>
