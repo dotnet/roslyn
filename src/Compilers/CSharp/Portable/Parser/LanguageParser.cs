@@ -6449,7 +6449,8 @@ done:;
 
         private StatementSyntax TryParseStatementStartingWithIdentifier(bool allowAnyExpression)
         {
-            if (isPossibleAwaitForEach())
+            if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
+                this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword)
             {
                 return this.ParseForEachStatement(ParseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
             }
@@ -6479,12 +6480,6 @@ done:;
             }
 
             return null;
-
-            bool isPossibleAwaitForEach()
-            {
-                return this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
-                    this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword;
-            }
         }
 
         private StatementSyntax ParseStatementStartingWithUsing()
