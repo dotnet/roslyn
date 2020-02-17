@@ -20,6 +20,12 @@ namespace Microsoft.CodeAnalysis.Testing
         private readonly bool _suppressMessage;
         private readonly string? _message;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DiagnosticResult"/> structure with the specified
+        /// <paramref name="id"/> and <paramref name="severity"/>.
+        /// </summary>
+        /// <param name="id">The diagnostic ID.</param>
+        /// <param name="severity">The diagnostic severity.</param>
         public DiagnosticResult(string id, DiagnosticSeverity severity)
             : this()
         {
@@ -27,6 +33,12 @@ namespace Microsoft.CodeAnalysis.Testing
             Severity = severity;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DiagnosticResult"/> structure with the <see cref="Id"/>,
+        /// <see cref="Severity"/>, and <see cref="MessageFormat"/> taken from the specified
+        /// <paramref name="descriptor"/>.
+        /// </summary>
+        /// <param name="descriptor">The diagnostic descriptor.</param>
         public DiagnosticResult(DiagnosticDescriptor descriptor)
             : this()
         {
@@ -55,8 +67,21 @@ namespace Microsoft.CodeAnalysis.Testing
             MessageArguments = messageArguments;
         }
 
+        /// <summary>
+        /// Gets the locations where the expected diagnostic is reported.
+        /// <list type="bullet">
+        /// <item><description>An empty array is returned for no-location diagnostics.</description></item>
+        /// <item><description>The first location corresponds to <see cref="Diagnostic.Location"/>.</description></item>
+        /// <item><description>Remaining locations correspond to <see cref="Diagnostic.AdditionalLocations"/>. These
+        /// locations are not validated if the diagnostic has the
+        /// <see cref="DiagnosticOptions.IgnoreAdditionalLocations"/> flag set.</description></item>
+        /// </list>
+        /// </summary>
         public ImmutableArray<DiagnosticLocation> Spans => _spans.IsDefault ? ImmutableArray<DiagnosticLocation>.Empty : _spans;
 
+        /// <summary>
+        /// Gets the expected severity of the diagnostic.
+        /// </summary>
         public DiagnosticSeverity Severity { get; }
 
         /// <summary>
@@ -65,8 +90,18 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         public DiagnosticOptions Options { get; }
 
+        /// <summary>
+        /// Gets the expected ID of the diagnostic.
+        /// </summary>
         public string Id { get; }
 
+        /// <summary>
+        /// Gets the expected message of the diagnostic, if any.
+        /// </summary>
+        /// <value>
+        /// The expected message for the diagnostic; otherwise, <see langword="null"/> if the message should not be
+        /// validated.
+        /// </value>
         public string? Message
         {
             get
@@ -97,18 +132,48 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
+        /// <summary>
+        /// Gets the expected message format for the diagnostic.
+        /// </summary>
         public LocalizableString? MessageFormat { get; }
 
+        /// <summary>
+        /// Gets the expected message arguments for the diagnostic. These arguments are used for formatting
+        /// <see cref="MessageFormat"/> when <see cref="Message"/> has not be set directly.
+        /// </summary>
         public object?[]? MessageArguments { get; }
 
+        /// <summary>
+        /// Gets a value indicating whether the diagnostic is expected to have a location.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if the diagnostic is expected to have a location; otherwise, <see langword="false"/>
+        /// if a no-locatino diagnostic is expected.
+        /// </value>
         public bool HasLocation => !Spans.IsEmpty;
 
+        /// <summary>
+        /// Creates a <see cref="DiagnosticResult"/> for a compiler error with the specified ID.
+        /// </summary>
+        /// <param name="identifier">The compiler error ID.</param>
+        /// <returns>A <see cref="DiagnosticResult"/> for a compiler error with the specified ID.</returns>
         public static DiagnosticResult CompilerError(string identifier)
             => new DiagnosticResult(identifier, DiagnosticSeverity.Error);
 
+        /// <summary>
+        /// Creates a <see cref="DiagnosticResult"/> for a compiler warning with the specified ID.
+        /// </summary>
+        /// <param name="identifier">The compiler warning ID.</param>
+        /// <returns>A <see cref="DiagnosticResult"/> for a compiler warning with the specified ID.</returns>
         public static DiagnosticResult CompilerWarning(string identifier)
             => new DiagnosticResult(identifier, DiagnosticSeverity.Warning);
 
+        /// <summary>
+        /// Transforms the current <see cref="DiagnosticResult"/> to have the specified <see cref="Severity"/>.
+        /// </summary>
+        /// <param name="severity">The expected diagnostic severity.</param>
+        /// <returns>A new <see cref="DiagnosticResult"/> copied from the current instance with the specified
+        /// <paramref name="severity"/> applied.</returns>
         public DiagnosticResult WithSeverity(DiagnosticSeverity severity)
         {
             return new DiagnosticResult(

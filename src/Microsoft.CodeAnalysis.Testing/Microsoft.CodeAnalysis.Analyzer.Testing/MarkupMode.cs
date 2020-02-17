@@ -2,6 +2,10 @@
 
 namespace Microsoft.CodeAnalysis.Testing
 {
+    /// <summary>
+    /// Indicates the manner in which markup syntax is treated within test inputs and outputs.
+    /// </summary>
+    /// <seealso cref="SolutionState.MarkupHandling"/>
     public enum MarkupMode
     {
         /// <summary>

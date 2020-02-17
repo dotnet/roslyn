@@ -39,14 +39,29 @@ namespace Microsoft.CodeAnalysis.Testing
                 LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
+        /// <summary>
+        /// Gets the default verifier for the test.
+        /// </summary>
         protected static TVerifier Verify { get; } = new TVerifier();
 
+        /// <summary>
+        /// Gets the prefix to apply to source files added without an explicit name.
+        /// </summary>
         protected virtual string DefaultFilePathPrefix { get; } = "Test";
 
+        /// <summary>
+        /// Gets the name of the default project created for testing.
+        /// </summary>
         protected virtual string DefaultTestProjectName { get; } = "TestProject";
 
+        /// <summary>
+        /// Gets the default full name of the first source file added for a test.
+        /// </summary>
         protected virtual string DefaultFilePath => DefaultFilePathPrefix + 0 + "." + DefaultFileExt;
 
+        /// <summary>
+        /// Gets the default file extension to use for files added to the test without an explicit name.
+        /// </summary>
         protected abstract string DefaultFileExt { get; }
 
         protected AnalyzerTest()
@@ -130,6 +145,11 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         public List<Func<Solution, ProjectId, Solution>> SolutionTransforms { get; } = new List<Func<Solution, ProjectId, Solution>>();
 
+        /// <summary>
+        /// Runs the test.
+        /// </summary>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the operation will observe.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public virtual async Task RunAsync(CancellationToken cancellationToken = default)
         {
             Verify.NotEmpty($"{nameof(TestState)}.{nameof(SolutionState.Sources)}", TestState.Sources);
