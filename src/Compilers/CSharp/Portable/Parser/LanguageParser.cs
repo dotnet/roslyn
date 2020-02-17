@@ -2095,8 +2095,9 @@ tryAgain:
                     var saveTerm = _termState;
                     _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
 
-                    // Any expression is allowed, not just expression statements:
-                    var statement = this.ParseStatementNoDeclaration(allowAnyExpression: true);
+                    // We don't allow local declaration statements or functions at the top level.  We want
+                    // to fall out below and parse them instead as fields or methods.
+                    var statement = this.ParseStatementNoDeclaration(isGlobalScriptLevel: true);
 
                     _termState = saveTerm;
                     if (statement != null)
@@ -6291,7 +6292,7 @@ done:;
                 // expression then we only allow legal expression statements. (That is, "new C();",
                 // "C();", "x = y;" and so on.)
 
-                StatementSyntax result = ParseStatementNoDeclaration(allowAnyExpression: false);
+                StatementSyntax result = ParseStatementNoDeclaration(isGlobalScriptLevel: false);
                 if (result != null)
                 {
                     return result;
@@ -6358,7 +6359,7 @@ done:;
 
                 this.Reset(ref resetPointBeforeStatement);
                 IsInAsync = true;
-                result = ParseStatementNoDeclaration(allowAnyExpression: false);
+                result = ParseStatementNoDeclaration(isGlobalScriptLevel: false);
                 IsInAsync = false;
 
                 return result;
@@ -6375,7 +6376,11 @@ done:;
         /// <remarks>
         /// Variable declarations in global code are parsed as field declarations so we need to fallback if we encounter a declaration statement.
         /// </remarks>
-        private StatementSyntax ParseStatementNoDeclaration(bool allowAnyExpression)
+        /// <param name="isGlobalScriptLevel">If we're being called while parsing a C# script from
+        /// the top-level.  At the top level, we allow most statements *except* for
+        /// local-decls/local-funcs.  Those will instead be parsed out as
+        /// script-fields/methods.</param>
+        private StatementSyntax ParseStatementNoDeclaration(bool isGlobalScriptLevel)
         {
             StatementSyntax result;
 
@@ -6431,13 +6436,13 @@ done:;
                 case SyntaxKind.SemicolonToken:
                     return _syntaxFactory.EmptyStatement(this.EatToken());
                 case SyntaxKind.IdentifierToken:
-                    result = TryParseStatementStartingWithIdentifier(allowAnyExpression);
+                    result = TryParseStatementStartingWithIdentifier(isGlobalScriptLevel);
                     if (result != null)
                         return result;
                     break;
             }
 
-            if (this.IsPossibleLocalDeclarationStatement(allowAnyExpression))
+            if (this.IsPossibleLocalDeclarationStatement(isGlobalScriptLevel))
             {
                 return null;
             }
@@ -6447,7 +6452,7 @@ done:;
             }
         }
 
-        private StatementSyntax TryParseStatementStartingWithIdentifier(bool allowAnyExpression)
+        private StatementSyntax TryParseStatementStartingWithIdentifier(bool isGlobalScriptLevel)
         {
             if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
                 this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword)
@@ -6474,7 +6479,7 @@ done:;
             {
                 return this.ParseExpressionStatement();
             }
-            else if (this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: allowAnyExpression))
+            else if (this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: isGlobalScriptLevel))
             {
                 return this.ParseExpressionStatement(this.ParseQueryExpression(0));
             }
@@ -6514,7 +6519,7 @@ done:;
             return this.CurrentToken.ContextualKind == SyntaxKind.YieldKeyword && (this.PeekToken(1).Kind == SyntaxKind.ReturnKeyword || this.PeekToken(1).Kind == SyntaxKind.BreakKeyword);
         }
 
-        private bool IsPossibleLocalDeclarationStatement(bool allowAnyExpression)
+        private bool IsPossibleLocalDeclarationStatement(bool isGlobalScriptLevel)
         {
             // This method decides whether to parse a statement as a
             // declaration or as an expression statement. In the old
@@ -6625,7 +6630,7 @@ done:;
                 }
 
                 // T? and T* might start an expression, we need to parse further to disambiguate:
-                if (allowAnyExpression)
+                if (isGlobalScriptLevel)
                 {
                     if (st == ScanTypeFlags.PointerOrMultiplication)
                     {
