@@ -6297,14 +6297,68 @@ done:;
                     return (StatementSyntax)this.EatNode();
                 }
 
-                // First, try to parse as a non-declaration statement. If the statement is a single
-                // expression then we only allow legal expression statements. (That is, "new C();",
-                // "C();", "x = y;" and so on.)
+                StatementSyntax result;
 
-                StatementSyntax result = ParseStatementNoDeclaration(isGlobalScriptLevel: false);
-                if (result != null)
+                // Main switch to handle processing almost any statement.
+                switch (this.CurrentToken.Kind)
                 {
-                    return result;
+                    case SyntaxKind.FixedKeyword:
+                        return this.ParseFixedStatement();
+                    case SyntaxKind.BreakKeyword:
+                        return this.ParseBreakStatement();
+                    case SyntaxKind.ContinueKeyword:
+                        return this.ParseContinueStatement();
+                    case SyntaxKind.TryKeyword:
+                    case SyntaxKind.CatchKeyword:
+                    case SyntaxKind.FinallyKeyword:
+                        return this.ParseTryStatement();
+                    case SyntaxKind.CheckedKeyword:
+                    case SyntaxKind.UncheckedKeyword:
+                        return this.ParseCheckedStatement();
+                    case SyntaxKind.DoKeyword:
+                        return this.ParseDoStatement();
+                    case SyntaxKind.ForKeyword:
+                        return this.ParseForOrForEachStatement();
+                    case SyntaxKind.ForEachKeyword:
+                        return this.ParseForEachStatement(awaitTokenOpt: default);
+                    case SyntaxKind.GotoKeyword:
+                        return this.ParseGotoStatement();
+                    case SyntaxKind.IfKeyword:
+                        return this.ParseIfStatement();
+                    case SyntaxKind.ElseKeyword:
+                        // Including 'else' keyword to handle 'else without if' error cases 
+                        return this.ParseMisplacedElse();
+                    case SyntaxKind.LockKeyword:
+                        return this.ParseLockStatement();
+                    case SyntaxKind.ReturnKeyword:
+                        return this.ParseReturnStatement();
+                    case SyntaxKind.SwitchKeyword:
+                        return this.ParseSwitchStatement();
+                    case SyntaxKind.ThrowKeyword:
+                        return this.ParseThrowStatement();
+                    case SyntaxKind.UnsafeKeyword:
+                        result = TryParseStatementStartingWithUnsafe();
+                        if (result != null)
+                            return result;
+                        break;
+                    case SyntaxKind.UsingKeyword:
+                        return ParseStatementStartingWithUsing();
+                    case SyntaxKind.WhileKeyword:
+                        return this.ParseWhileStatement();
+                    case SyntaxKind.OpenBraceToken:
+                        return this.ParseBlock();
+                    case SyntaxKind.SemicolonToken:
+                        return _syntaxFactory.EmptyStatement(this.EatToken());
+                    case SyntaxKind.IdentifierToken:
+                        result = TryParseStatementStartingWithIdentifier(isGlobalScriptLevel);
+                        if (result != null)
+                            return result;
+                        break;
+                }
+
+                if (!this.IsPossibleLocalDeclarationStatement(isGlobalScriptLevel))
+                {
+                    return this.ParseExpressionStatement();
                 }
 
                 if (isGlobalScriptLevel)
@@ -6370,86 +6424,6 @@ done:;
                 _recursionDepth--;
                 this.Release(ref resetPointBeforeStatement);
             }
-        }
-
-        /// <summary>
-        /// Parses any statement but a declaration statement. Returns null if the lookahead looks like a declaration.
-        /// </summary>
-        /// <remarks>
-        /// Variable declarations in global code are parsed as field declarations so we need to fallback if we encounter a declaration statement.
-        /// </remarks>
-        /// <param name="isGlobalScriptLevel">If we're being called while parsing a C# script from
-        /// the top-level.  At the top level, we allow most statements *except* for
-        /// local-decls/local-funcs.  Those will instead be parsed out as
-        /// script-fields/methods.</param>
-        private StatementSyntax ParseStatementNoDeclaration(bool isGlobalScriptLevel)
-        {
-            StatementSyntax result;
-
-            switch (this.CurrentToken.Kind)
-            {
-                case SyntaxKind.FixedKeyword:
-                    return this.ParseFixedStatement();
-                case SyntaxKind.BreakKeyword:
-                    return this.ParseBreakStatement();
-                case SyntaxKind.ContinueKeyword:
-                    return this.ParseContinueStatement();
-                case SyntaxKind.TryKeyword:
-                case SyntaxKind.CatchKeyword:
-                case SyntaxKind.FinallyKeyword:
-                    return this.ParseTryStatement();
-                case SyntaxKind.CheckedKeyword:
-                case SyntaxKind.UncheckedKeyword:
-                    return this.ParseCheckedStatement();
-                case SyntaxKind.ConstKeyword:
-                    return null;
-                case SyntaxKind.DoKeyword:
-                    return this.ParseDoStatement();
-                case SyntaxKind.ForKeyword:
-                    return this.ParseForOrForEachStatement();
-                case SyntaxKind.ForEachKeyword:
-                    return this.ParseForEachStatement(awaitTokenOpt: default);
-                case SyntaxKind.GotoKeyword:
-                    return this.ParseGotoStatement();
-                case SyntaxKind.IfKeyword:
-                    return this.ParseIfStatement();
-                case SyntaxKind.ElseKeyword:
-                    // Including 'else' keyword to handle 'else without if' error cases 
-                    return this.ParseMisplacedElse();
-                case SyntaxKind.LockKeyword:
-                    return this.ParseLockStatement();
-                case SyntaxKind.ReturnKeyword:
-                    return this.ParseReturnStatement();
-                case SyntaxKind.SwitchKeyword:
-                    return this.ParseSwitchStatement();
-                case SyntaxKind.ThrowKeyword:
-                    return this.ParseThrowStatement();
-                case SyntaxKind.UnsafeKeyword:
-                    result = TryParseStatementStartingWithUnsafe();
-                    if (result != null)
-                        return result;
-                    break;
-                case SyntaxKind.UsingKeyword:
-                    return ParseStatementStartingWithUsing();
-                case SyntaxKind.WhileKeyword:
-                    return this.ParseWhileStatement();
-                case SyntaxKind.OpenBraceToken:
-                    return this.ParseBlock();
-                case SyntaxKind.SemicolonToken:
-                    return _syntaxFactory.EmptyStatement(this.EatToken());
-                case SyntaxKind.IdentifierToken:
-                    result = TryParseStatementStartingWithIdentifier(isGlobalScriptLevel);
-                    if (result != null)
-                        return result;
-                    break;
-            }
-
-            if (!this.IsPossibleLocalDeclarationStatement(isGlobalScriptLevel))
-            {
-                return this.ParseExpressionStatement();
-            }
-
-            return null;
         }
 
         private StatementSyntax TryParseStatementStartingWithIdentifier(bool isGlobalScriptLevel)
