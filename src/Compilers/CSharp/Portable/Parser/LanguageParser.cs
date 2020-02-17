@@ -6444,14 +6444,12 @@ done:;
                     break;
             }
 
-            if (this.IsPossibleLocalDeclarationStatement(isGlobalScriptLevel))
-            {
-                return null;
-            }
-            else
+            if (!this.IsPossibleLocalDeclarationStatement(isGlobalScriptLevel))
             {
                 return this.ParseExpressionStatement();
             }
+
+            return null;
         }
 
         private StatementSyntax TryParseStatementStartingWithIdentifier(bool isGlobalScriptLevel)
