@@ -166,38 +166,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         {
             var input = @"class Program
 {
-    System.Action<int> M(int i, int j)
+    System.Func<int> M(int i, int j)
     {
         [|switch|] (i)
         {
             // 1
             default: // 2
-                return {|CS1593:() =>
+                return () =>
                 {
                     [|switch|] (j)
                     {
                         default:
                             return 3;
                     }
-                }|};
+                };
         }
     }
 }";
             var expected = @"class Program
 {
-    System.Action<int> M(int i, int j)
+    System.Func<int> M(int i, int j)
     {
         return i switch
         {
             // 1
             // 2
-            _ => {|CS1593:() =>
+            _ => () =>
                               {
                                   return j switch
                                   {
                                       _ => 3,
                                   };
-                              }|}
+                              }
 
             ,
         };
