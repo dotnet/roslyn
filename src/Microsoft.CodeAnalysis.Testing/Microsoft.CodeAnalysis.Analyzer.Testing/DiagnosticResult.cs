@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
 
@@ -41,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Testing
             bool suppressMessage,
             string? message,
             DiagnosticSeverity severity,
+            DiagnosticOptions options,
             string id,
             LocalizableString? messageFormat,
             object?[]? messageArguments)
@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Testing
             _suppressMessage = suppressMessage;
             _message = message;
             Severity = severity;
+            Options = options;
             Id = id;
             MessageFormat = messageFormat;
             MessageArguments = messageArguments;
@@ -57,6 +58,12 @@ namespace Microsoft.CodeAnalysis.Testing
         public ImmutableArray<DiagnosticLocation> Spans => _spans.IsDefault ? ImmutableArray<DiagnosticLocation>.Empty : _spans;
 
         public DiagnosticSeverity Severity { get; }
+
+        /// <summary>
+        /// Gets the options to consider during validation of the expected diagnostic. The default value is
+        /// <see cref="DiagnosticOptions.None"/>.
+        /// </summary>
+        public DiagnosticOptions Options { get; }
 
         public string Id { get; }
 
@@ -109,6 +116,26 @@ namespace Microsoft.CodeAnalysis.Testing
                 suppressMessage: _suppressMessage,
                 message: _message,
                 severity: severity,
+                options: Options,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
+        }
+
+        /// <summary>
+        /// Transforms the current <see cref="DiagnosticResult"/> to have the specified <see cref="Options"/>.
+        /// </summary>
+        /// <param name="options">The options to consider during validation of the expected diagnostic.</param>
+        /// <returns>A new <see cref="DiagnosticResult"/> copied from the current instance with the specified
+        /// <paramref name="options"/> applied.</returns>
+        public DiagnosticResult WithOptions(DiagnosticOptions options)
+        {
+            return new DiagnosticResult(
+                spans: _spans,
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                options: options,
                 id: Id,
                 messageFormat: MessageFormat,
                 messageArguments: MessageArguments);
@@ -121,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 suppressMessage: _suppressMessage,
                 message: _message,
                 severity: Severity,
+                options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
                 messageArguments: arguments);
@@ -133,6 +161,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 suppressMessage: message is null,
                 message: message,
                 severity: Severity,
+                options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
                 messageArguments: MessageArguments);
@@ -145,6 +174,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 suppressMessage: _suppressMessage,
                 message: _message,
                 severity: Severity,
+                options: Options,
                 id: Id,
                 messageFormat: messageFormat,
                 messageArguments: MessageArguments);
@@ -157,6 +187,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 suppressMessage: _suppressMessage,
                 message: _message,
                 severity: Severity,
+                options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
                 messageArguments: MessageArguments);
@@ -210,6 +241,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 suppressMessage: _suppressMessage,
                 message: _message,
                 severity: Severity,
+                options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
                 messageArguments: MessageArguments);
@@ -237,6 +269,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 suppressMessage: _suppressMessage,
                 message: _message,
                 severity: Severity,
+                options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
                 messageArguments: MessageArguments);
@@ -249,6 +282,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 suppressMessage: _suppressMessage,
                 message: _message,
                 severity: Severity,
+                options: Options,
                 id: Id,
                 messageFormat: MessageFormat,
                 messageArguments: MessageArguments);
